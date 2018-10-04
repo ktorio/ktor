@@ -18,11 +18,10 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     abstract val upgrade: ServletUpgrade
 
-    private val servletScope = SupervisedScope("servlet", CoroutineScope(EmptyCoroutineContext))
-    override val coroutineContext: CoroutineContext get() = servletScope.coroutineContext
+    override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
 
     override fun destroy() {
-        servletScope.cancel()
+        coroutineContext.cancel()
         // Note: container will not call service again, so asyncDispatcher cannot get initialized if it was not yet
         if (asyncDispatchers.isInitialized()) asyncDispatchers.value.destroy()
     }

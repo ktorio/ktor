@@ -14,7 +14,7 @@ import java.nio.channels.*
 
 internal class ConnectionPipeline(
     dispatcher: CoroutineDispatcher,
-    keepAliveTime: Int,
+    keepAliveTime: Long,
     pipelineMaxSize: Int,
     socket: Socket,
     tasks: Channel<RequestTask>
@@ -35,7 +35,7 @@ internal class ConnectionPipeline(
                     requestLimit.enter()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task.response, task.request))
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.cancel(cause)
                     throw cause
                 }
 
@@ -88,7 +88,7 @@ internal class ConnectionPipeline(
                 } catch (cause: ClosedChannelException) {
                     null
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.cancel(cause)
                     null
                 }
 

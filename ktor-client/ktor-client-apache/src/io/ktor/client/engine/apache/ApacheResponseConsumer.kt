@@ -75,7 +75,7 @@ internal class ApacheResponseConsumer(
             channel.writeRemaining()
         } catch (cause: Throwable) {
             channel.close(cause)
-            parent.completeExceptionally(cause)
+            parent.cancel(cause)
         } finally {
             channel.close()
             parent.complete(Unit)

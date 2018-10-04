@@ -111,7 +111,7 @@ internal abstract class NIOSocketImpl<out S>(
 
             val combined = combine(combine(e1, e2), e3)
 
-            if (combined == null) socketContext.complete(Unit) else socketContext.completeExceptionally(combined)
+            if (combined == null) socketContext.complete(Unit) else socketContext.cancel(combined)
         }
     }
 

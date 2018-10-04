@@ -19,9 +19,9 @@ import kotlin.coroutines.*
 class HttpServer(val rootServerJob: Job, val acceptJob: Job, val serverSocket: Deferred<ServerSocket>)
 
 data class HttpServerSettings(
-        val host: String = "0.0.0.0",
-        val port: Int = 8080,
-        val connectionIdleTimeoutSeconds: Long = 45
+    val host: String = "0.0.0.0",
+    val port: Int = 8080,
+    val connectionIdleTimeoutSeconds: Long = 45
 )
 
 @Deprecated("Use httpServer with CoroutineScope receiver")
@@ -33,7 +33,12 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: Ht
 }
 
 @Deprecated("Use httpServer with CoroutineScope receiver")
-fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext?, handler: HttpRequestHandler): HttpServer {
+fun httpServer(
+    settings: HttpServerSettings,
+    parentJob: Job? = null,
+    callDispatcher: CoroutineContext?,
+    handler: HttpRequestHandler
+): HttpServer {
     if (callDispatcher != null) {
         throw UnsupportedOperationException()
     }
@@ -45,8 +50,10 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatc
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
-fun CoroutineScope.httpServer(settings: HttpServerSettings,
-                              handler: HttpRequestHandler): HttpServer {
+fun CoroutineScope.httpServer(
+    settings: HttpServerSettings,
+    handler: HttpRequestHandler
+): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch = CompletableDeferred<Unit>()
@@ -59,25 +66,29 @@ fun CoroutineScope.httpServer(settings: HttpServerSettings,
 
     val selector = ActorSelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
-            Clock.systemUTC(),
-            { TimeoutCancellationException("Connection IDLE") })
+        Clock.systemUTC(),
+        { TimeoutCancellationException("Connection IDLE") })
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
             socket.complete(server)
 
-            val connectionScope =
-                SupervisedScope("request", CoroutineScope(serverJob + KtorUncaughtExceptionHandler()))
+            val connectionScope = CoroutineScope(
+                coroutineContext +
+                    SupervisorJob(serverJob) +
+                    KtorUncaughtExceptionHandler() +
+                    CoroutineName("request")
+            )
 
             try {
                 while (true) {
                     val client: Socket = server.accept()
 
                     val clientJob = connectionScope.startConnectionPipeline(
-                            input = client.openReadChannel(),
-                            output = client.openWriteChannel(),
-                            timeout = timeout,
-                            handler = handler
+                        input = client.openReadChannel(),
+                        output = client.openWriteChannel(),
+                        timeout = timeout,
+                        handler = handler
                     )
 
                     clientJob.invokeOnCompletion {
@@ -89,13 +100,13 @@ fun CoroutineScope.httpServer(settings: HttpServerSettings,
             } finally {
                 server.close()
                 server.awaitClosed()
-                connectionScope.cancel()
+                connectionScope.coroutineContext.cancel()
             }
         }
     }
 
     acceptJob.invokeOnCompletion { t ->
-        t?.let { socket.completeExceptionally(it) }
+        t?.let { socket.cancel(it) }
         serverLatch.complete(Unit)
         timeout.process()
     }

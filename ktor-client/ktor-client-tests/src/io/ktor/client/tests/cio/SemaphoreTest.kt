@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.*
 import kotlin.test.*
 
 const val TEST_SIZE = 100
-const val FAIL_TIMEOUT = 100
+const val FAIL_TIMEOUT = 100L
 
 class SemaphoreTest {
 

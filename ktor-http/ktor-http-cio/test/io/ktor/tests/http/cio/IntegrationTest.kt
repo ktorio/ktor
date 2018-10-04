@@ -33,7 +33,7 @@ class IntegrationTest {
         }
 
         s.invokeOnCompletion { t ->
-            if (t != null) server.completeExceptionally(t)
+            if (t != null) server.cancel(t)
             else server.complete(s.getCompleted())
         }
 

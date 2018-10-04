@@ -52,7 +52,7 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.cancel(cause)
                     throw cause
                 }
             }
@@ -77,7 +77,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.response.completeExceptionally(cause)
+                task.response.cancel(cause)
                 throw cause
             }
         }
@@ -140,7 +140,7 @@ internal class Endpoint(
 
             response.complete(CIOHttpResponse(request, requestTime, body, rawResponse, pipelined = false))
         } catch (cause: Throwable) {
-            response.completeExceptionally(cause)
+            response.cancel(cause)
         }
     }
 

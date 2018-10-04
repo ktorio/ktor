@@ -55,8 +55,8 @@ private suspend fun CloseableHttpAsyncClient.sendRequest(
 
     val callback = object : FutureCallback<Unit> {
         override fun failed(exception: Exception) {
-            parent.completeExceptionally(exception)
-            if (completed.compareAndSet(false, true)) response.completeExceptionally(exception)
+            parent.cancel(exception)
+            if (completed.compareAndSet(false, true)) response.cancel(exception)
         }
 
         override fun completed(result: Unit) {}
@@ -70,7 +70,7 @@ private suspend fun CloseableHttpAsyncClient.sendRequest(
     val future = try {
         execute(request, consumer, callback)
     } catch (cause: Throwable) {
-        response.completeExceptionally(cause)
+        response.cancel(cause)
         throw cause
     }
 
