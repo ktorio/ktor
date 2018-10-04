@@ -103,7 +103,7 @@ internal class JettyHttpRequest(
         request.endBody()
     }.invokeOnCompletion { cause ->
         if (cause != null) {
-            executionContext.completeExceptionally(cause)
+            executionContext.cancel(cause)
         } else {
             executionContext.complete(Unit)
         }

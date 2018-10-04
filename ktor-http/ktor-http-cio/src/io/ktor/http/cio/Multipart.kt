@@ -225,7 +225,7 @@ fun CoroutineScope.parseMultipart(
             }
             parsePartBody(boundaryPrefixed, input, body, hh)
         } catch (t: Throwable) {
-            if (headers.completeExceptionally(t)) {
+            if (headers.cancel(t)) {
                 hh?.release()
             }
             body.close(t)

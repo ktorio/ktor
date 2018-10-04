@@ -110,7 +110,7 @@ class ServerSocketTest : CoroutineScope {
             } catch (e: CancelledKeyException) {
             } catch (t: Throwable) {
                 val e = IOException("server failed", t)
-                this@ServerSocketTest.serverSocket.completeExceptionally(e)
+                this@ServerSocketTest.serverSocket.cancel(e)
                 addFailure(e)
             }
         }

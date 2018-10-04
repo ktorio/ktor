@@ -178,7 +178,7 @@ fun CoroutineScope.startConnectionPipeline(
                     handler(request, requestBody, response, upgraded)
                 } catch (cause: Throwable) {
                     response.close(cause)
-                    upgraded?.completeExceptionally(cause)
+                    upgraded?.cancel(cause)
                 } finally {
                     response.close()
                     upgraded?.complete(false)

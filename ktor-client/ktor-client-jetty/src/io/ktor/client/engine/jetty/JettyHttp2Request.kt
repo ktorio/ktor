@@ -27,7 +27,7 @@ internal class JettyHttp2Request(private val stream: Stream) : Callback {
     }
 
     override fun failed(cause: Throwable) {
-        deferred.getAndSet(null)!!.completeExceptionally(cause)
+        deferred.getAndSet(null)!!.cancel(cause)
     }
 
     fun endBody() {

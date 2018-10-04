@@ -81,15 +81,15 @@ class TestApplicationEngine(
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, setup = { processRequest(setup) })
 
-        val scope = SupervisedScope("handleRequest", this)
-        val pipelineJob = scope.launch(configuration.dispatcher) {
+        val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
+        val pipelineJob = GlobalScope.launch(context) {
             pipeline.execute(call)
         }
 
         runBlocking(coroutineContext) {
             pipelineJob.join()
             call.response.flush()
-            scope.cancel()
+            context.cancel()
         }
         processResponse(call)
 
@@ -116,7 +116,7 @@ class TestApplicationEngine(
                 pipeline.execute(call)
                 pipelineExecuted.complete(Unit)
             } catch (cause: Throwable) {
-                pipelineExecuted.completeExceptionally(cause)
+                pipelineExecuted.cancel(cause)
             }
         }
         processResponse(call)
