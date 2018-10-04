@@ -57,7 +57,7 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
         }
     } catch (cause: Throwable) {
         channel.close(cause)
-        executionContext.completeExceptionally(cause)
+        executionContext.cancel(cause)
     } finally {
         channel.flush()
         chunkedJob?.channel?.close()

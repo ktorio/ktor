@@ -9,7 +9,6 @@ import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
 import org.junit.Test
-import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.system.*
 import kotlin.test.*
@@ -27,7 +26,7 @@ class TestApplicationEngineTest {
                 }
 
         val delayLog = arrayListOf<String>()
-        val delayTime = 10_000
+        val delayTime = 10_000L
 
         withTestApplication(
                 moduleFunction = {
@@ -42,13 +41,11 @@ class TestApplicationEngineTest {
                 configure = {
                     dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
                         override fun scheduleResumeAfterDelay(
-                                time: Long,
-                                unit: TimeUnit,
-                                continuation: CancellableContinuation<Unit>
+                            timeMillis: Long,
+                            continuation: CancellableContinuation<Unit>
                         ) {
                             // Run immediately and log it
-                            val milliseconds = unit.toMillis(time)
-                            delayLog += "Delay($milliseconds)"
+                            delayLog += "Delay($timeMillis)"
                             continuation.resume(Unit)
                         }
                     })

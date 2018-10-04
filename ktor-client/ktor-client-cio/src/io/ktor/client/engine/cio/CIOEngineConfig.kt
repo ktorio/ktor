@@ -17,10 +17,10 @@ class CIOEngineConfig : HttpClientEngineConfig() {
 
 class EndpointConfig {
     var maxConnectionsPerRoute: Int = 100
-    var keepAliveTime: Int = 5000
+    var keepAliveTime: Long = 5000
     var pipelineMaxSize: Int = 20
 
-    var connectTimeout: Int = 5000
+    var connectTimeout: Long = 5000
     var connectRetryAttempts: Int = 5
 }
 

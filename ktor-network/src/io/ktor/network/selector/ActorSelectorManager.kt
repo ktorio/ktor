@@ -1,3 +1,4 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
