@@ -55,13 +55,14 @@ interface HttpResponse : HttpMessage, Closeable {
 /**
  * Read the [HttpResponse.content] as a String. You can pass an optional [charset]
  * to specify a charset in the case no one is specified as part of the Content-Type response.
- * If no charset specified either as parameter or as part of the response, [Charsets.ISO_8859_1] will be used.
+ * If no charset specified either as parameter or as part of the response,
+ * [HttpResponseConfig.defaultCharset] will be used.
  *
  * Note that [charset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
     val packet = content.readRemaining(Long.MAX_VALUE)
-    val actualCharset = charset() ?: charset ?: Charset.forName("ISO_8859_1")
+    val actualCharset = charset() ?: charset ?: call.responseConfig.defaultCharset
     return packet.readText(charset = actualCharset)
 }
