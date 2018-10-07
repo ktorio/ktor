@@ -1,5 +1,6 @@
 package io.ktor.client.engine
 
+import io.ktor.client.response.HttpResponseConfig
 import kotlinx.coroutines.experimental.*
 
 /**
@@ -15,4 +16,9 @@ open class HttpClientEngineConfig {
      * Enable http pipelining
      */
     var pipelining: Boolean = true
+
+    /**
+     * Configuration for http response.
+     */
+    val response: HttpResponseConfig = HttpResponseConfig()
 }
