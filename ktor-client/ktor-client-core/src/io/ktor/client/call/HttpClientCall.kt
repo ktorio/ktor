@@ -28,6 +28,11 @@ class HttpClientCall internal constructor(
         internal set
 
     /**
+     * Configuration for the [response].
+     */
+    val responseConfig: HttpResponseConfig = client.engineConfig.response
+
+    /**
      * Tries to receive the payload of the [response] as an specific [expectedType].
      * Returns [response] if [expectedType] is [HttpResponse].
      *
