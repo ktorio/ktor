@@ -8,6 +8,7 @@ import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
 import kotlinx.coroutines.*
+import io.netty.handler.codec.http.*
 import java.util.concurrent.*
 
 /**
@@ -44,6 +45,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
          * Timeout in seconds for sending responses to client
          */
         var responseWriteTimeoutSeconds: Int = 10
+
+        /**
+         * User-provided function to configure Netty's [HttpServerCodec]
+         */
+        var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
     }
 
     private val configuration = Configuration().apply(configure)
@@ -80,7 +86,8 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
                     connector,
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds
+                    configuration.responseWriteTimeoutSeconds,
+                    configuration.httpServerCodec
                 )
             )
         }
