@@ -22,12 +22,17 @@ open class AsyncServletApplicationCall(
     override val coroutineContext: CoroutineContext
 ) : BaseApplicationCall(application), CoroutineScope {
 
-    override val request: ServletApplicationRequest =
+    override val request: ServletApplicationRequest by lazy {
         AsyncServletApplicationRequest(this, servletRequest, coroutineContext + engineContext)
+    }
 
-    override val response: ServletApplicationResponse = AsyncServletApplicationResponse(
-        this, servletRequest, servletResponse, engineContext, userContext, upgrade, coroutineContext + engineContext
-    )
+    override val response: ServletApplicationResponse by lazy {
+        AsyncServletApplicationResponse(
+            this,
+            servletRequest, servletResponse,
+            engineContext, userContext, upgrade, coroutineContext + engineContext
+        )
+    }
 }
 
 class AsyncServletApplicationRequest(

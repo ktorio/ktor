@@ -103,7 +103,6 @@ open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : T
         test { client ->
             urls.forEach { url ->
                 client.get<HttpResponse>(url).use {
-                    println(it.call.request.url)
                     assertTrue(it.status.isSuccess())
                 }
             }

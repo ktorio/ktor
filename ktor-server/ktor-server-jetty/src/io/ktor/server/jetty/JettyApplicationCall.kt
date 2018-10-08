@@ -22,13 +22,13 @@ class JettyApplicationCall(
 ) {
 
     override val response: JettyApplicationResponse = JettyApplicationResponse(
-            this,
-            servletRequest,
-            servletResponse,
-            engineContext,
-            userContext,
-            request,
-            coroutineContext
-        )
+        this,
+        servletRequest,
+        servletResponse,
+        engineContext,
+        userContext,
+        request,
+        coroutineContext
+    )
 
 }
