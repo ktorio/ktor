@@ -3,6 +3,7 @@ package io.ktor.tests.server.routing
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.tests.routing.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -50,11 +51,9 @@ class RoutingExploreTest {
         withTestApplication {
             application.routing {
                 callback()
-                Routing.Internal.apply {
-                    setEvaluateHook { context, segmentIndex ->
-                        evaluationCount++
-                        selector.evaluate(context, segmentIndex)
-                    }
+                setRoutingEvaluateHook { context, segmentIndex ->
+                    evaluationCount++
+                    selector.evaluate(context, segmentIndex)
                 }
             }
             handleRequest {

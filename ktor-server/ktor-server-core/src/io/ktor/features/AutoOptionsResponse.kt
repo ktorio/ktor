@@ -11,16 +11,18 @@ import io.ktor.util.*
  *
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS
  */
-object AutoOptionsResponse : ApplicationFeature<Application, Unit, Unit> {
+object AutoOptionsResponse : ApplicationFeature<Application, AutoOptionsResponse.Configuration, Unit> {
     override val key = AttributeKey<Unit>("Automatic Options Response")
 
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        Unit.configure()
+    object Configuration
+
+    override fun install(pipeline: Application, configure: AutoOptionsResponse.Configuration.() -> Unit) {
+        configure(Configuration)
 
         pipeline.intercept(ApplicationCallPipeline.Call) {
             if (call.request.local.method == HttpMethod.Options) {
                 val methods = computeAvailableMethodsForCall(call)
-                call.response.header("Allow", methods.joinToString(", ") { it.value }.toUpperCase())
+                call.response.header(HttpHeaders.Allow, methods.joinToString(", ") { it.value }.toUpperCase())
                 call.respondText("", status = HttpStatusCode.OK)
             }
         }
