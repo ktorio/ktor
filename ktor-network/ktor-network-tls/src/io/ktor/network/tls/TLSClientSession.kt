@@ -21,9 +21,8 @@ internal class TLSClientSession(
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope, AReadable, AWritable {
     private val handshaker = TLSClientHandshake(
-        rawInput, rawOutput,
-        trustManager, randomAlgorithm, cipherSuites, serverName,
-        coroutineContext
+        rawInput, rawOutput, coroutineContext,
+        trustManager, randomAlgorithm, cipherSuites, serverName
     )
 
     private val input = handshaker.input

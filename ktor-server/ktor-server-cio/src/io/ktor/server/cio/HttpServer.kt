@@ -26,7 +26,7 @@ data class HttpServerSettings(
 
 @Deprecated("Use httpServer with CoroutineScope receiver")
 fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
-    val parent = parentJob ?: EmptyCoroutineContext
+    val parent = parentJob ?: Dispatchers.Default
     val scope = CoroutineScope(GlobalScope.newCoroutineContext(parent))
 
     return scope.httpServer(settings, handler = handler)
