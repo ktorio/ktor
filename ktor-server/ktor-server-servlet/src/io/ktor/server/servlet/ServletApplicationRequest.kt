@@ -6,8 +6,10 @@ import io.ktor.request.*
 import io.ktor.server.engine.*
 import javax.servlet.http.*
 
-abstract class ServletApplicationRequest(call: ApplicationCall,
-                                val servletRequest: HttpServletRequest) : BaseApplicationRequest(call) {
+abstract class ServletApplicationRequest(
+    call: ApplicationCall,
+    val servletRequest: HttpServletRequest
+) : BaseApplicationRequest(call) {
 
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 

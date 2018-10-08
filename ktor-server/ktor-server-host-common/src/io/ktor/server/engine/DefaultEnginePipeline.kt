@@ -43,11 +43,17 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
 private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Throwable) {
     try {
         val status = call.response.status() ?: "Unhandled"
+        val logString = try {
+            call.request.toLogString()
+        } catch (cause: Throwable) {
+            "(request error: $cause)"
+        }
+
         when (cause) {
-            is CancellationException -> log.info("$status: ${call.request.toLogString()}, cancelled")
-            is ClosedChannelException -> log.info("$status: ${call.request.toLogString()}, channel closed")
-            is ChannelIOException -> log.info("$status: ${call.request.toLogString()}, channel failed")
-            else -> log.error("$status: ${call.request.toLogString()}", cause)
+            is CancellationException -> log.info("$status: $logString, cancelled")
+            is ClosedChannelException -> log.info("$status: $logString, channel closed")
+            is ChannelIOException -> log.info("$status: $logString, channel failed")
+            else -> log.error("$status: $logString", cause)
         }
     } catch (oom: OutOfMemoryError) {
         try {

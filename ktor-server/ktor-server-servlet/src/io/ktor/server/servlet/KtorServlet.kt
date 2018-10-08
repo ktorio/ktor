@@ -49,6 +49,7 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         val asyncDispatchers = asyncDispatchers.value
 
         launch(asyncDispatchers.dispatcher) {
+
             val call = AsyncServletApplicationCall(application, request, response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
