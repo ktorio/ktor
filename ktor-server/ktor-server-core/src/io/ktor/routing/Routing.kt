@@ -6,13 +6,14 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import java.util.*
 
 /**
  * Root routing node for an [Application]
  * @param application is an instance of [Application] for this routing
  */
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
-    private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
+    private val tracers = Collections.synchronizedList(mutableListOf<(RoutingResolveTrace) -> Unit>())
 
     internal var evaluateHook: Route.(context: RoutingResolveContext, segmentIndex: Int) -> RouteSelectorEvaluation = { context, segmentIndex ->
         selector.evaluate(context, segmentIndex)
@@ -23,7 +24,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 
     private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers, evaluateHook = evaluateHook)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers.toList(), evaluateHook = evaluateHook)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
