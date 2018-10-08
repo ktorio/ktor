@@ -118,7 +118,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             assertTrue(Arrays.equals(byteArrayOf(25, 37, 42), readBytes()))
         }
     }
-    
+
     @Test
     fun testLoggerOnError() {
         val message = "expected, ${nextNonce()}"

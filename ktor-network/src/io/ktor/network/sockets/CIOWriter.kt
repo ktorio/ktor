@@ -18,7 +18,7 @@ internal fun CoroutineScope.attachForWritingImpl(
 ): ReaderJob {
     val buffer = pool.borrow()
 
-    return reader(EmptyCoroutineContext, channel) {
+    return reader(Dispatchers.Unconfined, channel) {
         try {
             while (true) {
                 buffer.clear()
@@ -55,7 +55,7 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
     selectable: Selectable,
     selector: SelectorManager
 ): ReaderJob {
-    return reader(EmptyCoroutineContext, channel) {
+    return reader(Dispatchers.Unconfined, channel) {
         selectable.interestOp(SelectInterest.WRITE, false)
         try {
             channel.lookAheadSuspend {

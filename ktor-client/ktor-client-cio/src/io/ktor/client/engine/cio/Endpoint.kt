@@ -132,7 +132,7 @@ internal class Endpoint(
                     ByteReadChannel.Empty
                 }
                 else -> {
-                    val httpBodyParser = writer(EmptyCoroutineContext, autoFlush = true) {
+                    val httpBodyParser = writer(Dispatchers.Unconfined, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
                     }
 
