@@ -50,7 +50,7 @@ fun startConnectionPipeline(
     callContext: CoroutineContext,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
-): Job = CoroutineScope(ioContext + (parentJob ?: EmptyCoroutineContext))
+): Job = CoroutineScope(ioContext + (parentJob ?: Dispatchers.Unconfined))
     .startConnectionPipeline(input, output, timeout) { request: Request,
                                                        _input: ByteReadChannel,
                                                        _output: ByteWriteChannel,

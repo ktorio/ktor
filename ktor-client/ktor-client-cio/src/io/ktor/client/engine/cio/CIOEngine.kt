@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
-    private val selectorManager by lazy { ActorSelectorManager(coroutineContext) }
+    private val selectorManager by lazy { ActorSelectorManager(coroutineContext + dispatcher.blocking(1)) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = AtomicBoolean()

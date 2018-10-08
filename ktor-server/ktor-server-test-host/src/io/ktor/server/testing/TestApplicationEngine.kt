@@ -159,7 +159,7 @@ class TestApplicationEngine(
     }
 
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        TestApplicationCall(application, readResponse, EmptyCoroutineContext).apply { setup(request) }
+        TestApplicationCall(application, readResponse, ioCoroutineDispatcher).apply { setup(request) }
 }
 
 /**

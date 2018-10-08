@@ -29,7 +29,7 @@ class WebSocketWriter(
                 parent: Job?,
                 coroutineContext: CoroutineContext,
                 masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool) : this(writeChannel, coroutineContext + (parent
-            ?: EmptyCoroutineContext), masking, pool)
+            ?: Dispatchers.Unconfined), masking, pool)
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {

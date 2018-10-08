@@ -25,11 +25,11 @@ private data class EncryptionInfo(
 internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
+    override val coroutineContext: CoroutineContext,
     private val trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
     private val cipherSuites: List<CipherSuite>,
-    private val serverName: String? = null,
-    override val coroutineContext: CoroutineContext
+    private val serverName: String? = null
 ) : CoroutineScope {
     private val digest = Digest()
     private val random = SecureRandom.getInstance(randomAlgorithm)!!
@@ -50,7 +50,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    val input: ReceiveChannel<TLSRecord> = produce(coroutineContext) {
+    val input: ReceiveChannel<TLSRecord> = produce {
         var packetCounter = 0L
         var useCipher = false
         try {
@@ -103,7 +103,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    val output: SendChannel<TLSRecord> = actor(coroutineContext) {
+    val output: SendChannel<TLSRecord> = actor {
         var packetCounter = 0L
         var useCipher = false
 
@@ -134,7 +134,7 @@ internal class TLSClientHandshake(
         rawOutput.close()
     }
 
-    private val handshakes = produce<TLSHandshake>(coroutineContext) {
+    private val handshakes = produce<TLSHandshake> {
         while (true) {
             val record = input.receive()
             val packet = record.packet
