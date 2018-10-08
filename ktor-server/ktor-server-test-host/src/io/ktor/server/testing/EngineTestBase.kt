@@ -191,7 +191,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val starting = GlobalScope.launch(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(minOf(10, timeout.seconds), TimeUnit.SECONDS) {
+            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout.seconds))) {
                 server.environment.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }

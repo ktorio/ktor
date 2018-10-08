@@ -21,7 +21,7 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
-import java.nio.ByteBuffer
+import java.nio.*
 
 internal class ApacheRequestProducer(
     private val requestData: HttpRequestData,
