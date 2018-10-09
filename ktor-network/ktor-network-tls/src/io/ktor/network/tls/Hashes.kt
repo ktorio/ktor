@@ -1,47 +1,6 @@
 package io.ktor.network.tls
 
-import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
-import java.security.*
 import javax.crypto.*
-
-internal suspend fun CoroutineScope.hashMessages(
-    messages: List<ByteReadPacket>,
-    baseHash: String
-): ByteArray {
-    val messageDigest = MessageDigest.getInstance(baseHash)
-    val digestBytes = ByteArray(messageDigest.digestLength)
-    val digest = digest(messageDigest, digestBytes)
-    for (packet in messages) {
-        digest.channel.writePacket(packet)
-    }
-    digest.channel.close()
-    digest.join()
-    return digestBytes
-}
-
-private fun CoroutineScope.digest(
-    digest: MessageDigest,
-    result: ByteArray
-): ReaderJob = reader(coroutineContext, autoFlush = false) {
-    digest.reset()
-    val buffer = DefaultByteBufferPool.borrow()
-    try {
-        while (true) {
-            buffer.clear()
-            val rc = channel.readAvailable(buffer)
-            if (rc == -1) break
-            buffer.flip()
-            digest.update(buffer)
-        }
-
-        digest.digest(result, 0, digest.digestLength)
-    } finally {
-        DefaultByteBufferPool.recycle(buffer)
-    }
-}
 
 internal fun PRF(secret: SecretKey, label: ByteArray, seed: ByteArray, requiredLength: Int = 12) = P_hash(
     label + seed, Mac.getInstance(secret.algorithm), secret, requiredLength

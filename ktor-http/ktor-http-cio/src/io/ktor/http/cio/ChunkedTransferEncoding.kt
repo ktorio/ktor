@@ -19,7 +19,7 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 
 typealias DecoderJob = WriterJob
 
-suspend fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob = writer(coroutineContext) {
+fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob = writer(coroutineContext) {
     decodeChunked(input, channel)
 }
 
