@@ -1,5 +1,6 @@
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -64,6 +65,10 @@ class DefaultWebSocketSessionImpl(
         sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
+    /**
+     * Close session with the specified [cause] or with no reason if `null`
+     */
+    @KtorExperimentalAPI
     override suspend fun close(cause: Throwable?) {
         val reason = when (cause) {
             null -> CloseReason(CloseReason.Codes.NORMAL, "OK")
@@ -171,6 +176,7 @@ class DefaultWebSocketSessionImpl(
     }
 }
 
+@InternalAPI
 suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
     val failure = try {
         val me: DefaultWebSocketSession = this@run

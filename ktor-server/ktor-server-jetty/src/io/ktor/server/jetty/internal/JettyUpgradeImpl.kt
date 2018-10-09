@@ -2,6 +2,7 @@ package io.ktor.server.jetty.internal
 
 import io.ktor.http.content.*
 import io.ktor.server.servlet.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import org.eclipse.jetty.io.*
@@ -9,6 +10,8 @@ import org.eclipse.jetty.server.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 object JettyUpgradeImpl : ServletUpgrade {
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,

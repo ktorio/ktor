@@ -26,6 +26,7 @@ private class Servlet(private val async: Boolean) : ApplicationEngineFactory<Jet
     }
 }
 
+@UseExperimental(EngineAPI::class)
 private class JettyServletApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: JettyApplicationEngineBase.Configuration.() -> Unit,

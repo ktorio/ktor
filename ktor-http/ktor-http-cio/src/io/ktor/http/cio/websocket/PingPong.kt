@@ -9,7 +9,6 @@ import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.time.*
-import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
@@ -82,7 +81,7 @@ fun CoroutineScope.pinger(
         while (!isClosedForReceive) {
             // drop pongs during period delay as they are irrelevant
             // here timeout is expected so ignore it
-            withTimeoutOrNull(periodMillis, TimeUnit.MILLISECONDS) {
+            withTimeoutOrNull(periodMillis) {
                 while (true) {
                     receive() // timeout causes loop to break on receive
                 }
@@ -90,7 +89,7 @@ fun CoroutineScope.pinger(
 
             val pingMessage = "[ping ${nextNonce()} ping]"
 
-            val rc = withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
+            val rc = withTimeoutOrNull(timeoutMillis) {
                 outgoing.sendPing(buffer, encoder, pingMessage)
 
                 // wait for valid pong message

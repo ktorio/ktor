@@ -11,11 +11,11 @@ sourceSets {
 
 
 compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
 }
 
 compileTestKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
 }
 
 dependencies {

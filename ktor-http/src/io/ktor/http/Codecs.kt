@@ -1,5 +1,6 @@
 package io.ktor.http
 
+import io.ktor.util.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
@@ -16,7 +17,7 @@ private val URL_PROTOCOL_PART = listOf(
 ).map { it.toByte() }
 
 /**
- * from [pchar] in https://tools.ietf.org/html/rfc3986#section-2
+ * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
 private val VALID_PATH_PART = listOf(
     ':', '@',
@@ -48,6 +49,9 @@ fun String.encodeURLQueryComponent(
     }
 }
 
+/**
+ * Encode URL path or component. It escapes all illegal or ambiguous characters
+ */
 fun String.encodeURLPath(): String = buildString {
     var index = 0
     while (index < this@encodeURLPath.length) {
@@ -98,12 +102,16 @@ fun String.encodeURLParameter(
     }
 }
 
+/**
+ * Decode URL query component
+ */
 fun CharSequence.decodeURLQueryComponent(
     start: Int = 0, end: Int = length,
     plusIsSpace: Boolean = false,
     charset: Charset = Charsets.UTF_8
 ): String = decodeScan(start, end, plusIsSpace, charset)
 
+@KtorExperimentalAPI
 fun String.decodeURLPart(
     start: Int = 0, end: Int = length,
     charset: Charset = Charsets.UTF_8
@@ -187,6 +195,9 @@ private fun CharSequence.decodeImpl(
     return sb.toString()
 }
 
+/**
+ * URL decoder exception
+ */
 class URLDecodeException(message: String) : Exception(message)
 
 private fun Byte.percentEncode(): String {

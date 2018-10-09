@@ -25,7 +25,7 @@ class BasicAuth(val username: String, val password: String) {
          */
         lateinit var password: String
 
-        fun build(): BasicAuth = BasicAuth(username, password)
+        internal fun build(): BasicAuth = BasicAuth(username, password)
     }
 
     companion object Feature : HttpClientFeature<Configuration, BasicAuth> {

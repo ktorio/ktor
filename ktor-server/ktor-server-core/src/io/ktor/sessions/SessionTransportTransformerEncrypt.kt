@@ -19,6 +19,12 @@ import javax.crypto.spec.*
  *
  * You have to provide keys of compatible sizes: 16, 24 and 32 for AES encryption.
  * For HmacSHA256 it is recommended a key of 32 bytes.
+ *
+ * @property encryptionKeySpec is a secret key that is used for encryption
+ * @property signKeySpec is a secret key that is used for signing
+ * @property ivGenerator is a function that generates input vectors
+ * @property encryptAlgorithm is an encryption algorithm name
+ * @property signAlgorithm is a signing algorithm name
  */
 class SessionTransportTransformerEncrypt(
     val encryptionKeySpec: SecretKeySpec,
@@ -32,7 +38,11 @@ class SessionTransportTransformerEncrypt(
     }
 
     private val charset = Charsets.UTF_8
-    val encryptionKeySize get() = encryptionKeySpec.encoded.size
+
+    /**
+     * Encryption key size in bytes
+     */
+    val encryptionKeySize: Int get() = encryptionKeySpec.encoded.size
 
     // Check that input keys are right
     init {

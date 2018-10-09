@@ -1,8 +1,11 @@
 package io.ktor.network.selector
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.*
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 class InterestSuspensionsMap {
     @Volatile
     @Suppress("unused")
@@ -50,10 +53,6 @@ class InterestSuspensionsMap {
 
     override fun toString(): String {
         return "R $readHandlerReference W $writeHandlerReference C $connectHandlerReference A $acceptHandlerReference"
-    }
-
-    private fun dropHandler(interest: SelectInterest, continuation: CancellableContinuation<Unit>) {
-        updater(interest).compareAndSet(this, continuation, null)
     }
 
     companion object {

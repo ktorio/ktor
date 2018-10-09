@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.pool.*
 import java.nio.*
 
@@ -41,6 +40,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
+    /**
+     * Commit header values and status and pass them to the underlying engine
+     */
     protected fun commitHeaders(content: OutgoingContent) {
         responded = true
 
@@ -90,6 +92,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
+    /**
+     * Process response outgoing [content]
+     */
     protected open suspend fun respondOutgoingContent(content: OutgoingContent) {
         when (content) {
             is OutgoingContent.ProtocolUpgrade -> {
@@ -131,10 +136,16 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
+    /**
+     * Process response with no content
+     */
     protected open suspend fun respondNoContent(content: OutgoingContent.NoContent) {
         // Do nothing by default
     }
 
+    /**
+     * Process response [content] using [OutgoingContent.WriteChannelContent.writeTo].
+     */
     protected open suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         // Retrieve response channel, that might send out headers, so it should go after commitHeaders
         responseChannel().use {
@@ -155,6 +166,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
+    /**
+     * Respond with [bytes] content
+     */
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
         headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
             ensureLength(length, bytes.size.toLong())
@@ -167,6 +181,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
+    /**
+     * Respond from [readChannel]
+     */
     protected open suspend fun respondFromChannel(readChannel: ByteReadChannel) {
         responseChannel().use {
             val length = headers[HttpHeaders.ContentLength]?.toLong()
@@ -185,24 +202,51 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         if (expected > actual) throw BodyLengthIsTooSmall(expected, actual)
     }
 
+    /**
+     * Process upgrade response
+     */
     protected abstract suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade)
+
+    /**
+     * Get response output channel
+     */
     protected abstract suspend fun responseChannel(): ByteWriteChannel
+
+    /**
+     * ByteBuffer pool
+     */
     protected open val bufferPool: ObjectPool<ByteBuffer> get() = KtorDefaultPool
 
+    /**
+     * Set underlying engine's response status
+     */
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
     override fun push(builder: ResponsePushBuilder) {
         link(builder.url.buildString(), LinkHeader.Rel.Prefetch)
     }
 
+    /**
+     * Thrown when there was already response sent but we are trying to respond again
+     */
     class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 
+    /**
+     * [OutgoingContent] is trying to set some header that is not allowed for this content type.
+     * For example, only upgrade content can set `Upgrade` header.
+     */
     class InvalidHeaderForContent(name: String, content: String) : IllegalStateException("Header $name is not allowed for $content")
 
+    /**
+     * Content's actual body size doesn't match the provided one in `Content-Length` header
+     */
     class BodyLengthIsTooSmall(expected: Long, actual: Long) : IllegalStateException(
             "Body.size is too small. Body: $actual, Content-Length: $expected"
     )
 
+    /**
+     * Content's actual body size doesn't match the provided one in `Content-Length` header
+     */
     class BodyLengthIsTooLong(expected: Long) : IllegalStateException(
             "Body.size is too long. Expected $expected"
     )

@@ -13,6 +13,10 @@ private val identityErrorHandler = { t: Throwable, c: Continuation<*> ->
     c.resumeWithException(t)
 }
 
+/**
+ * Suspend until the future completion.
+ * Resumes with the same exception if the future completes exceptionally
+ */
 suspend fun <T> Future<T>.suspendAwait(): T {
     return suspendAwait(identityErrorHandler)
 }
@@ -22,11 +26,19 @@ private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
     else c.resumeWithException(t)
 }
 
+/**
+ * Suspend until the future completion.
+ * Wraps futures completion exceptions into [ChannelWriteException]
+ */
 suspend fun <T> Future<T>.suspendWriteAwait(): T {
     return suspendAwait(wrappingErrorHandler)
 }
 
+/**
+ * Suspend until the future completion handling exception from the future using [exception] function
+ */
 suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {
+    @Suppress("BlockingMethodInNonBlockingContext")
     if (isDone) return try { get() } catch (t: Throwable) { throw t.unwrap() }
 
     return suspendCancellableCoroutine { continuation ->

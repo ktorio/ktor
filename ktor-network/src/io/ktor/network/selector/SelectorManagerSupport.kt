@@ -1,15 +1,30 @@
 package io.ktor.network.selector
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
 import kotlin.coroutines.*
 
+/**
+ * Base class for NIO selector managers
+ */
+@KtorExperimentalAPI
 abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     final override val provider: SelectorProvider = SelectorProvider.provider()
+    /**
+     * Number of pending selectables
+     */
     protected var pending = 0
+
+    /**
+     * Number of cancelled keys
+     */
     protected var cancelled = 0
 
+    /**
+     * Publish current [selectable] interest, any thread
+     */
     protected abstract fun publishInterest(selectable: Selectable)
 
     final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
@@ -27,6 +42,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
+    /**
+     * Handle selected keys clearing [selectedKeys] set
+     */
     protected fun handleSelectedKeys(selectedKeys: MutableSet<SelectionKey>, keys: Set<SelectionKey>) {
         val selectedCount = selectedKeys.size
         pending = keys.size - selectedCount
@@ -42,6 +60,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
+    /**
+     * Handles particular selected key
+     */
     protected fun handleSelectedKey(key: SelectionKey) {
         try {
             val readyOps = key.readyOps()
@@ -75,6 +96,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
+    /**
+     * Applies selectable's current interest (should be invoked in selection thread)
+     */
     protected fun applyInterest(selector: Selector, s: Selectable) {
         try {
             val channel = s.channel
@@ -100,6 +124,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
+    /**
+     * Notify selectable's closure
+     */
     protected fun notifyClosedImpl(selector: Selector, key: SelectionKey, attachment: Selectable) {
         cancelAllSuspensions(attachment, ClosedChannelException())
 
@@ -107,6 +134,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         selector.wakeup()
     }
 
+    /**
+     * Cancel all selectable's suspensions with the specified exception
+     */
     protected fun cancelAllSuspensions(attachment: Selectable, t: Throwable) {
         val cancelled = ArrayList<Pair<CancellableContinuation<Unit>, Any>>(SelectInterest.size)
 
@@ -129,6 +159,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
+    /**
+     * Cancel all suspensions with the specified exception, reset all interests
+     */
     protected fun cancelAllSuspensions(selector: Selector, t: Throwable?) {
         val cause = t ?: ClosedSelectorException()
 

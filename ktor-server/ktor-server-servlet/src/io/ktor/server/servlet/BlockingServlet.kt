@@ -48,6 +48,7 @@ private class BlockingServletApplicationResponse(
             }
         }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun writeLoop(buffer: ByteArray, from: ByteReadChannel, to: ServletOutputStream) {
         while (true) {
             val n = from.readAvailable(buffer)
@@ -63,6 +64,7 @@ private class BlockingServletApplicationResponse(
     }
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+        @Suppress("BlockingMethodInNonBlockingContext")
         servletResponse.sendError(501, "Upgrade is not supported in synchronous servlets")
     }
 }

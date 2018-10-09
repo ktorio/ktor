@@ -8,6 +8,7 @@ package io.ktor.http
  * @property minor specifies protocol minor version.
  */
 data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int) {
+    @Suppress("PublicApiImplicitType")
     companion object {
         /**
          * HTTP/2.0 version.

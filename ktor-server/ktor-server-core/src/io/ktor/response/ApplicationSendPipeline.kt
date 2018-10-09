@@ -1,9 +1,17 @@
 package io.ktor.response
 
 import io.ktor.application.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
+/**
+ * Server response send pipeline
+ */
 open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+    /**
+     * Send pipeline phases
+     */
+    @Suppress("PublicApiImplicitType")
     companion object Phases {
         /**
          * The earliest phase that happens before any other
@@ -16,9 +24,9 @@ open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Tran
         val Transform = PipelinePhase("Transform")
 
         /**
-         * Phase to render any current pipeline subject into [OutgoingContent]
+         * Phase to render any current pipeline subject into [io.ktor.http.content.OutgoingContent]
          *
-         * Beyond this phase only [OutgoingContent] should be produced by any interceptor
+         * Beyond this phase only [io.ktor.http.content.OutgoingContent] should be produced by any interceptor
          */
         val Render = PipelinePhase("Render")
 
@@ -42,6 +50,7 @@ open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Tran
          *
          * TODO: this phase will be removed from here later
          */
+        @KtorExperimentalAPI
         val Engine = PipelinePhase("Engine")
     }
 }

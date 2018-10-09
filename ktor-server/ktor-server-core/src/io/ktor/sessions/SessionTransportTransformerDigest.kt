@@ -9,6 +9,9 @@ private val delimiter = '/'
  * Session transformer that appends an [algorithm] hash of the input.
  * Where the input is either a session contents or a previous transformation.
  * It prepends a [salt] when computing the hash.
+ *
+ * @property salt that is used for message digest algorithm
+ * @property algorithm is a message digest algorithm
  */
 class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-256") : SessionTransportTransformer {
 

@@ -49,6 +49,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
     }
 }
 
+@KtorExperimentalAPI
 fun ByteReadChannel.deflated(
         gzip: Boolean = true,
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
@@ -87,6 +88,7 @@ fun ByteReadChannel.deflated(
     }
 }.channel
 
+@KtorExperimentalAPI
 fun ByteWriteChannel.deflated(
         gzip: Boolean = true,
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool

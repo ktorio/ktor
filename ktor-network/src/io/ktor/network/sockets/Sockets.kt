@@ -1,5 +1,6 @@
 package io.ktor.network.sockets
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
@@ -9,6 +10,10 @@ import java.net.*
  * Base type for all async sockets
  */
 interface ASocket : Closeable, DisposableHandle {
+    /**
+     * Represents a socket lifetime, completes at socket closure
+     */
+    @KtorExperimentalAPI
     val socketContext: Deferred<Unit>
 
     override fun dispose() {
@@ -19,9 +24,19 @@ interface ASocket : Closeable, DisposableHandle {
     }
 }
 
+/**
+ * Check if the socket is closed
+ */
 val ASocket.isClosed: Boolean get() = socketContext.isCompleted
-suspend fun ASocket.awaitClosed() = socketContext.await()
 
+/**
+ * Await until socket close
+ */
+suspend fun ASocket.awaitClosed(): Unit = socketContext.await()
+
+/**
+ * Represent a connected socket
+ */
 interface AConnectedSocket : AWritable {
     /**
      * Remote socket address. Could throw an exception if the peer is not yet connected or already disconnected.
@@ -29,6 +44,9 @@ interface AConnectedSocket : AWritable {
     val remoteAddress: SocketAddress
 }
 
+/**
+ * Represents a bound socket
+ */
 interface ABoundSocket {
     /**
      * Local socket address. Could throw an exception if no address bound yet.
@@ -47,20 +65,54 @@ interface Acceptable<out S : ASocket> : ASocket {
     suspend fun accept(): S
 }
 
+/**
+ * Represent a readable socket
+ */
 interface AReadable {
+    /**
+     * Attach [channel] for reading so incoming bytes appears in the attached channel.
+     * Only one channel could be attached
+     * @return a job that does supply data
+     */
+    @KtorExperimentalAPI
     fun attachForReading(channel: ByteChannel): WriterJob
 }
 
+/**
+ * Represents a writable socket
+ */
 interface AWritable {
+    /**
+     * Attach [channel] for writing so bytes written to the attached channel will be transmitted
+     * Only one channel could be attached
+     * @return a job that does transmit data from the channel
+     */
+    @KtorExperimentalAPI
     fun attachForWriting(channel: ByteChannel): ReaderJob
 }
 
+/**
+ * Represents both readable and writable socket
+ */
 interface ReadWriteSocket : ASocket, AReadable, AWritable
 
+/**
+ * Open a read channel, could be done only once
+ */
 fun AReadable.openReadChannel(): ByteReadChannel = ByteChannel(false).also { attachForReading(it) }
+
+/**
+ * Open a write channel, could be opened only once
+ * @param autoFlush whether returned channel do flush for every write operation
+ */
 fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChannel = ByteChannel(autoFlush).also { attachForWriting(it) }
 
-
+/**
+ * Represents a connected socket
+ */
 interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket
 
+/**
+ * Represents a server bound socket ready for accepting connections
+ */
 interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>

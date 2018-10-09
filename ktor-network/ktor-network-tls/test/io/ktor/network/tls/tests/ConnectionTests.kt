@@ -13,7 +13,7 @@ class ConnectionTests {
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {
 
-        val selectorManager = ActorSelectorManager(ioCoroutineDispatcher)
+        val selectorManager = ActorSelectorManager(Dispatchers.IO)
         val socket = aSocket(selectorManager)
             .tcp()
             .connect("www.google.com", port = 443)

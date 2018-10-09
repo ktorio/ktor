@@ -16,14 +16,30 @@ import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
+/**
+ * Represents a server instance
+ * @property rootServerJob server job - root for all jobs
+ * @property acceptJob client connections accepting job
+ * @property serverSocket a deferred server socket instance, could be completed with error if it failed to bind
+ */
+@Suppress("MemberVisibilityCanBePrivate")
+@KtorExperimentalAPI
 class HttpServer(val rootServerJob: Job, val acceptJob: Job, val serverSocket: Deferred<ServerSocket>)
 
+/**
+ * HTTP server connector settings
+ * @property host to listen to
+ * @property port to listen to
+ * @property connectionIdleTimeoutSeconds time to live for IDLE connections
+ */
+@KtorExperimentalAPI
 data class HttpServerSettings(
     val host: String = "0.0.0.0",
     val port: Int = 8080,
     val connectionIdleTimeoutSeconds: Long = 45
 )
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Use httpServer with CoroutineScope receiver")
 fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
     val parent = parentJob ?: Dispatchers.Default
@@ -32,6 +48,7 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: Ht
     return scope.httpServer(settings, handler = handler)
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Use httpServer with CoroutineScope receiver")
 fun httpServer(
     settings: HttpServerSettings,
@@ -132,7 +149,5 @@ private class KtorUncaughtExceptionHandler : CoroutineExceptionHandler {
         if (exception is CancellationException) return
 
         logger.error(exception)
-        // unlike the default coroutine exception handler we shouldn't cancel parent job here
-        // otherwise single call failure will cancel the whole server
     }
 }

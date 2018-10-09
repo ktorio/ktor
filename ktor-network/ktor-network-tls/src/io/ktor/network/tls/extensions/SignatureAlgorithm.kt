@@ -3,6 +3,12 @@ package io.ktor.network.tls.extensions
 import io.ktor.network.tls.*
 import kotlinx.io.core.*
 
+/**
+ * Hash algorithms
+ * @property code numeric hash algorithm code
+ * @property openSSLName is a name used in openssl for this algorithm
+ */
+@Suppress("KDocMissingDocumentation")
 enum class HashAlgorithm(val code: Byte, val openSSLName: String) {
     NONE(0, ""),
     MD5(1, "MD5"),
@@ -13,29 +19,53 @@ enum class HashAlgorithm(val code: Byte, val openSSLName: String) {
     SHA512(6, "SHA-512");
 
     companion object {
+        /**
+         * Find hash algorithm instance by it's numeric [code]
+         * @throws TLSExtension if no hash algorithm found by code
+         */
         fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
                 ?: throw TLSException("Unknown hash algorithm: $code")
     }
 }
 
+/**
+ * Signature algorithms
+ * @property code numeric algorithm codes
+ */
+@Suppress("KDocMissingDocumentation")
 enum class SignatureAlgorithm(val code: Byte) {
     ANON(0),
     RSA(1),
     ECDSA(3);
 
     companion object {
+        /**
+         * Find signature algorithm instance by it's numeric [code]
+         * @throws TLSExtension if no hash algorithm found by code
+         */
         fun byCode(code: Byte): SignatureAlgorithm = values().find { it.code == code }
                 ?: throw TLSException("Unknown signature algorithm: $code")
     }
 }
 
+/**
+ * Hash and signature algorithm pair
+ * @property hash algorithm
+ * @property sign algorithm
+ */
 data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm) {
     constructor(hash: Byte, sign: Byte) : this(HashAlgorithm.byCode(hash), SignatureAlgorithm.byCode(sign))
 
+    /**
+     * String representation of this algorithms pair
+     */
     val name: String = "${hash.name}with${sign.name}"
 }
 
-internal val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
+/**
+ * List of supported combinations of hash and signature algorithms
+ */
+val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
     HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA),
     HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA),
 

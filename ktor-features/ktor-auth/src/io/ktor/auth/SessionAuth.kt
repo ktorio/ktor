@@ -4,11 +4,15 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.sessions.*
+import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
  * Represents a session-based authentication provider
  * @param name is the name of the provider, or `null` for a default provider
+ * @param type of session
+ * @param challenge to be used if there is no session
+ * @param validator applied to an application all and session providing a [Principal]
  */
 class SessionAuthenticationProvider<T : Any> private constructor(
     name: String?,
@@ -17,6 +21,9 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     val validator: ApplicationCall.(T) -> Principal?
 ) :
     AuthenticationProvider(name) {
+    /**
+     * Session auth configuration
+     */
     class Configuration<T : Any>(private val name: String?, private val type: KClass<T>) {
         private var validator: ApplicationCall.(T) -> Principal? = UninitializedValidator
 
@@ -38,7 +45,8 @@ class SessionAuthenticationProvider<T : Any> private constructor(
             check(validator !== UninitializedValidator) { "It should be a validator supplied to a session auth provider" }
         }
 
-        fun buildProvider(): SessionAuthenticationProvider<T> {
+        @PublishedApi
+        internal fun buildProvider(): SessionAuthenticationProvider<T> {
             verifyConfiguration()
             return SessionAuthenticationProvider(name, type, challenge, validator)
         }
@@ -126,8 +134,12 @@ sealed class SessionAuthChallenge<in T : Any> {
     object Ignore : SessionAuthChallenge<Any>()
 
     companion object {
+        @KtorExperimentalAPI
         val Default = Ignore
     }
 }
 
+/**
+ * A key used to register auth challenge
+ */
 const val SessionAuthChallengeKey = "SessionAuth"

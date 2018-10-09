@@ -5,12 +5,15 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 abstract class NettyApplicationResponse(call: NettyApplicationCall,
                                                  protected val context: ChannelHandlerContext,
                                                  protected val engineContext: CoroutineContext,

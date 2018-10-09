@@ -2,6 +2,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
@@ -71,6 +72,7 @@ fun startConnectionPipeline(
  *
  * @return pipeline job
  */
+@KtorExperimentalAPI
 fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,

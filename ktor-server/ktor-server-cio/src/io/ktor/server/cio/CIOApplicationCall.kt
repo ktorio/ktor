@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
-class CIOApplicationCall(
+internal class CIOApplicationCall(
     application: Application,
     _request: Request,
     input: ByteReadChannel,

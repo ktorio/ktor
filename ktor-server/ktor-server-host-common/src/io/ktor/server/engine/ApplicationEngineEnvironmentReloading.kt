@@ -63,6 +63,9 @@ class ApplicationEngineEnvironmentReloading(
     override val application: Application
         get() = currentApplication()
 
+    /**
+     * Reload application: destroy it first and then create again
+     */
     fun reload() {
         applicationInstanceLock.write {
             destroyApplication()

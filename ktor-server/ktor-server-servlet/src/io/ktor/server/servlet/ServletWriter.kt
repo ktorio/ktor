@@ -51,12 +51,14 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
         }
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun finish() {
         awaitReady()
         output.flush()
         awaitReady()
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun loop(buffer: ByteArray) {
         if (channel.availableForRead == 0) {
             awaitReady()

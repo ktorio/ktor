@@ -7,7 +7,6 @@ import kotlinx.coroutines.io.ByteChannel
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
-import kotlin.coroutines.*
 
 internal fun CoroutineScope.attachForWritingImpl(
     channel: ByteChannel,

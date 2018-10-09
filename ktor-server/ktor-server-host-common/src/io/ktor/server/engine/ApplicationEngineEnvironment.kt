@@ -2,6 +2,7 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.util.*
 import org.slf4j.*
 
 /**
@@ -38,19 +39,51 @@ fun applicationEngineEnvironment(builder: ApplicationEngineEnvironmentBuilder.()
     return ApplicationEngineEnvironmentBuilder().build(builder)
 }
 
+/**
+ * Engine environment configuration builder
+ */
 class ApplicationEngineEnvironmentBuilder {
+    /**
+     * Paths to wait for application reload
+     */
     var watchPaths = emptyList<String>()
+
+    /**
+     * Root class loader
+     */
     var classLoader: ClassLoader = ApplicationEngineEnvironment::class.java.classLoader
+
+    /**
+     * Application logger
+     */
     var log: Logger = LoggerFactory.getLogger("Application")
+
+    /**
+     * Application config
+     */
     var config: ApplicationConfig = MapApplicationConfig()
 
+    /**
+     * Application connectors list
+     */
     val connectors = mutableListOf<EngineConnectorConfig>()
+
+    /**
+     * Application modules
+     */
     val modules = mutableListOf<Application.() -> Unit>()
 
+    /**
+     * Install application module
+     */
     fun module(body: Application.() -> Unit) {
         modules.add(body)
     }
 
+    /**
+     * Build an application engine environment
+     */
+    @KtorExperimentalAPI
     fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
         return ApplicationEngineEnvironmentReloading(classLoader, log, config, connectors, modules, watchPaths)

@@ -16,8 +16,16 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
      */
     var realm: String = "Ktor Server"
 
+    /**
+     * Message digest algorithm to be used
+     */
+    @KtorExperimentalAPI
     var digester: MessageDigest = MessageDigest.getInstance("MD5")
 
+    /**
+     * username and password digest function
+     */
+    @KtorExperimentalAPI
     var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
         when (userName) {
             "missing" -> null

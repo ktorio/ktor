@@ -3,6 +3,9 @@ package io.ktor.server.jetty
 import io.ktor.config.*
 import io.ktor.server.engine.*
 
+/**
+ * Jetty development engine
+ */
 object DevelopmentEngine {
     /**
      * Main function for starting DevelopmentEngine with Jetty

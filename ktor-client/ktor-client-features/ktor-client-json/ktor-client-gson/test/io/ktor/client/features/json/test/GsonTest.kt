@@ -26,7 +26,7 @@ class GsonTest : TestWithKtor() {
 
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         install(ContentNegotiation) {
-            register(ContentType.Application.Json, GsonConverter())
+            gson()
         }
         routing {
             post("/") {

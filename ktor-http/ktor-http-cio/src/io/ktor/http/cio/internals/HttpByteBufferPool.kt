@@ -1,9 +1,10 @@
 package io.ktor.http.cio.internals
 
+import io.ktor.util.*
 import kotlinx.io.pool.*
 import java.nio.*
 
-
+@InternalAPI
 val DefaultByteBufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(4096, 2048)
 
 private class DirectByteBufferPool(val bufferSize: Int, size: Int) : DefaultPool<ByteBuffer>(size) {

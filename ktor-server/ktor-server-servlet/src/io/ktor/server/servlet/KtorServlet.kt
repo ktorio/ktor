@@ -10,23 +10,43 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+/**
+ * A base class for servlet engine implementations
+ */
+@EngineAPI
 @UseExperimental(InternalAPI::class)
 abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
-    abstract val application: Application
-    abstract val enginePipeline: EnginePipeline
+    /**
+     * Current application instance. Could be lazy
+     */
+    protected abstract val application: Application
 
-    abstract val upgrade: ServletUpgrade
+    /**
+     * Engine pipeline
+     */
+    protected abstract val enginePipeline: EnginePipeline
+
+    /**
+     * Servlet upgrade implementation
+     */
+    protected abstract val upgrade: ServletUpgrade
 
     override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
 
+    /**
+     * Called by servlet container when the application is going to be undeployed or stopped.
+     */
     override fun destroy() {
         coroutineContext.cancel()
         // Note: container will not call service again, so asyncDispatcher cannot get initialized if it was not yet
         if (asyncDispatchers.isInitialized()) asyncDispatchers.value.destroy()
     }
 
+    /**
+     * Called by the servlet container when an HTTP request received.
+     */
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) return
 
@@ -54,7 +74,7 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,
-                coroutineContext = coroutineContext
+                parentCoroutineContext = coroutineContext
             )
 
             try {

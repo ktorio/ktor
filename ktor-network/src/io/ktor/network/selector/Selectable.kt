@@ -1,5 +1,6 @@
 package io.ktor.network.selector
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.nio.channels.*
@@ -8,8 +9,12 @@ import java.util.concurrent.atomic.*
 /**
  * A selectable entity with selectable NIO [channel], [interestedOps] subscriptions
  */
+@KtorExperimentalAPI
 interface Selectable : Closeable, DisposableHandle {
-
+    /**
+     * Current selectable suspensions map
+     */
+    @InternalAPI
     val suspensions: InterestSuspensionsMap
 
     /**

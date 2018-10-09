@@ -3,11 +3,24 @@ package io.ktor.util
 import java.lang.reflect.*
 import java.math.*
 
+/**
+ * Data conversion service that does serialization and deserialization to/from list of strings
+ */
 interface ConversionService {
+    /**
+     * Deserialize [values] to an instance of [type]
+     */
     fun fromValues(values: List<String>, type: Type): Any?
+
+    /**
+     * Serialize a [value] to values list
+     */
     fun toValues(value: Any?): List<String>
 }
 
+/**
+ * The default conversion service that supports only basic types and enums
+ */
 object DefaultConversionService : ConversionService {
     override fun toValues(value: Any?): List<String> = when (value) {
         null -> listOf()
@@ -68,4 +81,7 @@ object DefaultConversionService : ConversionService {
 
 }
 
+/**
+ * Thrown when failed to convert value
+ */
 class DataConversionException(message: String = "Invalid data format") : Exception(message)

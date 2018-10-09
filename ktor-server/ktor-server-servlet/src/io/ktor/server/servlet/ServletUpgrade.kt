@@ -1,12 +1,21 @@
 package io.ktor.server.servlet
 
 import io.ktor.http.content.*
+import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+/**
+ * Servlet upgrade processing
+ */
+@EngineAPI
 interface ServletUpgrade {
+    /**
+     * Perform HTTP upgrade using engine's native API
+     */
     suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,
@@ -16,6 +25,11 @@ interface ServletUpgrade {
     )
 }
 
+/**
+ * The default servlet upgrade implementation using Servlet API.
+ * Please note that some servlet containers may not support it or it may be broken.
+ */
+@EngineAPI
 object DefaultServletUpgrade : ServletUpgrade {
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
@@ -25,7 +39,9 @@ object DefaultServletUpgrade : ServletUpgrade {
         userContext: CoroutineContext
     ) {
 
+        @Suppress("BlockingMethodInNonBlockingContext")
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
+
         val disableAsyncInput = servletRequest.servletContext?.serverInfo
             ?.contains("tomcat", ignoreCase = true) == true
 
@@ -35,6 +51,8 @@ object DefaultServletUpgrade : ServletUpgrade {
 
 // the following types need to be public as they are accessed through reflection
 
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
 class UpgradeRequest(
     val response: HttpServletResponse,
     val upgradeMessage: OutgoingContent.ProtocolUpgrade,
@@ -43,6 +61,9 @@ class UpgradeRequest(
     val disableAsyncInput: Boolean
 )
 
+@InternalAPI
+@EngineAPI
+@Suppress("KDocMissingDocumentation")
 class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest

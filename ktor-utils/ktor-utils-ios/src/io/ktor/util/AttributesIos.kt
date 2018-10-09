@@ -2,7 +2,7 @@ package io.ktor.util
 
 actual fun Attributes(): Attributes = AttributesIos()
 
-class AttributesIos : Attributes {
+private class AttributesIos : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")

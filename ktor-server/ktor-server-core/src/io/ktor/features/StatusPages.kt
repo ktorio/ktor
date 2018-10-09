@@ -8,23 +8,54 @@ import io.ktor.response.*
 import io.ktor.util.*
 import java.util.*
 
+/**
+ * Status pages feature that handles exceptions and status codes. Useful to configure default error pages.
+ */
 class StatusPages(config: Configuration) {
     private val exceptions = HashMap(config.exceptions)
     private val statuses = HashMap(config.statuses)
 
+    /**
+     * Status pages feature config
+     */
     class Configuration {
+        /**
+         * Exception handlers map by exception class
+         */
         val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit>()
-        val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit>()
 
-        inline fun <reified T : Throwable> exception(noinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) =
-                exception(T::class.java, handler)
+        /**
+         * Status handlers by status code
+         */
+        val statuses =
+            mutableMapOf<HttpStatusCode, suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit>()
 
-        fun <T : Throwable> exception(klass: Class<T>, handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
+        /**
+         * Register exception [handler] for exception type [T] and it's children
+         */
+        inline fun <reified T : Throwable> exception(
+            noinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+        ) =
+            exception(T::class.java, handler)
+
+        /**
+         * Register exception [handler] for exception class [klass] and it's children
+         */
+        fun <T : Throwable> exception(
+            klass: Class<T>,
+            handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
+        ) {
             @Suppress("UNCHECKED_CAST")
             exceptions.put(klass, handler as suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit)
         }
 
-        fun status(vararg status: HttpStatusCode, handler: suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit) {
+        /**
+         * Register status [handler] for [status] code
+         */
+        fun status(
+            vararg status: HttpStatusCode,
+            handler: suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit
+        ) {
             status.forEach {
                 statuses.put(it, handler)
             }
@@ -75,6 +106,9 @@ class StatusPages(config: Configuration) {
         return null
     }
 
+    /**
+     * Feature installation object
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
         override val key = AttributeKey<StatusPages>("Status Pages")
 
@@ -87,6 +121,11 @@ class StatusPages(config: Configuration) {
     }
 }
 
+/**
+ * Register a status page file(s) using [filePattern] for multiple status [code] list
+ * @param code vararg list of status codes handled by this configuration
+ * @param filePattern path to status file with optional `#` character(s) that will be replaced with numeric status code
+ */
 fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePattern: String) {
     status(*code) { status ->
         val path = filePattern.replace("#", status.value.toString())

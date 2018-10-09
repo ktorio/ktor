@@ -3,6 +3,7 @@ package io.ktor.util
 import kotlinx.io.core.*
 import java.io.*
 
+@KtorExperimentalAPI
 fun Input.asStream(): InputStream = object : InputStream() {
 
     override fun read(): Int = tryPeek()

@@ -1,5 +1,6 @@
 package io.ktor.util.cio
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import java.util.*
@@ -8,6 +9,7 @@ import kotlin.coroutines.*
 /**
  * Asynchronous Semaphore.
  */
+@InternalAPI
 class Semaphore(val limit: Int) {
     private val mutex = Mutex()
     private var visitors = 0

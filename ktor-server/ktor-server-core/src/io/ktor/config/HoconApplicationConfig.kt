@@ -1,10 +1,12 @@
 package io.ktor.config
 
 import com.typesafe.config.*
+import io.ktor.util.*
 
 /**
  * Implements [ApplicationConfig] by loading configuration from HOCON data structures
  */
+@KtorExperimentalAPI
 open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
     override fun property(path: String): ApplicationConfigValue {
         if (!config.hasPath(path))
@@ -30,5 +32,14 @@ open class HoconApplicationConfig(private val config: Config) : ApplicationConfi
     }
 }
 
-fun Config.tryGetString(path: String) = if (hasPath(path)) getString(path) else null
+/**
+ * Get string property value for [path] or `null` if missing
+ */
+@KtorExperimentalAPI
+fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
+
+/**
+ * Get list property value for [path] or `null` if missing
+ */
+@KtorExperimentalAPI
 fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null

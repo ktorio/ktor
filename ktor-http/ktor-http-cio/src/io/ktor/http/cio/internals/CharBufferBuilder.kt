@@ -1,10 +1,12 @@
 package io.ktor.http.cio.internals
 
+import io.ktor.util.*
 import kotlinx.io.pool.*
 import java.lang.IllegalStateException
 import java.nio.*
 
-@Suppress("LoopToCallChain", "ReplaceRangeToWithUntil")
+@Suppress("LoopToCallChain", "ReplaceRangeToWithUntil", "KDocMissingDocumentation")
+@InternalAPI
 class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : CharSequence, Appendable {
     private var buffers: MutableList<CharBuffer>? = null
     private var current: CharBuffer? = null

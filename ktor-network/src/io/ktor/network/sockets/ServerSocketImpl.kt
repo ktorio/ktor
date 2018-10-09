@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import java.net.*
 import java.nio.channels.*
 
+@Suppress("BlockingMethodInNonBlockingContext")
 internal class ServerSocketImpl(override val channel: ServerSocketChannel, val selector: SelectorManager)
     : ServerSocket,
         Selectable by SelectableBase(channel) {

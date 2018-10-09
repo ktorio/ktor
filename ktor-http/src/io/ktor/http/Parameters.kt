@@ -22,6 +22,7 @@ interface Parameters : StringValues {
 
 }
 
+@Suppress("KDocMissingDocumentation")
 class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
@@ -30,6 +31,7 @@ class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Empty parameters is internal", replaceWith = ReplaceWith("Parameters.Empty"))
 object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true
@@ -37,25 +39,47 @@ object EmptyParameters : Parameters {
     override fun names(): Set<String> = emptySet()
     override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
     override fun isEmpty(): Boolean = true
-    override fun toString() = "Parameters ${entries()}"
+    override fun toString(): String = "Parameters ${entries()}"
 
     override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }
 
+/**
+ * Returns an empty parameters instance
+ */
 fun parametersOf(): Parameters = Parameters.Empty
+
+/**
+ * Creates a parameters instance containing only single pair
+ */
 fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl(name, listOf(value))
+
+/**
+ * Creates a parameters instance containing only single pair of [name] with multiple [values]
+ */
 fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
+
+/**
+ * Creates a parameters instance from the specified [pairs]
+ */
 fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
-    override fun toString() = "Parameters ${entries()}"
+    override fun toString(): String = "Parameters ${entries()}"
 }
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
-    override fun toString() = "Parameters ${entries()}"
+    override fun toString(): String = "Parameters ${entries()}"
 }
 
-operator fun Parameters.plus(other: Parameters) = when {
+/**
+ * Plus operator function that creates a new parameters instance from the original one concatenating with [other]
+ */
+operator fun Parameters.plus(other: Parameters): Parameters = when {
     caseInsensitiveName == other.caseInsensitiveName -> when {
         this.isEmpty() -> other
         other.isEmpty() -> this

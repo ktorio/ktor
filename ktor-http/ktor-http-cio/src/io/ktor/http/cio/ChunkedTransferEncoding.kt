@@ -17,12 +17,21 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
         override fun clearInstance(instance: StringBuilder) = instance.apply { clear() }
     }
 
+/**
+ * Decoder job type
+ */
 typealias DecoderJob = WriterJob
 
+/**
+ * Start a chunked stream decoder coroutine
+ */
 fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob = writer(coroutineContext) {
     decodeChunked(input, channel)
 }
 
+/**
+ * Chunked stream decoding loop
+ */
 suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
 
@@ -63,8 +72,14 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     }
 }
 
+/**
+ * Encoder job type
+ */
 typealias EncoderJob = ReaderJob
 
+/**
+ * Start chunked stream encoding coroutine
+ */
 suspend fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext
@@ -72,6 +87,9 @@ suspend fun encodeChunked(
     encodeChunked(output, channel)
 }
 
+/**
+ * Chunked stream encoding loop
+ */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val buffer = DefaultByteBufferPool.borrow()
     val view = IoBuffer.Pool.borrow()
@@ -113,7 +131,6 @@ suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
 }
 
 private const val CrLfShort: Short = 0x0d0a
-private const val CrLfCrLfInt: Int = 0x0d0a0d0a
 
 private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()

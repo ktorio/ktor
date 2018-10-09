@@ -2,6 +2,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import java.net.*
@@ -17,13 +18,13 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
     override val remoteAddress: SocketAddress
         get() = channel.remoteAddress ?: throw IllegalStateException("Channel is not yet connected")
 
-    private val sender = actor<Datagram>(ioCoroutineDispatcher) {
+    private val sender = actor<Datagram>(Dispatchers.IO) {
         consumeEach { datagram ->
             sendImpl(datagram)
         }
     }
 
-    private val receiver = produce<Datagram>(ioCoroutineDispatcher) {
+    private val receiver = produce<Datagram>(Dispatchers.IO) {
         while (true) {
             channel.send(receiveImpl())
         }

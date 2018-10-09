@@ -75,6 +75,7 @@ interface StringValues {
     fun isEmpty(): Boolean
 }
 
+@InternalAPI
 open class StringValuesSingleImpl(
     override val caseInsensitiveName: Boolean,
     val name: String,
@@ -108,6 +109,7 @@ open class StringValuesSingleImpl(
         name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
 
+@InternalAPI
 open class StringValuesImpl(
     override val caseInsensitiveName: Boolean = false,
     values: Map<String, List<String>> = emptyMap()
@@ -143,6 +145,7 @@ open class StringValuesImpl(
     override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
 }
 
+@InternalAPI
 open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: Int = 8) {
     protected val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)

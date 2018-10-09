@@ -152,7 +152,7 @@ class CallLogging private constructor(
 /**
  * Generates a string representing this [ApplicationRequest] suitable for logging
  */
-fun ApplicationRequest.toLogString() = "${httpMethod.value} - ${path()}"
+fun ApplicationRequest.toLogString(): String = "${httpMethod.value} - ${path()}"
 
 private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
     override val key: CoroutineContext.Key<*> get() = Key

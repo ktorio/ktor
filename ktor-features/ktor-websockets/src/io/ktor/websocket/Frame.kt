@@ -8,6 +8,7 @@ import io.ktor.http.cio.websocket.Frame
     replaceWith = ReplaceWith("FrameType", "io.ktor.http.cio.websocket.*"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("KDocMissingDocumentation", "unused")
 typealias FrameType = FrameType
 
 @Deprecated(
@@ -15,4 +16,5 @@ typealias FrameType = FrameType
     replaceWith = ReplaceWith("Frame", "io.ktor.http.cio.websocket.*"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("KDocMissingDocumentation", "unused")
 typealias Frame = Frame

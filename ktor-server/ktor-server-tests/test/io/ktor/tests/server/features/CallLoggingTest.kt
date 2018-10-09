@@ -3,7 +3,6 @@ package io.ktor.tests.server.features
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -196,7 +195,7 @@ class CallLoggingTest {
         }
 
         withApplication(environment) {
-            IOCoroutineDispatcher(1).use { dispatcher ->
+            newFixedThreadPoolContext(1, "test-dispatcher").use { dispatcher ->
                 application.routing {
                     get("/*") {
                         withContext(dispatcher) {

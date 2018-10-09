@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.ktor.routing
 
 import io.ktor.application.*
@@ -9,7 +11,7 @@ import io.ktor.request.*
  * Builds a route to match specified [path]
  */
 @ContextDsl
-fun Route.route(path: String, build: Route.() -> Unit) = createRouteFromPath(path).apply(build)
+fun Route.route(path: String, build: Route.() -> Unit): Route = createRouteFromPath(path).apply(build)
 
 /**
  * Builds a route to match specified [method] and [path]
@@ -106,9 +108,15 @@ fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): 
     return route(path, HttpMethod.Post) { handle(body) }
 }
 
+/**
+ * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
+ */
 @ContextDsl
 @JvmName("postTyped")
-inline fun <reified R : Any> Route.post(path: String, crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit): Route {
+inline fun <reified R : Any> Route.post(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route {
     return route(path, HttpMethod.Post) {
         handle {
             body(call.receive())

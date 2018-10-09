@@ -73,7 +73,7 @@ class CallId private constructor(
         internal val generators = ArrayList<CallIdProvider>()
         internal val responseInterceptors = ArrayList<(call: ApplicationCall, callId: String) -> Unit>()
 
-        internal var verifier: CallIdVerifier = { _ -> false }
+        internal var verifier: CallIdVerifier = { false }
 
         init {
             verify(CALL_ID_DEFAULT_DICTIONARY)

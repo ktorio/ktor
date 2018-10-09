@@ -41,7 +41,11 @@ class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMap
     }
 }
 
-fun ContentNegotiation.Configuration.jackson(block: ObjectMapper.() -> Unit) {
+/**
+ * Register Jackson converter into [ContentNegotiation] feature
+ */
+fun ContentNegotiation.Configuration.jackson(contentType: ContentType = ContentType.Application.Json,
+                                             block: ObjectMapper.() -> Unit = {}) {
     val mapper = jacksonObjectMapper()
     mapper.apply {
         setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
@@ -51,5 +55,5 @@ fun ContentNegotiation.Configuration.jackson(block: ObjectMapper.() -> Unit) {
     }
     mapper.apply(block)
     val converter = JacksonConverter(mapper)
-    register(ContentType.Application.Json, converter)
+    register(contentType, converter)
 }

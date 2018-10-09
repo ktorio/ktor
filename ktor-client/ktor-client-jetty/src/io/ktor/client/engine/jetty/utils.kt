@@ -19,13 +19,3 @@ internal class PromiseContinuation<R>(private val continuation: Continuation<R>)
         continuation.resume(result)
     }
 }
-
-internal class CallbackContinuation(val continuation: Continuation<Unit>) : Callback {
-    override fun succeeded() {
-        continuation.resume(Unit)
-    }
-
-    override fun failed(x: Throwable) {
-        continuation.resumeWithException(x)
-    }
-}

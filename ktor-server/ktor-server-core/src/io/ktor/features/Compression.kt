@@ -154,6 +154,9 @@ class Compression(compression: Configuration) {
      * `ApplicationFeature` implementation for [Compression]
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Compression> {
+        /**
+         * Attribute that could be added to an application call to prevent it's response from being compressed
+         */
         val SuppressionAttribute = AttributeKey<Boolean>("preventCompression")
 
         override val key = AttributeKey<Compression>("Compression")
@@ -174,7 +177,11 @@ class Compression(compression: Configuration) {
      * Configuration builder for Compression feature
      */
     class Configuration() : ConditionsHolderBuilder {
+        /**
+         * Encoders map by names
+         */
         val encoders = hashMapOf<String, CompressionEncoderBuilder>()
+
         override val conditions = arrayListOf<ApplicationCall.(OutgoingContent) -> Boolean>()
 
         /**
@@ -254,11 +261,16 @@ object IdentityEncoder : CompressionEncoder {
  * Represents a builder for conditions
  */
 interface ConditionsHolderBuilder {
+    /**
+     * Preconditions applied to every response object to check if it should be compressed
+     */
     val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
 }
 
 /**
  * Builder for compression encoder configuration
+ * @property name of encoder
+ * @property encoder instance
  */
 class CompressionEncoderBuilder internal constructor(
     val name: String, val encoder: CompressionEncoder

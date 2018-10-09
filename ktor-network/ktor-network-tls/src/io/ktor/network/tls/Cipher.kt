@@ -3,7 +3,6 @@ package io.ktor.network.tls
 import io.ktor.http.cio.internals.*
 import io.ktor.network.util.*
 import kotlinx.io.core.*
-import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
 

@@ -1,6 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.client.response.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**
@@ -19,6 +20,7 @@ open class HttpClientEngineConfig {
     /**
      * Network threads count
      */
+    @KtorExperimentalAPI
     var threadsCount: Int = 4
 
     /**

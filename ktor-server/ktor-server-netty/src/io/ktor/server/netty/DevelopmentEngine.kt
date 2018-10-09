@@ -3,6 +3,9 @@ package io.ktor.server.netty
 import io.ktor.config.*
 import io.ktor.server.engine.*
 
+/**
+ * Netty development engine
+ */
 object DevelopmentEngine {
     /**
      * Main function for starting DevelopmentEngine with Netty

@@ -5,13 +5,18 @@ import io.ktor.util.*
 /**
  * Construct [Url] from [urlString]
  */
+@Suppress("FunctionName")
 fun Url(urlString: String): Url = URLBuilder(urlString).build()
 
 /**
- * Construct [UrlBuilder] from [urlString]
+ * Construct [URLBuilder] from [urlString]
  */
+@Suppress("FunctionName")
 fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
 
+/**
+ * Take components from another [url] builder
+ */
 fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     protocol = url.protocol
     host = url.host
@@ -26,6 +31,9 @@ fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     return this
 }
 
+/**
+ * Take components from another [url]
+ */
 fun URLBuilder.takeFrom(url: Url): URLBuilder {
     protocol = url.protocol
     host = url.host
@@ -40,9 +48,15 @@ fun URLBuilder.takeFrom(url: Url): URLBuilder {
     return this
 }
 
+/**
+ * Full encoded path with query string but without domain, port and schema
+ */
 val Url.fullPath: String
     get() = buildString { appendUrlFullPath(encodedPath, parameters, trailingQuery) }
 
+/**
+ * Host:port pair, not normalized so port is always specified even if the port is schema's default
+ */
 val Url.hostWithPort: String get() = "$host:$port"
 
 internal fun Appendable.appendUrlFullPath(

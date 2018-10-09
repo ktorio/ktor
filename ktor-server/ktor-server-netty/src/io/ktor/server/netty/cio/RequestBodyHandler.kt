@@ -134,6 +134,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
         }
     }
 
+    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable) {
         handlerJob.cancel(cause)
         queue.close(cause)

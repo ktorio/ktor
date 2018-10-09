@@ -35,6 +35,7 @@ import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
         hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
@@ -776,7 +777,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             get("/") {
                 val d = call.request.queryParameters["d"]!!.toLong()
-                delay(d, TimeUnit.SECONDS)
+                delay(TimeUnit.SECONDS.toMillis(d))
 
                 call.response.header("D", d.toString())
                 call.respondText("Response for $d\n")
@@ -1216,7 +1217,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         } // send FIN
 
         runBlocking {
-            withTimeout(1000L, TimeUnit.SECONDS) {
+            withTimeout(5000L) {
                 completed.join()
             }
         }
@@ -1269,7 +1270,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }  // send FIN + RST
 
         runBlocking {
-            withTimeout(1000L, TimeUnit.SECONDS) {
+            withTimeout(5000L) {
                 completed.join()
             }
         }
@@ -1590,7 +1591,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                                 append(HttpHeaders.ContentLength, halfSize)
                             }
 
-                        suspend override fun writeTo(channel: ByteWriteChannel) {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
                             channel.close()
                         }
@@ -1625,7 +1626,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
-    fun testIgnorePostContent(): Unit = runBlocking<Unit> {
+    fun testIgnorePostContent(): Unit = runBlocking {
         createAndStartServer {
             post("/") {
                 call.respondText("OK")
@@ -1656,7 +1657,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 }
 
                 launch(CoroutineName("reader") + testDispatcher) {
-                    try {
+                    use {
                         val channel = getInputStream().toByteReadChannel(context = testDispatcher)
 
                         repeat(repeatCount) { requestNumber ->
@@ -1667,8 +1668,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                                 response.release()
                             } ?: fail("No response found for request #$requestNumber")
                         }
-                    } finally {
-                        close() // close socket
                     }
                 }
             }
@@ -1696,7 +1695,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     companion object {
-        val classesDir = "build/classes/kotlin/main"
-        val coreClassesDir = "ktor-server/ktor-server-core/${classesDir}"
+        const val classesDir = "build/classes/kotlin/main"
+        const val coreClassesDir = "ktor-server/ktor-server-core/${classesDir}"
     }
 }

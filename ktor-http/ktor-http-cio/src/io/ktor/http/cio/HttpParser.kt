@@ -4,10 +4,16 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.io.*
 
+/**
+ * An HTTP parser exception
+ */
 class ParserException(message: String) : Exception(message)
 
 private const val HTTP_LINE_LIMIT = 8192
 
+/**
+ * Parse an HTTP request line and headers
+ */
 suspend fun parseRequest(input: ByteReadChannel): Request? {
     val builder = CharBufferBuilder()
     val range = MutableRange(0, 0)
@@ -37,6 +43,9 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
     }
 }
 
+/**
+ * Parse an HTTP response status line and headers
+ */
 suspend fun parseResponse(input: ByteReadChannel): Response? {
     val builder = CharBufferBuilder()
     val range = MutableRange(0, 0)
@@ -60,6 +69,9 @@ suspend fun parseResponse(input: ByteReadChannel): Response? {
     }
 }
 
+/**
+ * Parse HTTP headers. Not applicable to request and response status lines.
+ */
 suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, range: MutableRange = MutableRange(0, 0)): HttpHeadersMap? {
     val headers = HttpHeadersMap(builder)
 

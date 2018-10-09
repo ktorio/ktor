@@ -26,17 +26,17 @@ private val notFound404_11 = RequestResponseBuilder().apply {
 fun main(args: Array<String>) {
     val settings = HttpServerSettings()
 
-    launch {
+    GlobalScope.launch {
         while (isActive) {
             cachedDateText = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
             delay(1000)
         }
     }
 
-    val server = httpServer(settings, handler = { request: Request,
-                                                  _: ByteReadChannel,
-                                                  output: ByteWriteChannel,
-                                                  _: CompletableDeferred<Boolean>? ->
+    val server = GlobalScope.httpServer(settings, handler = { request: Request,
+                                                                  _: ByteReadChannel,
+                                                                  output: ByteWriteChannel,
+                                                                  _: CompletableDeferred<Boolean>? ->
         try {
             if (request.uri.length == 1 && request.uri[0] == '/' && request.method == HttpMethod.Get) {
                 val response = RequestResponseBuilder()

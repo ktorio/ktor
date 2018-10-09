@@ -3,10 +3,12 @@ package io.ktor.client.engine
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
  */
+@InternalAPI
 fun mergeHeaders(
     requestHeaders: Headers,
     content: OutgoingContent,

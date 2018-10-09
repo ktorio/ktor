@@ -12,6 +12,8 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
+@UseExperimental(EngineAPI::class)
+@Suppress("BlockingMethodInNonBlockingContext")
 class MultipleDispatchOnTimeout {
 
     private fun findFreePort() = ServerSocket(0).use { it.localPort }

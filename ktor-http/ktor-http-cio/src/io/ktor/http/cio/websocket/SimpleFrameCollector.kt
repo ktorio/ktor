@@ -3,6 +3,7 @@ package io.ktor.http.cio.websocket
 import io.ktor.util.*
 import java.nio.*
 
+@Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
 class SimpleFrameCollector {
     private var remaining: Int = 0

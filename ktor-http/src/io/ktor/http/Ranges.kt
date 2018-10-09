@@ -3,27 +3,59 @@ package io.ktor.http
 import io.ktor.util.*
 import kotlin.math.*
 
+/**
+ * Possible content range units: bytes and none
+ */
 enum class RangeUnits {
+    /**
+     * Range unit `bytes`
+     */
     Bytes,
+
+    /**
+     * Range unit `none`
+     */
     None;
 
-    val unitToken = name.toLowerCase()
+    /**
+     * Lower-case unit name
+     */
+    val unitToken: String = name.toLowerCase()
 }
 
+/**
+ * Represents a `Range` header's particular range
+ */
 sealed class ContentRange {
+    /**
+     * Represents a `Content-Range` bounded from both sides
+     * @property from index from which the content should begin
+     * @property to the last index the content should end at
+     */
     data class Bounded(val from: Long, val to: Long) : ContentRange() {
-        override fun toString() = "$from-$to"
+        override fun toString(): String = "$from-$to"
     }
 
+    /**
+     * Represents a `Content-Range` bounded at the beginning (skip first bytes, show tail)
+     * @property from index from which the content should begin
+     */
     data class TailFrom(val from: Long) : ContentRange() {
-        override fun toString() = "$from-"
+        override fun toString(): String = "$from-"
     }
 
+    /**
+     * Represents a `Content-Range` bounded by tail size
+     * @property lastCount number of tail bytes
+     */
     data class Suffix(val lastCount: Long) : ContentRange() {
-        override fun toString() = "-$lastCount"
+        override fun toString(): String = "-$lastCount"
     }
 }
 
+/**
+ * Parse `Range` header value
+ */
 fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     try {
         val (unit, allRangesString) = rangeSpec.chomp("=") { return null }

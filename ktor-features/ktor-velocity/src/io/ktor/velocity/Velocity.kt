@@ -10,6 +10,14 @@ import kotlinx.coroutines.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 
+/**
+ * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
+ *
+ * @param template name to be resolved by velocity
+ * @param model to be passed to the template
+ * @param etag header value (optional)
+ * @param contentType (optional, `text/html` with UTF-8 character encoding by default)
+ */
 class VelocityContent(
     val template: String,
     val model: Map<String, Any>,
@@ -17,11 +25,17 @@ class VelocityContent(
     val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
+/**
+ * Velocity ktor feature. Provides ability to respond with [VelocityContent] and [respondTemplate].
+ */
 class Velocity(private val engine: VelocityEngine) {
     init {
         engine.init()
     }
 
+    /**
+     * A companion object for installing feature
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, VelocityEngine, Velocity> {
         override val key = AttributeKey<Velocity>("freemarker")
 

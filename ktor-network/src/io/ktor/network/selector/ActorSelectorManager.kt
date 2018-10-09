@@ -1,6 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package io.ktor.network.selector
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.internal.*
@@ -11,7 +12,11 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.jvm.*
 
+/**
+ * Default CIO selector manager implementation
+ */
 @Suppress("BlockingMethodInNonBlockingContext")
+@KtorExperimentalAPI
 class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
     private var selectorRef: Selector? = null
@@ -122,6 +127,9 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
         }
     }
 
+    /**
+     * Publish current [selectable] interest
+     */
     override fun publishInterest(selectable: Selectable) {
         try {
             if (mb.addLast(selectable)) {
@@ -154,6 +162,9 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
         }
     }
 
+    /**
+     * Close selector manager and release all resources
+     */
     override fun close() {
         closed = true
         mb.close()

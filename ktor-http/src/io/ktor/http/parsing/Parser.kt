@@ -6,7 +6,7 @@ internal interface Parser {
     fun match(input: String): Boolean
 }
 
-class ParseResult(
+internal class ParseResult(
     private val mapping: Map<String, List<String>>
 ) {
     operator fun get(key: String): String? = mapping[key]?.firstOrNull()

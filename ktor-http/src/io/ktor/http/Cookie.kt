@@ -3,6 +3,20 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.util.date.*
 
+/**
+ * Represents a cooke value
+ *
+ * @property name
+ * @property value
+ * @property encoding - cookie encoding type
+ * @property maxAge number of seconds to keep cookie
+ * @property expires date when it expires
+ * @property domain for which it is set
+ * @property path for which it is set
+ * @property secure send it via secure connection only
+ * @property httpOnly only transfer cookie over HTTP, no access from JavaScript
+ * @property extensions additional cookie extensions
+ */
 data class Cookie(
     val name: String,
     val value: String,
@@ -16,11 +30,36 @@ data class Cookie(
     val extensions: Map<String, String?> = emptyMap()
 )
 
+/**
+ * Cooke encoding strategy
+ */
 enum class CookieEncoding {
-    RAW, DQUOTES, URI_ENCODING, BASE64_ENCODING
+    /**
+     * No encoding (could be dangerous)
+     */
+    RAW,
+    /**
+     * Double quotes with slash-escaping
+     */
+    DQUOTES,
+
+    /**
+     * URI encoding
+     */
+    URI_ENCODING,
+
+    /**
+     * BASE64 encoding
+     */
+    BASE64_ENCODING
 }
 
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
+
+/**
+ * Parse server's `Set-Cookie` header value
+ */
+@KtorExperimentalAPI
 fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
@@ -44,6 +83,11 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
 }
 
 private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
+
+/**
+ * Parse client's `Cookie` header value
+ */
+@KtorExperimentalAPI
 fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
@@ -55,6 +99,10 @@ fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true)
         }
         .toMap()
 
+/**
+ * Format `Set-Cookie` header value
+ */
+@KtorExperimentalAPI
 fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -70,6 +118,10 @@ fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     )
 }
 
+/**
+ * Format `Set-Cookie` header value
+ */
+@KtorExperimentalAPI
 fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
@@ -86,6 +138,10 @@ fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     )
 }
 
+/**
+ * Format `Set-Cookie` header value
+ */
+@KtorExperimentalAPI
 fun renderSetCookieHeader(
     name: String, value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
@@ -110,6 +166,10 @@ fun renderSetCookieHeader(
         ).filter { it.isNotEmpty() }
     .joinToString("; ")
 
+/**
+ * Encode cookie value using the specified [encoding]
+ */
+@KtorExperimentalAPI
 fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
@@ -124,6 +184,10 @@ fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (e
     CookieEncoding.URI_ENCODING -> value.encodeURLQueryComponent(encodeFull = true, spaceToPlus = true)
 }
 
+/**
+ * Decode cookie value using the specified [encoding]
+ */
+@KtorExperimentalAPI
 fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
