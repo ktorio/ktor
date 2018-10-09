@@ -12,9 +12,15 @@ data class HttpStatusCode(val value: Int, val description: String) {
     /**
      * Returns a copy of `this` code with a description changed to [value].
      */
-    fun description(value: String) = copy(description = value)
+    fun description(value: String): HttpStatusCode = copy(description = value)
 
+    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     companion object {
+        // =============================================================================================================
+        // Disclaimer
+        // Adding a new status code here please remember [allStatusCodes] as well
+        //
+
         val Continue = HttpStatusCode(100, "Continue")
         val SwitchingProtocols = HttpStatusCode(101, "Switching Protocols")
         val Processing = HttpStatusCode(102, "Processing")
@@ -73,6 +79,9 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
         val InsufficientStorage = HttpStatusCode(507, "Insufficient Storage")
 
+        /**
+         * All known status codes
+         */
         val allStatusCodes: List<HttpStatusCode> = io.ktor.http.allStatusCodes()
 
         private val byValue: Array<HttpStatusCode?> = Array(1000) { idx ->
@@ -89,7 +98,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
     }
 }
 
-@Suppress("UNUSED")
+@Suppress("UNUSED", "KDocMissingDocumentation")
 @Deprecated("Use ExpectationFailed instead",
         ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed"))
 inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode get() = ExpectationFailed

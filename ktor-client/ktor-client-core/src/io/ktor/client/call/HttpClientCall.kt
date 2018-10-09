@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
@@ -97,13 +98,14 @@ suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo
  * Exception representing that the response payload has already been received.
  */
 class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
-    override val message: String = "Request already received: $call"
+    override val message: String = "Response already received: $call"
 }
 
 /**
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
  */
+@KtorExperimentalAPI
 class ReceivePipelineFail(
     val request: HttpClientCall,
     val info: TypeInfo,

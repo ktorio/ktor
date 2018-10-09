@@ -18,7 +18,6 @@ import kotlin.coroutines.*
 /**
  * Android client engine
  */
-@UseExperimental(InternalAPI::class)
 class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientJvmEngine("ktor-android") {
 
     override suspend fun execute(

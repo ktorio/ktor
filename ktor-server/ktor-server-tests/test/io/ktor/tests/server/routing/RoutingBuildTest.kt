@@ -74,9 +74,9 @@ class RoutingBuildTest {
             it("should have second level child of type UriPartParameterRoutingSelector") {
                 val selector = entry.children[0].children[0].selector as? PathSegmentParameterRouteSelector
                 assertNotNull(selector)
-                assertEquals("new", selector?.name)
-                assertEquals("a", selector?.prefix)
-                assertEquals("b", selector?.suffix)
+                assertEquals("new", selector.name)
+                assertEquals("a", selector.prefix)
+                assertEquals("b", selector.suffix)
             }
         }
 

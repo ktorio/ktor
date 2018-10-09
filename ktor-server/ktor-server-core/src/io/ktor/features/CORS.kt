@@ -10,16 +10,47 @@ import java.net.*
 import java.time.*
 import java.util.*
 
+/**
+ * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
+ */
 class CORS(configuration: Configuration) {
     private val numberRegex = "[0-9]+".toRegex()
 
+    /**
+     * Allow requests from the same origin
+     */
     val allowSameOrigin = configuration.allowSameOrigin
+
+    /**
+     * Allow requests from any origin
+     */
     val allowsAnyHost = "*" in configuration.hosts
+
+    /**
+     * Allow to pass credentials
+     */
     val allowCredentials = configuration.allowCredentials
+
+    /**
+     * All allowed headers to be sent
+     */
     val allHeaders = configuration.headers + Configuration.CorsDefaultHeaders
 
+    /**
+     * All allowed HTTP methods
+     */
     val methods = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
-    val headers = allHeaders.map { it.toLowerCase() }.toSet()
+
+    /**
+     * Set of all allowed headers
+     */
+    @Deprecated("Use allHeadersSet instead", ReplaceWith("allHeadersSet"))
+    val headers: Set<String> get() = allHeadersSet
+
+    /**
+     * Set of all allowed headers
+     */
+    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCase() }.toSet()
 
     private val headersListHeaderValue = allHeaders.sorted().joinToString(", ")
     private val methodsListHeaderValue = methods.map { it.value }.sorted().joinToString(", ")
@@ -27,6 +58,10 @@ class CORS(configuration: Configuration) {
     private val exposedHeaders = if (configuration.exposedHeaders.isNotEmpty()) configuration.exposedHeaders.sorted().joinToString(", ") else null
     private val hostsNormalized = HashSet<String>(configuration.hosts.map { normalizeOrigin(it) })
 
+    /**
+     * Feature's call interceptor that does all the job. Usually there is no need to install it as it is done during
+     * feature installation
+     */
     suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val call = context.call
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
@@ -35,7 +70,7 @@ class CORS(configuration: Configuration) {
 
         if (allowSameOrigin && call.isSameOrigin(origin)) return
 
-        if (!call.corsCheckOrigins(origin)) {
+        if (!corsCheckOrigins(origin)) {
             context.respondCorsFailed()
             return
         }
@@ -111,14 +146,14 @@ class CORS(configuration: Configuration) {
         return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
     }
 
-    private fun ApplicationCall.corsCheckOrigins(origin: String): Boolean {
+    private fun corsCheckOrigins(origin: String): Boolean {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
     private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
         val requestHeaders = request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map { it.trim().toLowerCase() } ?: emptyList()
 
-        return !requestHeaders.any { it !in headers }
+        return !requestHeaders.any { it !in allHeadersSet }
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -173,11 +208,20 @@ class CORS(configuration: Configuration) {
         }
     }.toString()
 
+    /**
+     * CORS feature configuration
+     */
     class Configuration {
         companion object {
+            /**
+             * Default HTTP methods that are always allowed by CORS
+             */
             val CorsDefaultMethods = setOf(HttpMethod.Get, HttpMethod.Post, HttpMethod.Head)
 
             // https://www.w3.org/TR/cors/#simple-header
+            /**
+             * Default HTTP headers that are always allowed by CORS
+             */
             val CorsDefaultHeaders: Set<String> = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
                 addAll(listOf(
                         HttpHeaders.CacheControl,
@@ -190,20 +234,51 @@ class CORS(configuration: Configuration) {
             }
         }
 
+        /**
+         * Allowed CORS hosts
+         */
         val hosts = HashSet<String>()
+
+        /**
+         * Allowed CORS headers
+         */
         val headers = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
+
+        /**
+         * Allowed HTTP methods
+         */
         val methods = HashSet<HttpMethod>()
+
+        /**
+         * Exposed HTTP headers that could be accessed by a client
+         */
         val exposedHeaders = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
 
+        /**
+         * Allow sending credentials
+         */
         var allowCredentials = false
 
+        /**
+         * Max-Age for cached CORS options
+         */
         var maxAge: Duration = Duration.ofDays(1)
+
+        /**
+         * Allow requests from the same origin
+         */
         var allowSameOrigin: Boolean = true
 
+        /**
+         * Allow requests from any host
+         */
         fun anyHost() {
             hosts.add("*")
         }
 
+        /**
+         * Allow requests from the specified domains and schemes
+         */
         fun host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
             if (host == "*") {
                 return anyHost()
@@ -221,14 +296,23 @@ class CORS(configuration: Configuration) {
             }
         }
 
+        /**
+         * Allow to expose [header]
+         */
         fun exposeHeader(header: String) {
             exposedHeaders.add(header)
         }
 
+        /**
+         * Allow to expose `X-Http-Method-Override` header
+         */
         fun exposeXHttpMethodOverride() {
             exposedHeaders.add(HttpHeaders.XHttpMethodOverride)
         }
 
+        /**
+         * Allow sending [header]
+         */
         fun header(header: String) {
             if (header !in CorsDefaultHeaders) {
                 headers.add(header)
@@ -248,6 +332,9 @@ class CORS(configuration: Configuration) {
         }
     }
 
+    /**
+     * Feature object for installation
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
         override val key = AttributeKey<CORS>("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {

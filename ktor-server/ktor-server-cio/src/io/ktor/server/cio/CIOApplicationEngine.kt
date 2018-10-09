@@ -100,7 +100,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         stopRequest.complete(Unit)
 
         runBlocking {
-            val result = withTimeoutOrNull(gracePeriod, timeUnit) {
+            val result = withTimeoutOrNull(timeUnit.toMillis(gracePeriod)) {
                 serverJob.join()
                 true
             }
@@ -110,7 +110,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 userDispatcher.prepareShutdown()
                 serverJob.cancel()
 
-                val forceShutdown = withTimeoutOrNull(timeout - gracePeriod, timeUnit) {
+                val forceShutdown = withTimeoutOrNull(timeUnit.toMillis(timeout - gracePeriod)) {
                     serverJob.join()
                     false
                 } ?: true

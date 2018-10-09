@@ -1,6 +1,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.util.*
 import kotlinx.io.pool.*
 
 
@@ -21,6 +22,11 @@ private const val HEADER_ARRAY_POOL_SIZE = 1000
 
 private val EMPTY_INT_ARRAY = IntArray(0)
 
+/**
+ * A headers map data structure used in CIO
+ */
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder) {
     var size = 0
         private set
@@ -110,8 +116,16 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
 
         if (indexes !== EMPTY_INT_ARRAY) IntArrayPool.recycle(indexes)
     }
+
+    override fun toString(): String {
+        return buildString { dumpTo("", this) }
+    }
 }
 
+/**
+ * Dump header values to [out], useful for debugging
+ */
+@InternalAPI
 fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     for (i in 0 until size) {
         out.append(indent)

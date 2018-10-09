@@ -2,15 +2,36 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 
+/**
+ * Represents a parsed `Connection` header
+ * @property close `true` for `Connection: close`
+ * @property keepAlive `true` for `Connection: keep-alive`
+ * @property upgrade `true` for `Connection: upgrade`
+ * @property extraOptions a list of extra connection header options other than close, keep-alive and upgrade
+ */
 class ConnectionOptions(val close: Boolean = false, val keepAlive: Boolean = false, val upgrade: Boolean = false, val extraOptions: List<String> = emptyList()) {
     companion object {
+        /**
+         * An instance for `Connection: close`
+         */
         val Close = ConnectionOptions(close = true)
+
+        /**
+         * An instance for `Connection: keep-alive`
+         */
         val KeepAlive = ConnectionOptions(keepAlive = true)
+
+        /**
+         * An instance for `Connection: upgrade`
+         */
         val Upgrade = ConnectionOptions(upgrade = true)
 
         private val knownTypes = AsciiCharTree.build(
                 listOf("close" to Close, "keep-alive" to KeepAlive, "upgrade" to Upgrade), { it.first.length }, { t, idx -> t.first[idx] })
 
+        /**
+         * Parse `Connection` header value
+         */
         fun parse(connection: CharSequence?): ConnectionOptions? {
             if (connection == null) return null
             val known = knownTypes.search(connection, lowerCase = true, stopPredicate = { _, _ -> false })

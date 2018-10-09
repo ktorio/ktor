@@ -1,7 +1,12 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
+import io.ktor.util.*
 
+/**
+ * An adapter from CIO low-level headers map to ktor [Headers] interface
+ */
+@InternalAPI
 class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
         LinkedHashSet<String>(headers.size).apply {

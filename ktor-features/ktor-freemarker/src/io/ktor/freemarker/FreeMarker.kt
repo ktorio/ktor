@@ -9,6 +9,14 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.io.*
 
+/**
+ * Represents a content handled by [FreeMarker] feature.
+ *
+ * @param template name that is resolved by freemarker
+ * @param model to be passed during template rendering
+ * @param etag value for `E-Tag` header (optional)
+ * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
+ */
 class FreeMarkerContent(
     val template: String,
     val model: Any?,
@@ -16,9 +24,15 @@ class FreeMarkerContent(
     val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
-class FreeMarker(val config: Configuration) {
+/**
+ * Freemarker support feature. Provides ability to respond with [FreeMarkerContent]
+ */
+class FreeMarker(private val config: Configuration) {
+    /**
+     * A feature installing companion object
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, FreeMarker> {
-        override val key = AttributeKey<FreeMarker>("freemarker")
+        override val key: AttributeKey<FreeMarker> = AttributeKey("freemarker")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {
             val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)

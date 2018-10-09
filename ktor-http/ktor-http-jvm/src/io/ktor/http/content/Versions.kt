@@ -9,7 +9,7 @@ import java.util.*
 /**
  * Specifies a key for VersionList extension property for [OutgoingContent]
  */
-val VersionListProperty = AttributeKey<List<Version>>("VersionList")
+val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**
  * Gets or sets list of [Version] instances as an extension property on this content

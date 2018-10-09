@@ -1,6 +1,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
@@ -11,14 +12,33 @@ import java.io.EOFException
 import java.nio.*
 import kotlin.coroutines.*
 
+/**
+ * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
+ */
 sealed class MultipartEvent {
+    /**
+     * Release underlying data/packet.
+     */
     abstract fun release()
+
+    /**
+     * Represents a multipart content preamble. A multipart stream could have at most one preamble.
+     * @property body contains preamble's content
+     */
     class Preamble(val body: ByteReadPacket) : MultipartEvent() {
         override fun release() {
             body.release()
         }
     }
 
+    /**
+     * Represents a multipart part. There could be any number of parts in a multipart stream. Please note that
+     * it is important to consume [body] otherwise multipart parser could get stuck (suspend)
+     * so you will not receive more events.
+     *
+     * @property headers deferred that will be completed once will be parsed
+     * @property body a channel of part content
+     */
     class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
         override fun release() {
             headers.invokeOnCompletion { t ->
@@ -26,10 +46,16 @@ sealed class MultipartEvent {
                     headers.getCompleted().release()
                 }
             }
-            // TODO body
+            runBlocking {
+                body.discard()
+            }
         }
     }
 
+    /**
+     * Represents a multipart content epilogue. A multipart stream could have at most one epilogue.
+     * @property body contains epilogue's content
+     */
     class Epilogue(val body: ByteReadPacket) : MultipartEvent() {
         override fun release() {
             body.release()
@@ -37,11 +63,17 @@ sealed class MultipartEvent {
     }
 }
 
+@Deprecated("Simply copy required number of bytes from input to output instead")
 suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
     input.copyTo(out, length)
 }
 
+/**
+ * Parse a multipart preamble
+ * @return number of bytes copied
+ */
+@KtorExperimentalAPI
 suspend fun parsePreamble(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
@@ -51,6 +83,10 @@ suspend fun parsePreamble(
     return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
 }
 
+/**
+ * Parse multipart part headers and body. Body bytes will be copied to [output] but up to [limit] bytes
+ */
+@KtorExperimentalAPI
 suspend fun parsePart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel,
     limit: Long = Long.MAX_VALUE
@@ -65,6 +101,10 @@ suspend fun parsePart(
     }
 }
 
+/**
+ * Parse multipart part headers
+ */
+@KtorExperimentalAPI
 suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharBufferBuilder()
 
@@ -77,6 +117,10 @@ suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
     }
 }
 
+/**
+ * Parse multipart part body copying them to [output] channel but up to [limit] bytes
+ */
+@KtorExperimentalAPI
 suspend fun parsePartBody(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel, output: ByteWriteChannel,
@@ -94,13 +138,19 @@ suspend fun parsePartBody(
     return size
 }
 
+/**
+ * Skip multipart boundary
+ */
+@KtorExperimentalAPI
 suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     input.skipDelimiter(boundaryPrefixed)
 
     var result = false
     input.lookAheadSuspend {
         awaitAtLeast(1)
-        val buffer = request(0, 1) ?: throw IOException("Failed to pass multipart boundary: unexpected end of stream")
+        val buffer = request(0, 1)
+            ?: throw IOException("Failed to pass multipart boundary: unexpected end of stream")
+
         if (buffer[buffer.position()] != PrefixChar) return@lookAheadSuspend
         if (buffer.remaining() > 1 && buffer[buffer.position() + 1] == PrefixChar) {
             result = true
@@ -109,8 +159,9 @@ suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Bool
         }
 
         awaitAtLeast(2)
-        val attempt2buffer =
-            request(1, 1) ?: throw IOException("Failed to pass multipart boundary: unexpected end of stream")
+        val attempt2buffer = request(1, 1)
+            ?: throw IOException("Failed to pass multipart boundary: unexpected end of stream")
+
         if (attempt2buffer[attempt2buffer.position()] == PrefixChar) {
             result = true
             consumed(2)
@@ -121,12 +172,15 @@ suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Bool
     return result
 }
 
+/**
+ * Check if we have multipart content
+ */
+@KtorExperimentalAPI
 fun expectMultipart(headers: HttpHeadersMap): Boolean {
     return headers["Content-Type"]?.startsWith("multipart/") ?: false
 }
 
-private val headerParameterEndChars = charArrayOf(' ', ';', ',')
-
+@Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
 @Deprecated("Specify CoroutineScope explicitly")
 fun parseMultipart(
     coroutineContext: CoroutineContext,
@@ -136,6 +190,11 @@ fun parseMultipart(
     return CoroutineScope(coroutineContext).parseMultipart(input, headers)
 }
 
+
+/**
+ * Starts a multipart parser coroutine producing multipart events
+ */
+@KtorExperimentalAPI
 fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
@@ -143,6 +202,7 @@ fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMa
     return parseMultipart(input, contentType, contentLength)
 }
 
+@Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
 @Deprecated("Specify coroutine scope excplicitly")
 fun parseMultipart(
     coroutineContext: CoroutineContext,
@@ -153,6 +213,10 @@ fun parseMultipart(
     return CoroutineScope(coroutineContext).parseMultipart(input, contentType, contentLength)
 }
 
+/**
+ * Starts a multipart parser coroutine producing multipart events
+ */
+@KtorExperimentalAPI
 fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
@@ -169,9 +233,8 @@ fun CoroutineScope.parseMultipart(
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
-@Deprecated(
-    "Use parseMultipart with coroutine scope specified"
-)
+@Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Use parseMultipart with coroutine scope specified")
 fun parseMultipart(
     coroutineContext: CoroutineContext,
     boundaryPrefixed: ByteBuffer,
@@ -181,6 +244,10 @@ fun parseMultipart(
     return CoroutineScope(coroutineContext).parseMultipart(boundaryPrefixed, input, totalLength)
 }
 
+/**
+ * Starts a multipart parser coroutine producing multipart events
+ */
+@KtorExperimentalAPI
 fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
@@ -247,6 +314,9 @@ fun CoroutineScope.parseMultipart(
     }
 }
 
+/**
+ * @return number of copied bytes or 0 if a boundary of EOF encountered
+ */
 private suspend fun copyUntilBoundary(
     name: String,
     boundaryPrefixed: ByteBuffer,
@@ -337,6 +407,10 @@ private fun findBoundary(contentType: CharSequence): Int {
     return -1
 }
 
+/**
+ * Parse multipart boundary encoded in [contentType] header value
+ */
+@KtorExperimentalAPI
 fun parseBoundary(contentType: CharSequence): ByteBuffer {
     val boundaryParameter = findBoundary(contentType)
 

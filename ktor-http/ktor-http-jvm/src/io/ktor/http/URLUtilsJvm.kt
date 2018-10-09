@@ -2,6 +2,9 @@ package io.ktor.http
 
 import java.net.*
 
+/**
+ * Take URI components from [uri]
+ */
 fun URLBuilder.takeFrom(uri: URI) {
     uri.scheme?.let {
         protocol = URLProtocol.createOrDefault(it)
@@ -38,4 +41,7 @@ fun URLBuilder.takeFrom(uri: URI) {
     uri.fragment?.let { fragment = it }
 }
 
+/**
+ * Take URI components from [url]
+ */
 fun URLBuilder.takeFrom(url: URL) = takeFrom(url.toURI())

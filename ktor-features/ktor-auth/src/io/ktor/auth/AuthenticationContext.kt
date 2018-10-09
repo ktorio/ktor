@@ -50,7 +50,7 @@ class AuthenticationContext(val call: ApplicationCall) {
     /**
      * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user
      */
-    suspend fun challenge(key: Any,
+    fun challenge(key: Any,
                           cause: AuthenticationFailedCause,
                           function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>) {
         error(key, cause)

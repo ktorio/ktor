@@ -4,7 +4,7 @@ import java.util.concurrent.*
 
 actual fun Attributes(): Attributes = AttributesJvm()
 
-class AttributesJvm : Attributes {
+private class AttributesJvm : Attributes {
     private val map = ConcurrentHashMap<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")

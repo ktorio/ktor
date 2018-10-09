@@ -99,9 +99,11 @@ open class Locations(private val application: Application, private val routeServ
             val declaredProperties = constructor.parameters.map { parameter ->
                 val property =
                     locationClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
-                if (property == null) {
-                    throw LocationRoutingException("Parameter ${parameter.name} of constructor for class ${locationClass.qualifiedName} should have corresponding property")
-                }
+                        ?: throw LocationRoutingException(
+                            "Parameter ${parameter.name} of constructor " +
+                                "for class ${locationClass.qualifiedName} should have corresponding property"
+                        )
+
                 LocationInfoProperty(
                     parameter.name ?: "<unnamed>",
                     (property as KProperty1<out Any?, *>).getter,
@@ -221,8 +223,7 @@ open class Locations(private val application: Application, private val routeServ
 
     private fun createEntry(parent: Route, info: LocationInfo): Route {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
-        val pathEntry = hierarchyEntry.createRouteFromPath(info.path)
-        return pathEntry
+        return hierarchyEntry.createRouteFromPath(info.path)
     }
 
     /**
@@ -292,5 +293,7 @@ class LocationAttributeRouteService : LocationRouteService {
  */
 class LocationRoutingException(message: String) : Exception(message)
 
-@Deprecated("Use LocationRoutingException instead", replaceWith = ReplaceWith("LocationRoutingException"), level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Use LocationRoutingException instead",
+    replaceWith = ReplaceWith("LocationRoutingException"), level = DeprecationLevel.ERROR)
 typealias RoutingException = LocationRoutingException

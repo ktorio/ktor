@@ -15,6 +15,9 @@ import kotlinx.io.streams.*
 import java.io.*
 import java.nio.charset.*
 
+/**
+ * Default send transformation
+ */
 @EngineAPI
 fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
@@ -24,6 +27,9 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
     }
 }
 
+/**
+ * Default receive transformation
+ */
 @EngineAPI
 fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->

@@ -15,6 +15,9 @@ fun URLBuilder.takeFrom(urlString: String): URLBuilder {
     }
 }
 
+/**
+ * Thrown when failed to parse URL
+ */
 class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
     "Fail to parse url: $urlString", cause
 )

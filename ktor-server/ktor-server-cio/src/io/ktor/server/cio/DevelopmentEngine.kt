@@ -4,7 +4,13 @@ import io.ktor.config.*
 import io.ktor.server.engine.*
 import java.util.concurrent.*
 
+/**
+ * Default development engine with main function that starts CIO engine using application.conf
+ */
 object DevelopmentEngine {
+    /**
+     * CIO development engine entry point
+     */
     @JvmStatic
     fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)

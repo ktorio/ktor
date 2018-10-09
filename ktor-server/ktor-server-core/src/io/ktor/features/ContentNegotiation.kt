@@ -101,6 +101,9 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
     }
 }
 
+/**
+ * Thrown when there is no conversion for a content type configured
+ */
 class UnsupportedMediaTypeException(contentType: ContentType) :
         ContentTransformationException("Content type $contentType is not supported")
 
@@ -134,6 +137,10 @@ interface ContentConverter {
     suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
 }
 
+/**
+ * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
+ */
+@KtorExperimentalAPI
 fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset

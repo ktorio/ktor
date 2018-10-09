@@ -35,7 +35,7 @@ class TestApplicationResponse(
     private var responseChannel: ByteChannel? = null
 
     @Volatile
-    private var responseJob: Job? = null
+    private var responseJob: Deferred<Unit>? = null
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -62,7 +62,7 @@ class TestApplicationResponse(
         val result = ByteChannel(autoFlush = true)
 
         if (readResponse) {
-            responseJob = launch(ioCoroutineDispatcher) {
+            responseJob = async(Dispatchers.Default) {
                 byteContent = result.toByteArray()
             }
         }
@@ -74,8 +74,7 @@ class TestApplicationResponse(
     fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
     suspend fun flush() {
-        responseJob?.join()
-        responseJob?.getCancellationException()?.cause?.let { throw it }
+        responseJob?.await()
     }
 
     // Websockets & upgrade
@@ -89,7 +88,7 @@ class TestApplicationResponse(
     }
 
     fun awaitWebSocket(duration: Duration) = runBlocking {
-        withTimeout(duration.toMillis(), TimeUnit.MILLISECONDS) {
+        withTimeout(duration.toMillis()) {
             webSocketCompleted.join()
         }
     }

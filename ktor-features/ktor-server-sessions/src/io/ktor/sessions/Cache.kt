@@ -1,5 +1,6 @@
 package io.ktor.sessions
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.lang.ref.*
 import java.util.*
@@ -8,6 +9,8 @@ import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 interface Cache<in K : Any, V : Any> {
     suspend fun getOrCompute(key: K): V
     fun peek(key: K): V?

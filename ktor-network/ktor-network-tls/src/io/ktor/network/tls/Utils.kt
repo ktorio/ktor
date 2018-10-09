@@ -5,11 +5,6 @@ import kotlinx.io.core.*
 import kotlinx.io.core.Closeable
 import java.security.*
 
-internal fun ByteReadPacket.duplicate(): Pair<ByteReadPacket, ByteReadPacket> {
-    if (this.isEmpty) return ByteReadPacket.Empty to ByteReadPacket.Empty
-    return this to copy()
-}
-
 internal class Digest : Closeable {
     private val state = BytePacketBuilder()
 

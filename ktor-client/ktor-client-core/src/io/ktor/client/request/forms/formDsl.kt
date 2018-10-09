@@ -38,7 +38,7 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
-class FormBuilder {
+class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {

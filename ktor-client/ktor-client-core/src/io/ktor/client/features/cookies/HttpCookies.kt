@@ -79,6 +79,7 @@ private fun renderClientCookies(cookies: List<Cookie>): String = buildString {
  * Gets all the cookies for the specified [url] for this [HttpClient].
  */
 suspend fun HttpClient.cookies(url: Url): List<Cookie> = feature(HttpCookies)?.get(url) ?: emptyList()
+
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
  */

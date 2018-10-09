@@ -22,6 +22,9 @@ sealed class CacheControl(val visibility: Visibility?) {
         Private
     }
 
+    /**
+     * Represents a no-cache cache control value
+     */
     class NoCache(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString() = if (visibility == null) {
             "no-cache"
@@ -30,6 +33,9 @@ sealed class CacheControl(val visibility: Visibility?) {
         }
     }
 
+    /**
+     * Represents a no-store cache control value
+     */
     class NoStore(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString() = if (visibility == null) {
             "no-store"
@@ -38,6 +44,13 @@ sealed class CacheControl(val visibility: Visibility?) {
         }
     }
 
+    /**
+     * Represents a cache control value with the specified max ages and re-validation strategies
+     * @property maxAgeSeconds max-age in seconds
+     * @property proxyMaxAgeSeconds max-age in seconds for caching proxies
+     * @property mustRevalidate `true` if a client must validate in spite of age
+     * @property proxyRevalidate `true` if a caching proxy must revalidate in spite of age
+     */
     class MaxAge(
         val maxAgeSeconds: Int,
         val proxyMaxAgeSeconds: Int? = null,

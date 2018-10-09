@@ -1,6 +1,6 @@
 package io.ktor.network.selector
 
-import io.ktor.network.util.*
+import io.ktor.util.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -9,6 +9,10 @@ import java.nio.channels.spi.*
  * Selector manager is a service that manages NIO selectors and selection threads
  */
 interface SelectorManager {
+    /**
+     * NIO selector provider
+     */
+    @KtorExperimentalAPI
     val provider: SelectorProvider
 
     /**
@@ -28,11 +32,18 @@ interface SelectorManager {
     suspend fun select(selectable: Selectable, interest: SelectInterest)
 
     companion object {
+        @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
         @Deprecated("Create selector manager explicitly", level = DeprecationLevel.ERROR)
-        val DefaultSelectorManager = ActorSelectorManager(ioCoroutineDispatcher)
+        val DefaultSelectorManager: ActorSelectorManager = TODO("Not supported anymore")
     }
 }
 
+/**
+ * Select interest kind
+ * @property flag to be set in NIO selector
+ */
+@Suppress("KDocMissingDocumentation")
+@KtorExperimentalAPI
 enum class SelectInterest(val flag: Int) {
     READ(SelectionKey.OP_READ),
     WRITE(SelectionKey.OP_WRITE),
@@ -40,8 +51,16 @@ enum class SelectInterest(val flag: Int) {
     CONNECT(SelectionKey.OP_CONNECT);
 
     companion object {
+        @InternalAPI
         val AllInterests: Array<SelectInterest> = values()
+
+        /**
+         * interest's flags in enum entry order
+         */
+        @InternalAPI
         val flags: IntArray = values().map { it.flag }.toIntArray()
+
+        @InternalAPI
         val size: Int = values().size
     }
 }

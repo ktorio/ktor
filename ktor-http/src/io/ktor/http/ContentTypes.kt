@@ -30,7 +30,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Creates a copy of `this` type without any parameters
      */
-    fun withoutParameters() = ContentType(contentType, contentSubtype)
+    fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters. 
@@ -103,13 +103,13 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         /**
          * Represents a pattern `* / *` to match any content type.
          */
-        val Any = ContentType("*", "*")
+        val Any: ContentType = ContentType("*", "*")
     }
 
     /**
      * Provides a list of standard subtypes of an `application` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Application {
         /**
          * Represents a pattern `application / *` to match any application content type.
@@ -131,7 +131,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of an `audio` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Audio {
         val Any = ContentType("audio", "*")
         val MP4 = ContentType("audio", "mp4")
@@ -142,7 +142,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of an `image` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Image {
         val Any = ContentType("image", "*")
         val GIF = ContentType("image", "gif")
@@ -155,7 +155,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of a `message` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Message {
         val Any = ContentType("message", "*")
         val Http = ContentType("message", "http")
@@ -164,7 +164,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of a `multipart` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object MultiPart {
         val Any = ContentType("multipart", "*")
         val Mixed = ContentType("multipart", "mixed")
@@ -179,7 +179,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of a `text` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Text {
         val Any = ContentType("text", "*")
         val Plain = ContentType("text", "plain")
@@ -194,7 +194,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     /**
      * Provides a list of standard subtypes of a `video` content type.
      */
-    @Suppress("unused")
+    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
     object Video {
         val Any = ContentType("video", "*")
         val MPEG = ContentType("video", "mpeg")
@@ -212,9 +212,9 @@ class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
  */
-fun ContentType.withCharset(charset: Charset) = withParameter("charset", charset.name)
+fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.  
  */
-fun HeaderValueWithParameters.charset() = parameter("charset")?.let { Charset.forName(it) }
+fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let { Charset.forName(it) }

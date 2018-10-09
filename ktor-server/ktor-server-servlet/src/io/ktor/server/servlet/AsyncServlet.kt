@@ -12,6 +12,8 @@ import java.lang.reflect.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@EngineAPI
 open class AsyncServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
@@ -19,21 +21,25 @@ open class AsyncServletApplicationCall(
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
     upgrade: ServletUpgrade,
-    override val coroutineContext: CoroutineContext
+    parentCoroutineContext: CoroutineContext
 ) : BaseApplicationCall(application), CoroutineScope {
 
+    override val coroutineContext: CoroutineContext = parentCoroutineContext
+
     override val request: AsyncServletApplicationRequest =
-        AsyncServletApplicationRequest(this, servletRequest, coroutineContext + engineContext)
+        AsyncServletApplicationRequest(this, servletRequest, parentCoroutineContext + engineContext)
 
     override val response: ServletApplicationResponse by lazy {
         AsyncServletApplicationResponse(
             this,
             servletRequest, servletResponse,
-            engineContext, userContext, upgrade, coroutineContext + engineContext
+            engineContext, userContext, upgrade, parentCoroutineContext + engineContext
         )
     }
 }
 
+@Suppress("KDocMissingDocumentation")
+@EngineAPI
 class AsyncServletApplicationRequest(
     call: ApplicationCall, servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
@@ -52,6 +58,8 @@ class AsyncServletApplicationRequest(
     }
 }
 
+@Suppress("KDocMissingDocumentation")
+@EngineAPI
 open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,

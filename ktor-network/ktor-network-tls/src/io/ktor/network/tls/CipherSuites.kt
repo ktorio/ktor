@@ -4,11 +4,40 @@ import io.ktor.network.tls.extensions.*
 import io.ktor.network.tls.platform.*
 
 
+/**
+ * TLS secret key exchange type
+ */
 enum class SecretExchangeType {
+    /**
+     * Elliptic Curve Diffie-Hellman Exchange
+     */
     ECDHE,
+
+    /**
+     * RSA key exchange
+     */
     RSA
 }
 
+/**
+ * Represents a TLS cipher suite
+ *
+ * @property code numeric cipher suite code
+ * @property name cipher suite name
+ * @property openSSLName for this suite that is used in openssl
+ * @property exchangeType secret exchange type (ECDHE or RSA)
+ * @property jdkCipherName for this suite that is used in JDK
+ * @property keyStrength in bits
+ * @property fixedIvLength fixed input vector length in bytes
+ * @property ivLength input vector length in bytes
+ * @property cipherTagSizeInBytes tag size in bytes
+ * @property macName message authentication algorithm name
+ * @property macStrength message authentication algorithm strength in bits
+ * @property hash algorithm
+ * @property signatureAlgorithm
+ * @property keyStrengthInBytes key strength in bytes ( = `[keyStrength] / 8`)
+ * @property macStrengthInBytes message authentication algorithm strength in bytes ( = `[macStrength] / 8`)
+ */
 data class CipherSuite(
     val code: Short,
     val name: String,
@@ -24,8 +53,8 @@ data class CipherSuite(
     val hash: HashAlgorithm,
     val signatureAlgorithm: SignatureAlgorithm
 ) {
-    val keyStrengthInBytes = keyStrength / 8
-    val macStrengthInBytes = macStrength / 8
+    val keyStrengthInBytes: Int = keyStrength / 8
+    val macStrengthInBytes: Int = macStrength / 8
 }
 
 
@@ -34,6 +63,7 @@ data class CipherSuite(
  * https://www.ietf.org/rfc/rfc5289.txt
  * https://tools.ietf.org/html/rfc5288#section-3
  */
+@Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
 object CIOCipherSuites {
     val TLS_RSA_WITH_AES_128_GCM_SHA256 = CipherSuite(
         0x009c, "TLS_RSA_WITH_AES_128_GCM_SHA256", "AES128-GCM-SHA256",

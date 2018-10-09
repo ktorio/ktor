@@ -1,5 +1,6 @@
 package io.ktor.network.util
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.internal.*
 import kotlinx.io.core.Closeable
@@ -8,7 +9,13 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
+/**
+ * Default ktor fixed size dispatcher for doing non-blocking I/O operations and selection
+ */
+@Deprecated("This is going to be deprecated. Use kotlinx.coroutines dispatchers")
+@KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
+    @Suppress("DEPRECATION")
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
     private val tasks = LockFreeLinkedListHead()
 
@@ -31,6 +38,9 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
         resumeAnyThread(node)
     }
 
+    /**
+     * Gracefully shutdown dispatcher.
+     */
     override fun close() {
         if (tasks.prev is Poison) return
         tasks.addLastIfPrev(Poison()) { prev -> prev !is Poison }

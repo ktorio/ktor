@@ -72,7 +72,7 @@ class BasicAuthTest {
                 assertNotNull(authInfo)
                 assertEquals(authInfo, call.request.basicAuthenticationCredentials())
 
-                assertEquals(user, authInfo!!.name)
+                assertEquals(user, authInfo.name)
                 assertEquals(p, authInfo.password)
 
                 call.response.status(HttpStatusCode.OK)

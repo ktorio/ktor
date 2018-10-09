@@ -48,11 +48,29 @@ interface EngineConnectorConfig {
  * Represents an SSL connector configuration.
  */
 interface EngineSSLConnectorConfig : EngineConnectorConfig {
+    /**
+     * KeyStore where a certificate is stored
+     */
     val keyStore: KeyStore
+
+    /**
+     * File where the keystore is located
+     */
     val keyStorePath: File?
+
+    /**
+     * TLS key alias
+     */
     val keyAlias: String
 
+    /**
+     * Keystore password provider
+     */
     val keyStorePassword: () -> CharArray
+
+    /**
+     * Private key password provider
+     */
     val privateKeyPassword: () -> CharArray
 }
 

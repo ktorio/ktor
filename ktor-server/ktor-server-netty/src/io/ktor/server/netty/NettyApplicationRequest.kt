@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
@@ -12,6 +13,8 @@ import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 abstract class NettyApplicationRequest(
     call: ApplicationCall,
     override val coroutineContext: CoroutineContext,

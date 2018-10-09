@@ -1,5 +1,6 @@
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
@@ -60,6 +61,10 @@ interface WebSocketSession : CoroutineScope {
      */
     fun terminate()
 
+    /**
+     * Close session with the specified [cause] or with no reason if `null`
+     */
+    @KtorExperimentalAPI
     suspend fun close(cause: Throwable? = null)
 }
 

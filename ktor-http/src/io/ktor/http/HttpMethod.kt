@@ -1,6 +1,11 @@
 package io.ktor.http
 
+/**
+ * Represents an HTTP method (verb)
+ * @property value contains method name
+ */
 data class HttpMethod(val value: String) {
+    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     companion object {
         val Get = HttpMethod("GET")
         val Post = HttpMethod("POST")
@@ -10,6 +15,9 @@ data class HttpMethod(val value: String) {
         val Head = HttpMethod("HEAD")
         val Options = HttpMethod("OPTIONS")
 
+        /**
+         * Parse HTTP method by [method] string
+         */
         fun parse(method: String): HttpMethod {
             return when (method) {
                 Get.value -> Get
@@ -23,6 +31,9 @@ data class HttpMethod(val value: String) {
             }
         }
 
+        /**
+         * A list of default HTTP methods
+         */
         val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
     }
 }

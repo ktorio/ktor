@@ -14,7 +14,13 @@ import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
 
+/**
+ * Tomcat application engine that runs it in embedded mode
+ */
 class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
+    /**
+     * Tomcat engine specific configuration builder
+     */
     class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property to provide a lambda that will be called

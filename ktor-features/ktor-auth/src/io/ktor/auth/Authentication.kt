@@ -19,9 +19,16 @@ class Authentication(config: Configuration) {
 
     private var config = config.copy()
 
+    /**
+     * Authentication configuration
+     */
     class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
-        val providers = ArrayList<AuthenticationProvider>(providers)
+        internal val providers = ArrayList<AuthenticationProvider>(providers)
 
+        /**
+         * Register a provider with the specified [name] and [configure] it
+         * @throws IllegalArgumentException if there is already provider installed with the same name
+         */
         fun provider(name: String? = null, configure: AuthenticationProvider.() -> Unit) {
             if (providers.any { it.name == name })
                 throw IllegalArgumentException("Provider with the name $name is already registered")
@@ -29,19 +36,26 @@ class Authentication(config: Configuration) {
             providers.add(configuration)
         }
 
+        /**
+         * Register the specified [provider]
+         * @throws IllegalArgumentException if there is already provider installed with the same name
+         */
         fun register(provider: AuthenticationProvider) {
             if (providers.any { it.name == provider.name })
                 throw IllegalArgumentException("Provider with the name ${provider.name} is already registered")
             providers.add(provider)
         }
 
-        fun copy(): Configuration = Configuration(providers)
+        internal fun copy(): Configuration = Configuration(providers)
     }
 
     init {
         config.providers.forEach { forEveryProvider(it.pipeline) }
     }
 
+    /**
+     * Configure already installed feature
+     */
     fun configure(block: Configuration.() -> Unit) {
         val newConfiguration = config.copy()
         block(newConfiguration)
@@ -251,6 +265,7 @@ fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), 
  * An authentication route node that is used by [Authentication] feature
  * and usually created by [Route.authenticate] DSL function so generally there is no need to instantiate it directly
  * unless you are writing an extension
+ * @param names of authentication providers to be applied to this route
  */
 class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {

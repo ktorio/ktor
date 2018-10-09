@@ -77,9 +77,9 @@ jar {
 }
 
 compileKotlin {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
 }
 
 compileTestKotlin {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
 }

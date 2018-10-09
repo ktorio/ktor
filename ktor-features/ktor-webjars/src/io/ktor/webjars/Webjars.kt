@@ -15,7 +15,7 @@ import io.ktor.pipeline.PipelineContext
 import io.ktor.request.httpMethod
 import io.ktor.request.uri
 import io.ktor.response.respond
-import io.ktor.util.AttributeKey
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.io.*
 import org.webjars.MultipleMatchesException
@@ -25,6 +25,8 @@ import java.nio.file.Paths
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+@Suppress("KDocMissingDocumentation")
+@KtorExperimentalAPI
 class Webjars(val configuration: Configuration) {
 
     private fun fileName(path: String): String = Paths.get(path).fileName?.toString() ?: ""
@@ -40,6 +42,7 @@ class Webjars(val configuration: Configuration) {
     private val locator = WebJarAssetLocator()
     private val lastModified = ZonedDateTime.now(configuration.zone)
 
+    @KtorExperimentalAPI
     class Configuration {
         var path = "/webjars/"
             set(value) {
@@ -70,6 +73,7 @@ class Webjars(val configuration: Configuration) {
         }
     }
 
+    @KtorExperimentalAPI
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Webjars.Configuration, Webjars> {
 
         override val key = AttributeKey<Webjars>("Webjars")
@@ -89,7 +93,7 @@ class Webjars(val configuration: Configuration) {
 
 }
 
-class InputStreamContent(val input: InputStream, override val contentType: ContentType, val lastModified: ZonedDateTime) : OutgoingContent.ReadChannelContent() {
+private class InputStreamContent(val input: InputStream, override val contentType: ContentType, val lastModified: ZonedDateTime) : OutgoingContent.ReadChannelContent() {
     init {
         versions += LastModifiedVersion(lastModified)
     }

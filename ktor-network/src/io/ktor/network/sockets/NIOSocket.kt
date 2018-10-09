@@ -4,10 +4,10 @@ import io.ktor.network.selector.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
-import kotlinx.coroutines.io.CancellationException
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
+import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 

@@ -14,6 +14,10 @@ import io.ktor.util.*
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
+    /**
+     * Register a route resolution trace function.
+     * See https://ktor.io/servers/features/routing.html#tracing for details
+     */
     fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)
     }
@@ -26,7 +30,11 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         }
     }
 
-    private suspend fun executeResult(context: PipelineContext<Unit, ApplicationCall>, route: Route, parameters: Parameters) {
+    private suspend fun executeResult(
+        context: PipelineContext<Unit, ApplicationCall>,
+        route: Route,
+        parameters: Parameters
+    ) {
         val routingCallPipeline = route.buildPipeline()
         val receivePipeline = ApplicationReceivePipeline().apply {
             merge(context.call.request.pipeline)
@@ -48,6 +56,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     /**
      * Installable feature for [Routing]
      */
+    @Suppress("PublicApiImplicitType")
     companion object Feature : ApplicationFeature<Application, Routing, Routing> {
 
         /**
@@ -90,5 +99,6 @@ val Route.application: Application
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
  */
 @ContextDsl
-fun Application.routing(configuration: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
+fun Application.routing(configuration: Routing.() -> Unit): Routing =
+    featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
 

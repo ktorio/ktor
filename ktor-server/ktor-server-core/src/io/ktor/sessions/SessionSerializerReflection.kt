@@ -11,11 +11,27 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 
+/**
+ * Creates the the default [SessionSerializer] for type [T]
+ */
+@KtorExperimentalAPI
 inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+
+/**
+ * Creates the the default [SessionSerializer] for class [type]
+ */
+@KtorExperimentalAPI
 fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
 
+/**
+ * Default reflection-based session serializer that does it via reflection.
+ * Serialized format is textual and optimized for size as it is could be transferred via HTTP headers or cookies
+ *
+ * @property type is a session instance class handled by this serializer
+ */
+@KtorExperimentalAPI
 class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer {
-    val properties by lazy { type.memberProperties.sortedBy { it.name } }
+    private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {
         val values = parseQueryString(text)

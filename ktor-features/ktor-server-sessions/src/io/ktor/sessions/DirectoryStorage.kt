@@ -1,8 +1,19 @@
 package io.ktor.sessions
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.io.*
 import java.io.*
+
+
+/**
+ * Creates a session storage that serializes them into regular files under the specified [rootDir]
+ */
+@KtorExperimentalAPI
+fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {
+    true -> CacheStorage(DirectoryStorage(rootDir), 60000)
+    false -> DirectoryStorage(rootDir)
+}
 
 internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     init {
@@ -54,11 +65,6 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
             throw IllegalArgumentException("Bad session id $id")
         }
     }
-}
-
-fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStorage = when (cached) {
-    true -> CacheStorage(DirectoryStorage(rootDir), 60000)
-    false -> DirectoryStorage(rootDir)
 }
 
 private fun File.mkdirsOrFail() {

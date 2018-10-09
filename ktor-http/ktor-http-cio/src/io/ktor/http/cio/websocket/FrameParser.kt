@@ -3,13 +3,15 @@ package io.ktor.http.cio.websocket
 import java.nio.*
 import java.util.concurrent.atomic.*
 
+@Suppress("KDocMissingDocumentation", "UsePropertyAccessSyntax")
 @WebSocketInternalAPI
 class FrameParser {
     private val state = AtomicReference(State.HEADER0)
 
-    var fin = false
+    var fin: Boolean = false
         private set
-    var mask = false
+
+    var mask: Boolean = false
         private set
 
     private var opcode = 0
@@ -17,7 +19,7 @@ class FrameParser {
 
     private var lengthLength = 0
 
-    var length = 0L
+    var length: Long = 0L
         private set
 
     var maskKey: Int? = null
@@ -80,12 +82,10 @@ class FrameParser {
             }
 
             length = if (lengthLength == 0) length1.toLong() else 0
-            if (lengthLength > 0) {
-                state.set(State.LENGTH)
-            } else if (mask) {
-                state.set(State.MASK_KEY)
-            } else {
-                state.set(State.BODY)
+            when {
+                lengthLength > 0 -> state.set(State.LENGTH)
+                mask -> state.set(State.MASK_KEY)
+                else -> state.set(State.BODY)
             }
 
             return true

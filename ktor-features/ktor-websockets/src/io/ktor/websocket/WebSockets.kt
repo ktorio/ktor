@@ -19,6 +19,11 @@ import kotlin.coroutines.*
  *     }
  * }
  * ```
+ *
+ * @param pingInterval duration between pings or `null` to disable pings
+ * @param timeout write/ping timeout after that a connection will be closed
+ * @param maxFrameSize maximum frame that could be received or sent
+ * @param masking whether masking need to be enabled (useful for security)
  */
 class WebSockets(
     val pingInterval: Duration?,
@@ -31,6 +36,7 @@ class WebSockets(
     override val coroutineContext: CoroutineContext
         get() = parent
 
+    @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Use websockets feature instance as CoroutineScope instead", level = DeprecationLevel.ERROR)
     val context: CompletableDeferred<Unit> get() = parent
 
@@ -38,13 +44,34 @@ class WebSockets(
         parent.complete(Unit)
     }
 
+    /**
+     * Websockets configuration options
+     */
     class WebSocketOptions {
+        /**
+         * Duration between pings or `null` to disable pings
+         */
         var pingPeriod: Duration? = null
+
+        /**
+         * write/ping timeout after that a connection will be closed
+         */
         var timeout: Duration = Duration.ofSeconds(15)
+
+        /**
+         * Maximum frame that could be received or sent
+         */
         var maxFrameSize: Long = Long.MAX_VALUE
+
+        /**
+         * Whether masking need to be enabled (useful for security)
+         */
         var masking: Boolean = false
     }
 
+    /**
+     * Feature installation object
+     */
     companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
         override val key = AttributeKey<WebSockets>("WebSockets")
 

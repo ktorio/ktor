@@ -3,11 +3,20 @@ package io.ktor.http
 import io.ktor.util.*
 import kotlinx.io.charsets.*
 
-fun ContentType.Companion.defaultForFileExtension(extension: String) =
+/**
+ * Default [ContentType] for [extension]
+ */
+fun ContentType.Companion.defaultForFileExtension(extension: String): ContentType =
     ContentType.fromFileExtension(extension).selectDefault()
 
-fun ContentType.Companion.defaultForFilePath(path: String) = ContentType.fromFilePath(path).selectDefault()
+/**
+ * Default [ContentType] for file [path]
+ */
+fun ContentType.Companion.defaultForFilePath(path: String): ContentType = ContentType.fromFilePath(path).selectDefault()
 
+/**
+ * Recommended content types by file [path]
+ */
 fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
     val slashIndex = path.lastIndexOfAny("/\\".toCharArray())
     val index = path.indexOf('.', startIndex = slashIndex + 1)
@@ -16,7 +25,9 @@ fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
     return fromFileExtension(path.substring(index + 1))
 }
 
-
+/**
+ * Recommended content type by file name extension
+ */
 fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
     var current = ext.removePrefix(".")
     while (current.isNotEmpty()) {
@@ -30,7 +41,10 @@ fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
     return emptyList()
 }
 
-fun ContentType.fileExtensions() = extensionsByContentType[this]
+/**
+ * Recommended file name extensions for this content type
+ */
+fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
@@ -46,7 +60,8 @@ internal fun List<ContentType>.selectDefault(): ContentType {
         contentType.withCharset(Charsets.UTF_8) else contentType
 }
 
-internal fun <A, B> Sequence<Pair<A, B>>.groupByPairs() = groupBy { it.first }.mapValues { it.value.map { it.second } }
+internal fun <A, B> Sequence<Pair<A, B>>.groupByPairs() = groupBy { it.first }
+    .mapValues { e -> e.value.map { it.second } }
 
 internal fun String.toContentType() = try {
     ContentType.parse(this)

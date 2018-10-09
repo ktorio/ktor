@@ -1,11 +1,9 @@
 package io.ktor.client.engine
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import kotlin.coroutines.*
 
-@UseExperimental(InternalAPI::class)
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val supervisor = SupervisorJob()
 

@@ -1,5 +1,6 @@
 package io.ktor.util.cio
 
+import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import java.nio.*
@@ -13,6 +14,7 @@ suspend fun ByteReadChannel.toByteArray(limit: Int = Int.MAX_VALUE): ByteArray =
 /**
  * Read data chunks from [ByteReadChannel] using buffer
  */
+@InternalAPI
 suspend fun ByteReadChannel.pass(buffer: ByteBuffer, block: suspend (ByteBuffer) -> Unit) {
     while (!isClosedForRead) {
         buffer.clear()

@@ -131,11 +131,11 @@ internal class NettyMultiPartData(
                 ).toString()
             )
         }
-        contentLength(length())
+        append(HttpHeaders.ContentLength, length().toString())
     }
 
     private fun Attribute.headers() = Headers.build {
-        contentType(ContentType.MultiPart.Mixed)
+        append(HttpHeaders.ContentType, ContentType.MultiPart.Mixed)
         append(
             HttpHeaders.ContentDisposition,
             ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString()

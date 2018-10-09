@@ -3,6 +3,7 @@ package io.ktor.util
 /**
  * A map with case insensitive [String] keys
  */
+@InternalAPI
 class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
     private val delegate = mutableMapOf<CaseInsensitiveString, Value>()
 

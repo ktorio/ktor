@@ -15,15 +15,33 @@ import java.util.*
 
 private val JWTAuthKey: Any = "JWTAuth"
 
+/**
+ * Represents a JWT credential consist of the specified [payload]
+ * @param payload JWT
+ * @see Payload
+ */
 class JWTCredential(val payload: Payload) : Credential
+
+/**
+ * Represents a JWT principal consist of the specified [payload]
+ * @param payload JWT
+ * @see Payload
+ */
 class JWTPrincipal(val payload: Payload) : Principal
 
+/**
+ * JWT authentication provider that will be registered with the specified [name]
+ */
 class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
 
     internal var schemes = JWTAuthSchemes("Bearer")
-    var realm: String = "Ktor Server"
     internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
+
+    /**
+     * JWT realm name that will be used during auth challenge
+     */
+    var realm: String = "Ktor Server"
 
     /**
      * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
@@ -62,12 +80,16 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
         this.verifier = { token -> getVerifier(jwkProvider, token, schemes) }
     }
 
-    fun validate(body: suspend ApplicationCall.(JWTCredential) -> Principal?) {
-        authenticationFunction = body
+    /**
+     * Apply [validate] function to every call with [JWTCredential]
+     * @return a principal (usually an instance of [JWTPrincipal]) or `null`
+     */
+    fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
+        authenticationFunction = validate
     }
 }
 
-internal class JWTAuthSchemes(val defaultScheme: String, vararg val additionalSchemes: String) {
+internal class JWTAuthSchemes(val defaultScheme: String, vararg additionalSchemes: String) {
     val schemes = (arrayOf(defaultScheme) + additionalSchemes).toSet()
     val schemesLowerCase = schemes.map { it.toLowerCase() }.toSet()
 
@@ -180,6 +202,7 @@ private fun DecodedJWT.parsePayload(): Payload {
     return JWTParser().parsePayload(payloadString)
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
         "        this.realm = realm\n" +
         "        this.verifier(jwtVerifier)\n" +
@@ -193,6 +216,7 @@ fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, rea
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
         "        this.realm = realm\n" +
         "        this.verifier(jwkProvider, issuer)\n" +

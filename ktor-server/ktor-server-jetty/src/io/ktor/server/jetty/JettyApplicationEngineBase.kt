@@ -13,6 +13,9 @@ open class JettyApplicationEngineBase(
     configure: Configuration.() -> Unit
 ) : BaseApplicationEngine(environment) {
 
+    /**
+     * Jetty-specific engine configuration
+     */
     class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property function that will be called during Jetty server initialization
@@ -23,6 +26,9 @@ open class JettyApplicationEngineBase(
 
     private val configuration = Configuration().apply(configure)
 
+    /**
+     * Jetty server instance being configuring and starting
+     */
     protected val server: Server = Server().apply {
         configuration.configureServer(this)
         initializeServer(environment)

@@ -47,11 +47,13 @@ interface Attributes {
     /**
      * Removes an attribute with the specified [key] and returns its current value, throws an exception if an attribute doesn't exist
      */
+    @KtorExperimentalAPI
     fun <T : Any> take(key: AttributeKey<T>): T = get(key).also { remove(key) }
 
     /**
      * Removes an attribute with the specified [key] and returns its current value, returns `null` if an attribute doesn't exist
      */
+    @KtorExperimentalAPI
     fun <T : Any> takeOrNull(key: AttributeKey<T>): T? = getOrNull(key).also { remove(key) }
 
     /**

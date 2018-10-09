@@ -4,6 +4,10 @@ import io.ktor.http.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
+/**
+ * Represents a text content that could be sent
+ * @property text to be sent
+ */
 class TextContent(
     val text: String,
     override val contentType: ContentType,
@@ -16,5 +20,5 @@ class TextContent(
 
     override fun bytes(): ByteArray = bytes
 
-    override fun toString() = "TextContent[$contentType] \"${text.take(30)}\""
+    override fun toString(): String = "TextContent[$contentType] \"${text.take(30)}\""
 }

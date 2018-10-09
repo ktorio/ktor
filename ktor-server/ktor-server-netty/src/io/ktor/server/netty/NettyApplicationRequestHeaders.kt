@@ -1,9 +1,12 @@
 package io.ktor.server.netty
 
 import io.ktor.http.*
+import io.ktor.util.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpHeaders
 
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
 class NettyApplicationRequestHeaders(request: HttpRequest) : Headers {
     private val headers: HttpHeaders = request.headers()
     override fun get(name: String): String? = headers.get(name)

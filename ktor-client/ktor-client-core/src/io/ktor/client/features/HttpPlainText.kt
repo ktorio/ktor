@@ -26,7 +26,7 @@ class HttpPlainText(var defaultCharset: Charset) {
     class Config {
         var defaultCharset: Charset = Charsets.UTF_8
 
-        fun build(): HttpPlainText = HttpPlainText(defaultCharset)
+        internal fun build(): HttpPlainText = HttpPlainText(defaultCharset)
     }
 
     companion object Feature : HttpClientFeature<Config, HttpPlainText> {

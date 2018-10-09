@@ -101,7 +101,7 @@ private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.
 }
 
 fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>): Unit {
-    bodyChannel = writer(ioCoroutineDispatcher) {
+    bodyChannel = writer(Dispatchers.IO) {
         if (parts.isEmpty()) return@writer
 
         try {

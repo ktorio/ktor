@@ -7,6 +7,9 @@ import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
 
+/**
+ * A feature that automatically respond to HEAD requests
+ */
 object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     private val HeadPhase = PipelinePhase("HEAD")
 

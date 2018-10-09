@@ -1,5 +1,6 @@
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -10,6 +11,9 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.properties.*
 
+/**
+ * Represents a RAW web socket session
+ */
 @UseExperimental(WebSocketInternalAPI::class)
 class RawWebSocket(
     input: ByteReadChannel, output: ByteWriteChannel,
@@ -47,7 +51,9 @@ class RawWebSocket(
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 @UseExperimental(WebSocketInternalAPI::class)
+@InternalAPI
 suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     try {
         handler()

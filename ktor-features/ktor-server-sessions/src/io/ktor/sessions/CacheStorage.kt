@@ -1,9 +1,12 @@
 package io.ktor.sessions
 
+import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 
-class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : SessionStorage {
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
+class CacheStorage(val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
         delegate.read(id) { input -> input.toInputStream().readBytes() }
     }

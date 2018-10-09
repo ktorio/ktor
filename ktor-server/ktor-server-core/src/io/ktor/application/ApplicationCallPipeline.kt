@@ -3,10 +3,12 @@ package io.ktor.application
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
+import kotlinx.coroutines.*
 
 /**
  * Pipeline configuration for executing [ApplicationCall] instances
  */
+@Suppress("PublicApiImplicitType")
 open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Setup, Monitoring, Features, Call, Fallback) {
     /**
      * Pipeline for receiving content
@@ -40,6 +42,7 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Setup, Moni
         /**
          * Phase for setting up infrastructure for processing a call
          */
+        @Suppress("unused")
         @Deprecated("Infrastructure phase has been split into Features and Monitoring phases",
                 ReplaceWith("ApplicationCallPipeline.Features", "io.ktor.application.ApplicationCallPipeline"),
                 level = DeprecationLevel.ERROR)
@@ -65,4 +68,4 @@ inline val PipelineContext<*, ApplicationCall>.call: ApplicationCall get() = con
 /**
  * Current application for the context
  */
-val PipelineContext<*, ApplicationCall>.application get() = call.application
+val PipelineContext<*, ApplicationCall>.application: Application get() = call.application

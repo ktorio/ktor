@@ -1,13 +1,26 @@
 package io.ktor.network.tls
 
+/**
+ * TLS alert level
+ * @property code alert numeric code
+ */
 enum class TLSAlertLevel(val code: Int) {
+    /**
+     * alert warning level
+     */
     WARNING(1),
-    FATAL(2);
 
+    /**
+     * alert level fatal so the session most likely will be discarded
+     */
+    FATAL(2);
 
     companion object {
         private val byCode = Array(256) { idx -> TLSAlertLevel.values().firstOrNull { it.code == idx } }
 
+        /**
+         * Find alert level by it's numeric [code] or fail
+         */
         fun byCode(code: Int): TLSAlertLevel = when (code) {
             in 0..255 -> byCode[code]
             else -> null
@@ -15,11 +28,16 @@ enum class TLSAlertLevel(val code: Int) {
     }
 }
 
+/**
+ * TLS alert types with codes
+ * @property code numeric alert code
+ */
+@Suppress("KDocMissingDocumentation", "EnumEntryName")
 enum class TLSAlertType(val code: Int) {
+    DecryptionFailed_RESERVED(21),
     CloseNotify(0),
     UnexpectedMessage(10),
     BadRecordMac(20),
-    DecryptionFailed_RESERVED(21),
     RecordOverflow(22),
     DecompressionFailure(30),
     HandshakeFailure(40),
@@ -46,6 +64,9 @@ enum class TLSAlertType(val code: Int) {
     companion object {
         private val byCode = Array(256) { idx -> TLSAlertType.values().firstOrNull { it.code == idx } }
 
+        /**
+         * Find TLS alert instance by it's numeric [code] or fail
+         */
         fun byCode(code: Int): TLSAlertType = when (code) {
             in 0..255 -> byCode[code]
             else -> null

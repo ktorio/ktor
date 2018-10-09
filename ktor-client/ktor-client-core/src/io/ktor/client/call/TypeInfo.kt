@@ -11,4 +11,7 @@ expect interface Type
  */
 data class TypeInfo(val type: KClass<*>, val reifiedType: Type)
 
+/**
+ * Returns [TypeInfo] for the specified type [T]
+ */
 expect inline fun <reified T> typeInfo(): TypeInfo

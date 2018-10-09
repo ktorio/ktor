@@ -4,6 +4,10 @@ import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
+/**
+ * Specialized dispatcher useful for graceful shutdown
+ */
+@InternalAPI
 class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatcher() {
     private var delegate: CoroutineDispatcher? = delegate
 
@@ -11,11 +15,18 @@ class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatche
     private var shutdownPhase = ShutdownPhase.None
     private val shutdownPool = lazy { Executors.newCachedThreadPool() }
 
+    /**
+     * Prepare for shutdown so we will not dispatch on [delegate] anymore. It is still possible to
+     * dispatch coroutines.
+     */
     fun prepareShutdown() {
         shutdownPhase = ShutdownPhase.Graceful
         delegate = null
     }
 
+    /**
+     * Complete shutdown. Any further attempts to dispatch anything will fail with [RejectedExecutionException]
+     */
     fun completeShutdown() {
         shutdownPhase = ShutdownPhase.Completed
         if (shutdownPool.isInitialized()) shutdownPool.value.shutdown()
@@ -45,7 +56,7 @@ class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatche
         }
     }
 
-    enum class ShutdownPhase {
+    private enum class ShutdownPhase {
         None, Graceful, Completed
     }
 }

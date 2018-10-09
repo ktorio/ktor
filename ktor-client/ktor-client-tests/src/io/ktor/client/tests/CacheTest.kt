@@ -12,6 +12,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
@@ -78,7 +79,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
         results += client.get<String>(request)
         results += client.get<String>(request)
 
-        Thread.sleep(7 * 1000)
+        Thread.sleep(TimeUnit.SECONDS.toMillis(7))
 
         results += client.get<String>(request)
         results += client.get<String>(request)

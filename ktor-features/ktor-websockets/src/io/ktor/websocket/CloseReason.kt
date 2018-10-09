@@ -7,4 +7,5 @@ import io.ktor.http.cio.websocket.CloseReason
     replaceWith = ReplaceWith("CloseReason", "io.ktor.http.cio.websocket.*"),
     level = DeprecationLevel.ERROR
 )
+@Suppress("KDocMissingDocumentation", "unused")
 typealias CloseReason = CloseReason

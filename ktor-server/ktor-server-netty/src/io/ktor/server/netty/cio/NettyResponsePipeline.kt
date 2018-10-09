@@ -3,6 +3,7 @@ package io.ktor.server.netty.cio
 import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -311,6 +312,8 @@ private fun NettyApplicationResponse.isUpgradeResponse() =
 
 private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
 sealed class WriterEncapsulation {
     open val requiresContextClose: Boolean get() = true
     abstract fun transform(buf: ByteBuf, last: Boolean): Any

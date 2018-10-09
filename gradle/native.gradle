@@ -5,14 +5,14 @@ sourceSets {
         component {
             targets = ['ios_arm64', 'ios_x64', 'macos_x64']
             outputKinds = [KLIBRARY]
-            extraOpts '--disable', 'devirtualization'
+            extraOpts '--disable', 'devirtualization', '-Xuse-experimental', 'io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI'
         }
     }
     test {
         kotlin.srcDir 'test'
         component {
             targets = ['ios_arm64', 'ios_x64', 'macos_x64']
-            extraOpts '--disable', 'devirtualization'
+            extraOpts '--disable', 'devirtualization', '-Xuse-experimental', 'io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI'
         }
     }
 }

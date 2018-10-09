@@ -6,6 +6,9 @@ import java.lang.reflect.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
+/**
+ * Data conversion feature to serialize and deserialize types using [converters] registry
+ */
 class DataConversion(private val converters: Map<Type, ConversionService>) : ConversionService {
     override fun fromValues(values: List<String>, type: Type): Any? {
         val converter = converters[type] ?: DefaultConversionService
@@ -18,24 +21,42 @@ class DataConversion(private val converters: Map<Type, ConversionService>) : Con
         return converter.toValues(value)
     }
 
+    /**
+     * Data conversion service configuration
+     */
     class Configuration {
         internal val converters = mutableMapOf<Type, ConversionService>()
 
+        /**
+         * Register a [convertor] for [klass] type
+         */
         fun convert(klass: KClass<*>, convertor: ConversionService) {
             converters.put(klass.java, convertor)
         }
 
+        /**
+         * Register a [convertor] for [ktype] type
+         */
         fun convert(ktype: KType, convertor: ConversionService) {
             converters.put(ktype.javaType, convertor)
         }
 
+        /**
+         * Register and [configure] convertor for type [klass]
+         */
         fun convert(klass: KClass<*>, configure: DelegatingConversionService.() -> Unit) {
             convert(klass, DelegatingConversionService(klass).apply(configure))
         }
 
+        /**
+         * Register and [configure] convertor for reified type [T]
+         */
         inline fun <reified T> convert(noinline configure: DelegatingConversionService.() -> Unit) = convert(T::class, configure)
     }
 
+    /**
+     * Object for installing feature
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, DataConversion> {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): DataConversion {
             val configuration = Configuration().apply(configure)
@@ -46,15 +67,26 @@ class DataConversion(private val converters: Map<Type, ConversionService>) : Con
     }
 }
 
-class DelegatingConversionService(private val klass: KClass<*>) : ConversionService {
+/**
+ * Custom convertor builder
+ */
+class DelegatingConversionService internal constructor(private val klass: KClass<*>) : ConversionService {
     private var decoder: ((values: List<String>, type: Type) -> Any?)? = null
     private var encoder: ((value: Any?) -> List<String>)? = null
 
+    /**
+     * Configure decoder function. Only one decoder could be supplied
+     * @throws IllegalStateException
+     */
     fun decode(converter: (values: List<String>, type: Type) -> Any?) {
         if (decoder != null) throw IllegalStateException("Decoder has already been set for type '$klass'")
         decoder = converter
     }
 
+    /**
+     * Configure encoder function. Only one encoder could be supplied
+     * @throws IllegalStateException
+     */
     fun encode(converter: (value: Any?) -> List<String>) {
         if (encoder != null) throw IllegalStateException("Encoder has already been set for type '$klass'")
         encoder = converter
@@ -71,5 +103,8 @@ class DelegatingConversionService(private val klass: KClass<*>) : ConversionServ
     }
 }
 
+/**
+ * Lookup for a conversion service. Returns the default one if the feature wasn't installed
+ */
 val ApplicationCallPipeline.conversionService: ConversionService
     get() = featureOrNull(DataConversion) ?: DefaultConversionService

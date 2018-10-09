@@ -80,7 +80,7 @@ class RoutingResolveTrace(val call: ApplicationCall, val segments: List<String>)
     /**
      * Builds detailed text description for this trace, including all entries.
      */
-    fun buildText() = buildString {
+    fun buildText(): String = buildString {
         appendln(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
     }

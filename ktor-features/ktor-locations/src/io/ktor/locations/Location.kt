@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.ktor.locations
 
 import io.ktor.application.*
@@ -12,6 +14,7 @@ import kotlin.reflect.*
  */
 annotation class Location(val path: String)
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated(
     "Use Location instead",
     replaceWith = ReplaceWith("Location"), level = DeprecationLevel.ERROR
@@ -21,17 +24,17 @@ typealias location = Location
 /**
  * Gets the [Application.locations] feature
  */
-val PipelineContext<Unit, ApplicationCall>.locations get() = call.application.locations
+val PipelineContext<Unit, ApplicationCall>.locations: Locations get() = call.application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-val ApplicationCall.locations get() = application.locations
+val ApplicationCall.locations: Locations get() = application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-val Application.locations get() = feature(Locations)
+val Application.locations: Locations get() = feature(Locations)
 
 /**
  * Registers a route [body] for a location defined by class [T].

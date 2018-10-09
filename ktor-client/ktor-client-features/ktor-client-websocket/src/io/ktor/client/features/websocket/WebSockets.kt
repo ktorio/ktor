@@ -15,6 +15,8 @@ import kotlin.reflect.full.*
 class WebSockets(
     val maxFrameSize: Long = Int.MAX_VALUE.toLong()
 ) : Closeable {
+
+    @KtorExperimentalAPI
     val context = CompletableDeferred<Unit>()
 
     override fun close() {

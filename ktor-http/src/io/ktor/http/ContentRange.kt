@@ -1,9 +1,27 @@
 package io.ktor.http
 
-fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: RangeUnits = RangeUnits.Bytes) =
-        contentRangeHeaderValue(range, fullLength, unit.unitToken)
+import io.ktor.util.*
 
-fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) = buildString {
+/**
+ * Format `Content-Range` header value
+ */
+@KtorExperimentalAPI
+fun contentRangeHeaderValue(
+    range: LongRange?,
+    fullLength: Long? = null,
+    unit: RangeUnits = RangeUnits.Bytes
+): String =
+    contentRangeHeaderValue(range, fullLength, unit.unitToken)
+
+/**
+ * Format `Content-Range` header value
+ */
+@KtorExperimentalAPI
+fun contentRangeHeaderValue(
+    range: LongRange?,
+    fullLength: Long? = null,
+    unit: String = RangeUnits.Bytes.unitToken
+): String = buildString {
     append(unit)
     append(" ")
     if (range != null) {

@@ -1,5 +1,6 @@
 package io.ktor.http.cio.internals
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.internal.*
 import java.time.*
@@ -19,6 +20,7 @@ import kotlin.coroutines.intrinsics.*
  *  however in the particular use-case (closing IDLE connection) it is just fine
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
+@InternalAPI
 class WeakTimeoutQueue(
     private val timeoutMillis: Long,
     private val clock: Clock = Clock.systemUTC(),
@@ -29,12 +31,15 @@ class WeakTimeoutQueue(
     @kotlin.jvm.Volatile
     private var cancelled = false
 
-    fun register(r: Job): DisposableHandle {
+    /**
+     * Register [job] in this queue. It will be cancelled if doesn't complete in time.
+     */
+    fun register(job: Job): DisposableHandle {
         val now = clock.millis()
         val head = head
         if (cancelled) throw cancellationException()
 
-        val cancellable = JobTask(now + timeoutMillis, r)
+        val cancellable = JobTask(now + timeoutMillis, job)
         head.addLast(cancellable)
 
         process(now, head, cancelled)
@@ -47,15 +52,24 @@ class WeakTimeoutQueue(
         return cancellable
     }
 
+    /**
+     * Cancel all registered timeouts
+     */
     fun cancel() {
         cancelled = true
         process()
     }
 
+    /**
+     * Process and cancel all jobs that are timed out
+     */
     fun process() {
         process(clock.millis(), head, cancelled)
     }
 
+    /**
+     * Execute [block] and cancel if doesn't complete it time.
+     */
     suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
             val continuation = rawContinuation.intercepted()

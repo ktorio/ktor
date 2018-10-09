@@ -249,7 +249,7 @@ class AuthBuildersTest {
                         post("/login") {
                             val user = call.principal<UserIdPrincipal>()
                             assertNotNull(user)
-                            call.sessions.set(TestSession(user!!.name))
+                            call.sessions.set(TestSession(user.name))
                             call.respondText("Logged in successfully as ${user.name}.")
                         }
                     }
@@ -313,7 +313,7 @@ class AuthBuildersTest {
 
                 assertTrue { call.requestHandled }
                 assertNotNull(cookies, "Set-Cookie should be sent")
-                assertEquals(serializedSession, cookies?.value)
+                assertEquals(serializedSession, cookies.value)
                 assertEquals("Logged in successfully as tester.", call.response.content)
             }
             on("An authenticated user can download files by a web browser") {

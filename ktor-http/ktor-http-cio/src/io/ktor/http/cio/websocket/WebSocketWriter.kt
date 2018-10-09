@@ -20,6 +20,9 @@ class WebSocketWriter(
          * Whether it will mask serialized frames.
          */
         var masking: Boolean = false,
+        /**
+         * ByteBuffer pool to be used by this writer
+         */
         val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
@@ -128,7 +131,7 @@ class WebSocketWriter(
     /**
      * Send a frame and write it and all outstanding frames in the queue
      */
-    suspend fun send(frame: Frame) = queue.send(frame)
+    suspend fun send(frame: Frame): Unit = queue.send(frame)
 
     /**
      * Ensures all enqueued messages has been written

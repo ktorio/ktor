@@ -1,8 +1,11 @@
 package io.ktor.client.utils
 
+import io.ktor.util.*
+
 /**
  * List of [CacheControl] known values.
  */
+@KtorExperimentalAPI
 object CacheControl {
     val MAX_AGE = "max-age"
     val MIN_FRESH = "min-fresh"

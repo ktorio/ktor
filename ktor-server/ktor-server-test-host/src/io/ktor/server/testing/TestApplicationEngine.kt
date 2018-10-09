@@ -26,7 +26,7 @@ class TestApplicationEngine(
         get() = testEngineJob
 
     class Configuration : BaseApplicationEngine.Configuration() {
-        var dispatcher: CoroutineContext = ioCoroutineDispatcher
+        var dispatcher: CoroutineContext = Dispatchers.IO
     }
 
     private val configuration = Configuration().apply(configure)
@@ -83,18 +83,16 @@ class TestApplicationEngine(
         val call = createCall(readResponse = true, setup = { processRequest(setup) })
 
         val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
-        val pipelineJob = GlobalScope.launch(context) {
+        val pipelineJob = GlobalScope.async(context) {
             pipeline.execute(call)
         }
 
         runBlocking(coroutineContext) {
-            pipelineJob.join()
+            pipelineJob.await()
             call.response.flush()
             context.cancel()
         }
         processResponse(call)
-
-        pipelineJob.getCancellationException().cause?.let { throw it }
 
         return call
     }
@@ -159,7 +157,7 @@ class TestApplicationEngine(
     }
 
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        TestApplicationCall(application, readResponse, ioCoroutineDispatcher).apply { setup(request) }
+        TestApplicationCall(application, readResponse, Dispatchers.IO).apply { setup(request) }
 }
 
 /**

@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.ktor.response
 
 import io.ktor.application.*
@@ -104,6 +106,7 @@ suspend fun ApplicationCall.respondTextWriter(contentType: ContentType? = null, 
     respond(message)
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated(
     "Use respondTextWriter if you need to send text, otherwise use respondOutputStream",
     replaceWith = ReplaceWith("respondTextWriter(contentType, status, writer)")

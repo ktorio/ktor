@@ -8,6 +8,10 @@ import io.ktor.response.*
 import io.ktor.util.*
 import java.util.*
 
+/**
+ * Feature that set [CachingOptions] headers for every response.
+ * It invokes [optionsProviders] for every response and use first non null caching options
+ */
 class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>) {
     /**
      * Configuration for [CachingHeaders] feature

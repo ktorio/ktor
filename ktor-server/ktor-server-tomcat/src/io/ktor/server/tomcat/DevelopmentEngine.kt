@@ -2,6 +2,9 @@ package io.ktor.server.tomcat
 
 import io.ktor.server.engine.*
 
+/**
+ * Tomcat development engine
+ */
 object DevelopmentEngine {
     /**
      * Main function for starting DevelopmentEngine with Tomcat

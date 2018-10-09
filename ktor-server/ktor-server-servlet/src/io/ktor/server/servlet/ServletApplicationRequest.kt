@@ -6,6 +6,8 @@ import io.ktor.request.*
 import io.ktor.server.engine.*
 import javax.servlet.http.*
 
+@Suppress("KDocMissingDocumentation")
+@EngineAPI
 abstract class ServletApplicationRequest(
     call: ApplicationCall,
     val servletRequest: HttpServletRequest

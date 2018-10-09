@@ -15,6 +15,7 @@ internal class SocketImpl<out S : SocketChannel>(override val channel: S, select
     override val remoteAddress: SocketAddress
         get() = channel.remoteAddress
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     internal suspend fun connect(target: SocketAddress): Socket {
         if (channel.connect(target)) return this
 

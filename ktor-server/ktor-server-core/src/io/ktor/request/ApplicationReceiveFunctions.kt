@@ -21,6 +21,10 @@ class ApplicationReceiveRequest(val type: KClass<*>, val value: Any)
  * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
  */
 open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+    /**
+     * Pipeline phases
+     */
+    @Suppress("PublicApiImplicitType")
     companion object Phases {
         /**
          * Executes before any transformations are made

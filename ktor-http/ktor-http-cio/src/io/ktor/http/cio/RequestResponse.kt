@@ -4,19 +4,35 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import java.io.*
 
+/**
+ * Represents a base HTTP message type for request and response
+ * @property headers request/response headers
+ */
 abstract class HttpMessage internal constructor(val headers: HttpHeadersMap, private val builder: CharBufferBuilder) :
     Closeable {
 
+    /**
+     * Release all memory resources hold by this message
+     */
     fun release() {
         builder.release()
         headers.release()
     }
 
+    /**
+     * Release all memory resources hold by this message
+     */
     override fun close() {
         release()
     }
 }
 
+/**
+ * Represents an HTTP request
+ * @property method
+ * @property uri
+ * @property version
+ */
 class Request internal constructor(
     val method: HttpMethod,
     val uri: CharSequence,
@@ -25,6 +41,12 @@ class Request internal constructor(
     builder: CharBufferBuilder
 ) : HttpMessage(headers, builder)
 
+/**
+ * Represents an HTTP response
+ * @property version
+ * @property status
+ * @property statusText
+ */
 class Response internal constructor(
     val version: CharSequence,
     val status: Int,

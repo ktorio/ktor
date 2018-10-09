@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
-class CIOApplicationResponse(call: CIOApplicationCall,
+internal class CIOApplicationResponse(call: CIOApplicationCall,
                              private val output: ByteWriteChannel,
                              private val input: ByteReadChannel,
                              private val engineDispatcher: CoroutineContext,
@@ -73,8 +73,6 @@ class CIOApplicationResponse(call: CIOApplicationCall,
             return result
         }
     }
-
-    private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
 
     override suspend fun responseChannel(): ByteWriteChannel {
         sendResponseMessage(false)

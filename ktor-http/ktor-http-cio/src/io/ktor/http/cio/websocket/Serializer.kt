@@ -4,6 +4,7 @@ import io.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 
+@Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
 class Serializer {
     private val q = ArrayBlockingQueue<Frame>(1024)
@@ -11,7 +12,7 @@ class Serializer {
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
 
-    var masking = false
+    var masking: Boolean = false
 
     val hasOutstandingBytes: Boolean
         get() = q.isNotEmpty() || frameBody != null

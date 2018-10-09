@@ -97,6 +97,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
         super.channelInactive(ctx)
     }
 
+    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         handlerJob.cancel(cause)
         requestQueue.cancel()

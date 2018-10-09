@@ -14,6 +14,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
 /**
  * Encode [String] in base64 format
  */
+@InternalAPI
 fun String.encodeBase64(): String = buildPacket {
     writeStringUtf8(this@encodeBase64)
 }.encodeBase64()
@@ -21,6 +22,7 @@ fun String.encodeBase64(): String = buildPacket {
 /**
  * Encode [ByteReadPacket] in base64 format
  */
+@InternalAPI
 fun ByteReadPacket.encodeBase64(): String = buildString {
     val data = ByteArray(3)
     while (remaining > 0) {
@@ -42,6 +44,7 @@ fun ByteReadPacket.encodeBase64(): String = buildString {
 /**
  * Decode [String] from base64 format
  */
+@InternalAPI
 fun String.decodeBase64(): String = buildPacket {
     writeStringUtf8(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64()
@@ -49,6 +52,7 @@ fun String.decodeBase64(): String = buildPacket {
 /**
  * Decode [ByteReadPacket] from base64 format
  */
+@InternalAPI
 fun ByteReadPacket.decodeBase64(): String = buildString {
     val data = ByteArray(4)
 

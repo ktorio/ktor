@@ -5,15 +5,34 @@ import kotlinx.io.core.*
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem]
+ * @property dispose to be invoked when this part is no longed needed
+ * @property headers of this part, could be inaccurate on some engines
  */
 sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
+    /**
+     * Represents a multipart form item
+     * @property value of this field
+     */
     class FormItem(val value: String, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders)
 
-    class FileItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders) {
-        val originalFileName = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
+    /**
+     * Represents a file item
+     * @property provider of content bytes
+     */
+    class FileItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) :
+        PartData(dispose, partHeaders) {
+        /**
+         * Original file name if present
+         */
+        val originalFileName: String? = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
     }
 
-    class BinaryItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers): PartData(dispose, partHeaders)
+    /**
+     * Represents a binary item
+     * @property provider of content bytes
+     */
+    class BinaryItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) :
+        PartData(dispose, partHeaders)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing
@@ -25,27 +44,48 @@ sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
     /**
      * Parsed `Content-Type` header or `null` if missing
      */
-    val contentType: ContentType? by lazy(LazyThreadSafetyMode.NONE) { headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } }
+    val contentType: ContentType? by lazy(LazyThreadSafetyMode.NONE) {
+        headers[HttpHeaders.ContentType]?.let {
+            ContentType.parse(
+                it
+            )
+        }
+    }
 
     /**
      * Optional part name based on `Content-Disposition` header
      */
     val name: String? get() = contentDisposition?.name
 
-    @Deprecated("Use name property instead", ReplaceWith("name"))
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated(
+        "Use name property instead", ReplaceWith("name"),
+        level = DeprecationLevel.ERROR
+    )
     val partName: String?
         get() = name
 
-    @Deprecated("Use headers property instead", ReplaceWith("headers"))
-    val partHeaders: Headers get() = headers
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated(
+        "Use headers property instead", ReplaceWith("headers"),
+        level = DeprecationLevel.ERROR
+    )
+    val partHeaders: Headers
+        get() = headers
 }
 
+/**
+ * Represents a multipart data stream that could be received from a call
+ */
 interface MultiPartData {
     /**
      * Reads next part data or `null` if end of multipart stream encountered
      */
     suspend fun readPart(): PartData?
 
+    /**
+     * An empty multipart data stream
+     */
     object Empty : MultiPartData {
         override suspend fun readPart(): PartData? {
             return null

@@ -5,9 +5,15 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 
+/**
+ * Install default transformers.
+ * Usually installed by default so there is no need to use it
+ * unless you have disabled it via [HttpClientConfig.useDefaultTransformers].
+ */
 fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
 

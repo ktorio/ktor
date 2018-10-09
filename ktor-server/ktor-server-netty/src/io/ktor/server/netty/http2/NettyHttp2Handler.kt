@@ -59,6 +59,7 @@ internal class NettyHttp2Handler(
         }
     }
 
+    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         handlerJob.cancel(cause)
         ctx.close()

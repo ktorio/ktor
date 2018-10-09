@@ -222,7 +222,7 @@ class SessionTest {
             }
         }
 
-        var sessionId = ""
+        var sessionId: String
         handleRequest(HttpMethod.Get, "/1").let { call ->
             val sessionCookie = call.response.cookies[cookieName]
             assertNotNull(sessionCookie, "No session cookie found")
@@ -296,7 +296,7 @@ class SessionTest {
                 assertEquals("No session", call.response.content)
             }
 
-            var sessionParam: String = ""
+            var sessionParam: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
@@ -349,7 +349,7 @@ class SessionTest {
                 }
             }
 
-            var sessionParam: String = ""
+            var sessionParam: String
             handleRequest(HttpMethod.Get, "/a/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
@@ -413,7 +413,7 @@ class SessionTest {
                 assertNull(response.response.cookies[cookieName], "It should be no session set by default")
             }
 
-            var sessionId = ""
+            var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { response ->
                 val sessionCookie = response.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session id cookie found")
@@ -460,7 +460,7 @@ class SessionTest {
                 }
             }
 
-            var sessionId = ""
+            var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
@@ -518,7 +518,7 @@ class SessionTest {
                 }
             }
 
-            var sessionId = ""
+            var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val header = call.response.headers[cookieName]
                 assertNotNull(header, "No session cookie found")

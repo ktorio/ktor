@@ -2,6 +2,7 @@ package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 import java.io.*
 import java.net.*
@@ -11,17 +12,39 @@ import java.security.cert.Certificate
 import java.time.*
 import java.util.*
 
-data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
+internal data class CertificateInfo(val certificate: Certificate, val keys: KeyPair, val password: String)
 
-class CertificateBuilder {
+/**
+ * Builder for certificate
+ */
+@KtorExperimentalAPI
+class CertificateBuilder internal constructor() {
+    /**
+     * Certificate hash algorithm (required)
+     */
     lateinit var hash: HashAlgorithm
+
+    /**
+     * Certificate signature algorithm (required)
+     */
     lateinit var sign: SignatureAlgorithm
+
+    /**
+     * Certificate password
+     */
     lateinit var password: String
 
+    /**
+     * Number of days the certificate is valid
+     */
     var daysValid: Long = 3
+
+    /**
+     * Certificate key size in bits
+     */
     var keySizeInBits: Int = 1024
 
-    fun build(): CertificateInfo {
+    internal fun build(): CertificateInfo {
         val algorithm = HashAndSign(hash, sign)
         val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name))!!.apply {
             initialize(keySizeInBits)
@@ -51,14 +74,21 @@ class CertificateBuilder {
     }
 }
 
-class KeyStoreBuilder {
+/**
+ * Builder for key store
+ */
+class KeyStoreBuilder internal constructor() {
     private val certificates = mutableMapOf<String, CertificateInfo>()
 
+    /**
+     * Generate a certificate and append to the key store.
+     * If there is a certificate with the same [alias] then it will be replaced
+     */
     fun certificate(alias: String, block: CertificateBuilder.() -> Unit) {
         certificates[alias] = CertificateBuilder().apply(block).build()
     }
 
-    fun build(): KeyStore {
+    internal fun build(): KeyStore {
         val store = KeyStore.getInstance("JKS")!!
         store.load(null, null)
 
@@ -72,8 +102,15 @@ class KeyStoreBuilder {
     }
 }
 
+/**
+ * Create a keystore and configure it in [block] function
+ */
 fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStoreBuilder().apply(block).build()
 
+/**
+ * Save [KeyStore] to [output] file with the specified [password]
+ */
+@KtorExperimentalAPI
 fun KeyStore.saveToFile(output: File, password: String) {
     output.parentFile?.mkdirs()
 

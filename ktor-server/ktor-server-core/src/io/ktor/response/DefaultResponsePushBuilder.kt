@@ -5,6 +5,13 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 
+/**
+ * HTTP/2 push builder
+ * @property method HTTP method
+ * @property url builder
+ * @property headers builder
+ */
+@InternalAPI
 class DefaultResponsePushBuilder(
         override var method: HttpMethod = HttpMethod.Get,
         override val url: URLBuilder = URLBuilder(),
@@ -21,5 +28,8 @@ class DefaultResponsePushBuilder(
                 set(HttpHeaders.Referrer, call.url())
             })
 
+    /**
+     * List of version information (for conditional headers)
+     */
     override var versions = if (versions.isEmpty()) ArrayList() else ArrayList<Version>(versions)
 }

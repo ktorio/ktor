@@ -1,10 +1,17 @@
 package io.ktor.http
 
+import io.ktor.util.*
+
+/**
+ * Represents a single value parameter
+ * @property name of parameter
+ * @property value of parameter
+ */
 data class HeaderValueParam(val name: String, val value: String) {
     override fun equals(other: Any?): Boolean {
         return other is HeaderValueParam
-                && other.name.equals(name, ignoreCase = true)
-                && other.value.equals(value, ignoreCase = true)
+            && other.name.equals(name, ignoreCase = true)
+            && other.value.equals(value, ignoreCase = true)
     }
 
     override fun hashCode(): Int {
@@ -14,23 +21,50 @@ data class HeaderValueParam(val name: String, val value: String) {
     }
 }
 
+/**
+ * Represents a header value. Similar to [HeaderValueWithParameters]
+ * @property value
+ * @property params for this value (could be empty)
+ */
 data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
+    /**
+     * Value's quality according to `q` parameter or `1.0` if missing
+     */
     val quality: Double = params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull() ?: 1.0
 }
 
+/**
+ * Parse header value and sort multiple values according to qualities
+ */
 fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
-fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
-        compareByDescending<HeaderValue> { it.quality }.thenBy {
-            val contentType = ContentType.parse(it.value)
-            var asterisks = 0
-            if (contentType.contentType == "*")
-                asterisks += 2
-            if (contentType.contentSubtype == "*")
-                asterisks++
-            asterisks
-        }.thenByDescending { it.params.size })
 
-fun parseHeaderValue(text: String?, parametersOnly: Boolean = false): List<HeaderValue> {
+/**
+ * Parse `Content-Type` header values and sort them by quality and asterisks quantity
+ */
+fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
+    compareByDescending<HeaderValue> { it.quality }.thenBy {
+        val contentType = ContentType.parse(it.value)
+        var asterisks = 0
+        if (contentType.contentType == "*")
+            asterisks += 2
+        if (contentType.contentSubtype == "*")
+            asterisks++
+        asterisks
+    }.thenByDescending { it.params.size })
+
+/**
+ * Parse header value respecting multi-values
+ */
+fun parseHeaderValue(text: String?): List<HeaderValue> {
+    return parseHeaderValue(text, false)
+}
+
+/**
+ * Parse header value respecting multi-values
+ * @param parametersOnly if no header value itself, only parameters
+ */
+@KtorExperimentalAPI
+fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
     if (text == null)
         return emptyList()
 
@@ -42,14 +76,24 @@ fun parseHeaderValue(text: String?, parametersOnly: Boolean = false): List<Heade
     return items.valueOrEmpty()
 }
 
-fun Iterable<Pair<String, String>>.toHeaderParamsList() = map { HeaderValueParam(it.first, it.second) }
+/**
+ * Construct a list of [HeaderValueParam] from an iterable of pairs
+ */
+@KtorExperimentalAPI
+fun Iterable<Pair<String, String>>.toHeaderParamsList(): List<HeaderValueParam> =
+    map { HeaderValueParam(it.first, it.second) }
 
 private fun <T> Lazy<List<T>>.valueOrEmpty(): List<T> = if (isInitialized()) value else emptyList()
 private fun String.subtrim(start: Int, end: Int): String {
     return substring(start, end).trim()
 }
 
-private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList<HeaderValue>>, parametersOnly: Boolean): Int {
+private fun parseHeaderValueItem(
+    text: String,
+    start: Int,
+    items: Lazy<ArrayList<HeaderValue>>,
+    parametersOnly: Boolean
+): Int {
     var pos = start
     val parameters = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValueParam>() }
     var valueEnd: Int? = if (parametersOnly) pos else null
@@ -77,11 +121,11 @@ private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList
 }
 
 private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy<ArrayList<HeaderValueParam>>): Int {
-    fun Lazy<ArrayList<HeaderValueParam>>.addParam(text: String, start: Int, end: Int, value: String) {
+    fun addParam(text: String, start: Int, end: Int, value: String) {
         val name = text.subtrim(start, end)
         if (name.isEmpty())
             return
-        this.value.add(HeaderValueParam(name, value))
+        parameters.value.add(HeaderValueParam(name, value))
     }
 
     var pos = start
@@ -89,17 +133,18 @@ private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy
         when (text[pos]) {
             '=' -> {
                 val (paramEnd, paramValue) = parseHeaderValueParameterValue(text, pos + 1)
-                parameters.addParam(text, start, pos, paramValue)
+                addParam(text, start, pos, paramValue)
                 return paramEnd
             }
             ';', ',' -> {
-                parameters.addParam(text, start, pos, "")
+                addParam(text, start, pos, "")
                 return pos
             }
             else -> pos++
         }
     }
-    parameters.addParam(text, start, pos, "")
+
+    addParam(text, start, pos, "")
     return pos
 }
 
