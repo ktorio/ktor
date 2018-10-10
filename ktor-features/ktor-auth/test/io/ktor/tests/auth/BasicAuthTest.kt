@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -233,8 +234,9 @@ class BasicAuthTest {
 
     private fun assertWWWAuthenticateHeaderExist(call: ApplicationCall) {
         assertNotNull(call.response.headers[HttpHeaders.WWWAuthenticate])
-        val header =
-            parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+        val header = parseAuthorizationHeader(
+            call.response.headers[HttpHeaders.WWWAuthenticate]!!
+        ) as HttpAuthHeader.Parameterized
 
         assertEquals(AuthScheme.Basic, header.authScheme)
         assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))

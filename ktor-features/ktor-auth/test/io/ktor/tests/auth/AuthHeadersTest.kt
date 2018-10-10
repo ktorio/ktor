@@ -1,7 +1,6 @@
 package io.ktor.tests.auth
 
-import io.ktor.auth.*
-import org.junit.Test
+import io.ktor.http.auth.*
 import kotlin.test.*
 
 class AuthHeadersTest {

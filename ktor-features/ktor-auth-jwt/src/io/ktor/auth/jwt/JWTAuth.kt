@@ -8,6 +8,7 @@ import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
 import org.slf4j.*

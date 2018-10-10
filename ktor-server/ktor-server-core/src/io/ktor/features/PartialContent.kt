@@ -63,8 +63,8 @@ class PartialContent(private val maxRangeCount: Int) {
         }
 
         if (!call.isGetOrHead()) {
-            val message =
-                HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request")
+            val message = HttpStatusCode.MethodNotAllowed
+                .description("Method ${call.request.local.method.value} is not allowed with range request")
             call.respond(message)
             context.finish()
             return

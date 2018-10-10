@@ -34,41 +34,19 @@ fun encodeBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(
 @KtorExperimentalAPI
 fun sha1(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA1").digest(bytes)!!
 
-/**
- * Decode bytes from HEX string. It should be no spaces and `0x` prefixes.
- */
-@KtorExperimentalAPI
-fun hex(s: String): ByteArray {
-    val result = ByteArray(s.length / 2)
-    for (idx in 0 until result.size) {
-        val srcIdx = idx * 2
-        result[idx] = ((Integer.parseInt(s[srcIdx].toString(), 16)) shl 4 or Integer.parseInt(
-            s[srcIdx + 1].toString(),
-            16
-        )).toByte()
+@InternalAPI
+actual fun Digest(name: String): Digest = object : Digest {
+    private val delegate = MessageDigest.getInstance(name)
+
+    override fun plusAssign(bytes: ByteArray) {
+        delegate.update(bytes)
     }
 
-    return result
-}
-
-private val digits = "0123456789abcdef".toCharArray()
-
-/**
- * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
- */
-@KtorExperimentalAPI
-fun hex(bytes: ByteArray): String {
-    val result = CharArray(bytes.size * 2)
-    var resultIndex = 0
-    val digits = digits
-
-    for (index in 0 until bytes.size) {
-        val b = bytes[index].toInt() and 0xff
-        result[resultIndex++] = digits[b shr 4]
-        result[resultIndex++] = digits[b and 0x0f]
+    override fun reset() {
+        delegate.reset()
     }
 
-    return String(result)
+    override suspend fun build(): ByteArray = delegate.digest()
 }
 
 /**
@@ -93,7 +71,7 @@ fun nextNonce(): String = generateNonce()
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @KtorExperimentalAPI
-fun generateNonce(): String {
+actual fun generateNonce(): String {
     val nonce = seedChannel.poll()
     if (nonce != null) return nonce
 
