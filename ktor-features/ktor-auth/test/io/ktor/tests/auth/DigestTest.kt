@@ -3,6 +3,7 @@ package io.ktor.tests.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*

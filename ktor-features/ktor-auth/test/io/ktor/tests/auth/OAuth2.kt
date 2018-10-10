@@ -5,6 +5,7 @@ import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*

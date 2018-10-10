@@ -3,6 +3,8 @@ description = "Ktor client Basic Auth support"
 dependencies {
     compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
 
+    testCompile project(':ktor-features:ktor-auth')
     testCompile project(':ktor-client:ktor-client-cio')
     testCompile project(':ktor-client:ktor-client-tests')
+    testCompile project(':ktor-server:ktor-server-cio')
 }

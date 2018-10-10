@@ -53,6 +53,7 @@ includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-j
 includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-js'
 includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson'
 includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-jackson'
+includeEx ':ktor-client:ktor-client-features:ktor-client-auth'
 includeEx ':ktor-client:ktor-client-features:ktor-client-auth-basic'
 includeEx ':ktor-client:ktor-client-features:ktor-client-websocket'
 includeEx ':ktor-client:ktor-client-features:ktor-client-logging'
