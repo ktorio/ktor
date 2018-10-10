@@ -81,7 +81,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         return AndroidHttpResponse(
             call, content,
             responseHeaders, requestTime, GMTDate(),
-            HttpStatusCode.fromValue(connection.responseCode), HttpProtocolVersion.HTTP_1_1,
+            HttpStatusCode(connection.responseCode, connection.responseMessage), HttpProtocolVersion.HTTP_1_1,
             callContext,
             connection
         )

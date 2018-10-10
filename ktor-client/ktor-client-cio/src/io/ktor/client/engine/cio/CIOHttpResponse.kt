@@ -19,7 +19,7 @@ internal class CIOHttpResponse(
     override val coroutineContext: CoroutineContext
 ) : HttpResponse {
     override val call: HttpClientCall = request.call
-    override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
+    override val status: HttpStatusCode = HttpStatusCode(response.status, response.statusText.toString())
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
     override val headers: Headers = Headers.build {
         val origin = CIOHeaders(response.headers)

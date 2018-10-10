@@ -37,7 +37,7 @@ class WebSockets(
 
                 if (!info.type.isSubclassOf(WebSocketSession::class)
                     || response !is HttpResponse
-                    || response.status != HttpStatusCode.SwitchingProtocols
+                    || response.status.value != HttpStatusCode.SwitchingProtocols.value
                     || content !is WebSocketContent
                 ) return@intercept
 
