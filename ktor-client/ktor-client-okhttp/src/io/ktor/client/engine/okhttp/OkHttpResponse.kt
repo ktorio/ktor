@@ -30,7 +30,7 @@ internal class OkHttpResponse(
         override fun isEmpty(): Boolean = instance.size() == 0
     }
 
-    override val status: HttpStatusCode = HttpStatusCode.fromValue(response.code())
+    override val status: HttpStatusCode = HttpStatusCode(response.code(), response.message())
 
     override val version: HttpProtocolVersion = response.protocol().fromOkHttp()
 

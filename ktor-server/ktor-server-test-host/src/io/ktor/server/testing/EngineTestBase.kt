@@ -260,6 +260,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     ): Unit = runBlocking {
         withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
             HttpClient(Jetty) {
+                followRedirects = false
                 expectSuccess = false
             }.use { httpClient ->
                 httpClient.call(url, builder).response.use { response ->

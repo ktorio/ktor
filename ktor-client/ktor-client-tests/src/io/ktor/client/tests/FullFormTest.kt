@@ -12,6 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlin.test.*
 
@@ -26,6 +27,9 @@ abstract class FullFormTest(private val factory: HttpClientEngineFactory<*>) : T
             post("/hello") {
                 assertEquals("Hello, server", call.receive())
                 call.respondText("Hello, client")
+            }
+            get("/custom") {
+                call.respond(HttpStatusCode(200, "Custom"), "OK")
             }
         }
     }

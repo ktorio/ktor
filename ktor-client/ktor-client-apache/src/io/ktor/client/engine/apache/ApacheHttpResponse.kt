@@ -21,9 +21,9 @@ internal class ApacheHttpResponse internal constructor(
     override val responseTime: GMTDate = GMTDate()
 
     init {
-        val code = engineResponse.statusLine.statusCode
+        val statusLine = engineResponse.statusLine
 
-        status = HttpStatusCode.fromValue(code)
+        status = HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
         version = with(engineResponse.protocolVersion) { HttpProtocolVersion.fromValue(protocol, major, minor) }
         headers = Headers.build {
             engineResponse.allHeaders.forEach { headerLine ->
