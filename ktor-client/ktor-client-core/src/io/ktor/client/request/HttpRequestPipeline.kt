@@ -34,7 +34,7 @@ class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Tra
         val Render = PipelinePhase("Render")
 
         /**
-         * Execute [HttpSendPipeline]
+         * Phase for [HttpSend] feature
          */
         val Send = PipelinePhase("Send")
     }
