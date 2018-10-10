@@ -23,6 +23,21 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
     }
 
     /**
+     * Use [HttpRedirect] feature to automatically follow redirects.
+     */
+    var followRedirects: Boolean = true
+
+    /**
+     * Use [defaultTransformers] to automatically handle simple [ContentType].
+     */
+    var useDefaultTransformers: Boolean = true
+
+    /**
+     * Terminate [HttpClient.responsePipeline] if status code is not success(>=300).
+     */
+    var expectSuccess: Boolean = true
+
+    /**
      * Installs a specific [feature] and optionally [configure] it.
      */
     fun <TBuilder : Any, TFeature : Any> install(

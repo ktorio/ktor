@@ -29,7 +29,7 @@ fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
 fun URLBuilder.takeFrom(url: Url): URLBuilder {
     protocol = url.protocol
     host = url.host
-    port = url.port
+    port = url.specifiedPort
     encodedPath = url.encodedPath
     user = url.user
     password = url.password

@@ -1,6 +1,7 @@
 package io.ktor.client.call
 
 import io.ktor.client.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import kotlinx.atomicfu.*
@@ -52,6 +53,8 @@ class HttpClientCall internal constructor(
             val result = client.responsePipeline.execute(this, subject).response
             if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
             return result
+        } catch (cause: BadResponseStatus) {
+            throw cause
         } catch (cause: Throwable) {
             throw ReceivePipelineFail(response.call, info, cause)
         }

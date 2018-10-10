@@ -10,6 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
@@ -35,8 +36,11 @@ open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor(
     @Test
     fun testNotFound() = clientTest(factory) {
         test { client ->
-            val response = client.get<String>(path = "/notFound", port = serverPort)
-            assertEquals("", response)
+            assertFailsWith<BadResponseStatus> {
+                runBlocking {
+                    client.get<String>(path = "/notFound", port = serverPort)
+                }
+            }
         }
     }
 

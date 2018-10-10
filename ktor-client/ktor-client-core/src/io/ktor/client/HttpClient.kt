@@ -12,7 +12,6 @@ import kotlinx.io.core.*
 import kotlin.coroutines.*
 
 expect fun HttpClient(
-    useDefaultTransformers: Boolean = true,
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
 
@@ -22,13 +21,12 @@ expect fun HttpClient(
  */
 fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
-    useDefaultTransformers: Boolean = true,
     block: HttpClientConfig<T>.() -> Unit = {}
 ): HttpClient {
     val config: HttpClientConfig<T> = HttpClientConfig<T>().apply(block)
     val engine = engineFactory.create(config.engineConfig)
 
-    return HttpClient(engine, useDefaultTransformers, config)
+    return HttpClient(engine, config)
 }
 
 /**
@@ -38,7 +36,6 @@ fun <T : HttpClientEngineConfig> HttpClient(
  */
 class HttpClient(
     private val engine: HttpClientEngine,
-    private val useDefaultTransformers: Boolean = true,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext get() = engine.coroutineContext
@@ -98,7 +95,8 @@ class HttpClient(
         "[dispatcher] is deprecated. Use coroutineContext instead.",
         replaceWith = ReplaceWith("coroutineContext")
     )
-    val dispatcher: CoroutineDispatcher get() = TODO()
+    val dispatcher: CoroutineDispatcher
+        get() = engine.dispatcher
 
     /**
      * Client engine config
@@ -108,15 +106,21 @@ class HttpClient(
     private val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
-        if (useDefaultTransformers) {
-            config.install(HttpPlainText)
-            config.install("DefaultTransformers") { defaultTransformers() }
+        with(userConfig) {
+            if (useDefaultTransformers) {
+                config.install(HttpPlainText)
+                config.install("DefaultTransformers") { defaultTransformers() }
+            }
+
+            if (expectSuccess) config.install(ExpectSuccess)
+
+            config.install(HttpSend)
+
+            if (followRedirects) config.install(HttpRedirect)
+
+            config += this
+            config.install(this@HttpClient)
         }
-
-        config.install(HttpSend)
-
-        config += userConfig
-        config.install(this)
     }
 
     /**
@@ -130,7 +134,7 @@ class HttpClient(
      * and additionally configured by the [block] parameter.
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
-        engine, useDefaultTransformers, HttpClientConfig<HttpClientEngineConfig>().apply {
+        engine, HttpClientConfig<HttpClientEngineConfig>().apply {
             this += userConfig
             block()
         }
