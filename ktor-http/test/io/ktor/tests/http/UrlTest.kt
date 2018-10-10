@@ -1,7 +1,7 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import io.ktor.util.random
+import kotlin.random.*
 import kotlin.test.*
 
 class UrlTest {
@@ -131,7 +131,7 @@ class UrlTest {
     @Test
     fun testPortRange() {
         fun testPort(n: Int) {
-            assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).port)
+            assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort)
         }
 
         // smallest port value
@@ -140,7 +140,7 @@ class UrlTest {
         testPort(65535)
 
         // Test a random port in the range
-        testPort(random(65535).coerceAtLeast(0))
+        testPort(Random.nextInt(65535).coerceAtLeast(0))
 
         assertFails { testPort(-2) }
     }

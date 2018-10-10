@@ -177,7 +177,7 @@ operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): 
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
  */
 fun HttpRequestBuilder.url(
-    scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): Unit {
     url.apply {
@@ -194,7 +194,7 @@ fun HttpRequestBuilder.url(
  * and optionally further configures it using [block].
  */
 operator fun HttpRequestBuilder.Companion.invoke(
-    scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 

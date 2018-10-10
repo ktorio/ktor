@@ -123,7 +123,7 @@ internal class ApacheRequestProducer(
         builder.uri = URIBuilder().apply {
             scheme = url.protocol.name
             host = url.host
-            if (url.port != url.protocol.defaultPort) port = url.port
+            if (url.specifiedPort != DEFAULT_PORT) port = url.specifiedPort
             path = url.encodedPath.decodeURLPart()
 
             if (url.parameters.isEmpty() && url.trailingQuery) setParameters(listOf())

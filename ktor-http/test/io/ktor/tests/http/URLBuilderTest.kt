@@ -1,6 +1,6 @@
 package io.ktor.tests.http
 
-import io.ktor.http.UNKNOWN_PORT
+import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.takeFrom
@@ -32,7 +32,7 @@ internal class URLBuilderTest {
         URLBuilder().apply {
             protocol = URLProtocol.HTTPS
 
-            assertEquals(UNKNOWN_PORT, port)
+            assertEquals(DEFAULT_PORT, port)
         }.build().also { url ->
             assertEquals(URLProtocol.HTTPS.defaultPort, url.port)
         }
@@ -56,7 +56,7 @@ internal class URLBuilderTest {
             takeFrom("custom://localhost/path")
             protocol = URLProtocol("custom", 8080)
 
-            assertEquals(UNKNOWN_PORT, port)
+            assertEquals(DEFAULT_PORT, port)
         }.buildString().also { url ->
             // ensure that the built url does not specify the port when configuring the default port
             assertEquals("custom://localhost/path", url)
