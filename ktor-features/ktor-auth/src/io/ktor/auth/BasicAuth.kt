@@ -1,6 +1,7 @@
 package io.ktor.auth
 
 import io.ktor.application.*
+import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
 import java.nio.charset.*

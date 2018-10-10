@@ -2,6 +2,7 @@ package io.ktor.auth
 
 import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 
 /**
  * Response content with `401 Unauthorized` status code and `WWW-Authenticate` header of supplied [challenges]
