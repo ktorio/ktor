@@ -5,9 +5,8 @@ import java.util.*
 
 
 actual fun HttpClient(
-    useDefaultTransformers: Boolean,
     block: HttpClientConfig<*>.() -> Unit
-): HttpClient = HttpClient(FACTORY, useDefaultTransformers, block)
+): HttpClient = HttpClient(FACTORY, block)
 
 interface HttpClientEngineContainer {
     val factory: HttpClientEngineFactory<*>

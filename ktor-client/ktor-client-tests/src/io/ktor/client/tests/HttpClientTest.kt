@@ -32,7 +32,9 @@ open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : Tes
         val customFeatureKey = AttributeKey<Boolean>("customFeature")
         val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
 
-        val originalClient = HttpClient(factory, useDefaultTransformers = false) {
+        val originalClient = HttpClient(factory) {
+            useDefaultTransformers = false
+
             install(DefaultRequest) {
                 port = serverPort
                 url.path("empty")

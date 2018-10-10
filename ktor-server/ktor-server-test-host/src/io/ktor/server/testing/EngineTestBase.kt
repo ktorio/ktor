@@ -238,12 +238,15 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(timeout.seconds, TimeUnit.SECONDS) {
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
             HttpClient(CIO.config {
                 https.also {
                     it.trustManager = trustManager
                 }
-            }).use { client ->
+            }) {
+                followRedirects = false
+                expectSuccess = false
+            }.use { client ->
                 client.call(url, builder).response.use { response ->
                     block(response, port)
                 }
@@ -255,8 +258,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         url: URL, port: Int,
         builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-            HttpClient(Jetty).use { httpClient ->
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
+            HttpClient(Jetty) {
+                expectSuccess = false
+            }.use { httpClient ->
                 httpClient.call(url, builder).response.use { response ->
                     block(response, port)
                 }

@@ -15,6 +15,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import org.eclipse.jetty.util.log.JettyLogHandler.*
 import org.junit.*
 import java.io.*
 import java.security.*
@@ -109,15 +110,13 @@ class CIOHttpsTest : TestWithKtor() {
         val domains = listOf(
             "https://google.com",
             "https://facebook.com",
-            "https://elster.de",
+//            "https://elster.de"
             "https://freenode.net"
         )
 
-        val url = Url(domains[0])
-
         test { client ->
             domains.forEach { url ->
-                client.get<HttpResponse>(url)
+                client.get<String>(url)
             }
         }
     }
