@@ -113,6 +113,8 @@ class CIOHttpsTest : TestWithKtor() {
             "https://freenode.net"
         )
 
+        val url = Url(domains[0])
+
         test { client ->
             domains.forEach { url ->
                 client.get<HttpResponse>(url)

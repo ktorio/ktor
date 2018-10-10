@@ -4,6 +4,7 @@ import io.ktor.network.selector.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
+import kotlinx.coroutines.io.CancellationException
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
@@ -131,5 +132,5 @@ internal abstract class NIOSocketImpl<out S>(
     private val AtomicReference<out Job?>.exception: Throwable?
         get() = get()?.takeUnless { it.isActive || it.isCancelled }
                 ?.getCancellationException()
-                ?.let { (it as? JobCancellationException)?.cause }
+                ?.let { (it as? CancellationException)?.cause }
 }

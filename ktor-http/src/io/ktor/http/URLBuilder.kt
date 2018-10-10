@@ -1,11 +1,14 @@
 package io.ktor.http
 
-const val UNKNOWN_PORT = 0
+/**
+ * Select default port value from protocol.
+ */
+const val DEFAULT_PORT = 0
 
 class URLBuilder(
     var protocol: URLProtocol = URLProtocol.HTTP,
     var host: String = "localhost",
-    var port: Int = UNKNOWN_PORT,
+    var port: Int = DEFAULT_PORT,
     var user: String? = null,
     var password: String? = null,
     var encodedPath: String = "/",
@@ -13,8 +16,6 @@ class URLBuilder(
     var fragment: String = "",
     var trailingQuery: Boolean = false
 ) {
-    private inline val portOrProtocolPort get() = port.takeUnless { it == UNKNOWN_PORT } ?: protocol.defaultPort
-
     fun path(vararg components: String) {
         path(components.asList())
     }
@@ -36,7 +37,7 @@ class URLBuilder(
         }
         out.append(host)
 
-        if (port != UNKNOWN_PORT && port != protocol.defaultPort) {
+        if (port != DEFAULT_PORT && port != protocol.defaultPort) {
             out.append(":")
             out.append(port.toString())
         }
@@ -55,7 +56,7 @@ class URLBuilder(
     fun buildString(): String = appendTo(StringBuilder(256)).toString()
 
     fun build(): Url = Url(
-        protocol, host, portOrProtocolPort, encodedPath, parameters.build(), fragment, user, password, trailingQuery
+        protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
     )
 
     // Required to write external extension function
@@ -67,7 +68,7 @@ fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 data class Url(
     val protocol: URLProtocol,
     val host: String,
-    val port: Int,
+    val specifiedPort: Int,
     val encodedPath: String,
     val parameters: Parameters,
     val fragment: String,
@@ -76,8 +77,10 @@ data class Url(
     val trailingQuery: Boolean
 ) {
     init {
-        require(port in 1..65536 || port == UNKNOWN_PORT) { "port must be between 1 and 65536, or $UNKNOWN_PORT if not set" }
+        require(specifiedPort in 1..65536 || specifiedPort == DEFAULT_PORT) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
     }
+
+    val port get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
 
     override fun toString(): String = buildString {
         append(protocol.name)
@@ -90,7 +93,7 @@ data class Url(
             }
             append('@')
         }
-        if (port == UNKNOWN_PORT || port == protocol.defaultPort) {
+        if (specifiedPort == DEFAULT_PORT) {
             append(host)
         } else {
             append(hostWithPort)
