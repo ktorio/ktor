@@ -39,19 +39,13 @@ fun <T : HttpClientEngineConfig> HttpClient(
 class HttpClient(
     private val engine: HttpClientEngine,
     private val useDefaultTransformers: Boolean = true,
-    private val config: HttpClientConfig<*> = HttpClientConfig<HttpClientEngineConfig>()
+    private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext get() = engine.coroutineContext
-
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    val requestPipeline: HttpRequestPipeline = HttpRequestPipeline().apply {
-        // default send scenario
-        intercept(HttpRequestPipeline.Send) { content ->
-            proceedWith(sendPipeline.execute(context, content))
-        }
-    }
+    val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
 
     /**
      * Pipeline used for processing all the responses sent by the server.
@@ -111,13 +105,17 @@ class HttpClient(
      */
     val engineConfig: HttpClientEngineConfig = engine.config
 
-    init {
-        config.install(HttpPlainText)
+    private val config = HttpClientConfig<HttpClientEngineConfig>()
 
+    init {
         if (useDefaultTransformers) {
+            config.install(HttpPlainText)
             config.install("DefaultTransformers") { defaultTransformers() }
         }
 
+        config.install(HttpSend)
+
+        config += userConfig
         config.install(this)
     }
 
@@ -132,7 +130,10 @@ class HttpClient(
      * and additionally configured by the [block] parameter.
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
-        engine, useDefaultTransformers, config.clone().apply(block)
+        engine, useDefaultTransformers, HttpClientConfig<HttpClientEngineConfig>().apply {
+            this += userConfig
+            block()
+        }
     )
 
     /**

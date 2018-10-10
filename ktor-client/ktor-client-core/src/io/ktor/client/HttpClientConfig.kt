@@ -67,4 +67,16 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
 
         return result
     }
+
+    /**
+     * Install features from [other] client config.
+     */
+    operator fun plusAssign(other: HttpClientConfig<out T>) {
+        followRedirects = other.followRedirects
+        useDefaultTransformers = other.useDefaultTransformers
+        expectSuccess = other.expectSuccess
+
+        features += other.features
+        customInterceptors += other.customInterceptors
+    }
 }

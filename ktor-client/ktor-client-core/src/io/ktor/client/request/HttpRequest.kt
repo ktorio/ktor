@@ -151,6 +151,18 @@ fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder
 
 
 /**
+ * Mutates [this] copying all the data from another [request] using it as base.
+ */
+fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
+    method = request.method
+    body = request.content
+    url.takeFrom(request.url)
+    headers.appendAll(request.headers)
+
+    return this
+}
+
+/**
  * Executes a [block] that configures the [URLBuilder] associated to this request.
  */
 fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(url)
