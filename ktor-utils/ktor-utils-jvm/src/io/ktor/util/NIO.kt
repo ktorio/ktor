@@ -14,8 +14,13 @@ import java.nio.charset.*
 @InternalAPI
 fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
     val size = minOf(limit, remaining(), destination.remaining())
-    for (i in 1..size) {
-        destination.put(get())
+    if (size == remaining()) {
+        destination.put(this)
+    } else {
+        val l = limit()
+        limit(position() + size)
+        destination.put(this)
+        limit(l)
     }
     return size
 }
