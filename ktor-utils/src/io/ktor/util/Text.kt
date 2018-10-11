@@ -12,7 +12,7 @@ fun String.escapeHTML(): String {
             val ch = text[idx]
             when (ch) {
                 '\'' -> append("&#x27;")
-                '\"' -> append("&quot")
+                '\"' -> append("&quot;")
                 '&' -> append("&amp;")
                 '<' -> append("&lt;")
                 '>' -> append("&gt;")
