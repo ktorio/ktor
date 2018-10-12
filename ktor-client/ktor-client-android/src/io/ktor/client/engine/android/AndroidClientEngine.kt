@@ -43,7 +43,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         val outgoingContent = this@execute.content
         val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
 
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+        val connection = getProxyAwareConnection(url).apply {
             connectTimeout = config.connectTimeout
             readTimeout = config.socketTimeout
 
@@ -84,6 +84,12 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
             callContext,
             connection
         )
+    }
+
+    private fun getProxyAwareConnection(url: String): HttpURLConnection {
+        val u = URL(url)
+        val connection = config.proxy?.let { u.openConnection(it) } ?: u.openConnection()
+        return connection as HttpURLConnection
     }
 }
 
