@@ -50,4 +50,12 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     else -> false
 }
 
+@Deprecated(
+    "Not thrown anymore. Use SendCountExceedException",
+    replaceWith = ReplaceWith(
+        "SendCountExceedException",
+        "io.ktor.client.features.SendCountExceedException"
+    )
+)
+@Suppress("KDocMissingDocumentation")
 class RedirectException(val request: HttpRequest, cause: String) : IllegalStateException(cause)
