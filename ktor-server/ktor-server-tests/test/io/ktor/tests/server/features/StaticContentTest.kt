@@ -50,11 +50,8 @@ class StaticContentTest {
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't get up to containing folder
-        assertFailsWith<InvalidPathException> {
-            handleRequest(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
-                assertTrue(result.requestHandled)
-                assertEquals(HttpStatusCode.OK, result.response.status())
-            }
+        handleRequest(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
+            assertFalse(result.requestHandled)
         }
 
         // can serve select file from other dir
@@ -138,11 +135,9 @@ class StaticContentTest {
             }
         }
 
-        listOf("../pom.xml", "../../pom.xml", "/../pom.xml", "/../../pom.xml", "/./.././../pom.xml").forEach { path ->
-            assertFailsWith<InvalidPathException> {
-                handleRequest(HttpMethod.Get, path).let { result ->
-                    assertFalse(result.requestHandled, "Should be unhandled for path $path")
-                }
+        listOf("../build.gradle", "../../build.gradle", "/../build.gradle", "/../../build.gradle", "/./.././../build.gradle").forEach { path ->
+            handleRequest(HttpMethod.Get, path).let { result ->
+                assertFalse(result.requestHandled, "Should be unhandled for path $path")
             }
         }
     }
@@ -180,13 +175,13 @@ class StaticContentTest {
                 call.respond(LocalFileContent(basedir, "../../../../../../../../../../../../../etc/passwd"))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../build.gradle")))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../build.gradle")))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../build.gradle")))
             }
         }
 
@@ -205,13 +200,13 @@ class StaticContentTest {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../../../../../../../../../../../../etc/passwd")))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir, "../pom.xml"))
+                call.respond(LocalFileContent(basedir, "../build.gradle"))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir, "../../pom.xml"))
+                call.respond(LocalFileContent(basedir, "../../build.gradle"))
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir, "/../pom.xml"))
+                call.respond(LocalFileContent(basedir, "/../build.gradle"))
             }
         }
 
