@@ -13,6 +13,7 @@ import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 import java.net.*
+import javax.net.ssl.*
 import kotlin.coroutines.*
 
 /**
@@ -46,6 +47,10 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         val connection = getProxyAwareConnection(url).apply {
             connectTimeout = config.connectTimeout
             readTimeout = config.socketTimeout
+
+            if (this is HttpsURLConnection) {
+                config.sslManager(this)
+            }
 
             requestMethod = method.value
             useCaches = false

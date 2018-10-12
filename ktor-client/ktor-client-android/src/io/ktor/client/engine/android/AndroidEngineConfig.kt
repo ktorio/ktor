@@ -2,6 +2,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.engine.*
 import java.net.*
+import javax.net.ssl.*
 
 
 class AndroidEngineConfig : HttpClientEngineConfig() {
@@ -21,4 +22,9 @@ class AndroidEngineConfig : HttpClientEngineConfig() {
      * Proxy address to use - default <code>{@link #openConnection java.net.URL:URL.openConnection}</code>
      */
     var proxy: Proxy? = null
+
+    /**
+     * https connection manipulator. inherited methods are not permitted.
+     */
+    var sslManager: (HttpsURLConnection) -> Unit = {}
 }
