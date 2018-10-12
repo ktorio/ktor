@@ -1,6 +1,7 @@
 package io.ktor.client.engine.android
 
 import io.ktor.client.engine.*
+import java.net.*
 
 
 class AndroidEngineConfig : HttpClientEngineConfig() {
@@ -16,4 +17,8 @@ class AndroidEngineConfig : HttpClientEngineConfig() {
      */
     var socketTimeout: Int = 100_000
 
+    /**
+     * Proxy address to use - default <code>{@link #openConnection java.net.URL:URL.openConnection}</code>
+     */
+    var proxy: Proxy? = null
 }
