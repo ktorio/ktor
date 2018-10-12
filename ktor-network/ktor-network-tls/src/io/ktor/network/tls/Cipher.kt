@@ -89,7 +89,7 @@ internal fun ByteReadPacket.decrypted(cipher: Cipher): ByteReadPacket {
 private fun ByteReadPacket.cipherLoop(cipher: Cipher, recordIv: Long, writeRecordIv: Boolean): ByteReadPacket {
     val srcBuffer = DefaultByteBufferPool.borrow()
     var dstBuffer = CryptoBufferPool.borrow()
-    var dstBufferPool: ObjectPool<ByteBuffer>? = CryptoBufferPool
+    var dstBufferFromPool = true
 
     try {
         return buildPacket {
@@ -107,9 +107,11 @@ private fun ByteReadPacket.cipherLoop(cipher: Cipher, recordIv: Long, writeRecor
                 dstBuffer.clear()
 
                 if (cipher.getOutputSize(srcBuffer.remaining()) > dstBuffer.remaining()) {
-                    dstBufferPool?.recycle(dstBuffer)
-                    dstBufferPool = null
+                    if (dstBufferFromPool) {
+                        CryptoBufferPool.recycle(dstBuffer)
+                    }
                     dstBuffer = ByteBuffer.allocate(cipher.getOutputSize(srcBuffer.remaining()))
+                    dstBufferFromPool = false
                 }
 
                 cipher.update(srcBuffer, dstBuffer)
@@ -118,8 +120,8 @@ private fun ByteReadPacket.cipherLoop(cipher: Cipher, recordIv: Long, writeRecor
                 srcBuffer.compact()
             }
 
-            assert(!srcBuffer.hasRemaining())
-            assert(!dstBuffer.hasRemaining())
+            assert(!srcBuffer.hasRemaining()) { "Cipher loop completed too early: there are unprocessed bytes"}
+            assert(!dstBuffer.hasRemaining()) { "Not all bytes were appended to the packet" }
 
             val requiredBufferSize = cipher.getOutputSize(0)
             if (requiredBufferSize == 0) return@buildPacket
@@ -141,7 +143,9 @@ private fun ByteReadPacket.cipherLoop(cipher: Cipher, recordIv: Long, writeRecor
         }
     } finally {
         DefaultByteBufferPool.recycle(srcBuffer)
-        dstBufferPool?.recycle(dstBuffer)
+        if (dstBufferFromPool) {
+            CryptoBufferPool.recycle(dstBuffer)
+        }
     }
 }
 
