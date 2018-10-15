@@ -30,6 +30,15 @@ fun <T : HttpClientEngineConfig> HttpClient(
 }
 
 /**
+ * Constructs an asynchronous [HttpClient] using the specified [engine]
+ * and a [block] for configuring this client.
+ */
+fun HttpClient(
+    engine: HttpClientEngine,
+    block: HttpClientConfig<*>.()->Unit
+): HttpClient = HttpClient(engine, HttpClientConfig<HttpClientEngineConfig>().apply(block))
+
+/**
  * Asynchronous client to perform HTTP requests.
  *
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
