@@ -51,6 +51,7 @@ internal open class SelectableBase(override val channel: SelectableChannel) : Se
 
     override fun close() {
         interestedOps = 0
+        @UseExperimental(InternalCoroutinesApi::class)
         suspensions.invokeForEachPresent {
             tryResumeWithException(ClosedChannelException())?.let { token ->
                 completeResume(token)

@@ -6,7 +6,6 @@ import kotlinx.coroutines.io.*
 import org.openjdk.jmh.annotations.*
 import java.nio.ByteBuffer
 import java.util.*
-import kotlin.coroutines.*
 
 @State(Scope.Benchmark)
 class CIOChunkedBenchmark {
@@ -18,7 +17,7 @@ class CIOChunkedBenchmark {
     }
 
     @Benchmark
-    fun encode() = runBlocking(Unconfined) {
+    fun encode() = runBlocking(Dispatchers.Unconfined) {
         val bb: ByteBuffer = data.duplicate()
 
         val source = ByteReadChannel(bb)

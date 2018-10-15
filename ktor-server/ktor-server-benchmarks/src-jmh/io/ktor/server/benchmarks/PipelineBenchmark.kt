@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.openjdk.jmh.annotations.*
 
@@ -18,6 +19,7 @@ class BaselinePipeline {
     }
 
     @Benchmark
+    @UseExperimental(InternalAPI::class)
     fun suspendCalls(): String {
         return runSync {
             suspendFunctions.fold("") { a, b -> a + b() }
@@ -35,6 +37,7 @@ abstract class PipelineBenchmark {
     fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
     fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
 
+    @UseExperimental(InternalAPI::class)
     fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runSync { execute(call, subject) }
 
     lateinit var pipeline: Pipeline<String, ApplicationCall>

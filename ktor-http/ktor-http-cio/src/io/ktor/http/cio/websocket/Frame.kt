@@ -168,3 +168,8 @@ fun Frame.Close.readReason(): CloseReason? {
 
     return CloseReason(code, message)
 }
+
+private object NonDisposableHandle : DisposableHandle {
+    override fun dispose() {}
+    override fun toString(): String = "NonDisposableHandle"
+}

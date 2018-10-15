@@ -94,6 +94,8 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
 
+            // TODO it's parent-child?
+            @UseExperimental(InternalCoroutinesApi::class)
             job.invokeOnCompletion(onCancelling = true) {
                 upgradeJob.cancel(it)
             }

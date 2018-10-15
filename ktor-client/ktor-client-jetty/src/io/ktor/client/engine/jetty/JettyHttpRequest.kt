@@ -13,10 +13,10 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.internal.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
+import java.io.Closeable
 import java.nio.*
 import kotlin.coroutines.*
 

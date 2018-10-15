@@ -14,6 +14,7 @@ import kotlin.coroutines.intrinsics.*
  */
 @Deprecated("This is going to be deprecated. Use kotlinx.coroutines dispatchers")
 @KtorExperimentalAPI
+@UseExperimental(InternalCoroutinesApi::class)
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     @Suppress("DEPRECATION")
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")

@@ -47,6 +47,7 @@ class ApplicationEvents {
         exception?.let { throw it }
     }
 
+    @UseExperimental(InternalCoroutinesApi::class)
     private class HandlerRegistration(val handler: EventHandler<*>) : LockFreeLinkedListNode(), DisposableHandle {
         override fun dispose() {
             remove()

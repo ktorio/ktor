@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import kotlin.coroutines.*
 
+@UseExperimental(InternalCoroutinesApi::class)
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val supervisor = SupervisorJob()
 
