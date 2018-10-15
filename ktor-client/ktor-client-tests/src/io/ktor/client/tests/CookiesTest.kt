@@ -1,5 +1,6 @@
 package io.ktor.client.tests
 
+import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.cookies.*
@@ -60,6 +61,16 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
                 } else {
                     context.respond(HttpStatusCode.BadRequest)
                 }
+            }
+            get("/foo") {
+                val cookie = Cookie("foo", "bar")
+                context.response.cookies.append(cookie)
+
+                call.respond("OK")
+            }
+            get("/FOO") {
+                assertTrue(call.request.cookies.rawCookies.isEmpty())
+                call.respond("OK")
             }
         }
     }
@@ -163,6 +174,22 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
             assert(client.cookies("https://m.vk.com").isNotEmpty())
 
             assert(client.cookies("https://google.com").isEmpty())
+        }
+    }
+
+    @Test
+    fun caseSensitive() = clientTest(factory) {
+        config {
+            install(HttpCookies)
+        }
+
+        test { client ->
+            try {
+                client.get<Unit>(port = serverPort, path = "/foo")
+                client.get<Unit>(port = serverPort, path = "/FOO")
+            } catch (cause: Throwable) {
+                throw cause
+            }
         }
     }
 
