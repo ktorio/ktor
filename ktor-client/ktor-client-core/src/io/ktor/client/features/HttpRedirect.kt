@@ -33,6 +33,8 @@ class HttpRedirect {
 
                 call = execute(HttpRequestBuilder().apply {
                     takeFrom(origin.request)
+                    url.parameters.clear()
+
                     location?.let { url.takeFrom(it) }
                 })
 
