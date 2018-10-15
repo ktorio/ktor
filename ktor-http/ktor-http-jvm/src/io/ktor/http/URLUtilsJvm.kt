@@ -45,3 +45,8 @@ fun URLBuilder.takeFrom(uri: URI) {
  * Take URI components from [url]
  */
 fun URLBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
+
+/**
+ * Convert [Url] to [URI]
+ */
+fun Url.toURI(): URI = URI(toString())
