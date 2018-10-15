@@ -3,6 +3,7 @@ package io.ktor.http.cio.websocket
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import java.nio.*
 import kotlin.coroutines.*
 
 /**
@@ -80,3 +81,17 @@ suspend fun WebSocketSession.close(reason: CloseReason) {
     } catch (ignore: ClosedSendChannelException) {
     }
 }
+
+/**
+ * Enqueues a text frame for sending with the specified [content].
+ *
+ * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
+ */
+suspend fun WebSocketSession.send(content: String) = send(Frame.Text(content))
+
+/**
+ * Enqueues a final binary frame for sending with the specified [content].
+ *
+ * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
+ */
+suspend fun WebSocketSession.send(content: ByteArray) = send(Frame.Binary(true, ByteBuffer.wrap(content)))

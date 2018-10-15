@@ -95,6 +95,36 @@ class WebSocketTest : TestWithKtor() {
         }
     }
 
+    @Test
+    fun testConvenienceMethods() = clientTest(CIO) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.wsRaw(port = serverPort, path = "rawEcho") {
+
+                run {
+                    val message = "my text message"
+                    send(message)
+                    val frame = incoming.receive()
+                    assert(frame is Frame.Text)
+                    assertEquals(message, (frame as Frame.Text).readText())
+                }
+
+                run {
+                    val message = byteArrayOf(1, 2, 3, 4)
+                    send(message)
+                    val frame = incoming.receive()
+                    assert(frame is Frame.Binary)
+                    assertEquals(message.toList(), frame.readBytes().toList())
+                }
+
+                outgoing.send(Frame.Close())
+            }
+        }
+    }
+
     private suspend fun WebSocketSession.ping(salt: String) {
         outgoing.send(Frame.Text("text: $salt"))
         val frame = incoming.receive()
