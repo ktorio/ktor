@@ -1,4 +1,5 @@
 import io.ktor.client.engine.mock.*
+import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*

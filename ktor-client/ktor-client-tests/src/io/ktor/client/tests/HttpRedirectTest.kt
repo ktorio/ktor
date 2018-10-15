@@ -14,7 +14,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.*
 import kotlin.test.*
-import kotlin.test.Test
 
 
 open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {

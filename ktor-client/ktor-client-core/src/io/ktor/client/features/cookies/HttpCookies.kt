@@ -52,7 +52,7 @@ class HttpCookies(private val storage: CookiesStorage) {
                 val cookies = feature.get(context.url.clone().build())
 
                 with(context) {
-                    header(HttpHeaders.Cookie, renderClientCookies(cookies))
+                    headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
                 }
             }
 
