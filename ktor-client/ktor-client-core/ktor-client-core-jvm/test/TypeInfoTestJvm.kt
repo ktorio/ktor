@@ -1,5 +1,3 @@
-package io.ktor.client.tests.features.cookies
-
 import io.ktor.client.call.*
 import kotlin.test.*
 
