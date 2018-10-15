@@ -146,6 +146,13 @@ fun Frame.Text.readText(): String {
 }
 
 /**
+ * Read binary content from a frame. For fragmented frames only returns this fragment.
+ */
+fun Frame.readBytes(): ByteArray {
+    return buffer.duplicate().moveToByteArray()
+}
+
+/**
  * Read close reason from close frame or null if no close reason provided
  */
 fun Frame.Close.readReason(): CloseReason? {
