@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
 import java.io.*
 import java.util.*
 import kotlin.coroutines.*
@@ -224,6 +225,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         finishCall(call, encapsulation.endOfStream(true), future)
     }
 
+    @UseExperimental(ExperimentalIoApi::class)
     private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
@@ -265,6 +267,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
 
+    @UseExperimental(ExperimentalIoApi::class)
     private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation

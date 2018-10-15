@@ -141,6 +141,7 @@ suspend fun parsePartBody(
 /**
  * Skip multipart boundary
  */
+@UseExperimental(ExperimentalIoApi::class)
 @KtorExperimentalAPI
 suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     input.skipDelimiter(boundaryPrefixed)

@@ -4,6 +4,7 @@ import io.ktor.network.selector.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
+import kotlinx.io.core.*
 import kotlinx.io.nio.*
 import kotlinx.io.pool.*
 import java.nio.*
@@ -47,6 +48,7 @@ internal fun CoroutineScope.attachForReadingImpl(
     }
 }
 
+@UseExperimental(ExperimentalIoApi::class)
 internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,

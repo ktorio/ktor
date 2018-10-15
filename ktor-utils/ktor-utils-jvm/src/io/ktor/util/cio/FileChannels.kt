@@ -3,6 +3,7 @@ package io.ktor.util.cio
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.*
@@ -10,6 +11,7 @@ import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.*
 
+@UseExperimental(ExperimentalIoApi::class)
 fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
