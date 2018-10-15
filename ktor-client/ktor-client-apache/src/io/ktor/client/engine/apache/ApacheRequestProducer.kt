@@ -21,6 +21,7 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
+import java.net.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.*
 
@@ -120,15 +121,7 @@ internal class ApacheRequestProducer(
 
     private fun setupRequest(): HttpUriRequest = with(requestData) {
         val builder = RequestBuilder.create(method.value)!!
-        builder.uri = URIBuilder().apply {
-            scheme = url.protocol.name
-            host = url.host
-            if (url.specifiedPort != DEFAULT_PORT) port = url.specifiedPort
-            path = url.encodedPath.decodeURLPart()
-
-            if (url.parameters.isEmpty() && url.trailingQuery) setParameters(listOf())
-            url.parameters.flattenForEach { key, value -> addParameter(key, value) }
-        }.build()
+        builder.uri = url.toURI()
 
         val content = this@ApacheRequestProducer.body
         val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
