@@ -85,7 +85,7 @@ fun CoroutineScope.httpServer(
     val selector = ActorSelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
         Clock.systemUTC()
-       ) { TimeoutCancellationException("Connection IDLE") }
+       ) { io.ktor.http.cio.internals.TimeoutCancellationException("Connection IDLE") }
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
@@ -129,6 +129,7 @@ fun CoroutineScope.httpServer(
         timeout.process()
     }
 
+    @UseExperimental(InternalCoroutinesApi::class) // TODO it's attach child?
     serverJob.invokeOnCompletion(onCancelling = true) {
         timeout.cancel()
     }

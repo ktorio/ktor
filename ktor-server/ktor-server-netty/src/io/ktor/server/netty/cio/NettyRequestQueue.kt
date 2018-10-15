@@ -1,6 +1,7 @@
 package io.ktor.server.netty.cio
 
 import io.ktor.server.netty.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.internal.*
 import java.util.concurrent.atomic.*
@@ -38,6 +39,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
 
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
+    @UseExperimental(InternalCoroutinesApi::class)
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
         @kotlin.jvm.Volatile
         private var scheduled: Int = 0

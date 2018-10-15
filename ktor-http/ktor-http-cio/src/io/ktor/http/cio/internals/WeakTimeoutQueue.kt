@@ -21,10 +21,11 @@ import kotlin.coroutines.intrinsics.*
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
 @InternalAPI
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 class WeakTimeoutQueue(
     private val timeoutMillis: Long,
     private val clock: Clock = Clock.systemUTC(),
-    private val exceptionFactory: () -> Exception = { TimeoutCancellationException("Timeout of $timeoutMillis ms exceeded") }
+    private val exceptionFactory: () -> Exception = { TimeoutCancellationException(timeoutMillis) }
 ) {
     private val head = LockFreeLinkedListHead()
 
@@ -75,8 +76,6 @@ class WeakTimeoutQueue(
             val continuation = rawContinuation.intercepted()
             val wrapped = WeakTimeoutCoroutine(continuation.context, continuation)
             val handle = register(wrapped)
-
-//            wrapped.initParentJob(continuation.context[Job])
             wrapped.disposeOnCompletion(handle)
 
             val result = try {
@@ -122,6 +121,7 @@ class WeakTimeoutQueue(
 
     private fun cancellationException() = CancellationException("Timeout queue has been cancelled")
 
+    @UseExperimental(InternalCoroutinesApi::class)
     private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), DisposableHandle {
         open val isActive: Boolean
             get() = !isRemoved
@@ -142,6 +142,7 @@ class WeakTimeoutQueue(
         }
     }
 
+    @UseExperimental(InternalCoroutinesApi::class)
     private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) :
         AbstractCoroutine<T>(context, true), Continuation<T> {
         override fun onCompleted(value: T) {
@@ -152,4 +153,9 @@ class WeakTimeoutQueue(
             delegate.resumeWithException(exception)
         }
     }
+}
+
+@InternalAPI
+class TimeoutCancellationException(message: String) : CancellationException(message) {
+    constructor(timeoutMillis: Long) : this("Timeout of $timeoutMillis ms exceeded")
 }
