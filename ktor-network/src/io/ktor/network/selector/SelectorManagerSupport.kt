@@ -10,6 +10,7 @@ import kotlin.coroutines.*
  * Base class for NIO selector managers
  */
 @KtorExperimentalAPI
+@UseExperimental(InternalCoroutinesApi::class)
 abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     final override val provider: SelectorProvider = SelectorProvider.provider()
     /**

@@ -5,12 +5,14 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
+    @UseExperimental(InternalCoroutinesApi::class)
     private val selectorManager by lazy { ActorSelectorManager(coroutineContext + dispatcher.blocking(1)) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)

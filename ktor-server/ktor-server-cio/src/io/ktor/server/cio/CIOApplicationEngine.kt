@@ -11,6 +11,7 @@ import java.util.concurrent.*
 /**
  * Engine that based on CIO backend
  */
+@UseExperimental(InternalCoroutinesApi::class)
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
 
