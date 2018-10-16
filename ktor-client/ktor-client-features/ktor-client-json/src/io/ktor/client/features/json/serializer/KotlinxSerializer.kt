@@ -20,14 +20,17 @@ class KotlinxSerializer : JsonSerializer {
         mappers[type as KClass<Any>] = serializer as KSerializer<Any>
     }
 
+    private fun getMapper(type: KClass<*>): KSerializer<Any> {
+        return mappers[type] ?: throw UnsupportedOperationException("No mapping set for $type")
+    }
+
     override fun write(data: Any): OutgoingContent {
-        @Suppress("UNCHECKED_CAST")
-        val content = JSON.stringify(mappers[data::class]!!, data)
+        val content = JSON.stringify(getMapper(data::class), data)
         return TextContent(content, ContentType.Application.Json)
     }
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
-        val mapper = mappers[type.type]!!
+        val mapper = getMapper(type.type)
         val text = response.readText()
         return JSON.parse(mapper, text)
     }
