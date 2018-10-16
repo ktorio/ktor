@@ -7,7 +7,10 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.CancellationException
 import org.junit.Test
 import kotlin.test.*
 
@@ -288,6 +291,41 @@ class StatusPageTest {
                 assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("code", call.response.content)
             }
+        }
+    }
+
+    @Test
+    fun testErrorInAsync(): Unit = withTestApplication<Unit> {
+        class AsyncFailedException : Exception()
+
+        application.install(StatusPages) {
+            exception<AsyncFailedException> {
+                call.respondText("Async failed")
+            }
+            exception<CancellationException> {
+                call.respondText("Cancelled")
+            }
+        }
+
+        application.routing {
+            get("/fail") {
+                async { throw AsyncFailedException() }.await()
+            }
+            get("/cancel") {
+                val ch = produce<String> {
+                    delay(1000000L)
+                }
+                ch.cancel()
+                call.respondText("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/fail").let {
+            assertEquals("Async failed", it.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/cancel").let {
+            assertEquals("OK", it.response.content)
         }
     }
 }

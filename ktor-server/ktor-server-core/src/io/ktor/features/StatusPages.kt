@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import java.util.*
 
 /**
@@ -83,7 +84,9 @@ class StatusPages(config: Configuration) {
         }
 
         try {
-            context.proceed()
+            coroutineScope {
+                context.proceed()
+            }
         } catch (exception: Throwable) {
             if (context.call.response.status() == null) {
                 val handler = findHandlerByType(exception.javaClass)
