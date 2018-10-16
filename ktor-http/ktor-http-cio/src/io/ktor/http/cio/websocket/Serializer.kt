@@ -92,7 +92,7 @@ class Serializer {
     private fun setMaskBuffer(mask: Boolean) {
         if (mask) {
             maskBuffer = ByteBuffer.allocate(4).apply {
-                asIntBuffer().put(nonceRandom.nextInt())
+                putInt(nextNonce().hashCode())
                 clear()
             }
         } else {

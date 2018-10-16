@@ -11,6 +11,7 @@ import java.nio.charset.*
 import java.time.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
+import kotlin.random.*
 
 /**
  * Launch a ponger actor job on the [coroutineContext] for websocket [session].
@@ -76,6 +77,8 @@ fun CoroutineScope.pinger(
     val periodMillis = period.toMillis()
     val timeoutMillis = timeout.toMillis()
     val encoder = Charsets.ISO_8859_1.newEncoder()
+    val random = Random(System.currentTimeMillis())
+    val pingIdBytes = ByteArray(32)
 
     try {
         while (!isClosedForReceive) {
@@ -87,7 +90,8 @@ fun CoroutineScope.pinger(
                 }
             }
 
-            val pingMessage = "[ping ${nextNonce()} ping]"
+            random.nextBytes(pingIdBytes)
+            val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
 
             val rc = withTimeoutOrNull(timeoutMillis) {
                 outgoing.sendPing(buffer, encoder, pingMessage)
