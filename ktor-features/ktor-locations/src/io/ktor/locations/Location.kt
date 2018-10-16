@@ -48,6 +48,15 @@ val ApplicationCall.locations: Locations get() = application.locations
 val Application.locations: Locations get() = feature(Locations)
 
 /**
+ * Renders link to a [location] using current installed locations service
+ * @throws MissingApplicationFeatureException is no locations feature installed
+ */
+@KtorExperimentalLocationsAPI
+fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
+    return call.application.locations.href(location)
+}
+
+/**
  * Registers a route [body] for a location defined by class [T].
  *
  * Class [T] **must** be annotated with [Location].
