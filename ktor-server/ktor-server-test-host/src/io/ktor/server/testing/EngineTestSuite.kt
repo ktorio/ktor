@@ -122,7 +122,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLoggerOnError() {
-        val message = "expected, ${nextNonce()}"
+        val message = "expected, ${Random().nextLong()}"
         val collected = LinkedBlockingQueue<Throwable>()
 
         val log = object : Logger by LoggerFactory.getLogger("ktor.test") {
