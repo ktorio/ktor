@@ -10,6 +10,16 @@ import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
 
+/**
+ * A [JsonSerializer] implemented for kotlinx [Serializable] classes. Since serializers are determined statically, you
+ * must set the mapping for each Serializable class to it's [KSerializer] manually, using [setMapper] or [register].
+ *
+ * ```
+ * KotlinxSerializer().apply {
+ *     register<MySerializable>()
+ * }
+ * ```
+ */
 class KotlinxSerializer : JsonSerializer {
     @Suppress("UNCHECKED_CAST")
     private val mappers = mutableMapOf(
