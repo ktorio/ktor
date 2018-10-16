@@ -1,3 +1,5 @@
+@file:UseExperimental(KtorExperimentalLocationsAPI::class)
+
 package io.ktor.tests.locations
 
 import io.ktor.application.*
@@ -37,6 +39,7 @@ class entity(val id: EntityID)
 
 data class EntityID(val typeId: Int, val entityId: Int)
 
+@UseExperimental(KtorExperimentalLocationsAPI::class)
 class CustomLocationsTest {
 
     @Test

@@ -17,6 +17,7 @@ import kotlin.reflect.jvm.*
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
+@KtorExperimentalLocationsAPI
 open class Locations(private val application: Application, private val routeService: LocationRouteService) {
     private val conversionService: ConversionService get() = application.conversionService
     private val rootUri = ResolvedUriInfo("", emptyList())
@@ -255,6 +256,7 @@ open class Locations(private val application: Application, private val routeServ
     /**
      * Installable feature for [Locations].
      */
+    @KtorExperimentalLocationsAPI
     companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
@@ -269,6 +271,7 @@ open class Locations(private val application: Application, private val routeServ
 /**
  * Provides services for extracting routing information from a location class.
  */
+@KtorExperimentalLocationsAPI
 interface LocationRouteService {
     /**
      * Retrieves routing information from a given [locationClass].
@@ -280,6 +283,7 @@ interface LocationRouteService {
 /**
  * Implements [LocationRouteService] by extracting routing information from a [Location] annotation.
  */
+@KtorExperimentalLocationsAPI
 class LocationAttributeRouteService : LocationRouteService {
     private inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
         return annotations.singleOrNull { it.annotationClass == T::class } as T?
@@ -291,8 +295,10 @@ class LocationAttributeRouteService : LocationRouteService {
 /**
  * Exception indicating that route parameters in curly brackets do not match class properties.
  */
+@KtorExperimentalLocationsAPI
 class LocationRoutingException(message: String) : Exception(message)
 
+@UseExperimental(KtorExperimentalLocationsAPI::class)
 @Suppress("KDocMissingDocumentation", "unused")
 @Deprecated("Use LocationRoutingException instead",
     replaceWith = ReplaceWith("LocationRoutingException"), level = DeprecationLevel.ERROR)
