@@ -15,7 +15,7 @@ import kotlin.coroutines.*
 fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
-    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+    coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteReadChannel {
     val fileLength = length()
     val file = RandomAccessFile(this@readChannel, "r")
