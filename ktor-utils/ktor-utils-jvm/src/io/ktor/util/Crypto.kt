@@ -1,5 +1,6 @@
 package io.ktor.util
 
+import kotlinx.coroutines.*
 import java.security.*
 import java.util.*
 
@@ -40,16 +41,25 @@ fun hex(bytes: ByteArray) = bytes.joinToString("") {
 @KtorExperimentalAPI
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 
-@InternalAPI
-val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
-    repeat((System.currentTimeMillis() % 17).toInt()) {
-        nextGaussian()
-    }
-} }
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Use nextNonce() instead")
+val nonceRandom: Random by lazy { SecureRandom() }
 
+/**
+ * Generates a nonce string 16 characters long. Could block if system's entropy source is too
+ */
 @KtorExperimentalAPI
-fun nextNonce(): String =
-        java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong())
+fun nextNonce(): String {
+    val nonce = seedChannel.poll()
+    if (nonce != null) return nonce
+
+    return nextNonceBlocking()
+}
+
+private fun nextNonceBlocking(): String {
+    ensureNonceGeneratorRunning()
+    return runBlocking {
+        seedChannel.receive()
+    }
+}
+
