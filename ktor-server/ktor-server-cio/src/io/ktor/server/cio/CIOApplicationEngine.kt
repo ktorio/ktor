@@ -29,8 +29,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     private val configuration = Configuration().apply(configure)
 
     private val corePoolSize: Int = maxOf(
-            configuration.connectionGroupSize + configuration.workerGroupSize,
-            environment.connectors.size + 1 // number of selectors + 1
+        configuration.connectionGroupSize + configuration.workerGroupSize,
+        environment.connectors.size + 1 // number of selectors + 1
     )
 
     private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
@@ -131,8 +131,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
         return scope.httpServer(settings) { request, input, output, upgraded ->
             withContext(userDispatcher) {
-                val call = CIOApplicationCall(application, request, input, output,
-                        engineDispatcher, userDispatcher, upgraded)
+                val call = CIOApplicationCall(
+                    application, request, input, output,
+                    engineDispatcher, userDispatcher, upgraded
+                )
                 try {
                     pipeline.execute(call)
                 } finally {
