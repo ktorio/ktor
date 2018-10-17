@@ -23,7 +23,7 @@ internal class JettyKtorHandler(
 ) : AbstractHandler(), CoroutineScope {
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
-    private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+    private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private val handlerJob = Job()
 
@@ -45,7 +45,7 @@ internal class JettyKtorHandler(
         try {
             val contentType = request.contentType
             if (contentType != null && contentType.startsWith("multipart/")) {
-                baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG)
+                baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multipartConfig)
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
 
