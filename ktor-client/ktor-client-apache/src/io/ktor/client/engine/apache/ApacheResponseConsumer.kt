@@ -76,7 +76,7 @@ internal class ApacheResponseConsumer(
             channel.writeRemaining()
         } catch (cause: Throwable) {
             channel.close(cause)
-            callContext.cancel(cause)
+            callContext.cancel()
         } finally {
             channel.close()
             HttpClientDefaultPool.recycle(current)

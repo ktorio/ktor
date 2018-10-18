@@ -108,7 +108,7 @@ internal class JettyResponseListener(
             }
         } catch (cause: Throwable) {
             channel.close(cause)
-            this@JettyResponseListener.callContext.cancel(cause)
+            this@JettyResponseListener.callContext.cancel()
         } finally {
             backendChannel.close()
             backendChannel.consumeEach { it.callback.succeeded() }

@@ -172,7 +172,7 @@ internal class ApacheRequestProducer(
 
         result.invokeOnCompletion { cause ->
             requestChannel.close(cause)
-            if (cause != null) callContext.cancel(cause)
+            if (cause != null) callContext.cancel()
             ioControl.getAndSet(null)?.requestOutput()
         }
 
