@@ -7,7 +7,7 @@ import java.util.concurrent.*
 /**
  * Default development engine with main function that starts CIO engine using application.conf
  */
-object EmbeddedEngine {
+object EngineMain {
     /**
      * CIO development engine entry point
      */
@@ -32,7 +32,7 @@ object EmbeddedEngine {
     }
 }
 
-@Deprecated("", replaceWith = ReplaceWith("EmbeddedEngine"), level = DeprecationLevel.ERROR)
+@Deprecated("", replaceWith = ReplaceWith("EngineMain"), level = DeprecationLevel.ERROR)
 object DevelopmentEngine {
-    @JvmStatic fun main(args: Array<String>) = EmbeddedEngine.main(args)
+    @JvmStatic fun main(args: Array<String>) = EngineMain.main(args)
 }
