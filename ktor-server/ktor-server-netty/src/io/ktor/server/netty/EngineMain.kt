@@ -6,7 +6,7 @@ import io.ktor.server.engine.*
 /**
  * Netty development engine
  */
-object EmbeddedEngine {
+object EngineMain {
     /**
      * Main function for starting DevelopmentEngine with Netty
      * Creates an embedded Netty application with an environment built from command line arguments.
@@ -32,7 +32,7 @@ object EmbeddedEngine {
     }
 }
 
-@Deprecated("", replaceWith = ReplaceWith("EmbeddedEngine"), level = DeprecationLevel.ERROR)
+@Deprecated("", replaceWith = ReplaceWith("EngineMain"), level = DeprecationLevel.ERROR)
 object DevelopmentEngine {
-    @JvmStatic fun main(args: Array<String>) = EmbeddedEngine.main(args)
+    @JvmStatic fun main(args: Array<String>) = EngineMain.main(args)
 }
