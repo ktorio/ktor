@@ -71,6 +71,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
 
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    private val cancellationHelper = EngineContextCancellationHelper(this)
 
 
     private var channels: List<Channel>? = null
@@ -94,6 +95,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
+        cancellationHelper.start()
         environment.start()
         channels = bootstraps.zip(environment.connectors)
             .map { it.first.bind(it.second.host, it.second.port) }
@@ -107,8 +109,9 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        cancellationHelper.stop()
         environment.monitor.raise(ApplicationStopPreparing, environment)
-        val channelFutures = channels?.map { it.close() }.orEmpty()
+        val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 
         dispatcherWithShutdown.prepareShutdown()
         engineDispatcherWithShutdown.prepareShutdown()

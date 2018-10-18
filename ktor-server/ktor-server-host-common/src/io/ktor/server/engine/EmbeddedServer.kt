@@ -1,7 +1,9 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import kotlinx.coroutines.*
 import org.slf4j.*
+import kotlin.coroutines.*
 
 /**
  * Factory interface for creating [ApplicationEngine] instances
@@ -27,8 +29,27 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
     watchPaths: List<String> = emptyList(),
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
+): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
+
+/**
+ * Creates an embedded server with the given [factory], listening on [host]:[port]
+ * @param watchPaths specifies path substrings that will be watched for automatic reloading
+ * @param configure configuration script for the engine
+ * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
+ * @param module application module function
+ */
+fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+    CoroutineScope.embeddedServer(
+    factory: ApplicationEngineFactory<TEngine, TConfiguration>,
+    port: Int = 80,
+    host: String = "0.0.0.0",
+    watchPaths: List<String> = emptyList(),
+    parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    configure: TConfiguration.() -> Unit = {},
+    module: Application.() -> Unit
 ): TEngine {
     val environment = applicationEngineEnvironment {
+        this.parentCoroutineContext = coroutineContext + parentCoroutineContext
         this.log = LoggerFactory.getLogger("ktor.application")
         this.watchPaths = watchPaths
         this.module(module)
