@@ -43,11 +43,16 @@ class KotlinxSerializer : JsonSerializer {
         mappers[type as KClass<Any>] = serializer as KSerializer<Any>
     }
 
+    /** Set the mapping from [T] to [mapper]. */
+    inline fun <reified T : Any> register(mapper: KSerializer<T>) {
+        setMapper(T::class, mapper)
+    }
+
     /**
-     * Set the mapping from [T] to it's [KSerializer].
+     * Set the mapping from [T] to it's [KSerializer]. This method only works for non-parameterized types.
      */
     inline fun <reified T : Any> register() {
-        setMapper(T::class, T::class.serializer())
+        register(T::class.serializer())
     }
 
     private fun getMapper(type: KClass<*>): KSerializer<Any> {
