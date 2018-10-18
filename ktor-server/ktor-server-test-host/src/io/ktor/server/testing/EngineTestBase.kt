@@ -234,9 +234,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     protected inline fun socket(block: Socket.() -> Unit) {
-        Socket("localhost", port).use { socket ->
+        Socket().use { socket ->
             socket.tcpNoDelay = true
             socket.soTimeout = socketReadTimeout
+            socket.connect(InetSocketAddress("localhost", port))
 
             block(socket)
         }
