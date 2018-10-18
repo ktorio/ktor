@@ -31,28 +31,24 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     callContext: CoroutineContext
 ): ApacheHttpResponse {
     val response = CompletableDeferred<ApacheHttpResponse>()
-
-    val completed = AtomicBoolean(false)
     val requestTime = GMTDate()
 
     val consumer = ApacheResponseConsumer(callContext) { rawResponse, body ->
-        if (completed.compareAndSet(false, true)) {
-            val result = ApacheHttpResponse(call, requestTime, rawResponse, body, callContext)
-            response.complete(result)
-        }
+        val result = ApacheHttpResponse(call, requestTime, rawResponse, body, callContext)
+        response.complete(result)
     }
 
     val callback = object : FutureCallback<Unit> {
         override fun failed(exception: Exception) {
-            callContext.cancel(exception)
-            if (completed.compareAndSet(false, true)) response.completeExceptionally(exception)
+            callContext.cancel()
+            response.completeExceptionally(exception)
         }
 
         override fun completed(result: Unit) {}
 
         override fun cancelled() {
             callContext.cancel()
-            if (completed.compareAndSet(false, true)) response.cancel()
+            response.cancel()
         }
     }
 
@@ -66,7 +62,7 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     response.invokeOnCompletion { cause ->
         cause ?: return@invokeOnCompletion
         future.cancel(true)
-        callContext.cancel(cause)
+        callContext.cancel()
     }
 
     return response.await()
