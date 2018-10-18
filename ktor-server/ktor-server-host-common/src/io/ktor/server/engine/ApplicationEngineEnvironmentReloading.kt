@@ -13,6 +13,7 @@ import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
@@ -28,7 +29,8 @@ class ApplicationEngineEnvironmentReloading(
         override val config: ApplicationConfig,
         override val connectors: List<EngineConnectorConfig>,
         private val modules: List<Application.() -> Unit>,
-        private val watchPaths: List<String> = emptyList()
+        private val watchPaths: List<String> = emptyList(),
+        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
 ) : ApplicationEngineEnvironment {
 
     private var _applicationInstance: Application? = null

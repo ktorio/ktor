@@ -8,12 +8,13 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Jetty
  */
-class JettyApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
-    JettyApplicationEngineBase(environment, configure) {
+class JettyApplicationEngine(
+    environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit
+) : JettyApplicationEngineBase(environment, configure) {
 
     private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())
 
-    override fun start(wait: Boolean) : JettyApplicationEngine {
+    override fun start(wait: Boolean): JettyApplicationEngine {
         server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher)
         super.start(wait)
         return this

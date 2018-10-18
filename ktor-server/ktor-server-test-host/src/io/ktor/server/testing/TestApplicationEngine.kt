@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
 import kotlinx.coroutines.io.*
+import java.lang.IllegalStateException
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
@@ -20,7 +21,7 @@ class TestApplicationEngine(
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
 
-    private val testEngineJob = Job()
+    private val testEngineJob = Job(environment.parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext
         get() = testEngineJob
@@ -38,6 +39,10 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
+        if (!testEngineJob.isActive) throw IllegalStateException("Test engine is already completed")
+        testEngineJob.invokeOnCompletion {
+            stop(0, 0, TimeUnit.SECONDS)
+        }
         environment.start()
         return this
     }
