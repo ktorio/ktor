@@ -114,9 +114,14 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    protected open fun createServer(log: Logger?, module: Application.() -> Unit): TEngine {
+    protected open fun createServer(
+        log: Logger?,
+        parent: CoroutineContext = EmptyCoroutineContext,
+        module: Application.() -> Unit
+    ): TEngine {
         val _port = this.port
         val environment = applicationEngineEnvironment {
+            this.parentCoroutineContext = parent
             val delegate = LoggerFactory.getLogger("ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
@@ -157,10 +162,14 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         application.install(Routing, routingConfigurer)
     }
 
-    protected fun createAndStartServer(log: Logger? = null, routingConfigurer: Routing.() -> Unit): TEngine {
+    protected fun createAndStartServer(
+        log: Logger? = null,
+        parent: CoroutineContext = EmptyCoroutineContext,
+        routingConfigurer: Routing.() -> Unit
+    ): TEngine {
         var lastFailures = emptyList<Throwable>()
         for (attempt in 1..5) {
-            val server = createServer(log) {
+            val server = createServer(log, parent) {
                 features(this, routingConfigurer)
             }
 
