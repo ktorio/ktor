@@ -1689,6 +1689,32 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         assertTrue { job!!.isCancelled }
     }
 
+    @Test
+    fun testEmbeddedServerCancellation() {
+        val parent = Job()
+
+        createAndStartServer(parent = parent) {
+            get("/") { call.respondText("OK") }
+        }
+
+        withUrl("/") {
+            // ensure the server is running
+            assertEquals("OK", call.receive<String>())
+        }
+
+        parent.cancel()
+
+        runBlocking {
+            withTimeout(5000L) {
+                parent.join()
+            }
+        }
+
+        assertFailsWith<IOException> { // ensure that the server is not running anymore
+            withUrl("/") { call.receive<String>() }
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 
