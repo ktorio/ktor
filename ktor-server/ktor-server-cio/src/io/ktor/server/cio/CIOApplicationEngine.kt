@@ -37,9 +37,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val stopRequest = CompletableDeferred<Unit>()
-    private val scope: CoroutineScope get() = CoroutineScope(engineDispatcher + serverJob)
 
-    private val serverJob = CoroutineScope(engineDispatcher).launch(start = CoroutineStart.LAZY) {
+    private val serverJob = CoroutineScope(environment.parentCoroutineContext + engineDispatcher).launch(start = CoroutineStart.LAZY) {
         // starting
         withContext(userDispatcher) {
             environment.start()
@@ -69,6 +68,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             environment.monitor.raise(ApplicationStopPreparing, environment)
         }
     }
+
+    private val scope: CoroutineScope = CoroutineScope(environment.parentCoroutineContext + engineDispatcher + serverJob)
 
     override fun start(wait: Boolean): ApplicationEngine {
         serverJob.start()

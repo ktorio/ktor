@@ -25,10 +25,9 @@ internal class JettyKtorHandler(
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
-    private val handlerJob = Job()
+    private val handlerJob = Job(environment.parentCoroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext
-        get() = handlerJob
+    override val coroutineContext: CoroutineContext = environment.parentCoroutineContext + handlerJob
 
     override fun destroy() {
         dispatcher.prepareShutdown()

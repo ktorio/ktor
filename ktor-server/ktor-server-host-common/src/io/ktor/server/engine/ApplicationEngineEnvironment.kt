@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.util.*
 import org.slf4j.*
+import kotlin.coroutines.*
 
 /**
  * Represents an environment in which engine runs
@@ -42,7 +43,13 @@ fun applicationEngineEnvironment(builder: ApplicationEngineEnvironmentBuilder.()
 /**
  * Engine environment configuration builder
  */
+@Suppress("MemberVisibilityCanBePrivate")
 class ApplicationEngineEnvironmentBuilder {
+    /**
+     * Parent coroutine context for an application
+     */
+    var parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+
     /**
      * Paths to wait for application reload
      */
@@ -86,6 +93,9 @@ class ApplicationEngineEnvironmentBuilder {
     @KtorExperimentalAPI
     fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
-        return ApplicationEngineEnvironmentReloading(classLoader, log, config, connectors, modules, watchPaths)
+        return ApplicationEngineEnvironmentReloading(
+            classLoader, log, config, connectors, modules, watchPaths,
+            parentCoroutineContext
+        )
     }
 }

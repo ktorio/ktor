@@ -26,6 +26,9 @@ open class JettyApplicationEngineBase(
 
     private val configuration = Configuration().apply(configure)
 
+    @Suppress("LeakingThis") // it is safe here because it will be only used during start/stop
+    private val cancellationHelper = EngineContextCancellationHelper(this)
+
     /**
      * Jetty server instance being configuring and starting
      */
@@ -35,6 +38,7 @@ open class JettyApplicationEngineBase(
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
+        cancellationHelper.start()
         environment.start()
         server.start()
         if (wait) {
@@ -45,6 +49,7 @@ open class JettyApplicationEngineBase(
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        cancellationHelper.stop()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
