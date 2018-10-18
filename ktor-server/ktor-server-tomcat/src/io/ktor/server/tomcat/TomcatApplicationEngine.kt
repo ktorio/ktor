@@ -3,6 +3,7 @@ package io.ktor.server.tomcat
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
+import kotlinx.atomicfu.*
 import org.apache.catalina.connector.*
 import org.apache.catalina.startup.Tomcat
 import org.apache.coyote.http2.*
@@ -100,6 +101,8 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
         }
     }
 
+    private val stopped = atomic(false)
+
     override fun start(wait: Boolean): TomcatApplicationEngine {
         cancellationHelper.start()
         environment.start()
@@ -112,11 +115,14 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        cancellationHelper.stop()
-        environment.monitor.raise(ApplicationStopPreparing, environment)
-        server.stop()
-        environment.stop()
-        tempDirectory.toFile().deleteRecursively()
+        if (stopped.compareAndSet(false, true)) {
+            cancellationHelper.stop()
+            environment.monitor.raise(ApplicationStopPreparing, environment)
+            server.stop()
+            environment.stop()
+            server.destroy()
+            tempDirectory.toFile().deleteRecursively()
+        }
     }
 
     companion object {
