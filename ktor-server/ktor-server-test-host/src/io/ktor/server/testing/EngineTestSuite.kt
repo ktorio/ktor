@@ -20,7 +20,6 @@ import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
-import org.junit.Test
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -34,6 +33,7 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation")
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -1672,6 +1672,21 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 }
             }
         }
+    }
+
+    @Test
+    fun testApplicationScopeCancellation() {
+        var job: Job? = null
+
+        createAndStartServer {
+            job = application.launch {
+                delay(10000000L)
+            }
+        }
+
+        server!!.stop(1, 10, TimeUnit.SECONDS)
+        assertNotNull(job)
+        assertTrue { job!!.isCancelled }
     }
 
     private fun String.urlPath() = replace("\\", "/")
