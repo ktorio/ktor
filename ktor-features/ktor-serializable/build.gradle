@@ -1,0 +1,3 @@
+dependencies {
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+}
