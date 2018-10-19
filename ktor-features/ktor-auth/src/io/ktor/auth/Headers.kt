@@ -211,7 +211,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Generates an [AuthScheme.Digest] challenge as a [HttpAuthHeader].
          */
-        fun digestAuthChallenge(realm: String, nonce: String = nextNonce(), domain: List<String> = emptyList(), opaque: String? = null, stale: Boolean? = null, algorithm: String = "MD5")
+        fun digestAuthChallenge(realm: String, nonce: String = generateNonce(), domain: List<String> = emptyList(), opaque: String? = null, stale: Boolean? = null, algorithm: String = "MD5")
                 = Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
             put("realm", realm)
             put("nonce", nonce)

@@ -57,7 +57,7 @@ internal suspend fun simpleOAuth1aStep1(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth1aServerSettings,
     callbackUrl: String,
-    nonce: String = nextNonce(),
+    nonce: String = generateNonce(),
     extraParameters: List<Pair<String, String>> = emptyList()
 ): OAuthCallback.TokenPair = simpleOAuth1aStep1(
     client,
@@ -75,7 +75,7 @@ private suspend fun simpleOAuth1aStep1(
     baseUrl: String,
     callback: String,
     consumerKey: String,
-    nonce: String = nextNonce(),
+    nonce: String = generateNonce(),
     extraParameters: List<Pair<String, String>> = emptyList()
 ): OAuthCallback.TokenPair {
     val authHeader = obtainRequestTokenHeader(
@@ -131,7 +131,7 @@ internal suspend fun simpleOAuth1aStep2(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth1aServerSettings,
     callbackResponse: OAuthCallback.TokenPair,
-    nonce: String = nextNonce(),
+    nonce: String = generateNonce(),
     extraParameters: Map<String, String> = emptyMap()
 ): OAuthAccessTokenResponse.OAuth1a = simpleOAuth1aStep2(
     client,
@@ -151,7 +151,7 @@ private suspend fun simpleOAuth1aStep2(
     consumerKey: String,
     token: String,
     verifier: String,
-    nonce: String = nextNonce(),
+    nonce: String = generateNonce(),
     extraParameters: Map<String, String> = emptyMap()
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()

@@ -155,7 +155,7 @@ class PartialContent(private val maxRangeCount: Int) {
         ranges: List<LongRange>,
         length: Long
     ) {
-        val boundary = "ktor-boundary-" + nextNonce()
+        val boundary = "ktor-boundary-" + generateNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet
 

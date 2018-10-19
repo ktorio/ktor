@@ -169,7 +169,7 @@ class CookieIdSessionBuilder<S : Any>(type: KClass<S>) : CookieSessionBuilder<S>
     /**
      * Current session ID provider function
      */
-    var sessionIdProvider: () -> String = { nextNonce() }
+    var sessionIdProvider: () -> String = { generateNonce() }
         private set
 }
 
@@ -242,6 +242,6 @@ class HeaderIdSessionBuilder<S : Any>(type: KClass<S>) : HeaderSessionBuilder<S>
     /**
      * Current session ID provider function
      */
-    var sessionIdProvider: () -> String = { nextNonce() }
+    var sessionIdProvider: () -> String = { generateNonce() }
         private set
 }

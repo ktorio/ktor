@@ -33,7 +33,7 @@ interface OAuth2StateProvider {
 
 object DefaultOAuth2StateProvider : OAuth2StateProvider {
     override suspend fun getState(call: ApplicationCall): String {
-        return nextNonce()
+        return generateNonce()
     }
 
     override suspend fun verifyState(state: String) {
