@@ -37,12 +37,14 @@ class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(start = CoroutineStart.LAZY) {
+    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.LAZY) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
         } catch (expected: ClosedChannelException) {
         } catch (expected: CancellationException) {
+            queue.cancel()
+        } catch (io: ChannelIOException) {
             queue.cancel()
         } catch (cause: Throwable) {
             queue.close(cause)

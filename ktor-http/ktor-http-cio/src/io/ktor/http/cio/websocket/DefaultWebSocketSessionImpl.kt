@@ -11,6 +11,9 @@ import java.time.*
 import java.util.concurrent.atomic.*
 import kotlin.properties.*
 
+private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
+private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
+
 /**
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
  */
@@ -79,7 +82,9 @@ class DefaultWebSocketSessionImpl(
         sendCloseSequence(reason)
     }
 
-    private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(Dispatchers.Unconfined) {
+    private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
+        IncomingProcessorCoroutineName + Dispatchers.Unconfined
+    ) {
         var last: BytePacketBuilder? = null
         try {
             raw.incoming.consumeEach { frame ->
@@ -118,7 +123,9 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
-    private fun runOutgoingProcessor(): Job = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+    private fun runOutgoingProcessor(): Job = launch(
+        OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
+    ) {
         try {
             outgoingToBeProcessed.consumeEach { frame ->
                 when (frame) {
@@ -132,6 +139,7 @@ class DefaultWebSocketSessionImpl(
         } catch (ignore: ClosedSendChannelException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: CancellationException) {
+        } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
             raw.outgoing.close(cause)
         } finally {

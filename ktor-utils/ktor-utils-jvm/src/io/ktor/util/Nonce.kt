@@ -14,8 +14,13 @@ private const val INSECURE_NONCE_COUNT_FACTOR = 4
 
 internal val seedChannel: Channel<String> = Channel(1024)
 
+private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
+
 private val nonceGeneratorJob =
-    GlobalScope.launch(context = Dispatchers.IO + NonCancellable, start = CoroutineStart.LAZY) {
+    GlobalScope.launch(
+        context = Dispatchers.IO + NonCancellable + NonceGeneratorCoroutineName,
+        start = CoroutineStart.LAZY
+    ) {
         val seedChannel = seedChannel
         var lastReseed = 0L
         val previousRoundNonceList = ArrayList<String>()

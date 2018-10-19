@@ -13,6 +13,10 @@ import kotlin.coroutines.*
 
 private const val JETTY_WEBSOCKET_POOL_SIZE = 2000
 
+private val EndpointReaderCoroutineName = CoroutineName("jetty-upgrade-endpoint-reader")
+
+private val EndpointWriterCoroutineName = CoroutineName("jetty-upgrade-endpoint-writer")
+
 private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(4096)!!
 
@@ -29,22 +33,24 @@ internal class EndPointReader(endpoint: EndPoint,
         runReader()
     }
 
-    private fun runReader() = launch(Dispatchers.Unconfined) {
-        try {
-            while (true) {
-                buffer.clear()
-                suspendCancellableCoroutine<Unit> { continuation ->
-                    currentHandler.compareAndSet(null, continuation)
-                    fillInterested()
-                }
+    private fun runReader(): Job {
+        return launch(EndpointReaderCoroutineName + Dispatchers.Unconfined) {
+            try {
+                while (true) {
+                    buffer.clear()
+                    suspendCancellableCoroutine<Unit> { continuation ->
+                        currentHandler.compareAndSet(null, continuation)
+                        fillInterested()
+                    }
 
-                channel.writeFully(buffer)
+                    channel.writeFully(buffer)
+                }
+            } catch (cause: Throwable) {
+                if (cause !is ClosedChannelException) channel.close(cause)
+            } finally {
+                channel.close()
+                JettyWebSocketPool.recycle(buffer)
             }
-        } catch (cause: Throwable) {
-            if (cause !is ClosedChannelException) channel.close(cause)
-        } finally {
-            channel.close()
-            JettyWebSocketPool.recycle(buffer)
         }
     }
 
@@ -68,14 +74,14 @@ internal class EndPointReader(endpoint: EndPoint,
 
     override fun onFillInterestedFailed(cause: Throwable) {
         super.onFillInterestedFailed(cause)
-        currentHandler.getAndSet(null)?.resumeWithException(cause)
+        currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
     }
 
     override fun failedCallback(callback: Callback, cause: Throwable) {
         super.failedCallback(callback, cause)
 
         val handler = currentHandler.getAndSet(null) ?: return
-        handler.resumeWithException(ChannelWriteException(exception = cause))
+        handler.resumeWithException(ChannelReadException(exception = cause))
     }
 
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
@@ -88,9 +94,9 @@ internal class EndPointReader(endpoint: EndPoint,
 }
 
 internal fun CoroutineScope.endPointWriter(
-        endPoint: EndPoint,
-        pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
-): ByteWriteChannel = reader(Dispatchers.Unconfined, autoFlush = true) {
+    endPoint: EndPoint,
+    pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
+): ByteWriteChannel = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
         endPoint.use { endPoint ->
             while (!channel.isClosedForRead) {
