@@ -11,6 +11,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.junit.*
 import org.junit.Test

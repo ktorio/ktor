@@ -13,6 +13,10 @@ import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 import kotlin.random.*
 
+private val PongerCoroutineName = CoroutineName("ws-ponger")
+
+private val PingerCoroutineName = CoroutineName("ws-pinger")
+
 /**
  * Launch a ponger actor job on the [coroutineContext] for websocket [session].
  * It is acting for every client's ping frame and replying with corresponding pong
@@ -33,7 +37,7 @@ fun ponger(
 fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Ping> = actor(capacity = 5, start = CoroutineStart.LAZY) {
+): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
     consumeEach { frame ->
         val buffer = frame.buffer.copy(pool)
         outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
@@ -71,7 +75,7 @@ fun CoroutineScope.pinger(
     period: Duration,
     timeout: Duration,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = actor(capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {
+): SendChannel<Frame.Pong> = actor(PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {
     // note that this coroutine need to be lazy
     val buffer = pool.borrow()
     val periodMillis = period.toMillis()

@@ -16,6 +16,8 @@ import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
+
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,
@@ -53,7 +55,7 @@ internal class JettyKtorHandler(
             }
             baseRequest.isHandled = true
 
-            launch(dispatcher) {
+            launch(dispatcher + JettyCallHandlerCoroutineName) {
                 val call = JettyApplicationCall(
                     environment.application,
                     baseRequest,

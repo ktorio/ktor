@@ -5,6 +5,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.cio.*
 import java.util.concurrent.*
 
 /**
@@ -121,6 +122,9 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
             toServerSession(call).handler()
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (io: ChannelIOException) {
+            // don't log I/O exceptions
+            throw io
         } catch (cause: Throwable) {
             application.log.error("Websocket handler failed", cause)
             throw cause

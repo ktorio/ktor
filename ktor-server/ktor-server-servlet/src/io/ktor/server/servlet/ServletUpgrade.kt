@@ -61,6 +61,8 @@ class UpgradeRequest(
     val disableAsyncInput: Boolean
 )
 
+private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
+
 @InternalAPI
 @EngineAPI
 @Suppress("KDocMissingDocumentation")
@@ -91,7 +93,7 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
-        launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
+        launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
 
             // TODO it's parent-child?

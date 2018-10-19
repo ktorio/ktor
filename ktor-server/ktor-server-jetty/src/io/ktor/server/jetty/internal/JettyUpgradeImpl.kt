@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
+import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -22,6 +23,10 @@ object JettyUpgradeImpl : ServletUpgrade {
 
         withContext(engineContext) {
             val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+
+            // for upgraded connections IDLE timeout should be significantly increased
+            connection.endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
+
             val inputChannel = ByteChannel(autoFlush = true)
             val reader = EndPointReader(connection.endPoint, engineContext, inputChannel)
             val outputChannel = endPointWriter(connection.endPoint)
