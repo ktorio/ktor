@@ -1,53 +1,36 @@
 package io.ktor.server.engine
 
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
-import kotlin.coroutines.*
 
 /**
- * A helper class useful with an [ApplicationEngine] implementation to handle parent context cancellation
+ * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
  */
 @EngineAPI
 @KtorExperimentalAPI
-class EngineContextCancellationHelper(private val parent: CoroutineContext,
-                                      private val actualStop: () -> Unit) : CoroutineScope {
-    constructor(engine: ApplicationEngine) : this(engine.environment.parentCoroutineContext, {
-        engine.stop(1, 5, TimeUnit.SECONDS)
-    })
+fun ApplicationEngine.stopServerOnCancellation(): CompletableDeferred<Unit> {
+    return environment.parentCoroutineContext[Job]?.launchOnCancellation {
+        stop(1, 5, TimeUnit.SECONDS)
+    } ?: CompletableDeferred()
+}
 
-    private val engineJob = atomic<Job?>(null)
+/**
+ * Launch a coroutine with [block] body when the parent job is cancelled or a returned deferred is cancelled.
+ * It is important to complete or cancel returned deferred
+ * otherwise the parent job will be unable to complete successfully.
+ */
+@InternalAPI
+fun Job.launchOnCancellation(block: suspend (cause: Throwable) -> Unit): CompletableDeferred<Unit> {
+    val deferred = CompletableDeferred<Unit>(parent = this)
 
-    override val coroutineContext: CoroutineContext get() = engineJob.value ?: throw IllegalStateException("Server is not yet started")
-
-    /**
-     * Should be called from engine.start
-     */
-    fun start() {
-        engineJob.updateAndGet { before ->
-            if (before != null) throw IllegalStateException("Engine is already running")
-            newJob()
-        }?.start()
-    }
-
-    /**
-     * Should be called from engine.stop
-     */
-    fun stop() {
-        engineJob.getAndSet(null)?.cancel()
-    }
-
-    private fun newJob(): Job = GlobalScope.launch(parent, start = CoroutineStart.LAZY) {
+    GlobalScope.launch(this + Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
         try {
-            suspendCancellableCoroutine<Unit> {
-                // suspend forever until cancellation
-            }
+            deferred.await()
         } catch (t: Throwable) {
-            val me: Job = coroutineContext[Job]!!
-            if (engineJob.compareAndSet(me, null)) {
-                actualStop()
-            }
+            block(t)
         }
     }
+
+    return deferred
 }

@@ -2,6 +2,7 @@ package io.ktor.server.jetty
 
 import io.ktor.application.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
 import java.util.concurrent.*
 
@@ -25,9 +26,7 @@ open class JettyApplicationEngineBase(
     }
 
     private val configuration = Configuration().apply(configure)
-
-    @Suppress("LeakingThis") // it is safe here because it will be only used during start/stop
-    private val cancellationHelper = EngineContextCancellationHelper(this)
+    private var cancellationDeferred: CompletableDeferred<Unit>? = null
 
     /**
      * Jetty server instance being configuring and starting
@@ -38,9 +37,9 @@ open class JettyApplicationEngineBase(
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
-        cancellationHelper.start()
         environment.start()
         server.start()
+        cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.join()
             stop(1, 5, TimeUnit.SECONDS)
@@ -49,7 +48,7 @@ open class JettyApplicationEngineBase(
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        cancellationHelper.stop()
+        cancellationDeferred?.complete(Unit)
         environment.monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
