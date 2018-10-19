@@ -28,7 +28,7 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel() }
+    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline) }
 
     override fun receiveChannel() = inputStreamChannel
 }
@@ -39,7 +39,7 @@ private class BlockingServletApplicationResponse(
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
-        reader(Dispatchers.Unconfined, autoFlush = false) {
+        reader(UnsafeBlockingTrampoline, autoFlush = false) {
             val buffer = ArrayPool.borrow()
             try {
                 writeLoop(buffer, channel, servletResponse.outputStream)
@@ -69,4 +69,16 @@ private class BlockingServletApplicationResponse(
     }
 }
 
+
+/**
+ * Never do like this! Very special corner-case.
+ */
+@UseExperimental(ExperimentalCoroutinesApi::class)
+private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        block.run()
+    }
+}
 
