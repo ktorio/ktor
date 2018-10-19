@@ -7,10 +7,11 @@ import java.util.*
 @KtorExperimentalAPI
 fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> getDigest(e, algorithm, salt) }
 
-private fun getDigest(text: String, algorithm: String, salt: String): ByteArray = with(MessageDigest.getInstance(algorithm)) {
-    update(salt.toByteArray())
-    digest(text.toByteArray())
-}
+private fun getDigest(text: String, algorithm: String, salt: String): ByteArray =
+    with(MessageDigest.getInstance(algorithm)) {
+        update(salt.toByteArray())
+        digest(text.toByteArray())
+    }
 
 @InternalAPI
 fun decodeBase64(s: String): ByteArray = Base64.getDecoder().decode(s)
@@ -27,7 +28,10 @@ fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
     for (idx in 0 until result.size) {
         val srcIdx = idx * 2
-        result[idx] = ((Integer.parseInt(s[srcIdx].toString(), 16)) shl 4 or Integer.parseInt(s[srcIdx + 1].toString(), 16)).toByte()
+        result[idx] = ((Integer.parseInt(s[srcIdx].toString(), 16)) shl 4 or Integer.parseInt(
+            s[srcIdx + 1].toString(),
+            16
+        )).toByte()
     }
 
     return result
@@ -42,21 +46,28 @@ fun hex(bytes: ByteArray) = bytes.joinToString("") {
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 
 @Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use nextNonce() instead")
+@Deprecated("Use generateNonce() instead")
 val nonceRandom: Random by lazy { SecureRandom() }
 
 /**
- * Generates a nonce string 16 characters long. Could block if system's entropy source is too
+ * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @KtorExperimentalAPI
-fun nextNonce(): String {
+@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"))
+fun nextNonce(): String = generateNonce()
+
+/**
+ * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
+ */
+@KtorExperimentalAPI
+fun generateNonce(): String {
     val nonce = seedChannel.poll()
     if (nonce != null) return nonce
 
-    return nextNonceBlocking()
+    return generateNonceBlocking()
 }
 
-private fun nextNonceBlocking(): String {
+private fun generateNonceBlocking(): String {
     ensureNonceGeneratorRunning()
     return runBlocking {
         seedChannel.receive()
