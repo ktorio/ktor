@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
 import org.apache.catalina.connector.*
 import org.apache.catalina.startup.Tomcat
 import org.apache.coyote.http2.*
@@ -35,7 +36,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
-    private val cancellationHelper = EngineContextCancellationHelper(this)
+    private var cancellationDeferred: CompletableDeferred<Unit>? = null
 
     private val ktorServlet = object : KtorServlet() {
         override val enginePipeline: EnginePipeline
@@ -104,9 +105,9 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
     private val stopped = atomic(false)
 
     override fun start(wait: Boolean): TomcatApplicationEngine {
-        cancellationHelper.start()
         environment.start()
         server.start()
+        cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.server.await()
             stop(1, 5, TimeUnit.SECONDS)
@@ -116,7 +117,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         if (stopped.compareAndSet(false, true)) {
-            cancellationHelper.stop()
+            cancellationDeferred?.complete(Unit)
             environment.monitor.raise(ApplicationStopPreparing, environment)
             server.stop()
             environment.stop()
