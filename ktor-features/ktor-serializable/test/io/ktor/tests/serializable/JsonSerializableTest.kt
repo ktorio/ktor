@@ -5,9 +5,9 @@ import io.ktor.serializable.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.*
 
-class SerializableJsonTest : SerializableTest() {
+class JsonSerializableTest : SerializableTest() {
     override val contentType = ContentType.Application.Json
-    override val contentConverter = SerializableJsonConverter()
+    override val contentConverter = JsonSerializableConverter()
 
     override fun parseResponse(response: TestApplicationResponse): MyEntity {
         return JSON.parse(response.content!!)

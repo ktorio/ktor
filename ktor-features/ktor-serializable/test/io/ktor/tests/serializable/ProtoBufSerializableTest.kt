@@ -5,9 +5,9 @@ import io.ktor.serializable.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.protobuf.*
 
-class SerializableProtoBufTest : SerializableTest() {
+class ProtoBufSerializableTest : SerializableTest() {
     override val contentType = ContentType.Application.ProtoBuf
-    override val contentConverter = SerializableProtoBufConverter()
+    override val contentConverter = ProtoBufSerializableConverter()
 
     override fun parseResponse(response: TestApplicationResponse): MyEntity {
         return ProtoBuf.load(response.byteContent!!)

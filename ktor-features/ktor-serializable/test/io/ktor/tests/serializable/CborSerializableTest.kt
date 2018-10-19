@@ -4,11 +4,10 @@ import io.ktor.http.*
 import io.ktor.serializable.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.cbor.*
-import kotlinx.serialization.json.*
 
-class SerializableCborTest : SerializableTest() {
+class CborSerializableTest : SerializableTest() {
     override val contentType = ContentType.Application.Cbor
-    override val contentConverter = SerializableCborConverter()
+    override val contentConverter = CborSerializableConverter()
 
     override fun parseResponse(response: TestApplicationResponse): MyEntity {
         return CBOR.load(response.byteContent!!)

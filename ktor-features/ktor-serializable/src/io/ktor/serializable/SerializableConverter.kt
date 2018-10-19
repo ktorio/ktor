@@ -100,14 +100,14 @@ inline fun ContentNegotiation.Configuration.serializable(
     block: SerializableConverter.() -> Unit
 ) {
     if (json != null) {
-        register(ContentType.Application.Json, SerializableJsonConverter(json).apply(block))
+        register(ContentType.Application.Json, JsonSerializableConverter(json).apply(block))
     }
 
     if (cbor != null) {
-        register(ContentType.Application.Cbor, SerializableCborConverter(cbor).apply(block))
+        register(ContentType.Application.Cbor, CborSerializableConverter(cbor).apply(block))
     }
 
     if (protoBuf != null) {
-        register(ContentType.Application.ProtoBuf, SerializableProtoBufConverter(protoBuf).apply(block))
+        register(ContentType.Application.ProtoBuf, ProtoBufSerializableConverter(protoBuf).apply(block))
     }
 }

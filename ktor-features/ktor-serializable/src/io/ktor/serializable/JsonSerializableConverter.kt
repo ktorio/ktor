@@ -11,7 +11,7 @@ import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
-class SerializableJsonConverter(private val json: JSON = JSON.plain) : SerializableConverter() {
+class JsonSerializableConverter(private val json: JSON = JSON.plain) : SerializableConverter() {
     override suspend fun deserialize(
         context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>,
         contentType: ContentType,

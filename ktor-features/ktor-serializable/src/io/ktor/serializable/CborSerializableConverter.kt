@@ -10,7 +10,7 @@ import kotlinx.coroutines.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.*
 
-class SerializableCborConverter(private val cbor: CBOR = CBOR.plain) : SerializableConverter() {
+class CborSerializableConverter(private val cbor: CBOR = CBOR.plain) : SerializableConverter() {
     override suspend fun deserialize(
         context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>,
         contentType: ContentType,

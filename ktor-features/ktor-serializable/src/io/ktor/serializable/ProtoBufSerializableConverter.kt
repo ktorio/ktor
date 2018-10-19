@@ -10,7 +10,7 @@ import kotlinx.coroutines.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.*
 
-class SerializableProtoBufConverter(private val protoBuf: ProtoBuf = ProtoBuf.plain) : SerializableConverter() {
+class ProtoBufSerializableConverter(private val protoBuf: ProtoBuf = ProtoBuf.plain) : SerializableConverter() {
     override suspend fun deserialize(
         context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>,
         contentType: ContentType,
