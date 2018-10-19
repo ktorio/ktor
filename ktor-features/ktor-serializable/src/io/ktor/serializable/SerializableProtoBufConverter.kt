@@ -29,7 +29,7 @@ class SerializableProtoBufConverter(private val protoBuf: ProtoBuf = ProtoBuf.pl
     ): Any? {
         return ByteArrayContent(
             bytes = protoBuf.dump(serializer, value),
-            contentType = ContentType.Application.Cbor
+            contentType = ContentType.Application.ProtoBuf
         )
     }
 }

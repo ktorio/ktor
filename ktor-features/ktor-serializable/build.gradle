@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        maven { url "https://kotlin.bintray.com/kotlin-eap" }
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlinx-serialization'
+
 dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
 }
