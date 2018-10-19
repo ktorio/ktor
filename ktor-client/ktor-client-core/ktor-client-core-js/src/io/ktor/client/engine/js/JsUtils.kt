@@ -1,5 +1,6 @@
 package io.ktor.client.engine.js
 
+import io.ktor.client.engine.mergeHeaders
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -13,8 +14,8 @@ import kotlin.coroutines.*
 
 internal suspend fun HttpRequest.toRaw(): RequestInit {
     val jsHeaders = js("({})")
-    headers.forEach { key, values ->
-        jsHeaders[key] = values
+    mergeHeaders(headers, content) { key, value ->
+        jsHeaders[key] = value
     }
 
     val content = content
