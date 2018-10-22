@@ -12,6 +12,7 @@ import kotlinx.coroutines.io.*
 import org.junit.Test
 import java.time.*
 import java.util.zip.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class CompressionTest {
@@ -125,8 +126,15 @@ class CompressionTest {
             application.install(Compression) {
                 default()
                 encoder("special", object : CompressionEncoder {
-                    override fun compress(readChannel: ByteReadChannel) = readChannel
-                    override fun compress(writeChannel: ByteWriteChannel) = writeChannel
+                    override fun compress(
+                        readChannel: ByteReadChannel,
+                        coroutineContext: CoroutineContext
+                    ) = readChannel
+
+                    override fun compress(
+                        writeChannel: ByteWriteChannel,
+                        coroutineContext: CoroutineContext
+                    ) = writeChannel
                 })
             }
             application.routing {
