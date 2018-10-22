@@ -2,11 +2,13 @@ package io.ktor.util
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import java.util.zip.*
+import kotlin.coroutines.*
 
 
 private const val GZIP_MAGIC = 0x8b1f
@@ -49,11 +51,17 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
     }
 }
 
+/**
+ * Launch a coroutine on [coroutineContext] that does deflate compression
+ * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
+ */
 @KtorExperimentalAPI
+@UseExperimental(ExperimentalCoroutinesApi::class)
 fun ByteReadChannel.deflated(
-        gzip: Boolean = true,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
+    gzip: Boolean = true,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
     channel.writeByteOrder = ByteOrder.LITTLE_ENDIAN
     val crc = CRC32()
     val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
@@ -88,10 +96,15 @@ fun ByteReadChannel.deflated(
     }
 }.channel
 
+/**
+ * Launch a coroutine on [coroutineContext] that does deflate compression
+ * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
+ */
 @KtorExperimentalAPI
 fun ByteWriteChannel.deflated(
-        gzip: Boolean = true,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): ByteWriteChannel = GlobalScope.reader(Dispatchers.Unconfined, autoFlush = true) {
-    channel.deflated(gzip, pool).joinTo(this@deflated, closeOnEnd = true)
+    gzip: Boolean = true,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
+): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
+    channel.deflated(gzip, pool, coroutineContext).joinTo(this@deflated, closeOnEnd = true)
 }.channel

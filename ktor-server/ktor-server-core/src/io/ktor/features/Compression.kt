@@ -8,7 +8,9 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlin.coroutines.*
 
 /**
  * Compression feature configuration
@@ -144,8 +146,10 @@ class Compression(compression: Configuration) {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
         override suspend fun writeTo(channel: ByteWriteChannel) {
-            encoder.compress(channel).use {
-                original.writeTo(this)
+            coroutineScope {
+                encoder.compress(channel, coroutineContext).use {
+                    original.writeTo(this)
+                }
             }
         }
     }
@@ -176,13 +180,13 @@ class Compression(compression: Configuration) {
     /**
      * Configuration builder for Compression feature
      */
-    class Configuration() : ConditionsHolderBuilder {
+    class Configuration : ConditionsHolderBuilder {
         /**
          * Encoders map by names
          */
-        val encoders = hashMapOf<String, CompressionEncoderBuilder>()
+        val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
 
-        override val conditions = arrayListOf<ApplicationCall.(OutgoingContent) -> Boolean>()
+        override val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
         /**
          * Appends an encoder to the configuration
@@ -208,7 +212,7 @@ class Compression(compression: Configuration) {
         /**
          * Builds `CompressionOptions`
          */
-        fun build() = CompressionOptions(
+        fun build(): CompressionOptions = CompressionOptions(
             encoders = encoders.mapValues { it.value.build() },
             conditions = conditions.toList()
         )
@@ -221,40 +225,61 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
 /**
  * Represents a Compression encoder
  */
+@KtorExperimentalAPI
+@UseExperimental(ExperimentalCoroutinesApi::class)
 interface CompressionEncoder {
     /**
      * Wraps [readChannel] into a compressing [ByteReadChannel]
      */
-    fun compress(readChannel: ByteReadChannel): ByteReadChannel
+    fun compress(
+        readChannel: ByteReadChannel,
+        coroutineContext: CoroutineContext = Dispatchers.Unconfined
+    ): ByteReadChannel
 
     /**
      * Wraps [writeChannel] into a compressing [ByteWriteChannel]
      */
-    fun compress(writeChannel: ByteWriteChannel): ByteWriteChannel
+    fun compress(
+        writeChannel: ByteWriteChannel,
+        coroutineContext: CoroutineContext = Dispatchers.Unconfined
+    ): ByteWriteChannel
 }
 
 /**
  * Implementation of the gzip encoder
  */
 object GzipEncoder : CompressionEncoder {
-    override fun compress(readChannel: ByteReadChannel) = readChannel.deflated(true)
-    override fun compress(writeChannel: ByteWriteChannel) = writeChannel.deflated(true)
+    override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        readChannel.deflated(true, coroutineContext = coroutineContext)
+
+    override fun compress(writeChannel: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        writeChannel.deflated(true, coroutineContext = coroutineContext)
 }
 
 /**
  * Implementation of the deflate encoder
  */
 object DeflateEncoder : CompressionEncoder {
-    override fun compress(readChannel: ByteReadChannel) = readChannel.deflated(false)
-    override fun compress(writeChannel: ByteWriteChannel) = writeChannel.deflated(false)
+    override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
+        readChannel.deflated(false, coroutineContext = coroutineContext)
+
+    override fun compress(writeChannel: ByteWriteChannel, coroutineContext: CoroutineContext): ByteWriteChannel =
+        writeChannel.deflated(false, coroutineContext = coroutineContext)
 }
 
 /**
  *  Implementation of the identity encoder
  */
 object IdentityEncoder : CompressionEncoder {
-    override fun compress(readChannel: ByteReadChannel) = readChannel
-    override fun compress(writeChannel: ByteWriteChannel) = writeChannel
+    override fun compress(
+        readChannel: ByteReadChannel,
+        coroutineContext: CoroutineContext
+    ): ByteReadChannel = readChannel
+
+    override fun compress(
+        writeChannel: ByteWriteChannel,
+        coroutineContext: CoroutineContext
+    ): ByteWriteChannel = writeChannel
 }
 
 /**
