@@ -171,8 +171,8 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
     val body = response.readText()
 
     val (contentType, content) = try {
-        if (response.status == HttpStatusCode.NotFound) {
-            throw IOException("Not found. Got 404 for the page $baseUrl")
+        if (!response.status.isSuccess()) {
+            throw IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 

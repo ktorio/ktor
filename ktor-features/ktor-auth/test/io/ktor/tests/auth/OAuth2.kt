@@ -367,6 +367,55 @@ class OAuth2Test {
         }
     }
 
+    @Test
+    fun testRequestTokenLowLevelBadStatus() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
+                        url.parameters["respondHttpStatus"] = "500"
+                    }) { token ->
+                        call.respondText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?" + listOf(
+                OAuth2RequestParameters.Code to "code1",
+                OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode())
+
+            waitExecutor()
+
+            assertTrue(result.requestHandled, "request should be handled")
+            assertEquals(HttpStatusCode.Found, result.response.status())
+        }
+    }
+
+    @Test
+    fun testRequestTokenLowLevelBadStatusNotFound() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
+                        url.parameters["respondHttpStatus"] = "404"
+                    }) { token ->
+                        call.respondText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?" + listOf(
+                OAuth2RequestParameters.Code to "code1",
+                OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode())
+
+            waitExecutor()
+
+            assertTrue(result.requestHandled, "request should be handled")
+            assertEquals(HttpStatusCode.Found, result.response.status())
+        }
+    }
 
     @Test
     fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
@@ -437,6 +486,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                         val username = values[OAuth2RequestParameters.UserName]
                         val password = values[OAuth2RequestParameters.Password]
                         val badContentType = values["badContentType"] == "true"
+                        val respondStatus = values["respondHttpStatus"]
 
                         val obj = try {
                             val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
@@ -462,8 +512,8 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                             else -> ContentType.Application.Json
                         }
 
-                        call.response.status(HttpStatusCode.OK)
-                        call.respondText(obj.toJSONString(), contentType)
+                        val status = respondStatus?.let { HttpStatusCode.fromValue(it.toInt()) } ?: HttpStatusCode.OK
+                        call.respondText(obj.toJSONString(), contentType, status)
                     }
                 }
             }
