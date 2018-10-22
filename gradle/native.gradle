@@ -2,7 +2,7 @@
 
 kotlin {
     targets {
-        fromPreset(presets.iosArm32, 'iosArm32')
+        //fromPreset(presets.iosArm32, 'iosArm32') the common posix code needs to be updated for 32 bits.
         fromPreset(presets.iosArm64, 'iosArm64')
         fromPreset(presets.iosX64, 'iosX64')
         fromPreset(presets.macosX64, 'macosX64')
