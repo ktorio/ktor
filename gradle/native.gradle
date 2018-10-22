@@ -8,19 +8,46 @@ kotlin {
         fromPreset(presets.macosX64, 'macosX64')
     }
     sourceSets {
-        nativeMain.dependencies {
+        darwinMain.dependencies {
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
-
-            api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
         }
 
-        nativeMain { dependsOn commonMain }
-        nativeTest { dependsOn nativeMain }
+        darwinMain { dependsOn commonMain }
+        darwinTest { dependsOn darwinMain }
+
+        unixMain {
+        //    kotlin.srcDir 'unixMain'
+            dependencies {
+                implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+                implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
+                implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
+
+         //       implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+                /*
+                cinterop('libcurl') {
+                    defFile 'src/io/c_interop/libcurl.def'
+
+                    target('linux_x64') {
+                        includeDirs.headerFilterOnly '/usr/include'
+                    }
+                    target('macos_x64') {
+                        includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
+                    }
+                }
+                */
+            }
+        }
+
+        unixMain { dependsOn commonMain }
+        unixTest { dependsOn unixMain }
 
         configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main]) {
-            dependsOn nativeMain
+            dependsOn darwinMain
+        }
+        configure([macosX64Main, linuxX64Main, mingwX64Main]) {
+            dependsOn unixMain
         }
     }
 }

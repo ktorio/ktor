@@ -1,23 +1,7 @@
-
-dependencies {
-    implementation project(':ktor-client:ktor-client-core:ktor-client-core-curl')
-}
-
-// Native component
-components.main {
-    targets = ['macos_x64', 'linux_x64']
-
-    dependencies {
-        cinterop('libcurl-interop') {
-            defFile 'src/io/c_interop/libcurl.def'
-
-            target('linux_x64') {
-                includeDirs.headerFilterOnly '/usr/include'
-            }
-            target('macos_x64') {
-                includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
-            }
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
         }
     }
 }
-
