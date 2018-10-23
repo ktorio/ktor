@@ -33,13 +33,14 @@ class IntegrationTest {
         }
 
         s.invokeOnCompletion { t ->
-            if (t != null) server.cancel(t)
-            else server.complete(s.getCompleted())
+            if (t != null) server.completeExceptionally(t)
+            else server.complete(@UseExperimental(ExperimentalCoroutinesApi::class) s.getCompleted())
         }
 
         j.invokeOnCompletion {
             s.invokeOnCompletion { t ->
                 if (t != null && !s.isCancelled) {
+                    @UseExperimental(ExperimentalCoroutinesApi::class)
                     s.getCompleted().close()
                 }
             }
@@ -51,6 +52,7 @@ class IntegrationTest {
     }
 
     @After
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     fun tearDown() {
         server.invokeOnCompletion { t ->
             if (t == null) {

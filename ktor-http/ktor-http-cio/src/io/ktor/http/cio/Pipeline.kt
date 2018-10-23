@@ -73,6 +73,7 @@ fun startConnectionPipeline(
  * @return pipeline job
  */
 @KtorExperimentalAPI
+@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
@@ -85,7 +86,10 @@ fun CoroutineScope.startConnectionPipeline(
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> { channel.receiveOrNull() }
+            val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> {
+                @Suppress("DEPRECATION")
+                channel.receiveOrNull()
+            }
             while (true) {
                 val child = timeout.withTimeout(receiveChildOrNull) ?: break
                 try {
@@ -180,7 +184,7 @@ fun CoroutineScope.startConnectionPipeline(
                     handler(request, requestBody, response, upgraded)
                 } catch (cause: Throwable) {
                     response.close(cause)
-                    upgraded?.cancel(cause)
+                    upgraded?.completeExceptionally(cause)
                 } finally {
                     response.close()
                     upgraded?.complete(false)
@@ -212,8 +216,6 @@ fun CoroutineScope.startConnectionPipeline(
         }
     } catch (cause: IOException) { // already handled
         coroutineContext.cancel()
-    } catch (cause: Throwable) {
-        coroutineContext.cancel(cause)
     } finally {
         outputsActor.close()
     }

@@ -63,9 +63,11 @@ internal class ApacheResponseConsumer(
 
     override fun onEntityEnclosed(entity: HttpEntity, contentType: ContentType) {}
 
+    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
         try {
             while (!backendChannel.isClosedForReceive) {
+                @Suppress("DEPRECATION")
                 val buffer = backendChannel.receiveOrNull() ?: break
                 channel.writeFully(buffer)
                 HttpClientDefaultPool.recycle(buffer)

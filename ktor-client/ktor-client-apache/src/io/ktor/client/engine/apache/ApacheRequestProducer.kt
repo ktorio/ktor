@@ -6,7 +6,6 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -21,7 +20,6 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
-import java.net.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.*
 
@@ -31,7 +29,6 @@ internal class ApacheRequestProducer(
     private val body: OutgoingContent,
     private val callContext: CoroutineContext
 ) : HttpAsyncRequestProducer {
-    private var requestJob: Job? = null
     private val requestChannel = Channel<ByteBuffer>(1)
     private val request: HttpUriRequest = setupRequest()
     private val host = URIUtils.extractHost(request.uri)!!
@@ -69,7 +66,6 @@ internal class ApacheRequestProducer(
 
     override fun failed(cause: Exception) {
         requestChannel.close(cause)
-        requestJob?.cancel(cause)
 
         try {
             requestChannel.poll()?.recycle()
@@ -81,6 +77,7 @@ internal class ApacheRequestProducer(
         var buffer = currentBuffer.getAndSet(null) ?: requestChannel.poll()
 
         if (buffer == null) {
+            @UseExperimental(ExperimentalCoroutinesApi::class)
             if (requestChannel.isClosedForReceive) {
                 encoder.complete()
                 return

@@ -43,6 +43,7 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
     j.invokeOnCompletion {
         deferred.invokeOnCompletion { t ->
             if (t == null) {
+                @UseExperimental(ExperimentalCoroutinesApi::class)
                 deferred.getCompleted().close()
             }
         }

@@ -6,6 +6,7 @@ import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -54,7 +55,7 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.response.cancel(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
             }
@@ -79,7 +80,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.response.cancel(cause)
+                task.response.completeExceptionally(cause)
                 throw cause
             }
         }
@@ -148,7 +149,7 @@ internal class Endpoint(
                 )
             )
         } catch (cause: Throwable) {
-            response.cancel(cause)
+            response.completeExceptionally(cause)
         }
     }
 
@@ -216,4 +217,5 @@ internal class Endpoint(
     }
 }
 
+@KtorExperimentalAPI
 class ConnectException : Exception("Connect timed out")

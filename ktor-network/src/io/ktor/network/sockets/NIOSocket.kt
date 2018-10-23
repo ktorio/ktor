@@ -72,12 +72,12 @@ internal abstract class NIOSocketImpl<out S>(
 
         if (!ref.compareAndSet(null, j)) {
             val e = IllegalStateException("$name channel has been already set")
-            j.cancel(e)
+            j.cancel()
             throw e
         }
         if (closeFlag.get()) {
             val e = ClosedChannelException()
-            j.cancel(e)
+            j.cancel()
             channel.close(e)
             throw e
         }
@@ -112,7 +112,7 @@ internal abstract class NIOSocketImpl<out S>(
 
             val combined = combine(combine(e1, e2), e3)
 
-            if (combined == null) socketContext.complete(Unit) else socketContext.cancel(combined)
+            if (combined == null) socketContext.complete(Unit) else socketContext.completeExceptionally(combined)
         }
     }
 

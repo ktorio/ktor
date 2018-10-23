@@ -15,9 +15,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
-import org.junit.internal.runners.statements.*
 import org.junit.rules.*
-import org.junit.runner.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -30,10 +28,13 @@ import kotlin.coroutines.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
+
+    @UseExperimental(ObsoleteCoroutinesApi::class)
     protected val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
 
     protected val isUnderDebugger: Boolean =
@@ -210,6 +211,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         return try {
             runBlocking {
                 starting.join()
+                @UseExperimental(ExperimentalCoroutinesApi::class)
                 starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
             }
         } catch (t: Throwable) { // InterruptedException?

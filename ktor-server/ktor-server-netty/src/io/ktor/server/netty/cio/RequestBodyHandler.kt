@@ -16,16 +16,18 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
     private val queue = Channel<Any>(Channel.UNLIMITED)
     private object Upgrade
 
-    override val coroutineContext: CoroutineContext
-        get() = handlerJob
+    override val coroutineContext: CoroutineContext get() = handlerJob
 
+    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private val job = launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
         var upgraded = false
 
         try {
             while (true) {
-                val event = queue.poll() ?: run { current?.flush(); queue.receiveOrNull() } ?: break
+                val event = queue.poll()
+                    ?: run { current?.flush(); @Suppress("DEPRECATION") queue.receiveOrNull() }
+                    ?: break
 
                 if (event is ByteBufHolder) {
                     val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
@@ -107,6 +109,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
         }
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
             val e = try { queue.poll() } catch (t: Throwable) { null } ?: break

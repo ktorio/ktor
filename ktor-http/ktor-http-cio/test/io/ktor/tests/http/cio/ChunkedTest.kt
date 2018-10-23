@@ -179,7 +179,7 @@ class ChunkedTest {
 
                 read.complete(sb.toString())
             } catch (t: Throwable) {
-                read.cancel(t)
+                read.completeExceptionally(t)
             }
         }
 

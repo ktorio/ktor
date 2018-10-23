@@ -21,7 +21,7 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class)
+@UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
     val timeout = Timeout(30, TimeUnit.SECONDS)

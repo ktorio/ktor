@@ -24,7 +24,7 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class)
+@UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @get:Rule
     val errors = ErrorCollector()

@@ -312,10 +312,10 @@ class StatusPageTest {
                 async { throw AsyncFailedException() }.await()
             }
             get("/cancel") {
-                val ch = produce<String> {
+                val j = launch {
                     delay(1000000L)
                 }
-                ch.cancel()
+                j.cancel()
                 call.respondText("OK")
             }
         }

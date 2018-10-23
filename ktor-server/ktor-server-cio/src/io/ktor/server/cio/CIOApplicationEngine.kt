@@ -54,8 +54,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 connectors.add(connector)
             }
         } catch (t: Throwable) {
-            connectors.forEach { it.rootServerJob.cancel(t) }
-            stopRequest.cancel(t)
+            connectors.forEach { it.rootServerJob.cancel() }
+            stopRequest.completeExceptionally(t)
             throw t
         }
 

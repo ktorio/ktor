@@ -37,6 +37,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
         }
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     @UseExperimental(InternalCoroutinesApi::class)

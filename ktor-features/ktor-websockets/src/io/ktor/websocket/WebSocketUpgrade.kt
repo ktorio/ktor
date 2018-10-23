@@ -54,7 +54,7 @@ class WebSocketUpgrade(
         val webSocket = RawWebSocket(
             input, output,
             feature.maxFrameSize, feature.masking,
-            coroutineContext = engineContext + (coroutineContext[Job] ?: Dispatchers.Unconfined)
+            coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         )
 
         return webSocket.launch(WebSocketHandlerCoroutineName) {

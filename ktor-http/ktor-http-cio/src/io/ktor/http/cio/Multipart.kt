@@ -40,6 +40,7 @@ sealed class MultipartEvent {
      * @property body a channel of part content
      */
     class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
+        @UseExperimental(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
                 if (t != null) {
@@ -63,6 +64,7 @@ sealed class MultipartEvent {
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Simply copy required number of bytes from input to output instead")
 suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
@@ -249,6 +251,7 @@ fun parseMultipart(
  * Starts a multipart parser coroutine producing multipart events
  */
 @KtorExperimentalAPI
+@UseExperimental(ExperimentalCoroutinesApi::class)
 fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
@@ -293,7 +296,7 @@ fun CoroutineScope.parseMultipart(
             }
             parsePartBody(boundaryPrefixed, input, body, hh)
         } catch (t: Throwable) {
-            if (headers.cancel(t)) {
+            if (headers.completeExceptionally(t)) {
                 hh?.release()
             }
             body.close(t)

@@ -69,10 +69,9 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest
-    private val upgradeJob = Job()
+    private val upgradeJob = CompletableDeferred<Unit>()
 
-    override val coroutineContext: CoroutineContext
-        get() = upgradeJob
+    override val coroutineContext: CoroutineContext get() = upgradeJob
 
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
@@ -94,17 +93,11 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
-            val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
-
-            // TODO it's parent-child?
-            @UseExperimental(InternalCoroutinesApi::class)
-            job.invokeOnCompletion(onCancelling = true) {
-                upgradeJob.cancel(it)
-            }
+            up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
         }
     }
 
     override fun destroy() {
-        upgradeJob.cancel(CancellationException("Upgraded WebConnection destroyed"))
+        upgradeJob.completeExceptionally(CancellationException("Upgraded WebConnection destroyed"))
     }
 }

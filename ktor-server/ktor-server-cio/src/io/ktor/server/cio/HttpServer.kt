@@ -43,9 +43,7 @@ data class HttpServerSettings(
 @Deprecated("Use httpServer with CoroutineScope receiver")
 fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
     val parent = parentJob ?: Dispatchers.Default
-    val scope = CoroutineScope(GlobalScope.newCoroutineContext(parent))
-
-    return scope.httpServer(settings, handler = handler)
+    return CoroutineScope(parent).httpServer(settings, handler = handler)
 }
 
 @Suppress("KDocMissingDocumentation")
@@ -114,7 +112,7 @@ fun CoroutineScope.httpServer(
                     }
                 }
             } catch (closed: ClosedChannelException) {
-                coroutineContext.cancel(closed)
+                coroutineContext.cancel()
             } finally {
                 server.close()
                 server.awaitClosed()
@@ -124,7 +122,7 @@ fun CoroutineScope.httpServer(
     }
 
     acceptJob.invokeOnCompletion { t ->
-        t?.let { socket.cancel(it) }
+        t?.let { socket.completeExceptionally(it) }
         serverLatch.complete(Unit)
         timeout.process()
     }

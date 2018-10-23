@@ -82,6 +82,7 @@ class DefaultWebSocketSessionImpl(
         sendCloseSequence(reason)
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
@@ -123,6 +124,7 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
@@ -185,6 +187,7 @@ class DefaultWebSocketSessionImpl(
 }
 
 @InternalAPI
+@Suppress("KDocMissingDocumentation")
 suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
     val failure = try {
         val me: DefaultWebSocketSession = this@run
