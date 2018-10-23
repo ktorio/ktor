@@ -16,7 +16,7 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
 
     val jar = argsMap["-jar"]?.let {
         when {
-            it.startsWith("file:")|| it.startsWith("jrt:") || it.startsWith("jar:") -> URI(it).toURL()
+            it.startsWith("file:") || it.startsWith("jrt:") || it.startsWith("jar:") -> URI(it).toURL()
             else -> File(it).toURI().toURL()
         }
     }
@@ -50,27 +50,35 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val environment = applicationEngineEnvironment {
         log = appLog
         classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
-                ?: ApplicationEnvironment::class.java.classLoader
+            ?: ApplicationEnvironment::class.java.classLoader
         config = HoconApplicationConfig(combinedConfig)
 
         val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
-        log.trace(combinedConfig.getObject("ktor")
-                .withoutKey("security")
-                .withValue("security", contentHiddenValue)
-                .render())
-
+        if (combinedConfig.hasPath("ktor")) {
+            log.trace(
+                combinedConfig.getObject("ktor")
+                    .withoutKey("security")
+                    .withValue("security", contentHiddenValue)
+                    .render()
+            )
+        } else {
+            log.trace("No configuration provided: neither application.conf " +
+                "nor system properties nor command line options (-config or -P:ktor...=) provided")
+        }
 
         val host = argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath) ?: "0.0.0.0"
-        val port = argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath) ?: "80"
+        val port = argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath)
         val sslPort = argsMap["-sslPort"] ?: combinedConfig.tryGetString(hostSslPortPath)
         val sslKeyStorePath = argsMap["-sslKeyStore"] ?: combinedConfig.tryGetString(hostSslKeyStore)
         val sslKeyStorePassword = combinedConfig.tryGetString(hostSslKeyStorePassword)?.trim()
         val sslPrivateKeyPassword = combinedConfig.tryGetString(hostSslPrivateKeyPassword)?.trim()
         val sslKeyAlias = combinedConfig.tryGetString(hostSslKeyAlias) ?: "mykey"
 
-        connector {
-            this.host = host
-            this.port = port.toInt()
+        if (port != null) {
+            connector {
+                this.host = host
+                this.port = port.toInt()
+            }
         }
 
         if (sslPort != null) {
@@ -101,12 +109,19 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
             }
 
             sslConnector(keyStore, sslKeyAlias,
-                    { sslKeyStorePassword.toCharArray() },
-                    { sslPrivateKeyPassword.toCharArray() }) {
+                { sslKeyStorePassword.toCharArray() },
+                { sslPrivateKeyPassword.toCharArray() }) {
                 this.host = host
                 this.port = sslPort.toInt()
                 this.keyStorePath = keyStoreFile
             }
+        }
+
+        if (port == null && sslPort == null) {
+            throw IllegalArgumentException(
+                "Neither port nor sslPort specified. Use command line options -port/-sslPort " +
+                    "or configure connectors in application.conf"
+            )
         }
 
         (argsMap["-watch"]?.split(",") ?: combinedConfig.tryGetStringList(hostWatchPaths))?.let {
