@@ -3,15 +3,19 @@ package io.ktor.client.request.forms
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.io.core.*
+import kotlin.contracts.*
 
 /**
- * Multipart form item. Use it to build form in client
- * [FormPart.value] could be [String], [Number] or [Input]
+ * Multipart form item. Use it to build form in client.
+ *
+ * @param key multipart name
+ * @param value content, could be [String], [Number] or [Input]
+ * @param headers part headers, note that some servers may fail if an unknown header provided
  */
 data class FormPart<T : Any>(val key: String, val value: T, val headers: Headers = Headers.Empty)
 
 /**
- * Build form from [values].
+ * Build multipart form from [values].
  */
 fun formData(vararg values: FormPart<*>): List<PartData> {
     val result = mutableListOf<PartData>()
@@ -35,30 +39,56 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
     return result
 }
 
+/**
+ * Build multipart form using [block] function
+ */
 fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
+/**
+ * Form builder type used in [formData] builder function
+ */
 class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
+    /**
+     * Append a pair [key]:[value] with optional [headers]
+     */
     fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
+    /**
+     * Append a form [part]
+     */
     fun <T : Any> append(part: FormPart<T>) {
         parts += part
     }
 
-    inline fun append(key: String, headers: Headers = Headers.Empty, block: BytePacketBuilder.() -> Unit) {
-        append(FormPart(key, buildPacket { block() }, headers))
-    }
-
-    fun append(key: String, filename: String, block: BytePacketBuilder.() -> Unit) {
-        val filenameHeader: Headers = headersOf(
-            HttpHeaders.ContentDisposition, "filename=$filename"
-        )
-        append(key, filenameHeader, block)
-    }
-
     internal fun build(): List<FormPart<*>> = parts
+}
+
+/**
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body
+ */
+@UseExperimental(ExperimentalContracts::class)
+inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bodyBuilder: BytePacketBuilder.() -> Unit) {
+    contract {
+        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
+    }
+    append(FormPart(key, buildPacket { bodyBuilder() }, headers))
+}
+
+/**
+ * Append a form part with the specified [key] and [filename] using [bodyBuilder] for it's body
+ */
+@UseExperimental(ExperimentalContracts::class)
+fun FormBuilder.append(key: String, filename: String, bodyBuilder: BytePacketBuilder.() -> Unit) {
+    contract {
+        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
+    }
+    val filenameHeader: Headers = headersOf(
+        HttpHeaders.ContentDisposition, "filename=$filename"
+    )
+    append(key, filenameHeader, bodyBuilder)
 }
