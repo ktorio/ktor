@@ -20,6 +20,7 @@ annotation class KtorExperimentalLocationsAPI
  * @property path the route path, including class property names wrapped with curly braces.
  */
 @KtorExperimentalLocationsAPI
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
 annotation class Location(val path: String)
 
 @Suppress("KDocMissingDocumentation")
