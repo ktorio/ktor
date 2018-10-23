@@ -5,7 +5,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
@@ -29,7 +28,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         @Suppress("UNCHECKED_CAST")
         val userContext = data.executionContext as CompletableDeferred<Unit>
         callContext[Job]!!.invokeOnCompletion {
-            if (it == null) userContext.complete(Unit) else userContext.cancel(it)
+            if (it == null) userContext.complete(Unit) else userContext.completeExceptionally(it)
         }
 
         val request = AndroidHttpRequest(call, data)

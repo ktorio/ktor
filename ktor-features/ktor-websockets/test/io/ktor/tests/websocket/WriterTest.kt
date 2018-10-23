@@ -6,10 +6,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import org.junit.Test
 import java.nio.ByteBuffer
-import kotlin.coroutines.*
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class)
+@UseExperimental(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {

@@ -79,7 +79,7 @@ class HttpClient(
             response.coroutineContext[Job]!!.invokeOnCompletion { cause ->
                 @Suppress("UNCHECKED_CAST")
                 val childContext = requestData.executionContext as CompletableDeferred<Unit>
-                if (cause == null) childContext.complete(Unit) else childContext.cancel(cause)
+                if (cause == null) childContext.complete(Unit) else childContext.completeExceptionally(cause)
             }
 
             val receivedCall = receivePipeline.execute(call, call.response).call

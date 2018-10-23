@@ -22,7 +22,7 @@ class RawWebSocket(
     coroutineContext: CoroutineContext,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : WebSocketSession {
-    private val socketJob = Job(coroutineContext[Job])
+    private val socketJob = CompletableDeferred<Unit>(coroutineContext[Job])
 
     override val coroutineContext: CoroutineContext = coroutineContext + socketJob
 
@@ -43,7 +43,7 @@ class RawWebSocket(
     override suspend fun flush(): Unit = writer.flush()
 
     override fun terminate() {
-        socketJob.cancel(CancellationException("WebSockedHandler terminated normally"))
+        socketJob.completeExceptionally(CancellationException("WebSockedHandler terminated normally"))
     }
 
     override suspend fun close(cause: Throwable?) {

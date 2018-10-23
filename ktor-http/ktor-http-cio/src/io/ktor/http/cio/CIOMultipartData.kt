@@ -4,6 +4,7 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
@@ -29,15 +30,25 @@ class CIOMultipartDataBase(
     private val formFieldLimit: Int = 65536,
     private val inMemoryFileUploadLimit: Int = formFieldLimit
 ) : MultiPartData, CoroutineScope {
-    private val events = parseMultipart(channel, contentType, contentLength)
+    private val events: ReceiveChannel<MultipartEvent> = parseMultipart(channel, contentType, contentLength)
 
     override suspend fun readPart(): PartData? {
         while (true) {
-            val event = events.receiveOrNull() ?: return null
-            val part = eventToData(event)
-            if (part != null) {
-                return part
+            val event = events.poll() ?: break
+            eventToData(event)?.let { return it }
+        }
+
+        return readPartSuspend()
+    }
+
+    private suspend fun readPartSuspend(): PartData? {
+        try {
+            while (true) {
+                val event = events.receive()
+                eventToData(event)?.let { return it }
             }
+        } catch (t: ClosedReceiveChannelException) {
+            return null
         }
     }
 

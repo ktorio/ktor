@@ -40,6 +40,7 @@ internal class TLSClientSession(
         appDataOutputLoop(this.channel)
     }
 
+    @UseExperimental(ObsoleteCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
             input.consumeEach { record ->

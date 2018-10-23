@@ -50,6 +50,7 @@ internal class TLSClientHandshake(
         }
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     val input: ReceiveChannel<TLSRecord> = produce {
         var packetCounter = 0L
         var useCipher = false
@@ -103,6 +104,7 @@ internal class TLSClientHandshake(
         }
     }
 
+    @UseExperimental(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor {
         var packetCounter = 0L
         var useCipher = false
@@ -134,6 +136,7 @@ internal class TLSClientHandshake(
         rawOutput.close()
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     private val handshakes = produce<TLSHandshake> {
         while (true) {
             val record = input.receive()

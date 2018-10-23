@@ -34,6 +34,7 @@ fun ponger(
  * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
  * It is acting for every client's ping frame and replying with corresponding pong
  */
+@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
@@ -70,6 +71,7 @@ fun pinger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [period] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
  */
+@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     period: Duration,

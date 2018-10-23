@@ -50,6 +50,7 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
+        @UseExperimental(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(6, allEvents.size)
@@ -120,6 +121,7 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
+        @UseExperimental(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         val parts = allEvents.filterIsInstance<MultipartEvent.MultipartPart>()
@@ -175,6 +177,7 @@ class MultipartTest {
         val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
+        @UseExperimental(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(6, allEvents.size)

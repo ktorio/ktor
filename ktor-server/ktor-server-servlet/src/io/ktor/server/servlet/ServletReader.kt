@@ -32,6 +32,8 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 events.close()
                 return
             }
+            @Suppress("DEPRECATION")
+            @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
             events.receiveOrNull() ?: return
             loop(buffer)
 
@@ -59,6 +61,8 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 channel.writeFully(buffer, 0, rc)
             } else {
                 channel.flush()
+                @Suppress("DEPRECATION")
+                @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
                 events.receiveOrNull() ?: break
             }
         }

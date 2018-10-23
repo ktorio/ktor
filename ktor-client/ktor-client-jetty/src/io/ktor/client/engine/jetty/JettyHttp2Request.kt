@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.*
 private val EmptyByteBuffer = ByteBuffer.allocate(0)!!
 
 internal class JettyHttp2Request(private val stream: Stream) : Callback {
-    private val deferred = AtomicReference<CompletableDeferred<Unit>>()
+    private val deferred = AtomicReference<CompletableDeferred<Unit>?>()
 
     suspend fun write(src: ByteBuffer) {
         val result = CompletableDeferred<Unit>()
@@ -27,7 +27,7 @@ internal class JettyHttp2Request(private val stream: Stream) : Callback {
     }
 
     override fun failed(cause: Throwable) {
-        deferred.getAndSet(null)!!.cancel(cause)
+        deferred.getAndSet(null)!!.completeExceptionally(cause)
     }
 
     fun endBody() {

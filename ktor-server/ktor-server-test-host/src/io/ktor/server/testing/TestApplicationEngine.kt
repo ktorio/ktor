@@ -120,7 +120,7 @@ class TestApplicationEngine(
                 pipeline.execute(call)
                 pipelineExecuted.complete(Unit)
             } catch (cause: Throwable) {
-                pipelineExecuted.cancel(cause)
+                pipelineExecuted.completeExceptionally(cause)
             }
         }
         processResponse(call)

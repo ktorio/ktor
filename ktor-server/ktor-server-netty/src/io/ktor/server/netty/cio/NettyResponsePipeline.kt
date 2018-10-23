@@ -80,8 +80,10 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
+    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
+            @Suppress("DEPRECATION")
             val e = incoming.receiveOrNull()
 
             if (e != null && e.ensureRunning()) {
@@ -130,7 +132,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
 
             call.response.responseChannel.cancel(t)
-            call.responseWriteJob.cancel(t)
+            call.responseWriteJob.cancel()
             call.response.cancel()
             call.dispose()
             responses.cancel()

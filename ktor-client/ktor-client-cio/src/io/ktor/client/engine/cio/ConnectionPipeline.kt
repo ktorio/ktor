@@ -41,7 +41,7 @@ internal class ConnectionPipeline(
                     requestLimit.enter()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task.response, task.request, callContext))
                 } catch (cause: Throwable) {
-                    task.response.cancel(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
 
@@ -99,7 +99,7 @@ internal class ConnectionPipeline(
                 } catch (cause: ClosedChannelException) {
                     null
                 } catch (cause: Throwable) {
-                    task.response.cancel(cause)
+                    task.response.completeExceptionally(cause)
                     null
                 }
 

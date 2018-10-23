@@ -106,7 +106,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     override fun onError(t: Throwable) {
         val wrapped = wrapException(t)
-        events.cancel(wrapped)
+        events.close(wrapped)
         channel.cancel(wrapped)
     }
 

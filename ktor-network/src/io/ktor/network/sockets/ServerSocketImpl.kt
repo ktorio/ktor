@@ -48,7 +48,7 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
 
             socketContext.complete(Unit)
         } catch (t: Throwable) {
-            socketContext.cancel(t)
+            socketContext.completeExceptionally(t)
         }
     }
 

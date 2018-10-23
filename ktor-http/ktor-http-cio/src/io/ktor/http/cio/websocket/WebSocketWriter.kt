@@ -13,6 +13,7 @@ import kotlin.coroutines.*
  * serializes them and writes the bits into the [writeChannel].
  */
 @WebSocketInternalAPI
+@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 class WebSocketWriter(
         private val writeChannel: ByteWriteChannel,
         override val coroutineContext: CoroutineContext,

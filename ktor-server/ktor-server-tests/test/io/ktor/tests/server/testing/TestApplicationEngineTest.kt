@@ -17,6 +17,7 @@ import kotlin.test.*
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
+        @UseExperimental(ExperimentalCoroutinesApi::class)
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
                 object : CoroutineDispatcher(), Delay by delay {
                     override fun isDispatchNeeded(context: CoroutineContext): Boolean =
