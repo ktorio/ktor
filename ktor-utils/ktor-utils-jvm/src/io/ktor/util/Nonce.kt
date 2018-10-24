@@ -2,7 +2,13 @@ package io.ktor.util
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import org.slf4j.*
 import java.security.*
+
+private const val SHA1PRNG = "SHA1PRNG"
+
+private val SECURE_RANDOM_PROVIDER_NAME: String =
+    System.getProperty("io.ktor.random.secure.random.provider") ?: "NativePRNGNonBlocking"
 
 private const val SECURE_RESEED_PERIOD = 30_000
 
@@ -24,8 +30,8 @@ private val nonceGeneratorJob =
         val seedChannel = seedChannel
         var lastReseed = 0L
         val previousRoundNonceList = ArrayList<String>()
-        val secureInstance = SecureRandom.getInstanceStrong()
-        val weakRandom = SecureRandom.getInstance("SHA1PRNG")
+        val secureInstance = lookupSecureRandom()
+        val weakRandom = SecureRandom.getInstance(SHA1PRNG)
 
         val secureBytes = ByteArray(SECURE_NONCE_COUNT * NONCE_SIZE_IN_BYTES)
         val weakBytes = ByteArray(secureBytes.size * INSECURE_NONCE_COUNT_FACTOR)
@@ -49,7 +55,7 @@ private val nonceGeneratorJob =
                 val currentTime = System.currentTimeMillis()
 
                 if (currentTime - lastReseed > SECURE_RESEED_PERIOD) {
-                    secureInstance.setSeed(lastReseed - currentTime)
+                    weakRandom.setSeed(lastReseed - currentTime)
                     weakRandom.setSeed(secureInstance.generateSeed(secureBytes.size))
                     lastReseed = currentTime
                 } else {
@@ -80,4 +86,20 @@ private val nonceGeneratorJob =
 
 internal fun ensureNonceGeneratorRunning() {
     nonceGeneratorJob.start()
+}
+
+private fun lookupSecureRandom(): SecureRandom {
+    val secure = getInstanceOrNull(SECURE_RANDOM_PROVIDER_NAME)
+    if (secure != null) return secure
+
+    LoggerFactory.getLogger("io.ktor.util.random")
+        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to $SHA1PRNG")
+
+    return getInstanceOrNull(SHA1PRNG) ?: error("No SecureRandom implementation found")
+}
+
+private fun getInstanceOrNull(name: String) = try {
+    SecureRandom.getInstance(name)
+} catch (notFound: NoSuchAlgorithmException) {
+    null
 }
