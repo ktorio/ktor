@@ -10,10 +10,13 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
+import org.slf4j.*
 import java.security.interfaces.*
 import java.util.*
 
 private val JWTAuthKey: Any = "JWTAuth"
+
+private val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
 
 /**
  * Represents a JWT credential consist of the specified [payload]
@@ -36,7 +39,7 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
 
     internal var schemes = JWTAuthSchemes("Bearer")
-    internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
+    internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
 
     /**
      * JWT realm name that will be used during auth challenge
@@ -61,7 +64,7 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     /**
      * @param [verifier] verifies token format and signature
      */
-    fun verifier(verifier: (HttpAuthHeader?) -> JWTVerifier?) {
+    fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
         this.verifier = verifier
     }
 
@@ -107,56 +110,60 @@ fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthent
     val schemes = provider.schemes
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
-        val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
-        evaluate(token, principal, realm, schemes, context)
+        if (token == null) {
+            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes)
+            return@intercept
+        }
+
+        try {
+            val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
+            if (principal != null) {
+                context.principal(principal)
+            } else {
+                context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes)
+            }
+        } catch (cause: Throwable) {
+            val message = cause.message ?: cause.javaClass.simpleName
+            JWTLogger.trace("JWT verification failed: {}", message)
+            context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
+        }
     }
     register(provider)
 }
 
-private suspend fun evaluate(
-    token: HttpAuthHeader?,
-    principal: Principal?,
+private fun AuthenticationContext.bearerChallenge(
+    cause: AuthenticationFailedCause,
     realm: String,
-    schemes: JWTAuthSchemes,
-    context: AuthenticationContext
-) {
-    val cause = when {
-        token == null -> AuthenticationFailedCause.NoCredentials
-        principal == null -> AuthenticationFailedCause.InvalidCredentials
-        else -> null
-    }
-    if (cause != null) {
-        context.challenge(JWTAuthKey, cause) {
-            call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, schemes)))
-            it.complete()
-        }
-    }
-    if (principal != null) {
-        context.principal(principal)
-    }
+    schemes: JWTAuthSchemes
+) = challenge(JWTAuthKey, cause) {
+    call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, schemes)))
+    it.complete()
 }
 
 private fun getVerifierNullableIssuer(
     jwkProvider: JwkProvider,
     issuer: String?,
-    token: HttpAuthHeader?,
+    token: HttpAuthHeader,
     schemes: JWTAuthSchemes
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
             jwkProvider.get(JWT.decode(blob).keyId)
         } catch (ex: JwkException) {
+            JWTLogger.trace("Failed to get JWK: {}", ex.message)
             null
         } catch (ex: JWTDecodeException) {
+            JWTLogger.trace("Illegal JWT: {}", ex.message)
             null
         }
     } ?: return null
 
     val algorithm = try {
         jwk.makeAlgorithm()
-    } catch (ex: IllegalArgumentException) {
-        null
-    } ?: return null
+    } catch (cause: Throwable) {
+        JWTLogger.trace("Failed to create algorithm {}: {}", jwk.algorithm, cause.message ?: cause.javaClass.simpleName)
+        return null
+    }
 
     return when (issuer) {
         null -> JWT.require(algorithm).build()
@@ -167,26 +174,27 @@ private fun getVerifierNullableIssuer(
 private fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String,
-    token: HttpAuthHeader?,
+    token: HttpAuthHeader,
     schemes: JWTAuthSchemes
 ): JWTVerifier? {
     return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
 }
 
-private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader, schemes: JWTAuthSchemes): JWTVerifier? {
     return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
 }
 
 private suspend fun verifyAndValidate(
     call: ApplicationCall,
     jwtVerifier: JWTVerifier?,
-    token: HttpAuthHeader?,
+    token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
     validate: suspend ApplicationCall.(JWTCredential) -> Principal?
 ): Principal? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
+        JWTLogger.trace("Token verification failed: {}", ex.message)
         null
     } ?: return null
 
@@ -195,7 +203,7 @@ private suspend fun verifyAndValidate(
     return validate(call, credentials)
 }
 
-private fun HttpAuthHeader?.getBlob(schemes: JWTAuthSchemes) = when {
+private fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
     this is HttpAuthHeader.Single && authScheme.toLowerCase() in schemes -> blob
     else -> null
 }
@@ -203,6 +211,7 @@ private fun HttpAuthHeader?.getBlob(schemes: JWTAuthSchemes) = when {
 private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
     parseAuthorizationHeader()
 } catch (ex: IllegalArgumentException) {
+    JWTLogger.trace("Illegal HTTP auth header", ex)
     null
 }
 

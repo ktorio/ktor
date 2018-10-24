@@ -154,7 +154,9 @@ class Authentication(config: Configuration) {
 
     private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(context: AuthenticationContext) {
         val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
-        for (challenge in context.challenge.challenges) {
+        val challenges = context.challenge.challenges
+
+        for (challenge in challenges) {
             challengePipeline.intercept(challengePhase) {
                 challenge(it)
                 if (it.completed)
