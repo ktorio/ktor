@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         maven { url "https://kotlin.bintray.com/kotlin-eap" }
+        maven { url "https://kotlin.bintray.com/kotlin-dev" }
     }
 
     dependencies {
