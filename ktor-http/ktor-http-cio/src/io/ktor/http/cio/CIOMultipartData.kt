@@ -9,6 +9,7 @@ import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
 import java.io.*
+import java.lang.IllegalStateException
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
@@ -103,9 +104,20 @@ class CIOMultipartDataBase(
                     }
                 }
 
+                var closed = false
+                val lazyInput = lazy {
+                    if (closed) throw IllegalStateException("Already disposed")
+                    FileInputStream(tmp.toFile()).asInput()
+                }
+
                 return PartData.FileItem(
-                    { FileInputStream(tmp.toFile()).asInput() },
-                    { Files.deleteIfExists(tmp); part.release() },
+                    { lazyInput.value },
+                    {
+                        closed = true
+                        if (lazyInput.isInitialized()) lazyInput.value.close()
+                        part.release()
+                        Files.deleteIfExists(tmp)
+                    },
                     CIOHeaders(headers)
                 )
             } else {
