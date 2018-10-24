@@ -113,7 +113,13 @@ fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthent
     register(provider)
 }
 
-private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, schemes: JWTAuthSchemes, context: AuthenticationContext) {
+private suspend fun evaluate(
+    token: HttpAuthHeader?,
+    principal: Principal?,
+    realm: String,
+    schemes: JWTAuthSchemes,
+    context: AuthenticationContext
+) {
     val cause = when {
         token == null -> AuthenticationFailedCause.NoCredentials
         principal == null -> AuthenticationFailedCause.InvalidCredentials
@@ -130,7 +136,12 @@ private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, real
     }
 }
 
-private fun getVerifierNullableIssuer(jwkProvider: JwkProvider, issuer: String?, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+private fun getVerifierNullableIssuer(
+    jwkProvider: JwkProvider,
+    issuer: String?,
+    token: HttpAuthHeader?,
+    schemes: JWTAuthSchemes
+): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
             jwkProvider.get(JWT.decode(blob).keyId)
@@ -146,13 +157,19 @@ private fun getVerifierNullableIssuer(jwkProvider: JwkProvider, issuer: String?,
     } catch (ex: IllegalArgumentException) {
         null
     } ?: return null
-    return when(issuer) {
+
+    return when (issuer) {
         null -> JWT.require(algorithm).build()
         else -> JWT.require(algorithm).withIssuer(issuer).build()
     }
 }
 
-private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+private fun getVerifier(
+    jwkProvider: JwkProvider,
+    issuer: String,
+    token: HttpAuthHeader?,
+    schemes: JWTAuthSchemes
+): JWTVerifier? {
     return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
 }
 
@@ -160,7 +177,13 @@ private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader?, scheme
     return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
 }
 
-private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, schemes: JWTAuthSchemes, validate: suspend ApplicationCall.(JWTCredential) -> Principal?): Principal? {
+private suspend fun verifyAndValidate(
+    call: ApplicationCall,
+    jwtVerifier: JWTVerifier?,
+    token: HttpAuthHeader?,
+    schemes: JWTAuthSchemes,
+    validate: suspend ApplicationCall.(JWTCredential) -> Principal?
+): Principal? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
@@ -184,7 +207,7 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
 }
 
 private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, schemes: JWTAuthSchemes): HttpAuthHeader =
-        HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
+    HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
 internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
@@ -203,12 +226,20 @@ private fun DecodedJWT.parsePayload(): Payload {
 }
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
-        "        this.realm = realm\n" +
-        "        this.verifier(jwtVerifier)\n" +
-        "        this.validate(validate)\n" +
-        "    }\n"), level = DeprecationLevel.ERROR)
-fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: suspend (JWTCredential) -> Principal?) {
+@Deprecated(
+    "Use DSL builder form", replaceWith = ReplaceWith(
+        "jwt {\n" +
+            "        this.realm = realm\n" +
+            "        this.verifier(jwtVerifier)\n" +
+            "        this.validate(validate)\n" +
+            "    }\n"
+    ), level = DeprecationLevel.ERROR
+)
+fun Authentication.Configuration.jwtAuthentication(
+    jwtVerifier: JWTVerifier,
+    realm: String,
+    validate: suspend (JWTCredential) -> Principal?
+) {
     jwt {
         this.realm = realm
         this.verifier(jwtVerifier)
@@ -217,12 +248,21 @@ fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, rea
 }
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
-        "        this.realm = realm\n" +
-        "        this.verifier(jwkProvider, issuer)\n" +
-        "        this.validate(validate)\n" +
-        "    }\n"), level = DeprecationLevel.ERROR)
-fun Authentication.Configuration.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: suspend (JWTCredential) -> Principal?) {
+@Deprecated(
+    "Use DSL builder form", replaceWith = ReplaceWith(
+        "jwt {\n" +
+            "        this.realm = realm\n" +
+            "        this.verifier(jwkProvider, issuer)\n" +
+            "        this.validate(validate)\n" +
+            "    }\n"
+    ), level = DeprecationLevel.ERROR
+)
+fun Authentication.Configuration.jwtAuthentication(
+    jwkProvider: JwkProvider,
+    issuer: String,
+    realm: String,
+    validate: suspend (JWTCredential) -> Principal?
+) {
     jwt {
         this.realm = realm
         this.verifier(jwkProvider, issuer)
