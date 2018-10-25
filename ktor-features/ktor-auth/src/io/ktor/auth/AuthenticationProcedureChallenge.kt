@@ -7,10 +7,12 @@ import io.ktor.util.pipeline.*
  * Represents authentication challenging procedure requested by authentication mechanism
  */
 class AuthenticationProcedureChallenge {
-    internal val register = mutableListOf<Pair<AuthenticationFailedCause, PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>>()
+    internal val register = mutableListOf<
+        Pair<AuthenticationFailedCause,
+            PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>>()
 
     /**
-     * List of currently installed challenges
+     * List of currently installed challenges except errors
      */
     val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
         get() = register.filter { it.first !is AuthenticationFailedCause.Error }.sortedBy {
