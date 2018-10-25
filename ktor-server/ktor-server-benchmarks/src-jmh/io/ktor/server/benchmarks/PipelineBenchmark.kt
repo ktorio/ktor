@@ -7,6 +7,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.openjdk.jmh.annotations.*
+import kotlin.coroutines.intrinsics.*
 
 @State(Scope.Benchmark)
 class BaselinePipeline {
@@ -21,10 +22,20 @@ class BaselinePipeline {
     @Benchmark
     @UseExperimental(InternalAPI::class)
     fun suspendCalls(): String {
-        return runSync {
+        return runAndEnsureNoSuspensions {
             suspendFunctions.fold("") { a, b -> a + b() }
         }
     }
+}
+
+private fun <T> runAndEnsureNoSuspensions(block: suspend () -> T): T {
+    @Suppress("DEPRECATION")
+    val result = block.startCoroutineUninterceptedOrReturn(NoopContinuation)
+    if (result == COROUTINE_SUSPENDED) {
+        throw IllegalStateException("function passed to runAndEnsureNoSuspensions suspended")
+    }
+    @Suppress("UNCHECKED_CAST")
+    return result as T
 }
 
 @State(Scope.Benchmark)
@@ -38,7 +49,7 @@ abstract class PipelineBenchmark {
     fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
 
     @UseExperimental(InternalAPI::class)
-    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runSync { execute(call, subject) }
+    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runAndEnsureNoSuspensions { execute(call, subject) }
 
     lateinit var pipeline: Pipeline<String, ApplicationCall>
 

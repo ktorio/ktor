@@ -4,6 +4,9 @@ import kotlinx.coroutines.*
 import java.security.*
 import java.util.*
 
+/**
+ * Create a digest function with the specified [algorithm] and [salt]
+ */
 @KtorExperimentalAPI
 fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> getDigest(e, algorithm, salt) }
 
@@ -13,16 +16,27 @@ private fun getDigest(text: String, algorithm: String, salt: String): ByteArray 
         digest(text.toByteArray())
     }
 
+/**
+ * Decode bytes from a BASE64 string [s]
+ */
 @InternalAPI
 fun decodeBase64(s: String): ByteArray = Base64.getDecoder().decode(s)
 
+/**
+ * Encode [bytes] as a BASE64 string
+ */
 @InternalAPI
 fun encodeBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 
+/**
+ * Compute SHA-1 hash for the specified [bytes]
+ */
 @KtorExperimentalAPI
 fun sha1(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA1").digest(bytes)!!
 
-// useful to work with openssl command line tool
+/**
+ * Decode bytes from HEX string. It should be no spaces and `0x` prefixes.
+ */
 @KtorExperimentalAPI
 fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
@@ -37,12 +51,19 @@ fun hex(s: String): ByteArray {
     return result
 }
 
+/**
+ * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
+ */
 @KtorExperimentalAPI
 fun hex(bytes: ByteArray) = bytes.joinToString("") {
     Integer.toHexString(it.toInt() and 0xff).padStart(2, '0')
 }
 
+/**
+ * Encode string as UTF-8 bytes
+ */
 @KtorExperimentalAPI
+@Deprecated("Will be removed in future releases", ReplaceWith("s.toByteArray(Charsets.UTF_8)"))
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 
 @Suppress("KDocMissingDocumentation", "unused")

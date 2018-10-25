@@ -1,3 +1,5 @@
+@file:Suppress("KDocMissingDocumentation")
+
 package io.ktor.util
 
 import java.util.concurrent.locks.*

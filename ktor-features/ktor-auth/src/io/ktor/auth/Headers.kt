@@ -107,6 +107,8 @@ fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
  * Describes an authentication header with a mandatory [authScheme] that usually is a standard [AuthScheme].
  *
  * This can be of type [HttpAuthHeader.Single] or [HttpAuthHeader.Parameterized].
+ *
+ * @property authScheme auth scheme, usually one of [AuthScheme]
  */
 sealed class HttpAuthHeader(val authScheme: String) {
     init {
@@ -115,6 +117,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
 
     /**
      * Describes an authentication header that is represented by a single [blob].
+     * @property blob contains single token 68, should consist from digits, letters and one of the following: `-._~+/`
      */
     class Single(authScheme: String, val blob: String) : HttpAuthHeader(authScheme) {
         init {
@@ -137,6 +140,8 @@ sealed class HttpAuthHeader(val authScheme: String) {
 
     /**
      * Describes a parameterized authentication header that is represented by a set of [parameters] encoded with [encoding].
+     * @property parameters a list of auth parameters
+     * @property encoding parameters encoding method, one of [HeaderValueEncoding]
      */
     class Parameterized(authScheme: String, val parameters: List<HeaderValueParam>, val encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED) : HttpAuthHeader(authScheme) {
         constructor(authScheme: String, parameters: Map<String, String>, encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED) : this(authScheme, parameters.entries.map { HeaderValueParam(it.key, it.value) }, encoding)
@@ -231,6 +236,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
     /**
      * Standard parameters for [Parameterized] [HttpAuthHeader].
      */
+    @Suppress("KDocMissingDocumentation")
     object Parameters {
         val Realm = "realm"
         val Charset = "charset"

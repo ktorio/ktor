@@ -32,7 +32,13 @@ object EngineMain {
     }
 }
 
-@Deprecated("", replaceWith = ReplaceWith("EngineMain"), level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation")
+@Deprecated(
+    "Use EngineMain instead",
+    replaceWith = ReplaceWith("EngineMain"),
+    level = DeprecationLevel.ERROR
+)
 object DevelopmentEngine {
-    @JvmStatic fun main(args: Array<String>) = EngineMain.main(args)
+    @JvmStatic
+    fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

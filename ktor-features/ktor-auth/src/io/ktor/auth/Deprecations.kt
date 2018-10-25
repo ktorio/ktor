@@ -1,3 +1,5 @@
+@file:Suppress("KDocMissingDocumentation")
+
 package io.ktor.auth
 
 import io.ktor.application.*

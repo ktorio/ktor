@@ -3,6 +3,9 @@ package io.ktor.util
 import kotlinx.io.core.*
 import java.io.*
 
+/**
+ * Convert kotlinx.io [Input] to java [InputStream]
+ */
 @KtorExperimentalAPI
 fun Input.asStream(): InputStream = object : InputStream() {
 

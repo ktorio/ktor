@@ -134,6 +134,9 @@ sealed class SessionAuthChallenge<in T : Any> {
     object Ignore : SessionAuthChallenge<Any>()
 
     companion object {
+        /**
+         * The default session auth challenge kind
+         */
         @KtorExperimentalAPI
         val Default = Ignore
     }

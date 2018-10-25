@@ -111,6 +111,10 @@ fun String.decodeURLQueryComponent(
     charset: Charset = Charsets.UTF_8
 ): String = decodeScan(start, end, plusIsSpace, charset)
 
+/**
+ * Decode percent encoded URL part within the specified range [[start], [end]).
+ * This function is not intended to decode urlencoded forms so it doesn't decode plus character to space.
+ */
 @KtorExperimentalAPI
 fun String.decodeURLPart(
     start: Int = 0, end: Int = length,

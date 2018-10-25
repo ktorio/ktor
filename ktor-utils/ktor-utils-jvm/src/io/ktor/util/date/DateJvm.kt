@@ -4,8 +4,17 @@ import java.util.*
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
 
+/**
+ * Create new gmt date from the [timestamp].
+ * @param timestamp is a number of epoch milliseconds (it is `now` by default).
+ */
+@Suppress("FunctionName")
 actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
 
+/**
+ * Create an instance of [GMTDate] from the specified date/time components
+ */
+@Suppress("FunctionName")
 actual fun GMTDate(
     seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
 ): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {

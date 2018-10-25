@@ -1,12 +1,5 @@
 package io.ktor.util
 
-
-@Deprecated(
-    "ValuesMap was split into Headers and Parameters, please choose type appropriate for the context",
-    level = DeprecationLevel.ERROR
-)
-interface ValuesMap
-
 /**
  * Provides data structure for associating a [String] with a [List] of Strings
  */
@@ -76,6 +69,7 @@ interface StringValues {
 }
 
 @InternalAPI
+@Suppress("KDocMissingDocumentation")
 open class StringValuesSingleImpl(
     override val caseInsensitiveName: Boolean,
     val name: String,
@@ -110,6 +104,7 @@ open class StringValuesSingleImpl(
 }
 
 @InternalAPI
+@Suppress("KDocMissingDocumentation")
 open class StringValuesImpl(
     override val caseInsensitiveName: Boolean = false,
     values: Map<String, List<String>> = emptyMap()
@@ -146,6 +141,7 @@ open class StringValuesImpl(
 }
 
 @InternalAPI
+@Suppress("KDocMissingDocumentation")
 open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: Int = 8) {
     protected val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
@@ -223,20 +219,35 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
     }
 }
 
+/**
+ * Build an instance of [StringValues] from a vararg list of pairs
+ */
 fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesImpl(caseInsensitiveKey, pairs.asList().toMap())
 }
 
+/**
+ * Build an instance of [StringValues] from a single pair
+ */
 fun valuesOf(name: String, value: String, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesSingleImpl(caseInsensitiveKey, name, listOf(value))
 }
 
+/**
+ * Build an instance of [StringValues] with a single [name] and multiple [values]
+ */
 fun valuesOf(name: String, values: List<String>, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesSingleImpl(caseInsensitiveKey, name, values)
 }
 
+/**
+ * Build an empty [StringValues] instance.
+ */
 fun valuesOf() = StringValues.Empty
 
+/**
+ * Build an instance of [StringValues] from the specified [map]
+ */
 fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): StringValues {
     val size = map.size
     if (size == 1) {
@@ -249,19 +260,33 @@ fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = f
     return StringValuesImpl(caseInsensitiveKey, values)
 }
 
+/**
+ * Copy values to a new independent map
+ */
 fun StringValues.toMap(): Map<String, List<String>> =
     entries().associateByTo(LinkedHashMap(), { it.key }, { it.value.toList() })
 
+/**
+ * Copy values to a list of pairs
+ */
 fun StringValues.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
 
+/**
+ * Invoke [block] function for every value pair
+ */
 fun StringValues.flattenForEach(block: (String, String) -> Unit) = forEach { name, items ->
     items.forEach { block(name, it) }
 }
 
+/**
+ * Create a new instance of [StringValues] filtered by the specified [predicate]
+ * @param keepEmpty when `true` will keep empty lists otherwise keys with no values will be discarded
+ */
 fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
     val entries = entries()
     val values: MutableMap<String, MutableList<String>> =
         if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(entries.size)
+
     entries.forEach { entry ->
         val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
         if (keepEmpty || list.isNotEmpty())
@@ -271,6 +296,10 @@ fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) 
     return StringValuesImpl(caseInsensitiveName, values)
 }
 
+/**
+ * Append values from [source] filtering values by the specified [predicate]
+ * @param keepEmpty when `true` will keep empty lists otherwise keys with no values will be discarded
+ */
 fun StringValuesBuilder.appendFiltered(
     source: StringValues,
     keepEmpty: Boolean = false,
@@ -283,6 +312,9 @@ fun StringValuesBuilder.appendFiltered(
     }
 }
 
+/**
+ * Append all values from the specified [builder]
+ */
 fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringValuesBuilder = apply {
     builder.entries().forEach { (name, values) ->
         appendAll(name, values)
