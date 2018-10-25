@@ -4,6 +4,7 @@ import io.ktor.util.*
 import kotlinx.io.pool.*
 import java.nio.*
 
+@Suppress("KDocMissingDocumentation")
 @InternalAPI
 val DefaultByteBufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(4096, 2048)
 

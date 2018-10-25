@@ -12,6 +12,9 @@ class AttributeKey<T>(val name: String) {
         "AttributeKey: $name"
 }
 
+/**
+ * Create attributes instance suitable for the particular platform
+ */
 expect fun Attributes(): Attributes
 
 /**

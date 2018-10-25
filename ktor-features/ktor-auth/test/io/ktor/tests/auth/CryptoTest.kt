@@ -26,4 +26,6 @@ class CryptoTest {
         fun Byte.h() = Integer.toHexString(toInt() and 0xff)
         assertEquals(a.map(Byte::h), b.map { it.h() })
     }
+
+    private fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 }

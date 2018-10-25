@@ -88,6 +88,17 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
  * Represents Digest credentials
  *
  * For details see [RFC2617](http://www.faqs.org/rfcs/rfc2617.html)
+ *
+ * @property realm digest auth realm
+ * @property userName
+ * @property digestUri may be an absolute URI or `*`
+ * @property nonce
+ * @property opaque a string of data that is passed through unchanged
+ * @property nonceCount must be sent if [qop] is specified and must be `null` otherwise
+ * @property algorithm digest algorithm name
+ * @property response consist of 32 hex digits (digested password and other fields as per RFC)
+ * @property cnonce must be sent if [qop] is specified and must be `null` otherwise. Should be passed through unchanged.
+ * @property qop quality of protection sign
  */
 data class DigestCredential(val realm: String,
                             val userName: String,

@@ -11,6 +11,12 @@ import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.*
 
+/**
+ * Open a read channel for file and launch a coroutine to fill it.
+ * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
+ * your async code
+ */
+@KtorExperimentalAPI
 @UseExperimental(ExperimentalIoApi::class)
 fun File.readChannel(
     start: Long = 0,
@@ -68,6 +74,12 @@ fun File.readChannel(
     }.channel
 }
 
+/**
+ * Open a write channel for file and launch a coroutine to read from it.
+ * Please note that file writing is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
+ * your async code
+ */
+@KtorExperimentalAPI
 fun File.writeChannel(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): ByteWriteChannel = GlobalScope.reader(Dispatchers.Unconfined, autoFlush = true) {
@@ -83,6 +95,18 @@ fun File.writeChannel(
     }
 }.channel
 
+/**
+ * Open a read channel for file and launch a coroutine to fill it.
+ * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
+ * your async code
+ */
+@KtorExperimentalAPI
 fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel = toFile().readChannel(start, endInclusive)
 
+/**
+ * Open a read channel for file and launch a coroutine to fill it.
+ * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
+ * your async code
+ */
+@KtorExperimentalAPI
 fun Path.readChannel(): ByteReadChannel = toFile().readChannel()

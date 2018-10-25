@@ -3,11 +3,12 @@ package io.ktor.http
 /**
  * Select default port value from protocol.
  */
-const val DEFAULT_PORT = 0
+const val DEFAULT_PORT: Int = 0
 
 /**
  * A URL builder with all mutable components
  *
+ * @property protocol URL protocol (scheme)
  * @property host name without port (domain)
  * @property port port number
  * @property user username part (optional)
@@ -98,6 +99,7 @@ fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
  *
  * @property protocol
  * @property host name without port (domain)
+ * @property port the specified port or protocol default port
  * @property specifiedPort port number that was specified to override protocol's default
  * @property encodedPath encoded path without query string
  * @property parameters URL query parameters
@@ -121,7 +123,7 @@ data class Url(
         require(specifiedPort in 1..65536 || specifiedPort == DEFAULT_PORT) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
     }
 
-    val port get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
+    val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
 
     override fun toString(): String = buildString {
         append(protocol.name)

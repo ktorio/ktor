@@ -8,6 +8,7 @@ import kotlin.coroutines.*
 
 /**
  * Asynchronous Semaphore.
+ * @property limit is the semaphores permits count limit
  */
 @InternalAPI
 class Semaphore(val limit: Int) {

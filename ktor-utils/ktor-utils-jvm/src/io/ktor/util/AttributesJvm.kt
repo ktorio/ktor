@@ -2,6 +2,9 @@ package io.ktor.util
 
 import java.util.concurrent.*
 
+/**
+ * Create JVM specific attributes instance
+ */
 actual fun Attributes(): Attributes = AttributesJvm()
 
 private class AttributesJvm : Attributes {

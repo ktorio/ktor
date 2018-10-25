@@ -1,13 +1,16 @@
 package io.ktor.server.jetty.internal
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
+import java.lang.Runnable
 import java.nio.ByteBuffer
 import java.nio.channels.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
@@ -120,4 +123,13 @@ private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCorou
             continuation.resumeWithException(ChannelWriteException(exception = cause))
         }
     }, buffer)
+}
+
+private fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = this@executor
+
+    override fun execute(command: Runnable?) {
+        launch { command?.run() }
+    }
 }

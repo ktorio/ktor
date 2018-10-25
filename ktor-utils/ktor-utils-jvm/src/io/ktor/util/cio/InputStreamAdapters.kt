@@ -1,5 +1,6 @@
 package io.ktor.util.cio
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
@@ -7,6 +8,12 @@ import java.io.*
 import java.nio.*
 import kotlin.coroutines.*
 
+/**
+ * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
+ * Please note that it may block your async code when started on [Dispatchers.Unconfined]
+ * since [InputStream] is blocking on it's nature
+ */
+@KtorExperimentalAPI
 fun InputStream.toByteReadChannel(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     context: CoroutineContext = Dispatchers.Unconfined,
