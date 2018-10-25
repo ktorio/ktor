@@ -440,6 +440,82 @@ class AuthBuildersTest {
         }
     }
 
+    @Test
+    fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
+        application.apply {
+            authentication {
+                register(object : AuthenticationProvider("custom") {
+                    init {
+                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                            context.authentication.error(this, AuthenticationFailedCause.Error("test"))
+                        }
+                    }
+                })
+            }
+            routing {
+                authenticate("custom") {
+                    get("/fail") {
+                        fail("shouldn't reach here")
+                    }
+                }
+                authenticate("custom", optional = true) {
+                    get("/pass") {
+                        call.respondText("OK")
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/fail").let { call ->
+            assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+        }
+
+        handleRequest(HttpMethod.Get, "/pass").let { call ->
+            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+            assertEquals("OK", call.response.content)
+        }
+    }
+
+    @Test
+    fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication<Unit> {
+        application.apply {
+            authentication {
+                register(object : AuthenticationProvider("custom") {
+                    init {
+                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                            context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
+                                call.respondText("Challenge")
+                                it.complete()
+                            }
+                        }
+                    }
+                })
+            }
+            routing {
+                authenticate("custom") {
+                    get("/fail") {
+                        fail("shouldn't reach here")
+                    }
+                }
+                authenticate("custom", optional = true) {
+                    get("/pass") {
+                        call.respondText("OK")
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/fail").let { call ->
+            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+            assertEquals("Challenge", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/pass").let { call ->
+            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+            assertEquals("OK", call.response.content)
+        }
+    }
+
     private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
         addHeader(
             HttpHeaders.Authorization,
