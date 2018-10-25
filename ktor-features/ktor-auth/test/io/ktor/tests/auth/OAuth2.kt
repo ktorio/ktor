@@ -65,34 +65,34 @@ class OAuth2Test {
     private val testClient = createOAuth2Server(object : OAuth2Server {
         override fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2 {
             if (clientId != "clientId1") {
-                throw IllegalArgumentException("Wrong clientId $clientId")
+                throw OAuth2Exception.InvalidGrant("Wrong clientId $clientId")
             }
             if (clientSecret != "clientSecret1") {
-                throw IllegalArgumentException("Wrong client secret $clientSecret")
+                throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
             }
             if (grantType == OAuthGrantTypes.AuthorizationCode) {
                 if (state != "state1") {
-                    throw IllegalArgumentException("Wrong state $state")
+                    throw OAuth2Exception.InvalidGrant("Wrong state $state")
                 }
                 if (code != "code1") {
-                    throw IllegalArgumentException("Wrong code $code")
+                    throw OAuth2Exception.InvalidGrant("Wrong code $code")
                 }
                 if (redirectUri != "http://localhost/login") {
-                    throw IllegalArgumentException("Wrong redirect $redirectUri")
+                    throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
                 }
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
             } else if (grantType == OAuthGrantTypes.Password) {
                 if (userName != "user1") {
-                    throw IllegalArgumentException("Wrong username $userName")
+                    throw OAuth2Exception.InvalidGrant("Wrong username $userName")
                 }
                 if (password != "password1") {
-                    throw IllegalArgumentException("Wrong password $password")
+                    throw OAuth2Exception.InvalidGrant("Wrong password $password")
                 }
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
             } else {
-                throw IllegalArgumentException("Wrong grant type $grantType")
+                throw OAuth2Exception.UnsupportedGrantType("Wrong grant type $grantType", grantType)
             }
         }
     })
@@ -110,7 +110,7 @@ class OAuth2Test {
                 validate {
                     try {
                         verifyWithOAuth2(it, testClient, settings)
-                    } catch (ioe: IOException) {
+                    } catch (ioe: OAuth2Exception) {
                         null
                     }
                 }
@@ -244,8 +244,9 @@ class OAuth2Test {
         waitExecutor()
 
         assertTrue(call.requestHandled, "request should be handled")
-        assertEquals(HttpStatusCode.OK, call.response.status())
-        assertEquals("Hej, null", call.response.content)
+        assertEquals(HttpStatusCode.Found, call.response.status())
+        assertNotNull(call.response.headers[HttpHeaders.Location])
+        assertTrue { call.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/authorize") }
     }
 
     @Test
@@ -464,6 +465,9 @@ private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))
 }
 
+@Deprecated("", ReplaceWith("OAuth2Exception.InvalidGrant(message)", "io.ktor.auth.OAuth2Exception"))
+private fun InvalidOAuthCredentials(message: String) = OAuth2Exception.InvalidGrant(message)
+
 private interface OAuth2Server {
     fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2
 }
@@ -489,7 +493,16 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                         val respondStatus = values["respondHttpStatus"]
 
                         val obj = try {
-                            val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
+                            val tokens = server.requestToken(
+                                clientId,
+                                clientSecret,
+                                grantType,
+                                state,
+                                code,
+                                redirectUri,
+                                username,
+                                password
+                            )
 
                             JSONObject().apply {
                                 put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
@@ -499,6 +512,11 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                                 for (extraParam in tokens.extraParameters.flattenEntries()) {
                                     put(extraParam.first, extraParam.second)
                                 }
+                            }
+                        } catch (cause: OAuth2Exception) {
+                            JSONObject().apply {
+                                put(OAuth2ResponseParameters.Error, cause.errorCode ?: "?")
+                                put(OAuth2ResponseParameters.ErrorDescription, cause.message)
                             }
                         } catch (t: Throwable) {
                             JSONObject().apply {

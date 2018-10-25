@@ -12,8 +12,12 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.json.simple.*
+import org.slf4j.*
 import java.io.*
+import java.lang.Exception
 import java.net.*
+
+private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         client: HttpClient, dispatcher: CoroutineDispatcher,
@@ -32,8 +36,17 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     interceptor = provider.authorizeUrlInterceptor)
         } else {
             withContext(dispatcher) {
-                val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
-                call.authentication.principal(accessToken)
+                try {
+                    val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
+                    call.authentication.principal(accessToken)
+                } catch (cause: OAuth2Exception.InvalidGrant) {
+                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
+                    val stateProvider = provider.stateProvider
+                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
+                        state = stateProvider.getState(call),
+                        scopes = provider.defaultScopes,
+                        interceptor = provider.authorizeUrlInterceptor)
+                }
             }
         }
     }
@@ -59,13 +72,13 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthS
             interceptor = interceptor)
 }
 
-internal suspend fun simpleOAuth2Step2(client: HttpClient,
-                                       settings: OAuthServerSettings.OAuth2ServerSettings,
-                                       usedRedirectUrl: String,
-                                       callbackResponse: OAuthCallback.TokenSingle,
-                                       extraParameters: Map<String, String> = emptyMap(),
-                                       configure: HttpRequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
-    return simpleOAuth2Step2(
+internal suspend fun oauth2RequestAccessToken(client: HttpClient,
+                                              settings: OAuthServerSettings.OAuth2ServerSettings,
+                                              usedRedirectUrl: String,
+                                              callbackResponse: OAuthCallback.TokenSingle,
+                                              extraParameters: Map<String, String> = emptyMap(),
+                                              configure: HttpRequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
+    return oauth2RequestAccessToken(
             client,
             settings.requestMethod,
             usedRedirectUrl,
@@ -108,19 +121,19 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: 
     return respondRedirect(url.buildString())
 }
 
-private suspend fun simpleOAuth2Step2(client: HttpClient,
-                                      method: HttpMethod,
-                                      usedRedirectUrl: String?,
-                                      baseUrl: String,
-                                      clientId: String,
-                                      clientSecret: String,
-                                      state: String?,
-                                      code: String?,
-                                      extraParameters: Map<String, String> = emptyMap(),
-                                      configure: HttpRequestBuilder.() -> Unit = {},
-                                      useBasicAuth: Boolean = false,
-                                      stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
-                                      grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
+private suspend fun oauth2RequestAccessToken(client: HttpClient,
+                                             method: HttpMethod,
+                                             usedRedirectUrl: String?,
+                                             baseUrl: String,
+                                             clientId: String,
+                                             clientSecret: String,
+                                             state: String?,
+                                             code: String?,
+                                             extraParameters: Map<String, String> = emptyMap(),
+                                             configure: HttpRequestBuilder.() -> Unit = {},
+                                             useBasicAuth: Boolean = false,
+                                             stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
+                                             grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
 
     if (state != null) {
         stateProvider.verifyState(state)
@@ -171,8 +184,8 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
     val body = response.readText()
 
     val (contentType, content) = try {
-        if (!response.status.isSuccess()) {
-            throw IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
+        if (response.status == HttpStatusCode.NotFound) {
+            throw IOException("Access token query failed with http status 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 
@@ -185,18 +198,30 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         response.close()
     }
 
-    val contentDecoded = decodeContent(content, contentType)
+    val contentDecodeResult = Result.runCatching { decodeContent(content, contentType) }
+    val errorCode = contentDecodeResult.map { it[OAuth2ResponseParameters.Error] }
 
-    if (contentDecoded.contains(OAuth2ResponseParameters.Error)) {
-        throw IOException("OAuth server responded with error: $contentDecoded")
+    // try error code first
+    errorCode.getOrNull()?.let {
+        throwOAuthError(it, contentDecodeResult.getOrThrow())
     }
 
+    // ensure status code is successful
+    if (!response.status.isSuccess()) {
+        throw IOException("Access token query failed with http status ${response.status} for the page $baseUrl")
+    }
+
+    // will fail if content decode failed but status is OK
+    val contentDecoded = contentDecodeResult.getOrThrow()
+
+    // finally extract an access token
     return OAuthAccessTokenResponse.OAuth2(
-            accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]!!,
-            tokenType = contentDecoded[OAuth2ResponseParameters.TokenType] ?: "",
-            expiresIn = contentDecoded[OAuth2ResponseParameters.ExpiresIn]?.toLong() ?: 0L,
-            refreshToken = contentDecoded[OAuth2ResponseParameters.RefreshToken],
-            extraParameters = contentDecoded
+        accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]
+            ?: throw OAuth2Exception.MissingAccessToken(),
+        tokenType = contentDecoded[OAuth2ResponseParameters.TokenType] ?: "",
+        expiresIn = contentDecoded[OAuth2ResponseParameters.ExpiresIn]?.toLong() ?: 0L,
+        refreshToken = contentDecoded[OAuth2ResponseParameters.RefreshToken],
+        extraParameters = contentDecoded
     )
 }
 
@@ -224,8 +249,12 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings): OAuthAccessTokenResponse.OAuth2 {
-    return simpleOAuth2Step2(client, HttpMethod.Post,
+suspend fun verifyWithOAuth2(
+    credential: UserPasswordCredential,
+    client: HttpClient,
+    settings: OAuthServerSettings.OAuth2ServerSettings
+): OAuthAccessTokenResponse.OAuth2 {
+    return oauth2RequestAccessToken(client, HttpMethod.Post,
             usedRedirectUrl = null,
             baseUrl = settings.accessTokenUrl,
             clientId = settings.clientId,
@@ -234,8 +263,8 @@ suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, sett
             state = null,
             configure = {},
             extraParameters = mapOf(
-                    OAuth2RequestParameters.UserName to c.name,
-                    OAuth2RequestParameters.Password to c.password
+                    OAuth2RequestParameters.UserName to credential.name,
+                    OAuth2RequestParameters.Password to credential.password
             ),
             useBasicAuth = true,
             stateProvider = settings.stateProvider,
@@ -263,4 +292,50 @@ object OAuth2ResponseParameters {
     const val RefreshToken = "refresh_token"
     const val Error = "error"
     const val ErrorDescription = "error_description"
+}
+
+private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing {
+    val errorDescription = parameters.get("error_description") ?: "OAuth2 Server responded with $errorCode"
+
+    throw when (errorCode) {
+        "invalid_grant" -> OAuth2Exception.InvalidGrant(errorDescription)
+        else -> OAuth2Exception.UnknownException(errorDescription, errorCode)
+    }
+}
+
+/**
+ * Represents a error during communicating to OAuth2 server
+ * @property errorCode OAuth2 server replied with
+ */
+@KtorExperimentalAPI
+sealed class OAuth2Exception(message: String, val errorCode: String?) : Exception(message) {
+    /**
+     * OAuth2 server responded error="invalid_grant"
+     */
+    @KtorExperimentalAPI
+    class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
+
+    /**
+     * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
+     * decoded but the response doesn't contain error code nor access token
+     */
+    @KtorExperimentalAPI
+    class MissingAccessToken() :
+        OAuth2Exception("OAuth2 server response is OK neither error nor access token provided", null)
+
+    /**
+     * Throw when an OAuth2 server replied with error "unsupported_grant_type"
+     * @param grantType that was passed to the server
+     */
+    @KtorExperimentalAPI
+    class UnsupportedGrantType(message: String, val grantType: String) :
+        OAuth2Exception("OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type")
+
+    /**
+     * OAuth2 server responded with an error code [errorCode]
+     * @param errorCode the OAuth2 server replied with
+     */
+    @KtorExperimentalAPI
+    class UnknownException(message: String, errorCode: String) :
+        OAuth2Exception("$message (error code = $errorCode)", errorCode)
 }

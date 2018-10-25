@@ -5,6 +5,7 @@ import io.ktor.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import org.slf4j.*
 
 /**
  * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
@@ -20,6 +21,8 @@ class Authentication(config: Configuration) {
     constructor() : this(Configuration())
 
     private var config = config.copy()
+
+    private val logger = LoggerFactory.getLogger(Authentication::class.java)
 
     /**
      * Authentication configuration
@@ -183,9 +186,10 @@ class Authentication(config: Configuration) {
                 }
             }
 
-            for (error in context.errors.values.filter { it is AuthenticationFailedCause.Error }) {
+            for (error in context.errors.values.filterIsInstance<AuthenticationFailedCause.Error>()) {
                 challengePipeline.intercept(challengePhase) {
                     if (!it.completed) {
+                        logger.trace("Responding unauthorized because of error ${error.cause}")
                         call.respond(UnauthorizedResponse())
                         it.complete()
                         finish()
