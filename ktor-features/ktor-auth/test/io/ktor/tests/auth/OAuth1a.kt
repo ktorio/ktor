@@ -206,9 +206,9 @@ class OAuth1aFlowTest {
             waitExecutor()
 
             assertTrue(result.requestHandled, "request should be handled")
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertTrue { result.response.content!!.contains("null") }
+            assertEquals(HttpStatusCode.Found, result.response.status())
+            assertNotNull(result.response.headers[HttpHeaders.Location])
+            assertTrue { result.response.headers[HttpHeaders.Location]!!.startsWith("https://login-server-com/oauth/authorize") }
         }
     }
 

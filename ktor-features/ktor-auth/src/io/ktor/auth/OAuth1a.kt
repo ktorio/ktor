@@ -12,6 +12,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.io.*
+import java.lang.Exception
 import java.net.*
 import java.time.*
 import java.util.*
@@ -33,7 +34,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
                 call.redirectAuthenticateOAuth1a(provider, t)
             } else {
                 try {
-                    val accessToken = simpleOAuth1aStep2(client, provider, token)
+                    val accessToken = requestOAuth1aAccessToken(client, provider, token)
                     call.authentication.principal(accessToken)
                 } catch (ioe: IOException) {
                     call.oauthHandleFail(callbackRedirectUrl)
@@ -127,13 +128,13 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl
     respondRedirect(url)
 }
 
-internal suspend fun simpleOAuth1aStep2(
+internal suspend fun requestOAuth1aAccessToken(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth1aServerSettings,
     callbackResponse: OAuthCallback.TokenPair,
     nonce: String = generateNonce(),
     extraParameters: Map<String, String> = emptyMap()
-): OAuthAccessTokenResponse.OAuth1a = simpleOAuth1aStep2(
+): OAuthAccessTokenResponse.OAuth1a = requestOAuth1aAccessToken(
     client,
     settings.consumerSecret + "&", // TODO??
     settings.accessTokenUrl,
@@ -144,7 +145,7 @@ internal suspend fun simpleOAuth1aStep2(
     extraParameters = extraParameters
 )
 
-private suspend fun simpleOAuth1aStep2(
+private suspend fun requestOAuth1aAccessToken(
     client: HttpClient,
     secretKey: String,
     baseUrl: String,
@@ -163,6 +164,7 @@ private suspend fun simpleOAuth1aStep2(
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, "*/*")
+        // some of really existing OAuth servers don't support other accept header values so keep it
 
         body = WriterContent(
             { params.formUrlEncodeTo(this) },
@@ -174,10 +176,12 @@ private suspend fun simpleOAuth1aStep2(
     try {
         val parameters = body.parseUrlEncodedParameters()
         return OAuthAccessTokenResponse.OAuth1a(
-            parameters[HttpAuthHeader.Parameters.OAuthToken]!!,
-            parameters[HttpAuthHeader.Parameters.OAuthTokenSecret]!!,
+            parameters[HttpAuthHeader.Parameters.OAuthToken] ?: throw OAuth1aException.MissingTokenException(),
+            parameters[HttpAuthHeader.Parameters.OAuthTokenSecret] ?: throw OAuth1aException.MissingTokenException(),
             parameters
         )
+    } catch (cause: OAuth1aException) {
+        throw cause
     } catch (cause: Throwable) {
         throw IOException("Failed to acquire request token due to $body", cause)
     } finally {
@@ -249,3 +253,22 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
     parameters.map { it.name.encodeURLParameter() to it.value.encodeURLParameter() }
         .sortedWith(compareBy<Pair<String, String>> { it.first }.then(compareBy { it.second }))
         .joinToString("&") { "${it.first}=${it.second}" }
+
+
+/**
+ * Represents an OAuth1a server error
+ */
+@KtorExperimentalAPI
+sealed class OAuth1aException(message: String) : Exception(message) {
+
+    /**
+     * Thrown when an OAuth1a server didn't provide access token
+     */
+    class MissingTokenException() : OAuth1aException("The OAuth1a server didn't provide access token")
+
+    /**
+     * Represents any other OAuth1a error
+     */
+    @KtorExperimentalAPI
+    class UnknownException(message: String) : OAuth1aException(message)
+}

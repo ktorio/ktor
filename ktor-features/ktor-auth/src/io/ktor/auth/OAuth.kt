@@ -8,8 +8,14 @@ import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import org.slf4j.*
 import java.io.*
 
+private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth2")
+
+/**
+ * OAuth versions used in configuration
+ */
 enum class OAuthVersion {
     V10a, V20
 }
@@ -125,7 +131,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             } else {
                 withContext(dispatcher) {
                     try {
-                        val accessToken = simpleOAuth1aStep2(client, provider, tokens)
+                        val accessToken = requestOAuth1aAccessToken(client, provider, tokens)
                         block(accessToken)
                     } catch (ioe: IOException) {
                         call.oauthHandleFail(loginPageUrl)
@@ -140,17 +146,21 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             } else {
                 withContext(dispatcher) {
                     try {
-                        val accessToken = simpleOAuth2Step2(
-                                client,
-                                provider,
-                                callbackUrl,
-                                code,
-                                emptyMap(),
-                                configure
+                        val accessToken = oauth2RequestAccessToken(
+                            client,
+                            provider,
+                            callbackUrl,
+                            code,
+                            emptyMap(),
+                            configure
                         )
 
                         block(accessToken)
+                    } catch (cause: OAuth2Exception.InvalidGrant) {
+                        Logger.trace("Redirected to the login page due to invalid_grant error: {}", cause.message)
+                        call.oauthHandleFail(loginPageUrl)
                     } catch (ioe: IOException) {
+                        Logger.trace("Redirected to the login page due to IO error", ioe)
                         call.oauthHandleFail(loginPageUrl)
                     }
                 }
