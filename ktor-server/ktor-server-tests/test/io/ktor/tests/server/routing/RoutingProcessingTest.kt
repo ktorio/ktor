@@ -379,7 +379,7 @@ class RoutingProcessingTest {
   /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -398,7 +398,7 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -417,7 +417,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -436,7 +436,7 @@ class RoutingProcessingTest {
       /baz/{y}/value, segment:2 -> FAILURE "Selector didn't match" @ /baz/{y}/value)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -456,7 +456,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -476,7 +476,7 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -492,7 +492,7 @@ class RoutingProcessingTest {
     /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET))
     /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
 
         handleRequest {
@@ -510,7 +510,9 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""", trace?.buildText())
+""".toPlatformLineSeparators(), trace?.buildText())
         }
     }
+
+    private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
 }
