@@ -1,6 +1,7 @@
 package io.ktor.auth
 
 import io.ktor.application.*
+import io.ktor.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
@@ -117,7 +118,7 @@ class Authentication(config: Configuration) {
                 context.challenge.completed -> finish()
                 else -> {
                     if (!optional) {
-                        executeChallenges(context)
+                        executeChallenges(context, true)
                     }
                 }
             }
@@ -153,11 +154,15 @@ class Authentication(config: Configuration) {
                 return@intercept
             }
 
-            executeChallenges(context)
+            // NOTE: we don't handle errors per-provider here, we do it in the end
+            executeChallenges(context, false)
         }
     }
 
-    private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(context: AuthenticationContext) {
+    private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(
+        context: AuthenticationContext,
+        handleErrors: Boolean
+    ) {
         val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
         val challenges = context.challenge.challenges
 
@@ -166,6 +171,26 @@ class Authentication(config: Configuration) {
                 challenge(it)
                 if (it.completed)
                     finish() // finish challenge pipeline if it has been completed
+            }
+        }
+
+        if (handleErrors) {
+            for (challenge in context.challenge.errorChallenges) {
+                challengePipeline.intercept(challengePhase) {
+                    challenge(it)
+                    if (it.completed)
+                        finish() // finish challenge pipeline if it has been completed
+                }
+            }
+
+            for (error in context.errors.values.filter { it is AuthenticationFailedCause.Error }) {
+                challengePipeline.intercept(challengePhase) {
+                    if (!it.completed) {
+                        call.respond(UnauthorizedResponse())
+                        it.complete()
+                        finish()
+                    }
+                }
             }
         }
 
