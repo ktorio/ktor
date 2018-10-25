@@ -272,6 +272,10 @@ suspend fun verifyWithOAuth2(
     )
 }
 
+/**
+ * List of OAuth2 request parameters for both peers
+ */
+@Suppress("KDocMissingDocumentation")
 object OAuth2RequestParameters {
     const val ClientId = "client_id"
     const val Scope = "scope"
@@ -285,6 +289,10 @@ object OAuth2RequestParameters {
     const val Password = "password"
 }
 
+/**
+ * List of OAuth2 server response parameters
+ */
+@Suppress("KDocMissingDocumentation")
 object OAuth2ResponseParameters {
     const val AccessToken = "access_token"
     const val TokenType = "token_type"
@@ -328,7 +336,7 @@ sealed class OAuth2Exception(message: String, val errorCode: String?) : Exceptio
      * @param grantType that was passed to the server
      */
     @KtorExperimentalAPI
-    class UnsupportedGrantType(message: String, val grantType: String) :
+    class UnsupportedGrantType(val grantType: String) :
         OAuth2Exception("OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type")
 
     /**

@@ -12,9 +12,23 @@ private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
  */
 val OAuthKey: Any = "OAuth"
 
+/**
+ * Represents an OAuth provider for [Authentication] feature
+ */
 class OAuthAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
+    /**
+     * HTTP client instance used by this provider to make HTTP calls to OAuth server
+     */
     lateinit var client: HttpClient
+
+    /**
+     * Lookup function to find OAuth server settings for the particular call
+     */
     lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+
+    /**
+     * URL provider that should produce login url for the particular call
+     */
     lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 }
 
@@ -92,21 +106,15 @@ internal fun OAuthAuthenticationProvider.oauth1a() {
 
             if (cause != null) {
                 context.challenge(OAuthKey, cause) { ch ->
-                    withIOException(context) {
+                    try {
                         val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                         call.redirectAuthenticateOAuth1a(provider, t)
                         ch.complete()
+                    } catch (ioe: IOException) {
+                        context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
                     }
                 }
             }
         }
-    }
-}
-
-private suspend fun withIOException(context: AuthenticationContext, block: suspend () -> Unit) {
-    try {
-        block()
-    } catch (ioe: IOException) {
-        context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
     }
 }

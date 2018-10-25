@@ -15,7 +15,6 @@ import kotlinx.coroutines.*
 import org.json.simple.*
 import org.junit.*
 import org.junit.Test
-import java.io.*
 import java.net.*
 import java.util.*
 import java.util.concurrent.*
@@ -92,7 +91,7 @@ class OAuth2Test {
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
             } else {
-                throw OAuth2Exception.UnsupportedGrantType("Wrong grant type $grantType", grantType)
+                throw OAuth2Exception.UnsupportedGrantType(grantType)
             }
         }
     })
