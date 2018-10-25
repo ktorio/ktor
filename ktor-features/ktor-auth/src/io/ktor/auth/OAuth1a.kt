@@ -79,7 +79,7 @@ private suspend fun simpleOAuth1aStep1(
     nonce: String = generateNonce(),
     extraParameters: List<Pair<String, String>> = emptyList()
 ): OAuthCallback.TokenPair {
-    val authHeader = obtainRequestTokenHeader(
+    val authHeader = createObtainRequestTokenHeader(
         callback = callback,
         consumerKey = consumerKey,
         nonce = nonce
@@ -156,7 +156,7 @@ private suspend fun requestOAuth1aAccessToken(
     extraParameters: Map<String, String> = emptyMap()
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()
-    val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce)
+    val authHeader = createUpgradeRequestTokenHeader(consumerKey, token, nonce)
         .sign(HttpMethod.Post, baseUrl, secretKey, params)
 
     val response = client.call(URL(baseUrl)) {
@@ -189,7 +189,23 @@ private suspend fun requestOAuth1aAccessToken(
     }
 }
 
+@Suppress("KDocMissingDocumentation")
+@Deprecated("Use createObtainRequestTokenHeader instead",
+    ReplaceWith("createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)")
+)
+@KtorExperimentalAPI
 fun obtainRequestTokenHeader(
+    callback: String,
+    consumerKey: String,
+    nonce: String,
+    timestamp: LocalDateTime = LocalDateTime.now()
+): HttpAuthHeader.Parameterized = createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)
+
+/**
+ * Create an HTTP auth header for OAuth1a obtain token request
+ */
+@KtorExperimentalAPI
+fun createObtainRequestTokenHeader(
     callback: String,
     consumerKey: String,
     nonce: String,
@@ -206,7 +222,25 @@ fun obtainRequestTokenHeader(
     )
 )
 
+/**
+ * Create an HTTP auth header for OAuth1a upgrade token request
+ */
+@Deprecated("Use createUpgradeRequestTokenHeader instead",
+    ReplaceWith("createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)")
+)
+@KtorExperimentalAPI
 fun upgradeRequestTokenHeader(
+    consumerKey: String,
+    token: String,
+    nonce: String,
+    timestamp: LocalDateTime = LocalDateTime.now()
+): HttpAuthHeader.Parameterized = createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)
+
+/**
+ * Create an HTTP auth header for OAuth1a upgrade token request
+ */
+@KtorExperimentalAPI
+fun createUpgradeRequestTokenHeader(
     consumerKey: String,
     token: String,
     nonce: String,
@@ -223,6 +257,10 @@ fun upgradeRequestTokenHeader(
     )
 )
 
+/**
+ * Sign an HTTP auth header
+ */
+@KtorExperimentalAPI
 fun HttpAuthHeader.Parameterized.sign(
     method: HttpMethod,
     baseUrl: String,
@@ -233,6 +271,10 @@ fun HttpAuthHeader.Parameterized.sign(
     signatureBaseString(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key)
 )
 
+/**
+ * Build an OAuth1a signature base string as per RFC
+ */
+@KtorExperimentalAPI
 fun signatureBaseString(
     header: HttpAuthHeader.Parameterized,
     method: HttpMethod,
