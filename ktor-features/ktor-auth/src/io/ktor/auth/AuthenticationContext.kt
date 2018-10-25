@@ -14,7 +14,10 @@ class AuthenticationContext(val call: ApplicationCall) {
     /**
      * Retrieves authenticated principal, or returns null if no user was authenticated
      */
-    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null) { "Principal can be only assigned once" }; true }
+    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ ->
+        require(old == null) { "Principal can be only assigned once" };
+        true
+    }
 
     /**
      * Stores authentication failures for keys provided by authentication mechanisms
@@ -50,9 +53,11 @@ class AuthenticationContext(val call: ApplicationCall) {
     /**
      * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user
      */
-    fun challenge(key: Any,
-                          cause: AuthenticationFailedCause,
-                          function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>) {
+    fun challenge(
+        key: Any,
+        cause: AuthenticationFailedCause,
+        function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>
+    ) {
         error(key, cause)
         challenge.register.add(cause to function)
     }
@@ -60,6 +65,7 @@ class AuthenticationContext(val call: ApplicationCall) {
     companion object {
         private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext(call) }
+        internal fun from(call: ApplicationCall) =
+            call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext(call) }
     }
 }
