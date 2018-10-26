@@ -3,7 +3,6 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.network.util.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
@@ -16,6 +15,10 @@ import java.lang.IllegalStateException
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
+/**
+ * ktor test engine that provides way to simulate application calls to existing application module(s)
+ * without actual HTTP connection
+ */
 class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
@@ -26,6 +29,10 @@ class TestApplicationEngine(
     override val coroutineContext: CoroutineContext
         get() = testEngineJob
 
+    /**
+     * Test application engine configuration
+     * @property dispatcher to run handlers and interceptors on
+     */
     class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = Dispatchers.IO
     }
@@ -59,6 +66,10 @@ class TestApplicationEngine(
     private var processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit = { it() }
     private var processResponse: TestApplicationCall.() -> Unit = { }
 
+    /**
+     * Install a hook for test requests
+     */
+    @KtorExperimentalAPI
     fun hookRequests(
         processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
         processResponse: TestApplicationCall.() -> Unit,
@@ -83,6 +94,9 @@ class TestApplicationEngine(
         }
     }
 
+    /**
+     * Make a test request
+     */
     @UseExperimental(InternalAPI::class)
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, setup = { processRequest(setup) })
@@ -102,6 +116,9 @@ class TestApplicationEngine(
         return call
     }
 
+    /**
+     * Make a test request that setup a websocket session and wait for completion
+     */
     fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall {
             this.uri = uri
@@ -130,6 +147,10 @@ class TestApplicationEngine(
         return call
     }
 
+    /**
+     * Make a test request that setup a websocket session and invoke [callback] function
+     * that does conversation with server
+     */
     @UseExperimental(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
         uri: String, setup: TestApplicationRequest.() -> Unit = {},
@@ -161,6 +182,9 @@ class TestApplicationEngine(
         return call
     }
 
+    /**
+     * Creates an instance of test call but doesn't start request processing
+     */
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
         TestApplicationCall(application, readResponse, Dispatchers.IO).apply { setup(request) }
 }

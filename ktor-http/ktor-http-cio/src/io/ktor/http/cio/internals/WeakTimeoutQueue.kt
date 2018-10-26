@@ -155,6 +155,9 @@ class WeakTimeoutQueue(
     }
 }
 
+/**
+ * Thrown when a timeout elapsed
+ */
 @InternalAPI
 class TimeoutCancellationException(message: String) : CancellationException(message) {
     constructor(timeoutMillis: Long) : this("Timeout of $timeoutMillis ms exceeded")
