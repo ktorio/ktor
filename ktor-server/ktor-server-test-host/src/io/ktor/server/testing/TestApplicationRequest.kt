@@ -2,7 +2,6 @@ package io.ktor.server.testing
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
@@ -12,6 +11,14 @@ import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
+/**
+ * Represents a test application request
+ *
+ * @property method HTTP method to be sent or executed
+ * @property uri HTTP url to sent request to or was sent to
+ * @property version HTTP version to sent or executed
+ * @property protocol HTTP protocol to be used or was used
+ */
 class TestApplicationRequest constructor(
         call: TestApplicationCall,
         var method: HttpMethod = HttpMethod.Get,
@@ -43,26 +50,11 @@ class TestApplicationRequest constructor(
             get() = this@TestApplicationRequest.version
     }
 
+    /**
+     * Request body channel
+     */
     @Volatile
     var bodyChannel: ByteReadChannel = ByteReadChannel.Empty
-
-    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"), level = DeprecationLevel.ERROR)
-    var bodyBytes: ByteArray
-        @Deprecated("TestApplicationEngine no longer supports bodyBytes.get()", level = DeprecationLevel.ERROR)
-        get() = error("TestApplicationEngine no longer supports bodyBytes.get()")
-        set(value) { setBody(value) }
-
-    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"), level = DeprecationLevel.ERROR)
-    var body: String
-        @Deprecated("TestApplicationEngine no longer supports body.get()", level = DeprecationLevel.ERROR)
-        get() = error("TestApplicationEngine no longer supports body.get()")
-        set(value) { setBody(value) }
-
-    @Deprecated(
-            message = "multiPartEntries is deprecated, use setBody() method instead",
-            replaceWith = ReplaceWith("setBody()"), level = DeprecationLevel.ERROR
-    )
-    var multiPartEntries: List<PartData> = listOf()
 
     override val queryParameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
 
@@ -70,6 +62,9 @@ class TestApplicationRequest constructor(
 
     private var headersMap: MutableMap<String, MutableList<String>>? = hashMapOf()
 
+    /**
+     * Add HTTP request header
+     */
     fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         map.getOrPut(name, { arrayListOf() }).add(value)
@@ -88,19 +83,24 @@ class TestApplicationRequest constructor(
     override fun receiveChannel(): ByteReadChannel = bodyChannel
 }
 
+/**
+ * Set HTTP request body text content
+ */
 fun TestApplicationRequest.setBody(value: String) {
     setBody(value.toByteArray())
 }
 
+/**
+ * Set HTTP request body bytes
+ */
 fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
 }
 
-private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
-    channel.writeFully(str.toByteArray(charset))
-}
-
-fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>): Unit {
+/**
+ * Set multipart HTTP request body
+ */
+fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IO) {
         if (parts.isEmpty()) return@writer
 
@@ -124,4 +124,8 @@ fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>): Uni
             parts.forEach { it.dispose() }
         }
     }.channel
+}
+
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
 }

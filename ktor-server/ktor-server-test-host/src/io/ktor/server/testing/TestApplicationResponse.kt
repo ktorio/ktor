@@ -2,27 +2,35 @@ package io.ktor.server.testing
 
 import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.time.*
-import java.util.concurrent.*
-import kotlin.coroutines.*
 
+/**
+ * Represents test call response received from server
+ * @property readResponse if response channel need to be consumed into byteContent
+ */
 class TestApplicationResponse(
     call: TestApplicationCall, val readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
+    /**
+     * Response body text content. Could be blocking.
+     */
     val content: String?
         get() {
             val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
             return byteContent?.toString(charset)
         }
 
+    /**
+     * Response body byte content. Could be blocking
+     */
     var byteContent: ByteArray? = null
         get() = when {
             field != null -> field
@@ -71,8 +79,15 @@ class TestApplicationResponse(
         return result
     }
 
+    /**
+     * Response body content channel
+     */
     fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
+    /**
+     * Await for response job completion
+     */
+    @InternalAPI
     suspend fun flush() {
         responseJob?.await()
     }
@@ -87,11 +102,17 @@ class TestApplicationResponse(
             }
     }
 
+    /**
+     * Wait for websocket session completion
+     */
     fun awaitWebSocket(duration: Duration) = runBlocking {
         withTimeout(duration.toMillis()) {
             webSocketCompleted.join()
         }
     }
 
+    /**
+     * Websocket session's channel
+     */
     fun websocketChannel(): ByteReadChannel? = responseChannel
 }
