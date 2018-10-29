@@ -20,6 +20,7 @@ import kotlin.reflect.*
  * }
  * ```
  */
+@UseExperimental(ImplicitReflectionSerializer::class)
 class KotlinxSerializer : JsonSerializer {
     @Suppress("UNCHECKED_CAST")
     private val mappers: MutableMap<KClass<Any>, KSerializer<Any>> = mutableMapOf()

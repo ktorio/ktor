@@ -21,6 +21,7 @@ class KotlinxSerializerTest {
     @Test
     fun registerCustomTest() {
         val serializer = KotlinxSerializer().apply {
+            @UseExperimental(ImplicitReflectionSerializer::class)
             register(User::class.serializer())
         }
 
