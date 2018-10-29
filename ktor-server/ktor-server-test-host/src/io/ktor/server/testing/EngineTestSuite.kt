@@ -25,7 +25,6 @@ import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
-import java.security.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -1125,7 +1124,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
         }
 
-        val originalSha1WithSize = file.inputStream().use { it.sha1WithSize() }
+        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
@@ -1134,7 +1133,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1WithSize, content.toInputStream().sha1WithSize())
+            assertEquals(originalSha1WithSize, content.toInputStream().crcWithSize())
         }
     }
 
@@ -1154,7 +1153,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
         }
 
-        val originalSha1WithSize = file.inputStream().use { it.sha1WithSize() }
+        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
@@ -1167,7 +1166,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         connection.readTimeout = 10_000
 
         try {
-            assertEquals(originalSha1WithSize, connection.inputStream.sha1WithSize())
+            assertEquals(originalSha1WithSize, connection.inputStream.crcWithSize())
         } finally {
             connection.disconnect()
         }
@@ -1718,8 +1717,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 
-    private fun InputStream.sha1WithSize(): Pair<String, Long> {
-        val md = MessageDigest.getInstance("SHA1")
+    private fun InputStream.crcWithSize(): Pair<Long, Long> {
+        val checksum = CRC32()
         val bytes = ByteArray(8192)
         var count = 0L
 
@@ -1729,10 +1728,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 break
             }
             count += rc
-            md.update(bytes, 0, rc)
+            checksum.update(bytes, 0, rc)
         } while (true)
 
-        return hex(md.digest()) to count
+        return checksum.value to count
     }
 
     companion object {
