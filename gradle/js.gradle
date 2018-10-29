@@ -239,11 +239,11 @@ kotlin {
 //        <script src="$projectDir/build/web/kotlinx-io-js.js"></script>
 //        <script src="$projectDir/build/web/kotlinx-coroutines-io-js.js"></script>
 //        <script src="$projectDir/build/web/kotlinx-serialization-runtime-js.js"></script>
-        <script src="$projectDir/build/web/ktor-utils-js.js"></script>
+//        <script src="$projectDir/build/web/ktor-utils-js.js"></script>
 //        <script src="$projectDir/build/web/ktor-http-js.js"></script>
 //        <script src="$projectDir/build/web/ktor-client-core-js.js"></script>
 //        <script src="$projectDir/build/web/ktor-client-js.js"></script>
-        <script src="$projectDir/build/web/ktor-client-json-js.js"></script>
+//        <script src="$projectDir/build/web/ktor-client-json-js.js"></script>
 //        <script src="$compileTestKotlin2Js.outputFile"></script>
 //        <script>mocha.run();</script>
 //        </body>

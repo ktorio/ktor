@@ -1,9 +1,8 @@
 buildscript {
-   repositories {
+    repositories {
         mavenLocal()
         jcenter()
         maven { url 'https://plugins.gradle.org/m2/' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://dl.bintray.com/jetbrains/kotlin-native-dependencies' }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     }
@@ -41,17 +40,17 @@ allprojects {
 
     apply from: rootProject.file('gradle/common.gradle')
     apply from: rootProject.file('gradle/jvm.gradle')
-    apply from: rootProject.file('gradle/native.gradle')
+//    apply from: rootProject.file('gradle/native.gradle')
 //    apply from: rootProject.file('gradle/js.gradle')
 //    apply from: rootProject.file('gradle/dokka.gradle')
     apply from: rootProject.file('gradle/publish.gradle')
 
     kotlin {
-        targets {
-            if (System.getProperty('idea.active') == 'true') {
-                fromPreset(presets.linuxX64, 'native')
-            }
-        }
+//        targets {
+//            if (System.getProperty('idea.active') == 'true') {
+//                fromPreset(presets.linuxX64, 'native')
+//            }
+//        }
 
         configure(sourceSets) {
             def srcDir = name.endsWith('Main') ? 'src' : 'test'
@@ -87,4 +86,26 @@ allprojects {
     configurations { testOutput }
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
+
+    task resolveAllConfigurations {
+        doFirst {
+            project.configurations
+                .matching { it.canBeResolved }
+                .each { configuration ->
+                try {
+                    println "Resolving " + configuration.path
+                    configuration.files.each { println '>> ' + configuration.path + ' --> ' + it.path }
+                    println "OK, resolved " + configuration.path + "\n"
+                } catch (e) {
+                    def ex = e
+                    while (ex != null) {
+                        println ex.message
+                        ex = ex.cause
+                    }
+                    println '!!! Unresolved ' + configuration.name + "\n"
+                }
+            }
+        }
+    }
 }
+

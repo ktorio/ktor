@@ -15,8 +15,8 @@ kotlin {
         jsMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
         }
-        nativeMain.dependencies {
-            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
-        }
+//        nativeMain.dependencies {
+//            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
+//        }
     }
 }

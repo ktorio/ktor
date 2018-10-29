@@ -10,10 +10,10 @@ kotlin {
     sourceSets {
         nativeMain.dependencies {
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-metadata', version: kotlinx_io_version
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-metadata', version: kotlinx_io_version
+            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
+            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
 
-            api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+            api "org.jetbrains.kotlinx:atomicfu-native:$atomic_fu_version"
         }
 
         nativeMain { dependsOn commonMain }
