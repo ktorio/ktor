@@ -18,7 +18,8 @@ def jsModules = [
         'ktor-client-js',
         'ktor-client-core-js',
         'ktor-http-js',
-        'ktor-utils-js'
+        'ktor-utils-js',
+        'ktor-client-json-js'
 ]
 
 ext.platformOf = { Project project ->
