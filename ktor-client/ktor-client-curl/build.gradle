@@ -1,4 +1,14 @@
 kotlin {
+    targets {
+        configure([macosX64]) {
+            compilations.main.cinterops {
+                libcurl {
+                    defFile 'unix/src/io/c_interop/libcurl.def'
+                    includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
+                }
+            }
+        }
+    }
     sourceSets {
         commonMain.dependencies {
             api project(':ktor-client:ktor-client-core')

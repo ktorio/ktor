@@ -5,49 +5,65 @@ kotlin {
         //fromPreset(presets.iosArm32, 'iosArm32') the common posix code needs to be updated for 32 bits.
         fromPreset(presets.iosArm64, 'iosArm64')
         fromPreset(presets.iosX64, 'iosX64')
-        fromPreset(presets.macosX64, 'macosX64')
+        fromPreset(presets.macosX64, 'macosX64') /* {
+        // If we specify libcurl here -- it is built for every subproject.
+        // So we declare it in ktor-client:ktor-client-curl build gradle.
+        
+            compilations.main.cinterops {
+                libcurl {
+                    defFile 'ktor-client/ktor-client-curl/unix/src/io/c_interop/libcurl.def'
+                    includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
+                }
+            }
+        
+        } */
     }
     sourceSets {
-        darwinMain.dependencies {
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
-        }
-
-        darwinMain { dependsOn commonMain }
-        darwinTest { dependsOn darwinMain }
-
-        unixMain {
-        //    kotlin.srcDir 'unixMain'
+        nativeMain {
+            kotlin.srcDir 'nativeMain'
             dependencies {
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
 
-         //       implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
-                /*
-                cinterop('libcurl') {
-                    defFile 'src/io/c_interop/libcurl.def'
-
-                    target('linux_x64') {
-                        includeDirs.headerFilterOnly '/usr/include'
-                    }
-                    target('macos_x64') {
-                        includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
-                    }
-                }
-                */
+                implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
             }
         }
+        
+        darwinMain {
+            kotlin.srcDir 'darwinMain'
+            dependsOn nativeMain 
+            dependsOn commonMain 
+        }
+        darwinTest { dependsOn darwinMain }
 
-        unixMain { dependsOn commonMain }
+        unixMain {
+            kotlin.srcDir 'unixMain'
+            dependsOn nativeMain
+            dependsOn commonMain 
+        }
         unixTest { dependsOn unixMain }
 
-        configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main]) {
+        configure([iosArm32Main, iosArm64Main, iosX64Main/*, macosX64Main*/]) {
             dependsOn darwinMain
         }
         configure([macosX64Main, linuxX64Main, mingwX64Main]) {
             dependsOn unixMain
+        }
+    }
+}
+
+// This is a workaround for https://youtrack.jetbrains.com/issue/KT-27803 .
+// To be fixed in 1.3.10.
+kotlin.targets.matching { it.platformType.name == 'native' }.all {
+    compilations.all {
+        cinterops.all {
+            afterEvaluate {
+                configurations[dependencyConfigurationName].attributes.attribute(
+                    Usage.USAGE_ATTRIBUTE,
+                    objects.named(Usage, 'kotlin-api')
+                )
+            }
         }
     }
 }
