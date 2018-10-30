@@ -14,7 +14,6 @@ kotlin {
                     includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include'
                 }
             }
-        
         } */
     }
     sourceSets {
@@ -28,22 +27,22 @@ kotlin {
                 implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
             }
         }
-        
+
         darwinMain {
             kotlin.srcDir 'darwinMain'
-            dependsOn nativeMain 
-            dependsOn commonMain 
+            dependsOn nativeMain
+            dependsOn commonMain
         }
         darwinTest { dependsOn darwinMain }
 
         unixMain {
             kotlin.srcDir 'unixMain'
             dependsOn nativeMain
-            dependsOn commonMain 
+            dependsOn commonMain
         }
         unixTest { dependsOn unixMain }
 
-        configure([iosArm32Main, iosArm64Main, iosX64Main/*, macosX64Main*/]) {
+        configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main]) {
             dependsOn darwinMain
         }
         configure([macosX64Main, linuxX64Main, mingwX64Main]) {
