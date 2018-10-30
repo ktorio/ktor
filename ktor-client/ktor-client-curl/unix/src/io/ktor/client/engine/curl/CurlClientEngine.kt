@@ -28,7 +28,6 @@ class CurlClientEngine(override val config: HttpClientEngineConfig) : HttpClient
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
     private val curlProcessor = CurlProcessor()
-    private val curlProcessorRef = StableRef.create(curlProcessor)
 
     init {
         curlProcessor.start()

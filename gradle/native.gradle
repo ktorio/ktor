@@ -8,7 +8,6 @@ kotlin {
         fromPreset(presets.macosX64, 'macosX64') /* {
         // If we specify libcurl here -- it is built for every subproject.
         // So we declare it in ktor-client:ktor-client-curl build gradle.
-        
             compilations.main.cinterops {
                 libcurl {
                     defFile 'ktor-client/ktor-client-curl/unix/src/io/c_interop/libcurl.def'
