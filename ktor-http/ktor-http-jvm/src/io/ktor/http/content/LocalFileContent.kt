@@ -3,6 +3,7 @@ package io.ktor.http.content
 import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
 import java.nio.file.*
@@ -25,9 +26,10 @@ class LocalFileContent(
 
     // TODO: consider using WriteChannelContent to avoid piping
     // Or even make it dual-content so engine implementation can choose
-    override fun readFrom(): ByteReadChannel = file.readChannel()
+    override fun readFrom(): ByteReadChannel = file.readChannel(coroutineContext = Dispatchers.Unconfined)
 
-    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.start, range.endInclusive)
+    override fun readFrom(range: LongRange): ByteReadChannel =
+        file.readChannel(range.start, range.endInclusive, coroutineContext = Dispatchers.Unconfined)
 }
 
 /**
