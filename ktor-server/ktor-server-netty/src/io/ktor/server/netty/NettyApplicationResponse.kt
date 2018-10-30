@@ -110,7 +110,10 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     companion object {
         private val EmptyByteArray = ByteArray(0)
 
-        val responseStatusCache: Map<Int, HttpResponseStatus> =
-            HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
+        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes.associateBy { it.value }.let { codes ->
+            Array(1000) {
+                if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+            }
+        }
     }
 }
