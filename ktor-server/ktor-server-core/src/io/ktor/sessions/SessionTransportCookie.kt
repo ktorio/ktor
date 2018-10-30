@@ -28,13 +28,13 @@ class SessionTransportCookie(
 
     override fun send(call: ApplicationCall, value: String) {
         val now = GMTDate()
-        val maxAge = configuration.duration[ChronoUnit.SECONDS].toInt()
-        val expires = now + TimeUnit.MINUTES.toMillis(maxAge.toLong())
+        val maxAge = configuration.duration[ChronoUnit.SECONDS]
+        val expires = now + TimeUnit.SECONDS.toMillis(maxAge)
         val cookie = Cookie(
             name,
             transformers.transformWrite(value),
             configuration.encoding,
-            maxAge,
+            if (maxAge > Int.MAX_VALUE.toLong()) -1 else maxAge.toInt(),
             expires,
             configuration.domain,
             configuration.path,
