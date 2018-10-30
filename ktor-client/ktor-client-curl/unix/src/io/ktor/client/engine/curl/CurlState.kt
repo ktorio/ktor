@@ -30,7 +30,7 @@ internal class CurlState(val existingMultiHandle: COpaquePointer? = null) {
     private val multiHandle = existingMultiHandle ?: setupMultiHandle()
 
     fun setupMultiHandle(): COpaquePointer? {
-        val handle = curl_multi_init() ?: error("Could not initialilze libcurl multi handle")
+        val handle = curl_multi_init() ?: throw CurlEngineCreationException("Could not initialilze libcurl multi handle")
 
         return handle
     }
@@ -68,7 +68,7 @@ internal class CurlState(val existingMultiHandle: COpaquePointer? = null) {
     }
 
     fun setupEasyHandle(request: CurlRequestData) {
-        val easyHandle = curl_easy_init() ?: error("Could not initialize an easy handle")
+        val easyHandle = curl_easy_init() ?: throw CurlIllegalStateException("Could not initialize an easy handle")
 
         val responseData = CurlResponseData(request, mutableListOf(), mutableListOf())
         val responseDataRef = responseData.stableCPointer()
@@ -123,10 +123,10 @@ internal class CurlState(val existingMultiHandle: COpaquePointer? = null) {
 
                 if (message == null) continue
                 if (message.msg == CURLMSG.CURLMSG_DONE) {
-                    val easyHandle = message.easy_handle ?: error("Got a null easy handle from the message")
+                    val easyHandle = message.easy_handle ?: throw CurlIllegalStateException("Got a null easy handle from the message")
                     responseDataList += readResponseDataFromEasyHandle(easyHandle)
                 } else {
-                    error("Unexpected curl message: $message.msg")
+                    throw CurlIllegalStateException("Unexpected curl message: $message.msg")
                 }
             } while (messagesLeft.value != 0)
         }

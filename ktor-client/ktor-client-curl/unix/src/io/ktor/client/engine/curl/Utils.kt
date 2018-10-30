@@ -87,6 +87,8 @@ internal fun OutgoingContent.toCurlByteArray(): ByteArray? {
 
 class CurlHttpRequestException(cause: String) : IllegalStateException(cause)
 
+class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
+
 class CurlEngineCreationException(cause: String): IllegalStateException(cause)
 
 class CurlUnsupportedProtocolException(protocolId: UInt): IllegalArgumentException("Unsupported protocol $protocolId")

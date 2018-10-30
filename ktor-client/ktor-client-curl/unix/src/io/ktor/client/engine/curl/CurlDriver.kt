@@ -33,7 +33,7 @@ internal class CurlProcessor : WorkerProcessor<CurlRequest, CurlResponse>() {
             if (curlState == null)
                 curlState = CurlState()
             else
-                error("An attempt to initialize curl twice.")
+                throw CurlEngineCreationException("An attempt to initialize curl twice.")
         })
     }
 
