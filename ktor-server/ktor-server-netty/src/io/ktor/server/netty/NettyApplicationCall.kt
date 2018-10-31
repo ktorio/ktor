@@ -21,11 +21,31 @@ abstract class NettyApplicationCall(application: Application,
     internal suspend fun finish() {
         try {
             response.ensureResponseSent()
+        } catch (t: Throwable) {
+            finishComplete()
+            throw t
+        }
+
+        if (responseWriteJob.isCompleted) {
+            finishComplete()
+            return
+        }
+
+        return finishSuspend()
+    }
+
+    private suspend fun finishSuspend() {
+        try {
             responseWriteJob.join()
         } finally {
-            request.close()
-            ReferenceCountUtil.release(requestMessage)
+            finishComplete()
         }
+    }
+
+    private fun finishComplete() {
+        responseWriteJob.cancel()
+        request.close()
+        ReferenceCountUtil.release(requestMessage)
     }
 
     internal fun dispose() {
