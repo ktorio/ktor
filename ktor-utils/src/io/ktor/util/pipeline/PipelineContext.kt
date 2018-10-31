@@ -43,15 +43,33 @@ class PipelineContext<TSubject : Any, out TContext : Any> constructor(
      * Continues execution of the pipeline with the same subject
      */
     suspend fun proceed(): TSubject {
-        while (index >= 0) {
-            if (interceptors.size == index) {
-                index = -1 // finished
-                return subject
+        val index = index
+        if (index < 0) return subject
+
+        if (index >= interceptors.size) {
+            finish()
+            return subject
+        }
+
+        return proceedLoop()
+    }
+
+    private suspend fun proceedLoop(): TSubject {
+        do {
+            val index = index
+            if (index == -1) {
+                break
+            }
+            val interceptors = interceptors
+            if (index >= interceptors.size) {
+                finish()
+                break
             }
             val executeInterceptor = interceptors[index]
-            index++
+            this.index = index + 1
             executeInterceptor.invoke(this, subject)
-        }
+        } while (true)
+
         return subject
     }
 }
