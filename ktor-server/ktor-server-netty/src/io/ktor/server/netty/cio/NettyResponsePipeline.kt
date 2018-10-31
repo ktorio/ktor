@@ -31,7 +31,10 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private val ready = ArrayDeque<NettyRequestQueue.CallElement>(readyQueueSize)
     private val running = ArrayDeque<NettyRequestQueue.CallElement>(runningQueueSize)
 
-    private val responses = launch(dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName, start = CoroutineStart.UNDISPATCHED) {
+    private val responses = launch(
+        dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName,
+        start = CoroutineStart.UNDISPATCHED
+    ) {
         try {
             processJobs()
         } catch (t: Throwable) {
@@ -116,7 +119,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     private fun hasNextResponseMessage(): Boolean {
         tryFill()
-        return running.isNotEmpty() && running.peekFirst().call.response.responseMessage.isCompleted
+        return running.peekFirst()?.isCompleted == true
     }
 
     @Suppress("NOTHING_TO_INLINE")
@@ -126,20 +129,24 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         try {
             processCall(call)
         } catch (actualException: Throwable) {
-            val t = when {
-                actualException is IOException && actualException !is ChannelIOException -> ChannelWriteException(exception = actualException)
-                else -> actualException
-            }
-
-            call.response.responseChannel.cancel(t)
-            call.responseWriteJob.cancel()
-            call.response.cancel()
-            call.dispose()
-            responses.cancel()
-            requestQueue.cancel()
+            processCallFailed(call, actualException)
         } finally {
             call.responseWriteJob.cancel()
         }
+    }
+
+    private fun processCallFailed(call: NettyApplicationCall, actualException: Throwable) {
+        val t = when {
+            actualException is IOException && actualException !is ChannelIOException -> ChannelWriteException(exception = actualException)
+            else -> actualException
+        }
+
+        call.response.responseChannel.cancel(t)
+        call.responseWriteJob.cancel()
+        call.response.cancel()
+        call.dispose()
+        responses.cancel()
+        requestQueue.cancel()
     }
 
     private fun processUpgrade(responseMessage: Any): ChannelFuture {
