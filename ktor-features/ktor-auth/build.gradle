@@ -2,17 +2,13 @@ description = ''
 
 kotlin {
     sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-                api group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
-            }
+        jvmMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
+            api group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
         }
-        commonTest {
-            dependencies {
-                api project(':ktor-client:ktor-client-cio')
-                api project(':ktor-server:ktor-server-test-host')
-            }
+        jvmTest.dependencies {
+            api project(':ktor-client:ktor-client-cio')
+            api project(':ktor-server:ktor-server-test-host')
         }
     }
 }

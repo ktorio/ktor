@@ -1,29 +1,18 @@
 package io.ktor.webjars
 
-import io.ktor.application.ApplicationCall
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.ApplicationFeature
-import io.ktor.application.call
-import io.ktor.http.content.LastModifiedVersion
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.versions
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.defaultForFilePath
-import io.ktor.pipeline.PipelineContext
-import io.ktor.request.httpMethod
-import io.ktor.request.uri
-import io.ktor.response.respond
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.io.*
-import org.webjars.MultipleMatchesException
-import org.webjars.WebJarAssetLocator
-import java.io.InputStream
-import java.nio.file.Paths
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import org.webjars.*
+import java.io.*
+import java.nio.file.*
+import java.time.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
@@ -65,7 +54,13 @@ class Webjars(val configuration: Configuration) {
             val resourcePath = fullPath.removePrefix(configuration.path)
             try {
                 val location = extractWebJar(resourcePath)
-                context.call.respond(InputStreamContent(Webjars::class.java.classLoader.getResourceAsStream(location), ContentType.defaultForFilePath(fileName), lastModified))
+                context.call.respond(
+                    InputStreamContent(
+                        Webjars::class.java.classLoader.getResourceAsStream(location),
+                        ContentType.defaultForFilePath(fileName),
+                        lastModified
+                    )
+                )
             } catch (multipleFiles: MultipleMatchesException) {
                 context.call.respond(HttpStatusCode.InternalServerError)
             } catch (notFound: IllegalArgumentException) {
@@ -93,7 +88,11 @@ class Webjars(val configuration: Configuration) {
 
 }
 
-private class InputStreamContent(val input: InputStream, override val contentType: ContentType, val lastModified: ZonedDateTime) : OutgoingContent.ReadChannelContent() {
+private class InputStreamContent(
+    val input: InputStream,
+    override val contentType: ContentType,
+    val lastModified: ZonedDateTime
+) : OutgoingContent.ReadChannelContent() {
     init {
         versions += LastModifiedVersion(lastModified)
     }
