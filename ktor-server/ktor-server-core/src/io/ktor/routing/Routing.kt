@@ -36,20 +36,38 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
-        val receivePipeline = ApplicationReceivePipeline().apply {
-            merge(context.call.request.pipeline)
-            merge(routingCallPipeline.receivePipeline)
-        }
-        val responsePipeline = ApplicationSendPipeline().apply {
-            merge(context.call.response.pipeline)
-            merge(routingCallPipeline.sendPipeline)
-        }
+        val receivePipeline = merge(context.call.request.pipeline,
+            routingCallPipeline.receivePipeline
+        ) { ApplicationReceivePipeline() }
+
+        val responsePipeline = merge(
+            context.call.response.pipeline,
+            routingCallPipeline.sendPipeline
+        ) { ApplicationSendPipeline() }
+
         val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
         application.environment.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingCall)
         } finally {
             application.environment.monitor.raise(RoutingCallFinished, routingCall)
+        }
+    }
+
+    private inline fun <Subject : Any, Context : Any, P : Pipeline<Subject, Context>> merge(
+        first: P,
+        second: P,
+        build: () -> P
+    ): P {
+        if (first.isEmpty) {
+            return second
+        }
+        if (second.isEmpty) {
+            return first
+        }
+        return build().apply {
+            merge(first)
+            merge(second)
         }
     }
 

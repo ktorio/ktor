@@ -60,7 +60,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     private var interceptorsQuantity = 0
 
     @Volatile
-    private var interceptors: ArrayList<PipelineInterceptor<TSubject, TContext>>? = null
+    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>? = null
 
     /**
      * Phases of this pipeline
@@ -100,11 +100,19 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
         interceptors = null
     }
 
-    private fun interceptors(): ArrayList<PipelineInterceptor<TSubject, TContext>> {
+    /**
+     * @return `true` if there are no interceptors installed regardless number of phases
+     */
+    @InternalAPI
+    val isEmpty: Boolean get() = interceptorsQuantity == 0
+
+    private fun interceptors(): List<PipelineInterceptor<TSubject, TContext>> {
         return interceptors ?: cacheInterceptors()
     }
 
-    private fun cacheInterceptors(): ArrayList<PipelineInterceptor<TSubject, TContext>> {
+    private fun cacheInterceptors(): List<PipelineInterceptor<TSubject, TContext>> {
+        if (interceptorsQuantity == 0) return emptyList()
+
         val destination = ArrayList<PipelineInterceptor<TSubject, TContext>>(interceptorsQuantity)
         for (phaseIndex in 0..phases.lastIndex) {
             val elements = phases[phaseIndex].interceptors
@@ -112,6 +120,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
                 destination.add(elements[elementIndex])
             }
         }
+
         interceptors = destination
         return destination
     }
