@@ -45,6 +45,10 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
         @kotlin.jvm.Volatile
         private var scheduled: Int = 0
 
+        private val message: Job = call.response.responseMessage
+
+        val isCompleted: Boolean get() = message.isCompleted
+
         fun ensureRunning(): Boolean {
             if (Scheduled.compareAndSet(this, 0, 1)) {
                 call.context.fireChannelRead(call)
