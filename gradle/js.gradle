@@ -18,7 +18,7 @@ dependencies {
 
 afterEvaluate {
     task assembleWeb(type: Sync) {
-        configurations.compile.each { File file ->
+        (configurations.compile).each { File file ->
             from(zipTree(file.absolutePath), {
                 includeEmptyDirs = false
                 include { fileTreeElement ->

@@ -33,7 +33,8 @@ class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
         get() = DelegatingMutableSet(
             delegate.keys,
             { content },
-            { caseInsensitive() })
+            { caseInsensitive() }
+        )
 
     override val entries: MutableSet<MutableMap.MutableEntry<String, Value>>
         get() = DelegatingMutableSet<MutableMap.MutableEntry<CaseInsensitiveString, Value>, MutableMap.MutableEntry<String, Value>>(

@@ -1,5 +1,7 @@
 description = "Ktor client JSON support"
 
+apply plugin: 'kotlinx-serialization'
+
 dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
 

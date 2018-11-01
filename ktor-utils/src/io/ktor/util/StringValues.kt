@@ -75,7 +75,9 @@ open class StringValuesSingleImpl(
     val name: String,
     val values: List<String>
 ) : StringValues {
+
     override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveName)) values else null
+
     override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
         override val key: String = name
         override val value: List<String> = values
@@ -83,10 +85,13 @@ open class StringValuesSingleImpl(
     })
 
     override fun isEmpty(): Boolean = false
+
     override fun names(): Set<String> = setOf(name)
 
     override fun toString() = "StringValues(case=${!caseInsensitiveName}) ${entries()}"
+
     override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is StringValues) return false
@@ -95,10 +100,12 @@ open class StringValuesSingleImpl(
     }
 
     override fun forEach(body: (String, List<String>) -> Unit) = body(name, values)
+
     override fun get(name: String): String? =
         if (name.equals(this.name, caseInsensitiveName)) values.firstOrNull() else null
 
     override fun contains(name: String): Boolean = name.equals(this.name, caseInsensitiveName)
+
     override fun contains(name: String, value: String): Boolean =
         name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
@@ -115,19 +122,25 @@ open class StringValuesImpl(
     }
 
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
+
     override fun getAll(name: String): List<String>? = listForKey(name)
 
     override operator fun contains(name: String) = listForKey(name) != null
+
     override fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
 
     override fun names(): Set<String> = values.keys.unmodifiable()
+
     override fun isEmpty(): Boolean = values.isEmpty()
+
     override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
+
     override fun forEach(body: (String, List<String>) -> Unit) {
         for ((key, value) in values) body(key, value)
     }
 
     private fun listForKey(name: String): List<String>? = values[name]
+
     override fun toString() = "StringValues(case=${!caseInsensitiveName}) ${entries()}"
 
     override fun equals(other: Any?): Boolean {
@@ -150,10 +163,13 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
     fun getAll(name: String): List<String>? = values[name]
 
     operator fun contains(name: String): Boolean = name in values
+
     fun contains(name: String, value: String) = values[name]?.contains(value) ?: false
 
     fun names() = values.keys
+
     fun isEmpty() = values.isEmpty()
+
     fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
 
     operator fun set(name: String, value: String) {

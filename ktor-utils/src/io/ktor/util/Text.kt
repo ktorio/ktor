@@ -43,7 +43,7 @@ internal class CaseInsensitiveString(val content: String) {
     override fun equals(other: Any?): Boolean =
         (other as? CaseInsensitiveString)?.content?.equals(content, ignoreCase = true) == true
 
-    override fun hashCode(): Int {
-        return hash
-    }
+    override fun hashCode(): Int = hash
+
+    override fun toString(): String = content
 }

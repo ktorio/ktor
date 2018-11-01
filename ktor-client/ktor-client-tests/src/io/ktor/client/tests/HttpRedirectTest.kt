@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 
-open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/") {
@@ -102,7 +102,7 @@ open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : T
         test { client ->
             urls.forEach { url ->
                 client.get<HttpResponse>(url).use {
-                    assertTrue(it.status.isSuccess())
+                    assertTrue(it.status.isSuccess(), url)
                 }
             }
         }

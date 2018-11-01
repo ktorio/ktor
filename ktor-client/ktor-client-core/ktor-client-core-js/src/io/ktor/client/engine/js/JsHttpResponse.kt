@@ -25,7 +25,7 @@ class JsHttpResponse(
     override val responseTime: GMTDate = GMTDate()
 
     override val headers: Headers = Headers.build {
-        response.headers.asDynamic().forEach { key: String, value: String ->
+        response.headers.asDynamic().forEach { value: String, key: String ->
             append(key, value)
         }
 
