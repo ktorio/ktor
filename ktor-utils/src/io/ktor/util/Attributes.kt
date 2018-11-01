@@ -15,7 +15,7 @@ class AttributeKey<T>(val name: String) {
 /**
  * Create attributes instance suitable for the particular platform
  */
-expect fun Attributes(): Attributes
+expect fun Attributes(concurrent: Boolean = false): Attributes
 
 /**
  * Map of attributes accessible by [AttributeKey] in a typed manner
