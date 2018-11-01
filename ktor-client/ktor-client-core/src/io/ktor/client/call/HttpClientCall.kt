@@ -4,7 +4,6 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
@@ -42,7 +41,7 @@ class HttpClientCall internal constructor(
      * Tries to receive the payload of the [response] as an specific [expectedType].
      * Returns [response] if [expectedType] is [HttpResponse].
      *
-     * @throws NoTransformationFound If no transformation is found for the [expectedType].
+     * @throws NoTransformationFoundException If no transformation is found for the [expectedType].
      * @throws DoubleReceiveException If already called [receive].
      */
     suspend fun receive(info: TypeInfo): Any {
@@ -52,12 +51,12 @@ class HttpClientCall internal constructor(
         val subject = HttpResponseContainer(info, response)
         try {
             val result = client.responsePipeline.execute(this, subject).response
-            if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
+            if (!info.type.isInstance(result)) throw NoTransformationFoundException(result::class, info.type)
             return result
-        } catch (cause: BadResponseStatus) {
+        } catch (cause: BadResponseStatusException) {
             throw cause
         } catch (cause: Throwable) {
-            throw ReceivePipelineFail(response.call, info, cause)
+            throw ReceivePipelineException(response.call, info, cause)
         }
     }
 
@@ -81,7 +80,7 @@ suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
  *
- * @throws NoTransformationFound If no transformation is found for the type [T].
+ * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
 suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
@@ -89,7 +88,7 @@ suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
  *
- * @throws NoTransformationFound If no transformation is found for the type [T].
+ * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
 suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo<T>()) as T
@@ -105,17 +104,23 @@ class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
  */
-@KtorExperimentalAPI
-class ReceivePipelineFail(
+class ReceivePipelineException(
     val request: HttpClientCall,
     val info: TypeInfo,
     override val cause: Throwable
-) : IllegalStateException()
+) : IllegalStateException("Fail to run receive pipeline")
 
 /**
  * Exception representing the no transformation was found.
  * It includes the received type and the expected type as part of the message.
  */
-class NoTransformationFound(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
+class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
     override val message: String? = "No transformation found: $from -> $to"
 }
+
+@Deprecated(
+    "[NoTransformationFound] is deprecated. Use [NoTransformationFoundException] instead",
+    ReplaceWith("NoTransformationFoundException"),
+    DeprecationLevel.ERROR
+)
+typealias NoTransformationFound = NoTransformationFoundException

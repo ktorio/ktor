@@ -11,8 +11,6 @@ import kotlinx.atomicfu.*
  */
 class ExpectSuccess(
 ) {
-
-
     companion object : HttpClientFeature<Unit, ExpectSuccess> {
         override val key: AttributeKey<ExpectSuccess> = AttributeKey("ExpectSuccess")
 
@@ -21,13 +19,20 @@ class ExpectSuccess(
         override fun install(feature: ExpectSuccess, scope: HttpClient) {
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 val response = context.response
-                if (response.status.value >= 300) throw BadResponseStatus(response.status, response)
+                if (response.status.value >= 300) throw BadResponseStatusException(response.status, response)
             }
         }
     }
 }
 
-class BadResponseStatus(
+class BadResponseStatusException(
     val statusCode: HttpStatusCode,
     val response: HttpResponse
 ) : IllegalStateException()
+
+@Deprecated(
+    "[BadResponseStatus] is deprecated. Use [BadResponseStatusException] instead.",
+    ReplaceWith("BadResponseStatusException"),
+    DeprecationLevel.ERROR
+)
+typealias BadResponseStatus = BadResponseStatusException

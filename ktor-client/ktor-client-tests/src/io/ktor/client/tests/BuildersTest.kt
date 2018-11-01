@@ -36,7 +36,7 @@ open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor(
     @Test
     fun testNotFound() = clientTest(factory) {
         test { client ->
-            assertFailsWith<BadResponseStatus> {
+            assertFailsWith<BadResponseStatusException> {
                 runBlocking {
                     client.get<String>(path = "/notFound", port = serverPort)
                 }
