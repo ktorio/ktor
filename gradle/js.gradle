@@ -70,10 +70,9 @@ task installDependenciesMochaChrome(type: NpmTask, dependsOn: [npmInstall]) {
     args = ['install',
             "mocha@$mocha_version",
             "mocha-headless-chrome@$mocha_headless_chrome_version",
-            "mocha-teamcity-reporter",
             '--no-save']
-    if (project.hasProperty("teamcity")) args += [
-        "mocha-teamcity-reporter@$mocha_teamcity_reporter_version"]
+    if (project.hasProperty("teamcity"))
+        args += ["mocha-teamcity-reporter@$mocha_teamcity_reporter_version"]
 }
 
 def mochaChromeTestPage = file("$buildDir/test-page.html")
@@ -93,8 +92,15 @@ prepareMochaChrome.doLast {
         <body>
         <div id="mocha"></div>
         <script src="$node.nodeModulesDir/node_modules/mocha/mocha.js"></script>
+        <script src="$node.nodeModulesDir/node_modules/mocha-teamcity-reporter/lib/teamcityBrowser.js"></script>
         <script>mocha.timeout(10000000);</script>
         <script>mocha.setup('bdd');</script>
+        <script>
+            mocha.setup({
+                reporter: 'teamcity'
+                });
+            mocha.checkLeaks();
+        </script>
         <script src="$projectDir/build/web/kotlin.js"></script>
         <script src="$projectDir/build/web/kotlin-test.js"></script>
         <script src="$projectDir/build/web/kotlinx-atomicfu.js"></script>
@@ -117,7 +123,7 @@ prepareMochaChrome.doLast {
 task testMochaChrome(type: NodeTask, dependsOn: prepareMochaChrome) {
     script = file("$node.nodeModulesDir/node_modules/mocha-headless-chrome/bin/start")
     args = [compileTestKotlin2Js.outputFile, '--file', mochaChromeTestPage, '-a', 'no-sandbox', '-a', 'disable-setuid-sandbox']
-    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
+    args += ['--reporter', 'mocha-teamcity-reporter']
     if (project.hasProperty("mochaTests")) args += ['--grep', "$mochaTests"]
 }
 
