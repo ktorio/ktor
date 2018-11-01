@@ -1,6 +1,6 @@
 package io.ktor.util
 
-actual fun Attributes(): Attributes = AttributesIos()
+actual fun Attributes(concurrent: Boolean): Attributes = AttributesIos()
 
 private class AttributesIos : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()

@@ -50,7 +50,7 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     feature: ApplicationFeature<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
+    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
     val installedFeature = registry.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
@@ -79,7 +79,7 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
  * Uninstalls all features from the pipeline
  */
 fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
-    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
+    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
     registry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST")
         uninstallFeature(it as AttributeKey<Any>)
