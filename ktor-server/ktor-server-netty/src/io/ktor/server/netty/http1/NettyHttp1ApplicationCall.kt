@@ -18,4 +18,8 @@ internal class NettyHttp1ApplicationCall(
 
     override val request = NettyHttp1ApplicationRequest(this, engineContext, context, httpRequest, requestBodyChannel)
     override val response = NettyHttp1ApplicationResponse(this, context, engineContext, userContext, httpRequest.protocolVersion())
+
+    init {
+        putResponseAttribute()
+    }
 }

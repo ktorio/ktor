@@ -42,6 +42,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         // starting
         withContext(userDispatcher) {
             environment.start()
+            BaseApplicationResponse.setupSendPipeline(environment.application)
         }
 
         val connectors = ArrayList<HttpServer>(environment.connectors.size)

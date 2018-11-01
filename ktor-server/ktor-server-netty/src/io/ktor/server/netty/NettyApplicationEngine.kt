@@ -3,6 +3,7 @@ package io.ktor.server.netty
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
@@ -93,8 +94,18 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         }
     }
 
+    init {
+        val afterCall = PipelinePhase("After")
+        pipeline.insertPhaseAfter(EnginePipeline.Call, afterCall)
+        pipeline.intercept(afterCall) {
+            (call as? NettyApplicationCall)?.finish()
+        }
+    }
+
     override fun start(wait: Boolean): NettyApplicationEngine {
         environment.start()
+        BaseApplicationResponse.setupSendPipeline(environment.application)
+
         channels = bootstraps.zip(environment.connectors)
             .map { it.first.bind(it.second.host, it.second.port) }
             .map { it.sync().channel() }

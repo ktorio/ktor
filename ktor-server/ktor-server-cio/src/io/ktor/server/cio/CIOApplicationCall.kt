@@ -23,4 +23,8 @@ internal class CIOApplicationCall(
     internal fun release() {
         request.release()
     }
+
+    init {
+        putResponseAttribute()
+    }
 }
