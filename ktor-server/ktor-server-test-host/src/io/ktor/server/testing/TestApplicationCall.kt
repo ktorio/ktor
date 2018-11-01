@@ -24,4 +24,8 @@ class TestApplicationCall(
     override val response: TestApplicationResponse = TestApplicationResponse(this, readResponse)
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
+
+    init {
+        putResponseAttribute()
+    }
 }

@@ -34,7 +34,9 @@ open class AsyncServletApplicationCall(
             this,
             servletRequest, servletResponse,
             engineContext, userContext, upgrade, parentCoroutineContext + engineContext
-        )
+        ).also {
+            putResponseAttribute(it)
+        }
     }
 }
 
