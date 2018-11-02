@@ -15,7 +15,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
             get("/empty") {

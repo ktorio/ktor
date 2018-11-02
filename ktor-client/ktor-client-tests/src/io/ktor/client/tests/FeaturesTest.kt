@@ -10,7 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
-open class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/body") {

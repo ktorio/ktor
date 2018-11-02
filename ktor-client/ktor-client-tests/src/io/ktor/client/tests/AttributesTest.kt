@@ -13,7 +13,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-open class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
             get("/hello") {

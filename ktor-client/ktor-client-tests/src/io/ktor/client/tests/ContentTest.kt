@@ -21,7 +21,7 @@ import org.junit.Assert.*
 import java.io.*
 import kotlin.test.*
 
-open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val testSize = listOf(
         0, 1, // small edge cases
         4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases

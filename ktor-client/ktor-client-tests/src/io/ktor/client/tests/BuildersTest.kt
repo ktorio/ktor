@@ -13,7 +13,7 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
             get("/empty") {

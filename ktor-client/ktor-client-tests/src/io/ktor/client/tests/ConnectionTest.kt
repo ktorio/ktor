@@ -14,7 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
-open class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val testContent = buildString {
         append("x".repeat(100))
     }
