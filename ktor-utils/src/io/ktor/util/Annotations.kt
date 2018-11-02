@@ -8,6 +8,14 @@ package io.ktor.util
  * We are strongly recommend to not use such API.
  */
 @Experimental(level = Experimental.Level.ERROR)
+@Target(
+    AnnotationTarget.CLASS,
+    AnnotationTarget.TYPEALIAS,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.FIELD,
+    AnnotationTarget.CONSTRUCTOR
+)
 annotation class InternalAPI
 
 /**

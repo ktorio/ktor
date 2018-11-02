@@ -21,13 +21,13 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
      * Executes this pipeline in the given [context] and with the given [subject]
      */
     suspend fun execute(context: TContext, subject: TSubject): TSubject =
-            createContext(context, subject, coroutineContext).proceed()
+        createContext(context, subject).execute(subject)
 
     internal fun createContext(
         context: TContext,
-        subject: TSubject, coroutineContext: CoroutineContext
-    ): PipelineContext<TSubject, TContext> =
-        PipelineContext(context, sharedInterceptorsList(), subject, coroutineContext)
+        subject: TSubject
+    ): PipelineExecutor<TSubject> =
+        pipelineExecutorFor(context, sharedInterceptorsList(), subject)
 
     private class PhaseContent<TSubject : Any, Call : Any>(
         val phase: PipelinePhase,
@@ -223,7 +223,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
      * For tests only
      */
     internal fun interceptorsForTests(): List<PipelineInterceptor<TSubject, TContext>> {
-        return getInterceptorsUnsafe() ?: cacheInterceptors()
+        return interceptors ?: cacheInterceptors()
     }
 
     private fun cacheInterceptors(): List<PipelineInterceptor<TSubject, TContext>> {
@@ -263,9 +263,9 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     /**
      * Adds [block] to the [phase] of this pipeline
      */
-    open fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject, TContext>) {
+    fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject, TContext>) {
         val phaseContent = findPhase(phase)
-                ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
+            ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
         if (tryAddToPhaseFastpath(phase, block)) {
             interceptorsQuantity++
@@ -275,6 +275,14 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
         phaseContent.addInterceptor(block)
         interceptorsQuantity++
         resetInterceptorsList()
+
+        afterIntercepted()
+    }
+
+    /**
+     * Invoked after an interceptor has been installed
+     */
+    open fun afterIntercepted() {
     }
 
     /**
@@ -379,8 +387,6 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
      */
     private var interceptorsListSharedPhase: PipelinePhase? = null
 
-    internal fun getInterceptorsUnsafe() = interceptors
-
     private fun sharedInterceptorsList(): List<PipelineInterceptor<TSubject, TContext>> {
         if (interceptors == null) {
             cacheInterceptors()
@@ -441,7 +447,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
  * Executes this pipeline
  */
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext) = execute(context, Unit)
+suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext): Unit = execute(context, Unit)
 
 /**
  * Intercepts an untyped pipeline when the subject is of the given type
@@ -463,4 +469,3 @@ inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>.interc
  * Represents an interceptor type which is a suspend extension function for context
  */
 typealias PipelineInterceptor<TSubject, TContext> = suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit
-
