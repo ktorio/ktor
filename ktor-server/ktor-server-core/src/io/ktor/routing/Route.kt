@@ -52,12 +52,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         cachedPipeline = null
     }
 
-    /**
-     * Installs an interceptor into this route which will be called when this or a child route is selected for a call
-     */
-    override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<Unit, ApplicationCall>) {
-        super.intercept(phase, block)
-
+    override fun afterIntercepted() {
         // Adding an interceptor invalidates pipelines for all children
         // We don't need synchronisation here, because order of intercepting and acquiring pipeline is indeterminate
         // If some child already cached its pipeline, it's ok to execute with outdated pipeline
