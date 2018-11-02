@@ -21,7 +21,7 @@ import kotlin.reflect.*
  * ```
  */
 @UseExperimental(ImplicitReflectionSerializer::class)
-class KotlinxSerializer : JsonSerializer {
+class KotlinxSerializer(private val json: JSON = JSON.plain) : JsonSerializer {
     @Suppress("UNCHECKED_CAST")
     private val mappers: MutableMap<KClass<Any>, KSerializer<Any>> = mutableMapOf()
 
@@ -47,14 +47,14 @@ class KotlinxSerializer : JsonSerializer {
 
 
     override fun write(data: Any): OutgoingContent {
-        val content = JSON.stringify(lookupSerializer(data::class), data)
+        val content = json.stringify(lookupSerializer(data::class), data)
         return TextContent(content, ContentType.Application.Json)
     }
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
         val mapper = lookupSerializer(type.type)
         val text = response.readText()
-        return JSON.parse(mapper, text)
+        return json.parse(mapper, text)
     }
 
     private fun lookupSerializer(type: KClass<*>): KSerializer<Any> {
