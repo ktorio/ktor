@@ -6,6 +6,6 @@ dependencies {
     compile project(":ktor-http:ktor-http-jvm")
     compile project(":ktor-utils:ktor-utils-jvm")
 
-    testCompile project(":ktor-client:ktor-client-mock")
+    testCompile project(":ktor-client:ktor-client-mock:ktor-client-mock-jvm")
     testCompile project(":ktor-client:ktor-client-tests")
 }

@@ -1,5 +1,3 @@
-package io.ktor.client.tests.mock
-
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
