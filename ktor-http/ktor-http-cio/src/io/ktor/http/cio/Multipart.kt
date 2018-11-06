@@ -255,6 +255,7 @@ fun parseMultipart(
 fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
+    @Suppress("DEPRECATION")
     val readBeforeParse = input.totalBytesRead
     val firstBoundary = boundaryPrefixed.duplicate()!!.apply {
         position(2)
@@ -307,6 +308,7 @@ fun CoroutineScope.parseMultipart(
     } while (!boundary(boundaryPrefixed, input))
 
     if (totalLength != null) {
+        @Suppress("DEPRECATION")
         val consumedExceptEpilogue = input.totalBytesRead - readBeforeParse
         val size = totalLength - consumedExceptEpilogue
         if (size > Int.MAX_VALUE) throw IOException("Failed to parse multipart: prologue is too long")

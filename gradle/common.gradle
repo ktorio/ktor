@@ -1,3 +1,4 @@
+
 sourceSets {
     main {
         kotlin.srcDir 'src'
@@ -11,11 +12,11 @@ sourceSets {
 
 
 compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
 }
 
 compileTestKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
 }
 
 dependencies {

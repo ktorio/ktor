@@ -39,6 +39,7 @@ ext.globalM2 = "$buildDir/m2"
 ext.publishLocal = project.hasProperty('publishLocal')
 
 apply from: 'gradle/platform.gradle'
+apply from: 'gradle/experimental.gradle'
 
 allprojects {
     def platform = platformOf(project)

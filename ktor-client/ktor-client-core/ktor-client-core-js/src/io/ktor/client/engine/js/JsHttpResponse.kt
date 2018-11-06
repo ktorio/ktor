@@ -33,6 +33,7 @@ class JsHttpResponse(
     }
 
     override fun close() {
+        @Suppress("UNCHECKED_CAST")
         (coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
     }
 }

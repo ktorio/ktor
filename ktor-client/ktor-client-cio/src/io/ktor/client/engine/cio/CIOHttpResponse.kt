@@ -35,6 +35,7 @@ internal class CIOHttpResponse(
         if (pipelined) {
             runBlocking {
                 val length = headers[HttpHeaders.ContentLength]!!.toLong()
+                @Suppress("DEPRECATION")
                 content.discard(length - content.totalBytesRead)
             }
         }
