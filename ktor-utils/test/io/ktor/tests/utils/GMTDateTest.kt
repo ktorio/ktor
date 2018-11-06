@@ -22,4 +22,22 @@ class GMTDateTest {
         assertEquals(first, second)
         assertEquals(first.timestamp / 1000 , third.timestamp / 1000)
     }
+
+    @Test
+    fun testComparison() {
+        val before = GMTDate(1L)
+        val after = GMTDate(3L)
+        val inTheMiddle = GMTDate(2L)
+
+        assertTrue { before < after }
+        assertTrue { inTheMiddle in before .. after }
+
+        val farDate = GMTDate(Long.MAX_VALUE - 1L)
+
+        assertTrue { farDate > before }
+        assertTrue { farDate > after }
+        assertTrue { before < farDate }
+        assertTrue { farDate == farDate }
+        assertEquals(0, farDate.compareTo(farDate))
+    }
 }
