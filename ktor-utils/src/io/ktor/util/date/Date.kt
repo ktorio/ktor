@@ -94,7 +94,9 @@ data class GMTDate internal constructor(
     val year: Int,
 
     val timestamp: Long
-) {
+) : Comparable<GMTDate> {
+
+    override fun compareTo(other: GMTDate): Int = timestamp.compareTo(other.timestamp)
 
     companion object {
         /**
@@ -116,11 +118,6 @@ expect fun GMTDate(timestamp: Long? = null): GMTDate
  */
 @Suppress("FunctionName")
 expect fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate
-
-/**
- * Date comparison operator
- */
-operator fun GMTDate.compareTo(other: GMTDate): Int = (timestamp - other.timestamp).sign
 
 /**
  * Adds the specified number of [milliseconds]
