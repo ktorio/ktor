@@ -51,12 +51,24 @@ fun hex(s: String): ByteArray {
     return result
 }
 
+private val digits = "0123456789abcdef".toCharArray()
+
 /**
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
  */
 @KtorExperimentalAPI
-fun hex(bytes: ByteArray) = bytes.joinToString("") {
-    Integer.toHexString(it.toInt() and 0xff).padStart(2, '0')
+fun hex(bytes: ByteArray): String {
+    val result = CharArray(bytes.size * 2)
+    var resultIndex = 0
+    val digits = digits
+
+    for (index in 0 until bytes.size) {
+        val b = bytes[index].toInt() and 0xff
+        result[resultIndex++] = digits[b shr 4]
+        result[resultIndex++] = digits[b and 0x0f]
+    }
+
+    return String(result)
 }
 
 /**
