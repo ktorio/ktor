@@ -2,9 +2,7 @@ package io.ktor.tests.server.sessions
 
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.encodeURLQueryComponent
+import io.ktor.http.*
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.route
@@ -13,6 +11,7 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.sessions.*
+import io.ktor.util.date.*
 import io.ktor.util.hex
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.coroutines.runBlocking
@@ -434,6 +433,47 @@ class SessionTest {
                 addHeader(HttpHeaders.Cookie, "$cookieName=bad$sessionId")
             }.let { call ->
                 assertEquals("no session", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSessionByIdCookie() {
+        val sessionStorage = SessionStorageMemory()
+        var id = 777
+        val durationSeconds = 5L
+
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, sessionStorage) {
+                    cookie.duration = Duration.ofSeconds(durationSeconds)
+                    identity { (id++).toString() }
+                }
+            }
+
+            application.routing {
+                get("/1") {
+                    call.sessions.set(TestUserSession("id2", emptyList()))
+                    call.respondText("ok")
+                }
+            }
+
+            fun GMTDate.plusAndDiscardMillis() = (this + durationSeconds * 1000L).toHttpDate().fromHttpToGmtDate()
+
+            val before = GMTDate()
+            handleRequest(HttpMethod.Get, "/1").let { call ->
+                val sessionCookie = call.response.cookies[cookieName]
+                assertNotNull(sessionCookie, "No session cookie found")
+                val after = GMTDate()
+
+                assertEquals(durationSeconds.toInt(), sessionCookie.maxAge)
+                assertEquals("777", sessionCookie.value)
+                assertNotNull(sessionCookie.expires, "Expires cookie value is not set")
+                assertTrue("Expires cookie parameter value should be in the specified dates range") {
+                    sessionCookie.expires!! in before.plusAndDiscardMillis() .. after.plusAndDiscardMillis()
+                }
+
+                1
             }
         }
     }
