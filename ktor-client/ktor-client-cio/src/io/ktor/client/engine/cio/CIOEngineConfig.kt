@@ -6,7 +6,7 @@ import java.security.*
 import javax.net.ssl.*
 
 private val DEFAULT_RANDOM: String =
-    SecureRandom.getInstanceStrong().algorithm.takeIf { it != "unknown" } ?: "NativePRNGNonBlocking"
+    SecureRandom().algorithm.takeIf { it != "unknown" } ?: "NativePRNGNonBlocking"
 
 class CIOEngineConfig : HttpClientEngineConfig() {
     val endpoint: EndpointConfig = EndpointConfig()
