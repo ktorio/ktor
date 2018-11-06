@@ -33,15 +33,19 @@ class URLBuilder(
     /**
      * Encode [components] to [encodedPath]
      */
-    fun path(vararg components: String) {
+    fun path(vararg components: String): URLBuilder {
         path(components.asList())
+
+        return this
     }
 
     /**
      * Encode [components] to [encodedPath]
      */
-    fun path(components: List<String>) {
+    fun path(components: List<String>): URLBuilder {
         encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
+
+        return this
     }
 
     private fun <A : Appendable> appendTo(out: A): A {

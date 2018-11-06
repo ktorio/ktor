@@ -12,6 +12,7 @@ out
 *.versionsBackup
 *.releaseBackup
 release.properties
+local.properties
 
 .video
 .attach_pid*
