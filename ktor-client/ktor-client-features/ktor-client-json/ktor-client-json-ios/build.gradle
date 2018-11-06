@@ -1,4 +1,4 @@
-apply plugin: 'kotlinx-serialization'
+apply plugin: 'kotlinx-serialization-native'
 
 dependencies {
     expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
