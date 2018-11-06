@@ -23,13 +23,13 @@ class StatusPages(config: Configuration) {
         /**
          * Exception handlers map by exception class
          */
-        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit>()
+        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit>()
 
         /**
          * Status handlers by status code
          */
         val statuses =
-            mutableMapOf<HttpStatusCode, suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit>()
+            mutableMapOf<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit>()
 
         /**
          * Register exception [handler] for exception type [T] and it's children
@@ -47,7 +47,7 @@ class StatusPages(config: Configuration) {
             handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
         ) {
             @Suppress("UNCHECKED_CAST")
-            exceptions.put(klass, handler as suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit)
+            exceptions.put(klass, handler as suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit)
         }
 
         /**
@@ -55,7 +55,7 @@ class StatusPages(config: Configuration) {
          */
         fun status(
             vararg status: HttpStatusCode,
-            handler: suspend PipelineContext<Unit, ApplicationCall>.(HttpStatusCode) -> Unit
+            handler: suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit
         ) {
             status.forEach {
                 statuses.put(it, handler)
@@ -63,26 +63,26 @@ class StatusPages(config: Configuration) {
         }
     }
 
-    private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
-        var statusHandled = false
-        context.call.response.pipeline.intercept(ApplicationSendPipeline.After) { message ->
-            if (!statusHandled) {
-                val status = when (message) {
-                    is OutgoingContent -> message.status
-                    is HttpStatusCode -> message
-                    else -> null
-                }
-                if (status != null) {
-                    val handler = statuses[status]
-                    if (handler != null) {
-                        statusHandled = true
-                        context.handler(status)
-                        finish() // TODO: Should we always finish? Handler could skip responding…
-                    }
-                }
+    private suspend fun interceptResponse(context: PipelineContext<*, ApplicationCall>, message: Any) {
+        val call = context.call
+        if (call.attributes.contains(key)) return
+
+        val status = when (message) {
+            is OutgoingContent -> message.status
+            is HttpStatusCode -> message
+            else -> null
+        }
+        if (status != null) {
+            val handler = statuses[status]
+            if (handler != null) {
+                call.attributes.put(key, this@StatusPages)
+                context.handler(status)
+                context.finish() // TODO: Should we always finish? Handler could skip responding…
             }
         }
+    }
 
+    private suspend fun interceptCall(context: PipelineContext<Unit, ApplicationCall>) {
         try {
             coroutineScope {
                 context.proceed()
@@ -118,7 +118,10 @@ class StatusPages(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
             val configuration = Configuration().apply(configure)
             val feature = StatusPages(configuration)
-            pipeline.intercept(ApplicationCallPipeline.Monitoring) { feature.intercept(this) }
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
+                feature.interceptResponse(this, message)
+            }
+            pipeline.intercept(ApplicationCallPipeline.Monitoring) { feature.interceptCall(this) }
             return feature
         }
     }

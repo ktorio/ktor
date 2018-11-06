@@ -8,7 +8,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.CancellationException
 import org.junit.Test
