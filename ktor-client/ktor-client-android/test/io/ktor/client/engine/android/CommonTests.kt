@@ -13,6 +13,7 @@ class AndroidAttributesTest : AttributesTest(Android)
 
 class AndroidPostTest : PostTest(Android)
 
+@Ignore
 class AndroidMultithreadedTest : MultithreadedTest(Android)
 
 class AndroidFullFormTest : FullFormTest(Android)

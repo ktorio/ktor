@@ -13,6 +13,7 @@ class OkHttpAttributesTest : AttributesTest(OkHttp)
 
 class OkHttpPostTest : PostTest(OkHttp)
 
+@Ignore
 class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
 
 class OkHttpContentTest : ContentTest(OkHttp)
