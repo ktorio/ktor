@@ -79,9 +79,7 @@ internal class ConnectionPipeline(
 
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
 
-                    val writerJob = if (hasBody) GlobalScope.writer(
-                        Dispatchers.Unconfined + callContext[Job]!!, autoFlush = true
-                    ) {
+                    val writerJob = if (hasBody) GlobalScope.writer(callContext, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
                     } else null
 

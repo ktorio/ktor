@@ -133,7 +133,7 @@ internal class Endpoint(
                     ByteReadChannel.Empty
                 }
                 else -> {
-                    val httpBodyParser = writer(Dispatchers.Unconfined, autoFlush = true) {
+                    val httpBodyParser = GlobalScope.writer(callContext, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
                     }
 

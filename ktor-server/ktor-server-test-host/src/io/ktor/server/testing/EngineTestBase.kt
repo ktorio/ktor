@@ -3,7 +3,6 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
@@ -250,11 +249,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
         withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
-            HttpClient(CIO.config {
-                https.also {
-                    it.trustManager = trustManager
+            HttpClient(CIO) {
+                engine {
+                    https.trustManager = trustManager
                 }
-            }) {
                 followRedirects = false
                 expectSuccess = false
             }.use { client ->
