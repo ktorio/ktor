@@ -2,5 +2,5 @@
 dependencies {
     expectedBy project(':ktor-client:ktor-client-mock')
 
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-ios")
+    implementation project(":ktor-client:ktor-client-core:ktor-client-core-ios")
 }
