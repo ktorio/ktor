@@ -69,7 +69,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
     @get:Rule
     open val timeout = PublishedTimeout(
-        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 240L)
+        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(10))
     )
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout.seconds).toInt() }
