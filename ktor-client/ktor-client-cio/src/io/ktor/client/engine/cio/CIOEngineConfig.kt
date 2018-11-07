@@ -2,6 +2,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.network.tls.*
+import io.ktor.util.*
 import java.security.*
 import javax.net.ssl.*
 
