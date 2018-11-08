@@ -23,12 +23,14 @@ class HttpClientCall internal constructor(
     /**
      * Represents the [request] sent by the client.
      */
-    lateinit var request: HttpRequest ; internal set
+    lateinit var request: HttpRequest
+        internal set
 
     /**
      * Represents the [response] sent by the server.
      */
-    lateinit var response: HttpResponse ; internal set
+    lateinit var response: HttpResponse
+        internal set
 
     /**
      * Configuration for the [response].
