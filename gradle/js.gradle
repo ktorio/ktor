@@ -70,9 +70,9 @@ task installDependenciesMochaChrome(type: NpmTask, dependsOn: [npmInstall]) {
     args = ['install',
             "mocha@$mocha_version",
             "mocha-headless-chrome@$mocha_headless_chrome_version",
-            '--no-save']
-    if (project.hasProperty("teamcity"))
-        args += ["mocha-teamcity-reporter@$mocha_teamcity_reporter_version"]
+            "mocha-teamcity-reporter@$mocha_teamcity_reporter_version",
+            '--no-save'
+    ]
 }
 
 def mochaChromeTestPage = file("$buildDir/test-page.html")
