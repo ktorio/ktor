@@ -12,7 +12,7 @@ class RequestTest {
             val request = chain.request()
             println("execute request: $request")
             val response = chain.proceed(request)
-            println("received response: $response")
+            println("received response: $response headers ${response.header("date")}")
             return response
         }
     }
@@ -28,6 +28,7 @@ class RequestTest {
 
         test { client ->
             client.get<String>("https://google.com")
+            client.get<String>("https://www.cloudflare.com")
         }
     }
 

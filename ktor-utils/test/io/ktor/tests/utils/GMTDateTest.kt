@@ -40,4 +40,12 @@ class GMTDateTest {
         assertTrue { farDate == farDate }
         assertEquals(0, farDate.compareTo(farDate))
     }
+
+    @Test
+    fun testRFC850(){
+        val rfc850 = parseRFC850("Fri, 08-Nov-10 10:10:10 GMT")
+        val date = GMTDate(10, 10, 10, 8, Month.NOVEMBER, 2010)
+
+        assertEquals(date.timestamp, rfc850.timestamp)
+    }
 }
