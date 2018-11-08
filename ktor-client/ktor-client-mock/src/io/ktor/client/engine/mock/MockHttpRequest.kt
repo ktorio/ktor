@@ -6,8 +6,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.io.*
-import kotlinx.io.charsets.Charsets
-import kotlinx.io.core.toByteArray
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 class MockHttpRequest(
     override val call: HttpClientCall,
