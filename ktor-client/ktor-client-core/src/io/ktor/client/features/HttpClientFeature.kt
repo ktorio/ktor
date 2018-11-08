@@ -9,16 +9,16 @@ internal val FEATURE_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationFeatu
 /**
  * Base interface representing a [HttpClient] feature.
  */
-interface HttpClientFeature<out TBuilder : Any, TFeature : Any> {
+interface HttpClientFeature<out TConfig : Any, TFeature : Any> {
     /**
      * The [AttributeKey] for this feature.
      */
     val key: AttributeKey<TFeature>
 
     /**
-     * Builds a [TFeature] by calling the [block] with a [TBuilder] config instance as receiver.
+     * Builds a [TFeature] by calling the [block] with a [TConfig] config instance as receiver.
      */
-    fun prepare(block: TBuilder.() -> Unit = {}): TFeature
+    fun prepare(block: TConfig.() -> Unit = {}): TFeature
 
     /**
      * Installs the [feature] class for a [HttpClient] defined at [scope].
