@@ -1,14 +1,18 @@
 package io.ktor.util.date
 
-fun parseRFC850(rfc850: String) : GMTDate{
+fun parseDateRFC850(rfc850: String) : GMTDate{
 
-    val regex = "([0-9]+)-([aA-zZ]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+)".toRegex()
-    val result = regex.find(rfc850)
-    result?.let {
-        val v = it.groupValues
-        return GMTDate(v[6].toInt(),v[5].toInt(),v[4].toInt(), v[1].toInt(), Month.from(v[2]), yearCommonEra( v[3].toInt() ) )
+    return try {
+        val subDate = rfc850.subSequence(rfc850.indexOf(',')+2, rfc850.length)
+        val parts = subDate.split(' ')
+        val date = parts[0].split('-')
+        val time = parts[1].split(':')
+
+        GMTDate(time[2].toInt(),time[1].toInt(),time[0].toInt(), date[0].toInt(), Month.from(date[1]), yearCommonEra( date[2].toInt() ) )
+    }catch (ex:Exception){
+        GMTDate.START
     }
-    return GMTDate.START
+
 }
 
 fun yearCommonEra(year: Int) = if (year<70) year + 2000 else year + 1900
