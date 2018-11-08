@@ -6,6 +6,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.io.*
+import kotlinx.io.charsets.Charsets
+import kotlinx.io.core.toByteArray
 
 class MockHttpRequest(
     override val call: HttpClientCall,
@@ -14,15 +16,7 @@ class MockHttpRequest(
     override val attributes: Attributes,
     override val content: OutgoingContent,
     override val headers: Headers
-) : HttpRequest {
-    init {
-        InternalHttpClientCall.apply {
-            call.apply {
-                setRequestInternal(this@MockHttpRequest)
-            }
-        }
-    }
-}
+) : HttpRequest
 
 /**
  * Convert [HttpRequestData] to [MockHttpRequest]
