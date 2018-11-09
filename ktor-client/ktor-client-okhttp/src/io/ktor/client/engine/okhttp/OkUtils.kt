@@ -10,15 +10,11 @@ internal suspend fun OkHttpClient.execute(request: Request): Response = suspendC
     val callback = object : Callback {
 
         override fun onFailure(call: Call, cause: IOException) {
-            if (!call.isCanceled) {
-                it.resumeWithException(cause)
-            }
+            if (!call.isCanceled) it.resumeWithException(cause)
         }
 
         override fun onResponse(call: Call, response: Response) {
-            if (!call.isCanceled) {
-                it.resume(response)
-            }
+            if (!call.isCanceled) it.resume(response)
         }
     }
 

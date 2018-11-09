@@ -1,11 +1,12 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*

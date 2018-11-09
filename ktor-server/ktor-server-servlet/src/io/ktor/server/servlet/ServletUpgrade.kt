@@ -5,6 +5,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -84,8 +85,7 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
         val inputChannel = when {
             up.disableAsyncInput -> webConnection.inputStream.toByteReadChannel(
-                context = up.userContext,
-                parent = upgradeJob,
+                context = up.userContext + upgradeJob,
                 pool = KtorDefaultPool
             )
             else -> servletReader(webConnection.inputStream).channel

@@ -7,6 +7,7 @@ import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import okhttp3.*
 import kotlin.coroutines.*
 
@@ -34,9 +35,14 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientJvmEngine("kto
 
         val response = engine.execute(builder.build())
 
+        val body = response.body()
+        callContext[Job]?.invokeOnCompletion { body?.close() }
+
         val responseContent = withContext(callContext) {
-            val body = response.body()
-            body?.byteStream()?.toByteReadChannel(context = dispatcher, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
+            body?.byteStream()?.toByteReadChannel(
+                context = callContext,
+                pool = KtorDefaultPool
+            ) ?: ByteReadChannel.Empty
         }
 
         return HttpEngineCall(request, OkHttpResponse(response, call, requestTime, responseContent, callContext))

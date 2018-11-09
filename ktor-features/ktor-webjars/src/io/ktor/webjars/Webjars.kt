@@ -9,6 +9,7 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import org.webjars.*
 import java.io.*
 import java.nio.file.*
@@ -87,7 +88,5 @@ private class InputStreamContent(val input: InputStream, override val contentTyp
         versions += LastModifiedVersion(lastModified)
     }
 
-    override fun readFrom(): ByteReadChannel {
-        return input.toByteReadChannel(pool = KtorDefaultPool)
-    }
+    override fun readFrom(): ByteReadChannel = input.toByteReadChannel(pool = KtorDefaultPool)
 }
