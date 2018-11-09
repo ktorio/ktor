@@ -36,7 +36,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientJvmEngine("kto
 
         val responseContent = withContext(callContext) {
             val body = response.body()
-            body?.byteStream()?.toByteReadChannel(context = dispatcher) ?: ByteReadChannel.Empty
+            body?.byteStream()?.toByteReadChannel(context = dispatcher, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
         }
 
         return HttpEngineCall(request, OkHttpResponse(response, call, requestTime, responseContent, callContext))

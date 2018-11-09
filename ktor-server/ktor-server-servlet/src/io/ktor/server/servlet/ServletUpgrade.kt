@@ -85,7 +85,8 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         val inputChannel = when {
             up.disableAsyncInput -> webConnection.inputStream.toByteReadChannel(
                 context = up.userContext,
-                parent = upgradeJob
+                parent = upgradeJob,
+                pool = KtorDefaultPool
             )
             else -> servletReader(webConnection.inputStream).channel
         }

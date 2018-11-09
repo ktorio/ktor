@@ -88,6 +88,6 @@ private class InputStreamContent(val input: InputStream, override val contentTyp
     }
 
     override fun readFrom(): ByteReadChannel {
-        return input.toByteReadChannel()
+        return input.toByteReadChannel(pool = KtorDefaultPool)
     }
 }

@@ -18,5 +18,5 @@ class URIFileContent(
         url.toURI(), contentType
     )
 
-    override fun readFrom() = uri.toURL().openStream().toByteReadChannel() // TODO: use http client
+    override fun readFrom() = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool) // TODO: use http client
 }

@@ -30,7 +30,7 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline) }
+    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool) }
 
     override fun receiveChannel() = inputStreamChannel
 }

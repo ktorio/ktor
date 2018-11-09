@@ -1657,7 +1657,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
                 launch(CoroutineName("reader") + testDispatcher) {
                     use {
-                        val channel = getInputStream().toByteReadChannel(context = testDispatcher)
+                        val channel = getInputStream().toByteReadChannel(context = testDispatcher, pool = KtorDefaultPool)
 
                         repeat(repeatCount) { requestNumber ->
                             parseResponse(channel)?.use { response ->

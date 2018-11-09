@@ -32,6 +32,6 @@ class JarFileContent(
 
     override val contentLength: Long? get() = jarEntry?.size
 
-    override fun readFrom() = jar.getInputStream(jarEntry)?.toByteReadChannel()
+    override fun readFrom() = jar.getInputStream(jarEntry)?.toByteReadChannel(pool = KtorDefaultPool)
         ?: throw IOException("Resource $normalized not found")
 }
