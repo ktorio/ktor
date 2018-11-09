@@ -271,6 +271,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             HttpClient(Jetty) {
                 followRedirects = false
                 expectSuccess = false
+                engine {
+                    pipelining = true
+                }
             }.use { httpClient ->
                 httpClient.call(url, builder).response.use { response ->
                     block(response, port)

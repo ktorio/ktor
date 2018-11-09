@@ -145,7 +145,7 @@ internal class Endpoint(
             response.complete(
                 CIOHttpResponse(
                     request, requestTime, body, rawResponse,
-                    pipelined = false, coroutineContext = callContext
+                    coroutineContext = callContext
                 )
             )
         } catch (cause: Throwable) {
