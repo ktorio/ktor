@@ -1714,6 +1714,41 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
     }
 
+    @Test
+    fun testCompressionWriteToLarge() {
+        val count = 655350
+        fun Appendable.produceText() {
+            for (i in 1..count) {
+                append("test $i\n".padStart(10, ' '))
+            }
+        }
+
+        createAndStartServer {
+            application.install(Compression)
+
+            get("/") {
+                call.respondTextWriter(contentType = ContentType.Text.Plain) {
+                    produceText()
+                }
+            }
+        }
+
+        withUrl("/", {
+            headers.append(HttpHeaders.AcceptEncoding, "gzip")
+        }) {
+            // ensure the server is running
+            val expected = buildString {
+                produceText()
+            }
+            call.receive<HttpResponse>().use { response ->
+                assertTrue { HttpHeaders.ContentEncoding in response.headers }
+                val array = response.receive<ByteArray>()
+                val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
+                assertEquals(expected, text)
+            }
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 

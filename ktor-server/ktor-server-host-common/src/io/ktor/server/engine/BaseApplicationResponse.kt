@@ -152,7 +152,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             // Call user code to send data
 //            val before = totalBytesWritten
             try {
-                content.writeTo(this)
+                withContext(Dispatchers.IO) {
+                    content.writeTo(this@use)
+                }
             } catch (closed: ClosedWriteChannelException) {
                 throw ChannelWriteException(exception = closed)
             }
