@@ -26,7 +26,7 @@ open class HttpClientEngineConfig {
     /**
      * Enable http pipelining
      */
-    var pipelining: Boolean = true
+    var pipelining: Boolean = false
 
     /**
      * Configuration for http response.
