@@ -1,10 +1,8 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package io.ktor.network.selector
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.internal.*
 import java.io.Closeable
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
