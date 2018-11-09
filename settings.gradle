@@ -59,6 +59,7 @@ includeEx ':ktor-client:ktor-client-features:ktor-client-logging:ktor-client-log
 includeEx ':ktor-client:ktor-client-features:ktor-client-logging:ktor-client-logging-js'
 includeEx ':ktor-client:ktor-client-features:ktor-client-logging:ktor-client-logging-ios'
 includeEx ':ktor-features:ktor-freemarker'
+includeEx ':ktor-features:ktor-mustache'
 includeEx ':ktor-features:ktor-velocity'
 includeEx ':ktor-features:ktor-gson'
 includeEx ':ktor-features:ktor-jackson'
