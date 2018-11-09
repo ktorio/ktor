@@ -54,6 +54,7 @@ includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-jackso
 includeEx ':ktor-client:ktor-client-features:ktor-client-auth-basic'
 includeEx ':ktor-client:ktor-client-features:ktor-client-websocket'
 includeEx ':ktor-features:ktor-freemarker'
+includeEx ':ktor-features:ktor-mustache'
 includeEx ':ktor-features:ktor-velocity'
 includeEx ':ktor-features:ktor-gson'
 includeEx ':ktor-features:ktor-jackson'

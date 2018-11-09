@@ -1,0 +1,4 @@
+description = ''
+dependencies {
+    compile group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.5'
+}
