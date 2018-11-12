@@ -1,8 +1,13 @@
 buildscript {
     ext.kotlin_repository = {
         if (kotlin_version.endsWith('-SNAPSHOT')) return 'https://oss.sonatype.org/content/repositories/snapshots'
-        return 'http://dl.bintray.com/kotlin/kotlin-eap'
-    }()
+        return 'http://dl.bintray.com/kotlin/kotlin-eap' }()
+
+    /*
+     * When true, kotlinx.coroutines version is updated to $version-SNAPSHOT.
+     * Set by teamcity agent
+     */
+    ext.useCoroutinesSnapshot = rootProject.properties['coroutinesSnapshot'] != null
 
     repositories {
         jcenter()
@@ -46,6 +51,22 @@ allprojects {
 
     group = 'io.ktor'
     version = configuredVersion
+    if (useCoroutinesSnapshot) {
+        repositories {
+            maven { url "https://oss.jfrog.org/oss-snapshot-local/org/jetbrains/kotlinx/" }
+        }
+
+        configurations.all {
+            resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    if (details.requested.group == 'org.jetbrains.kotlinx' && details.requested.name.contains("kotlinx-coroutines")
+                        && !details.requested.name.contains("kotlinx-coroutines-io")) {
+                        details.useVersion "$coroutines_version-SNAPSHOT"
+                    }
+                }
+            }
+        }
+    }
 
     repositories {
         mavenLocal()
