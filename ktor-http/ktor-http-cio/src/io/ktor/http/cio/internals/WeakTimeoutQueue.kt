@@ -1,9 +1,9 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
+import io.ktor.util.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.internal.*
 import java.time.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
@@ -125,7 +125,7 @@ class WeakTimeoutQueue(
         }
     }
 
-    private abstract class Cancellable(val deadline: Long) : @UseExperimental(InternalCoroutinesApi::class) LockFreeLinkedListNode(), Registration {
+    private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), Registration {
         open val isActive: Boolean
             get() = !isRemoved
 
