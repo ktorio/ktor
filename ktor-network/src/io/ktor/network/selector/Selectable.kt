@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.*
 
 /**
  * A selectable entity with selectable NIO [channel], [interestedOps] subscriptions
@@ -51,11 +52,8 @@ internal open class SelectableBase(override val channel: SelectableChannel) : Se
 
     override fun close() {
         interestedOps = 0
-        @UseExperimental(InternalCoroutinesApi::class)
         suspensions.invokeForEachPresent {
-            tryResumeWithException(ClosedChannelException())?.let { token ->
-                completeResume(token)
-            }
+            resumeWithException(ClosedChannelException())
         }
     }
 

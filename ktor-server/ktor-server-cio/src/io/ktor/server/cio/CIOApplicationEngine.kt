@@ -11,7 +11,6 @@ import java.util.concurrent.*
 /**
  * Engine that based on CIO backend
  */
-@UseExperimental(InternalCoroutinesApi::class)
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
 
@@ -33,7 +32,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         environment.connectors.size + 1 // number of selectors + 1
     )
 
+    @UseExperimental(InternalCoroutinesApi::class)
     private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
+
+    @UseExperimental(InternalCoroutinesApi::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val stopRequest = CompletableDeferred<Unit>()
@@ -95,6 +97,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         try {
             shutdownServer(gracePeriod, timeout, timeUnit)
         } finally {
+            @UseExperimental(InternalCoroutinesApi::class)
             engineDispatcher.close()
         }
     }
