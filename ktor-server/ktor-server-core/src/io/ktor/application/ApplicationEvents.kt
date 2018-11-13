@@ -1,7 +1,7 @@
 package io.ktor.application
 
+import io.ktor.util.internal.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.internal.*
 import java.util.concurrent.*
 
 /**
