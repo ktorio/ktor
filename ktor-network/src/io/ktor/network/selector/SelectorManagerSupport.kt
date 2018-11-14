@@ -149,7 +149,7 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
      * Cancel all suspensions with the specified exception, reset all interests
      */
     protected fun cancelAllSuspensions(selector: Selector, t: Throwable?) {
-        val cause = t ?: ClosedSelectorException()
+        val cause = t ?: ClosedSelectorCancellationException()
 
         selector.keys().forEach { k ->
             try {
@@ -166,4 +166,6 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         set(newValue) {
             attach(newValue)
         }
+
+    class ClosedSelectorCancellationException : CancellationException("Closed selector")
 }
