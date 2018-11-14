@@ -3,6 +3,7 @@ package io.ktor.server.servlet
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
@@ -63,6 +64,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
             } else {
                 blockingService(request, response)
             }
+        } catch (ioError: ChannelIOException) {
+            application.log.debug("I/O error", ioError)
         } catch (ex: Throwable) {
             application.log.error("ServletApplicationEngine cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
