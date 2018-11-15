@@ -1,18 +1,13 @@
 package io.ktor.util.date
 
 fun parseDateRFC850(rfc850: String) = try {
-    val subDate = rfc850.subSequence(rfc850.indexOf(',') + 2, rfc850.length)
-    val parts = subDate.split(' ')
-    val date = parts[0].split('-')
-    val time = parts[1].split(':')
-
     GMTDate(
-        time[2].toInt(),
-        time[1].toInt(),
-        time[0].toInt(),
-        date[0].toInt(),
-        Month.from(date[1]),
-        yearCommonEra(date[2].toInt())
+        rfc850.substring(21,23).toInt(),
+        rfc850.substring(18,20).toInt(),
+        rfc850.substring(15,17).toInt(),
+        rfc850.substring(5,7).toInt(),
+        Month.from(rfc850.substring(8,11)),
+        yearCommonEra(rfc850.substring(12,14).toInt())
     )
 } catch (cause: Throwable) {
     throw DateParserException(rfc850, cause)

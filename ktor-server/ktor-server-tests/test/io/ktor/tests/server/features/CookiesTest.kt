@@ -69,6 +69,17 @@ class CookiesTest {
         }
     }
 
+    @test fun `add cookies with expires RFC850`() {
+        val date = LocalDate
+            .parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd"))
+            .atStartOfDay(ZoneId.of("GMT"))!!
+            .format(DateTimeFormatter.ofPattern("E, dd-MMM-yy hh:mm:ss O"))
+
+        testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 12:00:00 GMT") {
+            cookies.append("SESSION", "123", expires = date.fromHttpToGmtDate())
+        }
+    }
+
     @test fun `add cookies old Date`() {
         val date = SimpleDateFormat("yyyyMMdd z")
             .parse("20150818 GMT")

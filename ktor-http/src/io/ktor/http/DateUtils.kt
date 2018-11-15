@@ -3,6 +3,7 @@ package io.ktor.http
 import io.ktor.util.date.*
 
 private const val HTTP_DATE_LENGTH = 29
+private const val HTTP_DATE_RFC850_LENGTH = 27
 
 /**
  * Convert valid http date [String] to [GMTDate]
@@ -13,25 +14,29 @@ private const val HTTP_DATE_LENGTH = 29
  * Note that only date in GMT(UTC) is valid http date
  */
 fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
-    check(length == HTTP_DATE_LENGTH) {
+    check(length == HTTP_DATE_LENGTH || length == HTTP_DATE_RFC850_LENGTH) {
         "Invalid date length. Expected $HTTP_DATE_LENGTH, actual $length. On string: $this"
     }
 
-    check(endsWith("GMT")) { "Invalid timezone. Expected GMT. On string: $this"}
+    check(endsWith("GMT")) { "Invalid timezone. Expected GMT. On string: $this" }
 
 //    val weekDay = WeekDay.from(substring(0, 3))
-    val day = substring(5, 7).toInt()
-    val month = Month.from(substring(8, 11))
-    val year = substring(12, 16).toInt()
+    return if (length == HTTP_DATE_RFC850_LENGTH) {
+        parseDateRFC850(this)
+    } else {
+        val day = substring(5, 7).toInt()
+        val month = Month.from(substring(8, 11))
+        val year = substring(12, 16).toInt()
 
-    val hours = substring(17, 19).toInt()
-    val minutes = substring(20, 22).toInt()
-    val seconds = substring(23, 25).toInt()
+        val hours = substring(17, 19).toInt()
+        val minutes = substring(20, 22).toInt()
+        val seconds = substring(23, 25).toInt()
 
-    return GMTDate(
-        seconds, minutes, hours,
-        day, month, year
-    )
+        GMTDate(
+            seconds, minutes, hours,
+            day, month, year
+        )
+    }
 }
 
 /**
