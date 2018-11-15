@@ -48,9 +48,9 @@ interface ApplicationEngine {
     /**
      * Stops this [ApplicationEngine]
      *
-     * @param gracePeriod the maximum amount of time in milliseconds to allow for activity to cool down
+     * @param gracePeriod the maximum amount of time for activity to cool down
      * @param timeout the maximum amount of time to wait until server stops gracefully
-     * @param timeUnit the [TimeUnit] for [timeout]
+     * @param timeUnit the [TimeUnit] for [gracePeriod] and [timeout]
      */
     fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit)
 }
