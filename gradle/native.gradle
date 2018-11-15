@@ -6,6 +6,10 @@ sourceSets {
             targets = ['ios_arm64', 'ios_x64', 'macos_x64']
             outputKinds = [KLIBRARY]
             extraOpts experimentalAnnotations
+            
+            pom {
+                project.ext.configurePom(it)
+            }
         }
     }
     test {

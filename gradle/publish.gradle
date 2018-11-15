@@ -3,6 +3,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 apply from: rootProject.file('gradle/platform.gradle')
+apply from: rootProject.file('gradle/maven.gradle')
 
 def platform = platformOf(project)
 def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes || platform != 'jvm'
@@ -42,6 +43,8 @@ publishing {
                     classifier 'kdoc'
                 }
             }
+
+            configurePom(pom)
         }
     }
 }
