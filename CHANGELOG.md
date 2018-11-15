@@ -1,3 +1,31 @@
+# 1.0.0
+> Not yet published
+
+* Improved documentation
+* Improved performance
+* Kotlin 1.3.10
+* kotlinx.coroutines 1.0.1 and structured concurrency support:
+    * Coroutine scopes introduced per pipeline, call, application and web socket session
+* Fixed client response cancelation via `receive<Unit>()` and `response.cancel()`
+* Disabled client pipelining by default to provide safe behavior by default
+* `GMTDate` improvements on js and native
+* Added client response observer for response logging purpose
+* Test client and mock engine improvements
+* Cookies dates, domains and dupicate parameters processing fixed
+* Server pipeline fixed to discard request body if not used (#609, #574)
+* Websocket session lifecycle fixed during close sequence
+* Several `Url` and `UrlBuilder` fixes and improvements
+* Introduced `ExpectSuccess` client feature
+* Fixed `StatusPages` to handle child job failures (#646)
+* Compression bugfixes (including #708, #685)
+* Fixed timeouts in websockets with Jetty
+* Renamed `DevelopmentEngine` to `EngineMain`
+* Restricted `@Location` annotation targets, allow on a typealias (#539)
+* Removed default connector on port 80 (#670)
+* Several JWT and OAuth bugfixes and error habdling improvements (#664, #676,  #550)
+* Improved serialization client feature
+
+
 # 0.9.5
 > Published 19 Sept 2018
 
