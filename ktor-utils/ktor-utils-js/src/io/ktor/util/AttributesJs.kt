@@ -1,7 +1,7 @@
 package io.ktor.util
 
 @JsName("AttributesJsFn")
-actual fun Attributes(): Attributes = AttributesJs()
+actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
 
 class AttributesJs : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()

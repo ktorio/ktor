@@ -51,6 +51,7 @@ class TestApplicationEngine(
             stop(0, 0, TimeUnit.SECONDS)
         }
         environment.start()
+        BaseApplicationResponse.setupSendPipeline(environment.application)
         return this
     }
 

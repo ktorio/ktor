@@ -1,8 +1,8 @@
 package io.ktor.network.util
 
 import io.ktor.util.*
+import io.ktor.util.internal.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.internal.*
 import kotlinx.io.core.Closeable
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -14,7 +14,6 @@ import kotlin.coroutines.intrinsics.*
  */
 @Deprecated("This is going to be deprecated. Use kotlinx.coroutines dispatchers")
 @KtorExperimentalAPI
-@UseExperimental(InternalCoroutinesApi::class)
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     @Suppress("DEPRECATION")
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")

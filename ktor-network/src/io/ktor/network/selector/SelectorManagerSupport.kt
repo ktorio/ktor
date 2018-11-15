@@ -10,7 +10,6 @@ import kotlin.coroutines.*
  * Base class for NIO selector managers
  */
 @KtorExperimentalAPI
-@UseExperimental(InternalCoroutinesApi::class)
 abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     final override val provider: SelectorProvider = SelectorProvider.provider()
     /**
@@ -34,7 +33,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         suspendCancellableCoroutine<Unit> { c ->
 //            val c = base.tracked()  // useful for debugging
 
-            c.disposeOnCancellation(selectable)
+            c.invokeOnCancellation {
+                selectable.dispose()
+            }
             selectable.suspensions.addSuspension(interest, c)
 
             if (!c.isCancelled) {
@@ -139,24 +140,8 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
      * Cancel all selectable's suspensions with the specified exception
      */
     protected fun cancelAllSuspensions(attachment: Selectable, t: Throwable) {
-        val cancelled = ArrayList<Pair<CancellableContinuation<Unit>, Any>>(SelectInterest.size)
-
         attachment.suspensions.invokeForEachPresent {
-            val v = tryResumeWithException(t)
-            if (v != null) {
-                cancelled.add(Pair(this, v))
-            }
-        }
-
-        if (cancelled.isNotEmpty()) {
-            for ((c, token) in cancelled) {
-                try {
-                    c.completeResume(token)
-                } catch (t: Throwable) {
-                    // rejected?
-                    t.printStackTrace()
-                }
-            }
+            resumeWithException(t)
         }
     }
 
@@ -164,7 +149,7 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
      * Cancel all suspensions with the specified exception, reset all interests
      */
     protected fun cancelAllSuspensions(selector: Selector, t: Throwable?) {
-        val cause = t ?: ClosedSelectorException()
+        val cause = t ?: ClosedSelectorCancellationException()
 
         selector.keys().forEach { k ->
             try {
@@ -181,4 +166,6 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         set(newValue) {
             attach(newValue)
         }
+
+    class ClosedSelectorCancellationException : CancellationException("Closed selector")
 }

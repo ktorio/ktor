@@ -32,7 +32,7 @@ class GMTDateTest {
         assertTrue { before < after }
         assertTrue { inTheMiddle in before .. after }
 
-        val farDate = GMTDate(Long.MAX_VALUE - 1L)
+        val farDate = GMTDate(after.timestamp * 1000)
 
         assertTrue { farDate > before }
         assertTrue { farDate > after }

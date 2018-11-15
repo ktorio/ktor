@@ -38,6 +38,7 @@ open class JettyApplicationEngineBase(
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
         environment.start()
+        BaseApplicationResponse.setupSendPipeline(environment.application)
         server.start()
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {

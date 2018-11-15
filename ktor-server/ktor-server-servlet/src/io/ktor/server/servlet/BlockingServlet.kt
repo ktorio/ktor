@@ -1,13 +1,12 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
@@ -18,9 +17,13 @@ internal class BlockingServletApplicationCall(
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext
 ) : BaseApplicationCall(application), CoroutineScope {
-    override val request: ApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
-    override val response: ApplicationResponse =
+    override val request: BaseApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
+    override val response: BlockingServletApplicationResponse =
         BlockingServletApplicationResponse(this, servletResponse, coroutineContext)
+
+    init {
+        putResponseAttribute()
+    }
 }
 
 private class BlockingServletApplicationRequest(
@@ -28,12 +31,12 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline) }
+    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel(context = UnsafeBlockingTrampoline, pool = KtorDefaultPool) }
 
     override fun receiveChannel() = inputStreamChannel
 }
 
-private class BlockingServletApplicationResponse(
+internal class BlockingServletApplicationResponse(
     call: ApplicationCall,
     servletResponse: HttpServletResponse,
     override val coroutineContext: CoroutineContext

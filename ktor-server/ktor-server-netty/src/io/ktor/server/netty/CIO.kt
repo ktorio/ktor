@@ -60,13 +60,12 @@ internal object NettyDispatcher : CoroutineDispatcher() {
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 
-@UseExperimental(InternalCoroutinesApi::class)
 private class CoroutineListener<T, F : Future<T>>(private val future: F,
                                                   private val continuation: CancellableContinuation<T>,
                                                   private val exception: (Throwable, Continuation<T>) -> Unit
-) : GenericFutureListener<F>, DisposableHandle {
+) : GenericFutureListener<F>, Function1<Throwable?, Unit> {
     init {
-        continuation.disposeOnCancellation(this)
+        continuation.invokeOnCancellation(this)
     }
 
     override fun operationComplete(future: F) {
@@ -80,7 +79,7 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F,
         continuation.resume(value)
     }
 
-    override fun dispose() {
+    override fun invoke(p1: Throwable?) {
         future.removeListener(this)
         if (continuation.isCancelled) future.cancel(false)
     }

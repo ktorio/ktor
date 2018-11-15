@@ -5,6 +5,8 @@ import kotlin.js.*
 actual fun GMTDate(timestamp: Long?): GMTDate {
     val date = timestamp?.toDouble()?.let { Date(it) } ?: Date()
 
+    if (date.getTime().isNaN()) throw InvalidTimestampException(timestamp!!)
+
     with(date) {
         /* from SUNDAY 0 -> MONDAY 0 */
         val dayOfWeek = WeekDay.from((getUTCDay() + 6) % 7)
@@ -32,3 +34,10 @@ actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, mont
     val timestamp = Date.UTC(year, month.ordinal, dayOfMonth, hours, minutes, seconds).toLong()
     return GMTDate(timestamp)
 }
+
+/**
+ * Invalid exception: possible overflow or underflow
+ */
+class InvalidTimestampException(timestamp: Long) : IllegalStateException(
+    "Invalid date timestamp exception: $timestamp"
+)

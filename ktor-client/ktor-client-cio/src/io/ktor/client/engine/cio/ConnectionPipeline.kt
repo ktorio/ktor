@@ -1,17 +1,20 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.util.cio.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
+import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.io.*
-import java.io.*
+import kotlinx.io.core.*
+import kotlinx.io.pool.*
 import java.nio.channels.*
+import java.nio.channels.ByteChannel
 import kotlin.coroutines.*
 
 internal class ConnectionPipeline(
@@ -24,8 +27,8 @@ internal class ConnectionPipeline(
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext + Job()
 
-    private val inputChannel = socket.openReadChannel()
-    private val outputChannel = socket.openWriteChannel()
+    private val networkInput = socket.openReadChannel()
+    private val networkOutput = socket.openWriteChannel()
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
@@ -45,8 +48,8 @@ internal class ConnectionPipeline(
                     throw cause
                 }
 
-                task.request.write(outputChannel, callContext)
-                outputChannel.flush()
+                task.request.write(networkOutput, callContext)
+                networkOutput.flush()
             }
         } catch (_: ClosedChannelException) {
         } catch (_: ClosedReceiveChannelException) {
@@ -65,43 +68,44 @@ internal class ConnectionPipeline(
             var shouldClose = false
             for (task in responseChannel) {
                 requestLimit.leave()
-                val job: Job? = try {
-                    val response = parseResponse(inputChannel)
+                try {
+                    val rawResponse = parseResponse(networkInput)
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
                     val callContext = task.callContext
+
+                    callContext[Job]?.invokeOnCompletion {
+                        rawResponse.release()
+                    }
+
                     val method = task.request.method
-                    val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-                    val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
+                    val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+                    val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
-                    val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
+                    val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
+
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+                    val responseChannel = if (hasBody) ByteChannel() else null
 
-                    val writerJob = if (hasBody) GlobalScope.writer(callContext, autoFlush = true) {
-                        parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
-                    } else null
-
-                    task.response.complete(
-                        CIOHttpResponse(
-                            task.request,
-                            task.requestTime,
-                            writerJob?.channel ?: ByteReadChannel.Empty,
-                            response,
-                            pipelined = hasBody && !chunked,
-                            coroutineContext = callContext
-                        )
+                    val response = CIOHttpResponse(
+                        task.request, task.requestTime,
+                        responseChannel?.skipCancels(coroutineContext) ?: ByteReadChannel.Empty,
+                        rawResponse,
+                        coroutineContext = callContext
                     )
-                    writerJob
-                } catch (cause: ClosedChannelException) {
-                    null
+
+                    task.response.complete(response)
+
+                    responseChannel?.use {
+                        parseHttpBody(contentLength, transferEncoding, connectionType, networkInput, this)
+                    }
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
-                    null
                 }
 
-                job?.join()
+                task.callContext[Job]?.join()
                 if (shouldClose) break
             }
         }
@@ -112,3 +116,24 @@ internal class ConnectionPipeline(
         responseHandler.start()
     }
 }
+
+private fun ByteReadChannel.skipCancels(
+    context: CoroutineContext
+): ByteReadChannel = GlobalScope.writer(context) {
+    HttpClientDefaultPool.useInstance { buffer ->
+        while (true) {
+            buffer.clear()
+
+            val count = this@skipCancels.readAvailable(buffer)
+            if (count < 0) break
+
+            buffer.flip()
+            try {
+                channel.writeFully(buffer)
+            } catch (_: Throwable) {
+                // Output channel has been canceled, discard remaining
+                this@skipCancels.discard()
+            }
+        }
+    }
+}.channel

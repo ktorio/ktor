@@ -114,4 +114,4 @@ internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadCha
     inputStream?.buffered()
 } catch (_: IOException) {
     errorStream?.buffered()
-}?.toByteReadChannel(context = callScope) ?: ByteReadChannel.Empty
+}?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty

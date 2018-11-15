@@ -25,7 +25,8 @@ abstract class HeaderValueWithParameters(
             val size = content.length + parameters.sumBy { it.name.length + it.value.length + 3 }
             StringBuilder(size).apply {
                 append(content)
-                for ((name, value) in parameters) {
+                for (index in 0 until parameters.size) {
+                    val (name, value) = parameters[index]
                     append("; ")
                     append(name)
                     append("=")
@@ -53,22 +54,41 @@ fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
     append(name, value.toString())
 }
 
-private val CHARACTERS_SHOULD_BE_ESCAPED = "\"=;,\\/ ".toCharArray()
-
 /**
  * Escape using double quotes if needed or keep as is if no dangerous strings found
  */
 @InternalAPI
 fun String.escapeIfNeeded() = when {
-    indexOfAny(CHARACTERS_SHOULD_BE_ESCAPED) != -1 -> quote()
+    checkNeedEscape() -> quote()
     else -> this
 }
 
-private fun String.escapeIfNeededTo(out: StringBuilder) {
+@Suppress("NOTHING_TO_INLINE")
+private inline fun String.escapeIfNeededTo(out: StringBuilder) {
     when {
-        indexOfAny(CHARACTERS_SHOULD_BE_ESCAPED) != -1 -> quoteTo(out)
+        checkNeedEscape() -> out.append(this.quote())
         else -> out.append(this)
     }
+}
+
+private fun String.checkNeedEscape(): Boolean {
+    if (isEmpty()) return true
+
+    for (index in 0 until length) {
+        when (this[index]) {
+            '\\',
+            '\n',
+            '\r',
+            '\"',
+            ' ',
+            '=',
+            ';',
+            ',',
+            '/' -> return true
+        }
+    }
+
+    return false
 }
 
 /**

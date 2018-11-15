@@ -15,12 +15,15 @@ internal class CIOHttpResponse(
     override val requestTime: GMTDate,
     override val content: ByteReadChannel,
     private val response: Response,
-    private val pipelined: Boolean,
     override val coroutineContext: CoroutineContext
 ) : HttpResponse {
+
     override val call: HttpClientCall = request.call
+
     override val status: HttpStatusCode = HttpStatusCode(response.status, response.statusText.toString())
+
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+
     override val headers: Headers = Headers.build {
         val origin = CIOHeaders(response.headers)
         origin.names().forEach {
@@ -29,16 +32,4 @@ internal class CIOHttpResponse(
     }
 
     override val responseTime: GMTDate = GMTDate()
-
-    override fun close() {
-        super.close()
-        if (pipelined) {
-            runBlocking {
-                val length = headers[HttpHeaders.ContentLength]!!.toLong()
-                @Suppress("DEPRECATION")
-                content.discard(length - content.totalBytesRead)
-            }
-        }
-        response.release()
-    }
 }

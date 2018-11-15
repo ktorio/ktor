@@ -5,7 +5,7 @@ import io.ktor.client.tests.utils.*
 import okhttp3.*
 import kotlin.test.*
 
-class RequestTest {
+class RequestTests {
 
     class LoggingInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {

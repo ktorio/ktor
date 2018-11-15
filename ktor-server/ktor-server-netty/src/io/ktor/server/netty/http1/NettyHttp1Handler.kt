@@ -1,13 +1,16 @@
 package io.ktor.server.netty.http1
 
+import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
+import io.ktor.util.cio.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import java.io.*
 import kotlin.coroutines.*
 
 @ChannelHandler.Sharable
@@ -17,7 +20,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
                                  private val engineContext: CoroutineContext,
                                  private val userContext: CoroutineContext,
                                  private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private val handlerJob = Job()
+    private val handlerJob = CompletableDeferred<Nothing>()
 
     private var configured = false
     private var skipEmpty = false
@@ -49,7 +52,6 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
 
         val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, engineContext, userContext)
         requestQueue.schedule(call)
-//        context.fireChannelRead(call)
     }
 
     private fun content(context: ChannelHandlerContext, message: HttpRequest): ByteReadChannel {
@@ -77,7 +79,6 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
             }
 
             responseWriter.ensureRunning()
-//            ctx.startLoop(enginePipeline)
         }
 
         super.channelActive(ctx)
@@ -87,19 +88,22 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
         if (configured) {
             configured = false
             ctx.pipeline().apply {
-//                remove(RequestBodyHandler::class.java)
                 remove(NettyApplicationCallHandler::class.java)
             }
 
             requestQueue.cancel()
-//            ctx.stopLoop()
         }
         super.channelInactive(ctx)
     }
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        handlerJob.cancel(cause)
+        if (cause is IOException || cause is ChannelIOException) {
+            environment.application.log.debug("I/O operation failed", cause)
+            handlerJob.cancel()
+        } else {
+            handlerJob.completeExceptionally(cause)
+        }
         requestQueue.cancel()
         ctx.close()
     }

@@ -34,4 +34,7 @@ class JettyApplicationCall(
         coroutineContext
     )
 
+    init {
+        putResponseAttribute()
+    }
 }

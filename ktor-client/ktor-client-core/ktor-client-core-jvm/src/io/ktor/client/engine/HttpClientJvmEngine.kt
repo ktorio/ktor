@@ -4,14 +4,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import kotlin.coroutines.*
 
-@UseExperimental(InternalCoroutinesApi::class)
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val supervisor = SupervisorJob()
 
+    @UseExperimental(InternalCoroutinesApi::class)
     override val dispatcher: ExperimentalCoroutineDispatcher by lazy {
         ExperimentalCoroutineDispatcher(config.threadsCount)
     }
 
+    @UseExperimental(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
         dispatcher + supervisor + CoroutineName("$engineName-context")
     }
@@ -21,6 +22,7 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     override fun close() {
         supervisor.cancel()
         supervisor.invokeOnCompletion {
+            @UseExperimental(InternalCoroutinesApi::class)
             dispatcher.close()
         }
     }

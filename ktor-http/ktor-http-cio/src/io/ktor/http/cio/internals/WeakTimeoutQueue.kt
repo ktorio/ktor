@@ -1,8 +1,9 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
+import io.ktor.util.internal.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.internal.*
 import java.time.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
@@ -21,7 +22,6 @@ import kotlin.coroutines.intrinsics.*
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
 @InternalAPI
-@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 class WeakTimeoutQueue(
     private val timeoutMillis: Long,
     private val clock: Clock = Clock.systemUTC(),
@@ -35,7 +35,7 @@ class WeakTimeoutQueue(
     /**
      * Register [job] in this queue. It will be cancelled if doesn't complete in time.
      */
-    fun register(job: Job): DisposableHandle {
+    fun register(job: Job): Registration {
         val now = clock.millis()
         val head = head
         if (cancelled) throw cancellationException()
@@ -74,34 +74,29 @@ class WeakTimeoutQueue(
     suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
             val continuation = rawContinuation.intercepted()
+
             val wrapped = WeakTimeoutCoroutine(continuation.context, continuation)
             val handle = register(wrapped)
-            wrapped.disposeOnCompletion(handle)
+            wrapped.invokeOnCompletion(handle)
 
             val result = try {
-                if (wrapped.isCancelled) throw wrapped.getCancellationException()
-                block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
+                if (wrapped.isCancelled) COROUTINE_SUSPENDED
+                else block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
             } catch (t: Throwable) {
-                CompletedExceptionally(t)
+                if (wrapped.tryComplete()) {
+                    handle.dispose()
+                    throw t
+                }
+                else COROUTINE_SUSPENDED
             }
 
-            unwrapResult(wrapped, handle, result)
-        }
-    }
-
-    private fun unwrapResult(c: WeakTimeoutCoroutine<*>, handle: DisposableHandle, result: Any?): Any? {
-        val suspended = COROUTINE_SUSPENDED
-        return when {
-            result === suspended -> result
-            c.isCompleted -> suspended
-            result is CompletedExceptionally -> {
-                handle.dispose()
-                throw result.cause
-            }
-            else -> {
-                handle.dispose()
-                result
-            }
+            if (result !== COROUTINE_SUSPENDED) {
+                if (wrapped.tryComplete()) {
+                    handle.dispose()
+                    result
+                }
+                else COROUTINE_SUSPENDED
+            } else COROUTINE_SUSPENDED
         }
     }
 
@@ -121,8 +116,16 @@ class WeakTimeoutQueue(
 
     private fun cancellationException() = CancellationException("Timeout queue has been cancelled")
 
-    @UseExperimental(InternalCoroutinesApi::class)
-    private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), DisposableHandle {
+    /**
+     * [register] function result
+     */
+    interface Registration : CompletionHandler, DisposableHandle {
+        override fun invoke(cause: Throwable?) {
+            dispose()
+        }
+    }
+
+    private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), Registration {
         open val isActive: Boolean
             get() = !isRemoved
 
@@ -142,15 +145,48 @@ class WeakTimeoutQueue(
         }
     }
 
-    @UseExperimental(InternalCoroutinesApi::class)
-    private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) :
-        AbstractCoroutine<T>(context, true), Continuation<T> {
-        override fun onCompleted(value: T) {
-            delegate.resume(value)
+    private class WeakTimeoutCoroutine<in T>(
+        context: CoroutineContext,
+        delegate: Continuation<T>,
+        val job: Job = Job(context[Job])
+    ) : Continuation<T>, Job by job, CoroutineScope {
+        override val context: CoroutineContext = context + job
+        override val coroutineContext: CoroutineContext get() = context
+
+        private val state = atomic<Continuation<T>?>(delegate)
+
+        init {
+            context[Job]?.let { parent ->
+                @UseExperimental(InternalCoroutinesApi::class)
+                parent.invokeOnCompletion(onCancelling = true) {
+                    if (it != null) {
+                        resumeWithException(it)
+                        job.cancel()
+                    }
+                }
+            }
+            job.invokeOnCompletion {
+                resumeWithException(it ?: CancellationException())
+            }
         }
 
-        override fun onCompletedExceptionally(exception: Throwable) {
-            delegate.resumeWithException(exception)
+        override fun resumeWith(result: Result<T>) {
+            state.getAndUpdate {
+                if (it == null) return
+                null
+            }?.let {
+                it.resumeWith(result)
+                job.cancel()
+            }
+        }
+
+        fun tryComplete(): Boolean {
+            state.update {
+                if (it !is Continuation<*>) return false
+                null
+            }
+            job.cancel()
+            return true
         }
     }
 }

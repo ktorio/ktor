@@ -3,7 +3,6 @@ package io.ktor.server.netty
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
-import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.netty.channel.*
@@ -25,12 +24,6 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     protected var responseMessageSent = false
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
-
-    init {
-        pipeline.intercept(ApplicationSendPipeline.Engine) {
-            call.finish()
-        }
-    }
 
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
@@ -110,7 +103,10 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     companion object {
         private val EmptyByteArray = ByteArray(0)
 
-        val responseStatusCache: Map<Int, HttpResponseStatus> =
-            HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
+        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes.associateBy { it.value }.let { codes ->
+            Array(1000) {
+                if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+            }
+        }
     }
 }

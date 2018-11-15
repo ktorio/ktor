@@ -1,11 +1,11 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
-import java.lang.IllegalStateException
 import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
@@ -36,6 +36,14 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
     override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
 
     /**
+     * Called by servlet container when the application is starting (deployment started or lazily initialized)
+     */
+    override fun init() {
+        BaseApplicationResponse.setupSendPipeline(application)
+        super.init()
+    }
+
+    /**
      * Called by servlet container when the application is going to be undeployed or stopped.
      */
     override fun destroy() {
@@ -56,6 +64,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
             } else {
                 blockingService(request, response)
             }
+        } catch (ioError: ChannelIOException) {
+            application.log.debug("I/O error", ioError)
         } catch (ex: Throwable) {
             application.log.error("ServletApplicationEngine cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)

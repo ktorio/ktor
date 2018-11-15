@@ -6,6 +6,7 @@ import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
@@ -26,24 +27,17 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     }
 
     private var responded = false
+
     final override val pipeline = ApplicationSendPipeline().apply {
         merge(call.application.sendPipeline)
-        intercept(ApplicationSendPipeline.Engine) {
-            if (responded)
-                throw ResponseAlreadySentException()
-            val response = subject
-            if (response is OutgoingContent) {
-                respondOutgoingContent(response)
-            } else {
-                throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
-            }
-        }
     }
 
     /**
      * Commit header values and status and pass them to the underlying engine
      */
     protected fun commitHeaders(content: OutgoingContent) {
+        if (responded)
+            throw BaseApplicationResponse.ResponseAlreadySentException()
         responded = true
 
         var transferEncodingSet = false
@@ -152,7 +146,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             // Call user code to send data
 //            val before = totalBytesWritten
             try {
-                content.writeTo(this)
+                withContext(Dispatchers.IO) {
+                    content.writeTo(this@use)
+                }
             } catch (closed: ClosedWriteChannelException) {
                 throw ChannelWriteException(exception = closed)
             }
@@ -250,4 +246,34 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     class BodyLengthIsTooLong(expected: Long) : IllegalStateException(
             "Body.size is too long. Expected $expected"
     )
+
+    companion object {
+        /**
+         * Attribute key to access engine's response instance.
+         * This is engine internal API and should be never used by end-users
+         * unless you are writing your own engine implementation
+         */
+        @EngineAPI
+        val EngineResponseAtributeKey = AttributeKey<BaseApplicationResponse>("EngineResponse")
+
+        /**
+         * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
+         * to start response object processing via [respondOutgoingContent]
+         */
+        @EngineAPI
+        fun setupSendPipeline(application: Application) {
+            application.sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
+                if (response !is OutgoingContent) {
+                    throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
+                }
+
+                val call = call
+                val callResponse =
+                    call.response as? BaseApplicationResponse ?: call.attributes[EngineResponseAtributeKey]
+
+                callResponse.respondOutgoingContent(response)
+            }
+        }
+
+    }
 }

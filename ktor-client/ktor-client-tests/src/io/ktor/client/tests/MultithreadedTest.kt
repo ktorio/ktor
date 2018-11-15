@@ -36,7 +36,11 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
 
     @Test
     fun numberTest() = runBlocking {
-        val client = HttpClient(factory)
+        val client = HttpClient(factory) {
+            engine {
+                pipelining = true
+            }
+        }
         val result = withPool {
             val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
             val result = response.readText().toInt()
