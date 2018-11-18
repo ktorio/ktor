@@ -6,6 +6,8 @@ import kotlin.test.*
 class ConfigTest {
     @Test
     fun testMapApplicationConfig() {
+        val mockConfigValue = MockConfigValue("defaultProperty", listOf("d a", "d b", "d c"))
+
         val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")
         mapConfig.put("auth.salt", "ktor")
@@ -29,9 +31,15 @@ class ConfigTest {
         val values = auth.property("values").getList()
         assertEquals("[a, b]", values.toString())
 
+        assertEquals("defaultProperty", auth.property("missingProperty", mockConfigValue).getString())
+        assertEquals(listOf("d a", "d b", "d c"), auth.property("missingProperty", mockConfigValue).getList())
+
         assertEquals(null, auth.propertyOrNull("missingProperty"))
         assertEquals("SHA-256", auth.propertyOrNull("hashAlgorithm")?.getString())
         assertEquals(listOf("a","b","c"), auth.propertyOrNull("listValues")?.getList())
+
+        assertEquals("defaultProperty", auth.propertyOrNull("missingProperty", mockConfigValue)?.getString())
+        assertEquals(listOf("d a", "d b", "d c"), auth.propertyOrNull("missingProperty", mockConfigValue)?.getList())
 
         assertEquals(null, mapConfig.propertyOrNull("missingProperty"))
         assertEquals(null, mapConfig.propertyOrNull("auth.missingProperty"))
