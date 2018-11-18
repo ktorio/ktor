@@ -8,15 +8,15 @@ import io.ktor.util.*
  */
 @KtorExperimentalAPI
 open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
-    override fun property(path: String): ApplicationConfigValue {
+    override fun property(path: String, default: ApplicationConfigValue?): ApplicationConfigValue {
         if (!config.hasPath(path))
-            throw ApplicationConfigurationException("Property $path not found.")
+            return default ?: throw ApplicationConfigurationException("Property $path not found.")
         return HoconApplicationConfigValue(config, path)
     }
 
-    override fun propertyOrNull(path: String): ApplicationConfigValue? {
+    override fun propertyOrNull(path: String, default: ApplicationConfigValue?): ApplicationConfigValue? {
         if (!config.hasPath(path))
-            return null
+            return default
         return HoconApplicationConfigValue(config, path)
     }
 
