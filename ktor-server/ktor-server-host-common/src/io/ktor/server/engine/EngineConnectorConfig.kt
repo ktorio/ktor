@@ -84,7 +84,13 @@ inline fun ApplicationEngineEnvironmentBuilder.connector(builder: EngineConnecto
 /**
  * Adds a secure connector to this engine environment
  */
-inline fun ApplicationEngineEnvironmentBuilder.sslConnector(keyStore: KeyStore, keyAlias: String, noinline keyStorePassword: () -> CharArray, noinline privateKeyPassword: () -> CharArray, builder: EngineSSLConnectorBuilder.() -> Unit) {
+inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
+    keyStore: KeyStore,
+    keyAlias: String,
+    noinline keyStorePassword: () -> CharArray,
+    noinline privateKeyPassword: () -> CharArray,
+    builder: EngineSSLConnectorBuilder.() -> Unit
+) {
     connectors.add(EngineSSLConnectorBuilder(keyStore, keyAlias, keyStorePassword, privateKeyPassword).apply(builder))
 }
 
@@ -103,9 +109,11 @@ open class EngineConnectorBuilder(override val type: ConnectorType = ConnectorTy
 /**
  * Mutable implementation of EngineSSLConnectorConfig for building connectors programmatically
  */
-class EngineSSLConnectorBuilder(override var keyStore: KeyStore,
-                                override var keyAlias: String,
-                                override var keyStorePassword: () -> CharArray,
-                                override val privateKeyPassword: () -> CharArray) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
+class EngineSSLConnectorBuilder(
+    override var keyStore: KeyStore,
+    override var keyAlias: String,
+    override var keyStorePassword: () -> CharArray,
+    override val privateKeyPassword: () -> CharArray
+) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
 }

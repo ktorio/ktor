@@ -5,7 +5,7 @@ import io.ktor.server.testing.*
 
 class NettyEngineTest : EngineTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
-        enableSsl = false
+        enableSsl = true
     }
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true

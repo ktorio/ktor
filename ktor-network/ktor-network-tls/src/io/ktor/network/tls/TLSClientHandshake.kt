@@ -254,15 +254,6 @@ internal class TLSClientHandshake(
                             val point = packet.readECPoint(curve.fieldSize)
                             val hashAndSign = packet.readHashAndSign()
 
-                            if (
-                                SupportedSignatureAlgorithms.indexOf(hashAndSign) >
-                                SupportedSignatureAlgorithms.indexOf(signatureAlgorithm)
-                            ) throw TLSException(
-                                "Selected algorithms doesn't match with server previously negotiated:" +
-                                    " expected $signatureAlgorithm," +
-                                    " actual $hashAndSign"
-                            )
-
                             val params = buildPacket {
                                 // TODO: support other curve types
                                 writeByte(ServerKeyExchangeType.NamedCurve.code.toByte())
