@@ -37,13 +37,14 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
                         host, port, secure,
                         config,
                         connectionFactory, coroutineContext,
-                        createCallContext = { createCallContext() }, onDone = { endpoints.remove(address) }
+                        onDone = { endpoints.remove(address) }
                     )
                 }
             }
 
+            val callContext = createCallContext()
             try {
-                return endpoint.execute(request)
+                return endpoint.execute(request, callContext)
             } catch (cause: ClosedSendChannelException) {
                 if (closed.get()) throw ClientClosedException(cause)
                 continue

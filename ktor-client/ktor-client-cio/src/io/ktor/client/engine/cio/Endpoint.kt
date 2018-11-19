@@ -23,7 +23,6 @@ internal class Endpoint(
     private val config: CIOEngineConfig,
     private val connectionFactory: ConnectionFactory,
     override val coroutineContext: CoroutineContext,
-    private val createCallContext: () -> CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
     private val tasks: Channel<RequestTask> = Channel(Channel.UNLIMITED)
@@ -65,9 +64,9 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: DefaultHttpRequest): CIOHttpResponse {
-        val result = CompletableDeferred<CIOHttpResponse>()
-        val task = RequestTask(request, result)
+    suspend fun execute(request: DefaultHttpRequest, callContext: CoroutineContext): CIOHttpResponse {
+        val result = CompletableDeferred<CIOHttpResponse>(parent = callContext[Job])
+        val task = RequestTask(request, result, callContext)
         tasks.offer(task)
         return result.await()
     }
@@ -89,14 +88,12 @@ internal class Endpoint(
     }
 
     private fun makeDedicatedRequest(task: RequestTask): Job = launch {
-        val (request, response) = task
+        val (request, response, callContext) = task
         try {
             val connection = connect()
             val input = connection.openReadChannel()
             val output = connection.openWriteChannel()
             val requestTime = GMTDate()
-            val callContext = createCallContext()
-
 
             fun closeConnection(cause: Throwable? = null) {
                 try {
@@ -160,7 +157,6 @@ internal class Endpoint(
             config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
             socket,
             deliveryPoint,
-            createCallContext,
             coroutineContext
         )
 

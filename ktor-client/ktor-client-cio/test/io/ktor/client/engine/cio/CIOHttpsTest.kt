@@ -15,7 +15,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.eclipse.jetty.util.log.JettyLogHandler.*
 import org.junit.*
 import java.io.*
 import java.security.*
@@ -121,4 +120,28 @@ class CIOHttpsTest : TestWithKtor() {
         }
     }
 
+    @Test
+    fun repeatRequestTest() = clientTest(CIO) {
+        config {
+            followRedirects = false
+
+            engine {
+                maxConnectionsCount = 1_000_000
+                pipelining = true
+                endpoint.apply {
+                    connectRetryAttempts = 1
+                    maxConnectionsPerRoute = 10_000
+                }
+            }
+        }
+
+
+        test { client ->
+            client.async {
+                repeat(10) {
+                    client.get("https://www.facebook.com")
+                }
+            }.await()
+        }
+    }
 }
