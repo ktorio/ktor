@@ -69,7 +69,7 @@ class WeakTimeoutQueue(
     }
 
     /**
-     * Execute [block] and cancel if doesn't complete it time.
+     * Execute [block] and cancel if doesn't complete in time.
      */
     suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->

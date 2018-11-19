@@ -63,7 +63,7 @@ internal object NettyDispatcher : CoroutineDispatcher() {
 private class CoroutineListener<T, F : Future<T>>(private val future: F,
                                                   private val continuation: CancellableContinuation<T>,
                                                   private val exception: (Throwable, Continuation<T>) -> Unit
-) : GenericFutureListener<F>, Function1<Throwable?, Unit> {
+) : GenericFutureListener<F>, CompletionHandler {
     init {
         continuation.invokeOnCancellation(this)
     }
