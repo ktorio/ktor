@@ -19,6 +19,11 @@ interface ApplicationConfig {
     fun propertyOrNull(path: String): ApplicationConfigValue?
 
     /**
+     * Get config property value for [path] or return [default]
+     */
+    fun propertyOrDefault(path: String, default: ApplicationConfigValue) = propertyOrNull(path) ?: default
+
+    /**
      * Get config child node or fail
      * @throws ApplicationConfigurationException
      */
