@@ -8,15 +8,15 @@ import io.ktor.util.*
 @KtorExperimentalAPI
 interface ApplicationConfig {
     /**
-     * Get config property with [path], return [default] or fail if no [default] provided
+     * Get config property with [path] or fail
      * @throws ApplicationConfigurationException
      */
-    fun property(path: String, default: ApplicationConfigValue? = null): ApplicationConfigValue
+    fun property(path: String): ApplicationConfigValue
 
     /**
-     * Get config property value for [path], return [default] or return `null`
+     * Get config property value for [path] or return `null`
      */
-    fun propertyOrNull(path: String, default: ApplicationConfigValue? = null): ApplicationConfigValue?
+    fun propertyOrNull(path: String): ApplicationConfigValue?
 
     /**
      * Get config child node or fail
