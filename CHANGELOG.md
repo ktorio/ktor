@@ -1,5 +1,5 @@
 # 1.0.0
-> Not yet published
+> Published 19 Nov 2018
 
 * Improved documentation
 * Improved performance
