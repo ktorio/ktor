@@ -40,15 +40,6 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Setup, Moni
         val Features = PipelinePhase("Features")
 
         /**
-         * Phase for setting up infrastructure for processing a call
-         */
-        @Suppress("unused")
-        @Deprecated("Infrastructure phase has been split into Features and Monitoring phases",
-                ReplaceWith("ApplicationCallPipeline.Features", "io.ktor.application.ApplicationCallPipeline"),
-                level = DeprecationLevel.ERROR)
-        val Infrastructure: PipelinePhase get() = Features
-
-        /**
          * Phase for processing a call and sending a response
          */
         val Call = PipelinePhase("Call")

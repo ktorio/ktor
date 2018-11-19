@@ -14,7 +14,7 @@ class SocketOptions private constructor(private val allOptions: MutableMap<Socke
     /**
      * Copy options
      */
-    fun copy() = SocketOptions(allOptions.toMutableMap())
+    fun copy(): SocketOptions = SocketOptions(allOptions.toMutableMap())
 
     /**
      * Get particular socket [option]
@@ -72,10 +72,6 @@ fun <T: Configurable<T>> T.tcpNoDelay(): T {
         this[StandardSocketOptions.TCP_NODELAY] = true
     }
 }
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Specify selector manager explicitly", level = DeprecationLevel.ERROR)
-fun aSocket(): SocketBuilder = TODO()
 
 /**
  * Start building a socket
