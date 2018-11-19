@@ -8,7 +8,8 @@ import kotlin.coroutines.*
 
 internal data class RequestTask(
     val request: DefaultHttpRequest,
-    val response: CompletableDeferred<CIOHttpResponse>
+    val response: CompletableDeferred<CIOHttpResponse>,
+    val context: CoroutineContext
 )
 
 internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.content.headers).any {
@@ -16,9 +17,7 @@ internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request
 } || request.method !in listOf(HttpMethod.Get, HttpMethod.Head)
 
 
-internal class ConnectionResponseTask(
+internal data class ConnectionResponseTask(
     val requestTime: GMTDate,
-    val response: CompletableDeferred<CIOHttpResponse>,
-    val request: DefaultHttpRequest,
-    val callContext: CoroutineContext
+    val task: RequestTask
 )

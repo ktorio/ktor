@@ -46,7 +46,7 @@ class CIORequestTest : TestWithKtor() {
 
     @Test
     @Ignore
-    fun testClose() = runBlocking {
+    fun closeTest() = runBlocking {
         val client = HttpClient(CIO)
         client.get<String>(path = "/echo", port = serverPort)
         client.close()
