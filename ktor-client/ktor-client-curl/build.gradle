@@ -1,0 +1,15 @@
+kotlin {
+    targets {
+        configure([macosX64, linuxX64, mingwX64]) {
+            compilations.main.cinterops {
+                libcurl {
+                    defFile 'posix/src/interop/libcurl.def'
+                    includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include', '/usr/include/x86_64-linux-gnu/'
+                }
+            }
+        }
+    }
+    sourceSets.commonMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+    }
+}

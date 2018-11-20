@@ -22,7 +22,6 @@ ext.configuredVersion = project.hasProperty('releaseVersion') ? project.releaseV
 ext.globalM2 = "$buildDir/m2"
 ext.publishLocal = project.hasProperty('publishLocal')
 
-apply from: 'gradle/platform.gradle'
 apply from: 'gradle/experimental.gradle'
 
 allprojects {
@@ -47,12 +46,14 @@ allprojects {
     apply from: rootProject.file('gradle/common.gradle')
     apply from: rootProject.file('gradle/jvm.gradle')
     apply from: rootProject.file('gradle/js.gradle')
-    apply from: rootProject.file('gradle/native.gradle')
+    apply from: rootProject.file('gradle/posix.gradle')
+    apply from: rootProject.file('gradle/darwin.gradle')
 
     kotlin {
         targets {
             if (System.getProperty('idea.active') == 'true') {
-                fromPreset(presets.linuxX64, 'native')
+                fromPreset(presets.linuxX64, 'posix')
+                fromPreset(presets.linuxX64, 'darwin')
             }
         }
 
