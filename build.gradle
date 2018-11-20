@@ -41,7 +41,7 @@ allprojects {
     apply plugin: 'kotlin-multiplatform'
     apply plugin: 'kotlinx-atomicfu'
 
-//    apply from: rootProject.file('gradle/dokka.gradle')
+    apply from: rootProject.file('gradle/dokka.gradle')
     apply from: rootProject.file('gradle/publish.gradle')
 
     apply from: rootProject.file('gradle/common.gradle')
