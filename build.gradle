@@ -58,8 +58,10 @@ allprojects {
     apply plugin: "kotlin-platform-${platform}"
     apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
     apply from: rootProject.file("gradle/${platform}.gradle")
-
-    apply from: rootProject.file('gradle/publish.gradle')
+    
+    if (project.name != 'binary-compatibility-validator') {
+        apply from: rootProject.file('gradle/publish.gradle')
+    }
 
     if (project.parent != null && project.parent.name == 'ktor-server') {
         apply from: rootProject.file('gradle/engines.gradle')

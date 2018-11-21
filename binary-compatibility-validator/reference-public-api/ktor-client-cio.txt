@@ -1,0 +1,53 @@
+public final class io/ktor/client/engine/cio/CIO : io/ktor/client/engine/HttpClientEngineFactory {
+	public static final field INSTANCE Lio/ktor/client/engine/cio/CIO;
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+}
+
+public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
+	public fun <init> ()V
+	public final fun getEndpoint ()Lio/ktor/client/engine/cio/EndpointConfig;
+	public final fun getHttps ()Lio/ktor/client/engine/cio/HttpsConfig;
+	public final fun getMaxConnectionsCount ()I
+	public final fun setMaxConnectionsCount (I)V
+}
+
+public final class io/ktor/client/engine/cio/CIOEngineContainer : io/ktor/client/HttpClientEngineContainer {
+	public fun <init> ()V
+	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+}
+
+public final class io/ktor/client/engine/cio/ClientClosedException : java/lang/IllegalStateException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+}
+
+public final class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
+	public fun <init> ()V
+}
+
+public final class io/ktor/client/engine/cio/EndpointConfig {
+	public fun <init> ()V
+	public final fun getConnectRetryAttempts ()I
+	public final fun getConnectTimeout ()J
+	public final fun getKeepAliveTime ()J
+	public final fun getMaxConnectionsPerRoute ()I
+	public final fun getPipelineMaxSize ()I
+	public final fun setConnectRetryAttempts (I)V
+	public final fun setConnectTimeout (J)V
+	public final fun setKeepAliveTime (J)V
+	public final fun setMaxConnectionsPerRoute (I)V
+	public final fun setPipelineMaxSize (I)V
+}
+
+public final class io/ktor/client/engine/cio/HttpsConfig {
+	public fun <init> ()V
+	public final fun getCipherSuites ()Ljava/util/List;
+	public final fun getRandomAlgorithm ()Ljava/lang/String;
+	public final fun getTrustManager ()Ljavax/net/ssl/X509TrustManager;
+	public final fun setCipherSuites (Ljava/util/List;)V
+	public final fun setRandomAlgorithm (Ljava/lang/String;)V
+	public final fun setTrustManager (Ljavax/net/ssl/X509TrustManager;)V
+}
+

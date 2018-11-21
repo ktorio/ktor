@@ -1,0 +1,43 @@
+public final class io/ktor/client/features/json/DefaultJvmKt {
+	public static final fun defaultSerializer ()Lio/ktor/client/features/json/JsonSerializer;
+}
+
+public final class io/ktor/client/features/json/JsonFeature {
+	public static final field Feature Lio/ktor/client/features/json/JsonFeature$Feature;
+	public fun <init> (Lio/ktor/client/features/json/JsonSerializer;)V
+	public final fun getSerializer ()Lio/ktor/client/features/json/JsonSerializer;
+}
+
+public final class io/ktor/client/features/json/JsonFeature$Config {
+	public fun <init> ()V
+	public final fun getSerializer ()Lio/ktor/client/features/json/JsonSerializer;
+	public final fun setSerializer (Lio/ktor/client/features/json/JsonSerializer;)V
+}
+
+public final class io/ktor/client/features/json/JsonFeature$Feature : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/json/JsonFeature;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/json/JsonFeature;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/client/features/json/JsonSerializer {
+	public abstract fun read (Lio/ktor/client/call/TypeInfo;Lio/ktor/client/response/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public final class io/ktor/client/features/json/serializer/KotlinxSerializer : io/ktor/client/features/json/JsonSerializer {
+	public static final field Companion Lio/ktor/client/features/json/serializer/KotlinxSerializer$Companion;
+	public fun <init> ()V
+	public fun <init> (Lkotlinx/serialization/json/JSON;)V
+	public synthetic fun <init> (Lkotlinx/serialization/json/JSON;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun read (Lio/ktor/client/call/TypeInfo;Lio/ktor/client/response/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setListMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
+	public final fun setMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
+	public fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public final class io/ktor/client/features/json/serializer/KotlinxSerializer$Companion {
+}
+

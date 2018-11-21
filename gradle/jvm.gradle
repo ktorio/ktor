@@ -78,6 +78,9 @@ jar {
 
 compileKotlin {
     kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
+    
+    // dump declarations from main JVM module for binary-compatibility-validator
+    kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
 }
 
 compileTestKotlin {

@@ -1,0 +1,38 @@
+/*
+ * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+sourceSets {
+    main {
+        kotlin.srcDir 'jvm/src'
+    }
+    test {
+        kotlin.srcDir 'jvm/test'
+    }
+}
+
+dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    implementation project(":ktor-utils:ktor-utils-jvm")
+    api 'org.ow2.asm:asm-debug-all:5.0.4'
+    api 'com.google.code.gson:gson:2.6.2'
+
+    api "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    api "junit:junit:4.12"
+}
+
+apply from: rootProject.file('gradle/compatibility.gradle')
+
+test {
+
+//    dependsOn cleanCompileTestKotlin
+    dependsOn configurations.binaryCompatibility
+
+    def binaryCompatibilityModules = project.ext.buildList() as List<ProjectDependency>
+    def modules = binaryCompatibilityModules.collect { it.dependencyProject.projectDir }
+
+    systemProperty 'validator.input.modules', modules.join(File.pathSeparator)
+    systemProperty 'overwrite.output', project.properties['overwrite.output']
+    jvmArgs '-ea'
+}
