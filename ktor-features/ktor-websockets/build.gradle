@@ -1,18 +1,12 @@
 description = ''
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-http:ktor-http-cio')
-            }
-        }
-        commonTest {
-            dependencies {
-                api project(':ktor-server:ktor-server-jetty')
-                api project(':ktor-server:ktor-server-netty')
-                api project(':ktor-server:ktor-server-tomcat')
-                api project(':ktor-server:ktor-server-cio')
-            }
-        }
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-http:ktor-http-cio')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-server:ktor-server-jetty')
+        api project(':ktor-server:ktor-server-netty')
+        api project(':ktor-server:ktor-server-tomcat')
+        api project(':ktor-server:ktor-server-cio')
     }
 }

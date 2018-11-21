@@ -1,11 +1,22 @@
-
 project.ext.ideaActive = System.getProperty('idea.active') == 'true'
 
 kotlin {
     targets {
-        project.ext.isLinuxHost = project.ext.hostManager.isEnabled(presets.linuxX64.konanTarget)
+        def manager = project.ext.hostManager
+        def linuxEnabled = manager.isEnabled(presets.linuxX64.konanTarget)
+        def macosEnabled = manager.isEnabled(presets.macosX64.konanTarget)
+        def winEnabled = manager.isEnabled(presets.mingwX64.konanTarget)
+
+        project.ext.isLinuxHost = linuxEnabled
+        project.ext.isMacosHost = macosEnabled
+        project.ext.isWinHost = winEnabled
+
         if (project.ext.ideaActive) {
-            project.ext.ideaPreset = project.ext.isLinuxHost ? presets.linuxX64 : presets.macosX64
+            def ideaPreset = presets.linuxX64
+            if (macosEnabled) ideaPreset = presets.macosX64
+            if (winEnabled) ideaPreset = presets.mingwx64
+
+            project.ext.ideaPreset = ideaPreset
         }
     }
 }

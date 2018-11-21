@@ -1,10 +1,4 @@
 description = ''
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-features:ktor-auth')
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-features:ktor-auth')
 }

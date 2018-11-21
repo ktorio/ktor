@@ -368,8 +368,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @Test
     fun testLocalFileContent() {
         val file = listOf(
-            File("jvm/src"),
-           File("test"), File("ktor-server/ktor-server-core/jvm/src")
+            File("jvm/src"), File("jvm/test"), File("ktor-server/ktor-server-core/jvm/src")
         ).first { it.exists() }
             .walkBottomUp()
             .filter { it.extension == "kt" }
@@ -390,9 +389,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContentWithCompression() {
-        val file =
-            listOf(File("jvm/src"), File("test"), File("ktor-server/ktor-server-core/jvm/src")).first { it.exists() }.walkBottomUp()
-                .filter { it.extension == "kt" }.first()
+        val file = listOf(
+            File("jvm/src"),
+            File("jvm/test"),
+            File("ktor-server/ktor-server-core/jvm/src")
+        ).first { it.exists() }
+            .walkBottomUp()
+            .filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -415,7 +418,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testStreamingContentWithCompression() {
         val file = listOf(
             File("jvm/src"),
-           File("test"), File("ktor-server/ktor-server-core/jvm/src")
+            File("jvm/test"),
+            File("ktor-server/ktor-server-core/jvm/src")
         ).first { it.exists() }.walkBottomUp().first { it.extension == "kt" }
         testLog.trace("test file is $file")
 
@@ -443,7 +447,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testLocalFileContentRange() {
         val file = listOf(
             File("jvm/src"),
-           File("test"), File("ktor-server/ktor-server-core/jvm/src")
+            File("jvm/test"),
+            File("ktor-server/ktor-server-core/jvm/src")
         ).first { it.exists() }
             .walkBottomUp()
             .filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
@@ -475,7 +480,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testLocalFileContentRangeWithCompression() {
         val file = listOf(
             File("jvm/src"),
-           File("test"), File("ktor-server/ktor-server-core/jvm/src")
+            File("jvm/test"), File("ktor-server/ktor-server-core/jvm/src")
         ).first { it.exists() }
             .walkBottomUp()
             .filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }

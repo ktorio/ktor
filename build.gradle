@@ -31,13 +31,14 @@ apply from: "gradle/experimental.gradle"
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
+rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
 
 def projectNeedsPlatform(project, platform) {
+    if (rootProject.ext.misc.contains(project.name)) return platform == "jvm"
+
     def files = project.projectDir.listFiles()
     def hasPosix = files.any { it.name == "posix" }
     def hasDarwin = files.any { it.name == "darwin" }
-
-    if (platform == "common") return true
 
     if (hasPosix && hasDarwin) return false
     if (!hasDarwin && platform == "darwin") return false
@@ -62,9 +63,8 @@ allprojects {
     apply plugin: "kotlin-multiplatform"
     apply plugin: "kotlinx-atomicfu"
 
-//    apply from: rootProject.file("gradle/dokka.gradle")
-    apply from: rootProject.file("gradle/utility.gradle")
-    if (project.name != 'binary-compatibility-validator') {
+    if (!rootProject.ext.misc.contains(project.name)) {
+        apply from: rootProject.file("gradle/utility.gradle")
         apply from: rootProject.file('gradle/publish.gradle')
     }
 
@@ -76,6 +76,8 @@ allprojects {
         }
     }
 
+    configurations { testOutput }
+
     kotlin {
         configure(sourceSets) {
             def srcDir = name.endsWith("Main") ? "src" : "test"
@@ -85,19 +87,27 @@ allprojects {
             kotlin.srcDirs = ["$platform/$srcDir"]
             resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
+            if (rootProject.ext.misc.contains(project.name)) return
             languageSettings {
                 progressiveMode = true
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }
 
-//                kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
                 if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
                     useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
                 }
             }
         }
+
+        if (rootProject.ext.misc.contains(project.name)) return
+        configure(targets) {
+            def targetName = it.name
+            compilations.all { compilation ->
+                def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
+                compileTask.kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=" + experimentalAnnotations.join(",")]
+                if (targetName.contains("jvm") && compilation.compilationName == "main") {
+                    compileTask.kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
+                }
+            }
+        }
     }
-
-    configurations { testOutput }
-
-    tasks.build.dependsOn(["sourceJar", "emptyJar"])
 }

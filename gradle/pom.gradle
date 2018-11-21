@@ -26,4 +26,12 @@ project.ext.configureMavenCentralMetadata = { pom ->
     root.appendNode('description', 'Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.')
     root.appendNode('url', 'https://github.com/ktorio/ktor')
     root.children().last() + pomConfig
+
+    def dependenciesNode = asNode().getAt("dependencies")[0]
+    if (dependenciesNode != null) {
+        def dependencyNode = dependenciesNode.appendNode('dependency')
+        dependencyNode.appendNode('groupId', "$group")
+        dependencyNode.appendNode('artifactId', "$project.name")
+        dependencyNode.appendNode('version', "$project.version")
+    }
 }

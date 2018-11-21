@@ -122,7 +122,9 @@ public final class io/ktor/client/call/UtilsJvmKt {
 
 public final class io/ktor/client/call/UtilsKt {
 	public static final fun call (Lio/ktor/client/HttpClient;Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun call (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun call (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Lio/ktor/http/Url;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -390,6 +392,10 @@ public final class io/ktor/client/features/observer/ResponseObserverKt {
 
 public final class io/ktor/client/request/BuildersKt {
 	public static final fun request (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/request/HttpRequestBuilder;
+}
+
+public final class io/ktor/client/request/BuildersWithUrlKt {
+	public static final fun url (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/Url;)V
 }
 
 public abstract class io/ktor/client/request/ClientUpgradeContent : io/ktor/http/content/OutgoingContent$NoContent {

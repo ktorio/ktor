@@ -1,18 +1,12 @@
 description = 'CIO backend for ktor http client'
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-                api project(':ktor-http:ktor-http-cio')
-                api project(':ktor-network:ktor-network-tls')
-            }
-        }
-        commonTest {
-            dependencies {
-                api project(':ktor-client:ktor-client-tests')
-            }
-        }
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+        api project(':ktor-http:ktor-http-cio')
+        api project(':ktor-network:ktor-network-tls')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-client:ktor-client-tests')
     }
 }

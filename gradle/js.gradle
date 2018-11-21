@@ -1,11 +1,4 @@
-apply plugin: 'com.moowork.node'
-
-node {
-    version = "$nodejs_version"
-    npmVersion = "$npm_version"
-    download = false
-    nodeModulesDir = file(buildDir)
-}
+apply from: rootProject.file('gradle/nodejs.gradle')
 
 kotlin {
     targets {
@@ -43,26 +36,32 @@ compileTestKotlinJs {
     kotlinOptions.sourceMapEmbedSources = 'always'
 }
 
-task installDependenciesMochaChrome(type: NpmTask, dependsOn: [npmInstall]) {
-    args = [
-        'install',
-        "mocha@$mocha_version",
-        "mocha-headless-chrome@$mocha_headless_chrome_version",
-        '--no-save'
-    ]
+task assembleWeb(type: Sync, group: 'build', dependsOn: compileTestKotlinJs) {
+    from compileKotlinJs.destinationDir
+    into "$node.nodeModulesDir/node_modules"
 
-    if (project.hasProperty("teamcity")) {
-        args += ["mocha-teamcity-reporter@$mocha_teamcity_reporter_version"]
-    }
+    def configuration = configurations.jsTestRuntimeClasspath
+    from(files {
+        configuration.collect { File file ->
+            file.name.endsWith(".jar") ?
+                zipTree(file.absolutePath).matching {
+                    include '*.js'
+                    include '*.js.map'
+                } :
+                files()
+        }
+    }.builtBy(configuration))
 }
 
 def mochaChromeTestPage = file("$buildDir/test-page.html")
 
-task prepareMochaChrome(dependsOn: [compileTestKotlinJs, installDependenciesMochaChrome]) {
+task prepareMocha(dependsOn: installDependenciesMocha) {
     outputs.file(mochaChromeTestPage)
 }
 
-prepareMochaChrome.doLast {
+prepareMocha.doLast {
+    def libraryPath = "$buildDir/node_modules"
+
     def reporter = (project.hasProperty("teamcity")) ? "mocha.setup({reporter: 'teamcity'});" : ""
     mochaChromeTestPage.text = """<!DOCTYPE html>
         <html>
@@ -77,22 +76,19 @@ prepareMochaChrome.doLast {
         <script src="$node.nodeModulesDir/node_modules/mocha-teamcity-reporter/lib/teamcityBrowser.js"></script>
         <script>mocha.timeout(10000000);</script>
         <script>mocha.setup('bdd');</script>
-        <script>
-            $reporter
-            mocha.checkLeaks();
-        </script>
-        <script src="$projectDir/build/web/kotlin.js"></script>
-        <script src="$projectDir/build/web/kotlin-test.js"></script>
-        <script src="$projectDir/build/web/kotlinx-atomicfu.js"></script>
-        <script src="$projectDir/build/web/kotlinx-coroutines-core.js"></script>
-        <script src="$projectDir/build/web/kotlinx-io-js.js"></script>
-        <script src="$projectDir/build/web/kotlinx-coroutines-io-js.js"></script>
-        <script src="$projectDir/build/web/kotlinx-serialization-runtime-js.js"></script>
-        <script src="$projectDir/build/web/ktor-utils-js.js"></script>
-        <script src="$projectDir/build/web/ktor-http-js.js"></script>
-        <script src="$projectDir/build/web/ktor-client-core-js.js"></script>
-        <script src="$projectDir/build/web/ktor-client-js.js"></script>
-        <script src="$projectDir/build/web/ktor-client-json-js.js"></script>
+        <script src="$libraryPath/kotlin.js"></script>
+        <script src="$libraryPath/kotlin-test.js"></script>
+        <script src="$libraryPath/kotlinx-atomicfu.js"></script>
+        <script src="$libraryPath/kotlinx-coroutines-core.js"></script>
+        <script src="$libraryPath/kotlinx-io.js"></script>
+        <script src="$libraryPath/kotlinx-coroutines-io.js"></script>
+        <script src="$libraryPath/kotlinx-serialization-runtime-js.js"></script>
+        <script src="$libraryPath/ktor-utils.js"></script>
+        <script src="$libraryPath/ktor-http.js"></script>
+        <script src="$libraryPath/ktor-client-core.js"></script>
+        <script src="$libraryPath/ktor-client.js"></script>
+        <script src="$libraryPath/ktor-client-json.js"></script>
+        <script src="$libraryPath/ktor-client-auth-basic.js"></script>
         <script src="$compileTestKotlinJs.outputFile"></script>
         <script>mocha.run();</script>
         </body>
@@ -100,35 +96,23 @@ prepareMochaChrome.doLast {
     """
 }
 
-task testMochaChrome(type: NodeTask, dependsOn: prepareMochaChrome) {
+task testMochaChrome(type: NodeTask, dependsOn: prepareMocha) {
     script = file("$node.nodeModulesDir/node_modules/mocha-headless-chrome/bin/start")
-    args = [
-        compileTestKotlinJs.outputFile, '--file', mochaChromeTestPage,
-        '-a', 'no-sandbox', '-a', 'disable-setuid-sandbox',
-        '--reporter', 'mocha-teamcity-reporter'
-    ]
-
-    if (project.hasProperty('mochaTests')) args += ['--grep', "$mochaTests"]
+    description = "Run js tests in mocha-headless-chrome"
+    args = [compileTestKotlinJs.outputFile, '--file', mochaChromeTestPage]
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
-task assembleWeb(type: Sync) {
-    from(files {
-        configurations.jsTestRuntimeClasspath.collect { File file ->
-            file.name.endsWith(".jar") ?
-                zipTree(file.absolutePath).matching {
-                    include '*.js'
-                    include '*.js.map'
-                } :
-                files()
-        }
-    }.builtBy(configurations.jsTestRuntimeClasspath))
-    from compileKotlinJs.destinationDir
-    into "${projectDir}/build/web"
-    dependsOn jsMainClasses
+task testMochaNode(type: NodeTask, dependsOn: prepareMocha) {
+    script = file("$node.nodeModulesDir/node_modules/mocha/bin/mocha")
+    description = "Run js tests in mocha-nodejs"
+    args = [compileTestKotlinJs.outputFile,  '--require', 'source-map-support/register']
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
-assemble.dependsOn assembleWeb
+npmInstall.dependsOn assembleWeb
+//jsTest.dependsOn testMochaNode
 
-if (project.hasProperty("enable-js-tests")) {
+if (!project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")) {
     jsTest.dependsOn testMochaChrome
 }

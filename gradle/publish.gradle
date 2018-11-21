@@ -4,17 +4,12 @@ apply plugin: 'com.jfrog.bintray'
 
 apply from: project.rootProject.file('gradle/pom.gradle')
 
-task sourceJar(type: Jar) {
-    classifier 'sources'
-//        from sourceSets.main.kotlin
-//        duplicatesStrategy DuplicatesStrategy.EXCLUDE
-//        def platformSrc = sourceSets.main.allSource
-//        def commonSrc = rootProject.sourceSets.main.allSource
-//        from(platformSrc + commonSrc)
-}
-
 task emptyJar(type: Jar) {
     classifier 'javadoc'
+}
+
+task stubJavadoc(type: Jar) {
+    classifier = 'javadoc'
 }
 
 publishing {
@@ -23,17 +18,34 @@ publishing {
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
-    }
-    afterEvaluate {
-        kotlin.targets.forEach { target ->
-            def targetPublication = publications.findByName(target.name)
-            if (targetPublication != null) {
-                targetPublication.artifact emptyJar
-            }
-        }
 
-        configure([metadata, jvm, js]) {
-            gradleModuleMetadataFile = null
+        switch (it.name) {
+            case 'kotlinMultiplatform':
+                task sourcesJar(type: Jar) {
+                    classifier 'sources'
+                    from kotlin.sourceSets.commonMain.kotlin
+                }
+
+                it.artifactId = "$project.name-native"
+                it.artifact stubJavadoc
+                it.artifact sourcesJar
+                break
+            case 'jvm':
+                it.artifactId = "$project.name"
+                break
+            default:
+                it.artifactId = "$project.name-$it.name"
+                break
+        }
+    }
+
+    kotlin.targets.all { target ->
+        def publication = publishing.publications[targetName]
+        if (publication != null) {
+            publication.artifact stubJavadoc
+        }
+        if (target.platformType.name != 'native') {
+            publication.gradleModuleMetadataFile = null
             tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
                 onlyIf { false }
             }

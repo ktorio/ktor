@@ -28,19 +28,11 @@ public final class io/ktor/client/features/logging/LoggerKt {
 }
 
 public final class io/ktor/client/features/logging/Logging {
-	public static final field Companion Lio/ktor/client/features/logging/Logging$Companion;
+	public static final field Feature Lio/ktor/client/features/logging/Logging$Feature;
 	public fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;)V
 	public final fun getLevel ()Lio/ktor/client/features/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
 	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
-}
-
-public final class io/ktor/client/features/logging/Logging$Companion : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
-	public fun install (Lio/ktor/client/features/logging/Logging;Lio/ktor/client/HttpClient;)V
-	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
-	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/logging/Logging;
-	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/logging/Logging$Config {
@@ -49,5 +41,13 @@ public final class io/ktor/client/features/logging/Logging$Config {
 	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
 	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
 	public final fun setLogger (Lio/ktor/client/features/logging/Logger;)V
+}
+
+public final class io/ktor/client/features/logging/Logging$Feature : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/logging/Logging;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/logging/Logging;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 

@@ -314,6 +314,11 @@ public final class io/ktor/util/cio/FileChannelsKt {
 	public static synthetic fun writeChannel$default (Ljava/io/File;Lkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
 }
 
+public final class io/ktor/util/cio/InputStreamAdaptersKt {
+	public static final fun toByteReadChannel (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
+}
+
 public final class io/ktor/util/cio/NoopContinuation : kotlin/coroutines/Continuation {
 	public static final field INSTANCE Lio/ktor/util/cio/NoopContinuation;
 	public fun getContext ()Lkotlin/coroutines/CoroutineContext;

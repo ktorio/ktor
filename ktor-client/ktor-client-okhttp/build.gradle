@@ -1,16 +1,9 @@
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-                api 'com.squareup.okhttp3:okhttp:3.11.0'
-
-            }
-        }
-        commonTest {
-            dependencies {
-                api project(':ktor-client:ktor-client-tests')
-            }
-        }
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+        api 'com.squareup.okhttp3:okhttp:3.11.0'
+    }
+    jvmTest.dependencies {
+        api project(':ktor-client:ktor-client-tests')
     }
 }

@@ -2,40 +2,43 @@
  * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
 
-sourceSets {
-    main {
-        kotlin.srcDir 'jvm/src'
-    }
-    test {
-        kotlin.srcDir 'jvm/test'
-    }
+allprojects { project ->
+    if (project.name != "binary-compatibility-validator") evaluationDependsOn(project.path)
 }
 
-dependencies {
+kotlin.sourceSets.jvmMain.dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    implementation project(":ktor-utils:ktor-utils-jvm")
+    api project(":ktor-utils")
     api 'org.ow2.asm:asm-debug-all:5.0.4'
     api 'com.google.code.gson:gson:2.6.2'
+}
 
+kotlin.sourceSets.jvmTest.dependencies {
     api "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     api "junit:junit:4.12"
 }
 
 apply from: rootProject.file('gradle/compatibility.gradle')
 
-test {
+def binaryCompatibilityModules = project.ext.buildList() as List<ProjectDependency>
+def artifactNames = binaryCompatibilityModules.collect { it.dependencyProject.name }
+def modules = binaryCompatibilityModules.collect { it.dependencyProject.projectDir }
 
+jvmTest {
 //    dependsOn cleanCompileTestKotlin
     dependsOn configurations.binaryCompatibility
 
+    systemProperty 'validator.input.modules', modules.join(File.pathSeparator)
+    systemProperty 'validator.input.artifactNames', artifactNames.join(File.pathSeparator)
     systemProperty 'overwrite.output', project.properties['overwrite.output']
     jvmArgs '-ea'
 
-    doFirst {
-        def binaryCompatibilityModules = project.ext.buildList() as List<ProjectDependency>
-        def modules = binaryCompatibilityModules.collect { it.dependencyProject.projectDir }
+//    doFirst {
+//        tasks.findByName("test").systemProperty('validator.input.modules', modules.join(File.pathSeparator))
+//    }
+}
 
-        tasks.findByName("test").systemProperty('validator.input.modules', modules.join(File.pathSeparator))
-    }
+binaryCompatibilityModules.each {
+    jvmTest.dependsOn(it.dependencyProject.getTasksByName("jvmJar", true))
 }

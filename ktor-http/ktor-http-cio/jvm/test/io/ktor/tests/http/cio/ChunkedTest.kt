@@ -105,24 +105,24 @@ class ChunkedTest {
 
     @Test
     fun testEncodeChunks() = runBlocking {
-        val ch = ByteChannel(true)
+        val output = ByteChannel(true)
         val encoded = ByteChannel()
 
-        launch(coroutineContext) {
+        launch {
             try {
-                encodeChunked(encoded, ch)
+                encodeChunked(encoded, output)
             } finally {
                 encoded.close()
             }
         }
 
         yield()
-        ch.writeStringUtf8("123")
+        output.writeStringUtf8("123")
         yield()
-        ch.writeStringUtf8("45")
+        output.writeStringUtf8("45")
         yield()
-        ch.writeStringUtf8("6")
-        ch.close()
+        output.writeStringUtf8("6")
+        output.close()
         yield()
 
         val encodedText = encoded.readRemaining().inputStream().reader().readText()

@@ -13,36 +13,14 @@ kotlin {
 
         }
         jvmTest.dependencies {
-             api project(':ktor-server:ktor-server-test-host')
-//        api project(':ktor-server:ktor-server-core')
-
+            api project(':ktor-server:ktor-server-core')
+            api project(':ktor-server:ktor-server-test-host')
             api group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
-
-//        runtimeOnly group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
         }
-    }
-
-    configure(['jvm']) {
     }
 }
 
-//dependencies {
-//    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-//}
-
-//dependencies {
-//    bootOnly group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
-//}
-
-//task testHttp2(type: Test, dependsOn: 'testClasses') {
-//    useJUnit()
-//
-//    systemProperty 'enable.http2', 'true'
-//    exclude("**/*StressTest*")
-//
-//    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-//        def bootClasspath = configurations.boot.files
-//    }
-//}
-//
-//tasks.test.dependsOn(tasks.testHttp2)
+dependencies {
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+    boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
+}

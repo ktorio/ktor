@@ -8,11 +8,9 @@ allOpen {
     annotation('org.openjdk.jmh.annotations.State')
 }
 
-sourceSets {
-    jmh {
-        kotlin {
-            srcDir 'src-jmh'
-        }
+kotlin {
+    targets {
+        fromPreset(presets.jvmWithJava, 'jvmWithJava')
     }
 }
 
@@ -32,9 +30,11 @@ dependencies {
 
 jmh {
     jmhVersion = jmh_version
+    jmhJar {
+        archiveName = 'benchmarks.jar'
+    }
 }
 
-jmhJar.archiveName = 'benchmarks.jar'
 
 task runBenchmark(type: JavaExec, dependsOn: 'jmhJar') {
     def mainClassFqName = null

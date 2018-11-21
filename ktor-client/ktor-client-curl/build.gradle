@@ -2,13 +2,13 @@ apply plugin: "kotlinx-serialization"
 
 kotlin {
     targets {
-        List<org.jetbrains.kotlin.gradle.plugin.KotlinTarget> current = []
-
+        def current = []
         if (project.ext.ideaActive) {
-            current.add(posix)
+            current = [posix]
         } else {
-            current = [iosX64, iosArm64, macosX64]
-            if (project.ext.isLinuxHost) current = [linuxX64, mingwX64]
+            if (project.ext.isMacosHost) current = [iosX64, iosArm64, macosX64]
+            if (project.ext.isLinuxHost) current = [linuxX64]
+            if (project.ext.isWinHost) current = [mingwX64]
         }
 
         configure(current) {

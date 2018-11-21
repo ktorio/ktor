@@ -1,19 +1,13 @@
 description = "Ktor websocket support"
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-                api project(':ktor-http:ktor-http-cio')
-            }
-        }
-        commonTest {
-            dependencies {
-                api project(':ktor-client:ktor-client-cio')
-                api project(':ktor-features:ktor-websockets')
-                api project(':ktor-client:ktor-client-tests')
-            }
-        }
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+        api project(':ktor-http:ktor-http-cio')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-client:ktor-client-cio')
+        api project(':ktor-features:ktor-websockets')
+        api project(':ktor-client:ktor-client-tests')
     }
 }

@@ -17,14 +17,17 @@ class PublicApiTest(
 ) {
     companion object {
         private val modulesList = System.getProperty("validator.input.modules")
+        private val artifactNames = System.getProperty("validator.input.artifactNames")
         private val nonPublicPackages: List<String> = emptyList()
 
         @Parameterized.Parameters(name = "{1}")
         @JvmStatic
         fun modules(): List<Array<Any>> {
-            return modulesList.split(File.pathSeparator).map { path ->
+            val names = artifactNames.split(File.pathSeparator)
+            println(names)
+            return modulesList.split(File.pathSeparator).mapIndexed { id, path ->
                 val dir = File(path)
-                arrayOf<Any>(dir, dir.name)
+                arrayOf<Any>(dir, names[id])
             }
         }
     }
@@ -39,11 +42,11 @@ class PublicApiTest(
                 .map { readKotlinVisibilities(it) }
                 .reduce { m1, m2 -> m1 + m2 }
         val api = getBinaryAPI(JarFile(jarFile), visibilities).filterOutNonPublic(nonPublicPackages)
-        api.dumpAndCompareWith(File("reference-public-api").resolve("${moduleName.removeSuffix("-jvm")}.txt"))
+        api.dumpAndCompareWith(File("reference-public-api").resolve("$moduleName.txt"))
     }
 
     private fun getJarPath(libsDir: File): File {
-        val regex = Regex("$moduleName.+\\.jar")
+        val regex = Regex("$moduleName-jvm.+\\.jar")
         val files = (libsDir.listFiles() ?: throw Exception("Cannot list files in $libsDir"))
             .filter {
                 it.name.let {
@@ -51,7 +54,6 @@ class PublicApiTest(
                         && !it.endsWith("-sources.jar")
                         && !it.endsWith("-javadoc.jar")
                         && !it.endsWith("-tests.jar")
-                        && !it.endsWith("-kdoc.jar")
                 }
             }
         return files.singleOrNull()

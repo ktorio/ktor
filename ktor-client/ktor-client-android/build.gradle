@@ -1,16 +1,9 @@
-
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-            }
-        }
-        commonTest {
-            dependencies {
-                api project(':ktor-client:ktor-client-tests')
-                api project(':ktor-network:ktor-network-tls')
-            }
-        }
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-client:ktor-client-tests')
+        api project(':ktor-network:ktor-network-tls')
     }
 }

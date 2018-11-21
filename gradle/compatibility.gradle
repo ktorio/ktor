@@ -1,13 +1,25 @@
-apply from: rootProject.file('gradle/platform.gradle')
-
 configurations {
     binaryCompatibility
 }
 
 dependencies {
-    def excludeList = ['ktor-client-tests', 'ktor-client-features', 'ktor-client-js', 'ktor-client-json-tests'].toSet()
+    def excludeList = [
+        'ktor-client-tests',
+        'ktor-client-js',
+        'ktor-client-json-tests',
+        'ktor-client-curl',
+        'ktor-client-ios',
+        'ktor-client',
+        'ktor-client-features'
+    ].toSet()
+
     def projects = [].toSet()
-    def queue = [project(':ktor-client')]
+    def queue = [
+        project(":ktor-client"),
+        project(":ktor-http"),
+        project(":ktor-network"),
+        project(":ktor-utils")
+    ]
 
     while (!queue.isEmpty()) {
         def project = queue.remove(queue.size() - 1) as Project
@@ -16,10 +28,7 @@ dependencies {
         }
     }
 
-    binaryCompatibility projects.findAll {
-        !excludeList.contains(it.name) &&
-            platformOf(it) == 'jvm'
-    }
+    binaryCompatibility projects.findAll { !excludeList.contains(it.name) }
 }
 
 def buildList = {
@@ -29,24 +38,33 @@ def buildList = {
     workQueue += configurations.binaryCompatibility.allDependencies.findAll { it instanceof ProjectDependency }
 
     while (!workQueue.isEmpty()) {
-        def p = workQueue.remove(workQueue.size() - 1)
-        if (p instanceof ProjectDependency && allModules.add(p)) {
-            p.dependencyProject.configurations.forEach { configuration ->
-                if (!configuration.name.toLowerCase().contains('test') && configuration.name.toLowerCase().contains("jvm")) {
-                    workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
-                } else if (configuration.name == 'compile') {
-                    def task = p.dependencyProject.tasks.findByName('compileKotlin')
-                    if (task != null) {
-                        workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
-                    }
-                }
+        def project = workQueue.remove(workQueue.size() - 1)
+
+        if (project instanceof ProjectDependency && allModules.add(project)) {
+            project.dependencyProject.configurations.forEach { configuration ->
+//                println configuration.allDependencies.withType(ProjectDependency)
+//                if (!configuration.name.toLowerCase().contains('test') && configuration.name.toLowerCase().contains("jvm")) {
+//                    workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
+//                } else if (configuration.name == 'compile') {
+//                    def task = project.dependencyProject.tasks.findByName('compileKotlin')
+//                    if (task != null) {
+//                        workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
+//                    }
+//                }
             }
         }
     }
 
-    return allModules.toList().sort { it.name }.findAll { platformOf(it.dependencyProject) == 'jvm' }
+    return allModules
+        .toList()
+        .sort { it.name }
+        .findAll {
+        def isCommon = it.dependencyProject.file("common").exists()
+        def isJvm = it.dependencyProject.file("jvm").exists()
+        isCommon || isJvm ? it.dependencyProject : null
+    }
 }
 
 project.ext.buildList = buildList
 
-//        println "List of modules: \n" + modulesForBinaryCompatibility.collect { it.name }.sort().join('\n')
+//println "List of modules: \n" + modulesForBinaryCompatibility.collect { it.name }.sort().join('\n')

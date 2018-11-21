@@ -1,11 +1,4 @@
-
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-network')
-                api project(':ktor-http:ktor-http-cio')
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-network')
+    api project(':ktor-http:ktor-http-cio')
 }

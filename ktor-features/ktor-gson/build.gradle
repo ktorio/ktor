@@ -1,16 +1,5 @@
 description = ''
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-utils')
-            }
-
-        }
-        jvmMain {
-            dependencies {
-                api group: 'com.google.code.gson', name: 'gson', version: gson_version
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-utils')
+    api group: 'com.google.code.gson', name: 'gson', version: gson_version
 }

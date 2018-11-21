@@ -79,8 +79,7 @@ public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
 }
 
 public final class io/ktor/http/cio/HttpParserKt {
-	public static final fun parseHeaders (Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/cio/internals/CharBufferBuilder;Lio/ktor/http/cio/internals/MutableRange;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun parseHeaders$default (Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/cio/internals/CharBufferBuilder;Lio/ktor/http/cio/internals/MutableRange;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun parseHeaders (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun parseRequest (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun parseResponse (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -167,31 +166,13 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 	public final fun getVersion ()Ljava/lang/CharSequence;
 }
 
-public final class io/ktor/http/cio/internals/CharBufferBuilder : java/lang/Appendable, java/lang/CharSequence {
-	public fun <init> ()V
-	public fun <init> (Lkotlinx/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun append (C)Ljava/lang/Appendable;
-	public fun append (Ljava/lang/CharSequence;)Ljava/lang/Appendable;
-	public fun append (Ljava/lang/CharSequence;II)Ljava/lang/Appendable;
-	public final fun charAt (I)C
-	public fun equals (Ljava/lang/Object;)Z
-	public fun get (I)C
-	public fun getLength ()I
-	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
-	public fun hashCode ()I
-	public final fun length ()I
-	public final fun release ()V
-	public fun subSequence (II)Ljava/lang/CharSequence;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/http/cio/internals/CharBufferPoolKt {
-	public static final field CHAR_BUFFER_BYTES I
-	public static final field CHAR_BUFFER_LENGTH I
+public final class io/ktor/http/cio/internals/CharArrayPoolKt {
+	public static final field CHAR_BUFFER_ARRAY_LENGTH I
 }
 
 public final class io/ktor/http/cio/internals/HttpByteBufferPoolKt {
+	public static final field DEFAULT_BYTE_BUFFER_BUFFER_SIZE I
+	public static final field DEFAULT_BYTE_BUFFER_POOL_SIZE I
 	public static final fun getDefaultByteBufferPool ()Lkotlinx/io/pool/ObjectPool;
 }
 

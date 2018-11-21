@@ -11,6 +11,8 @@ import kotlin.coroutines.*
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
 
+private const val DEFAULT_BYTE_BUFFER_SIZE = 4088
+
 private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
     object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
         override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
@@ -96,18 +98,13 @@ suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
 
     try {
         input.readSuspendableSession {
-            while (await()) {
+            while (await(DEFAULT_BYTE_BUFFER_SIZE)) {
                 val content = request() ?: return@readSuspendableSession
+                output.writeChunk(content, view)
+            }
 
-                view.resetForWrite()
-                view.writeIntHex(content.readRemaining)
-                view.writeShort(CrLfShort)
-
-                output.writeFully(view)
-                output.writeFully(content)
-                output.writeFully(CrLf)
-
-                if (availableForRead == 0) output.flush()
+            request()?.let { lastChunk ->
+                output.writeChunk(lastChunk, view)
             }
         }
 
@@ -124,3 +121,16 @@ private const val CrLfShort: Short = 0x0d0a
 
 private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
+
+private suspend inline fun ByteWriteChannel.writeChunk(chunk: IoBuffer, tempBuffer: IoBuffer) {
+    val size = chunk.readRemaining
+
+    tempBuffer.resetForWrite()
+    tempBuffer.writeIntHex(size)
+    tempBuffer.writeShort(CrLfShort)
+
+    writeFully(tempBuffer)
+    writeFully(chunk)
+    writeFully(CrLf)
+    flush()
+}

@@ -1,12 +1,10 @@
 description = 'Common tests for client'
 
 kotlin.sourceSets {
-    commonMain.dependencies {
+    jvmMain.dependencies {
         api project(':ktor-client:ktor-client-core')
         api project(':ktor-server:ktor-server-jetty')
         api project(':ktor-server:ktor-server-netty')
-    }
-    jvmMain.dependencies {
         api group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
         api group: 'junit', name: 'junit', version: junit_version
         api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version

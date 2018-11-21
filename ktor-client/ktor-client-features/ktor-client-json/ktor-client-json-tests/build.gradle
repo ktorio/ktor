@@ -1,16 +1,10 @@
 description = 'Common tests for client-json'
+
 apply plugin: 'kotlinx-serialization'
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(":ktor-client:ktor-client-features:ktor-client-json")
-
-                api project(':ktor-client:ktor-client-cio')
-                api project(':ktor-client:ktor-client-tests')
-                api project(':ktor-features:ktor-gson')
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(":ktor-client:ktor-client-features:ktor-client-json")
+    api project(':ktor-client:ktor-client-cio')
+    api project(':ktor-client:ktor-client-tests')
+    api project(':ktor-features:ktor-gson')
 }

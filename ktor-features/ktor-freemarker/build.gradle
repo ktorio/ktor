@@ -1,11 +1,5 @@
 description = ''
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api group: 'org.freemarker', name: 'freemarker', version: '[2.3.20, 2.4)'
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api group: 'org.freemarker', name: 'freemarker', version: '[2.3.20, 2.4)'
 }

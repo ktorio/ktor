@@ -36,6 +36,7 @@ fun ClassVisibility.findSetterForProperty(property: MemberVisibility): MemberVis
 }
 
 fun readKotlinVisibilities(declarationFile: File): Map<String, ClassVisibility> {
+    check(declarationFile.exists())
     val result = mutableListOf<ClassVisibility>()
     declarationFile.bufferedReader().use { reader ->
         val jsonReader = JsonReader(reader)

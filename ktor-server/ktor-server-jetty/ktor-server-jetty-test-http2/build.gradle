@@ -1,15 +1,17 @@
+kotlin.sourceSets.jvmTest.dependencies {
+    api project(':ktor-server:ktor-server-test-host')
+    api group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
+    api project(':ktor-server:ktor-server-core')
+    api project(":ktor-server:ktor-server-jetty")
+}
+
+
 dependencies {
-    testCompile project(':ktor-server:ktor-server-test-host')
-    testCompile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
-    testCompile project(':ktor-server:ktor-server-core')
-    testCompile project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-
-    testCompile project(":ktor-server:ktor-server-jetty")
-
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
     boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
 }
 
-configure(tasks.test) {
+configure(tasks.jvmTest) {
     useJUnit()
 
     systemProperty 'enable.http2', 'true'

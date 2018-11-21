@@ -7,12 +7,15 @@ kotlin {
         } else {
             if (project.ext.isLinuxHost) {
                 fromPreset(presets.linuxX64, 'linuxX64')
-                fromPreset(presets.mingwX64, 'mingwX64')
-            } else {
+            }
+            if (project.ext.isMacosHost) {
                 fromPreset(presets.iosArm64, 'iosArm64')
                 fromPreset(presets.iosX64, 'iosX64')
                 fromPreset(presets.macosX64, 'macosX64')
                 /* fromPreset(presets.iosArm32, 'iosArm32') */
+            }
+            if (project.ext.isWinHost) {
+                fromPreset(presets.mingwX64, 'mingwX64')
             }
         }
 
@@ -21,8 +24,8 @@ kotlin {
     sourceSets {
         posixMain.dependencies {
             implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version
 
             implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
         }

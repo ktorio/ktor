@@ -1,11 +1,5 @@
 description = ''
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                api project(':ktor-utils')
-            }
-        }
-    }
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-utils')
 }
