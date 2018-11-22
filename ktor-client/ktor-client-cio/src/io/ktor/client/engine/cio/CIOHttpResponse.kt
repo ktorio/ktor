@@ -32,4 +32,9 @@ internal class CIOHttpResponse(
     }
 
     override val responseTime: GMTDate = GMTDate()
+
+    override fun close() {
+        super.close()
+        content.cancel()
+    }
 }
