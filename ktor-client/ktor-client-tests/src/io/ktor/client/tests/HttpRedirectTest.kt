@@ -107,6 +107,14 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
                 }
             }
         }
+    }
 
+    @Test
+    fun httpStatsTest() = clientTest(factory) {
+        test { client ->
+            client.get<HttpResponse>("https://httpstat.us/301").use { response ->
+                assertEquals(response.status, HttpStatusCode.OK)
+            }
+        }
     }
 }

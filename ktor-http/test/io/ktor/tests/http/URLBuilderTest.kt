@@ -1,9 +1,6 @@
 package io.ktor.tests.http
 
-import io.ktor.http.DEFAULT_PORT
-import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
-import io.ktor.http.takeFrom
+import io.ktor.http.*
 import kotlin.test.*
 
 internal class URLBuilderTest {
@@ -61,5 +58,13 @@ internal class URLBuilderTest {
             // ensure that the built url does not specify the port when configuring the default port
             assertEquals("custom://localhost/path", url)
         }
+    }
+
+    @Test
+    fun rewritePathWhenRewriteUrl() {
+        val url = URLBuilder("https://httpstat.us/301")
+        url.takeFrom("https://httpstats.us")
+
+        assertEquals("/", url.encodedPath)
     }
 }
