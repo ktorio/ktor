@@ -90,6 +90,7 @@ class SessionTest {
                 sessionParam = sessionCookie.value
                 assertEquals("foo.bar", sessionCookie.domain)
                 assertEquals(3600, sessionCookie.maxAge)
+                assertNotNull(sessionCookie.expires)
 
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
             }
@@ -617,6 +618,32 @@ class SessionTest {
                 addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
             }
             assertEquals(sessionId, nextCall.response.cookies[cookieName]!!.value)
+        }
+    }
+
+    @Test
+    fun testHttpSessionCookie(): Unit = withTestApplication {
+        // test session cookie in terms of HTTP
+        // that should be discarded on client exit
+
+        application.install(Sessions) {
+            cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
+                cookie.duration = null
+            }
+        }
+
+        application.routing {
+            get("/set-cookie") {
+                call.sessions.set(TestUserSession("id2", listOf("item1")))
+                call.respondText("ok")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/set-cookie").let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            val parsedCookies = call.response.cookies[cookieName]!!
+            assertNull(parsedCookies.expires)
+            assertEquals(0, parsedCookies.maxAge)
         }
     }
 
