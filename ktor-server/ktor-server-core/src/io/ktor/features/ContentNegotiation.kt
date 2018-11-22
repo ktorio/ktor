@@ -125,12 +125,13 @@ interface ContentConverter {
      * @param contentType to which this data converted has been registered and that matches client's accept header
      * @param value to be converted
      *
-     * @return a converted value, or null if this [value] is not suitable for this converter
+     * @return a converted value (possibly an [OutgoingContent]), or null if [value] isn't suitable for this converter
      */
     suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
 
     /**
-     * Convert a value (RAW or intermediate) from receive pipeline (deserialize)
+     * Convert a value (RAW or intermediate) from receive pipeline (deserialize).
+     * Pipeline [PipelineContext.subject] has [ApplicationReceiveRequest.value] of type [ByteReadChannel]
      *
      * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
      */
