@@ -54,6 +54,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
                 startIndex = delimiter + 1
             } else {
                 fillHost(urlString, startIndex, delimiter)
+                encodedPath = "/"
                 startIndex = delimiter
                 break@loop
             }
