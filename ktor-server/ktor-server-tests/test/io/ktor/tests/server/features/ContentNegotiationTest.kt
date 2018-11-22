@@ -11,13 +11,18 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.io.*
 import org.junit.Test
+import java.io.*
 import kotlin.test.*
 
 class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
-        override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+        override suspend fun convertForSend(
+            context: PipelineContext<Any, ApplicationCall>,
+            contentType: ContentType,
+            value: Any
+        ): Any? {
             if (value !is Wrapper) return null
             return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
         }
@@ -30,8 +35,12 @@ class ContentNegotiationTest {
         }
     }
 
-    private val textContentConverter =  object : ContentConverter {
-        override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+    private val textContentConverter = object : ContentConverter {
+        override suspend fun convertForSend(
+            context: PipelineContext<Any, ApplicationCall>,
+            contentType: ContentType,
+            value: Any
+        ): Any? {
             if (value !is Wrapper) return null
             return TextContent(value.value, contentType.withCharset(context.call.suitableCharset()))
         }
@@ -41,6 +50,20 @@ class ContentNegotiationTest {
             val incoming = context.subject.value
             if (type != Wrapper::class || incoming !is ByteReadChannel) return null
             return Wrapper(incoming.readRemaining().readText())
+        }
+    }
+
+    private val alwaysFailingConverter = object : ContentConverter {
+        override suspend fun convertForSend(
+            context: PipelineContext<Any, ApplicationCall>,
+            contentType: ContentType,
+            value: Any
+        ): Any? {
+            fail("This converter should be never started for send")
+        }
+
+        override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+            fail("This converter should be never started for receive")
         }
     }
 
@@ -161,7 +184,7 @@ class ContentNegotiationTest {
 
             // Content-Type pattern
             handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.Accept, ContentType(customContentType.contentType, "*").toString() )
+                addHeader(HttpHeaders.Accept, ContentType(customContentType.contentType, "*").toString())
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
@@ -274,6 +297,81 @@ class ContentNegotiationTest {
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
                 assertEquals("[OK]", call.response.content)
             }
+        }
+    }
+
+    @Test
+    fun testReceiveTransformedByDefault(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            // Order here matters. The first registered content type matching the Accept header will be chosen.
+            register(ContentType.Any, alwaysFailingConverter)
+        }
+
+        application.routing {
+            post("/byte-channel") {
+                val count = call.receive<ByteReadChannel>().discard()
+                call.respondText("bytes: $count")
+            }
+            post("/byte-array") {
+                val array = call.receive<ByteArray>()
+                call.respondText("array: ${array.size}")
+            }
+            post("/string") {
+                val text = call.receive<String>()
+                call.respondText("text: $text")
+            }
+            post("/input-stream") {
+                val size = call.receive<InputStream>().readBytes().size
+                call.respondText("bytes from IS: $size")
+            }
+            post("/parameters") {
+                val receivedParameters = call.receiveParameters()
+                call.respondText(receivedParameters.toString())
+            }
+            post("/multipart") {
+                val multipart = call.receiveMultipart()
+                val parts = multipart.readAllParts()
+                call.respondText("parts: ${parts.map { it.name }}")
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/byte-channel", { setBody("123") }).let { call ->
+            assertEquals("bytes: 3", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Post, "/byte-array", { setBody("123") }).let { call ->
+            assertEquals("array: 3", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Post, "/string", { setBody("123") }).let { call ->
+            assertEquals("text: 123", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Post, "/input-stream", { setBody("123") }).let { call ->
+            assertEquals("bytes from IS: 3", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Post, "/parameters") {
+            setBody("k=v")
+            addHeader(
+                HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString()
+            )
+        }.let { call ->
+            assertEquals("Parameters [k=[v]]", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Post, "/multipart") {
+            setBody("my-boundary", listOf(PartData.FormItem("test", {}, headersOf(
+                HttpHeaders.ContentDisposition, ContentDisposition("form-data", listOf(
+                    HeaderValueParam("name", "field1")
+                )).toString()
+            ))))
+            addHeader(
+                HttpHeaders.ContentType,
+                ContentType.MultiPart.FormData.withParameter("boundary", "my-boundary").toString()
+            )
+        }.let { call ->
+            assertEquals("parts: [field1]", call.response.content)
         }
     }
 }

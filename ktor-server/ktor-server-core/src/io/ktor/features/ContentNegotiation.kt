@@ -88,7 +88,11 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             }
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { receive ->
+                // skip if already transformed
                 if (subject.value !is ByteReadChannel) return@intercept
+                // skip if a byte channel has been requested so there is nothing to negotiate
+                if (subject.type === ByteReadChannel::class) return@intercept
+
                 val contentType = call.request.contentType().withoutParameters()
                 val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
                         ?: throw UnsupportedMediaTypeException(contentType)
