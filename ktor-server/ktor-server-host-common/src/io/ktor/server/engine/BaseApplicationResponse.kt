@@ -261,8 +261,18 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
          * to start response object processing via [respondOutgoingContent]
          */
         @EngineAPI
+        @Deprecated("Install it into the engine send pipeline instead")
         fun setupSendPipeline(application: Application) {
-            application.sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
+            setupSendPipeline(application.sendPipeline)
+        }
+
+        /**
+         * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
+         * to start response object processing via [respondOutgoingContent]
+         */
+        @EngineAPI
+        fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
+            sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
                     throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
                 }
@@ -274,6 +284,5 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 callResponse.respondOutgoingContent(response)
             }
         }
-
     }
 }
