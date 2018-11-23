@@ -27,7 +27,7 @@ class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEn
 
         val requestTime = GMTDate()
         val request = DefaultHttpRequest(call, data)
-        val rawResponse = fetch(request.url, request.toRaw())
+        val rawResponse = fetch(request.url, CoroutineScope(callContext).toRaw(request))
 
         @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val stream = rawResponse.body as? ReadableStream ?: error("Fail to obtain native stream: $call, $rawResponse")

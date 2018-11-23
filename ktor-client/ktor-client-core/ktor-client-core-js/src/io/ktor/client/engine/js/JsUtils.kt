@@ -12,13 +12,13 @@ import org.w3c.fetch.*
 import kotlin.browser.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequest.toRaw(): RequestInit {
+internal suspend fun CoroutineScope.toRaw(clientRequest: HttpRequest): RequestInit {
     val jsHeaders = js("({})")
-    mergeHeaders(headers, content) { key, value ->
+    mergeHeaders(clientRequest.headers, clientRequest.content) { key, value ->
         jsHeaders[key] = value
     }
 
-    val content = content
+    val content = clientRequest.content
     val bodyBytes = when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes()
         is OutgoingContent.ReadChannelContent -> content.readFrom().readRemaining().readBytes()
@@ -28,7 +28,7 @@ internal suspend fun HttpRequest.toRaw(): RequestInit {
     }
 
     return buildObject {
-        method = this@toRaw.method.value
+        method = clientRequest.method.value
         headers = jsHeaders
 
         bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
