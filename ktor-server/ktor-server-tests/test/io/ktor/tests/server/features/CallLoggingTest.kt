@@ -217,4 +217,31 @@ class CallLoggingTest {
         }
     }
 
+    @Test
+    fun `can configure custom logger`() {
+        val customMessages = ArrayList<String>()
+        val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
+            override fun trace(message: String?) {
+                if (message != null) {
+                    customMessages.add("CUSTOM TRACE: $message")
+                }
+            }
+        }
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    this.logger = customLogger
+                }
+            }
+        }
+        var hash: String? = null
+
+        withApplication(environment) {
+            hash = application.toString()
+        }
+
+        assertTrue(customMessages.isNotEmpty())
+        assertTrue(customMessages.all { it.startsWith("CUSTOM TRACE:") && it.contains(hash!!) })
+        assertTrue(messages.isEmpty())
+    }
 }
