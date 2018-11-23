@@ -42,7 +42,7 @@ class JsonFeature(val serializer: JsonSerializer) {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
         override fun prepare(block: Config.() -> Unit): JsonFeature =
-            Config().apply(block).let { JsonFeature(it.serializer ?: defaultSerializer()) }
+            JsonFeature(Config().apply(block).serializer ?: defaultSerializer())
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->

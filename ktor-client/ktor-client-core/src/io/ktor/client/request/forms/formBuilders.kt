@@ -31,8 +31,27 @@ suspend inline fun <reified T> HttpClient.submitForm(
 }
 
 /**
- * Send [HttpMethod.Post] request with [parts] encoded in body.
- * [parts] encoded using multipart/form-data format.
+ * Submit [formData] request.
+ *
+ * If [encodeInQuery] specified encode [formData] in url parameters and use [HttpMethod.Get] for the request.
+ * Otherwise send [HttpMethod.Post] request with [formData] encoded in body.
+ *
+ * [url] destination
+ * [formData] encoded using application/x-www-form-urlencoded format.
+ */
+suspend inline fun <reified T> HttpClient.submitForm(
+    url: String,
+    formData: Parameters = Parameters.Empty,
+    encodeInQuery: Boolean = false,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = submitForm(formData, encodeInQuery) {
+    url(url)
+    block()
+}
+
+/**
+ * Send [HttpMethod.Post] request with [formData] encoded in body.
+ * [formData] encoded using multipart/form-data format.
  * https://tools.ietf.org/html/rfc2045
  */
 suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
@@ -43,6 +62,23 @@ suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     body = MultiPartFormDataContent(formData)
     block()
 }
+
+/**
+ * Send [HttpMethod.Post] request with [formData] encoded in body.
+ * [url] destination
+ * [formData] encoded using multipart/form-data format.
+ *
+ * https://tools.ietf.org/html/rfc2045
+ */
+suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
+    url: String,
+    formData: List<PartData>,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = submitFormWithBinaryData(formData) {
+    url(url)
+    block()
+}
+
 
 /**
  * Submit [formData] request.
