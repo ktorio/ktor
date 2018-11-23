@@ -36,6 +36,11 @@ class CallLogging private constructor(
         var level: Level = Level.TRACE
 
         /**
+         * Customize [Logger], will default to [ApplicationEnvironment.log]
+         */
+        var logger: Logger? = null
+
+        /**
          * Log messages for calls matching a [predicate]
          */
         fun filter(predicate: (ApplicationCall) -> Boolean) {
@@ -99,7 +104,8 @@ class CallLogging private constructor(
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
             val feature = CallLogging(
-                pipeline.log, pipeline.environment.monitor,
+                configuration.logger ?: pipeline.log,
+                pipeline.environment.monitor,
                 configuration.level,
                 configuration.filters.toList(),
                 configuration.mdcEntries.toList()
