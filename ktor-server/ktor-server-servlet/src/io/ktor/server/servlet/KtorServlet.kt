@@ -36,14 +36,6 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
     override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
 
     /**
-     * Called by servlet container when the application is starting (deployment started or lazily initialized)
-     */
-    override fun init() {
-        BaseApplicationResponse.setupSendPipeline(application)
-        super.init()
-    }
-
-    /**
      * Called by servlet container when the application is going to be undeployed or stopped.
      */
     override fun destroy() {

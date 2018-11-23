@@ -28,7 +28,10 @@ abstract class BaseApplicationEngine(
     val application: Application get() = environment.application
 
     init {
+        BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
+            it.receivePipeline.merge(pipeline.receivePipeline)
+            it.sendPipeline.merge(pipeline.sendPipeline)
             it.receivePipeline.installDefaultTransformations()
             it.sendPipeline.installDefaultTransformations()
         }

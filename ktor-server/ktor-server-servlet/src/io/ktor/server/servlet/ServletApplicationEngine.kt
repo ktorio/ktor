@@ -39,6 +39,8 @@ open class ServletApplicationEngine : KtorServlet() {
             classLoader = servletContext.classLoader
         }.apply {
             monitor.subscribe(ApplicationStarting)  {
+                it.receivePipeline.merge(enginePipeline.receivePipeline)
+                it.sendPipeline.merge(enginePipeline.sendPipeline)
                 it.receivePipeline.installDefaultTransformations()
                 it.sendPipeline.installDefaultTransformations()
             }
@@ -47,7 +49,11 @@ open class ServletApplicationEngine : KtorServlet() {
 
     override val application: Application get() = environment.application
 
-    override val enginePipeline: EnginePipeline by lazy { defaultEnginePipeline(environment) }
+    override val enginePipeline: EnginePipeline by lazy {
+        defaultEnginePipeline(environment).also {
+            BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
+        }
+    }
 
     override val upgrade: ServletUpgrade by lazy {
         if ("jetty" in servletContext.serverInfo?.toLowerCase() ?: "") {
@@ -59,8 +65,8 @@ open class ServletApplicationEngine : KtorServlet() {
      * Called by the servlet container when loading the servlet (on load)
      */
     override fun init() {
-        environment.start()
         super.init()
+        environment.start()
     }
 
     override fun destroy() {

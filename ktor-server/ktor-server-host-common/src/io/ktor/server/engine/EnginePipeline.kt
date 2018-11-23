@@ -1,6 +1,8 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.util.pipeline.*
 
 /**
@@ -8,6 +10,16 @@ import io.ktor.util.pipeline.*
  * your own engine implementation
  */
 class EnginePipeline : Pipeline<Unit, ApplicationCall>(Before, Call) {
+    /**
+     * Pipeline for receiving content
+     */
+    val receivePipeline = ApplicationReceivePipeline()
+
+    /**
+     * Pipeline for sending content
+     */
+    val sendPipeline = ApplicationSendPipeline()
+
     companion object {
         /**
          * Before call phase
