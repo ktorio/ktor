@@ -5,7 +5,8 @@ import kotlinx.coroutines.scheduling.*
 import kotlin.coroutines.*
 
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
-    private val supervisor = SupervisorJob()
+    private val clientContext = CompletableDeferred<Unit>()
+    private val callSupervisor = SupervisorJob(clientContext)
 
     @UseExperimental(InternalCoroutinesApi::class)
     override val dispatcher: ExperimentalCoroutineDispatcher by lazy {
@@ -14,14 +15,19 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
 
     @UseExperimental(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
-        dispatcher + supervisor + CoroutineName("$engineName-context")
+        dispatcher + clientContext + CoroutineName("$engineName-context")
     }
 
-    protected fun createCallContext() = coroutineContext + CompletableDeferred<Unit>(coroutineContext[Job])
+    protected fun createCallContext() = coroutineContext + CompletableDeferred<Unit>(callSupervisor)
 
     override fun close() {
-        supervisor.cancel()
-        supervisor.invokeOnCompletion {
+        callSupervisor.cancel()
+
+        callSupervisor.invokeOnCompletion {
+            clientContext.complete(Unit)
+        }
+
+        clientContext.invokeOnCompletion {
             @UseExperimental(InternalCoroutinesApi::class)
             dispatcher.close()
         }

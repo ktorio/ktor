@@ -15,7 +15,7 @@ suspend fun ByteReadChannel.toByteArray(limit: Int = Int.MAX_VALUE): ByteArray =
  * Read data chunks from [ByteReadChannel] using buffer
  */
 @InternalAPI
-suspend fun ByteReadChannel.pass(buffer: ByteBuffer, block: suspend (ByteBuffer) -> Unit) {
+suspend inline fun ByteReadChannel.pass(buffer: ByteBuffer, block: (ByteBuffer) -> Unit) {
     while (!isClosedForRead) {
         buffer.clear()
         readAvailable(buffer)
@@ -28,7 +28,22 @@ suspend fun ByteReadChannel.pass(buffer: ByteBuffer, block: suspend (ByteBuffer)
 /**
  * Executes [block] on [ByteWriteChannel] and close it down correctly whether an exception
  */
+@Deprecated("", level = DeprecationLevel.HIDDEN)
 suspend fun ByteWriteChannel.use(block: suspend ByteWriteChannel.() -> Unit) {
+    try {
+        block()
+    } catch (cause: Throwable) {
+        close(cause)
+        throw cause
+    } finally {
+        close()
+    }
+}
+
+/**
+ * Executes [block] on [ByteWriteChannel] and close it down correctly whether an exception
+ */
+inline fun ByteWriteChannel.use(block: ByteWriteChannel.() -> Unit) {
     try {
         block()
     } catch (cause: Throwable) {

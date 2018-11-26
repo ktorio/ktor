@@ -95,7 +95,9 @@ suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, ran
             range.start = nameEnd
 
             skipSpacesAndColon(builder, range)
-            if (range.start == range.end) throw ParserException("No HTTP header value provided for name ${builder.substring(nameStart, nameEnd)}: \n$builder")
+            if (range.start == range.end) {
+                throw ParserException("No HTTP header value provided for name ${builder.substring(nameStart, nameEnd)}: \n$builder")
+            }
 
             // TODO check for trailing spaces in HTTP spec
 

@@ -14,6 +14,8 @@ fun <T : HttpClientEngineConfig> clientTest(
     client.use {
         builder.test(it)
     }
+
+    client.coroutineContext[Job]!!.join()
 }
 
 fun clientTest(

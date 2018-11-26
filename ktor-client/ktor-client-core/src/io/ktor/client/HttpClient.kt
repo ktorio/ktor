@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlin.coroutines.*
@@ -47,6 +48,8 @@ class HttpClient(
     private val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
+    private val closed = atomic(false)
+
     override val coroutineContext: CoroutineContext get() = engine.coroutineContext
     /**
      * Pipeline used for processing all the requests sent by this client.
@@ -153,6 +156,9 @@ class HttpClient(
      * Closes the underlying [engine].
      */
     override fun close() {
+        val success = closed.compareAndSet(false, true)
+        if (!success) throw IllegalStateException("Client already closed")
+
         attributes.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")
             val feature = attributes[key as AttributeKey<Any>]
