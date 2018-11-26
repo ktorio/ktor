@@ -5,8 +5,7 @@ import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Assert.*
+import kotlin.test.*
 
 class CookiesTest {
 
