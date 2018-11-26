@@ -16,6 +16,9 @@ import kotlin.test.*
 @Serializable
 internal data class User(val id: Long, val login: String)
 
+@Serializable
+internal data class Photo(val id: Long, val path: String)
+
 class KotlinxSerializerTest {
 
     @Test
@@ -29,6 +32,20 @@ class KotlinxSerializerTest {
         val actual = serializer.testWrite(user)
         assertEquals("{\"id\":1,\"login\":\"vasya\"}", actual)
 //        assertEquals(user, serializer.testRead(actual))
+    }
+
+    @Test
+    fun registerCustomListTest() {
+        val serializer = KotlinxSerializer().apply {
+            registerList(User.serializer())
+            registerList(Photo.serializer())
+        }
+
+        val user = User(2, "petya")
+        val photo = Photo(3, "petya.jpg")
+
+        assertEquals("[{\"id\":2,\"login\":\"petya\"}]", serializer.testWrite(listOf(user)))
+        assertEquals("[{\"id\":3,\"path\":\"petya.jpg\"}]", serializer.testWrite(listOf(photo)))
     }
 
     private fun JsonSerializer.testWrite(data: Any): String =

@@ -57,6 +57,7 @@ class RequestTest {
         } catch (cause: Throwable) {
             assertEquals("Failed to fetch", cause.message)
         }
-        Unit
+
+        return@promise
     }
 }
