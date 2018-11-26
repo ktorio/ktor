@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.*
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
     @UseExperimental(InternalCoroutinesApi::class)
-    private val selectorManager by lazy { ActorSelectorManager(coroutineContext + dispatcher.blocking(1)) }
+    private val selectorManager by lazy { ActorSelectorManager(dispatcher.blocking(1)) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = AtomicBoolean()
@@ -61,7 +61,10 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
             endpoint.close()
         }
 
-        selectorManager.close()
+        coroutineContext[Job]?.invokeOnCompletion {
+            selectorManager.close()
+        }
+
         super.close()
     }
 }

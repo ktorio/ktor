@@ -97,6 +97,7 @@ internal class Endpoint(
 
             fun closeConnection(cause: Throwable? = null) {
                 try {
+                    input.cancel(cause)
                     output.close(cause)
                     connection.close()
                     releaseConnection()
@@ -106,8 +107,8 @@ internal class Endpoint(
 
             request.write(output, callContext)
 
-            val rawResponse =
-                parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+            val rawResponse = parseResponse(input)
+                ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
             val status = rawResponse.status
             val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L

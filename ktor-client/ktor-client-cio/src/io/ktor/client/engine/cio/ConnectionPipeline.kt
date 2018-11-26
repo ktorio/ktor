@@ -61,7 +61,7 @@ internal class ConnectionPipeline(
     }
 
     private val responseHandler = launch(start = CoroutineStart.LAZY) {
-        socket.use {
+        try {
             var shouldClose = false
             for ((requestTime, task) in responseChannel) {
                 requestLimit.leave()
@@ -70,10 +70,6 @@ internal class ConnectionPipeline(
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
                     val callContext = task.context
-
-                    callContext[Job]?.invokeOnCompletion {
-                        rawResponse.release()
-                    }
 
                     val method = task.request.method
                     val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
@@ -96,7 +92,13 @@ internal class ConnectionPipeline(
                     task.response.complete(response)
 
                     responseChannel?.use {
-                        parseHttpBody(contentLength, transferEncoding, connectionType, networkInput, this)
+                        try {
+                            parseHttpBody(contentLength, transferEncoding, connectionType, networkInput, this)
+                        } finally {
+                            callContext[Job]?.invokeOnCompletion {
+                                rawResponse.release()
+                            }
+                        }
                     }
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
@@ -105,6 +107,9 @@ internal class ConnectionPipeline(
                 task.context[Job]?.join()
                 if (shouldClose) break
             }
+        } finally {
+            networkOutput.close()
+            socket.close()
         }
     }
 

@@ -97,11 +97,11 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun external(): Unit = runBlocking {
-        val client = HttpClient(CIO)
-
-        val response = client.get<HttpResponse>("https://kotlinlang.org")
-        assertEquals(HttpStatusCode.OK, response.status)
+    fun external(): Unit = clientTest(CIO) {
+        test { client ->
+            val response = client.get<HttpResponse>("https://kotlinlang.org")
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
     }
 
     @Test
