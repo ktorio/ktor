@@ -33,6 +33,16 @@ class HeadersTest {
     }
 
     @Test
+    fun smokeTestUnicode() = runBlocking {
+        ch.writeStringUtf8("Host: unicode-\u0422\r\n\r\n")
+        val hh = parseHeaders(ch, builder)!!
+
+        assertEquals("unicode-\u0422", hh["Host"]?.toString())
+
+        hh.release()
+    }
+
+    @Test
     fun extraSpacesLeading() = runBlocking {
         ch.writeStringUtf8(" Host:  localhost\r\n\r\n")
         val hh = parseHeaders(ch, builder)!!
