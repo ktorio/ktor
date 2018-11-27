@@ -1,24 +1,14 @@
 package io.ktor.mustache
 
-import com.github.mustachejava.DefaultMustacheFactory
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.Compression
-import io.ktor.features.ConditionalHeaders
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.withCharset
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
-import org.junit.Test
-import java.util.zip.GZIPInputStream
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import com.github.mustachejava.*
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.testing.*
+import java.util.zip.*
+import kotlin.test.*
 
 class MustacheTest {
 
@@ -147,15 +137,13 @@ class MustacheTest {
     }
 
     private fun Application.setupMustache() {
-        install(Mustache) {
-            DefaultMustacheFactory()
-        }
+        install(Mustache)
     }
 
     companion object {
         private val DefaultModel = mapOf("id" to 1, "title" to "Hello World!")
 
-        private val TemplateWithPlaceholder = "withPlaceholder.mustache"
-        private val TemplateWithoutPlaceholder = "withoutPlaceholder.mustache"
+        private const val TemplateWithPlaceholder = "withPlaceholder.mustache"
+        private const val TemplateWithoutPlaceholder = "withoutPlaceholder.mustache"
     }
 }

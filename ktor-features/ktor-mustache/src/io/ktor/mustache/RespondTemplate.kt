@@ -1,9 +1,8 @@
 package io.ktor.mustache
 
-import io.ktor.application.ApplicationCall
-import io.ktor.http.ContentType
-import io.ktor.http.withCharset
-import io.ktor.response.respond
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
 
 
 /**

@@ -1,19 +1,13 @@
 package io.ktor.mustache
 
-import com.github.mustachejava.DefaultMustacheFactory
-import com.github.mustachejava.MustacheFactory
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.ApplicationFeature
-import io.ktor.http.ContentType
-import io.ktor.http.charset
-import io.ktor.http.content.EntityTagVersion
-import io.ktor.http.content.OutgoingContent
-import io.ktor.http.content.versions
-import io.ktor.http.withCharset
-import io.ktor.response.ApplicationSendPipeline
-import io.ktor.util.AttributeKey
-import io.ktor.util.cio.bufferedWriter
-import kotlinx.coroutines.io.ByteWriteChannel
+import com.github.mustachejava.*
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.response.*
+import io.ktor.util.*
+import io.ktor.util.cio.*
+import kotlinx.coroutines.io.*
 
 /**
  * Response content which could be used to respond [ApplicationCalls] like `call.respond(MustacheContent(...))
@@ -33,14 +27,20 @@ class MustacheContent(
 /**
  * Feature for providing Mustache templates as [MustacheContent]
  */
-class Mustache(private val mustacheFactory: MustacheFactory) {
+class Mustache(configuration: Configuration) {
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, MustacheFactory, Mustache> {
+    private val mustacheFactory = configuration.mustacheFactory
+
+    class Configuration {
+        var mustacheFactory = DefaultMustacheFactory()
+    }
+
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Mustache> {
         override val key = AttributeKey<Mustache>("mustache")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: MustacheFactory.() -> Unit): Mustache {
-            val mustacheFactory = DefaultMustacheFactory().apply(configure)
-            val feature = Mustache(mustacheFactory)
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Mustache {
+            val configuration = Configuration().apply(configure)
+            val feature = Mustache(configuration)
 
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
                 if (value is MustacheContent) {
