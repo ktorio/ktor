@@ -82,6 +82,7 @@ task prepareMochaChrome(dependsOn: [compileTestKotlin2Js, installDependenciesMoc
 }
 
 prepareMochaChrome.doLast {
+    def reporter = (project.hasProperty("teamcity")) ? "mocha.setup({reporter: 'teamcity'});" : ""
     mochaChromeTestPage.text = """<!DOCTYPE html>
         <html>
         <head>
@@ -96,9 +97,7 @@ prepareMochaChrome.doLast {
         <script>mocha.timeout(10000000);</script>
         <script>mocha.setup('bdd');</script>
         <script>
-            mocha.setup({
-                reporter: 'teamcity'
-                });
+            $reporter
             mocha.checkLeaks();
         </script>
         <script src="$projectDir/build/web/kotlin.js"></script>
