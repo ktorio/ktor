@@ -7,14 +7,17 @@ import io.ktor.client.response.*
 import kotlinx.coroutines.io.*
 
 
-internal fun DelegatedCall(
+/**
+ * Wrap existing [HttpClientCall] with new [content].
+ *
+ * [shouldCloseOrigin] - specify should we close the origin call with closing the new one.
+ */
+fun HttpClientCall.wrapWithContent(
     content: ByteReadChannel,
-    origin: HttpClientCall,
-    scope: HttpClient,
-    shouldClose: Boolean
-): HttpClientCall = HttpClientCall(scope).apply {
-    request = DelegatedRequest(this, origin.request)
-    response = DelegatedResponse(content, this, shouldClose, origin.response)
+    shouldCloseOrigin: Boolean
+): HttpClientCall = HttpClientCall(client).apply {
+    request = DelegatedRequest(this, this@wrapWithContent.request)
+    response = DelegatedResponse(content, this, shouldCloseOrigin, this@wrapWithContent.response)
 }
 
 internal class DelegatedRequest(

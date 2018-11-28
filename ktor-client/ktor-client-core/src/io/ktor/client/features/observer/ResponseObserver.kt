@@ -6,7 +6,10 @@ import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 
-internal typealias ResponseHandler = suspend (HttpResponse) -> Unit
+/**
+ * [ResponseObserver] callback.
+ */
+typealias ResponseHandler = suspend (HttpResponse) -> Unit
 
 /**
  * Observe response feature.
@@ -38,11 +41,11 @@ class ResponseObserver(
                 val (loggingContent, responseContent) = response.content.split(scope)
 
                 launch {
-                    val callForLog = DelegatedCall(loggingContent, context, scope, shouldClose = false)
+                    val callForLog = context.wrapWithContent(loggingContent, shouldCloseOrigin = false)
                     feature.responseHandler(callForLog.response)
                 }
 
-                val newCall = DelegatedCall(responseContent, context, scope, shouldClose = true)
+                val newCall = context.wrapWithContent(responseContent, shouldCloseOrigin = true)
                 context.response = newCall.response
                 context.request = newCall.request
 
