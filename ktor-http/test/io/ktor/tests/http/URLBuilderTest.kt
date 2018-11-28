@@ -67,4 +67,21 @@ internal class URLBuilderTest {
 
         assertEquals("/", url.encodedPath)
     }
+
+    @Test
+    fun rewritePathFromSlash() {
+        val url = URLBuilder("https://httpstat.us/301")
+
+        url.takeFrom("/")
+        assertEquals("https://httpstat.us/", url.buildString())
+
+    }
+
+    @Test
+    fun rewritePathFromSingle() {
+        val url = URLBuilder("https://httpstat.us/301")
+
+        url.takeFrom("/1")
+        assertEquals("https://httpstat.us/1", url.buildString())
+    }
 }
