@@ -28,7 +28,7 @@ class ExpectSuccess(
 class BadResponseStatusException(
     val statusCode: HttpStatusCode,
     val response: HttpResponse
-) : IllegalStateException()
+) : IllegalStateException("Received bad status code: $statusCode. Expected status code < 300.")
 
 @Deprecated(
     "[BadResponseStatus] is deprecated. Use [BadResponseStatusException] instead.",
