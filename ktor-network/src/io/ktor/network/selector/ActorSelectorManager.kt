@@ -35,8 +35,9 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
 
     init {
         launch {
-            provider.openSelector()!!.use { selector ->
-                selectorRef = selector
+            val selector = provider.openSelector() ?: error("openSelector() = null")
+            selectorRef = selector
+            try {
                 try {
                     process(mb, selector)
                 } catch (t: Throwable) {
@@ -54,6 +55,8 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
                     val m = mb.removeFirstOrNull() ?: break
                     cancelAllSuspensions(m, ClosedSendChannelException("Failed to apply interest: selector closed"))
                 }
+            } finally {
+                selector.close()
             }
         }
     }
