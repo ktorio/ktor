@@ -8,12 +8,16 @@ import kotlin.collections.set
 /**
  * Mutable configuration used by [HttpClient].
  */
+@HttpClientDsl
 class HttpClientConfig<T : HttpClientEngineConfig> {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
 
     internal var engineConfig: T.()->Unit = {}
 
+    /**
+     * Configure engine parameters.
+     */
     fun engine(block: T.() -> Unit) {
         val oldConfig = engineConfig
         engineConfig = {
@@ -95,3 +99,9 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
         customInterceptors += other.customInterceptors
     }
 }
+
+/**
+ * Dsl marker for [HttpClient] dsl.
+ */
+@DslMarker
+annotation class HttpClientDsl()

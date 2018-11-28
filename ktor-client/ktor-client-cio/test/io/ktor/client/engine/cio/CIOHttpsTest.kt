@@ -41,7 +41,7 @@ class CIOHttpsTest : TestWithKtor() {
     companion object {
         val keyStoreFile = File("build/temp.jks")
         lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
+        private lateinit var sslContext: SSLContext
         lateinit var x509TrustManager: X509TrustManager
 
         @BeforeClass

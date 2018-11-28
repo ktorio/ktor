@@ -1,9 +1,9 @@
 package io.ktor.http
 
 /**
- * Represents an HTTP status code and description. 
- * @param value is a numeric code. 
- * @param description is free form description of a status. 
+ * Represents an HTTP status code and description.
+ * @param value is a numeric code.
+ * @param description is free form description of a status.
  */
 @Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
@@ -99,9 +99,12 @@ data class HttpStatusCode(val value: Int, val description: String) {
 }
 
 @Suppress("UNUSED", "KDocMissingDocumentation")
-@Deprecated("Use ExpectationFailed instead",
-        ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed"))
-inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode get() = ExpectationFailed
+@Deprecated(
+    "Use ExpectationFailed instead",
+    ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed")
+)
+inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode
+    get() = ExpectationFailed
 
 internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.Continue,
@@ -160,7 +163,7 @@ internal fun allStatusCodes(): List<HttpStatusCode> = listOf(
 
 /**
  * Checks if a given status code is a success code according to HTTP standards.
- * 
+ *
  * Codes from 200 to 299 are considered to be successful.
  */
 fun HttpStatusCode.isSuccess(): Boolean = value in (200 until 300)

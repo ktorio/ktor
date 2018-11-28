@@ -1,5 +1,6 @@
 package io.ktor.client.engine
 
+import io.ktor.client.*
 import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -7,6 +8,7 @@ import kotlinx.coroutines.*
 /**
  * Base configuration for [HttpClientEngine].
  */
+@HttpClientDsl
 open class HttpClientEngineConfig {
     /**
      * The [CoroutineDispatcher] that will be used for the client requests.

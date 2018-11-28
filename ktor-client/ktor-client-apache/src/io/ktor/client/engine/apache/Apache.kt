@@ -20,6 +20,7 @@ object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 class ApacheEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Apache
 }

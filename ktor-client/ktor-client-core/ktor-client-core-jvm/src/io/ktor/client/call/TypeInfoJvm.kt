@@ -5,7 +5,7 @@ import kotlin.reflect.*
 
 actual typealias Type = java.lang.reflect.Type
 
-@PublishedApi()
+@PublishedApi
 internal open class TypeBase<T>
 
 actual inline fun <reified T> typeInfo(): TypeInfo {

@@ -39,8 +39,7 @@ class AcceptAllCookiesStorage() : CookiesStorage {
         val newOldest = container.fold(Long.MAX_VALUE) { acc, cookie ->
             cookie.expires?.timestamp?.let { min(acc, it) } ?: acc
         }
-        
+
         oldestCookie.value = newOldest
     }
 }
-

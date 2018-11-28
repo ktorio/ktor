@@ -83,12 +83,12 @@ suspend fun parseHttpBody(
     out: ByteWriteChannel
 ) {
     if (transferEncoding != null) {
-        if (transferEncoding.equalsLowerCase(other = "chunked")) {
-            return decodeChunked(input, out)
-        } else if (transferEncoding.equalsLowerCase(other = "identity")) {
-            // do nothing special
-        } else {
-            out.close(IOException("Unsupported transfer-encoding $transferEncoding"))
+        when {
+            transferEncoding.equalsLowerCase(other = "chunked") -> return decodeChunked(input, out)
+            transferEncoding.equalsLowerCase(other = "identity") -> {
+                // do nothing special
+            }
+            else -> out.close(IOException("Unsupported transfer-encoding $transferEncoding"))
             // TODO: combined transfer encodings
         }
     }

@@ -12,9 +12,11 @@ import kotlin.reflect.*
 
 /**
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
+ *
+ * [client] - client that executed the call.
  */
 class HttpClientCall internal constructor(
-    private val client: HttpClient
+    val client: HttpClient
 ) : CoroutineScope, Closeable {
     private val received = atomic(false)
 

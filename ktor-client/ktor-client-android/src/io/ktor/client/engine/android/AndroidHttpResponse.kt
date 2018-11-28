@@ -9,6 +9,7 @@ import kotlinx.coroutines.io.*
 import java.net.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
 class AndroidHttpResponse(
     override val call: HttpClientCall,
     override val content: ByteReadChannel,

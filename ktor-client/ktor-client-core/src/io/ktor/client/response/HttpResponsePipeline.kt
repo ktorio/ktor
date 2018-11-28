@@ -44,7 +44,7 @@ class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State
         /**
          * The earliest phase that happens before any other
          */
-        val Before = PipelinePhase("Response")
+        val Before = PipelinePhase("Before")
 
         /**
          * Use this phase to store request shared state

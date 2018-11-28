@@ -24,7 +24,7 @@ fun clientTest(
 ): Unit = clientTest(HttpClient(engine), block)
 
 fun clientTest(
-    client: HttpClient,
+    client: HttpClient = HttpClient(),
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 ): Unit = runBlocking {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
