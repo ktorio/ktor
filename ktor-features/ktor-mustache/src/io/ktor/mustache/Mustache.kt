@@ -32,7 +32,7 @@ class Mustache(configuration: Configuration) {
     private val mustacheFactory = configuration.mustacheFactory
 
     class Configuration {
-        var mustacheFactory = DefaultMustacheFactory()
+        var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Mustache> {

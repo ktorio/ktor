@@ -1,6 +1,5 @@
 package io.ktor.mustache
 
-import com.github.mustachejava.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
