@@ -2,6 +2,9 @@ package io.ktor.client.call
 
 import kotlin.reflect.*
 
+/**
+ * Information about type.
+ */
 expect interface Type
 
 /**

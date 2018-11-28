@@ -42,7 +42,7 @@ class AndroidHttpsTest : TestWithKtor() {
         val keyStoreFile = File("build/temp.jks")
         lateinit var keyStore: KeyStore
         lateinit var sslContext: SSLContext
-        lateinit var x509TrustManager: X509TrustManager
+        private lateinit var x509TrustManager: X509TrustManager
 
         @BeforeClass
         @JvmStatic

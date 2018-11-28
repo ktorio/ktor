@@ -7,18 +7,18 @@ import io.ktor.util.*
  */
 @KtorExperimentalAPI
 object CacheControl {
-    val MAX_AGE = "max-age"
-    val MIN_FRESH = "min-fresh"
-    val ONLY_IF_CACHED = "only-if-cached"
+    const val MAX_AGE = "max-age"
+    const val MIN_FRESH = "min-fresh"
+    const val ONLY_IF_CACHED = "only-if-cached"
 
-    val MAX_STALE = "max-stale"
-    val NO_CACHE = "no-cache"
-    val NO_STORE = "no-store"
-    val NO_TRANSFORM = "no-transform"
+    const val MAX_STALE = "max-stale"
+    const val NO_CACHE = "no-cache"
+    const val NO_STORE = "no-store"
+    const val NO_TRANSFORM = "no-transform"
 
-    val MUST_REVALIDATE = "must-revalidate"
-    val PUBLIC = "private"
-    val PRIVATE = "private"
-    val PROXY_REVALIDATE = "proxy-revalidate"
-    val S_MAX_AGE = "s-maxage"
+    const val MUST_REVALIDATE = "must-revalidate"
+    const val PUBLIC = "private"
+    const val PRIVATE = "private"
+    const val PROXY_REVALIDATE = "proxy-revalidate"
+    const val S_MAX_AGE = "s-maxage"
 }

@@ -7,6 +7,9 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 
 
+/**
+ * [JsonSerializer] using [Gson] as backend.
+ */
 class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
 
     private val backend: Gson = GsonBuilder().apply(block).create()

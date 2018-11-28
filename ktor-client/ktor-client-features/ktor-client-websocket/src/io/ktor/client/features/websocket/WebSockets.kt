@@ -12,6 +12,9 @@ import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlin.reflect.full.*
 
+/**
+ * Client WebSocket feature.
+ */
 class WebSockets(
     val maxFrameSize: Long = Int.MAX_VALUE.toLong()
 ) : Closeable {

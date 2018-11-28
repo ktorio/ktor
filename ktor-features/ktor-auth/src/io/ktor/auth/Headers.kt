@@ -20,7 +20,7 @@ object AuthScheme {
      *
      * see https://tools.ietf.org/html/rfc7617)
      */
-    val Basic = "Basic"
+    const val Basic = "Basic"
 
     /**
      * Digest Authentication described in the RFC-2069:
@@ -33,21 +33,21 @@ object AuthScheme {
      *
      * see https://tools.ietf.org/html/rfc2069
      */
-    val Digest = "Digest"
+    const val Digest = "Digest"
 
     /**
      * Described in the RFC-4599:
      *
      * see https://www.ietf.org/rfc/rfc4559.txt
      */
-    val Negotiate = "Negotiate"
+    const val Negotiate = "Negotiate"
 
     /**
      * OAuth Authentication described in the RFC-6749:
      *
      * see https://tools.ietf.org/html/rfc6749
      */
-    val OAuth = "OAuth"
+    const val OAuth = "OAuth"
 }
 
 /**
@@ -81,7 +81,7 @@ fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorizati
 
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
 private val authSchemePattern = "\\S+".toRegex()
-private val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
+private const val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
 private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
 
 /**
@@ -238,20 +238,20 @@ sealed class HttpAuthHeader(val authScheme: String) {
      */
     @Suppress("KDocMissingDocumentation")
     object Parameters {
-        val Realm = "realm"
-        val Charset = "charset"
+        const val Realm = "realm"
+        const val Charset = "charset"
 
-        val OAuthCallback = "oauth_callback"
-        val OAuthConsumerKey = "oauth_consumer_key"
-        val OAuthNonce = "oauth_nonce"
-        val OAuthToken = "oauth_token"
-        val OAuthTokenSecret = "oauth_token_secret"
-        val OAuthVerifier = "oauth_verifier"
-        val OAuthSignatureMethod = "oauth_signature_method"
-        val OAuthTimestamp = "oauth_timestamp"
-        val OAuthVersion = "oauth_version"
-        val OAuthSignature = "oauth_signature"
-        val OAuthCallbackConfirmed = "oauth_callback_confirmed"
+        const val OAuthCallback = "oauth_callback"
+        const val OAuthConsumerKey = "oauth_consumer_key"
+        const val OAuthNonce = "oauth_nonce"
+        const val OAuthToken = "oauth_token"
+        const val OAuthTokenSecret = "oauth_token_secret"
+        const val OAuthVerifier = "oauth_verifier"
+        const val OAuthSignatureMethod = "oauth_signature_method"
+        const val OAuthTimestamp = "oauth_timestamp"
+        const val OAuthVersion = "oauth_version"
+        const val OAuthSignature = "oauth_signature"
+        const val OAuthCallbackConfirmed = "oauth_callback_confirmed"
     }
 }
 

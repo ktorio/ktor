@@ -12,6 +12,13 @@ import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlin.coroutines.*
 
+/**
+ * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
+ *
+ * The [HttpClientEngine] is selected from the dependencies.
+ * https://ktor.io/clients/http-client/engines.html
+ */
+@HttpClientDsl
 expect fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
@@ -20,6 +27,7 @@ expect fun HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
  * and an optional [block] for configuring this client.
  */
+@HttpClientDsl
 fun <T : HttpClientEngineConfig> HttpClient(
     engineFactory: HttpClientEngineFactory<T>,
     block: HttpClientConfig<T>.() -> Unit = {}
@@ -34,6 +42,7 @@ fun <T : HttpClientEngineConfig> HttpClient(
  * Constructs an asynchronous [HttpClient] using the specified [engine]
  * and a [block] for configuring this client.
  */
+@HttpClientDsl
 fun HttpClient(
     engine: HttpClientEngine,
     block: HttpClientConfig<*>.()->Unit
@@ -157,7 +166,7 @@ class HttpClient(
      */
     override fun close() {
         val success = closed.compareAndSet(false, true)
-        if (!success) throw IllegalStateException("Client already closed")
+        if (!success) return
 
         attributes.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")

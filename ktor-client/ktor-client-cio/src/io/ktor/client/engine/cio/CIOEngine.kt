@@ -69,4 +69,5 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 class ClientClosedException(override val cause: Throwable? = null) : IllegalStateException("Client already closed")

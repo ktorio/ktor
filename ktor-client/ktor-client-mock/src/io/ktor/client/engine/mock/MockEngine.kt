@@ -3,11 +3,13 @@ package io.ktor.client.engine.mock
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 
+/**
+ * [HttpClientEngine] for writing tests without network.
+ */
 class MockEngine(override val config: MockEngineConfig) : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 

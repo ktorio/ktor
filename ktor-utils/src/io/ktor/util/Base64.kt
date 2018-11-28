@@ -3,9 +3,9 @@ package io.ktor.util
 import kotlinx.io.core.*
 import kotlin.experimental.*
 
-private val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-private val BASE64_MASK: Byte = 0x3f
-private val BASE64_PAD = '='
+private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+private const val BASE64_MASK: Byte = 0x3f
+private const val BASE64_PAD = '='
 
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
