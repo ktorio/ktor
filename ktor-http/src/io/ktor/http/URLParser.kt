@@ -54,7 +54,6 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
                 startIndex = delimiter + 1
             } else {
                 fillHost(urlString, startIndex, delimiter)
-                encodedPath = "/"
                 startIndex = delimiter
                 break@loop
             }
@@ -63,6 +62,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     // Path
+    encodedPath = "/"
     if (startIndex >= endIndex) return this
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     val rawPath = urlString.substring(startIndex, pathEnd)
