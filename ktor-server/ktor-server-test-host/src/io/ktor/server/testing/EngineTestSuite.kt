@@ -366,7 +366,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContent() {
-        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
+        val file = listOf(File("src"), File("test"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -383,7 +383,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContentWithCompression() {
-        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
+        val file = listOf(File("src"), File("test"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -404,7 +404,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testStreamingContentWithCompression() {
-        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
+        val file = listOf(File("src"), File("test"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -429,7 +429,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContentRange() {
-        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
+        val file = listOf(File("src"), File("test"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -455,7 +455,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContentRangeWithCompression() {
-        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
+        val file = listOf(File("src"), File("test"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -522,8 +522,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testURIContentLocalFile() {
-        val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/main"
-        val file = listOf(File("build/classes/kotlin/main"), File(buildDir)).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
+        val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/test"
+        val file = listOf(File("build/classes/kotlin/test"), File(buildDir)).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -1770,7 +1770,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     companion object {
-        const val classesDir = "build/classes/kotlin/main"
+        const val classesDir = "build/classes/kotlin/test"
         const val coreClassesDir = "ktor-server/ktor-server-core/${classesDir}"
     }
 }
