@@ -1,0 +1,22 @@
+dependencies {
+    testCompile project(':ktor-server:ktor-server-test-host')
+    testCompile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
+    testCompile project(':ktor-server:ktor-server-core')
+    testCompile project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+
+    testCompile project(":ktor-server:ktor-server-jetty")
+
+    boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
+}
+
+configure(tasks.test) {
+    useJUnit()
+
+    systemProperty 'enable.http2', 'true'
+    exclude("**/*StressTest*")
+
+    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+        def bootClasspath = configurations.boot.files
+        jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+    }
+}
