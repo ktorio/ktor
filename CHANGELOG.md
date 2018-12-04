@@ -1,3 +1,19 @@
+# 1.0.1
+> Published 4 Dec 2018
+
+* Client logging feature (`Logging` in `ktor-client-logging`)
+* Client user agent feature (see `UserAgent`)
+* Client top-level list serialization support (#739)
+* JS client body handling fix (#746)
+* Client redirect edge cases fixed
+* Client close/cancel handling improved
+* CIO client bugfixes
+* Unicode filenames support in multipart fileupload (#757, #687, #596)
+* `ContentNegotiation` and `WebSocket` server features compatibility (#745)
+* Server session cookie duration is optional (#736)
+* Server autreload support fixed (#736)
+* `CachingOptions` resolution ambiguity fixed (#741)
+
 # 1.0.0
 > Published 19 Nov 2018
 
