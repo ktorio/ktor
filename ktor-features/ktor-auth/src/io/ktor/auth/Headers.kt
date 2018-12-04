@@ -48,6 +48,18 @@ object AuthScheme {
      * see https://tools.ietf.org/html/rfc6749
      */
     const val OAuth = "OAuth"
+
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
+    fun getBasic(): String = Basic
+
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
+    fun getDigest(): String = Digest
+
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
+    fun getNegotiate(): String = Negotiate
 }
 
 /**
