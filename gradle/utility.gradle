@@ -1,0 +1,11 @@
+
+project.ext.ideaActive = System.getProperty('idea.active') == 'true'
+
+kotlin {
+    targets {
+        project.ext.isLinuxHost = project.ext.hostManager.isEnabled(presets.linuxX64.konanTarget)
+        if (project.ext.ideaActive) {
+            project.ext.ideaPreset = project.ext.isLinuxHost ? presets.linuxX64 : presets.macosX64
+        }
+    }
+}

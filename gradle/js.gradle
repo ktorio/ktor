@@ -14,9 +14,6 @@ kotlin {
 
     sourceSets {
         jsMain.dependencies {
-            languageSettings {
-
-            }
             api "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
 
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
@@ -28,7 +25,6 @@ kotlin {
             api "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
         }
     }
-
 }
 
 compileKotlinJs {
@@ -46,7 +42,6 @@ compileTestKotlinJs {
     kotlinOptions.main = 'call'
     kotlinOptions.sourceMapEmbedSources = 'always'
 }
-
 
 task installDependenciesMochaChrome(type: NpmTask, dependsOn: [npmInstall]) {
     args = [

@@ -82,7 +82,13 @@ suspend fun parsePreamble(
     output: BytePacketBuilder,
     limit: Long = Long.MAX_VALUE
 ): Long {
-    return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
+    return copyUntilBoundary(
+        "preamble/prologue",
+        boundaryPrefixed,
+        input,
+        { output.writeFully(it) },
+        limit
+    )
 }
 
 /**
@@ -108,7 +114,7 @@ suspend fun parsePart(
  */
 @KtorExperimentalAPI
 suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
-    val builder = CharBufferBuilder()
+    val builder = CharArrayBuilder()
 
     try {
         return parseHeaders(input, builder, MutableRange(0, 0))

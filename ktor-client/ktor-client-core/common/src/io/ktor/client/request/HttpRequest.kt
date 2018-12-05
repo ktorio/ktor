@@ -53,6 +53,9 @@ interface HttpRequest : HttpMessage, CoroutineScope {
 
 }
 
+/**
+ * Default [HttpRequest] implementation.
+ */
 open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
     override val coroutineContext: CoroutineContext get() = call.coroutineContext
 

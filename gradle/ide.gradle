@@ -1,0 +1,13 @@
+task prepareIdeInterop(type: Copy) {
+    if (project.ext.isLinuxHost) {
+        from "build/classes/kotlin/linuxX64"
+    } else {
+        from "build/classes/kotlin/macosX64"
+    }
+
+    into "build/classes/kotlin/posix"
+}
+
+configure([assemble]) {
+    doLast { prepareIdeInterop.execute() }
+}

@@ -26,3 +26,15 @@ suspend fun HttpClient.call(
     url.takeFrom(urlString)
     block()
 }
+
+/**
+ * Constructs a [HttpClientCall] from this [HttpClient],
+ * an [url] and an optional [block] configuring a [HttpRequestBuilder].
+ */
+suspend fun HttpClient.call(
+    url: Url,
+    block: suspend HttpRequestBuilder.() -> Unit = {}
+): HttpClientCall = call {
+    this.url.takeFrom(url)
+    block()
+}

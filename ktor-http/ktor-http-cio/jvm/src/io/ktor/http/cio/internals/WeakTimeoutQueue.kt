@@ -25,7 +25,9 @@ import kotlin.coroutines.intrinsics.*
 class WeakTimeoutQueue(
     private val timeoutMillis: Long,
     private val clock: Clock = Clock.systemUTC(),
-    private val exceptionFactory: () -> Exception = { TimeoutCancellationException(timeoutMillis) }
+    private val exceptionFactory: () -> Exception = {
+        TimeoutCancellationException(timeoutMillis)
+    }
 ) {
     private val head = LockFreeLinkedListHead()
 
@@ -45,9 +47,9 @@ class WeakTimeoutQueue(
 
         process(now, head, cancelled)
         if (cancelled) {
-            val e = cancellationException()
-            cancellable.cancel(e)
-            throw e
+            val cause = cancellationException()
+            cancellable.cancel(cause)
+            throw cause
         }
 
         return cancellable
@@ -75,7 +77,8 @@ class WeakTimeoutQueue(
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
             val continuation = rawContinuation.intercepted()
 
-            val wrapped = WeakTimeoutCoroutine(continuation.context, continuation)
+            val wrapped =
+                WeakTimeoutCoroutine(continuation.context, continuation)
             val handle = register(wrapped)
             wrapped.invokeOnCompletion(handle)
 
@@ -86,16 +89,14 @@ class WeakTimeoutQueue(
                 if (wrapped.tryComplete()) {
                     handle.dispose()
                     throw t
-                }
-                else COROUTINE_SUSPENDED
+                } else COROUTINE_SUSPENDED
             }
 
             if (result !== COROUTINE_SUSPENDED) {
                 if (wrapped.tryComplete()) {
                     handle.dispose()
                     result
-                }
-                else COROUTINE_SUSPENDED
+                } else COROUTINE_SUSPENDED
             } else COROUTINE_SUSPENDED
         }
     }
@@ -125,7 +126,9 @@ class WeakTimeoutQueue(
         }
     }
 
-    private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), Registration {
+    private abstract class Cancellable(
+        val deadline: Long
+    ) : LockFreeLinkedListNode(), Registration {
         open val isActive: Boolean
             get() = !isRemoved
 

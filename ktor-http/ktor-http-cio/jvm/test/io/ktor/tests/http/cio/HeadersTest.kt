@@ -10,7 +10,7 @@ import kotlin.test.*
 
 class HeadersTest {
     private val ch = ByteChannel(true)
-    private val builder = CharBufferBuilder()
+    private val builder = CharArrayBuilder()
 
     @After
     fun tearDown() {

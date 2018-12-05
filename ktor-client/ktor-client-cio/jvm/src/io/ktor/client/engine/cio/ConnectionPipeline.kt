@@ -93,7 +93,13 @@ internal class ConnectionPipeline(
 
                     responseChannel?.use {
                         try {
-                            parseHttpBody(contentLength, transferEncoding, connectionType, networkInput, this)
+                            parseHttpBody(
+                                contentLength,
+                                transferEncoding,
+                                connectionType,
+                                networkInput,
+                                this
+                            )
                         } finally {
                             callContext[Job]?.invokeOnCompletion {
                                 rawResponse.release()

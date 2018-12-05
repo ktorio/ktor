@@ -7,7 +7,6 @@ import kotlinx.io.streams.*
 import org.junit.Test
 import java.io.*
 import java.nio.*
-import kotlin.coroutines.*
 import kotlin.test.*
 
 class ChunkedTest {

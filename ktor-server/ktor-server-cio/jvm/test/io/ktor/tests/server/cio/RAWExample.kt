@@ -1,5 +1,6 @@
 package io.ktor.tests.server.cio
 
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
@@ -34,9 +35,9 @@ fun main(args: Array<String>) {
     }
 
     val server = GlobalScope.httpServer(settings, handler = { request: Request,
-                                                                  _: ByteReadChannel,
-                                                                  output: ByteWriteChannel,
-                                                                  _: CompletableDeferred<Boolean>? ->
+                                                              _: ByteReadChannel,
+                                                              output: ByteWriteChannel,
+                                                              _: CompletableDeferred<Boolean>? ->
         try {
             if (request.uri.length == 1 && request.uri[0] == '/' && request.method == HttpMethod.Get) {
                 val response = RequestResponseBuilder()

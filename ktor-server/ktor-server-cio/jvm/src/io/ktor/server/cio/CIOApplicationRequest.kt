@@ -9,7 +9,8 @@ import kotlinx.coroutines.io.*
 
 internal class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
-                            private val request: Request) : BaseApplicationRequest(call) {
+                            private val request: Request
+) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
 
     override fun receiveChannel() = input

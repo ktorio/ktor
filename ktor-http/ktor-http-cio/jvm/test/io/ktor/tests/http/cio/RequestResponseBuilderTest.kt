@@ -1,7 +1,7 @@
 package io.ktor.tests.http.cio
 
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
-import io.ktor.http.cio.*
 import kotlinx.io.streams.*
 import org.junit.*
 import org.junit.Test

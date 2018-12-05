@@ -1,6 +1,6 @@
 package io.ktor.server.testing
 
-import io.ktor.http.cio.*
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
 import java.net.*
 import java.nio.*

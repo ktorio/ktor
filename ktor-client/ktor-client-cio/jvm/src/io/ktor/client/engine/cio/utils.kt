@@ -1,5 +1,6 @@
 package io.ktor.client.engine.cio
 
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*

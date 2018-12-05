@@ -18,7 +18,7 @@ kotlin {
         jsTest.dependencies {
             api project(":ktor-client:ktor-client-js")
         }
-        nativeMain.dependencies {
+        posixMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
         }
     }

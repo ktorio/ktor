@@ -71,7 +71,7 @@ class RequestResponseBuilder {
     }
 
     /**
-     * Append an empty line (CR + LF in fact)
+     * Append an empty line (io.ktor.http.cio.CR + io.ktor.http.cio.LF in fact)
      */
     fun emptyLine() {
         packet.writeByte(CR)

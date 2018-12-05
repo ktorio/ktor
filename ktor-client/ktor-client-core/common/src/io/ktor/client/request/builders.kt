@@ -21,6 +21,28 @@ suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -
     request(HttpRequestBuilder().apply(block))
 
 /**
+ * Executes a [HttpClient] request, with the [urlString] and the information configured in builder [block]
+ * and tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.request(
+    urlString: String, block: HttpRequestBuilder.() -> Unit
+): T = request(HttpRequestBuilder().apply {
+    url(urlString)
+    block()
+})
+
+/**
+ * Executes a [HttpClient] request, with the [url] and the information configured in builder [block]
+ * and tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.request(
+    url: Url, block: HttpRequestBuilder.() -> Unit
+): T = request(HttpRequestBuilder().apply {
+    url(url)
+    block()
+})
+
+/**
  * Executes a [HttpClient] GET request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */

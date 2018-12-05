@@ -73,7 +73,8 @@ class Logging(
         with(logger) {
             log("BODY Content-Type: $contentType")
             log("BODY START")
-            log(content.readText(contentType?.charset() ?: Charsets.UTF_8))
+            val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
+            log(message)
             log("BODY END")
         }
     }
@@ -105,7 +106,7 @@ class Logging(
         }
     }
 
-    companion object : HttpClientFeature<Config, Logging> {
+    companion object Feature : HttpClientFeature<Config, Logging> {
         override val key: AttributeKey<Logging> = AttributeKey("ClientLogging")
 
         override fun prepare(block: Config.() -> Unit): Logging {
@@ -127,5 +128,7 @@ class Logging(
     }
 }
 
-private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
-    readRemaining().readText(charset = charset)
+private suspend inline fun ByteReadChannel.readText(charset: Charset): String {
+    val packet = readRemaining(Long.MAX_VALUE, 0)
+    return packet.readText(charset = charset)
+}

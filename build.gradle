@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.konan.target.HostManager
+
 buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url 'https://plugins.gradle.org/m2/' }
-        maven { url 'https://dl.bintray.com/jetbrains/kotlin-native-dependencies' }
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     }
 
@@ -18,55 +20,66 @@ buildscript {
     }
 }
 
-ext.configuredVersion = project.hasProperty('releaseVersion') ? project.releaseVersion : project.version
+ext.configuredVersion = project.hasProperty("releaseVersion") ? project.releaseVersion : project.version
 ext.globalM2 = "$buildDir/m2"
-ext.publishLocal = project.hasProperty('publishLocal')
+ext.publishLocal = project.hasProperty("publishLocal")
 
-apply from: 'gradle/experimental.gradle'
+apply from: "gradle/experimental.gradle"
 
-def platforms = [
-    "js", "native"
-]
+/**
+ * `darwin` is subset of `posix`.
+ * Don't create `posix` and `darwin` sourceSets in single project.
+ */
+def platforms = ["common", "jvm", "js", "posix", "darwin"]
+
+def projectNeedsPlatform(project, platform) {
+    def files = project.projectDir.listFiles()
+    def hasPosix = files.any { it.name == "posix" }
+    def hasDarwin = files.any { it.name == "darwin" }
+
+    if (platform == "common") return true
+
+    if (hasPosix && hasDarwin) return false
+    if (!hasDarwin && platform == "darwin") return false
+
+    return files.any { it.name == "common" || it.name == platform }
+}
 
 allprojects {
-    group = 'io.ktor'
+    group = "io.ktor"
     version = configuredVersion
+    project.ext.hostManager = new HostManager()
 
     repositories {
         mavenLocal()
-        maven { url 'https://dl.bintray.com/kotlin/kotlinx/' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
+        maven { url "https://dl.bintray.com/kotlin/kotlinx/" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
 
         jcenter()
     }
 
-    apply plugin: 'kotlin-multiplatform'
-    apply plugin: 'kotlinx-atomicfu'
+    apply plugin: "kotlin-multiplatform"
+    apply plugin: "kotlinx-atomicfu"
 
+//    apply from: rootProject.file("gradle/dokka.gradle")
+    apply from: rootProject.file("gradle/utility.gradle")
     if (project.name != 'binary-compatibility-validator') {
         apply from: rootProject.file('gradle/publish.gradle')
     }
 
-    apply from: rootProject.file("gradle/common.gradle")
-    apply from: rootProject.file("gradle/jvm.gradle")
-    if (project.projectDir.listFiles().any { it.name == "js" }) {
-        apply from: rootProject.file("gradle/js.gradle")
-    }
-    if (project.projectDir.listFiles().any { it.name == "native" }) {
-        apply from: rootProject.file("gradle/native.gradle")
+    platforms.each { platform ->
+        if (projectNeedsPlatform(project, platform)) {
+            configure([it]) {
+                apply from: rootProject.file("gradle/${platform}.gradle")
+            }
+        }
     }
 
     kotlin {
-        targets {
-            if (System.getProperty('idea.active') == 'true') {
-                fromPreset(presets.linuxX64, 'native')
-            }
-        }
-
         configure(sourceSets) {
-            def srcDir = name.endsWith('Main') ? 'src' : 'test'
-            def resourcesPrefix = name.endsWith('Test') ? 'test-' : ''
+            def srcDir = name.endsWith("Main") ? "src" : "test"
+            def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
             def platform = name[0..-5]
 
             kotlin.srcDirs = ["$platform/$srcDir"]
@@ -77,8 +90,8 @@ allprojects {
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }
 
 //                kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-                if (project.path.startsWith(':ktor-server:ktor-server') && project.name != 'ktor-server-core') {
-                    useExperimentalAnnotation('io.ktor.server.engine.EngineAPI')
+                if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
+                    useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
                 }
             }
         }
@@ -86,6 +99,5 @@ allprojects {
 
     configurations { testOutput }
 
-    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
+    tasks.build.dependsOn(["sourceJar", "emptyJar"])
 }
-

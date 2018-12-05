@@ -1,15 +1,13 @@
 package io.ktor.http.cio
 
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
 import kotlinx.io.streams.*
 import java.io.*
-import java.lang.IllegalStateException
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*

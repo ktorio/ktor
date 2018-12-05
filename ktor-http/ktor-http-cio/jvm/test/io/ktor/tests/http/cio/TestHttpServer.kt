@@ -4,14 +4,18 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.ByteChannel
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
 // this is only suitable for tests, do not use in production
-internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: HttpRequestHandler): Pair<Job, Deferred<ServerSocketChannel>> {
+internal fun testHttpServer(
+    port: Int = 9096,
+    ioCoroutineContext: CoroutineContext,
+    callDispatcher: CoroutineContext,
+    handler: HttpRequestHandler
+): Pair<Job, Deferred<ServerSocketChannel>> {
     val deferred = CompletableDeferred<ServerSocketChannel>()
     val j = Job()
 
@@ -52,7 +56,12 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
     return Pair(j, deferred)
 }
 
-private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: HttpRequestHandler) {
+private suspend fun client(
+    socket: SocketChannel,
+    ioCoroutineContext: CoroutineContext,
+    callDispatcher: CoroutineContext,
+    handler: HttpRequestHandler
+) {
     val incoming = ByteChannel(true)
     val outgoing = ByteChannel()
 
@@ -98,7 +107,15 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
     @Suppress("DEPRECATION")
-    startConnectionPipeline(incoming, outgoing, null, ioCoroutineContext, callDispatcher, timeouts, handler).invokeOnCompletion {
+    startConnectionPipeline(
+        incoming,
+        outgoing,
+        null,
+        ioCoroutineContext,
+        callDispatcher,
+        timeouts,
+        handler
+    ).invokeOnCompletion {
         incoming.close()
         outgoing.close()
     }

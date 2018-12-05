@@ -1,0 +1,7 @@
+package = libcurl
+headers = curl/curl.h
+headerFilter = curl/**
+compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
+linkerOpts.linux = -L/usr/lib -L/usr/lib/x86_64-linux-gnu -lcurl
+compilerOpts.osx = -I/opt/local/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/curl/7.62.0/include
+linkerOpts.osx = -L/opt/local/lib -L/usr/local/lib -lcurl

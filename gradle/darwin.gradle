@@ -1,0 +1,37 @@
+apply from: rootProject.file("gradle/ide.gradle")
+
+kotlin {
+    targets {
+        if (project.ext.ideaActive) {
+            fromPreset(project.ext.ideaPreset, 'darwin')
+        } else {
+            fromPreset(presets.iosArm64, 'iosArm64')
+            fromPreset(presets.iosX64, 'iosX64')
+            fromPreset(presets.macosX64, 'macosX64')
+            /* fromPreset(presets.iosArm32, 'iosArm32') */
+        }
+
+    }
+    sourceSets {
+        darwinMain.dependencies {
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
+
+            implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+        }
+
+        darwinMain { dependsOn commonMain }
+        darwinTest { dependsOn darwinMain }
+
+        if (!project.ext.ideaActive) {
+            configure([/*iosArm32Main, */ iosArm64Main, iosX64Main, macosX64Main]) {
+                dependsOn darwinMain
+            }
+
+            configure([/*iosArm32Test, */ iosArm64Test, iosX64Test, macosX64Test]) {
+                dependsOn darwinTest
+            }
+        }
+    }
+}

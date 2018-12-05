@@ -1,6 +1,6 @@
 kotlin {
     sourceSets {
-        commonMain.dependencies {
+        darwinMain.dependencies {
             api project(':ktor-client:ktor-client-core')
         }
     }

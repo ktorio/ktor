@@ -1,6 +1,11 @@
 description = ''
 
-kotlin.sourceSets.commonMain.dependencies {
-    api project(':ktor-http')
-    api project(':ktor-network')
+kotlin.sourceSets {
+    commonMain.dependencies {
+        api project(':ktor-http')
+    }
+
+    jvmMain.dependencies {
+        api project(':ktor-network')
+    }
 }

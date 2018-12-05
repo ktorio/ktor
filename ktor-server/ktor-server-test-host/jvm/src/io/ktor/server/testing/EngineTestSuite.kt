@@ -1,5 +1,6 @@
 package io.ktor.server.testing
 
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.application.*
 import io.ktor.util.cio.*
 import io.ktor.client.call.*
