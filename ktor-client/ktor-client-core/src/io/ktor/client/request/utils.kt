@@ -27,7 +27,8 @@ fun HttpRequestBuilder.header(key: String, value: Any?): Unit =
     value?.let { headers.append(key, it.toString()) } ?: Unit
 
 /**
- * Sets a single parameter of [key] with a specific [value] if the value is not null.
+ * Sets a single URL query parameter of [key] with a specific [value] if the value is not null. Can not be used to set
+ * form parameters in the body.
  */
 fun HttpRequestBuilder.parameter(key: String, value: Any?): Unit =
     value?.let { url.parameters.append(key, it.toString()) } ?: Unit
