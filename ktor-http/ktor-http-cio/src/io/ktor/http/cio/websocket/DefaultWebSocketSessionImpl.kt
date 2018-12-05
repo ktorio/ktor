@@ -25,20 +25,6 @@ class DefaultWebSocketSessionImpl(
     private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
-    @Deprecated(
-        "You can't specify parent anymore. " +
-            "Use goingAway function instead. Note that raw session is CoroutineScope itself",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("DefaultWebSocketSessionImpl(raw, pingInterval, timeout, pool)")
-    )
-    constructor(
-        raw: WebSocketSession,
-        @Suppress("UNUSED_PARAMETER") parent: Job,
-        pingInterval: Duration? = null,
-        timeout: Duration = Duration.ofSeconds(15),
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-    ) : this(raw, pingInterval, timeout, pool)
-
     private val pinger = AtomicReference<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)

@@ -297,9 +297,3 @@ class LocationAttributeRouteService : LocationRouteService {
  */
 @KtorExperimentalLocationsAPI
 class LocationRoutingException(message: String) : Exception(message)
-
-@UseExperimental(KtorExperimentalLocationsAPI::class)
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use LocationRoutingException instead",
-    replaceWith = ReplaceWith("LocationRoutingException"), level = DeprecationLevel.ERROR)
-typealias RoutingException = LocationRoutingException

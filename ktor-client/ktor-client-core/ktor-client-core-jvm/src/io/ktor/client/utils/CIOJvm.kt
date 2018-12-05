@@ -5,19 +5,19 @@ import kotlinx.coroutines.*
 import kotlinx.io.pool.*
 import java.nio.*
 
-private val cpuCount: Int = Runtime.getRuntime().availableProcessors()
-
+@Suppress("KDocMissingDocumentation", "unused")
 @Deprecated(
-    "HTTP_CLIENT_THREAD_COUNT is deprecated. Use [HttpClientEngineConfig.threadsCount] instead.",
-    level = DeprecationLevel.ERROR
+    "Binary compatibility",
+    level = DeprecationLevel.HIDDEN
 )
-actual val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
+val HTTP_CLIENT_THREAD_COUNT: Int = 2
 
+@Suppress("KDocMissingDocumentation", "unused")
 @Deprecated(
-    "HTTP_CLIENT_DEFAULT_DISPATCHER is deprecated. Use [HttpClient.coroutineContext] instead.",
-    level = DeprecationLevel.ERROR
+    "Binary compatibility",
+    level = DeprecationLevel.HIDDEN
 )
-actual val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher get() = Dispatchers.IO
+val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher get() = Dispatchers.IO
 
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].

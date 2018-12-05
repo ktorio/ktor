@@ -7,69 +7,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
-
-/**
- *    install(ContentNegotiation) {
- *       register(ContentType.Application.Json, GsonConverter())
- *    }
- *
- *    to be able to modify the gsonBuilder (eg. using specific serializers and/or
- *    configuration options, you could use the following (as seen in the ktor-samples):
- *
- *    install(ContentNegotiation) {
- *        gson {
- *            registerTypeAdapterFactory(GsonAdaptersMyDocument())
- *            setDateFormat(DateFormat.LONG)
- *            setPrettyPrinting()
- *        }
- *    }
- */
-@Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
-@Deprecated(
-    "GsonSupport is deprecated in favor of generic ContentNegotiation Feature",
-    level = DeprecationLevel.ERROR
-)
-class GsonSupport(private val gson: Gson) {
-    @Suppress("DEPRECATION")
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, GsonBuilder, GsonSupport> {
-        override val key = AttributeKey<GsonSupport>("gson")
-
-        override fun install(pipeline: ApplicationCallPipeline, configure: GsonBuilder.() -> Unit): GsonSupport {
-            val gson = GsonBuilder().apply(configure).create()
-            val feature = GsonSupport(gson)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                if (it !is OutgoingContent && call.request.acceptItems().any { ContentType.Application.Json.match(it.value) }) {
-                    proceedWith(feature.renderJsonContent(it))
-                }
-            }
-            pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                val contentType = call.request.contentType()
-                if (contentType.match(ContentType.Application.Json)) {
-                    val channel = it.value as? ByteReadChannel
-                    if (channel != null) {
-                        val value = gson.fromJson(channel.toInputStream().reader(contentType.charset() ?: Charsets.UTF_8), it.type.javaObjectType)
-                        proceedWith(ApplicationReceiveRequest(it.type, value))
-                        return@intercept
-                    }
-                    val message = it.value as? ByteReadChannel ?: return@intercept
-                    val json = message.readRemaining().readText()
-                    val value = gson.fromJson(json, it.type.javaObjectType)
-                    proceedWith(ApplicationReceiveRequest(it.type, value))
-                }
-            }
-            return feature
-        }
-    }
-
-    private fun renderJsonContent(model: Any): TextContent {
-        val json = gson.toJson(model)
-        return TextContent(json, ContentType.Application.Json.withCharset(Charsets.UTF_8))
-    }
-}
 
 /**
  * GSON converter for [ContentNegotiation] feature

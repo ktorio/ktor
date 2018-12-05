@@ -123,40 +123,6 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
 }
 
 /**
- * The function passes the given [lastModified] date through the client provided
- *  http conditional headers If-Modified-Since and If-Unmodified-Since. Depends on conditions it
- * produces 410 Precondition Failed or 304 Not modified responses when necessary.
- * Otherwise sets ETag header and delegates to the [block] function.
- *
- * Notice the second precision so it may work wrong if there were few changes during the same second.
- *
- * For better behaviour use etag instead
- *
- * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
- *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
- */
-@Deprecated("Use configuration for ConditionalHeaders", level = DeprecationLevel.ERROR)
-suspend fun ApplicationCall.withLastModified(
-    lastModified: ZonedDateTime,
-    putHeader: Boolean = true,
-    block: suspend () -> Unit
-) {
-    val version = LastModifiedVersion(lastModified)
-    val result = version.check(request.headers)
-
-    if (putHeader) {
-        // TODO: use version.appendHeader
-        response.header(HttpHeaders.LastModified, lastModified)
-    }
-
-    return when (result) {
-        VersionCheckResult.NOT_MODIFIED,
-        VersionCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
-        VersionCheckResult.OK -> block()
-    }
-}
-
-/**
  * Retrieves LastModified and ETag versions from this [OutgoingContent] headers
  */
 val OutgoingContent.defaultVersions: List<Version>

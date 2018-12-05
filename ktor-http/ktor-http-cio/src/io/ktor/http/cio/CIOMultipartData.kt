@@ -15,10 +15,6 @@ import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use CIOMultipartDataBase instead", level = DeprecationLevel.ERROR)
-typealias CIOMultipartData = CIOMultipartDataBase
-
 /**
  * Represents a multipart data object that does parse and convert parts to ktor's [PartData]
  */

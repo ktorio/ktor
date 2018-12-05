@@ -128,12 +128,12 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     companion object {
         private val nativeNames = listOf(
-            "netty-tcnative",
-            "libnetty-tcnative",
-            "netty-tcnative-1",
-            "libnetty-tcnative-1",
-            "tcnative-1",
-            "libtcnative-1",
+//            "netty-tcnative",
+//            "libnetty-tcnative",
+//            "netty-tcnative-1",
+//            "libnetty-tcnative-1",
+//            "tcnative-1",
+//            "libtcnative-1",
             "netty-tcnative-windows-x86_64"
         )
 

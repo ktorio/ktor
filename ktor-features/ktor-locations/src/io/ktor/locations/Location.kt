@@ -23,13 +23,6 @@ annotation class KtorExperimentalLocationsAPI
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
 annotation class Location(val path: String)
 
-@Suppress("KDocMissingDocumentation")
-@Deprecated(
-    "Use Location instead",
-    replaceWith = ReplaceWith("Location"), level = DeprecationLevel.ERROR
-)
-typealias location = Location
-
 /**
  * Gets the [Application.locations] feature
  */

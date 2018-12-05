@@ -3,10 +3,6 @@ package io.ktor.client.engine.apache
 import io.ktor.client.*
 import io.ktor.client.engine.*
 
-
-@Deprecated("Use Apache instead", ReplaceWith("Apache"), level = DeprecationLevel.ERROR)
-typealias ApacheBackend = Apache
-
 /**
  * [HttpClientEngineFactory] using `org.apache.httpcomponents.httpasyncclient`
  * with the the associated configuration [ApacheEngineConfig].

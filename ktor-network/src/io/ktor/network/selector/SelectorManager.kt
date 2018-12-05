@@ -31,11 +31,7 @@ interface SelectorManager {
      */
     suspend fun select(selectable: Selectable, interest: SelectInterest)
 
-    companion object {
-        @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-        @Deprecated("Create selector manager explicitly", level = DeprecationLevel.ERROR)
-        val DefaultSelectorManager: ActorSelectorManager = TODO("Not supported anymore")
-    }
+    companion object
 }
 
 /**

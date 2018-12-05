@@ -36,7 +36,7 @@ object EngineMain {
 @Deprecated(
     "Use EngineMain instead",
     replaceWith = ReplaceWith("EngineMain"),
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.HIDDEN
 )
 object DevelopmentEngine {
     @JvmStatic

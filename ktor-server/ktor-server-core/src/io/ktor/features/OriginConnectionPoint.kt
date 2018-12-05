@@ -121,12 +121,6 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XFo
     }
 }
 
-@Suppress("KDocMissingDocumentation", "KDocMissingDocumentation", "unused")
-@Deprecated("Use XForwardedHeaderSupport instead",
-    replaceWith = ReplaceWith("XForwardedHeaderSupport"),
-    level = DeprecationLevel.ERROR)
-val XForwardedHeadersSupport: XForwardedHeaderSupport get() = XForwardedHeaderSupport
-
 /**
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
  */
