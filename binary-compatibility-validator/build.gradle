@@ -29,10 +29,13 @@ test {
 //    dependsOn cleanCompileTestKotlin
     dependsOn configurations.binaryCompatibility
 
-    def binaryCompatibilityModules = project.ext.buildList() as List<ProjectDependency>
-    def modules = binaryCompatibilityModules.collect { it.dependencyProject.projectDir }
-
-    systemProperty 'validator.input.modules', modules.join(File.pathSeparator)
     systemProperty 'overwrite.output', project.properties['overwrite.output']
     jvmArgs '-ea'
+
+    doFirst {
+        def binaryCompatibilityModules = project.ext.buildList() as List<ProjectDependency>
+        def modules = binaryCompatibilityModules.collect { it.dependencyProject.projectDir }
+
+        tasks.findByName("test").systemProperty('validator.input.modules', modules.join(File.pathSeparator))
+    }
 }

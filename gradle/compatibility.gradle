@@ -34,12 +34,17 @@ def buildList = {
             p.dependencyProject.configurations.forEach { configuration ->
                 if (!configuration.name.toLowerCase().contains('test') && configuration.name.toLowerCase().contains("jvm")) {
                     workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
+                } else if (configuration.name == 'compile') {
+                    def task = p.dependencyProject.tasks.findByName('compileKotlin')
+                    if (task != null) {
+                        workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
+                    }
                 }
             }
         }
     }
 
-    return allModules.toList().sort { it.name }
+    return allModules.toList().sort { it.name }.findAll { platformOf(it.dependencyProject) == 'jvm' }
 }
 
 project.ext.buildList = buildList
