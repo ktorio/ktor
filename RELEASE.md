@@ -94,15 +94,15 @@
     - ensure that "Deployed to github-pages" contains latest commit and everything green
     - click "view deployment"
     - ensure that the website is up and running, check blue version badge at the page bottom
-18. Open https://github.com/ktorio/ktor-init-tools/deployments
+19. Open https://github.com/ktorio/ktor-init-tools/deployments
     - ensure that "Deployed to github-pages" contains latest commit and everything green
     - click "view deployment"
     - check that there is the new ktor version in the versions list
-19. Open https://github.com/ktorio/api.ktor.io/deployments
+20. Open https://github.com/ktorio/api.ktor.io/deployments
     - ensure that "Deployed to github-pages" contains latest commit and everything green
     - click "view deployment"
     - ensure that kdoc appeared for the right version
         - if it get stuck at infinite reload then simply close and try later
         - if doesn't work after a while then check that all steps at the corresponding step are completed right
-20. Update this document if something is not exactly right or unclear   
+21. Update this document if something is not exactly right or unclear   
 
