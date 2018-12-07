@@ -104,5 +104,5 @@
     - ensure that kdoc appeared for the right version
         - if it get stuck at infinite reload then simply close and try later
         - if doesn't work after a while then check that all steps at the corresponding step are completed right
-   
-    
+20. Update this document if something is not exactly right or unclear   
+
