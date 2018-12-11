@@ -237,7 +237,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
                 this.rootContinuation = continuation
             }
             is Continuation<*> -> {
-                this.rootContinuation = ArrayList<Continuation<*>>().apply {
+                this.rootContinuation = ArrayList<Continuation<*>>(blocks.size).apply {
                     add(rootContinuation)
                     add(continuation)
                     lastPeekedIndex = 1
