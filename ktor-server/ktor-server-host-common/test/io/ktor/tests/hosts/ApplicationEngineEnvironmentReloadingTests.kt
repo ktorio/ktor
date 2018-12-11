@@ -70,7 +70,7 @@ class ApplicationEngineEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(::topLevelFunction.fqName)
+                            "ktor.application.modules" to listOf(::topLevelFunction).map { it.fqName }
                     )))
         }
         environment.start()
@@ -232,6 +232,22 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
+    @Test fun `multiple static module functions`() {
+        val environment = applicationEngineEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.parseMap(
+                mapOf(
+                    "ktor.deployment.environment" to "test",
+                    "ktor.application.modules" to listOf(MultipleStaticModuleFunctions::class.jvmName + ".main")
+                )))
+
+        }
+        environment.start()
+        val application = environment.application
+        assertNotNull(application)
+        assertEquals("best function called", application.attributes[TestKey])
+        environment.stop()
+    }
+
     object NoArgModuleFunction {
         var result = 0
 
@@ -244,6 +260,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         fun main() {
         }
 
+        fun main(app: Application) {
+            app.attributes.put(TestKey, "best function called")
+        }
+    }
+
+    object MultipleStaticModuleFunctions {
+        @JvmStatic
+        fun main() {
+        }
+
+        @JvmStatic
         fun main(app: Application) {
             app.attributes.put(TestKey, "best function called")
         }
@@ -309,3 +336,7 @@ fun topLevelFunction(app: Application) {
     app.attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelFunction")
 }
 
+@Suppress("unused")
+fun topLevelFunction() {
+    error("Shouldn't be invoked")
+}

@@ -287,8 +287,10 @@ class ApplicationEngineEnvironmentReloading(
                     .mapNotNull { it.kotlinFunction }
 
             staticFunctions.bestFunction()?.let { moduleFunction ->
-                callFunctionWithInjection(null, moduleFunction, application)
-                return
+                if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
+                    callFunctionWithInjection(null, moduleFunction, application)
+                    return
+                }
             }
 
             if (Function1::class.java.isAssignableFrom(clazz)) {
@@ -329,7 +331,7 @@ class ApplicationEngineEnvironmentReloading(
     private fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? {
         return sortedWith(
             compareBy(
-                { isApplication(it.parameters[0]) },
+                { it.parameters.isNotEmpty() && isApplication(it.parameters[0]) },
                 { it.parameters.count { !it.isOptional } },
                 { it.parameters.size }))
             .lastOrNull()
