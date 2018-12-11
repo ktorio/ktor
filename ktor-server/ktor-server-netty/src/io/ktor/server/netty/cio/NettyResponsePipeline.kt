@@ -159,7 +159,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     @Suppress("NOTHING_TO_INLINE")
     private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?, lastFuture: ChannelFuture) {
-        val close = !call.request.keepAlive
+        val close = !call.request.keepAlive || call.response.isUpgradeResponse()
         val doNotFlush = hasNextResponseMessage() && !close
 
         val f: ChannelFuture? = when {
@@ -365,6 +365,8 @@ sealed class WriterEncapsulation {
     }
 
     object Raw : WriterEncapsulation() {
+        override val requiresContextClose: Boolean get() = false
+
         override fun transform(buf: ByteBuf, last: Boolean): Any {
             return buf
         }
