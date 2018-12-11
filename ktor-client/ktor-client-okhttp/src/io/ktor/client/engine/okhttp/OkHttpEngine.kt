@@ -51,9 +51,9 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientJvmEngine("kto
 
 internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody? = when (this) {
     is OutgoingContent.ByteArrayContent -> RequestBody.create(null, bytes())
-    is OutgoingContent.ReadChannelContent -> StreamRequestBody { readFrom() }
+    is OutgoingContent.ReadChannelContent -> StreamRequestBody(contentLength) { readFrom() }
     is OutgoingContent.WriteChannelContent -> {
-        StreamRequestBody { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
+        StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
     }
     is OutgoingContent.NoContent -> null
     else -> throw UnsupportedContentTypeException(this)
