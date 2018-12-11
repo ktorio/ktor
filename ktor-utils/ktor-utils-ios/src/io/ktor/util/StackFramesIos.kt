@@ -7,4 +7,4 @@ internal actual interface CoroutineStackFrame {
 }
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-actual typealias StackTraceElement = Any
+internal actual typealias StackTraceElement = Any
