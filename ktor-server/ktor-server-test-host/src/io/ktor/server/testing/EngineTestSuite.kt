@@ -1361,6 +1361,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     open fun testUpgrade() {
+        var completed = CompletableDeferred<Unit>()
+
         createAndStartServer {
             get("/up") {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
@@ -1372,11 +1374,20 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
                     override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
                         return launch(engineContext) {
-                            val bb = ByteBuffer.allocate(8)
-                            input.readFully(bb)
-                            bb.flip()
-                            output.writeFully(bb)
-                            output.close()
+                            try {
+                                val bb = ByteBuffer.allocate(8)
+                                input.readFully(bb)
+                                bb.flip()
+                                output.writeFully(bb)
+                                output.close()
+                                input.readRemaining().use {
+                                    assertEquals(0, it.remaining)
+                                }
+                                completed.complete(Unit)
+                            } catch (t: Throwable) {
+                                completed.completeExceptionally(t)
+                                throw t
+                            }
                         }
                     }
                 })
@@ -1444,7 +1455,9 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
                 assertEquals(0x1122334455667788L, ch.readLong())
 
-                assertEquals(-1, ch.readAvailable(ByteArray(1)))
+                close()
+
+                completed.await()
             }
         }
     }
