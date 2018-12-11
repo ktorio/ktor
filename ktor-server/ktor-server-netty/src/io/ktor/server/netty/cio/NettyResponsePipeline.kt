@@ -159,8 +159,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     @Suppress("NOTHING_TO_INLINE")
     private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?, lastFuture: ChannelFuture) {
-        val close = !call.request.keepAlive || call.response.isUpgradeResponse()
-        val doNotFlush = hasNextResponseMessage() && !close
+        val prepareForClose = !call.request.keepAlive || call.response.isUpgradeResponse()
+        val doNotFlush = hasNextResponseMessage() && !prepareForClose
 
         val f: ChannelFuture? = when {
             lastMessage == null && doNotFlush -> null
@@ -177,7 +177,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
         f?.suspendWriteAwait()
 
-        if (close) {
+        if (prepareForClose) {
             dst.flush()
             lastFuture.suspendWriteAwait()
             requestQueue.cancel()
