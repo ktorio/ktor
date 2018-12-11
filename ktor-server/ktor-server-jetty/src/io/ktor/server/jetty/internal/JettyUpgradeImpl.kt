@@ -35,7 +35,7 @@ object JettyUpgradeImpl : ServletUpgrade {
             val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
 
             job.invokeOnCompletion {
-                connection.close()
+                connection.endPoint.idleTimeout = TimeUnit.SECONDS.toMillis(30L)
             }
 
             job.join()

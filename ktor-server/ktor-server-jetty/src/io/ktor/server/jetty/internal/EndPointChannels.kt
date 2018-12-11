@@ -101,15 +101,14 @@ internal fun CoroutineScope.endPointWriter(
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
 ): ByteWriteChannel = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
-        endPoint.use { endPoint ->
-            while (!channel.isClosedForRead) {
-                buffer.clear()
-                if (channel.readAvailable(buffer) == -1) break
+        while (!channel.isClosedForRead) {
+            buffer.clear()
+            if (channel.readAvailable(buffer) == -1) break
 
-                buffer.flip()
-                endPoint.write(buffer)
-            }
+            buffer.flip()
+            endPoint.write(buffer)
         }
+        endPoint.flush()
     }
 }.channel
 
