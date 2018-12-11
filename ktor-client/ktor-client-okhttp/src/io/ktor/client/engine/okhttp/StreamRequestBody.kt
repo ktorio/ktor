@@ -5,7 +5,7 @@ import kotlinx.coroutines.io.jvm.javaio.*
 import okhttp3.*
 import okio.*
 
-internal class StreamRequestBody(private val block: () -> ByteReadChannel) : RequestBody() {
+internal class StreamRequestBody(private val contentLength: Long?, private val block: () -> ByteReadChannel) : RequestBody() {
     override fun contentType(): MediaType? = null
 
     override fun writeTo(sink: BufferedSink) {
@@ -13,4 +13,6 @@ internal class StreamRequestBody(private val block: () -> ByteReadChannel) : Req
             sink.writeAll(it)
         }
     }
+
+    override fun contentLength(): Long = contentLength ?: -1
 }
