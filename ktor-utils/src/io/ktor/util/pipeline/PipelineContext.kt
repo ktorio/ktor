@@ -70,7 +70,12 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     // this is impossible to inline because of property name clash
     // between PipelineContext.context and Continuation.context
-    private val continuation: Continuation<Unit> = object : Continuation<Unit> {
+    private val continuation: Continuation<Unit> = object : Continuation<Unit>, CoroutineStackFrame {
+        override val callerFrame: CoroutineStackFrame?
+            get() = proceedContinuation as? CoroutineStackFrame
+
+        override fun getStackTraceElement(): StackTraceElement? = null
+
         @Suppress("UNCHECKED_CAST")
         override val context: CoroutineContext
             get () {
@@ -97,6 +102,8 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
         private set
 
     private var rootContinuation: Any? = null
+    // Continuation where 'proceed' was called in order to properly walk over stacktrace
+    private var proceedContinuation: Continuation<*>? = null
     private var index = 0
 
     override fun finish() {
@@ -104,6 +111,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     override suspend fun proceed(): TSubject = suspendCoroutineUninterceptedOrReturn { continuation ->
+        proceedContinuation = continuation
         if (index == blocks.size) return@suspendCoroutineUninterceptedOrReturn subject
 
         addContinuation(continuation)
