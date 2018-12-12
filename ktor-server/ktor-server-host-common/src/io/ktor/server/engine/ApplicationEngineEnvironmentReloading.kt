@@ -4,6 +4,8 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
 import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
@@ -147,11 +149,15 @@ class ApplicationEngineEnvironmentReloading(
                 ApplicationEnvironment::class.java, // ktor-server-core
                 Pipeline::class.java, // ktor-parsing
                 HttpStatusCode::class.java, // ktor-http
-                kotlin.jvm.functions.Function1::class.java // kotlin-stdlib
-        ).mapTo(HashSet()) { it.protectionDomain.codeSource.location }
+                kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
+                Logger::class.java, // slf4j
+                ByteReadChannel::class.java,
+                Input::class.java   // kotlinx-io
+        ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
-            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) }
+            url !in coreUrls && watchPatterns.any { pattern -> url.toString().contains(pattern) } &&
+                !(url.path ?: "").startsWith(jre)
         }
 
         if (watchUrls.isEmpty()) {

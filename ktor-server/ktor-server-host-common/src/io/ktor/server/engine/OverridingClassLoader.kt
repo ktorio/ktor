@@ -6,7 +6,8 @@ import java.net.*
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
  */
-internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader), Closeable {
+internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) :
+    ClassLoader(parentClassLoader), Closeable {
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)
 
     @Synchronized
@@ -28,7 +29,8 @@ internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: Cl
      * This class delegates (child then parent) for the findClass method for a URLClassLoader.
      * We need this because findClass is protected in URLClassLoader
      */
-    private class ChildURLClassLoader(urls: Array<URL>, private val realParent: ClassLoader) : URLClassLoader(urls, null) {
+    private class ChildURLClassLoader(urls: Array<URL>, private val realParent: ClassLoader) :
+        URLClassLoader(urls, null) {
         public override fun findClass(name: String): Class<*> {
             val loaded = super.findLoadedClass(name)
             if (loaded != null)
