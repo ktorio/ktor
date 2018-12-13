@@ -68,9 +68,35 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 
+    // Stack-walking state
+    private var lastPeekedIndex = -1
+
     // this is impossible to inline because of property name clash
     // between PipelineContext.context and Continuation.context
-    private val continuation: Continuation<Unit> = object : Continuation<Unit> {
+    private val continuation: Continuation<Unit> = object : Continuation<Unit>, CoroutineStackFrame {
+        override val callerFrame: CoroutineStackFrame? get() = peekContinuation() as? CoroutineStackFrame
+
+        override fun getStackTraceElement(): StackTraceElement? = null
+
+        private fun peekContinuation(): Continuation<*>? {
+            if (lastPeekedIndex < 0) return null
+            val rootContinuation = rootContinuation
+
+            @Suppress("UNCHECKED_CAST")
+            when (rootContinuation) {
+                null -> return null
+                is Continuation<*> -> {
+                    --lastPeekedIndex
+                    return rootContinuation
+                }
+                is ArrayList<*> -> {
+                    if (rootContinuation.isEmpty()) return null
+                    return rootContinuation[lastPeekedIndex--] as Continuation<*>
+                }
+                else -> return null
+            }
+        }
+
         @Suppress("UNCHECKED_CAST")
         override val context: CoroutineContext
             get () {
@@ -190,11 +216,13 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
         when (rootContinuation) {
             null -> throw IllegalStateException("No more continuations to resume")
             is Continuation<*> -> {
+                lastPeekedIndex = 0
                 this.rootContinuation = null
             }
             is ArrayList<*> -> {
                 if (rootContinuation.isEmpty()) throw IllegalStateException("No more continuations to resume")
                 rootContinuation.removeAt(rootContinuation.lastIndex)
+                lastPeekedIndex = rootContinuation.lastIndex
             }
             else -> unexpectedRootContinuationValue(rootContinuation)
         }
@@ -205,19 +233,21 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         when (rootContinuation) {
             null -> {
+                lastPeekedIndex = 0
                 this.rootContinuation = continuation
             }
             is Continuation<*> -> {
-                this.rootContinuation = ArrayList<Continuation<*>>().apply {
+                this.rootContinuation = ArrayList<Continuation<*>>(blocks.size).apply {
                     add(rootContinuation)
                     add(continuation)
+                    lastPeekedIndex = 1
                 }
             }
             is ArrayList<*> -> {
                 @Suppress("UNCHECKED_CAST")
                 rootContinuation as ArrayList<Continuation<TSubject>>
-
                 rootContinuation.add(continuation)
+                lastPeekedIndex = rootContinuation.lastIndex
             }
             else -> unexpectedRootContinuationValue(rootContinuation)
         }
@@ -238,7 +268,6 @@ private inline fun <R, A>
 
     @Suppress("UNCHECKED_CAST")
     val function = (this as Function3<R, A, Continuation<Unit>, Any?>)
-
     return function.invoke(receiver, arg, continuation)
 }
 
