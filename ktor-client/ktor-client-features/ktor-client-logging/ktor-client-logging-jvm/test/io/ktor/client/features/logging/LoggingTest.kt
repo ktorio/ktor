@@ -171,6 +171,21 @@ BODY END
         )
     }
 
+    @Test
+    fun customServerTest(): Unit = clientTest {
+        val testLogger = TestLogger()
+
+        config {
+            install(Logging) {
+                logger = testLogger
+                level = LogLevel.HEADERS
+            }
+        }
+
+        test { client ->
+            client.get<String>("http://google.com")
+        }
+    }
 
     fun makeLog(requestMethod: HttpMethod, path: String, body: String?, logLevel: LogLevel): String {
         val testLogger = TestLogger()
