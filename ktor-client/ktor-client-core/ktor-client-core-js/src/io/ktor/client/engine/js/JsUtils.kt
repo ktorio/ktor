@@ -1,5 +1,6 @@
 package io.ktor.client.engine.js
 
+import io.ktor.client.engine.js.compatible.Utils
 import io.ktor.client.engine.mergeHeaders
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -9,7 +10,6 @@ import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 import org.w3c.fetch.*
-import kotlin.browser.*
 import kotlin.coroutines.*
 
 internal suspend fun CoroutineScope.toRaw(clientRequest: HttpRequest): RequestInit {
@@ -36,7 +36,7 @@ internal suspend fun CoroutineScope.toRaw(clientRequest: HttpRequest): RequestIn
 }
 
 internal suspend fun fetch(url: Url, request: RequestInit): Response = suspendCancellableCoroutine {
-    window.fetch(url.toString(), request).then({ response ->
+    Utils.get().fetch(url.toString(), request).then({ response ->
         it.resume(response)
     }, { cause ->
         it.resumeWithException(cause)
