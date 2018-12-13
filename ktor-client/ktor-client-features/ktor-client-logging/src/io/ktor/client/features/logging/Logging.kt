@@ -47,16 +47,16 @@ class Logging(
     private suspend fun logResponse(response: HttpResponse) {
         if (level == LogLevel.NONE) return
 
-        val info = buildString {
-            append("RESPONSE: ${response.status}\n")
-            append("METHOD: ${response.call.request.method}\n")
-            append("FROM: ${response.call.request.url}")
-        }
-
-        logger.log(info)
+        logger.log("RESPONSE: ${response.status}\n")
+        logger.log("METHOD: ${response.call.request.method}\n")
+        logger.log("FROM: ${response.call.request.url}")
 
         if (level.headers) logHeaders(response.headers.entries())
-        if (level.body) logResponseBody(response.contentType(), response.content)
+        if (level.body) {
+            logResponseBody(response.contentType(), response.content)
+        } else {
+            response.content.discard()
+        }
     }
 
     private fun logHeaders(headersMap: Set<Map.Entry<String, List<String>>>) {
