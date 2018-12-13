@@ -10,9 +10,13 @@ enum class ENV {
         }
 
         private fun getEnv(): ENV {
-            return if (jsTypeOf("window") === "undefined") {
-                NODE
-            } else BROWSER
+            return if (isWindowExist()) {
+                BROWSER
+            } else NODE
+        }
+
+        private fun isWindowExist(): Boolean {
+            return js("typeof window") !== "undefined"
         }
     }
 }
