@@ -63,17 +63,17 @@ allprojects {
     apply plugin: "kotlin-multiplatform"
     apply plugin: "kotlinx-atomicfu"
 
-    if (!rootProject.ext.misc.contains(project.name)) {
-        apply from: rootProject.file("gradle/utility.gradle")
-        apply from: rootProject.file('gradle/publish.gradle')
-    }
-
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
             configure([it]) {
+                apply from: rootProject.file("gradle/utility.gradle")
                 apply from: rootProject.file("gradle/${platform}.gradle")
             }
         }
+    }
+
+    if (!rootProject.ext.misc.contains(project.name)) {
+        apply from: rootProject.file('gradle/publish.gradle')
     }
 
     configurations { testOutput }

@@ -12,45 +12,57 @@ task stubJavadoc(type: Jar) {
     classifier = 'javadoc'
 }
 
+
+def selectArtifactId(project, type) {
+    def name = project.name
+    def OBSOLETE = "$name-$type-obsolete"
+    def isCommon = project.ext.has("commonStructure")
+    def commonIsRoot = project.ext.has("commonStructure") && project.ext.commonStructure
+    def hasNative = project.ext.has("hasNative") && project.ext.hasNative
+
+    switch (type) {
+        case 'metadata':
+            if (!isCommon) return OBSOLETE
+            return commonIsRoot ? "$name" : "$name-common"
+            break
+        case 'kotlinMultiplatform':
+            if (!hasNative) return OBSOLETE
+            return isCommon ? "$name-native" : "$name"
+            break
+        case 'jvm':
+            return commonIsRoot ? "$name-jvm" : "$name"
+            break
+        default:
+            return isCommon || hasNative ? "$name-$type" : "$name"
+            break
+    }
+}
+
 publishing {
     repositories {
         maven { url 'https://dl.bintray.com/kotlin/ktor' }
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
-
-        switch (it.name) {
-            case 'kotlinMultiplatform':
-                task sourcesJar(type: Jar) {
-                    classifier 'sources'
-                    from kotlin.sourceSets.commonMain.kotlin
-                }
-
-                it.artifactId = "$project.name-native"
-                it.artifact stubJavadoc
-                it.artifact sourcesJar
-                break
-            case 'jvm':
-                it.artifactId = "$project.name"
-                break
-            default:
-                it.artifactId = "$project.name-$it.name"
-                break
-        }
+        it.artifactId = selectArtifactId(project, it.name)
     }
 
     kotlin.targets.all { target ->
-        def publication = publishing.publications[targetName]
+        def publication = publishing.publications.findByName(target.name)
+
         if (publication != null) {
             publication.artifact stubJavadoc
-        }
-        if (target.platformType.name != 'native') {
-            publication.gradleModuleMetadataFile = null
-            tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
-                onlyIf { false }
+
+            if (target.platformType.name != 'native') {
+                publication.gradleModuleMetadataFile = null
+                tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
+                    onlyIf { false }
+                }
             }
         }
     }
+
+    publications.removeIf { it.artifactId.endsWith("-obsolete") }
 }
 
 bintray {

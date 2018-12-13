@@ -5,18 +5,12 @@ kotlin {
         if (project.ext.ideaActive) {
             fromPreset(project.ext.ideaPreset, 'posix')
         } else {
-            if (project.ext.isLinuxHost) {
-                fromPreset(presets.linuxX64, 'linuxX64')
-            }
-            if (project.ext.isMacosHost) {
-                fromPreset(presets.iosArm64, 'iosArm64')
-                fromPreset(presets.iosX64, 'iosX64')
-                fromPreset(presets.macosX64, 'macosX64')
-                /* fromPreset(presets.iosArm32, 'iosArm32') */
-            }
-            if (project.ext.isWinHost) {
-                fromPreset(presets.mingwX64, 'mingwX64')
-            }
+            fromPreset(presets.linuxX64, 'linuxX64')
+            fromPreset(presets.iosArm64, 'iosArm64')
+            fromPreset(presets.iosX64, 'iosX64')
+            fromPreset(presets.macosX64, 'macosX64')
+            /* fromPreset(presets.iosArm32, 'iosArm32') */
+            fromPreset(presets.mingwX64, 'mingwX64')
         }
 
 
@@ -43,3 +37,5 @@ kotlin {
         }
     }
 }
+
+project.ext.set("hasNative", true)

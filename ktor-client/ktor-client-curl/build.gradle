@@ -6,9 +6,7 @@ kotlin {
         if (project.ext.ideaActive) {
             current = [posix]
         } else {
-            if (project.ext.isMacosHost) current = [iosX64, iosArm64, macosX64]
-            if (project.ext.isLinuxHost) current = [linuxX64]
-            if (project.ext.isWinHost) current = [mingwX64]
+            current = [iosX64, iosArm64, macosX64, linuxX64, mingwX64]
         }
 
         configure(current) {
@@ -22,11 +20,9 @@ kotlin {
     }
 
     sourceSets {
-        posixMain {
-            dependencies {
-                api project(':ktor-client:ktor-client-core')
-                api project(':ktor-http:ktor-http-cio')
-            }
+        posixMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
+            api project(':ktor-http:ktor-http-cio')
         }
         posixTest.dependencies {
             api project(':ktor-client:ktor-client-features:ktor-client-logging')

@@ -1,5 +1,7 @@
 description = ''
 
+project.ext.set("commonStructure", false)
+
 kotlin.sourceSets {
     commonMain.dependencies {
         api project(':ktor-http')

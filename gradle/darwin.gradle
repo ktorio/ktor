@@ -5,13 +5,10 @@ kotlin {
         if (project.ext.ideaActive) {
             fromPreset(project.ext.ideaPreset, 'darwin')
         }
-        if (project.ext.isMacosHost) {
-            fromPreset(presets.iosArm64, 'iosArm64')
-            fromPreset(presets.iosX64, 'iosX64')
-            fromPreset(presets.macosX64, 'macosX64')
-            /* fromPreset(presets.iosArm32, 'iosArm32') */
-        }
-
+        fromPreset(presets.iosArm64, 'iosArm64')
+        fromPreset(presets.iosX64, 'iosX64')
+        fromPreset(presets.macosX64, 'macosX64')
+        /* fromPreset(presets.iosArm32, 'iosArm32') */
     }
     sourceSets {
         darwinMain.dependencies {
@@ -36,3 +33,5 @@ kotlin {
         }
     }
 }
+
+project.ext.set("hasNative", true)
