@@ -18,4 +18,14 @@ object BrowserUtils : Utils() {
     override fun fetch(input: String, init: RequestInit): Promise<Response> {
         return window.fetch(input, init)
     }
+
+    internal fun ReadableStream.toByteChannel(
+        callContext: CoroutineContext
+    ): ByteReadChannel = writer(callContext) {
+        val reader = getReader()
+        while (true) {
+            val chunk = reader.readChunk() ?: break
+            channel.writeFully(chunk.asByteArray())
+        }
+    }.channel
 }

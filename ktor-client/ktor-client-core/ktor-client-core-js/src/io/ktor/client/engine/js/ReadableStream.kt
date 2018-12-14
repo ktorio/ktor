@@ -20,16 +20,6 @@ internal external interface ReadableStreamReader {
     fun read(): Promise<ReadResult>
 }
 
-internal fun ReadableStream.toByteChannel(
-    callContext: CoroutineContext
-): ByteReadChannel = GlobalScope.writer(callContext) {
-    val reader = getReader()
-    while (true) {
-        val chunk = reader.readChunk() ?: break
-        channel.writeFully(chunk.asByteArray())
-    }
-}.channel
-
 internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCancellableCoroutine { continuation ->
     read().then {
         val chunk = it.value

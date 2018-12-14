@@ -14,7 +14,7 @@ object NodeUtils : Utils() {
         resp: Response,
         context: CoroutineContext
     ): ByteReadChannel =
-            GlobalScope.writer {
+            writer(context) {
                 val buffer = suspendCancellableCoroutine<ArrayBuffer> { con ->
                     resp.arrayBuffer()
                             .then { con.resume(it) }
