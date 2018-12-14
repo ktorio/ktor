@@ -1,16 +1,13 @@
 package io.ktor.client.engine.js
 
-import io.ktor.client.engine.js.compatible.Utils
 import io.ktor.client.engine.mergeHeaders
 import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import org.khronos.webgl.*
 import org.w3c.fetch.*
-import kotlin.coroutines.*
 
 internal suspend fun CoroutineScope.toRaw(clientRequest: HttpRequest): RequestInit {
     val jsHeaders = js("({})")
@@ -35,12 +32,6 @@ internal suspend fun CoroutineScope.toRaw(clientRequest: HttpRequest): RequestIn
     }
 }
 
-internal suspend fun fetch(url: Url, request: RequestInit): Response = suspendCancellableCoroutine {
-    Utils.get().fetch(url.toString(), request).then({ response ->
-        it.resume(response)
-    }, { cause ->
-        it.resumeWithException(cause)
-    })
-}
+
 
 internal fun <T> buildObject(block: T.() -> Unit): T = (js("{}") as T).apply(block)

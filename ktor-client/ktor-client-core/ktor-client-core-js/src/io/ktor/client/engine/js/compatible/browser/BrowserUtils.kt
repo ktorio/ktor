@@ -1,14 +1,12 @@
 package io.ktor.client.engine.js.compatible.browser
 
-import io.ktor.client.engine.js.ReadableStream
-import io.ktor.client.engine.js.compatible.Utils
-import io.ktor.client.engine.js.toByteChannel
-import kotlinx.coroutines.io.ByteReadChannel
-import org.w3c.fetch.RequestInit
-import org.w3c.fetch.Response
-import kotlin.browser.window
-import kotlin.coroutines.CoroutineContext
-import kotlin.js.Promise
+import io.ktor.client.engine.js.*
+import io.ktor.client.engine.js.compatible.*
+import kotlinx.coroutines.io.*
+import org.w3c.fetch.*
+import kotlin.browser.*
+import kotlin.coroutines.*
+import kotlin.js.*
 
 object BrowserUtils : Utils() {
     override fun getBodyContentAsChannel(resp: Response, context: CoroutineContext): ByteReadChannel {
@@ -17,7 +15,7 @@ object BrowserUtils : Utils() {
         return stream.toByteChannel(context)
     }
 
-    override fun fetch(input: dynamic, init: RequestInit): Promise<Response> {
+    override fun fetch(input: String, init: RequestInit): Promise<Response> {
         return window.fetch(input, init)
     }
 }

@@ -1,7 +1,6 @@
 package io.ktor.client.engine.js
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import org.khronos.webgl.*
 import kotlin.coroutines.*
