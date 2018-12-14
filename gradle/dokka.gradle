@@ -1,31 +1,36 @@
-ext.dokkaExcludes = [
-    'ktor-server',
-    'ktor-samples',
-    'ktor-features',
-    'ktor-client'
-]
-
 apply plugin: 'org.jetbrains.dokka'
 
 dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/kdoc"
 
+    kotlinTasks {
+        defaultKotlinTasks().findAll { it.name.contains("Jvm") }
+    }
+
     reportUndocumented = false
-    kotlinTasks { [bintrayUpload] }
 }
 
 task dokkaJavadoc(type: dokka.getClass()) {
     outputFormat = 'javadoc'
     outputDirectory = "$buildDir/javadoc"
 
+    kotlinTasks {
+        defaultKotlinTasks().findAll { it.name.contains("Jvm") }
+    }
+
     reportUndocumented = false
-    kotlinTasks { [bintrayUpload] }
 }
 
 task dokkaWebsite(type: dokka.getClass()) {
     outputFormat = 'kotlin-website'
     outputDirectory = "${rootProject.projectDir}/apidoc"
+
+    kotlinTasks {
+        defaultKotlinTasks().findAll { it.name.contains("Jvm") }
+    }
+
+    reportUndocumented = false
 }
 
 task javadocJar(type: Jar, dependsOn: 'dokkaJavadoc') {
@@ -38,5 +43,5 @@ task dokkaJar(type: Jar, dependsOn: 'dokka') {
     from fileTree(new File(project.buildDir, 'kdoc'))
 }
 
-artifacts.archives javadocJar
-artifacts.archives dokkaJar
+//artifacts.archives javadocJar
+//artifacts.archives dokkaJar

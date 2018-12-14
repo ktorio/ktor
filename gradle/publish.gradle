@@ -5,13 +5,15 @@ apply plugin: 'com.jfrog.bintray'
 apply from: project.rootProject.file('gradle/pom.gradle')
 
 task emptyJar(type: Jar) {
-    classifier 'javadoc'
 }
 
 task stubJavadoc(type: Jar) {
-    classifier = 'javadoc'
+    classifier 'javadoc'
 }
 
+task stubDokka(type: Jar) {
+    classifier 'kdoc'
+}
 
 def selectArtifactId(project, type) {
     def name = project.name
@@ -44,20 +46,34 @@ publishing {
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
-        it.artifactId = selectArtifactId(project, it.name)
+        def id = selectArtifactId(project, it.name)
+        it.artifactId = id
+        if (id.endsWith('native')) {
+            it.artifact stubJavadoc
+            it.artifact stubDokka
+            it.artifact emptyJar
+        }
     }
 
     kotlin.targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
 
         if (publication != null) {
-            publication.artifact stubJavadoc
+            if (target.platformType.name == 'jvm') {
+                publication.artifact javadocJar
+                publication.artifact dokkaJar
+            } else {
+                publication.artifact stubJavadoc
+                publication.artifact stubDokka
+            }
 
             if (target.platformType.name != 'native') {
                 publication.gradleModuleMetadataFile = null
                 tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
                     onlyIf { false }
                 }
+            } else {
+                publication.artifact emptyJar
             }
         }
     }
