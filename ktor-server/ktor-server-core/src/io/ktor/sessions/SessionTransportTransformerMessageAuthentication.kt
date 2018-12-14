@@ -1,6 +1,7 @@
 package io.ktor.sessions
 
 import io.ktor.util.*
+import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
@@ -19,7 +20,7 @@ class SessionTransportTransformerMessageAuthentication(val keySpec: SecretKeySpe
     override fun transformRead(transportValue: String): String? {
         val expectedSignature = transportValue.substringAfterLast('/', "")
         val value = transportValue.substringBeforeLast('/')
-        if (mac(value) == expectedSignature)
+        if (MessageDigest.isEqual(mac(value).toByteArray(), expectedSignature.toByteArray()))
             return value
         return null
     }
