@@ -1,6 +1,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.ios.*
 import libcurl.*
 
 // This function is thread unsafe!
@@ -11,12 +12,17 @@ import libcurl.*
 @SharedImmutable
 private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.toLong())
 
+@ThreadLocal
+private val initHook = Curl
+
 object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
+
+    init {
+        engines.add(this)
+    }
 
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine {
         if (curlGlobalInitReturnCode != 0U) throw CurlRuntimeException("curl_global_init() returned non-zero verify")
         return CurlClientEngine(CurlClientEngineConfig().apply(block))
     }
 }
-
-fun CurlClient(): HttpClientEngineFactory<HttpClientEngineConfig> = Curl
