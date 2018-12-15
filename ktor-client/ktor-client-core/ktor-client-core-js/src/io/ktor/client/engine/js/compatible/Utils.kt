@@ -27,5 +27,4 @@ abstract class Utils : CoroutineScope {
     abstract fun fetch(input: String, init: RequestInit): Promise<Response>
 
     abstract fun getBodyContentAsChannel(resp: Response, context: CoroutineContext): ByteReadChannel
-
 }

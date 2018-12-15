@@ -31,6 +31,6 @@ internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCanc
 }
 
 @Suppress("UnsafeCastFromDynamic")
-fun Uint8Array.asByteArray(): ByteArray {
+internal fun Uint8Array.asByteArray(): ByteArray {
     return Int8Array(buffer, byteOffset, length).asDynamic()
 }
