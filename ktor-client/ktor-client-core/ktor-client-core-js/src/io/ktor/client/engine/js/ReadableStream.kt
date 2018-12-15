@@ -1,7 +1,6 @@
 package io.ktor.client.engine.js
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import org.khronos.webgl.*
 import kotlin.coroutines.*
@@ -21,16 +20,6 @@ internal external interface ReadableStreamReader {
     fun read(): Promise<ReadResult>
 }
 
-internal fun ReadableStream.toByteChannel(
-    callContext: CoroutineContext
-): ByteReadChannel = GlobalScope.writer(callContext) {
-    val reader = getReader()
-    while (true) {
-        val chunk = reader.readChunk() ?: break
-        channel.writeFully(chunk.asByteArray())
-    }
-}.channel
-
 internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCancellableCoroutine { continuation ->
     read().then {
         val chunk = it.value
@@ -42,6 +31,6 @@ internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCanc
 }
 
 @Suppress("UnsafeCastFromDynamic")
-private fun Uint8Array.asByteArray(): ByteArray {
+internal fun Uint8Array.asByteArray(): ByteArray {
     return Int8Array(buffer, byteOffset, length).asDynamic()
 }
