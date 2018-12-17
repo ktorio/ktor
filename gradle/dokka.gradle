@@ -42,6 +42,3 @@ task dokkaJar(type: Jar, dependsOn: 'dokka') {
     classifier = 'kdoc'
     from fileTree(new File(project.buildDir, 'kdoc'))
 }
-
-//artifacts.archives javadocJar
-//artifacts.archives dokkaJar

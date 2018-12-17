@@ -56,7 +56,10 @@ jvmTest {
     exclude("**/*StressTest*")
 }
 
-task stressTest(type: Test, dependsOn: jvmTestClasses) {
+task stressTest(type: Test) {
+    classpath = files { jvmTest.classpath }
+    testClassesDirs = files { jvmTest.testClassesDirs }
+
     ignoreFailures = true
     maxHeapSize = "2g"
     forkEvery = 1
@@ -64,21 +67,13 @@ task stressTest(type: Test, dependsOn: jvmTestClasses) {
     systemProperty "enable.stress.tests", "true"
 }
 
-
-//task packageSources(type: Jar) {
-//    classifier = 'sources'
-//}
-
-//artifacts.archives packageSources
-
-
 configurations {
     testOutput.extendsFrom(testCompile)
     boot
 }
 
-//jar {
-//    manifest {
-//        attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
-//    }
-//}
+jvmJar {
+    manifest {
+        attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
+    }
+}

@@ -1,6 +1,5 @@
 package io.ktor.tests.http.cio
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*

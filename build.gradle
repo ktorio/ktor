@@ -98,17 +98,5 @@ allprojects {
                 }
             }
         }
-
-        if (rootProject.ext.misc.contains(project.name)) return
-        configure(targets) {
-            def targetName = it.name
-            compilations.all { compilation ->
-                def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
-                compileTask.kotlinOptions.freeCompilerArgs += ["-Xuse-experimental=" + experimentalAnnotations.join(",")]
-                if (targetName.contains("jvm") && compilation.compilationName == "main") {
-                    compileTask.kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-                }
-            }
-        }
     }
 }

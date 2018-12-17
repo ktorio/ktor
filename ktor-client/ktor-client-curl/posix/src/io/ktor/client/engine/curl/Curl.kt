@@ -21,7 +21,7 @@ object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
     }
 
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine {
-        if (curlGlobalInitReturnCode != 0U) throw CurlRuntimeException("curl_global_init() returned non-zero verify")
+        if (curlGlobalInitReturnCode != 0U) throw CurlRuntimeException("curl_global_init() returned non-zero verify: $curlGlobalInitReturnCode")
         return CurlClientEngine(CurlClientEngineConfig().apply(block))
     }
 }

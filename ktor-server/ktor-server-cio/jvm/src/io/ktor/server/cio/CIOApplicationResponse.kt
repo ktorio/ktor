@@ -1,6 +1,5 @@
 package io.ktor.server.cio
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
