@@ -9,7 +9,6 @@ import io.ktor.http.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
 import kotlin.coroutines.*
 
 internal class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClientEngine {
@@ -32,7 +31,7 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
         val response = with(responseData) {
             val headers = parseHeaders(ByteReadChannel(headersBytes))
 
-            val body = writer {
+            val body = writer(coroutineContext) {
                 channel.writeFully(bodyBytes)
             }.channel
 

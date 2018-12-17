@@ -45,7 +45,7 @@ fun <T : HttpClientEngineConfig> HttpClient(
 @HttpClientDsl
 fun HttpClient(
     engine: HttpClientEngine,
-    block: HttpClientConfig<*>.()->Unit
+    block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(engine, HttpClientConfig<HttpClientEngineConfig>().apply(block))
 
 /**

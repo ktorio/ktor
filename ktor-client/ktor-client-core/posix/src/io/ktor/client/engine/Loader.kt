@@ -1,6 +1,5 @@
-package io.ktor.client.engine.ios
+package io.ktor.client.engine
 
-import io.ktor.client.engine.*
 import io.ktor.util.*
 
 @InternalAPI

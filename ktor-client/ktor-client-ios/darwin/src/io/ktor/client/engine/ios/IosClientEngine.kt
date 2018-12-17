@@ -15,9 +15,7 @@ import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
-class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngine {
-    private val context: Job = Job()
-
+class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngine {
     // TODO: replace with UI dispatcher
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 

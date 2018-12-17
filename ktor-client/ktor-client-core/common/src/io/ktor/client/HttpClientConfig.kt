@@ -13,7 +13,7 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
 
-    internal var engineConfig: T.()->Unit = {}
+    internal var engineConfig: T.() -> Unit = {}
 
     /**
      * Configure engine parameters.

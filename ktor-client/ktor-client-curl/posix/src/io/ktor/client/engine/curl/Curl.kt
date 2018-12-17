@@ -1,7 +1,6 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
-import io.ktor.client.engine.ios.*
 import libcurl.*
 
 // This function is thread unsafe!
