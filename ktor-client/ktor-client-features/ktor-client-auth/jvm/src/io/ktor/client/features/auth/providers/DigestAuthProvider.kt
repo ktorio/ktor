@@ -6,6 +6,8 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 /**
  * Install client [DigestAuthProvider].
@@ -97,6 +99,6 @@ class DigestAuthProvider(
     private val lock = Lock()
     private suspend fun makeDigest(data: String): ByteArray = lock.use {
         digest.reset()
-        return@use digest.build(data.toByteArray(Charsets.ISO_8859_1))
+        return@use digest.build(data.toByteArray(Charsets.UTF_8))
     }
 }

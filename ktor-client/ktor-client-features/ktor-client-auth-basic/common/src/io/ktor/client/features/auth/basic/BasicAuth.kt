@@ -12,8 +12,6 @@ import io.ktor.util.*
  *
  * https://www.ietf.org/rfc/rfc2617.txt
  */
-@UseExperimental(InternalAPI::class)
-@Deprecated("Use `ktor-client-auth` basic auth provider instead")
 class BasicAuth(val username: String, val password: String) {
 
     class Configuration {
