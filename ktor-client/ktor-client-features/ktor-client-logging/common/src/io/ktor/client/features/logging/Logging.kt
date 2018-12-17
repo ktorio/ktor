@@ -47,8 +47,8 @@ class Logging(
     private suspend fun logResponse(response: HttpResponse) {
         if (level == LogLevel.NONE) return
 
-        logger.log("RESPONSE: ${response.status}\n")
-        logger.log("METHOD: ${response.call.request.method}\n")
+        logger.log("RESPONSE: ${response.status}")
+        logger.log("METHOD: ${response.call.request.method}")
         logger.log("FROM: ${response.call.request.url}")
 
         if (level.headers) logHeaders(response.headers.entries())
