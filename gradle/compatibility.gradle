@@ -32,31 +32,9 @@ dependencies {
 }
 
 def buildList = {
-    def workQueue = []
-    def allModules = new HashSet<ProjectDependency>()
-
-    workQueue += configurations.binaryCompatibility.allDependencies.findAll { it instanceof ProjectDependency }
-
-    while (!workQueue.isEmpty()) {
-        def project = workQueue.remove(workQueue.size() - 1)
-
-        if (project instanceof ProjectDependency && allModules.add(project)) {
-            project.dependencyProject.configurations.forEach { configuration ->
-//                println configuration.allDependencies.withType(ProjectDependency)
-//                if (!configuration.name.toLowerCase().contains('test') && configuration.name.toLowerCase().contains("jvm")) {
-//                    workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
-//                } else if (configuration.name == 'compile') {
-//                    def task = project.dependencyProject.tasks.findByName('compileKotlin')
-//                    if (task != null) {
-//                        workQueue += configuration.allDependencies.findAll { it instanceof ProjectDependency }
-//                    }
-//                }
-            }
-        }
-    }
+    def allModules = configurations.binaryCompatibility.allDependencies.findAll { it instanceof ProjectDependency }
 
     return allModules
-        .toList()
         .sort { it.name }
         .findAll {
         def isCommon = it.dependencyProject.file("common").exists()
@@ -66,5 +44,3 @@ def buildList = {
 }
 
 project.ext.buildList = buildList
-
-//println "List of modules: \n" + modulesForBinaryCompatibility.collect { it.name }.sort().join('\n')

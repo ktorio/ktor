@@ -166,13 +166,7 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 	public final fun getVersion ()Ljava/lang/CharSequence;
 }
 
-public final class io/ktor/http/cio/internals/CharArrayPoolKt {
-	public static final field CHAR_BUFFER_ARRAY_LENGTH I
-}
-
 public final class io/ktor/http/cio/internals/HttpByteBufferPoolKt {
-	public static final field DEFAULT_BYTE_BUFFER_BUFFER_SIZE I
-	public static final field DEFAULT_BYTE_BUFFER_POOL_SIZE I
 	public static final fun getDefaultByteBufferPool ()Lkotlinx/io/pool/ObjectPool;
 }
 

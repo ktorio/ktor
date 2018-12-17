@@ -6,11 +6,11 @@ import java.nio.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
+internal val DEFAULT_BYTE_BUFFER_POOL_SIZE: Int = 4096
 
-const val DEFAULT_BYTE_BUFFER_POOL_SIZE: Int = 4096
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-const val DEFAULT_BYTE_BUFFER_BUFFER_SIZE: Int = 4096
+internal const val DEFAULT_BYTE_BUFFER_BUFFER_SIZE: Int = 4096
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI

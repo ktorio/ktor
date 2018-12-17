@@ -24,7 +24,6 @@ class PublicApiTest(
         @JvmStatic
         fun modules(): List<Array<Any>> {
             val names = artifactNames.split(File.pathSeparator)
-            println(names)
             return modulesList.split(File.pathSeparator).mapIndexed { id, path ->
                 val dir = File(path)
                 arrayOf<Any>(dir, names[id])
@@ -54,6 +53,7 @@ class PublicApiTest(
                         && !it.endsWith("-sources.jar")
                         && !it.endsWith("-javadoc.jar")
                         && !it.endsWith("-tests.jar")
+                        && !it.endsWith("-kdoc.jar")
                 }
             }
         return files.singleOrNull()
