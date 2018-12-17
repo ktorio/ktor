@@ -85,6 +85,7 @@ prepareMocha.doLast {
         <script src="$libraryPath/kotlinx-serialization-runtime-js.js"></script>
         <script src="$libraryPath/ktor-utils.js"></script>
         <script src="$libraryPath/ktor-http.js"></script>
+        <script src="$libraryPath/ktor-http-cio.js"></script>
         <script src="$libraryPath/ktor-client-core.js"></script>
         <script src="$libraryPath/ktor-client.js"></script>
         <script src="$libraryPath/ktor-client-json.js"></script>
