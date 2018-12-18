@@ -3,7 +3,7 @@ package io.ktor.sessions
 import io.ktor.util.*
 import java.security.*
 
-private val delimiter = '/'
+private const val delimiter = '/'
 
 /**
  * Session transformer that appends an [algorithm] hash of the input.
@@ -13,7 +13,12 @@ private val delimiter = '/'
  * @property salt that is used for message digest algorithm
  * @property algorithm is a message digest algorithm
  */
-class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-256") : SessionTransportTransformer {
+@Deprecated(
+    "This authentication kind is potentially vulnerable with several hash functions." +
+        " Use SessionTransportTransformerMessageAuthentication instead or ensure you are using secure enough hash."
+)
+class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-384") :
+    SessionTransportTransformer {
 
     override fun transformRead(transportValue: String): String? {
         val providedSignature = transportValue.substringAfterLast(delimiter, "")
@@ -29,7 +34,8 @@ class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm
         return null
     }
 
-    override fun transformWrite(transportValue: String): String = transportValue + delimiter + hex(digest(transportValue))
+    override fun transformWrite(transportValue: String): String =
+        transportValue + delimiter + hex(digest(transportValue))
 
     private fun digest(value: String): ByteArray {
         val md = MessageDigest.getInstance(algorithm)

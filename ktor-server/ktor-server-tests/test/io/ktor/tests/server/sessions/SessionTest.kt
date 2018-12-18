@@ -20,8 +20,9 @@ import java.time.Duration
 import java.util.*
 import kotlin.test.*
 
+@Suppress("ReplaceSingleLineLet")
 class SessionTest {
-    val cookieName = "_S" + Random().nextInt(100)
+    private val cookieName = "_S" + Random().nextInt(100)
 
     @Test
     fun testSessionCreateDelete() {
@@ -108,6 +109,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
+                    @Suppress("DEPRECATION")
                     transform(SessionTransportTransformerDigest())
                 }
             }
@@ -487,7 +489,8 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     identity { (id++).toString() }
-                    transform(SessionTransportTransformerDigest())
+                    @Suppress("DEPRECATION")
+                    transform(SessionTransportTransformerDigest(algorithm = "SHA-256"))
                 }
             }
 
@@ -539,6 +542,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<EmptySession>("EMPTY")
                 header<TestUserSession>(cookieName, sessionStorage) {
+                    @Suppress("DEPRECATION")
                     transform(SessionTransportTransformerDigest())
                 }
             }
