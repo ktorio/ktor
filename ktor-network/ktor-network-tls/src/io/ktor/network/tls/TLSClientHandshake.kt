@@ -1,6 +1,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
+import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -50,25 +51,17 @@ internal class TLSClientHandshake(
         }
     }
 
+    private val cipher: TLSCipher by lazy { TLSCipher.fromSuite(serverHello.cipherSuite, key) }
+
     @UseExperimental(ExperimentalCoroutinesApi::class)
     val input: ReceiveChannel<TLSRecord> = produce {
         var packetCounter = 0L
         var useCipher = false
         try {
             loop@ while (true) {
-                val record = rawInput.readTLSRecord()
-                val rawPacket = record.packet
-
-                val packet = if (useCipher) {
-                    val packetSize = rawPacket.remaining
-                    val recordIv = rawPacket.readLong()
-                    val cipher = decryptCipher(
-                        serverHello.cipherSuite,
-                        key, record.type, packetSize.toInt(), recordIv, packetCounter++
-                    )
-
-                    rawPacket.decrypted(cipher)
-                } else rawPacket
+                val rawRecord = rawInput.readTLSRecord()
+                val record = if (useCipher) cipher.decrypt(rawRecord) else rawRecord
+                val packet = record.packet
 
                 when (record.type) {
                     TLSRecordType.Alert -> {
@@ -111,22 +104,8 @@ internal class TLSClientHandshake(
 
         channel.consumeEach { rawRecord ->
             try {
-                val record = if (useCipher) {
-                    val cipher = encryptCipher(
-                        serverHello.cipherSuite,
-                        key, rawRecord.type, rawRecord.packet.remaining.toInt(), packetCounter, packetCounter
-                    )
-
-                    val packet = rawRecord.packet.encrypted(cipher, packetCounter)
-                    packetCounter++
-
-                    TLSRecord(rawRecord.type, packet = packet)
-                } else rawRecord
-
-                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) {
-                    useCipher = true
-                }
-
+                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
                 rawOutput.writeRecord(record)
             } catch (cause: Throwable) {
                 channel.close(cause)
@@ -224,15 +203,8 @@ internal class TLSClientHandshake(
                     val x509s = certs.filterIsInstance<X509Certificate>()
                     if (x509s.isEmpty()) throw TLSException("Server sent no certificate")
 
-                    val rawSignature = x509s.first().sigAlgName.toUpperCase()
-                    val type = when {
-                        rawSignature.endsWith(SignatureAlgorithm.ECDSA.name) -> SignatureAlgorithm.ECDSA.name
-                        rawSignature.endsWith(SignatureAlgorithm.RSA.name) -> SignatureAlgorithm.RSA.name
-                        else -> throw TLSException("Unsupported certificate signature type")
-                    }
-
                     val manager = trustManager ?: findTrustManager()
-                    manager.checkServerTrusted(x509s.toTypedArray(), "${exchangeType.name}_$type")
+                    manager.checkServerTrusted(x509s.toTypedArray(), exchangeType.jvmName)
 
                     serverCertificate = x509s.firstOrNull { certificate ->
                         SupportedSignatureAlgorithms.any {

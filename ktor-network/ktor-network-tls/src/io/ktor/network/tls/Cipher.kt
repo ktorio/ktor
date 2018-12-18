@@ -77,7 +77,6 @@ internal fun decryptCipher(
     return cipher
 }
 
-
 internal fun ByteReadPacket.encrypted(cipher: Cipher, recordIv: Long): ByteReadPacket {
     return cipherLoop(cipher, recordIv, true)
 }
@@ -120,7 +119,7 @@ private fun ByteReadPacket.cipherLoop(cipher: Cipher, recordIv: Long, writeRecor
                 srcBuffer.compact()
             }
 
-            assert(!srcBuffer.hasRemaining()) { "Cipher loop completed too early: there are unprocessed bytes"}
+            assert(!srcBuffer.hasRemaining()) { "Cipher loop completed too early: there are unprocessed bytes" }
             assert(!dstBuffer.hasRemaining()) { "Not all bytes were appended to the packet" }
 
             val requiredBufferSize = cipher.getOutputSize(0)

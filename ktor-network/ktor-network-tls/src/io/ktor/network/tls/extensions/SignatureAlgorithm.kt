@@ -24,7 +24,7 @@ enum class HashAlgorithm(val code: Byte, val openSSLName: String) {
          * @throws TLSExtension if no hash algorithm found by code
          */
         fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
-                ?: throw TLSException("Unknown hash algorithm: $code")
+            ?: throw TLSException("Unknown hash algorithm: $code")
     }
 }
 
@@ -44,7 +44,7 @@ enum class SignatureAlgorithm(val code: Byte) {
          * @throws TLSExtension if no hash algorithm found by code
          */
         fun byCode(code: Byte): SignatureAlgorithm = values().find { it.code == code }
-                ?: throw TLSException("Unknown signature algorithm: $code")
+            ?: throw TLSException("Unknown signature algorithm: $code")
     }
 }
 
