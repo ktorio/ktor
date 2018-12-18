@@ -12,18 +12,24 @@ import org.eclipse.jetty.server.handler.*
 import java.lang.IllegalStateException
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.*
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 
+private val JettyKtorCounter = AtomicLong()
+
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,
     private val engineDispatcher: CoroutineDispatcher
 ) : AbstractHandler(), CoroutineScope {
-    private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
+    private val environmentName = environment.connectors.joinToString("-") { it.port.toString() }
+    private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8) { r ->
+        Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
+    }
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
