@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import java.nio.file.attribute.*
 import java.time.*
+import java.time.temporal.*
 import java.util.*
 
 /**
@@ -77,7 +78,8 @@ data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
      *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        val normalized = lastModified.withNano(0) // we need this because of the http date format that only has seconds
+        val normalized = lastModified.withZoneSameInstant(GreenwichMeanTime)
+            .truncatedTo(ChronoUnit.SECONDS) // we need this because of the http date format that only has seconds
         val ifModifiedSince = requestHeaders[HttpHeaders.IfModifiedSince]?.fromHttpDateString()
         val ifUnmodifiedSince = requestHeaders[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()
 

@@ -11,6 +11,8 @@ import io.ktor.util.*
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
+import org.junit.runner.*
+import org.junit.runners.*
 import java.io.*
 import java.nio.file.*
 import java.text.*
@@ -156,8 +158,15 @@ class ETagsTest {
 
 }
 
-class LastModifiedTest {
-    private val date = ZonedDateTime.now(GreenwichMeanTime)!!
+@RunWith(Parameterized::class)
+class LastModifiedTest(name: String, zone: ZoneId) {
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters(name = "{0}")
+        fun zones(): List<Array<Any>> = listOf(arrayOf<Any>("GMT", GreenwichMeanTime), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
+    }
+
+    private val date = ZonedDateTime.now(zone)!!
 
     private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
         application.install(ConditionalHeaders) {
