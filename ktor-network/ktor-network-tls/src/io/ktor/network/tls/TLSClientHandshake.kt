@@ -42,7 +42,7 @@ internal class TLSClientHandshake(
     @Volatile
     private lateinit var masterSecret: SecretKeySpec
 
-    private val key: ByteArray by lazy {
+    private val keyMaterial: ByteArray by lazy {
         with(serverHello.cipherSuite) {
             keyMaterial(
                 masterSecret, serverHello.serverSeed + clientSeed,
@@ -51,11 +51,12 @@ internal class TLSClientHandshake(
         }
     }
 
-    private val cipher: TLSCipher by lazy { TLSCipher.fromSuite(serverHello.cipherSuite, key) }
+    private val cipher: TLSCipher by lazy {
+        TLSCipher.fromSuite(serverHello.cipherSuite, keyMaterial)
+    }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     val input: ReceiveChannel<TLSRecord> = produce {
-        var packetCounter = 0L
         var useCipher = false
         try {
             loop@ while (true) {
@@ -99,7 +100,6 @@ internal class TLSClientHandshake(
 
     @UseExperimental(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor {
-        var packetCounter = 0L
         var useCipher = false
 
         channel.consumeEach { rawRecord ->
@@ -250,7 +250,7 @@ internal class TLSClientHandshake(
                         }
                         SecretExchangeType.RSA -> {
                             packet.release()
-                            error("Server key exchange handshake doesn't expected in RCA exchange type")
+                            error("Server keyMaterial exchange handshake doesn't expected in RCA exchange type")
                         }
                     }
                 }
@@ -276,7 +276,7 @@ internal class TLSClientHandshake(
     ) {
         if (certificateRequested) sendClientCertificate()
 
-        val preSecret = generatePreSecret(encryptionInfo)
+        val preSecret: ByteArray = generatePreSecret(encryptionInfo)
         sendClientKeyExchange(
             exchangeType,
             serverCertificate,
@@ -332,8 +332,9 @@ internal class TLSClientHandshake(
         sendHandshakeRecord(TLSHandshakeType.ClientKeyExchange) { writePacket(packet) }
     }
 
-    private fun sendClientCertificate() {
-        throw TLSException("Client certificates unsupported")
+    private suspend fun sendClientCertificate() {
+        sendHandshakeRecord(TLSHandshakeType.Certificate) {
+        }
     }
 
     private fun sendClientCertificateVerify() {

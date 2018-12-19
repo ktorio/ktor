@@ -2,7 +2,7 @@ package io.ktor.network.tls
 
 import javax.crypto.*
 
-internal fun PRF(secret: SecretKey, label: ByteArray, seed: ByteArray, requiredLength: Int = 12) = P_hash(
+internal fun PRF(secret: SecretKey, label: ByteArray, seed: ByteArray, requiredLength: Int = 12): ByteArray = P_hash(
     label + seed, Mac.getInstance(secret.algorithm), secret, requiredLength
 )
 

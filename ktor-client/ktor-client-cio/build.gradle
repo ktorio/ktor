@@ -6,4 +6,6 @@ dependencies {
     compile project(":ktor-network:ktor-network-tls")
 
     testCompile project(":ktor-client:ktor-client-tests")
+
+    testCompile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
 }

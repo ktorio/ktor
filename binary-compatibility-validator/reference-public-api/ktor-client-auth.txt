@@ -7,7 +7,7 @@ public final class io/ktor/client/features/auth/Auth {
 }
 
 public final class io/ktor/client/features/auth/Auth$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/auth/Auth;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/auth/Auth;

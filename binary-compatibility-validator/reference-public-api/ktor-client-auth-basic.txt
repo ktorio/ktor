@@ -17,7 +17,7 @@ public final class io/ktor/client/features/auth/basic/BasicAuth$Configuration {
 
 public final class io/ktor/client/features/auth/basic/BasicAuth$Feature : io/ktor/client/features/HttpClientFeature {
 	public final fun constructBasicAuthValue (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/auth/basic/BasicAuth;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/auth/basic/BasicAuth;

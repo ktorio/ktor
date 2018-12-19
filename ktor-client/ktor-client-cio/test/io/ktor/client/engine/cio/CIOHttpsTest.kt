@@ -1,5 +1,6 @@
 package io.ktor.client.engine.cio
 
+import ch.qos.logback.classic.*
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -12,10 +13,12 @@ import io.ktor.network.tls.extensions.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.slf4j.*
+import org.slf4j.Logger
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -23,7 +26,10 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
+    override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
+        val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        root.level = Level.DEBUG
+
         sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile

@@ -180,7 +180,7 @@ public final class io/ktor/client/features/DefaultRequest {
 }
 
 public final class io/ktor/client/features/DefaultRequest$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/DefaultRequest;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/DefaultRequest;
@@ -201,7 +201,7 @@ public final class io/ktor/client/features/ExpectSuccess {
 }
 
 public final class io/ktor/client/features/ExpectSuccess$Companion : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/ExpectSuccess;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/ExpectSuccess;
@@ -209,7 +209,7 @@ public final class io/ktor/client/features/ExpectSuccess$Companion : io/ktor/cli
 }
 
 public abstract interface class io/ktor/client/features/HttpClientFeature {
-	public abstract fun getKey ()Lio/ktor/util/AttributeKey;
+	public abstract fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public abstract fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public abstract fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
@@ -236,7 +236,7 @@ public final class io/ktor/client/features/HttpPlainText$Config {
 }
 
 public final class io/ktor/client/features/HttpPlainText$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/HttpPlainText;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/HttpPlainText;
@@ -249,7 +249,7 @@ public final class io/ktor/client/features/HttpRedirect {
 }
 
 public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/HttpRedirect;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/HttpRedirect;
@@ -267,7 +267,7 @@ public final class io/ktor/client/features/HttpSend {
 }
 
 public final class io/ktor/client/features/HttpSend$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/HttpSend;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/HttpSend;
@@ -302,7 +302,7 @@ public final class io/ktor/client/features/UserAgent$Config {
 }
 
 public final class io/ktor/client/features/UserAgent$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/UserAgent;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/UserAgent;
@@ -342,7 +342,7 @@ public final class io/ktor/client/features/cookies/HttpCookies {
 }
 
 public final class io/ktor/client/features/cookies/HttpCookies$Companion : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/cookies/HttpCookies;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/cookies/HttpCookies;
@@ -377,7 +377,7 @@ public final class io/ktor/client/features/observer/ResponseObserver$Config {
 }
 
 public final class io/ktor/client/features/observer/ResponseObserver$Feature : io/ktor/client/features/HttpClientFeature {
-	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun getKeyMaterial ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/observer/ResponseObserver;Lio/ktor/client/HttpClient;)V
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/observer/ResponseObserver;
@@ -538,7 +538,7 @@ public final class io/ktor/client/request/forms/FormPart {
 	public static synthetic fun copy$default (Lio/ktor/client/request/forms/FormPart;Ljava/lang/String;Ljava/lang/Object;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/forms/FormPart;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHeaders ()Lio/ktor/http/Headers;
-	public final fun getKey ()Ljava/lang/String;
+	public final fun getKeyMaterial ()Ljava/lang/String;
 	public final fun getValue ()Ljava/lang/Object;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
