@@ -108,7 +108,7 @@ class PartialContent(private val maxRangeCount: Int) {
         return ifRange == null || versions.all { version ->
             when (version) {
                 is EntityTagVersion -> version.etag in ifRange.parseMatchTag()
-                is LastModifiedVersion -> version.lastModified <= ifRange.fromHttpDateString()
+                is LastModifiedVersion -> version.lastModified <= ifRange.fromHttpToGmtDate()
                 else -> true
             }
         }
