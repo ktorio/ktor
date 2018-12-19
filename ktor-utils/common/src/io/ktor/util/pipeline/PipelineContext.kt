@@ -197,10 +197,12 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             null -> throw IllegalStateException("No more continuations to resume")
             is Continuation<*> -> {
                 this.rootContinuation = null
+                lastPeekedIndex = -1
                 rootContinuation
             }
             is ArrayList<*> -> {
                 if (rootContinuation.isEmpty()) throw IllegalStateException("No more continuations to resume")
+                lastPeekedIndex = rootContinuation.lastIndex - 1
                 rootContinuation.removeAt(rootContinuation.lastIndex)
             }
             else -> unexpectedRootContinuationValue(rootContinuation)
@@ -216,7 +218,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
         when (rootContinuation) {
             null -> throw IllegalStateException("No more continuations to resume")
             is Continuation<*> -> {
-                lastPeekedIndex = 0
+                lastPeekedIndex = -1
                 this.rootContinuation = null
             }
             is ArrayList<*> -> {
