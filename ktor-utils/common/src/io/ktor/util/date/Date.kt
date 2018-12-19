@@ -1,5 +1,6 @@
 package io.ktor.util.date
 
+import io.ktor.util.*
 import kotlin.math.*
 
 /**
@@ -128,3 +129,9 @@ operator fun GMTDate.plus(milliseconds: Long): GMTDate = GMTDate(timestamp + mil
  * Subtracts the specified number of [milliseconds]
  */
 operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timestamp - milliseconds)
+
+/**
+ * Truncate to seconds by discarding sub-second part
+ */
+@KtorExperimentalAPI
+fun GMTDate.truncateToSeconds(): GMTDate = GMTDate(seconds, minutes, hours, dayOfMonth, month, year)

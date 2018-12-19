@@ -163,7 +163,7 @@ class LastModifiedTest(name: String, zone: ZoneId) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
-        fun zones(): List<Array<Any>> = listOf(arrayOf<Any>("GMT", GreenwichMeanTime), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
+        fun zones(): List<Array<Any>> = listOf(arrayOf<Any>("GMT", ZoneId.of("GMT")), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
     }
 
     private val date = ZonedDateTime.now(zone)!!

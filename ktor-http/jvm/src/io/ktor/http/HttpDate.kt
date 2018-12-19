@@ -23,11 +23,13 @@ fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
 @KtorExperimentalAPI
 fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
 
+private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
+
 /**
  * Default HTTP date format
  */
 @KtorExperimentalAPI
-val httpDateFormat = DateTimeFormatter
+val httpDateFormat: DateTimeFormatter = DateTimeFormatter
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")
     .withLocale(Locale.US)
     .withZone(GreenwichMeanTime)!!

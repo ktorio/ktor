@@ -9,6 +9,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.time.*
 
+private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
+
 @Volatile
 private var cachedDateText: String = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
 
