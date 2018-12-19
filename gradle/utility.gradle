@@ -14,7 +14,7 @@ kotlin {
         if (project.ext.ideaActive) {
             def ideaPreset = presets.linuxX64
             if (macosEnabled) ideaPreset = presets.macosX64
-            if (winEnabled) ideaPreset = presets.mingwx64
+            if (winEnabled) ideaPreset = presets.mingwX64
 
             project.ext.ideaPreset = ideaPreset
         }
