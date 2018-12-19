@@ -41,8 +41,11 @@ val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-wr
  */
 val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Use startConnectionPipeline with CoroutineScope receiver")
+@Suppress("KDocMissingDocumentation", "UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
+@Deprecated(
+    "Use startConnectionPipeline with CoroutineScope receiver",
+    level = DeprecationLevel.ERROR
+)
 fun startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
@@ -51,15 +54,7 @@ fun startConnectionPipeline(
     callContext: CoroutineContext,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
-): Job = CoroutineScope(ioContext + (parentJob ?: Dispatchers.Unconfined))
-    .startConnectionPipeline(input, output, timeout) { request: Request,
-                                                       _input: ByteReadChannel,
-                                                       _output: ByteWriteChannel,
-                                                       upgraded: CompletableDeferred<Boolean>? ->
-        withContext(callContext) {
-            handler(request, _input, _output, upgraded)
-        }
-    }
+): Job = TODO("Not supported anymore")
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.

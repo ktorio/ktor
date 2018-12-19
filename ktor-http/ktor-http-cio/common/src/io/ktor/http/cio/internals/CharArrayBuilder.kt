@@ -33,7 +33,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         return SubSequenceImpl(startIndex, endIndex)
     }
 
-    override fun toString() = stringified ?: copy(0, length).toString().also { stringified = it }
+    override fun toString(): String = stringified ?: copy(0, length).toString().also { stringified = it }
 
     override fun equals(other: Any?): Boolean {
         if (other !is CharSequence) return false
@@ -42,7 +42,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         return rangeEqualsImpl(0, other, 0, length)
     }
 
-    override fun hashCode() = stringified?.hashCode() ?: hashCodeImpl(0, length)
+    override fun hashCode(): Int = stringified?.hashCode() ?: hashCodeImpl(0, length)
 
     override fun append(c: Char): Appendable {
         nonFullBuffer()[current!!.size - remaining] = c

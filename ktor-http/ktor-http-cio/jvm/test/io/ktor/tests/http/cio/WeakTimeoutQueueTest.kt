@@ -1,7 +1,6 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.internals.*
-import io.ktor.http.cio.internals.TimeoutCancellationException
 import kotlinx.coroutines.*
 import java.lang.Exception
 import java.lang.UnsupportedOperationException
@@ -11,7 +10,7 @@ import kotlin.test.*
 
 class WeakTimeoutQueueTest {
     private val testClock = TestClock(0L)
-    private val q = WeakTimeoutQueue(1000L, testClock)
+    private val q = WeakTimeoutQueue(1000L, clock = { testClock.millis() })
 
     @Test
     fun testNoTimeout() = runBlocking {
@@ -41,7 +40,7 @@ class WeakTimeoutQueueTest {
                     q.process()
                 }
             }
-        } catch (expected: TimeoutCancellationException) {
+        } catch (expected: CancellationException) {
         }
     }
 
@@ -59,6 +58,8 @@ class WeakTimeoutQueueTest {
             q.withTimeout {
                 throw MyException()
             }
+
+            @Suppress("UNREACHABLE_CODE")
             fail("Should fail before")
         } catch (expected: MyException) {
         }
@@ -71,6 +72,8 @@ class WeakTimeoutQueueTest {
                 yield()
                 throw MyException()
             }
+
+            @Suppress("UNREACHABLE_CODE")
             fail("Should fail before")
         } catch (expected: MyException) {
         }

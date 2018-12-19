@@ -4,7 +4,6 @@ import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import java.time.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
@@ -21,13 +20,11 @@ import kotlin.coroutines.intrinsics.*
  *  however in the particular use-case (closing IDLE connection) it is just fine
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
-@InternalAPI
+@KtorExperimentalAPI
+@Suppress("KDocMissingDocumentation")
 class WeakTimeoutQueue(
-    private val timeoutMillis: Long,
-    private val clock: Clock = Clock.systemUTC(),
-    private val exceptionFactory: () -> Exception = {
-        TimeoutCancellationException(timeoutMillis)
-    }
+    val timeoutMillis: Long,
+    private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val head = LockFreeLinkedListHead()
 
@@ -38,18 +35,17 @@ class WeakTimeoutQueue(
      * Register [job] in this queue. It will be cancelled if doesn't complete in time.
      */
     fun register(job: Job): Registration {
-        val now = clock.millis()
+        val now = clock()
         val head = head
-        if (cancelled) throw cancellationException()
+        if (cancelled) throw CancellationException()
 
         val cancellable = JobTask(now + timeoutMillis, job)
         head.addLast(cancellable)
 
         process(now, head, cancelled)
         if (cancelled) {
-            val cause = cancellationException()
-            cancellable.cancel(cause)
-            throw cause
+            cancellable.cancel()
+            throw CancellationException()
         }
 
         return cancellable
@@ -67,7 +63,7 @@ class WeakTimeoutQueue(
      * Process and cancel all jobs that are timed out
      */
     fun process() {
-        process(clock.millis(), head, cancelled)
+        process(clock(), head, cancelled)
     }
 
     /**
@@ -102,20 +98,15 @@ class WeakTimeoutQueue(
     }
 
     private fun process(now: Long, head: LockFreeLinkedListHead, cancelled: Boolean) {
-        var e: Throwable? = null
-
         while (true) {
             val p = head.next as? Cancellable ?: break
             if (!cancelled && p.deadline > now) break
 
             if (p.isActive && p.remove()) {
-                if (e == null) e = if (cancelled) cancellationException() else exceptionFactory()
-                p.cancel(e)
+                p.cancel()
             }
         }
     }
-
-    private fun cancellationException() = CancellationException("Timeout queue has been cancelled")
 
     /**
      * [register] function result
@@ -132,7 +123,7 @@ class WeakTimeoutQueue(
         open val isActive: Boolean
             get() = !isRemoved
 
-        abstract fun cancel(t: Throwable)
+        abstract fun cancel()
 
         override fun dispose() {
             remove()
@@ -143,8 +134,8 @@ class WeakTimeoutQueue(
         override val isActive: Boolean
             get() = super.isActive && job.isActive
 
-        override fun cancel(t: Throwable) {
-            job.cancel(t)
+        override fun cancel() {
+            job.cancel()
         }
     }
 
@@ -192,12 +183,4 @@ class WeakTimeoutQueue(
             return true
         }
     }
-}
-
-/**
- * Thrown when a timeout elapsed
- */
-@InternalAPI
-class TimeoutCancellationException(message: String) : CancellationException(message) {
-    constructor(timeoutMillis: Long) : this("Timeout of $timeoutMillis ms exceeded")
 }
