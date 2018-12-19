@@ -1,7 +1,7 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
+import io.ktor.http.cio.internals.WeakTimeoutQueue
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.ServerSocket
@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import java.net.*
 import java.nio.channels.*
-import java.time.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
@@ -82,9 +81,8 @@ fun CoroutineScope.httpServer(
 
     val selector = ActorSelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(
-        TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
-        Clock.systemUTC()
-    ) { io.ktor.http.cio.internals.TimeoutCancellationException("Connection IDLE") }
+        TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds)
+    )
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->

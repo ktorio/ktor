@@ -2,9 +2,7 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.util.*
-import java.nio.file.attribute.*
-import java.time.*
-import java.time.temporal.*
+import io.ktor.util.date.*
 import java.util.*
 
 /**
@@ -71,17 +69,16 @@ enum class VersionCheckResult(val statusCode: HttpStatusCode) {
  *
  *  @param lastModified of the current content, for example file's last modified date
  */
-data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
+data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     /**
      *  @return [VersionCheckResult.OK] if all header pass or there was no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
      *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        val normalized = lastModified.withZoneSameInstant(GreenwichMeanTime)
-            .truncatedTo(ChronoUnit.SECONDS) // we need this because of the http date format that only has seconds
-        val ifModifiedSince = requestHeaders[HttpHeaders.IfModifiedSince]?.fromHttpDateString()
-        val ifUnmodifiedSince = requestHeaders[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()
+        val normalized = lastModified.truncateToSeconds()
+        val ifModifiedSince = requestHeaders[HttpHeaders.IfModifiedSince]?.fromHttpToGmtDate()
+        val ifUnmodifiedSince = requestHeaders[HttpHeaders.IfUnmodifiedSince]?.fromHttpToGmtDate()
 
         if (ifModifiedSince != null) {
             if (normalized <= ifModifiedSince) {
@@ -97,11 +94,10 @@ data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
         return VersionCheckResult.OK
     }
 
-    constructor(lastModified: FileTime) : this(ZonedDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()))
-    constructor(lastModified: Date) : this(lastModified.toZonedDateTime())
+    constructor(lastModified: Date) : this(GMTDate(lastModified.time))
 
     override fun appendHeadersTo(builder: HeadersBuilder) {
-        builder.lastModified(lastModified.withZoneSameInstant(GreenwichMeanTime))
+        builder[HttpHeaders.LastModified] = lastModified.toHttpDate()
     }
 }
 

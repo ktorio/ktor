@@ -7,9 +7,7 @@ import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
-import java.time.*
 import java.util.concurrent.atomic.*
-import kotlin.properties.*
 
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
 private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
@@ -20,8 +18,8 @@ private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processo
 @WebSocketInternalAPI
 class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
-    pingInterval: Duration? = null,
-    override var timeout: Duration = Duration.ofSeconds(15),
+    pingInterval: Long = -1L,
+    override var timeoutMillis: Long = 15000L,
     private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
@@ -36,10 +34,11 @@ class DefaultWebSocketSessionImpl(
 
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
-    override var pingInterval: Duration? by Delegates.observable(pingInterval) { _, _, newValue ->
-        newValue ?: return@observable
-        runOrCancelPinger()
-    }
+    override var pingIntervalMillis: Long = pingInterval
+        set (newValue) {
+            field = newValue
+            runOrCancelPinger()
+        }
 
     init {
         runOrCancelPinger()
@@ -148,10 +147,10 @@ class DefaultWebSocketSessionImpl(
     }
 
     private fun runOrCancelPinger() {
-        val interval = pingInterval
+        val interval = pingIntervalMillis
         val newPinger: SendChannel<Frame.Pong>? = when {
             closed.get() -> null
-            interval != null -> pinger(raw.outgoing, interval, timeout, pool)
+            interval >= 0L -> pinger(raw.outgoing, interval, timeoutMillis, pool)
             else -> null
         }
 

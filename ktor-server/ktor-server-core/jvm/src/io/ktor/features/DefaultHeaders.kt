@@ -63,6 +63,8 @@ class DefaultHeaders(config: Configuration) {
      * Installable feature for [DefaultHeaders].
      */
     companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
+        private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
+
         override val key = AttributeKey<DefaultHeaders>("Default Headers")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
