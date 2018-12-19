@@ -16,7 +16,11 @@ import java.security.*
 import java.security.cert.*
 import kotlin.coroutines.*
 
-internal class NettyChannelInitializer(
+/**
+ * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
+ */
+@EngineAPI
+class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEngineEnvironment,
     private val callEventGroup: EventExecutorGroup,
@@ -64,6 +68,7 @@ internal class NettyChannelInitializer(
         }
     }
 
+    @Suppress("KDocMissingDocumentation")
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
             if (connector is EngineSSLConnectorConfig) {
@@ -80,7 +85,7 @@ internal class NettyChannelInitializer(
         }
     }
 
-    fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
+    private fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
                 val handler = NettyHttp2Handler(enginePipeline, environment.application, callEventGroup, userContext)
@@ -115,7 +120,7 @@ internal class NettyChannelInitializer(
         }
     }
 
-    inner class NegotiatedPipelineInitializer :
+    private inner class NegotiatedPipelineInitializer :
         ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
         override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) =
             configurePipeline(ctx.pipeline(), protocol)
@@ -130,8 +135,9 @@ internal class NettyChannelInitializer(
         }
     }
 
+    @EngineAPI
     companion object {
-        val alpnProvider by lazy { findAlpnProvider() }
+        internal val alpnProvider by lazy { findAlpnProvider() }
 
         private fun findAlpnProvider(): SslProvider? {
             try {

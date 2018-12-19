@@ -2,13 +2,12 @@ package io.ktor.server.netty
 
 import io.ktor.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.util.*
 import kotlinx.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@InternalAPI
+@EngineAPI
 abstract class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     private val requestMessage: Any) : BaseApplicationCall(application) {
