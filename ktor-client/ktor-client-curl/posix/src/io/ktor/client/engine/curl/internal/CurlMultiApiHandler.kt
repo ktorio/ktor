@@ -103,7 +103,7 @@ internal class CurlMultiApiHandler : Closeable {
 
             easyHandle.apply {
                 getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
-                getInfo(CURLINFO_HTTP_VERSION, httpProtocolVersion.ptr)
+//                getInfo(CURLINFO_HTTP_VERSION, httpProtocolVersion.ptr)
                 getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
             }
 
