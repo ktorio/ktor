@@ -6,7 +6,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.future.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
@@ -16,7 +15,6 @@ import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
@@ -29,7 +27,7 @@ internal class JettyResponseListener(
     private val callContext: CoroutineContext
 ) : Stream.Listener {
     private val headersBuilder: HeadersBuilder = HeadersBuilder()
-    private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()
+    private val onHeadersReceived = CompletableDeferred<HttpStatusCode?>()
     private val backendChannel = Channel<JettyResponseChunk>(Channel.UNLIMITED)
 
     init {
@@ -84,7 +82,7 @@ internal class JettyResponseListener(
 
     suspend fun awaitHeaders(): StatusWithHeaders {
         onHeadersReceived.await()
-        val statusCode = onHeadersReceived.get() ?: throw IOException("Connection reset")
+        val statusCode = onHeadersReceived.getCompleted() ?: throw IOException("Connection reset")
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
