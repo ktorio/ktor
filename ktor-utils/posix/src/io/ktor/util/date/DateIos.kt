@@ -2,6 +2,7 @@ package io.ktor.util.date
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import utils.*
 
 actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<LongVar>()
@@ -47,7 +48,7 @@ actual fun GMTDate(
         tm_isdst = 0
     }
 
-    val timestamp: Long = timegm(dateInfo.ptr)
+    val timestamp: Long = ktor_time(dateInfo.ptr)
 
     return GMTDate(timestamp * 1000)
 }

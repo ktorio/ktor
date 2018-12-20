@@ -1,21 +1,21 @@
 package io.ktor.util
 
 import kotlinx.cinterop.*
-import platform.posix.*
+import utils.*
 
 @InternalAPI
 actual class Lock {
-    private val mutex = cValue<pthread_mutex_t>{}
+    private val mutex = cValue<ktor_mutex_t>()
 
     init {
-        pthread_mutex_init(mutex, null)
+        ktor_mutex_create(mutex)
     }
 
     actual fun lock() {
-        pthread_mutex_lock(mutex)
+        ktor_mutex_lock(mutex)
     }
 
     actual fun unlock() {
-        pthread_mutex_unlock(mutex)
+        ktor_mutex_unlock(mutex)
     }
 }

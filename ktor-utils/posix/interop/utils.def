@@ -1,0 +1,34 @@
+package = utils
+compilerOpts.mingw_x64 = -DMINGW
+---
+#include <pthread.h>
+#include <time.h>
+
+typedef struct ktor_mutex {
+    pthread_mutex_t* mutex;
+} ktor_mutex_t;
+
+
+void ktor_mutex_create(ktor_mutex_t* mutex) {
+    pthread_mutex_init(mutex->mutex, NULL);
+}
+
+void ktor_mutex_lock(ktor_mutex_t* mutex) {
+    pthread_mutex_lock(mutex->mutex);
+}
+
+void ktor_mutex_unlock(ktor_mutex_t* mutex) {
+    pthread_mutex_unlock(mutex->mutex);
+}
+
+void ktor_mutex_destroy(ktor_mutex_t* mutex) {
+    pthread_mutex_destroy(mutex->mutex);
+}
+
+time_t ktor_time(struct tm * tm) {
+#ifndef MINGW
+    return timegm(tm);
+#else
+    return _mkgmtime(tm);
+#endif
+}
