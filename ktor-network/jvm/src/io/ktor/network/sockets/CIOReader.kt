@@ -40,7 +40,7 @@ internal fun CoroutineScope.attachForReadingImpl(
             pool.recycle(buffer)
             if (nioChannel is SocketChannel) {
                 try {
-                    nioChannel.shutdownInput()
+                    nioChannel.socket().shutdownInput()
                 } catch (ignore: ClosedChannelException) {
                 }
             }
@@ -85,7 +85,7 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     } finally {
         if (nioChannel is SocketChannel) {
             try {
-                nioChannel.shutdownInput()
+                nioChannel.socket().shutdownInput()
             } catch (ignore: ClosedChannelException) {
             }
         }

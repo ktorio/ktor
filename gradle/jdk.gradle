@@ -1,6 +1,6 @@
 project.ext.jdk8Modules = [
-    'ktor-http', 'ktor-http-jvm',
-    'ktor-utils', 'ktor-utils-jvm',
+    'ktor-http',
+    'ktor-utils',
 
     'ktor-client-tests',
 
