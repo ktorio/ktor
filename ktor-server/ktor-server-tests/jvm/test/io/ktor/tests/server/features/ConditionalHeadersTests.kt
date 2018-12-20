@@ -232,7 +232,7 @@ class LastModifiedTest(name: String, zone: ZoneId) {
         }
     }
 
-    @Test
+    // this test is disabled since non-GMT timezones are strictly prohibited by the specification
     fun testIfModifiedSinceTimeZoned() = withConditionalApplication {
         val expectedDate = date.toHttpDateString()
         val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
