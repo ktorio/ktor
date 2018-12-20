@@ -14,14 +14,19 @@ class JettyAsyncServletContainerEngineTest :
 class JettyBlockingServletContainerEngineTest :
     EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
     @Ignore
-    override fun testUpgrade() {}
+    override fun testUpgrade() {
+    }
 }
 
 // the factory and engine are only suitable for testing
 // you shouldn't use it for production code
 
-private class Servlet(private val async: Boolean) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
-    override fun create(environment: ApplicationEngineEnvironment, configure: JettyApplicationEngineBase.Configuration.() -> Unit): JettyServletApplicationEngine {
+private class Servlet(private val async: Boolean) :
+    ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+    override fun create(
+        environment: ApplicationEngineEnvironment,
+        configure: JettyApplicationEngineBase.Configuration.() -> Unit
+    ): JettyServletApplicationEngine {
         return JettyServletApplicationEngine(environment, configure, async)
     }
 }

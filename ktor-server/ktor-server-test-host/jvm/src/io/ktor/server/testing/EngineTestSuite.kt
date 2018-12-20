@@ -1,21 +1,19 @@
 package io.ktor.server.testing
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.http.Headers
 import io.ktor.http.cio.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
@@ -25,7 +23,7 @@ import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
-import java.nio.ByteBuffer
+import java.nio.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -33,7 +31,6 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation")
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -334,17 +331,24 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File(classesDir), File(coreClassesDir)).first { it.exists() }
-        val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
+        val targetClasses = listOf(File(classesDir), File(coreClassesDir))
+            .filter { it.exists() }
+
+        val file = targetClasses
+            .flatMap { it.walkBottomUp().asIterable() }
+            .first { it.extension == "class" && !it.name.contains('$') }
+
+        val location = file.parentFile!!
+
         testLog.trace("test file is $file")
 
         createAndStartServer {
             static("/files") {
-                files(targetClasses.path)
+                files(location.path)
             }
         }
 
-        withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}") {
+        withUrl("/files/${file.toRelativeString(location).urlPath()}") {
             assertEquals(200, status.value)
 
             val bytes = readBytes(100)
@@ -357,7 +361,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
         }
 
-        withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}2") {
+        withUrl("/files/${file.toRelativeString(location).urlPath()}2") {
             assertEquals(404, status.value)
         }
         withUrl("/wefwefwefw") {
@@ -367,12 +371,11 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testLocalFileContent() {
-        val file = listOf(
-            File("jvm/src"), File("jvm/test"), File("ktor-server/ktor-server-core/jvm/src")
-        ).first { it.exists() }
-            .walkBottomUp()
-            .filter { it.extension == "kt" }
+        val file = listOf(File("jvm"), File("ktor-server/ktor-server-core/jvm"))
+            .filter { it.exists() }
+            .flatMap { it.walkBottomUp().filter { it.extension == "kt" }.asIterable() }
             .first()
+
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -393,9 +396,9 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             File("jvm/src"),
             File("jvm/test"),
             File("ktor-server/ktor-server-core/jvm/src")
-        ).first { it.exists() }
-            .walkBottomUp()
-            .filter { it.extension == "kt" }.first()
+        ).filter { it.exists() }
+            .flatMap { it.walkBottomUp().asIterable() }
+            .first { it.extension == "kt" }
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -420,7 +423,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             File("jvm/src"),
             File("jvm/test"),
             File("ktor-server/ktor-server-core/jvm/src")
-        ).first { it.exists() }.walkBottomUp().first { it.extension == "kt" }
+        ).filter { it.exists() }
+            .flatMap { it.walkBottomUp().asIterable() }
+            .first { it.extension == "kt" }
+
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -449,10 +455,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             File("jvm/src"),
             File("jvm/test"),
             File("ktor-server/ktor-server-core/jvm/src")
-        ).first { it.exists() }
-            .walkBottomUp()
-            .filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
-            .first()
+        ).filter { it.exists() }
+            .flatMap { it.walkBottomUp().asIterable() }
+            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
+
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -481,10 +487,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         val file = listOf(
             File("jvm/src"),
             File("jvm/test"), File("ktor-server/ktor-server-core/jvm/src")
-        ).first { it.exists() }
-            .walkBottomUp()
-            .filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
-            .first()
+        ).filter { it.exists() }
+            .flatMap { it.walkBottomUp().asIterable() }
+            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
+
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -1832,7 +1838,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     companion object {
-        const val classesDir = "build/classes/kotlin/jvm/test"
+        const val classesDir = "build/classes/kotlin/jvm"
         const val coreClassesDir = "ktor-server/ktor-server-core/$classesDir"
     }
 }
