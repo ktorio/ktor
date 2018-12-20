@@ -17,13 +17,13 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 /** Base class for JSON tests. */
-abstract class JsonTest: TestWithKtor() {
+abstract class JsonTest : TestWithKtor() {
     val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
     val users = listOf(
         User("vasya", 10),
         User("foo", 45)
     )
-    
+
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         install(ContentNegotiation) {
             gson()
@@ -32,7 +32,7 @@ abstract class JsonTest: TestWithKtor() {
             createRoutes(this)
         }
     }
-    
+
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/widget") {
             val received = call.receive<Widget>()
@@ -43,9 +43,9 @@ abstract class JsonTest: TestWithKtor() {
             call.respond(Response(true, users))
         }
     }
-    
+
     protected abstract val serializerImpl: JsonSerializer?
-    
+
     protected fun TestClientBuilder<*>.configClient() {
         config {
             install(JsonFeature) {
@@ -53,46 +53,46 @@ abstract class JsonTest: TestWithKtor() {
             }
         }
     }
-    
+
     @Test
     fun testSerializeSimple() = clientTest(CIO) {
         configClient()
-        
+
         test { client ->
             val result = client.post<Widget>(body = widget, path = "/widget", port = serverPort) {
                 contentType(ContentType.Application.Json)
             }
-            
+
             assertEquals(widget, result)
         }
     }
-    
+
     @Test
     fun testSerializeNested() = clientTest(CIO) {
         configClient()
-        
+
         test { client ->
             val result = client.get<Response<List<User>>>(path = "/users", port = serverPort)
-            
+
             assertTrue(result.ok)
             assertNotNull(result.result)
             assertEquals(users, result.result)
         }
     }
-    
+
     @Serializable
     data class Response<T>(
         val ok: Boolean,
         val result: T?
     )
-    
+
     @Serializable
     data class Widget(
         val name: String,
         val value: Int,
         val tags: List<String> = emptyList()
     )
-    
+
     @Serializable
     data class User(
         val name: String,
