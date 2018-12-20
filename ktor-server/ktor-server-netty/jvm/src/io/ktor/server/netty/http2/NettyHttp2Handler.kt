@@ -22,7 +22,7 @@ internal class NettyHttp2Handler(
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private val handlerJob = Job()
+    private val handlerJob = CompletableDeferred<Nothing>()
 
     override val coroutineContext: CoroutineContext
         get() = handlerJob
@@ -61,7 +61,7 @@ internal class NettyHttp2Handler(
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        handlerJob.cancel(cause)
+        handlerJob.completeExceptionally(cause)
         ctx.close()
     }
 

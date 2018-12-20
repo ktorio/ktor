@@ -11,7 +11,7 @@ import kotlin.coroutines.*
 
 internal class RequestBodyHandler(val context: ChannelHandlerContext,
                                   private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private val handlerJob = Job()
+    private val handlerJob = CompletableDeferred<Nothing>()
 
     private val queue = Channel<Any>(Channel.UNLIMITED)
     private object Upgrade
@@ -139,7 +139,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext?, cause: Throwable) {
-        handlerJob.cancel(cause)
+        handlerJob.completeExceptionally(cause)
         queue.close(cause)
     }
 
