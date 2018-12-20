@@ -7,11 +7,13 @@ import io.ktor.http.*
 import io.ktor.network.selector.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import java.io.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
+
     @UseExperimental(InternalCoroutinesApi::class)
     private val selectorManager by lazy { ActorSelectorManager(dispatcher.blocking(1)) }
 
@@ -31,7 +33,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
 
             val endpoint = with(request.url) {
                 val address = "$host:$port:$protocol"
-                endpoints.computeIfAbsent(address) {
+                endpoints.computeIfAbsentWeak(address) {
                     val secure = (protocol.isSecure())
                     Endpoint(
                         host, port, secure,
@@ -71,3 +73,16 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
 
 @Suppress("KDocMissingDocumentation")
 class ClientClosedException(override val cause: Throwable? = null) : IllegalStateException("Client already closed")
+
+private fun <K : Any, V : Closeable> ConcurrentHashMap<K, V>.computeIfAbsentWeak(key: K, block: (K) -> V): V {
+    get(key)?.let { return it }
+
+    val newValue = block(key)
+    val result = putIfAbsent(key, newValue)
+    if (result != null) {
+        newValue.close()
+        return result
+    }
+
+    return newValue
+}
