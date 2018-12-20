@@ -4,16 +4,20 @@ import io.ktor.network.selector.*
 import java.net.*
 import java.nio.channels.*
 
-internal class SocketImpl<out S : SocketChannel>(override val channel: S, selector: SelectorManager) : NIOSocketImpl<S>(channel, selector, pool = null), Socket {
+internal class SocketImpl<out S : SocketChannel>(
+    override val channel: S,
+    private val socket: java.net.Socket,
+    selector: SelectorManager
+) : NIOSocketImpl<S>(channel, selector, pool = null), Socket {
     init {
         require(!channel.isBlocking) { "channel need to be configured as non-blocking" }
     }
 
     override val localAddress: SocketAddress
-        get() = channel.localAddress
+        get() = socket.localSocketAddress
 
     override val remoteAddress: SocketAddress
-        get() = channel.remoteAddress
+        get() = socket.remoteSocketAddress
 
     @Suppress("BlockingMethodInNonBlockingContext")
     internal suspend fun connect(target: SocketAddress): Socket {

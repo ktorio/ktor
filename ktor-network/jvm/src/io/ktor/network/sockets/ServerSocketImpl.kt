@@ -10,13 +10,13 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
     : ServerSocket,
         Selectable by SelectableBase(channel) {
     init {
-        require(!channel.isBlocking)
+        require(!channel.isBlocking) { "channel need to be configured as non-blocking" }
     }
 
     override val socketContext = CompletableDeferred<Unit>()
 
     override val localAddress: SocketAddress
-        get() = channel.localAddress
+        get() = channel.socket().localSocketAddress
 
     override suspend fun accept(): Socket {
         channel.accept()?.let { return accepted(it) }
@@ -33,9 +33,10 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
 
     private fun accepted(nioChannel: SocketChannel): Socket {
         interestOp(SelectInterest.ACCEPT, false)
+        val socket = nioChannel.socket()!!
         nioChannel.configureBlocking(false)
-        nioChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
-        return SocketImpl(nioChannel, selector)
+        socket.tcpNoDelay = true
+        return SocketImpl(nioChannel, socket, selector)
     }
 
     override fun close() {

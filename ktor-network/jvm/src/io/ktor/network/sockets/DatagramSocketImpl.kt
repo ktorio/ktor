@@ -13,11 +13,13 @@ import java.nio.channels.*
 internal class DatagramSocketImpl(override val channel: DatagramChannel, selector: SelectorManager)
     : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(channel, selector, DefaultDatagramByteBufferPool) {
 
+    private val socket = channel.socket()!!
+
     override val localAddress: SocketAddress
-        get() = channel.localAddress ?: throw IllegalStateException("Channel is not yet bound")
+        get() = socket.localSocketAddress ?: throw IllegalStateException("Channel is not yet bound")
 
     override val remoteAddress: SocketAddress
-        get() = channel.remoteAddress ?: throw IllegalStateException("Channel is not yet connected")
+        get() = socket.remoteSocketAddress ?: throw IllegalStateException("Channel is not yet connected")
 
     private val sender = actor<Datagram>(Dispatchers.IO) {
         consumeEach { datagram ->
