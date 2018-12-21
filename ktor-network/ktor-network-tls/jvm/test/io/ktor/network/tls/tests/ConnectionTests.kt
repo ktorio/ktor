@@ -3,10 +3,10 @@ package io.ktor.network.tls.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
-import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import org.junit.*
+import java.security.*
 
 class ConnectionTests {
 
@@ -17,7 +17,7 @@ class ConnectionTests {
         val socket = aSocket(selectorManager)
             .tcp()
             .connect("www.google.com", port = 443)
-            .tls(Dispatchers.Default)
+            .tls(Dispatchers.Default, randomAlgorithm = SecureRandom.getInstanceStrong().algorithm)
 
         val channel = socket.openWriteChannel()
 
