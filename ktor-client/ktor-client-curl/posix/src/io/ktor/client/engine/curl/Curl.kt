@@ -6,10 +6,10 @@ import libcurl.*
 // This function is thread unsafe!
 // The man page asks to run it once per program,
 // while the program "is still single threaded", explicitly stating that
-// it shoud not called while any other thread is running.
+// it should not called while any other thread is running.
 // See the curl_global_init(3) man page for details.
 @SharedImmutable
-private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.toLong())
+private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL)
 
 @ThreadLocal
 private val initHook = Curl

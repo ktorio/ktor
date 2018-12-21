@@ -1,4 +1,5 @@
 apply plugin: "kotlinx-serialization"
+apply plugin: 'de.undercouch.download'
 
 kotlin {
     targets {
@@ -13,7 +14,7 @@ kotlin {
             compilations.main.cinterops {
                 libcurl {
                     defFile 'posix/interop/libcurl.def'
-                    includeDirs.headerFilterOnly '/opt/local/include', '/usr/local/include', '/usr/include', '/usr/include/x86_64-linux-gnu', '/usr/local/Cellar/curl/7.62.0/include'
+                    includeDirs.headerFilterOnly '.konan/dependencies/curl-7.63.0/include', '/opt/local/include', '/usr/local/include', '/usr/include', '/usr/include/x86_64-linux-gnu', '/usr/local/Cellar/curl/7.62.0/include'
                 }
             }
         }
@@ -31,3 +32,17 @@ kotlin {
         }
     }
 }
+
+task downloadCurl(type: Download) {
+    onlyIfModified true
+
+    src 'https://curl.haxx.se/download/curl-7.63.0.zip'
+    dest file('.konan/dependencies/curl.zip')
+}
+
+task curlDependency(type: Copy, dependsOn: downloadCurl) {
+    from zipTree(downloadCurl.dest)
+    into '.konan/dependencies'
+}
+
+assemble.dependsOn(curlDependency)

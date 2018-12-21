@@ -5,4 +5,5 @@ compilerOpts.linux = -I/usr/include/x86_64-linux-gnu -I/usr/include
 linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib -lcurl
 compilerOpts.osx = -I/opt/local/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/curl/7.62.0/include -L/usr/local/opt/curl/lib
 linkerOpts.osx = -L/opt/local/lib -L/usr/local/lib -lcurl
-linkerOpts.mingw_x64 = -lcurl
+compilerOpts.mingw_x64 = -I.konan/dependencies/curl-7.63.0/include
+linkerOpts.mingw_x64 = -lcurl -L$.konan/dependencies/curl-7.63.0/lib
