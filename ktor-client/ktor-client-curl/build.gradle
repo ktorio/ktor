@@ -14,7 +14,7 @@ kotlin {
             compilations.main.cinterops {
                 libcurl {
                     defFile 'posix/interop/libcurl.def'
-                    includeDirs.headerFilterOnly '.konan/dependencies/curl-7.63.0/include', '/opt/local/include', '/usr/local/include', '/usr/include', '/usr/include/x86_64-linux-gnu', '/usr/local/Cellar/curl/7.62.0/include'
+                    includeDirs.headerFilterOnly '.konan/dependencies/curl-7.63.0/include'
                 }
             }
         }
