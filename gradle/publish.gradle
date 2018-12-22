@@ -2,14 +2,42 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
-apply from: rootProject.file('gradle/platform.gradle')
-apply from: rootProject.file('gradle/maven.gradle')
+apply from: project.rootProject.file('gradle/pom.gradle')
 
-def platform = platformOf(project)
-def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes || platform != 'jvm'
+task emptyJar(type: Jar) {
+}
 
-if (!skipDokka) {
-    apply from: rootProject.file('gradle/dokka.gradle')
+task stubJavadoc(type: Jar) {
+    classifier 'javadoc'
+}
+
+task stubDokka(type: Jar) {
+    classifier 'kdoc'
+}
+
+def selectArtifactId(project, type) {
+    def name = project.name
+    def OBSOLETE = "$name-$type-obsolete"
+    def isCommon = project.ext.has("commonStructure")
+    def commonIsRoot = project.ext.has("commonStructure") && project.ext.commonStructure
+    def hasNative = project.ext.has("hasNative") && project.ext.hasNative
+
+    switch (type) {
+        case 'metadata':
+            if (!isCommon) return OBSOLETE
+            return commonIsRoot ? "$name" : "$name-common"
+            break
+        case 'kotlinMultiplatform':
+            if (!hasNative) return OBSOLETE
+            return isCommon ? "$name-native" : "$name"
+            break
+        case 'jvm':
+            return commonIsRoot ? "$name-jvm" : "$name"
+            break
+        default:
+            return isCommon || hasNative ? "$name-$type" : "$name"
+            break
+    }
 }
 
 publishing {
@@ -22,34 +50,71 @@ publishing {
             }
         }
     }
+    publications.all {
+        pom.withXml(configureMavenCentralMetadata)
+        def id = selectArtifactId(project, it.name)
+        it.artifactId = id
+        if (id.endsWith('native')) {
+            it.artifact stubJavadoc
+            it.artifact stubDokka
+            it.artifact emptyJar
+        }
+    }
 
-    publications {
-        mavenProject(MavenPublication) {
-            if (platform != 'native') {
-                from components.java
+    kotlin.targets.all { target ->
+        def publication = publishing.publications.findByName(target.name)
+
+        if (publication != null) {
+            if (target.platformType.name == 'jvm') {
+                publication.artifact javadocJar
+                publication.artifact dokkaJar
+            } else {
+                publication.artifact stubJavadoc
+                publication.artifact stubDokka
             }
-            groupId project.group
-            artifactId project.name
-            version project.version
 
-            artifact sourceJar
-
-            if (!skipDokka) {
-                artifact javadocJar {
-                    classifier 'javadoc'
+            if (target.platformType.name != 'native') {
+                publication.gradleModuleMetadataFile = null
+                tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
+                    onlyIf { false }
                 }
-
-                artifact dokkaJar {
-                    classifier 'kdoc'
-                }
+            } else {
+                publication.artifact emptyJar
             }
+        }
+    }
 
-            configurePom(pom)
+    publications.removeIf { it.artifactId.endsWith("-obsolete") }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    publish = true
+    override = true
+
+    pkg {
+        userOrg = 'kotlin'
+        repo = 'ktor'
+        name = 'ktor'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/ktorio/ktor'
+
+        version {
+            name = project.version
+            released = new Date()
+            vcsTag = project.version
         }
     }
 }
 
-def skipUpload = project.path.contains("ktor-samples")
-if (!skipUpload) {
-    apply from: rootProject.file("gradle/bintray.gradle")
+// TODO :kludge this is required for K/N publishing
+bintrayUpload.dependsOn publishToMavenLocal
+
+// This is for easier debugging of bintray uploading problems
+bintrayUpload.doFirst {
+    publications = project.publishing.publications.findAll { !it.name.contains('-test') }.collect {
+        println("Uploading artifact '$it.groupId:$it.artifactId:$it.version' from publication '$it.name'")
+        it
+    }
 }

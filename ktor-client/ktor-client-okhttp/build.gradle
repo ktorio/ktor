@@ -1,8 +1,9 @@
-
-dependencies {
-    compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
-
-    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
-
-    testImplementation project(':ktor-client:ktor-client-tests')
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+        api 'com.squareup.okhttp3:okhttp:3.11.0'
+    }
+    jvmTest.dependencies {
+        api project(':ktor-client:ktor-client-tests')
+    }
 }

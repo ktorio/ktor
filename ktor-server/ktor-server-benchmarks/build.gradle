@@ -1,5 +1,5 @@
 plugins {
-    id 'me.champeau.gradle.jmh' version '0.4.4'
+    id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
 apply plugin: 'kotlin-allopen'
@@ -8,22 +8,42 @@ allOpen {
     annotation('org.openjdk.jmh.annotations.State')
 }
 
-sourceSets {
-    jmh {
-        kotlin {
-            srcDir 'src-jmh'
-        }
+kotlin {
+    targets {
+        fromPreset(presets.jvmWithJava, 'jvmWithJava')
     }
 }
 
 description = ''
 dependencies {
-    jmh project(':ktor-server:ktor-server-test-host')
-    jmh project(':ktor-server:ktor-server-netty')
-    jmh project(':ktor-server:ktor-server-jetty')
-    jmh project(':ktor-server:ktor-server-cio')
-    jmh project(':ktor-client:ktor-client-cio')
-    jmh project(':ktor-client:ktor-client-apache')
+    api group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
+
+    def deps = [
+        project(':ktor-server:ktor-server-test-host'),
+        project(':ktor-server:ktor-server-netty'),
+        project(':ktor-server:ktor-server-jetty'),
+        project(':ktor-server:ktor-server-cio'),
+        project(':ktor-client:ktor-client-cio'),
+        project(':ktor-client:ktor-client-apache')
+    ]
+
+    deps.each {
+        jmh it
+        jmhCompile it
+        jmhCompileClasspath it
+        jmhRuntimeClasspath it
+
+        jmh it.kotlin.targets.jvm.compilations.main.output.allOutputs
+        jmhCompileClasspath it.kotlin.targets.jvm.compilations.main.output.allOutputs
+        jmhRuntimeClasspath it.kotlin.targets.jvm.compilations.main.output.allOutputs
+        
+        jmh it.kotlin.targets.jvm.compilations.test.output.allOutputs
+        jmhCompileClasspath it.kotlin.targets.jvm.compilations.test.output.allOutputs
+        jmhRuntimeClasspath it.kotlin.targets.jvm.compilations.test.output.allOutputs
+
+//        jmhCompile it.kotlin.targets.jvm.compilations.test.output.allOutputs
+
+    }
 
     jmh group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     jmh group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.6.0'
@@ -32,9 +52,11 @@ dependencies {
 
 jmh {
     jmhVersion = jmh_version
+    jmhJar {
+        archiveName = 'benchmarks.jar'
+    }
 }
 
-jmhJar.archiveName = 'benchmarks.jar'
 
 task runBenchmark(type: JavaExec, dependsOn: 'jmhJar') {
     def mainClassFqName = null
@@ -57,4 +79,3 @@ task runBenchmark(type: JavaExec, dependsOn: 'jmhJar') {
         new File(project.buildDir, 'reports/benchmarks').mkdirs()
     }
 }
-

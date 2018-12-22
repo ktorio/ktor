@@ -1,0 +1,34 @@
+project.ext.ideaActive = System.getProperty('idea.active') == 'true'
+
+kotlin {
+    targets {
+        def manager = project.ext.hostManager
+        def linuxEnabled = manager.isEnabled(presets.linuxX64.konanTarget)
+        def macosEnabled = manager.isEnabled(presets.macosX64.konanTarget)
+        def winEnabled = manager.isEnabled(presets.mingwX64.konanTarget)
+
+        project.ext.isLinuxHost = linuxEnabled
+        project.ext.isMacosHost = macosEnabled
+        project.ext.isWinHost = winEnabled
+
+        if (project.ext.ideaActive) {
+            def ideaPreset = presets.linuxX64
+            if (macosEnabled) ideaPreset = presets.macosX64
+            if (winEnabled) ideaPreset = presets.mingwX64
+
+            project.ext.ideaPreset = ideaPreset
+        }
+    }
+}
+
+def java_version = System.properties["java.version"]
+
+switch (java_version) {
+    case '1.8.0_191':
+    case '1.8.0_192':
+        project.ext.jetty_alpn_boot_version = "8.1.13.v20181017"
+        break
+    default:
+        project.ext.jetty_alpn_boot_version = "8.1.12.v20180117"
+        break
+}

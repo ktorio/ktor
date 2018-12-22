@@ -1,7 +1,14 @@
 description = ''
-dependencies {
-    compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
-    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
-    testCompile project(':ktor-client:ktor-client-cio')
-    testCompile project(':ktor-server:ktor-server-test-host')
+
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
+            api group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+        }
+        jvmTest.dependencies {
+            api project(':ktor-client:ktor-client-cio')
+            api project(':ktor-server:ktor-server-test-host')
+        }
+    }
 }

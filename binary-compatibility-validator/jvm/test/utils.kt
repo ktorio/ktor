@@ -35,7 +35,7 @@ private fun assertEqualsToFile(to: File, actual: CharSequence) {
     assertEquals(
         expectedText,
         actualText,
-        "Actual data differs from file content: ${to.name}\nTo overwrite the expected API rerun with -Doverwrite.output=true parameter\n"
+        "Actual data differs from file content: ${to.name}\nTo overwrite the expected API rerun with -Poverwrite.output=true parameter\n"
     )
 }
 

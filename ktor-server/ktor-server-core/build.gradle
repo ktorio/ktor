@@ -1,13 +1,16 @@
 description = ''
-dependencies {
-    compile project(":ktor-utils:ktor-utils-jvm")
-    compile project(':ktor-http:ktor-http-jvm')
 
-    testCompile project(":ktor-http:ktor-http-cio")
-    testCompile project(":ktor-network")
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-utils')
+        api project(':ktor-http')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-http:ktor-http-cio')
+        api project(':ktor-network')
+    }
 }
 
 artifacts {
     testOutput jarTest
 }
-

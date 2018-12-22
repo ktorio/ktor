@@ -87,6 +87,10 @@ public final class io/ktor/util/CollectionsKt {
 }
 
 public final class io/ktor/util/CryptoKt {
+	public static final fun Digest (Ljava/lang/String;)Lio/ktor/util/Digest;
+	public static final fun build (Lio/ktor/util/Digest;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun build (Lio/ktor/util/Digest;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun build$default (Lio/ktor/util/Digest;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun decodeBase64 (Ljava/lang/String;)[B
 	public static final fun encodeBase64 ([B)Ljava/lang/String;
 	public static final fun generateNonce ()Ljava/lang/String;
@@ -110,6 +114,17 @@ public final class io/ktor/util/DeflaterKt {
 	public static final fun deflated (Lkotlinx/coroutines/io/ByteWriteChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteWriteChannel;
 	public static synthetic fun deflated$default (Lkotlinx/coroutines/io/ByteReadChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
 	public static synthetic fun deflated$default (Lkotlinx/coroutines/io/ByteWriteChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
+}
+
+public abstract interface class io/ktor/util/Digest {
+	public abstract fun build (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun plusAssign ([B)V
+	public abstract fun reset ()V
+}
+
+public final class io/ktor/util/Hash {
+	public static final field INSTANCE Lio/ktor/util/Hash;
+	public final fun combine ([Ljava/lang/Object;)I
 }
 
 public final class io/ktor/util/InputJvmKt {
@@ -312,6 +327,11 @@ public final class io/ktor/util/cio/FileChannelsKt {
 	public static synthetic fun readChannel$default (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
 	public static final fun writeChannel (Ljava/io/File;Lkotlinx/io/pool/ObjectPool;)Lkotlinx/coroutines/io/ByteWriteChannel;
 	public static synthetic fun writeChannel$default (Ljava/io/File;Lkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
+}
+
+public final class io/ktor/util/cio/InputStreamAdaptersKt {
+	public static final fun toByteReadChannel (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/cio/NoopContinuation : kotlin/coroutines/Continuation {

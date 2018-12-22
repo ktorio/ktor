@@ -1,14 +1,11 @@
-buildscript {
-    ext.kotlin_repository = {
-        if (kotlin_version.endsWith('-SNAPSHOT')) return 'https://oss.sonatype.org/content/repositories/snapshots'
-        return 'http://dl.bintray.com/kotlin/kotlin-eap'
-    }()
+import org.jetbrains.kotlin.konan.target.HostManager
 
+buildscript {
     repositories {
+        mavenLocal()
         jcenter()
-        maven { url 'https://plugins.gradle.org/m2/' }
-        maven { url kotlin_repository }
-        maven { url 'https://dl.bintray.com/jetbrains/kotlin-native-dependencies' }
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     }
 
@@ -16,81 +13,91 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
-        classpath 'net.researchgate:gradle-release:2.4.0'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath "org.jetbrains.kotlin:kotlin-native-gradle-plugin:$kotlin_native_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
         classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+        classpath 'de.undercouch:gradle-download-task:3.4.3'
     }
 }
 
-apply plugin: 'net.researchgate.release'
-
-ext.configuredVersion = project.hasProperty('releaseVersion') ? project.releaseVersion : project.version
-ext.dokkaExcludes = [
-    'ktor-server',
-    'ktor-samples',
-    'ktor-features',
-    'ktor-client'
-]
-
+ext.configuredVersion = project.hasProperty("releaseVersion") ? project.releaseVersion : project.version
 ext.globalM2 = "$buildDir/m2"
-ext.publishLocal = project.hasProperty('publishLocal')
+ext.publishLocal = project.hasProperty("publishLocal")
 
-apply from: 'gradle/platform.gradle'
-apply from: 'gradle/experimental.gradle'
+apply from: "gradle/experimental.gradle"
+
+/**
+ * `darwin` is subset of `posix`.
+ * Don't create `posix` and `darwin` sourceSets in single project.
+ */
+def platforms = ["common", "jvm", "js", "posix", "darwin"]
+rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
+
+def projectNeedsPlatform(project, platform) {
+    if (rootProject.ext.misc.contains(project.name)) return platform == "jvm"
+
+    def files = project.projectDir.listFiles()
+    def hasPosix = files.any { it.name == "posix" }
+    def hasDarwin = files.any { it.name == "darwin" }
+
+    if (hasPosix && hasDarwin) return false
+    if (!hasDarwin && platform == "darwin") return false
+
+    return files.any { it.name == "common" || it.name == platform }
+}
 
 allprojects {
-    def platform = platformOf(project)
-
-    group = 'io.ktor'
+    group = "io.ktor"
     version = configuredVersion
+    project.ext.hostManager = new HostManager()
 
     repositories {
         mavenLocal()
-        maven { url 'https://dl.bintray.com/kotlin/kotlinx/' }
-        maven { url kotlin_repository }
+        maven { url "https://dl.bintray.com/kotlin/kotlinx/" }
+        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+
         jcenter()
     }
 
-    apply plugin: "kotlin-platform-${platform}"
-    apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
-    apply from: rootProject.file("gradle/${platform}.gradle")
-    
-    if (project.name != 'binary-compatibility-validator') {
-        apply from: rootProject.file('gradle/publish.gradle')
-    }
+    apply plugin: "kotlin-multiplatform"
+    apply plugin: "kotlinx-atomicfu"
 
-    if (project.parent != null && project.parent.name == 'ktor-server') {
-        apply from: rootProject.file('gradle/engines.gradle')
-    }
-
-    task sourceJar(type: Jar, dependsOn: classes) {
-        classifier 'sources'
-        if (platform != 'native') {
-            from sourceSets.main.kotlin
-            duplicatesStrategy DuplicatesStrategy.EXCLUDE
-            def platformSrc = sourceSets.main.allSource
-            def commonSrc = rootProject.sourceSets.main.allSource
-            from(platformSrc + commonSrc)
+    platforms.each { platform ->
+        if (projectNeedsPlatform(project, platform)) {
+            configure([it]) {
+                apply from: rootProject.file("gradle/utility.gradle")
+                apply from: rootProject.file("gradle/${platform}.gradle")
+            }
         }
     }
 
-    task emptyJar(type: Jar) {
-        classifier 'javadoc'
+    if (!rootProject.ext.misc.contains(project.name)) {
+        apply from: rootProject.file('gradle/dokka.gradle')
+        apply from: rootProject.file('gradle/publish.gradle')
     }
 
-    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
+    configurations { testOutput }
 
-}
+    kotlin {
+        configure(sourceSets) {
+            def srcDir = name.endsWith("Main") ? "src" : "test"
+            def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
+            def platform = name[0..-5]
 
-release {
-    scmAdapters = [net.researchgate.release.GitAdapter]
-    git {
-        requireBranch = 'gradle-build'
+            kotlin.srcDirs = ["$platform/$srcDir"]
+            resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
+
+            if (rootProject.ext.misc.contains(project.name)) return
+            languageSettings {
+                progressiveMode = true
+                experimentalAnnotations.each { useExperimentalAnnotation(it) }
+
+                if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
+                    useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
+                }
+            }
+        }
     }
 }
-
-afterReleaseBuild.dependsOn bintrayUpload

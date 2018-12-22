@@ -966,6 +966,84 @@ public final class io/ktor/http/Url {
 public final class io/ktor/http/Url$Companion {
 }
 
+public final class io/ktor/http/auth/AuthScheme {
+	public static final field Basic Ljava/lang/String;
+	public static final field Digest Ljava/lang/String;
+	public static final field INSTANCE Lio/ktor/http/auth/AuthScheme;
+	public static final field Negotiate Ljava/lang/String;
+	public static final field OAuth Ljava/lang/String;
+	public final synthetic fun getBasic ()Ljava/lang/String;
+	public final synthetic fun getDigest ()Ljava/lang/String;
+	public final synthetic fun getNegotiate ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/HeaderValueEncoding : java/lang/Enum {
+	public static final field QUOTED_ALWAYS Lio/ktor/http/auth/HeaderValueEncoding;
+	public static final field QUOTED_WHEN_REQUIRED Lio/ktor/http/auth/HeaderValueEncoding;
+	public static final field URI_ENCODE Lio/ktor/http/auth/HeaderValueEncoding;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/auth/HeaderValueEncoding;
+	public static fun values ()[Lio/ktor/http/auth/HeaderValueEncoding;
+}
+
+public abstract class io/ktor/http/auth/HttpAuthHeader {
+	public static final field Companion Lio/ktor/http/auth/HttpAuthHeader$Companion;
+	public final fun getAuthScheme ()Ljava/lang/String;
+	public abstract fun render ()Ljava/lang/String;
+	public abstract fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/HttpAuthHeader$Companion {
+	public final fun basicAuthChallenge (Ljava/lang/String;Ljava/nio/charset/Charset;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+	public final fun digestAuthChallenge (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+	public static synthetic fun digestAuthChallenge$default (Lio/ktor/http/auth/HttpAuthHeader$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+}
+
+public final class io/ktor/http/auth/HttpAuthHeader$Parameterized : io/ktor/http/auth/HttpAuthHeader {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lio/ktor/http/auth/HeaderValueEncoding;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lio/ktor/http/auth/HeaderValueEncoding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Lio/ktor/http/auth/HeaderValueEncoding;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lio/ktor/http/auth/HeaderValueEncoding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEncoding ()Lio/ktor/http/auth/HeaderValueEncoding;
+	public final fun getParameters ()Ljava/util/List;
+	public fun hashCode ()I
+	public final fun parameter (Ljava/lang/String;)Ljava/lang/String;
+	public fun render ()Ljava/lang/String;
+	public fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
+	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+}
+
+public final class io/ktor/http/auth/HttpAuthHeader$Parameters {
+	public static final field Charset Ljava/lang/String;
+	public static final field INSTANCE Lio/ktor/http/auth/HttpAuthHeader$Parameters;
+	public static final field OAuthCallback Ljava/lang/String;
+	public static final field OAuthCallbackConfirmed Ljava/lang/String;
+	public static final field OAuthConsumerKey Ljava/lang/String;
+	public static final field OAuthNonce Ljava/lang/String;
+	public static final field OAuthSignature Ljava/lang/String;
+	public static final field OAuthSignatureMethod Ljava/lang/String;
+	public static final field OAuthTimestamp Ljava/lang/String;
+	public static final field OAuthToken Ljava/lang/String;
+	public static final field OAuthTokenSecret Ljava/lang/String;
+	public static final field OAuthVerifier Ljava/lang/String;
+	public static final field OAuthVersion Ljava/lang/String;
+	public static final field Realm Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/HttpAuthHeader$Single : io/ktor/http/auth/HttpAuthHeader {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBlob ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun render ()Ljava/lang/String;
+	public fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/HttpAuthHeaderKt {
+	public static final fun parseAuthorizationHeader (Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader;
+}
+
 public final class io/ktor/http/content/ByteArrayContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
 	public fun <init> ([BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
 	public synthetic fun <init> ([BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

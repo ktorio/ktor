@@ -1,5 +1,5 @@
 description = ''
 
-dependencies {
-    compile project(":ktor-utils:ktor-utils-jvm")
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-utils')
 }

@@ -1,0 +1,17 @@
+task prepareIdeInterop(type: Copy) {
+    if (project.ext.isLinuxHost) {
+        from "build/classes/kotlin/linuxX64"
+    } 
+    if (project.ext.isMacosHost) {
+        from "build/classes/kotlin/macosX64"
+    }
+    if (project.ext.isWinHost) {
+        from "build/classes/kotlin/mingwX64"
+    }
+
+    into "build/classes/kotlin/posix"
+}
+
+configure([assemble]) {
+    doLast { prepareIdeInterop.execute() }
+}

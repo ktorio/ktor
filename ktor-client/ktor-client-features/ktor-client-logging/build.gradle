@@ -1,0 +1,13 @@
+kotlin.sourceSets {
+    commonMain.dependencies {
+        api project(":ktor-client:ktor-client-core")
+    }
+
+    jvmMain.dependencies {
+        implementation("org.slf4j:slf4j-simple:1.6.1")
+    }
+    jvmTest.dependencies {
+        implementation project(":ktor-client:ktor-client-tests")
+        implementation project(":ktor-client:ktor-client-cio")
+    }
+}

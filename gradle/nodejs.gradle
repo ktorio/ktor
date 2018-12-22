@@ -1,0 +1,43 @@
+apply plugin: 'com.moowork.node'
+
+node {
+    version = "$nodejs_version"
+    npmVersion = "$npm_version"
+
+    download = true
+    nodeModulesDir = file(buildDir)
+}
+
+repositories.whenObjectAdded {
+    if (it instanceof IvyArtifactRepository) {
+        metadataSources {
+            artifact()
+        }
+    }
+}
+
+task prepareNodePackage(type: Copy) {
+    from("npm") {
+        include 'package.json'
+        expand(project.properties + [kotlinDependency: ""])
+    }
+    from("npm") {
+        exclude 'package.json'
+    }
+    into "$node.nodeModulesDir"
+}
+
+npmInstall.dependsOn prepareNodePackage
+
+task installDependenciesMocha(type: NpmTask, dependsOn: npmInstall) {
+    args = [
+        'install',
+        "mocha@$mocha_version",
+        "mocha-headless-chrome@$mocha_headless_chrome_version",
+        "source-map-support@$source_map_support_version",
+        '--no-save'
+    ]
+    if (project.hasProperty("teamcity")) args += [
+        "mocha-teamcity-reporter@$mocha_teamcity_reporter_version"
+    ]
+}
