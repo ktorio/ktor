@@ -57,9 +57,20 @@ class QueryParametersTest {
     @Test
     fun noValue() {
         assertQuery("id") {
-            append("id", "")
+            appendAll("id", emptyList())
         }
         assertQuery("id&optional") {
+            appendAll("id", emptyList())
+            appendAll("optional", emptyList())
+        }
+    }
+
+    @Test
+    fun emptyValue() {
+        assertQuery("id=") {
+            append("id", "")
+        }
+        assertQuery("id=&optional=") {
             append("id", "")
             append("optional", "")
         }
