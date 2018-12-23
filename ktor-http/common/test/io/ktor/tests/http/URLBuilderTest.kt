@@ -84,4 +84,16 @@ internal class URLBuilderTest {
         url.takeFrom("/1")
         assertEquals("https://httpstat.us/1", url.buildString())
     }
+
+    @Test
+    fun queryParamsWithNoValue() {
+        val url = URLBuilder("https://httpstat.us/?novalue")
+        assertEquals("https://httpstat.us/?novalue", url.buildString())
+    }
+
+    @Test
+    fun queryParamsWithEmptyValue() {
+        val url = URLBuilder("https://httpstat.us/?empty=")
+        assertEquals("https://httpstat.us/?empty=", url.buildString())
+    }
 }
