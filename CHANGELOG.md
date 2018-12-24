@@ -1,3 +1,30 @@
+# 1.1.0
+> Published 24 Dec 2018
+
+* Reduced JDK7/8 dependencies (including #762)
+* Discarded deprecated API
+* Coroutines debug agent support 
+  * see Kotlin/kotlinx.coroutines/core/kotlinx-coroutines-debug/README.md
+* Fixed `IndexOutOfBounds` during main module function search
+* okhttp-client: pass `contentLength` for multipart form data
+* Improved auto-reloading feature in corner-cases (#783)
+* Fixed HTTP server upgrade to delay socket close (#674)
+* Added Mustache templating feature (#713)
+* Added ability to configure `Logger` instance for `CallLogging`
+* Fixed session HMAC to do a constant time comparison
+* Added Node.js suport for js http client (#791)
+* `SessionTransportTransformerDigest` is deprecated (#792)
+  * also switched to SHA-384 by default that is not vulnerable
+* Fixed jetty server thread names (#756)
+* Fix conditional headers zoned dates (#476)
+* `NettyChannelInitializer` made public (#286)
+* Fixed slf4j dependency (#808)
+* Fixed client logging freeze
+* Added client `DigestAuth` feature
+* Fixed apache client response reading freeze
+* Fixed apache client engine errors handling
+* Kotlin 1.3.11, kotlinx.coroutines 1.1.0
+
 # 1.0.1
 > Published 4 Dec 2018
 
