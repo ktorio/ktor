@@ -1102,17 +1102,21 @@ public final class io/ktor/http/content/JarFileContent : io/ktor/http/content/Ou
 	public fun readFrom ()Lkotlinx/coroutines/io/ByteReadChannel;
 }
 
+public final class io/ktor/http/content/LastModifiedJavaTimeKt {
+	public static final fun LastModifiedVersion (Ljava/nio/file/attribute/FileTime;)Lio/ktor/http/content/LastModifiedVersion;
+	public static final fun LastModifiedVersion (Ljava/time/ZonedDateTime;)Lio/ktor/http/content/LastModifiedVersion;
+}
+
 public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/content/Version {
-	public fun <init> (Ljava/nio/file/attribute/FileTime;)V
-	public fun <init> (Ljava/time/ZonedDateTime;)V
+	public fun <init> (Lio/ktor/util/date/GMTDate;)V
 	public fun <init> (Ljava/util/Date;)V
 	public fun appendHeadersTo (Lio/ktor/http/HeadersBuilder;)V
 	public fun check (Lio/ktor/http/Headers;)Lio/ktor/http/content/VersionCheckResult;
-	public final fun component1 ()Ljava/time/ZonedDateTime;
-	public final fun copy (Ljava/time/ZonedDateTime;)Lio/ktor/http/content/LastModifiedVersion;
-	public static synthetic fun copy$default (Lio/ktor/http/content/LastModifiedVersion;Ljava/time/ZonedDateTime;ILjava/lang/Object;)Lio/ktor/http/content/LastModifiedVersion;
+	public final fun component1 ()Lio/ktor/util/date/GMTDate;
+	public final fun copy (Lio/ktor/util/date/GMTDate;)Lio/ktor/http/content/LastModifiedVersion;
+	public static synthetic fun copy$default (Lio/ktor/http/content/LastModifiedVersion;Lio/ktor/util/date/GMTDate;ILjava/lang/Object;)Lio/ktor/http/content/LastModifiedVersion;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getLastModified ()Ljava/time/ZonedDateTime;
+	public final fun getLastModified ()Lio/ktor/util/date/GMTDate;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
