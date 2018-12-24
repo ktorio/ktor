@@ -36,29 +36,31 @@ internal class ApacheResponseConsumer(
     override fun buildResult(context: HttpContext) = Unit
 
     override fun onContentReceived(decoder: ContentDecoder, ioctrl: IOControl) {
-        val read = try {
-            decoder.read(current)
-        } catch (cause: Throwable) {
-            backendChannel.close(cause)
-            return
-        }
+        while (!decoder.isCompleted) {
+            val read = try {
+                decoder.read(current)
+            } catch (cause: Throwable) {
+                backendChannel.close(cause)
+                return
+            }
 
-        if (read <= 0 || current.hasRemaining()) return
+            if (read <= 0 || current.hasRemaining()) return
 
-        current.flip()
-        if (!backendChannel.offer(current)) {
-            GlobalScope.launch(Dispatchers.Unconfined) {
-                ioctrl.suspendInput()
-                try {
-                    backendChannel.send(current)
-                } catch (cause: Throwable) {
-                } finally {
-                    ioctrl.requestInput()
+            current.flip()
+            if (!backendChannel.offer(current)) {
+                GlobalScope.launch(Dispatchers.Unconfined) {
+                    ioctrl.suspendInput()
+                    try {
+                        backendChannel.send(current)
+                    } catch (cause: Throwable) {
+                    } finally {
+                        ioctrl.requestInput()
+                    }
                 }
             }
-        }
 
-        current = HttpClientDefaultPool.borrow()
+            current = HttpClientDefaultPool.borrow()
+        }
     }
 
     override fun onEntityEnclosed(entity: HttpEntity, contentType: ContentType) {}
