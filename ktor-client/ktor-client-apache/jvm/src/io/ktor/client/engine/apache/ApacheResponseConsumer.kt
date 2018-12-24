@@ -30,7 +30,7 @@ internal class ApacheResponseConsumer(
     override fun onResponseReceived(response: HttpResponse) = block(response, channel)
 
     override fun releaseResources() {
-        backendChannel.close()
+        backendChannel.close(exception)
     }
 
     override fun buildResult(context: HttpContext) = Unit
@@ -80,9 +80,10 @@ internal class ApacheResponseConsumer(
             channel.close(cause)
             callContext.cancel()
         } finally {
-            channel.close()
             HttpClientDefaultPool.recycle(current)
         }
+    }.invokeOnCompletion { cause ->
+        channel.close(cause)
     }
 
     private suspend fun ByteWriteChannel.writeRemaining() {
