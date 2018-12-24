@@ -6,9 +6,16 @@ import io.ktor.util.*
  * Mutable application config backed by a hash map
  */
 @KtorExperimentalAPI
-class MapApplicationConfig : ApplicationConfig {
-    private val map: MutableMap<String, String>
-    private val path: String
+open class MapApplicationConfig : ApplicationConfig {
+    /**
+     * A backing map for this config
+     */
+    protected val map: MutableMap<String, String>
+
+    /**
+     * Config path prefix for this config
+     */
+    protected val path: String
 
     private constructor(map: MutableMap<String, String>, path: String) {
         this.map = map
@@ -60,7 +67,13 @@ class MapApplicationConfig : ApplicationConfig {
 
     override fun config(path: String): ApplicationConfig = MapApplicationConfig(map, combine(this.path, path))
 
-    private class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
+    /**
+     * A config value implementation backed by this config's map
+     * @property map is usually owner's backing map
+     * @property path to this value
+     */
+    @KtorExperimentalAPI
+    protected class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
         override fun getString(): String = map[path]!!
         override fun getList(): List<String> {
             val size = map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
