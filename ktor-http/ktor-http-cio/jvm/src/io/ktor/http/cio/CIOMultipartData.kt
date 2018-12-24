@@ -9,8 +9,6 @@ import kotlinx.coroutines.io.*
 import kotlinx.io.streams.*
 import java.io.*
 import java.nio.*
-import java.nio.channels.*
-import java.nio.file.*
 import kotlin.coroutines.*
 
 /**
@@ -80,28 +78,29 @@ class CIOMultipartDataBase(
             buffer.flip()
 
             if (!completeRead) {
-                val tmp = Files.createTempFile("file-upload-", ".tmp")
-                FileChannel.open(
-                    tmp,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING,
-                    StandardOpenOption.WRITE
-                ).use { out ->
-                    while (true) {
-                        while (buffer.hasRemaining()) {
-                            out.write(buffer)
-                        }
-                        buffer.clear()
+                @Suppress("BlockingMethodInNonBlockingContext")
+                val tmp = File.createTempFile("file-upload", ".tmp")
 
-                        if (part.body.readAvailable(buffer) == -1) break
-                        buffer.flip()
+                FileOutputStream(tmp).use { stream ->
+                    stream.channel.use { out ->
+                        out.truncate(0L)
+
+                        while (true) {
+                            while (buffer.hasRemaining()) {
+                                out.write(buffer)
+                            }
+                            buffer.clear()
+
+                            if (part.body.readAvailable(buffer) == -1) break
+                            buffer.flip()
+                        }
                     }
                 }
 
                 var closed = false
                 val lazyInput = lazy {
                     if (closed) throw IllegalStateException("Already disposed")
-                    FileInputStream(tmp.toFile()).asInput()
+                    FileInputStream(tmp).asInput()
                 }
 
                 return PartData.FileItem(
@@ -110,7 +109,7 @@ class CIOMultipartDataBase(
                         closed = true
                         if (lazyInput.isInitialized()) lazyInput.value.close()
                         part.release()
-                        Files.deleteIfExists(tmp)
+                        tmp.delete()
                     },
                     CIOHeaders(headers)
                 )
