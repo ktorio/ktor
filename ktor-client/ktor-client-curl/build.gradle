@@ -1,0 +1,59 @@
+apply plugin: "kotlinx-serialization"
+
+kotlin {
+    targets {
+        def current = []
+        if (project.ext.ideaActive) {
+            current = [posix]
+        } else {
+            current = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
+        }
+
+        def paths = ["C:/msys64/mingw64/include", "C:/Tools/msys64/mingw64/include"]
+        configure(current) { platform ->
+            compilations.main {
+                cinterops {
+                    libcurl {
+                        defFile 'posix/interop/libcurl.def'
+                        if (platform.name == "mingwX64") {
+                            includeDirs.headerFilterOnly paths.findAll { it != null }
+                        } else {
+                            includeDirs.headerFilterOnly '/opt/local/include',
+                                '/usr/local/include',
+                                '/usr/include',
+                                '/usr/include/x86_64-linux-gnu',
+                                '/usr/local/Cellar/curl/7.62.0/include',
+                                '/usr/local/Cellar/curl/7.63.0/include'
+                        }
+                    }
+                }
+            }
+
+            compilations.test {
+                if (platform.name == "mingwX64") {
+                    linkerOpts "-LC:/msys64/mingw64/lib -LC:/Tools/msys64/mingw64/lib -lcurl"
+                }
+            }
+
+            afterEvaluate {
+                if (platform.name == "mingwX64") {
+                    configure([mingwX64Test]) {
+                        environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
+                    }
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        posixMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
+            api project(':ktor-http:ktor-http-cio')
+        }
+        posixTest.dependencies {
+            api project(':ktor-client:ktor-client-features:ktor-client-logging')
+            api project(':ktor-client:ktor-client-features:ktor-client-json')
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
+        }
+    }
+}
