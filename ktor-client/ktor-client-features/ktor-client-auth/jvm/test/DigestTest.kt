@@ -1,7 +1,7 @@
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.features.auth.Auth
-import io.ktor.client.features.auth.providers.digest
+import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -16,7 +16,7 @@ import java.security.*
 class DigestTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         install(Authentication) {
-            digest {
+            digest("digest") {
                 val password = "Circle Of Life"
                 digester = MessageDigest.getInstance("MD5")
                 realm = "testrealm@host.com"
@@ -28,11 +28,24 @@ class DigestTest : TestWithKtor() {
                     }
                 }
             }
+
+            basic("basic") {
+                validate { credential ->
+                    check("MyUser" == credential.name)
+                    check("1234" == credential.password)
+                    UserIdPrincipal("MyUser")
+                }
+            }
         }
 
         routing {
-            authenticate {
-                get("/") {
+            authenticate("basic") {
+                get("/basic") {
+                    call.respondText("ok")
+                }
+            }
+            authenticate("digest") {
+                get("/digest") {
                     call.respondText("ok")
                 }
             }
@@ -40,7 +53,7 @@ class DigestTest : TestWithKtor() {
     }
 
     @Test
-    fun testAuth() = clientTest(io.ktor.client.engine.cio.CIO) {
+    fun testDigestAuth() = clientTest(io.ktor.client.engine.cio.CIO) {
         config {
             install(Auth) {
                 digest {
@@ -51,9 +64,25 @@ class DigestTest : TestWithKtor() {
             }
         }
         test { client ->
-            client.get<HttpResponse>(path = "/", port = serverPort).use {
+            client.get<HttpResponse>(path = "/digest", port = serverPort).use {
                 assert(it.status.isSuccess())
             }
+        }
+    }
+
+    @Test
+    fun testBasicAuth() = clientTest(io.ktor.client.engine.cio.CIO) {
+        config {
+            install(Auth) {
+                basic {
+                    username = "MyUser"
+                    password = "1234"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>(path = "/basic", port = serverPort)
         }
     }
 
