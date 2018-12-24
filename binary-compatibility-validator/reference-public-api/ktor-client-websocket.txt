@@ -38,13 +38,13 @@ public final class io/ktor/client/features/websocket/DefaultClientWebSocketSessi
 	public fun getMasking ()Z
 	public fun getMaxFrameSize ()J
 	public fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
-	public fun getPingInterval ()Ljava/time/Duration;
-	public fun getTimeout ()Ljava/time/Duration;
+	public fun getPingIntervalMillis ()J
+	public fun getTimeoutMillis ()J
 	public fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setMasking (Z)V
 	public fun setMaxFrameSize (J)V
-	public fun setPingInterval (Ljava/time/Duration;)V
-	public fun setTimeout (Ljava/time/Duration;)V
+	public fun setPingIntervalMillis (J)V
+	public fun setTimeoutMillis (J)V
 	public fun terminate ()V
 }
 
