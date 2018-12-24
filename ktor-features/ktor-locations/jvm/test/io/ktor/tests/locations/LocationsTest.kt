@@ -450,8 +450,8 @@ class LocationsTest {
             handleRequest(HttpMethod.Get, "/?e=x")
         }
 
-        assertTrue { "LocationEnum" in t.message!! }
-        assertTrue { "x" in t.message!! }
+        assertTrue { "LocationEnum" in t.message!! || "LocationEnum" in t.cause?.message ?: "" }
+        assertTrue { "x" in t.message!! || "x" in t.cause?.message ?: "" }
     }
 
     @Location("/") class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
