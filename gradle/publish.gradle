@@ -52,12 +52,46 @@ publishing {
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
-        def id = selectArtifactId(project, it.name, it.artifactId)
+
+        def type = it.name
+        def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
         if (id.endsWith('native')) {
             it.artifact stubJavadoc
             it.artifact stubDokka
             it.artifact emptyJar
+        }
+
+        pom.withXml { pom ->
+            def dependenciesNode = asNode().getAt("dependencies")[0]
+            if (dependenciesNode != null) {
+                dependenciesNode.dependency.each {
+                    it.artifactId.each { node ->
+                        def artifactId = node.text()
+                        if (!artifactId.startsWith("ktor") || !artifactId.endsWith("native")) return
+
+                        switch (type) {
+                            case 'metadata':
+                                if (artifactId.startsWith("ktor-http-cio")) {
+                                    node.setValue("${artifactId[0..-8]}-common")
+                                } else {
+                                    node.setValue("${artifactId[0..-8]}")
+                                }
+                                break
+                            case 'jvm':
+                                if (artifactId.startsWith("ktor-http-cio")) {
+                                    node.setValue("${artifactId[0..-8]}")
+                                } else {
+                                    node.setValue("${artifactId[0..-8]}-jvm")
+                                }
+                                break
+                            case 'js':
+                                node.setValue("${artifactId[0..-8]}-$type")
+                                break
+                        }
+                    }
+                }
+            }
         }
     }
 
