@@ -15,7 +15,7 @@ task stubDokka(type: Jar) {
     classifier 'kdoc'
 }
 
-def selectArtifactId(project, type) {
+def selectArtifactId(project, type, defaultName) {
     def name = project.name
     def OBSOLETE = "$name-$type-obsolete"
     def isCommon = project.ext.has("commonStructure")
@@ -35,7 +35,7 @@ def selectArtifactId(project, type) {
             return commonIsRoot ? "$name-jvm" : "$name"
             break
         default:
-            return isCommon || hasNative ? "$name-$type" : "$name"
+            return isCommon || hasNative ? defaultName : "$name"
             break
     }
 }
@@ -52,7 +52,7 @@ publishing {
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)
-        def id = selectArtifactId(project, it.name)
+        def id = selectArtifactId(project, it.name, it.artifactId)
         it.artifactId = id
         if (id.endsWith('native')) {
             it.artifact stubJavadoc
