@@ -9,8 +9,10 @@ kotlin {
             api project(':ktor-client:ktor-client-core')
         }
         jvmMain.dependencies {
-            api project(':ktor-client:ktor-client-tests')
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+        }
+        jvmTest.dependencies {
+            api project(':ktor-client:ktor-client-tests')
         }
         jsMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
