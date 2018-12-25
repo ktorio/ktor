@@ -24,7 +24,7 @@ def selectArtifactId(project, type, defaultName) {
 
     switch (type) {
         case 'metadata':
-            if (!isCommon) return OBSOLETE
+            if (!isCommon) return "$name-$type"
             return commonIsRoot ? "$name" : "$name-common"
             break
         case 'kotlinMultiplatform':
