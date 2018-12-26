@@ -49,6 +49,7 @@ publishing {
                 url 'https://dl.bintray.com/kotlin/ktor'
             }
         }
+        maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
     }
     publications.all {
         pom.withXml(configureMavenCentralMetadata)

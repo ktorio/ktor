@@ -1,0 +1,203 @@
+import groovy.io.FileType
+import groovy.json.JsonSlurper
+import org.xml.sax.ErrorHandler
+import org.xml.sax.SAXException
+import org.xml.sax.SAXParseException
+
+import java.util.regex.Matcher
+
+task cleanPublications(type: Delete) {
+    delete new File(rootProject.buildDir, 'm2')
+}
+
+def isBadTextNode(node) {
+    return node == null || node.size() != 1 || !node.text().trim()
+}
+
+def isEmptyTagList(node) {
+    return node == null || node.size() == 0
+}
+
+def verifyArtifact(File versionDir, List<File> files, String ext, String kind) {
+    if (files.count { it.name.toLowerCase().endsWith(ext) } == 0) {
+        throw new GradleException("No $ext artifact found at $versionDir (kind $kind)")
+    }
+}
+
+def validatePom(File file) {
+    def parser = new XmlSlurper(false, true, false)
+    def errors = []
+
+    parser.errorHandler = new ErrorHandler() {
+
+        @Override
+        void warning(SAXParseException exception) throws SAXException {
+        }
+
+        @Override
+        void error(SAXParseException exception) throws SAXException {
+            errors += exception
+        }
+
+        @Override
+        void fatalError(SAXParseException exception) throws SAXException {
+            errors += exception
+        }
+    }
+
+    def xml = parser.parse(file)
+
+    if (!errors.isEmpty()) {
+        throw errors[0]
+    }
+
+    if (isBadTextNode(xml.name)) {
+        errors += ['<name> tag is missing']
+    }
+
+    if (isBadTextNode(xml.description)) {
+        errors += ['<description> tag is missing']
+    }
+
+    if (isBadTextNode(xml.url)) {
+        errors += ['<url> tag is missing']
+    }
+
+    def licenses = xml.licenses.license
+    if (isEmptyTagList(licenses)) {
+        errors += 'No licenses specified'
+    } else if (licenses.any { isBadTextNode(it.name) || isBadTextNode(it.url) || isBadTextNode(it.distribution) }) {
+        errors += 'License section is incomplete'
+    }
+
+    def developers = xml.developers.developer
+    if (isEmptyTagList(developers)) {
+        errors += 'No developers specified'
+    } else if (developers.any { isBadTextNode(it.id) || isBadTextNode(it.name) || isBadTextNode(it.organization) || isBadTextNode(it.organizationUrl)}) {
+        errors += 'Developer section is incomplete'
+    }
+
+    def scm = xml.scm.url
+    if (isEmptyTagList(scm)) {
+        errors += 'No scm specified'
+    }
+
+    if (!errors.isEmpty()) {
+        throw new GradleException("Pom verification failed for $file.name: ${errors.join(', ')}")
+    }
+}
+
+String packaging(File moduleDir) {
+    def pomFile = moduleDir.listFiles()?.find { it.name.endsWith('.pom') }
+    if (pomFile == null || !pomFile.exists()) {
+        throw new GradleException("POM file is missing at $moduleDir")
+    }
+
+    def packaing = new XmlSlurper(false, true, false).parse(pomFile).packaging.text()
+    if (!packaing?.trim()) return 'jar'
+    return packaing
+}
+
+def lookupTasks = {
+    def targetNames = kotlin.targets.collect { it.name }
+    def tasks = []
+
+    allprojects {
+        tasks += targetNames.collect { project.tasks.findByName("publish${it.capitalize()}PublicationToTestLocalRepository") }
+            .findAll()
+    }
+
+    return [cleanPublications] + tasks
+}
+
+// returns jvm, js, native or some native target name
+String guessModuleKind(File dir, File pomFile) {
+    def artifactId_ = new XmlSlurper(false, true).parse(pomFile).artifactId.text()
+    def kind = null
+
+    allprojects {
+        project.publishing.publications.findAll { !it.name.contains('-test') && it.artifactId == artifactId_ }.each {
+            kind = it.name
+        }
+    }
+
+    if (!kind) {
+        allprojects { project ->
+            println "project $project.name"
+            project.publishing.publications.each {
+                println "publication $it.name with ${it.artifactId} (looking for $artifactId_, found = ${it.artifactId == artifactId_})"
+            }
+        }
+        throw new GradleException("Not found")
+    }
+
+    return kind
+}
+
+task verifyPublications(dependsOn: lookupTasks) {
+    doLast {
+        def m2 = new File(rootProject.buildDir, 'm2')
+        def pomFiles = []
+        def moduleFiles = []
+
+        m2.eachFileRecurse(FileType.FILES) { child ->
+            if (child.name.toLowerCase() != 'maven-metadata.xml') {
+                def ext = child.name.split(/\./).last().toLowerCase()
+                switch (ext) {
+                    case 'pom':
+                        pomFiles += child
+                        break
+                    case 'module':
+                        moduleFiles += child
+                        break
+                }
+            }
+        }
+
+        pomFiles.each { File file ->
+            validatePom(file)
+        }
+
+        def groupDir = new File(m2, project.group.replaceAll(/\./, Matcher.quoteReplacement(File.separator)))
+        def verified = 0
+
+        groupDir.eachDir { artifactDir ->
+            def versionDir = new File(artifactDir, project.version)
+
+            if (versionDir.exists()) {
+                def files = versionDir.listFiles()?.findAll { it.isFile() } ?: []
+
+                def moduleKind = guessModuleKind(versionDir, files.find { it.name.endsWith(".pom") })
+
+                def packaging = '.' + packaging(versionDir)
+                verifyArtifact(versionDir, files, packaging, moduleKind)
+                verifyArtifact(versionDir, files, '-javadoc.jar', moduleKind)
+                verifyArtifact(versionDir, files, '-sources.jar', moduleKind)
+
+                if (moduleKind != 'js' && moduleKind != 'jvm' && moduleKind != 'jvmWithJava' && moduleKind != 'metadata') {
+                    verifyArtifact(versionDir, files, '.module', moduleKind)
+                }
+
+                verified ++
+            }
+        }
+
+        if (verified == 0) {
+            throw new GradleException("No installed modules were found at $groupDir")
+        }
+
+        moduleFiles.each { File file ->
+            def moduleFile = new JsonSlurper().parse(file)
+
+            if (moduleFile.variants.name.isEmpty()) {
+                throw new GradleException("No variants found in module file $file")
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('publish') && task.name.endsWith('TestLocalRepository')) {
+        tasks.getByName('verifyPublications').dependsOn(task)
+    }
+}
