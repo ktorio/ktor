@@ -22,17 +22,6 @@ task dokkaJavadoc(type: dokka.getClass()) {
     reportUndocumented = false
 }
 
-task dokkaWebsite(type: dokka.getClass()) {
-    outputFormat = 'kotlin-website'
-    outputDirectory = "${rootProject.projectDir}/apidoc"
-
-    kotlinTasks {
-        defaultKotlinTasks().findAll { it.name.contains("Jvm") }
-    }
-
-    reportUndocumented = false
-}
-
 task javadocJar(type: Jar, dependsOn: 'dokkaJavadoc') {
     classifier = 'javadoc'
     from fileTree(new File(project.buildDir, 'javadoc'))
