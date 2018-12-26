@@ -9,14 +9,14 @@ import kotlinx.io.core.*
  * @property openSSLName is a name used in openssl for this algorithm
  */
 @Suppress("KDocMissingDocumentation")
-enum class HashAlgorithm(val code: Byte, val openSSLName: String) {
-    NONE(0, ""),
-    MD5(1, "MD5"),
-    SHA1(2, "SHA-1"),
-    SHA224(3, "SHA-224"),
-    SHA256(4, "SHA-256"),
-    SHA384(5, "SHA-384"),
-    SHA512(6, "SHA-512");
+enum class HashAlgorithm(val code: Byte, val openSSLName: String, val macName: String) {
+    NONE(0, "", ""),
+    MD5(1, "MD5", "HmacMD5"),
+    SHA1(2, "SHA-1", "HmacSHA1"),
+    SHA224(3, "SHA-224", "HmacSHA224"),
+    SHA256(4, "SHA-256", "HmacSHA256"),
+    SHA384(5, "SHA-384", "HmacSHA384"),
+    SHA512(6, "SHA-512", "HmacSHA512");
 
     companion object {
         /**
@@ -24,7 +24,7 @@ enum class HashAlgorithm(val code: Byte, val openSSLName: String) {
          * @throws TLSExtension if no hash algorithm found by code
          */
         fun byCode(code: Byte): HashAlgorithm = values().find { it.code == code }
-                ?: throw TLSException("Unknown hash algorithm: $code")
+            ?: throw TLSException("Unknown hash algorithm: $code")
     }
 }
 
@@ -44,7 +44,7 @@ enum class SignatureAlgorithm(val code: Byte) {
          * @throws TLSExtension if no hash algorithm found by code
          */
         fun byCode(code: Byte): SignatureAlgorithm = values().find { it.code == code }
-                ?: throw TLSException("Unknown signature algorithm: $code")
+            ?: throw TLSException("Unknown signature algorithm: $code")
     }
 }
 

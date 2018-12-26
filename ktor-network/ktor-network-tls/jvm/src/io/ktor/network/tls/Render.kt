@@ -178,3 +178,10 @@ private fun BytePacketBuilder.writeAligned(src: ByteArray, fieldSize: Int) {
     if (padding > 0) writeFully(ByteArray(padding))
     writeFully(src, index, src.size - index)
 }
+
+private fun BytePacketBuilder.writeTripleByteLength(value: Int) {
+    val high = (value ushr 16) and 0xff
+    val low = value and 0xffff
+    writeByte(high.toByte())
+    writeShort(low.toShort())
+}

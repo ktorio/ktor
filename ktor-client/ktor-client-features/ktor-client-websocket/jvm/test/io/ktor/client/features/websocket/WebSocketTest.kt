@@ -79,7 +79,7 @@ class WebSocketTest : TestWithKtor() {
     }
 
     @Test
-    fun testRemotePingPong() = clientTest(CIO) {
+    fun testRemotePingPong(): Unit = clientTest(CIO) {
         val remote = "echo.websocket.org"
 
         config {
@@ -88,6 +88,23 @@ class WebSocketTest : TestWithKtor() {
 
         test { client ->
             client.ws(host = remote) {
+                repeat(10) {
+                    ping(it.toString())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSecureRemotePingPong(): Unit = clientTest(CIO) {
+        val remote = "echo.websocket.org"
+
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.wss(host = remote) {
                 repeat(10) {
                     ping(it.toString())
                 }

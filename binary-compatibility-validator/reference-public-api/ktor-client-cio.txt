@@ -8,6 +8,7 @@ public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/en
 	public final fun getEndpoint ()Lio/ktor/client/engine/cio/EndpointConfig;
 	public final fun getHttps ()Lio/ktor/client/engine/cio/HttpsConfig;
 	public final fun getMaxConnectionsCount ()I
+	public final fun https (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/cio/HttpsConfig;
 	public final fun setMaxConnectionsCount (I)V
 }
 

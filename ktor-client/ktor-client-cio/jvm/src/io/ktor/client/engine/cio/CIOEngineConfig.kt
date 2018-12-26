@@ -26,6 +26,11 @@ class CIOEngineConfig : HttpClientEngineConfig() {
      * Maximum allowed connections count.
      */
     var maxConnectionsCount: Int = 1000
+
+    /**
+     * [https] settings.
+     */
+    fun https(block: HttpsConfig.() -> Unit): HttpsConfig = https.apply(block)
 }
 
 /**
