@@ -20,5 +20,7 @@ class DefaultClientWebSocketSession(
     override val call: HttpClientCall,
     delegate: DefaultWebSocketSession
 ) : ClientWebSocketSession, DefaultWebSocketSession by delegate {
-    override var masking: Boolean = true
+    init {
+        masking = true
+    }
 }
