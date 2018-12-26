@@ -1,3 +1,8 @@
+# 1.1.1
+> Published 26 Dec 2018
+
+* Fixed broken pom files 
+
 # 1.1.0
 > Published 24 Dec 2018
 
