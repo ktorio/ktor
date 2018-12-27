@@ -22,7 +22,8 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  */
 @Deprecated(
     "Use ponger with CoroutineScope receiver",
-    ReplaceWith("session.ponger(session.outgoing, pool)")
+    ReplaceWith("session.ponger(session.outgoing, pool)"),
+    level = DeprecationLevel.ERROR
 )
 fun ponger(
     session: WebSocketSession,

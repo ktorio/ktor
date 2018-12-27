@@ -5,7 +5,7 @@ import java.util.*
 /**
  * Calculates a list of all superclasses for the given class
  */
-@Deprecated("To be removed.")
+@Deprecated("To be removed.", level = DeprecationLevel.ERROR)
 fun Class<*>.findAllSupertypes(): List<Class<*>> {
     val result = LinkedHashSet<Class<*>>()
     findAllSupertypes(mutableListOf(Pair(this, supertypes())), mutableSetOf(this), result)

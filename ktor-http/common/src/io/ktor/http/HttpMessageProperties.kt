@@ -9,11 +9,14 @@ import kotlinx.io.charsets.*
  */
 fun HttpMessageBuilder.contentType(type: ContentType): Unit = headers.set(HttpHeaders.ContentType, type.toString())
 
-@Deprecated("Content-Length is controlled by underlying engine. Don't specify it explicitly.")
+@Deprecated(
+    "Content-Length is controlled by underlying engine. Don't specify it explicitly.",
+    level = DeprecationLevel.ERROR
+)
 @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType", "DeprecatedCallableAddReplaceWith")
 fun HttpMessageBuilder.contentLength(length: Int) = headers.set(HttpHeaders.ContentLength, length.toString())
 
-@Deprecated("Use content with particular content type and charset instead")
+@Deprecated("Use content with particular content type and charset instead", level = DeprecationLevel.ERROR)
 @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType", "DeprecatedCallableAddReplaceWith")
 fun HttpMessageBuilder.charset(charset: Charset) = contentType()?.let { contentType(it.withCharset(charset)) }
 

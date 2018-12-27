@@ -192,7 +192,8 @@ private suspend fun requestOAuth1aAccessToken(
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated("Use createObtainRequestTokenHeader instead",
-    ReplaceWith("createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)")
+    ReplaceWith("createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)"),
+    level = DeprecationLevel.ERROR
 )
 @KtorExperimentalAPI
 fun obtainRequestTokenHeader(
@@ -227,7 +228,8 @@ fun createObtainRequestTokenHeader(
  * Create an HTTP auth header for OAuth1a upgrade token request
  */
 @Deprecated("Use createUpgradeRequestTokenHeader instead",
-    ReplaceWith("createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)")
+    ReplaceWith("createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)"),
+    level = DeprecationLevel.ERROR
 )
 @KtorExperimentalAPI
 fun upgradeRequestTokenHeader(

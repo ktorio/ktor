@@ -7,7 +7,7 @@ import kotlinx.io.pool.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
-@Deprecated("This is going to be removed")
+@Deprecated("This is going to be removed", level = DeprecationLevel.ERROR)
 val ioThreadGroup = ThreadGroup("io-pool-group")
 
 private val cpuCount = Runtime.getRuntime().availableProcessors()
@@ -18,9 +18,11 @@ private val cpuCount = Runtime.getRuntime().availableProcessors()
 @Suppress("DEPRECATION")
 @Deprecated(
     "Use Dispatchers.IO instead for both blocking and non-blocking I/O",
-    replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers")
+    replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers"),
+    level = DeprecationLevel.ERROR
 )
-val ioCoroutineDispatcher: CoroutineDispatcher = IOCoroutineDispatcher(maxOf(2, (cpuCount * 2 / 3)))
+val ioCoroutineDispatcher: CoroutineDispatcher
+    get() = Dispatchers.IO
 
 /**
  * Byte buffer pool for UDP datagrams

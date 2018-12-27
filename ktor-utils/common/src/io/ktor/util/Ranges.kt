@@ -3,7 +3,7 @@ package io.ktor.util
 /**
  * Length of this [LongRange]
  */
-@Deprecated("Not supported anymore.")
+@Deprecated("Not supported anymore.", level = DeprecationLevel.ERROR)
 val LongRange.length: Long
     get() = (endInclusive - start + 1).coerceAtLeast(0L)
 

@@ -36,7 +36,10 @@ interface WebSocketSession : CoroutineScope {
     /**
      * Dispatcher to handle io operations
      */
-    @Deprecated("Use coroutineContext instead", ReplaceWith("coroutineContext"))
+    @Deprecated(
+        "Use coroutineContext instead", ReplaceWith("coroutineContext"),
+        level = DeprecationLevel.ERROR
+    )
     val dispatcher: CoroutineContext get() = coroutineContext
 
     /**

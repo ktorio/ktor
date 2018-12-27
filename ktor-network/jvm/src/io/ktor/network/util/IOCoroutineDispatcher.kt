@@ -12,11 +12,15 @@ import kotlin.coroutines.intrinsics.*
 /**
  * Default ktor fixed size dispatcher for doing non-blocking I/O operations and selection
  */
-@Deprecated("This is going to be deprecated. Use kotlinx.coroutines dispatchers")
+@Deprecated(
+    "This is going to be deprecated. Use kotlinx.coroutines dispatchers",
+    level = DeprecationLevel.ERROR
+)
 @KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
+
     private val tasks = LockFreeLinkedListHead()
 
     init {

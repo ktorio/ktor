@@ -114,7 +114,8 @@ class HttpClient(
      */
     @Deprecated(
         "[dispatcher] is deprecated. Use coroutineContext instead.",
-        replaceWith = ReplaceWith("coroutineContext")
+        replaceWith = ReplaceWith("coroutineContext"),
+        level = DeprecationLevel.ERROR
     )
     val dispatcher: CoroutineDispatcher
         get() = engine.dispatcher

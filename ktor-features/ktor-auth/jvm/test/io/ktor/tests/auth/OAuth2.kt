@@ -465,9 +465,6 @@ private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))
 }
 
-@Deprecated("", ReplaceWith("OAuth2Exception.InvalidGrant(message)", "io.ktor.auth.OAuth2Exception"))
-private fun InvalidOAuthCredentials(message: String) = OAuth2Exception.InvalidGrant(message)
-
 private interface OAuth2Server {
     fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2
 }

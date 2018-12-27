@@ -44,7 +44,7 @@ class CORS(configuration: Configuration) {
     /**
      * Set of all allowed headers
      */
-    @Deprecated("Use allHeadersSet instead", ReplaceWith("allHeadersSet"))
+    @Deprecated("Use allHeadersSet instead", ReplaceWith("allHeadersSet"), level = DeprecationLevel.ERROR)
     val headers: Set<String> get() = allHeadersSet
 
     /**

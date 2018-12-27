@@ -10,7 +10,7 @@ interface Headers : StringValues {
         /**
          * Empty [Headers] instance
          */
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         val Empty: Headers = EmptyHeaders
 
         /**
@@ -31,7 +31,10 @@ class HeadersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
 }
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Empty headers is internal", replaceWith = ReplaceWith("Headers.Empty"))
+@Deprecated(
+    "Empty headers is internal", replaceWith = ReplaceWith("Headers.Empty"),
+    level = DeprecationLevel.ERROR
+)
 object EmptyHeaders : Headers {
     override val caseInsensitiveName: Boolean get() = true
     override fun getAll(name: String): List<String>? = null

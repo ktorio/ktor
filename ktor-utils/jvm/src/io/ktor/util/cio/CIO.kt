@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Will become private")
+@Deprecated("Will become private", level = DeprecationLevel.ERROR)
 object NoopContinuation : Continuation<Any?> {
     override fun resumeWith(result: Result<Any?>) {}
 

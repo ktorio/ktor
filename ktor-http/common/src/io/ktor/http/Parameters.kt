@@ -10,7 +10,7 @@ interface Parameters : StringValues {
         /**
          * Empty [Parameters] instance
          */
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         val Empty: Parameters = EmptyParameters
 
         /**
@@ -32,7 +32,11 @@ class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
 }
 
 @Suppress("KDocMissingDocumentation")
-@Deprecated("Empty parameters is internal", replaceWith = ReplaceWith("Parameters.Empty"))
+@Deprecated(
+    "Empty parameters is internal",
+    replaceWith = ReplaceWith("Parameters.Empty"),
+    level = DeprecationLevel.ERROR
+)
 object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true
     override fun getAll(name: String): List<String>? = null

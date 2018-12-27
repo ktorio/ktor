@@ -43,18 +43,22 @@ actual fun Digest(name: String): Digest = object : Digest {
  * Encode string as UTF-8 bytes
  */
 @KtorExperimentalAPI
-@Deprecated("Will be removed in future releases", ReplaceWith("s.toByteArray(Charsets.UTF_8)"))
+@Deprecated(
+    "Will be removed in future releases",
+    ReplaceWith("s.toByteArray(Charsets.UTF_8)"),
+    level = DeprecationLevel.ERROR
+)
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 
 @Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use generateNonce() instead")
+@Deprecated("Use generateNonce() instead", level = DeprecationLevel.ERROR)
 val nonceRandom: Random by lazy { SecureRandom() }
 
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @KtorExperimentalAPI
-@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"))
+@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"), level = DeprecationLevel.ERROR)
 fun nextNonce(): String = generateNonce()
 
 /**

@@ -109,7 +109,8 @@ suspend fun ApplicationCall.respondTextWriter(contentType: ContentType? = null, 
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
     "Use respondTextWriter if you need to send text, otherwise use respondOutputStream",
-    replaceWith = ReplaceWith("respondTextWriter(contentType, status, writer)")
+    replaceWith = ReplaceWith("respondTextWriter(contentType, status, writer)"),
+    level = DeprecationLevel.ERROR
 )
 suspend fun ApplicationCall.respondWrite(contentType: ContentType? = null, status: HttpStatusCode? = null, writer: suspend Writer.() -> Unit) {
     respondTextWriter(contentType, status, writer)
