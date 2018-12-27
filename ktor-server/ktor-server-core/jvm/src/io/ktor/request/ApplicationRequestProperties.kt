@@ -110,12 +110,12 @@ fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl
 /**
  * Request's host without port
  */
-fun ApplicationRequest.host(): String? = header(HttpHeaders.Host)?.substringBefore(':')
+fun ApplicationRequest.host(): String = origin.host
 
 /**
  * Request's port extracted from `Host` header value
  */
-fun ApplicationRequest.port(): Int = header(HttpHeaders.Host)?.substringAfter(':', "80")?.toInt() ?: 80
+fun ApplicationRequest.port(): Int = origin.port
 
 /**
  * Parsed request's `Range` header value
