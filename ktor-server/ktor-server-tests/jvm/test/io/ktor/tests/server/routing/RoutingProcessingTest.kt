@@ -348,6 +348,102 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun `host and port routing processing`(): Unit = withTestApplication {
+        application.routing {
+            route("/") {
+                host("my-host", 8080) {
+                    get("1") {
+                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                    }
+                }
+                host("(www\\.)?my-host.net".toRegex()) {
+                    get("3") {
+                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                    }
+                }
+                host(listOf("www.my-host.net", "my-host.net")) {
+                    get("4") {
+                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                    }
+                }
+                port(9090) {
+                    get("2") {
+                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                    }
+                }
+            }
+        }
+
+        handleRequest {
+            uri = "/1"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "my-host:8080")
+        }.let { call ->
+            assertEquals("host = my-host, port = 8080", call.response.content)
+        }
+
+        handleRequest {
+            uri = "/1"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "my-host:80")
+        }.let { call ->
+            assertEquals(null, call.response.content)
+        }
+
+        handleRequest {
+            uri = "/2"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "my-host2:9090")
+        }.let { call ->
+            assertEquals("host = my-host2, port = 9090", call.response.content)
+        }
+
+        handleRequest {
+            uri = "/3"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "my-host.net:9091")
+        }.let { call ->
+            assertEquals("host = my-host.net, port = 9091", call.response.content)
+        }
+
+        handleRequest {
+            uri = "/3"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "www.my-host.net:9092")
+        }.let { call ->
+            assertEquals("host = www.my-host.net, port = 9092", call.response.content)
+        }
+
+        handleRequest {
+            uri = "/3"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "sub.my-host.net:9092")
+        }.let { call ->
+            assertEquals(null, call.response.content)
+        }
+
+        handleRequest {
+            uri = "/4"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "my-host.net:9093")
+        }.let { call ->
+            assertEquals("host = my-host.net, port = 9093", call.response.content)
+        }
+
+        handleRequest {
+            uri = "/4"
+            method = HttpMethod.Get
+            addHeader(HttpHeaders.Host, "www.my-host.net:9094")
+        }.let { call ->
+            assertEquals("host = www.my-host.net, port = 9094", call.response.content)
+        }
+    }
+
+    @Test
     fun `routing with tracing`() = withTestApplication {
         var trace: RoutingResolveTrace? = null
         application.routing {
