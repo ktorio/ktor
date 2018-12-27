@@ -25,6 +25,7 @@ import kotlin.reflect.jvm.*
  *
  * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
  */
+@EngineAPI
 class ApplicationEngineEnvironmentReloading(
         override val classLoader: ClassLoader,
         override val log: Logger,
@@ -147,6 +148,7 @@ class ApplicationEngineEnvironmentReloading(
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
                 ApplicationEnvironment::class.java, // ktor-server-core
+                ApplicationEngineEnvironment::class.java, // ktor-server-host-common
                 Pipeline::class.java, // ktor-parsing
                 HttpStatusCode::class.java, // ktor-http
                 kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
