@@ -11,7 +11,13 @@ internal class ConnectionFactory(private val selector: SelectorManager, maxConne
 
     suspend fun connect(address: InetSocketAddress): Socket {
         semaphore.enter()
-        return aSocket(selector).tcpNoDelay().tcp().connect(address)
+        return try {
+            aSocket(selector).tcpNoDelay().tcp().connect(address)
+        } catch (t: Throwable) {
+            // a failure or cancellation
+            semaphore.leave()
+            throw t
+        }
     }
 
     fun release() {
