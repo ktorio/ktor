@@ -84,4 +84,28 @@ internal class URLBuilderTest {
         url.takeFrom("/1")
         assertEquals("https://httpstat.us/1", url.buildString())
     }
+
+    @Test
+    fun rewritePathDirectoryWithRelative() {
+        val url = URLBuilder("https://example.org/first/directory/")
+
+        url.takeFrom("relative")
+        assertEquals("https://example.org/first/directory/relative", url.buildString())
+    }
+
+    @Test
+    fun rewritePathFileWithRelative() {
+        val url = URLBuilder("https://example.org/first/file.html")
+
+        url.takeFrom("relative")
+        assertEquals("https://example.org/first/relative", url.buildString())
+    }
+
+    @Test
+    fun rewritePathFileWithDot() {
+        val url = URLBuilder("https://example.org/first/file.html")
+
+        url.takeFrom("./")
+        assertEquals("https://example.org/first/./", url.buildString())
+    }
 }

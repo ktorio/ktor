@@ -62,11 +62,33 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     // Path
-    encodedPath = "/"
-    if (startIndex >= endIndex) return this
+    if (startIndex >= endIndex) {
+        encodedPath = "/"
+        return this
+    }
+
+    encodedPath = if (slashCount == 0) {
+        // Relative path
+        val lastSlashIndex = encodedPath.lastIndexOf('/')
+
+        if (lastSlashIndex != encodedPath.length-1) {
+            // Current path does not end in slash, get rid of last path segment.
+            if (lastSlashIndex != -1) {
+                encodedPath.substring(0, lastSlashIndex+1)
+            } else {
+                "/"
+            }
+        } else {
+            // keep the whole path
+            encodedPath
+        }
+    } else {
+        // overwrite the path
+        ""
+    }
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     val rawPath = urlString.substring(startIndex, pathEnd)
-    encodedPath = rawPath.encodeURLPath()
+    encodedPath += rawPath.encodeURLPath()
     startIndex = pathEnd
 
     // Query

@@ -39,6 +39,12 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
 
                 call.respondText("OK")
             }
+            get("/directory/redirectFile") {
+                call.respondRedirect("targetFile")
+            }
+            get("/directory/targetFile") {
+                call.respondText("targetFile")
+            }
         }
     }
 
@@ -114,6 +120,15 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
         test { client ->
             client.get<HttpResponse>("https://httpstat.us/301").use { response ->
                 assertEquals(response.status, HttpStatusCode.OK)
+            }
+        }
+    }
+
+    @Test
+    fun redirectRelative() = clientTest(factory) {
+        test { client ->
+            client.get<HttpResponse>(path = "/directory/redirectFile", port = serverPort).use {
+                assertEquals("targetFile", it.readText())
             }
         }
     }
