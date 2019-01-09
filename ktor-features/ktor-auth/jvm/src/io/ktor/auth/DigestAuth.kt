@@ -20,21 +20,27 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
     /**
      * Message digest algorithm to be used
      */
-    @KtorExperimentalAPI
-    var digester: MessageDigest = MessageDigest.getInstance("MD5")
+    var algorithmName: String = "MD5"
+
+    /**
+     * Message digest algorithm to be used
+     */
+    @Deprecated("Specify algorithm name instead")
+    var digester: MessageDigest
+        get() = MessageDigest.getInstance(algorithmName)
+        set(newValue) {
+            algorithmName = newValue.algorithm
+        }
 
     /**
      * username and password digest function
      */
     @KtorExperimentalAPI
     var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
-        when (userName) {
-            "missing" -> null
-            else -> {
-                digester.reset()
-                digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
-                digester.digest()
-            }
+        MessageDigest.getInstance(algorithmName).let { digester ->
+            digester.reset()
+            digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
+            digester.digest()
         }
     }
 }
@@ -44,9 +50,6 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
  */
 fun Authentication.Configuration.digest(name: String? = null, configure: DigestAuthenticationProvider.() -> Unit) {
     val provider = DigestAuthenticationProvider(name).apply(configure)
-    val realm = provider.realm
-    val userNameRealmPasswordDigestProvider = provider.userNameRealmPasswordDigestProvider
-    val digester = provider.digester
 
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val authorizationHeader = call.request.parseAuthorizationHeader()
@@ -58,9 +61,11 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digester.algorithm
-                    && it.realm == realm
-                    && it.verifier(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
+            if ((it.algorithm ?: "MD5") == provider.algorithmName
+                    && it.realm == provider.realm
+                    && it.verifier(call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
+                    provider.userNameRealmPasswordDigestProvider
+                ))
                 UserIdPrincipal(it.userName)
             else
                 null
@@ -74,7 +79,7 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
                 }
 
                 context.challenge(digestAuthenticationChallengeKey, cause) {
-                    call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(realm)))
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(provider.realm)))
                     it.complete()
                 }
             }
@@ -130,7 +135,7 @@ private val digestAuthenticationChallengeKey: Any = "DigestAuth"
 /**
  * Converts [HttpAuthHeader] to [DigestCredential]
  */
-fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
+fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
         parameter("realm")!!,
         parameter("username")!!,
         parameter("uri")!!,
@@ -170,9 +175,23 @@ fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest,
         return digester.digest()
     }
 
+    // H(A1) in the RFC
     val start = hex(userNameRealmPasswordDigest)
+
+    // H(A2) in the RFC
     val end = hex(digest("${method.value.toUpperCase()}:$digestUri"))
 
-    val a = (if (qop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, cnonce, qop, end)).joinToString(":")
-    return digest(a)
+    val hashParameters = when (qop) {
+        null -> listOf(start, nonce, end)
+        else -> listOf(
+            start,
+            nonce,
+            nonceCount,
+            cnonce,
+            qop,
+            end
+        )
+    }.joinToString(":")
+
+    return digest(hashParameters)
 }
