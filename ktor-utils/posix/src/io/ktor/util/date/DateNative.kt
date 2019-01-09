@@ -5,12 +5,12 @@ import platform.posix.*
 import utils.*
 
 actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
-    val timeHolder = alloc<LongVar>()
-    val current = if (timestamp == null) {
+    val timeHolder = alloc<time_tVar>()
+    val current: Long = if (timestamp == null) {
         time(timeHolder.ptr)
-        timeHolder.value * 1000
+        timeHolder.value * 1000L
     } else {
-        timeHolder.value = timestamp / 1000
+        timeHolder.value = (timestamp / 1000).convert()
         timestamp
     }
 
@@ -48,7 +48,7 @@ actual fun GMTDate(
         tm_isdst = 0
     }
 
-    val timestamp: Long = ktor_time(dateInfo.ptr)
+    val timestamp = ktor_time(dateInfo.ptr)
 
-    return GMTDate(timestamp * 1000)
+    return GMTDate(timestamp * 1000L)
 }

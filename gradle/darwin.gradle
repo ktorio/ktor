@@ -6,10 +6,10 @@ kotlin {
             fromPreset(project.ext.ideaPreset, 'darwin')
         } else {
             fromPreset(presets.iosArm64, 'iosArm64')
+            fromPreset(presets.iosArm32, 'iosArm32')
             fromPreset(presets.iosX64, 'iosX64')
             fromPreset(presets.macosX64, 'macosX64')
         }
-        /* fromPreset(presets.iosArm32, 'iosArm32') */
     }
     sourceSets {
         darwinMain.dependencies {
@@ -24,11 +24,11 @@ kotlin {
         darwinTest { dependsOn darwinMain }
 
         if (!project.ext.ideaActive) {
-            configure([/*iosArm32Main, */ iosArm64Main, iosX64Main, macosX64Main]) {
+            configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main]) {
                 dependsOn darwinMain
             }
 
-            configure([/*iosArm32Test, */ iosArm64Test, iosX64Test, macosX64Test]) {
+            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test]) {
                 dependsOn darwinTest
             }
         }
