@@ -18,9 +18,15 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
     var realm: String = "Ktor Server"
 
     /**
-     * Message digest algorithm to be used
+     * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
      */
     var algorithmName: String = "MD5"
+
+    /**
+     * [NonceManager] to be used to generate nonce values
+     */
+    @KtorExperimentalAPI
+    var nonceManager: NonceManager = GenerateOnlyNonceManager
 
     /**
      * Message digest algorithm to be used
@@ -63,6 +69,7 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
         val principal = credentials?.let {
             if ((it.algorithm ?: "MD5") == provider.algorithmName
                     && it.realm == provider.realm
+                    && provider.nonceManager.verifyNonce(it.nonce)
                     && it.verifier(call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
                     provider.userNameRealmPasswordDigestProvider
                 ))
@@ -79,7 +86,14 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
                 }
 
                 context.challenge(digestAuthenticationChallengeKey, cause) {
-                    call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(provider.realm)))
+                    call.respond(
+                        UnauthorizedResponse(
+                            HttpAuthHeader.digestAuthChallenge(
+                                provider.realm,
+                                nonce = provider.nonceManager.newNonce()
+                            )
+                        )
+                    )
                     it.complete()
                 }
             }
