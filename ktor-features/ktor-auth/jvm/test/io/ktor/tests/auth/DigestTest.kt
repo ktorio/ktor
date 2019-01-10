@@ -252,7 +252,7 @@ class DigestTest {
 
         withTestApplication {
             application.configureDigestServer(
-                nonceManager = StatelessNonceManager(
+                nonceManager = StatelessHmacNonceManager(
                     key,
                     nonceGenerator = { nonceValue })
             )
