@@ -68,11 +68,13 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
 
         val principal = credentials?.let {
             if ((it.algorithm ?: "MD5") == provider.algorithmName
-                    && it.realm == provider.realm
-                    && provider.nonceManager.verifyNonce(it.nonce)
-                    && it.verifier(call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
+                && it.realm == provider.realm
+                && provider.nonceManager.verifyNonce(it.nonce)
+                && it.verifier(
+                    call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
                     provider.userNameRealmPasswordDigestProvider
-                ))
+                )
+            )
                 UserIdPrincipal(it.userName)
             else
                 null
@@ -120,16 +122,18 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
  * @property cnonce must be sent if [qop] is specified and must be `null` otherwise. Should be passed through unchanged.
  * @property qop quality of protection sign
  */
-data class DigestCredential(val realm: String,
-                            val userName: String,
-                            val digestUri: String,
-                            val nonce: String,
-                            val opaque: String?,
-                            val nonceCount: String?,
-                            val algorithm: String?,
-                            val response: String,
-                            val cnonce: String?,
-                            val qop: String?) : Credential
+data class DigestCredential(
+    val realm: String,
+    val userName: String,
+    val digestUri: String,
+    val nonce: String,
+    val opaque: String?,
+    val nonceCount: String?,
+    val algorithm: String?,
+    val response: String,
+    val cnonce: String?,
+    val qop: String?
+) : Credential
 
 /**
  * Retrieves [DigestCredential] from this call
@@ -150,22 +154,26 @@ private val digestAuthenticationChallengeKey: Any = "DigestAuth"
  * Converts [HttpAuthHeader] to [DigestCredential]
  */
 fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
-        parameter("realm")!!,
-        parameter("username")!!,
-        parameter("uri")!!,
-        parameter("nonce")!!,
-        parameter("opaque"),
-        parameter("nc"),
-        parameter("algorithm"),
-        parameter("response")!!,
-        parameter("cnonce"),
-        parameter("qop")
+    parameter("realm")!!,
+    parameter("username")!!,
+    parameter("uri")!!,
+    parameter("nonce")!!,
+    parameter("opaque"),
+    parameter("nc"),
+    parameter("algorithm"),
+    parameter("response")!!,
+    parameter("cnonce"),
+    parameter("qop")
 )
 
 /**
  * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
  */
-suspend fun DigestCredential.verifier(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?): Boolean {
+suspend fun DigestCredential.verifier(
+    method: HttpMethod,
+    digester: MessageDigest,
+    userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?
+): Boolean {
     val userNameRealmPasswordDigestResult = userNameRealmPasswordDigest(userName, realm)
     val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigestResult ?: ByteArray(0))
 
@@ -182,7 +190,11 @@ suspend fun DigestCredential.verifier(method: HttpMethod, digester: MessageDiges
 /**
  * Calculates expected digest bytes for this [DigestCredential]
  */
-fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): ByteArray {
+fun DigestCredential.expectedDigest(
+    method: HttpMethod,
+    digester: MessageDigest,
+    userNameRealmPasswordDigest: ByteArray
+): ByteArray {
     fun digest(data: String): ByteArray {
         digester.reset()
         digester.update(data.toByteArray(Charsets.ISO_8859_1))
