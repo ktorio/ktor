@@ -20,11 +20,13 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+    override suspend fun execute(
+        call: HttpClientCall, data: HttpRequestData
+    ): HttpEngineCall = withContext(coroutineContext) {
         val request = DefaultHttpRequest(call, data)
         val response = executeRequest(request)
 
-        return HttpEngineCall(request, response)
+        return@withContext HttpEngineCall(request, response)
     }
 
     private suspend fun executeRequest(request: DefaultHttpRequest): CIOHttpResponse {
