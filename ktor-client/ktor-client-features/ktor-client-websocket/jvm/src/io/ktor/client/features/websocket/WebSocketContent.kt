@@ -7,7 +7,7 @@ import io.ktor.util.*
 import java.util.*
 
 private const val WEBSOCKET_VERSION = "13"
-private const val NONCE_SIZE = 24
+private const val NONCE_SIZE = 16
 
 class WebSocketContent: ClientUpgradeContent() {
 
