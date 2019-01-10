@@ -107,16 +107,16 @@ class DigestTest {
         assertTrue(digest.verifier(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
 
-    private fun Application.configureDigestServer() {
+    private fun Application.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
         install(Authentication) {
             digest {
                 val p = "Circle Of Life"
-                digester = MessageDigest.getInstance("MD5")
                 realm = "testrealm@host.com"
+                this.nonceManager = nonceManager
                 userNameRealmPasswordDigestProvider = { userName, realm ->
                     when (userName) {
                         "missing" -> null
-                        else -> digest(digester, "$userName:$realm:$p")
+                        else -> digest(MessageDigest.getInstance("MD5"), "$userName:$realm:$p")
                     }
                 }
             }
@@ -225,6 +225,82 @@ class DigestTest {
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
+
+    @Test
+    fun testDigestFromRFCExampleAuthFailedDueToWrongNonce() {
+        val key = "test".toByteArray()
+        val nonceValue = "test-nonce"
+
+        withTestApplication {
+            application.configureDigestServer(nonceManager = StatelessNonceManager(key, nonceGenerator = { nonceValue }))
+
+            val challenge = handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+                parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!)
+            }
+
+            val nonce = (challenge as? HttpAuthHeader.Parameterized)?.parameter("nonce")
+
+            assertNotNull(challenge, "Challenge is missing")
+            assertNotNull(nonce, "Nonce is missing")
+
+            val authHeader = HttpAuthHeader.Parameterized(AuthScheme.Digest, linkedMapOf(
+                "username" to "Mufasa",
+                "realm" to "testrealm@host.com",
+                "nonce" to nonce,
+                "uri" to "/dir/index.html",
+                "qop" to "auth",
+                "nc" to "00000001",
+                "cnonce" to "0a4f113b",
+                "response" to "unknown yet",
+                "opaque" to "5ccc069c403ebaf9f0171e9517f40e41"
+            ), HeaderValueEncoding.QUOTED_ALWAYS)
+
+
+            val userRealmPassDigest =
+                digest(MessageDigest.getInstance("MD5"), "Mufasa:testrealm@host.com:Circle Of Life")
+
+            val expectedDigest = authHeader.toDigestCredential().expectedDigest(
+                HttpMethod.Get,
+                MessageDigest.getInstance("MD5"), userRealmPassDigest
+            )
+
+            handleRequest {
+                uri = "/"
+
+                addHeader(
+                    HttpHeaders.Authorization,
+                    authHeader.withReplacedParameter("response", hex(expectedDigest)).render()
+                )
+            }.let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+
+            handleRequest {
+                uri = "/"
+
+                addHeader(
+                    HttpHeaders.Authorization,
+                    authHeader.withReplacedParameter("response", hex(expectedDigest)).withReplacedParameter(
+                        "nonce",
+                        flipLastHexDigit(nonce)
+                    ).render()
+                )
+            }.let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            }
+        }
+    }
+
+    private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
+        when {
+            index != sessionId.lastIndex -> letter
+            letter == '0' -> '1'
+            else -> '0'
+        }
+    }.joinToString("")
 
     private fun digest(digester: MessageDigest, data: String): ByteArray {
         digester.reset()

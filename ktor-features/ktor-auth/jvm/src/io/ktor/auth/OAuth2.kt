@@ -30,7 +30,9 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val token = call.oauth2HandleCallback()
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
+            @Suppress("DEPRECATION")
             val stateProvider = provider.stateProvider
+
             call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
                     state = stateProvider.getState(call),
                     scopes = provider.defaultScopes,
@@ -42,7 +44,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
                     Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
-                    val stateProvider = provider.stateProvider
+                    val stateProvider = @Suppress("DEPRECATION") provider.stateProvider
                     call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
                         state = stateProvider.getState(call),
                         scopes = provider.defaultScopes,
@@ -91,7 +93,7 @@ internal suspend fun oauth2RequestAccessToken(client: HttpClient,
             extraParameters,
             configure,
             settings.accessTokenRequiresBasicAuth,
-            settings.stateProvider
+            @Suppress("DEPRECATION") settings.stateProvider
     )
 }
 
@@ -133,6 +135,7 @@ private suspend fun oauth2RequestAccessToken(client: HttpClient,
                                              extraParameters: Map<String, String> = emptyMap(),
                                              configure: HttpRequestBuilder.() -> Unit = {},
                                              useBasicAuth: Boolean = false,
+                                             @Suppress("DEPRECATION")
                                              stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
                                              grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
 
@@ -268,7 +271,7 @@ suspend fun verifyWithOAuth2(
                     OAuth2RequestParameters.Password to credential.password
             ),
             useBasicAuth = true,
-            stateProvider = settings.stateProvider,
+            stateProvider = @Suppress("DEPRECATION") settings.stateProvider,
             grantType = OAuthGrantTypes.Password
     )
 }
