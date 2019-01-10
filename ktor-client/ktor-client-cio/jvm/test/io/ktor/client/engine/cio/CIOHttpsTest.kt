@@ -7,12 +7,13 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
@@ -23,7 +24,7 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
+    override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
         sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile
@@ -86,13 +87,22 @@ class CIOHttpsTest : TestWithKtor() {
 
     @Test
     fun hello(): Unit = runBlocking {
-        HttpClient(CIO.config {
-            https.apply {
-                trustManager = x509TrustManager
+        CIOCipherSuites.SupportedSuites.forEach { suite ->
+            clientTest(CIO) {
+                config {
+                    engine {
+                        https {
+                            trustManager = x509TrustManager
+                            cipherSuites = listOf(suite)
+                        }
+                    }
+                }
+
+                test { client ->
+                    val actual = client.get<String>("https://127.0.0.1:$serverPort/")
+                    assertEquals("Hello, world", actual)
+                }
             }
-        }).use { client ->
-            val actual = client.get<String>("https://127.0.0.1:$serverPort/")
-            assertEquals("Hello, world", actual)
         }
     }
 
@@ -109,7 +119,7 @@ class CIOHttpsTest : TestWithKtor() {
         val domains = listOf(
             "https://google.com",
             "https://facebook.com",
-//            "https://elster.de"
+//            "https://elster.de",
             "https://freenode.net"
         )
 

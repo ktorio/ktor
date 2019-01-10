@@ -45,6 +45,13 @@ fun hex(s: String): ByteArray {
 expect fun generateNonce(): String
 
 @InternalAPI
+fun generateNonce(size: Int): ByteArray = buildPacket {
+    while (this.size < size) {
+        writeStringUtf8(generateNonce())
+    }
+}.readBytes(size)
+
+@InternalAPI
 expect fun Digest(name: String): Digest
 
 @InternalAPI

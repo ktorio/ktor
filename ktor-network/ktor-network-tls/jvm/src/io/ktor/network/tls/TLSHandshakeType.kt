@@ -64,7 +64,7 @@ internal class TLSServerHello(
     val extensions: List<TLSExtension> = listOf()
 ) {
     val cipherSuite: CipherSuite = CIOCipherSuites.SupportedSuites.find { it.code == suite }
-            ?: error("Server cipher suite is not supported: $suite")
+        ?: error("Server cipher suite is not supported: $suite")
 
     val hashAndSignAlgorithms: List<HashAndSign>
 
@@ -75,7 +75,8 @@ internal class TLSServerHello(
                 TLSExtensionType.SIGNATURE_ALGORITHMS -> {
                     algorithms += it.packet.parseSignatureAlgorithms()
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
 

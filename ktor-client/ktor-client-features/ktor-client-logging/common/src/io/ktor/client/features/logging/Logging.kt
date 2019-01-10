@@ -116,11 +116,17 @@ class Logging(
 
         override fun install(feature: Logging, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.Before) {
-                feature.logRequest(context)
+                try {
+                    feature.logRequest(context)
+                } catch (_: Throwable) {
+                }
             }
 
             val observer: ResponseHandler = {
-                feature.logResponse(it)
+                try {
+                    feature.logResponse(it)
+                } catch (_: Throwable) {
+                }
             }
 
             ResponseObserver.install(ResponseObserver(observer), scope)
