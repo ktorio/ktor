@@ -213,6 +213,26 @@ class DQuotesEncodingTest {
     }
 }
 
+class Base64EncodingTest {
+    @test fun `no bad characters`() {
+        testEncode("YWJj", "abc")
+    }
+
+    @test fun `space inside`() {
+        testEncode("YWJjIDEyMw==", "abc 123")
+    }
+
+    @test fun `equals inside`() {
+        testEncode("YWJjPTEyMw==", "abc=123")
+    }
+
+    private fun testEncode(expected: String, value: String): String {
+        val encoded = encodeCookieValue(value, CookieEncoding.BASE64_ENCODING)
+        assertEquals(expected, encoded, "Encode failed")
+        assertEquals(value, decodeCookieValue(encoded, CookieEncoding.BASE64_ENCODING), "Decode failed")
+        return encoded
+    }
+}
 
 class URIEncodingTest {
     @test fun `no bad characters`() {
@@ -299,5 +319,11 @@ class ParserServerSetCookieTest {
         assertEquals(2016, expires.year)
         assertEquals(io.ktor.util.date.Month.JANUARY, expires.month)
         assertEquals(16, expires.dayOfMonth)
+    }
+
+    @test fun testParseBase64() {
+        val header = "SESSION=MTIzCg==; \$x-enc=BASE64_ENCODING"
+        val parsed = parseServerSetCookieHeader(header)
+        assertEquals("123\n", parsed.value)
     }
 }
