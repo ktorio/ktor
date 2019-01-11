@@ -123,6 +123,8 @@ private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: In
 
     if (colonIndex + 1 < endIndex) {
         port = urlString.substring(colonIndex + 1, endIndex).toInt()
+    } else {
+        port = DEFAULT_PORT
     }
 }
 
