@@ -68,7 +68,7 @@ open class Locations(private val application: Application, private val routeServ
                 try {
                     conversionService.fromValues(values, type)
                 } catch (cause: Throwable) {
-                    throw ParameterConversionException(name, type.typeName, cause)
+                    throw ParameterConversionException(name, type.toString(), cause)
                 }
             }
         }
