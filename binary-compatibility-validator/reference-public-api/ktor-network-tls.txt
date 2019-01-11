@@ -5,16 +5,20 @@ public final class io/ktor/network/tls/CIOCipherSuites {
 	public final fun getECDHE_RSA_AES128_SHA256 ()Lio/ktor/network/tls/CipherSuite;
 	public final fun getECDHE_RSA_AES256_SHA384 ()Lio/ktor/network/tls/CipherSuite;
 	public final fun getSupportedSuites ()Ljava/util/List;
+	public final fun getTLS_RSA_WITH_AES128_CBC_SHA ()Lio/ktor/network/tls/CipherSuite;
+	public final fun getTLS_RSA_WITH_AES256_CBC_SHA ()Lio/ktor/network/tls/CipherSuite;
 	public final fun getTLS_RSA_WITH_AES_128_GCM_SHA256 ()Lio/ktor/network/tls/CipherSuite;
 }
 
 public final class io/ktor/network/tls/CipherSuite {
-	public fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
+	public fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;)V
+	public synthetic fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()S
 	public final fun component10 ()Ljava/lang/String;
 	public final fun component11 ()I
 	public final fun component12 ()Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun component13 ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public final fun component14 ()Lio/ktor/network/tls/CipherType;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lio/ktor/network/tls/SecretExchangeType;
@@ -23,10 +27,11 @@ public final class io/ktor/network/tls/CipherSuite {
 	public final fun component7 ()I
 	public final fun component8 ()I
 	public final fun component9 ()I
-	public final fun copy (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;)Lio/ktor/network/tls/CipherSuite;
-	public static synthetic fun copy$default (Lio/ktor/network/tls/CipherSuite;SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;ILjava/lang/Object;)Lio/ktor/network/tls/CipherSuite;
+	public final fun copy (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;)Lio/ktor/network/tls/CipherSuite;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/CipherSuite;SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;ILjava/lang/Object;)Lio/ktor/network/tls/CipherSuite;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCipherTagSizeInBytes ()I
+	public final fun getCipherType ()Lio/ktor/network/tls/CipherType;
 	public final fun getCode ()S
 	public final fun getExchangeType ()Lio/ktor/network/tls/SecretExchangeType;
 	public final fun getFixedIvLength ()I
@@ -45,9 +50,17 @@ public final class io/ktor/network/tls/CipherSuite {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/network/tls/CipherType : java/lang/Enum {
+	public static final field CBC Lio/ktor/network/tls/CipherType;
+	public static final field GCM Lio/ktor/network/tls/CipherType;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/CipherType;
+	public static fun values ()[Lio/ktor/network/tls/CipherType;
+}
+
 public final class io/ktor/network/tls/SecretExchangeType : java/lang/Enum {
 	public static final field ECDHE Lio/ktor/network/tls/SecretExchangeType;
 	public static final field RSA Lio/ktor/network/tls/SecretExchangeType;
+	public final fun getJvmName ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/SecretExchangeType;
 	public static fun values ()[Lio/ktor/network/tls/SecretExchangeType;
 }
@@ -228,6 +241,7 @@ public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum
 	public static final field SHA384 Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public static final field SHA512 Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun getCode ()B
+	public final fun getMacName ()Ljava/lang/String;
 	public final fun getOpenSSLName ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public static fun values ()[Lio/ktor/network/tls/extensions/HashAlgorithm;

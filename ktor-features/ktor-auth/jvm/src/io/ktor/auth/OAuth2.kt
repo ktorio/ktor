@@ -21,20 +21,24 @@ import java.net.*
 private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
-        client: HttpClient, dispatcher: CoroutineDispatcher,
-        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-        urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+    client: HttpClient, dispatcher: CoroutineDispatcher,
+    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+    urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth2ServerSettings) {
         val token = call.oauth2HandleCallback()
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
+            @Suppress("DEPRECATION")
             val stateProvider = provider.stateProvider
-            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
-                    state = stateProvider.getState(call),
-                    scopes = provider.defaultScopes,
-                    interceptor = provider.authorizeUrlInterceptor)
+
+            call.redirectAuthenticateOAuth2(
+                provider, callbackRedirectUrl,
+                state = stateProvider.getState(call),
+                scopes = provider.defaultScopes,
+                interceptor = provider.authorizeUrlInterceptor
+            )
         } else {
             withContext(dispatcher) {
                 try {
@@ -42,11 +46,13 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
                     Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
-                    val stateProvider = provider.stateProvider
-                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
+                    val stateProvider = @Suppress("DEPRECATION") provider.stateProvider
+                    call.redirectAuthenticateOAuth2(
+                        provider, callbackRedirectUrl,
                         state = stateProvider.getState(call),
                         scopes = provider.defaultScopes,
-                        interceptor = provider.authorizeUrlInterceptor)
+                        interceptor = provider.authorizeUrlInterceptor
+                    )
                 }
             }
         }
@@ -63,45 +69,58 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList(), interceptor: URLBuilder.() -> Unit) {
-    redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
-            callbackRedirectUrl = callbackRedirectUrl,
-            clientId = settings.clientId,
-            state = state,
-            scopes = scopes,
-            parameters = extraParameters,
-            interceptor = interceptor)
-}
-
-internal suspend fun oauth2RequestAccessToken(client: HttpClient,
-                                              settings: OAuthServerSettings.OAuth2ServerSettings,
-                                              usedRedirectUrl: String,
-                                              callbackResponse: OAuthCallback.TokenSingle,
-                                              extraParameters: Map<String, String> = emptyMap(),
-                                              configure: HttpRequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
-    return oauth2RequestAccessToken(
-            client,
-            settings.requestMethod,
-            usedRedirectUrl,
-            settings.accessTokenUrl,
-            settings.clientId,
-            settings.clientSecret,
-            callbackResponse.state,
-            callbackResponse.token,
-            extraParameters,
-            configure,
-            settings.accessTokenRequiresBasicAuth,
-            settings.stateProvider
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+    settings: OAuthServerSettings.OAuth2ServerSettings,
+    callbackRedirectUrl: String,
+    state: String,
+    extraParameters: List<Pair<String, String>> = emptyList(),
+    scopes: List<String> = emptyList(),
+    interceptor: URLBuilder.() -> Unit
+) {
+    redirectAuthenticateOAuth2(
+        authenticateUrl = settings.authorizeUrl,
+        callbackRedirectUrl = callbackRedirectUrl,
+        clientId = settings.clientId,
+        state = state,
+        scopes = scopes,
+        parameters = extraParameters,
+        interceptor = interceptor
     )
 }
 
-private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String,
-                                                               callbackRedirectUrl: String,
-                                                               clientId: String,
-                                                               state: String,
-                                                               scopes: List<String> = emptyList(),
-                                                               parameters: List<Pair<String, String>> = emptyList(),
-                                                               interceptor: URLBuilder.() -> Unit = {}) {
+internal suspend fun oauth2RequestAccessToken(
+    client: HttpClient,
+    settings: OAuthServerSettings.OAuth2ServerSettings,
+    usedRedirectUrl: String,
+    callbackResponse: OAuthCallback.TokenSingle,
+    extraParameters: Map<String, String> = emptyMap(),
+    configure: HttpRequestBuilder.() -> Unit = {}
+): OAuthAccessTokenResponse.OAuth2 {
+    return oauth2RequestAccessToken(
+        client,
+        settings.requestMethod,
+        usedRedirectUrl,
+        settings.accessTokenUrl,
+        settings.clientId,
+        settings.clientSecret,
+        callbackResponse.state,
+        callbackResponse.token,
+        extraParameters,
+        configure,
+        settings.accessTokenRequiresBasicAuth,
+        @Suppress("DEPRECATION") settings.stateProvider
+    )
+}
+
+private suspend fun ApplicationCall.redirectAuthenticateOAuth2(
+    authenticateUrl: String,
+    callbackRedirectUrl: String,
+    clientId: String,
+    state: String,
+    scopes: List<String> = emptyList(),
+    parameters: List<Pair<String, String>> = emptyList(),
+    interceptor: URLBuilder.() -> Unit = {}
+) {
 
     val url = URLBuilder()
     url.takeFrom(URI(authenticateUrl))
@@ -122,19 +141,22 @@ private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: 
     return respondRedirect(url.buildString())
 }
 
-private suspend fun oauth2RequestAccessToken(client: HttpClient,
-                                             method: HttpMethod,
-                                             usedRedirectUrl: String?,
-                                             baseUrl: String,
-                                             clientId: String,
-                                             clientSecret: String,
-                                             state: String?,
-                                             code: String?,
-                                             extraParameters: Map<String, String> = emptyMap(),
-                                             configure: HttpRequestBuilder.() -> Unit = {},
-                                             useBasicAuth: Boolean = false,
-                                             stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
-                                             grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
+private suspend fun oauth2RequestAccessToken(
+    client: HttpClient,
+    method: HttpMethod,
+    usedRedirectUrl: String?,
+    baseUrl: String,
+    clientId: String,
+    clientSecret: String,
+    state: String?,
+    code: String?,
+    extraParameters: Map<String, String> = emptyMap(),
+    configure: HttpRequestBuilder.() -> Unit = {},
+    useBasicAuth: Boolean = false,
+    @Suppress("DEPRECATION")
+    stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
+    grantType: String = OAuthGrantTypes.AuthorizationCode
+): OAuthAccessTokenResponse.OAuth2 {
 
     if (state != null) {
         stateProvider.verifyState(state)
@@ -144,9 +166,9 @@ private suspend fun oauth2RequestAccessToken(client: HttpClient,
     request.url.takeFrom(URI(baseUrl))
 
     val urlParameters = ParametersBuilder().apply {
-        append(OAuth2RequestParameters.ClientId,  clientId)
-        append(OAuth2RequestParameters.ClientSecret,  clientSecret)
-        append(OAuth2RequestParameters.GrantType,  grantType)
+        append(OAuth2RequestParameters.ClientId, clientId)
+        append(OAuth2RequestParameters.ClientSecret, clientSecret)
+        append(OAuth2RequestParameters.GrantType, grantType)
         if (state != null) {
             append(OAuth2RequestParameters.State, state)
         }
@@ -163,17 +185,24 @@ private suspend fun oauth2RequestAccessToken(client: HttpClient,
 
     when (method) {
         HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
-        HttpMethod.Post -> request.body = TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+        HttpMethod.Post -> request.body =
+            TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
 
     request.apply {
         this.method = method
-        header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
+        header(
+            HttpHeaders.Accept,
+            listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(",")
+        )
         if (useBasicAuth) {
             header(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))).render()
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single(
+                    AuthScheme.Basic,
+                    encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))
+                ).render()
             )
         }
 
@@ -237,8 +266,14 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
     else -> {
         // some servers may respond with wrong content type so we have to try to guess
         when {
-            content.startsWith("{") && content.trim().endsWith("}") -> decodeContent(content.trim(), ContentType.Application.Json)
-            content.matches("([a-zA-Z\\d_-]+=[^=&]+&?)+".toRegex()) -> decodeContent(content, ContentType.Application.FormUrlEncoded) // TODO too risky, isn't it?
+            content.startsWith("{") && content.trim().endsWith("}") -> decodeContent(
+                content.trim(),
+                ContentType.Application.Json
+            )
+            content.matches("([a-zA-Z\\d_-]+=[^=&]+&?)+".toRegex()) -> decodeContent(
+                content,
+                ContentType.Application.FormUrlEncoded
+            ) // TODO too risky, isn't it?
             else -> throw IOException("unsupported content type $contentType")
         }
     }
@@ -255,21 +290,22 @@ suspend fun verifyWithOAuth2(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth2ServerSettings
 ): OAuthAccessTokenResponse.OAuth2 {
-    return oauth2RequestAccessToken(client, HttpMethod.Post,
-            usedRedirectUrl = null,
-            baseUrl = settings.accessTokenUrl,
-            clientId = settings.clientId,
-            clientSecret = settings.clientSecret,
-            code = null,
-            state = null,
-            configure = {},
-            extraParameters = mapOf(
-                    OAuth2RequestParameters.UserName to credential.name,
-                    OAuth2RequestParameters.Password to credential.password
-            ),
-            useBasicAuth = true,
-            stateProvider = settings.stateProvider,
-            grantType = OAuthGrantTypes.Password
+    return oauth2RequestAccessToken(
+        client, HttpMethod.Post,
+        usedRedirectUrl = null,
+        baseUrl = settings.accessTokenUrl,
+        clientId = settings.clientId,
+        clientSecret = settings.clientSecret,
+        code = null,
+        state = null,
+        configure = {},
+        extraParameters = mapOf(
+            OAuth2RequestParameters.UserName to credential.name,
+            OAuth2RequestParameters.Password to credential.password
+        ),
+        useBasicAuth = true,
+        stateProvider = @Suppress("DEPRECATION") settings.stateProvider,
+        grantType = OAuthGrantTypes.Password
     )
 }
 

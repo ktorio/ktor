@@ -18,14 +18,11 @@ class DigestTest : TestWithKtor() {
         install(Authentication) {
             digest("digest") {
                 val password = "Circle Of Life"
-                digester = MessageDigest.getInstance("MD5")
+                algorithmName = "MD5"
                 realm = "testrealm@host.com"
 
                 userNameRealmPasswordDigestProvider = { userName, realm ->
-                    when (userName) {
-                        "missing" -> null
-                        else -> digest(digester, "$userName:$realm:$password")
-                    }
+                    digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
                 }
             }
 

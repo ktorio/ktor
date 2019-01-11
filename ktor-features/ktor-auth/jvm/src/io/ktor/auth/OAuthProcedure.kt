@@ -70,10 +70,12 @@ internal fun OAuthAuthenticationProvider.oauth2() {
 
             if (cause != null) {
                 context.challenge(OAuthKey, cause) {
-                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
-                        state = provider.stateProvider.getState(call),
+                    call.redirectAuthenticateOAuth2(
+                        provider, callbackRedirectUrl,
+                        state = @Suppress("DEPRECATION") provider.stateProvider.getState(call),
                         scopes = provider.defaultScopes,
-                        interceptor = provider.authorizeUrlInterceptor)
+                        interceptor = provider.authorizeUrlInterceptor
+                    )
                     it.complete()
                 }
             }

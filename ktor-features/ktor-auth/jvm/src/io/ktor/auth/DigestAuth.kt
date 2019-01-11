@@ -18,23 +18,35 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
     var realm: String = "Ktor Server"
 
     /**
-     * Message digest algorithm to be used
+     * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
+     */
+    var algorithmName: String = "MD5"
+
+    /**
+     * [NonceManager] to be used to generate nonce values
      */
     @KtorExperimentalAPI
-    var digester: MessageDigest = MessageDigest.getInstance("MD5")
+    var nonceManager: NonceManager = GenerateOnlyNonceManager
+
+    /**
+     * Message digest algorithm to be used
+     */
+    @Deprecated("Specify algorithm name instead")
+    var digester: MessageDigest
+        get() = MessageDigest.getInstance(algorithmName)
+        set(newValue) {
+            algorithmName = newValue.algorithm
+        }
 
     /**
      * username and password digest function
      */
     @KtorExperimentalAPI
     var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
-        when (userName) {
-            "missing" -> null
-            else -> {
-                digester.reset()
-                digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
-                digester.digest()
-            }
+        MessageDigest.getInstance(algorithmName).let { digester ->
+            digester.reset()
+            digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
+            digester.digest()
         }
     }
 }
@@ -44,9 +56,6 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
  */
 fun Authentication.Configuration.digest(name: String? = null, configure: DigestAuthenticationProvider.() -> Unit) {
     val provider = DigestAuthenticationProvider(name).apply(configure)
-    val realm = provider.realm
-    val userNameRealmPasswordDigestProvider = provider.userNameRealmPasswordDigestProvider
-    val digester = provider.digester
 
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val authorizationHeader = call.request.parseAuthorizationHeader()
@@ -58,9 +67,14 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digester.algorithm
-                    && it.realm == realm
-                    && it.verifier(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
+            if ((it.algorithm ?: "MD5") == provider.algorithmName
+                && it.realm == provider.realm
+                && provider.nonceManager.verifyNonce(it.nonce)
+                && it.verifier(
+                    call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
+                    provider.userNameRealmPasswordDigestProvider
+                )
+            )
                 UserIdPrincipal(it.userName)
             else
                 null
@@ -74,7 +88,14 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
                 }
 
                 context.challenge(digestAuthenticationChallengeKey, cause) {
-                    call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(realm)))
+                    call.respond(
+                        UnauthorizedResponse(
+                            HttpAuthHeader.digestAuthChallenge(
+                                provider.realm,
+                                nonce = provider.nonceManager.newNonce()
+                            )
+                        )
+                    )
                     it.complete()
                 }
             }
@@ -101,16 +122,18 @@ fun Authentication.Configuration.digest(name: String? = null, configure: DigestA
  * @property cnonce must be sent if [qop] is specified and must be `null` otherwise. Should be passed through unchanged.
  * @property qop quality of protection sign
  */
-data class DigestCredential(val realm: String,
-                            val userName: String,
-                            val digestUri: String,
-                            val nonce: String,
-                            val opaque: String?,
-                            val nonceCount: String?,
-                            val algorithm: String?,
-                            val response: String,
-                            val cnonce: String?,
-                            val qop: String?) : Credential
+data class DigestCredential(
+    val realm: String,
+    val userName: String,
+    val digestUri: String,
+    val nonce: String,
+    val opaque: String?,
+    val nonceCount: String?,
+    val algorithm: String?,
+    val response: String,
+    val cnonce: String?,
+    val qop: String?
+) : Credential
 
 /**
  * Retrieves [DigestCredential] from this call
@@ -130,23 +153,27 @@ private val digestAuthenticationChallengeKey: Any = "DigestAuth"
 /**
  * Converts [HttpAuthHeader] to [DigestCredential]
  */
-fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
-        parameter("realm")!!,
-        parameter("username")!!,
-        parameter("uri")!!,
-        parameter("nonce")!!,
-        parameter("opaque"),
-        parameter("nc"),
-        parameter("algorithm"),
-        parameter("response")!!,
-        parameter("cnonce"),
-        parameter("qop")
+fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
+    parameter("realm")!!,
+    parameter("username")!!,
+    parameter("uri")!!,
+    parameter("nonce")!!,
+    parameter("opaque"),
+    parameter("nc"),
+    parameter("algorithm"),
+    parameter("response")!!,
+    parameter("cnonce"),
+    parameter("qop")
 )
 
 /**
  * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
  */
-suspend fun DigestCredential.verifier(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?): Boolean {
+suspend fun DigestCredential.verifier(
+    method: HttpMethod,
+    digester: MessageDigest,
+    userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?
+): Boolean {
     val userNameRealmPasswordDigestResult = userNameRealmPasswordDigest(userName, realm)
     val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigestResult ?: ByteArray(0))
 
@@ -163,16 +190,34 @@ suspend fun DigestCredential.verifier(method: HttpMethod, digester: MessageDiges
 /**
  * Calculates expected digest bytes for this [DigestCredential]
  */
-fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): ByteArray {
+fun DigestCredential.expectedDigest(
+    method: HttpMethod,
+    digester: MessageDigest,
+    userNameRealmPasswordDigest: ByteArray
+): ByteArray {
     fun digest(data: String): ByteArray {
         digester.reset()
         digester.update(data.toByteArray(Charsets.ISO_8859_1))
         return digester.digest()
     }
 
+    // H(A1) in the RFC
     val start = hex(userNameRealmPasswordDigest)
+
+    // H(A2) in the RFC
     val end = hex(digest("${method.value.toUpperCase()}:$digestUri"))
 
-    val a = (if (qop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, cnonce, qop, end)).joinToString(":")
-    return digest(a)
+    val hashParameters = when (qop) {
+        null -> listOf(start, nonce, end)
+        else -> listOf(
+            start,
+            nonce,
+            nonceCount,
+            cnonce,
+            qop,
+            end
+        )
+    }.joinToString(":")
+
+    return digest(hashParameters)
 }

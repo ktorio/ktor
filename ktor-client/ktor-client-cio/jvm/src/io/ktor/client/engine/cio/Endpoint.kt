@@ -177,14 +177,19 @@ internal class Endpoint(
 
                 if (!secure) return@connect connection
 
-                with(config.https) {
-                    return@connect connection.tls(
-                        coroutineContext,
-                        trustManager,
-                        randomAlgorithm,
-                        cipherSuites,
-                        address.hostName
-                    )
+                try {
+                    with(config.https) {
+                        return@connect connection.tls(
+                            coroutineContext,
+                            trustManager,
+                            randomAlgorithm,
+                            cipherSuites,
+                            address.hostName
+                        )
+                    }
+                } catch (t: Throwable) {
+                    connectionFactory.release()
+                    throw t
                 }
             }
         } catch (cause: Throwable) {
@@ -192,12 +197,13 @@ internal class Endpoint(
             throw cause
         }
 
+        Connections.decrementAndGet(this)
         throw ConnectException()
     }
 
     private fun releaseConnection() {
         connectionFactory.release()
-        Connections.decrementAndGet(this@Endpoint)
+        Connections.decrementAndGet(this)
     }
 
     override fun close() {
@@ -215,4 +221,4 @@ internal class Endpoint(
 }
 
 @KtorExperimentalAPI
-class ConnectException : Exception("Connect timed out")
+class ConnectException : Exception("Connect timed out or retry attempts exceeded")

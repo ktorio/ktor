@@ -18,11 +18,15 @@ class DigestTest {
     fun createExampleChallengeFromRFC() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Features) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(
-                        realm = "testrealm@host.com",
-                        nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
-                        opaque = "5ccc069c403ebaf9f0171e9517f40e41"
-                )))
+                call.respond(
+                    UnauthorizedResponse(
+                        HttpAuthHeader.digestAuthChallenge(
+                            realm = "testrealm@host.com",
+                            nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                            opaque = "5ccc069c403ebaf9f0171e9517f40e41"
+                        )
+                    )
+                )
             }
 
             val response = handleRequest {
@@ -30,11 +34,13 @@ class DigestTest {
 
             assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-            assertEquals("""Digest
+            assertEquals(
+                """Digest
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  opaque="5ccc069c403ebaf9f0171e9517f40e41",
-                 algorithm="MD5" """.normalize(), response.response.headers[HttpHeaders.WWWAuthenticate])
+                 algorithm="MD5" """.normalize(), response.response.headers[HttpHeaders.WWWAuthenticate]
+            )
         }
     }
 
@@ -60,7 +66,8 @@ class DigestTest {
             handleRequest {
                 uri = "/"
 
-                addHeader(HttpHeaders.Authorization, """Digest username="Mufasa",
+                addHeader(
+                    HttpHeaders.Authorization, """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -68,7 +75,8 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                )
             }
 
             assertEquals(1, foundDigests.size)
@@ -103,20 +111,23 @@ class DigestTest {
         val userNameRealmPassword = "${digest.userName}:${digest.realm}:$p"
         val digester = MessageDigest.getInstance(digest.algorithm ?: "MD5")
 
-        assertEquals(digest.response, hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword))))
+        assertEquals(
+            digest.response,
+            hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword)))
+        )
         assertTrue(digest.verifier(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
 
-    private fun Application.configureDigestServer() {
+    private fun Application.configureDigestServer(nonceManager: NonceManager = GenerateOnlyNonceManager) {
         install(Authentication) {
             digest {
                 val p = "Circle Of Life"
-                digester = MessageDigest.getInstance("MD5")
                 realm = "testrealm@host.com"
+                this.nonceManager = nonceManager
                 userNameRealmPasswordDigestProvider = { userName, realm ->
                     when (userName) {
                         "missing" -> null
-                        else -> digest(digester, "$userName:$realm:$p")
+                        else -> digest(MessageDigest.getInstance("MD5"), "$userName:$realm:$p")
                     }
                 }
             }
@@ -137,7 +148,8 @@ class DigestTest {
             val response = handleRequest {
                 uri = "/"
 
-                addHeader(HttpHeaders.Authorization, """Digest username="Mufasa",
+                addHeader(
+                    HttpHeaders.Authorization, """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -145,7 +157,8 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                )
             }
 
             assertTrue(response.requestHandled)
@@ -162,7 +175,8 @@ class DigestTest {
             val response = handleRequest {
                 uri = "/"
 
-                addHeader(HttpHeaders.Authorization, """Digest username="Mufasa",
+                addHeader(
+                    HttpHeaders.Authorization, """Digest username="Mufasa",
                  realm="testrealm@host.com1",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -170,7 +184,8 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                )
             }
 
             assertTrue(response.requestHandled)
@@ -186,7 +201,8 @@ class DigestTest {
             val response = handleRequest {
                 uri = "/"
 
-                addHeader(HttpHeaders.Authorization, """Digest username="Mufasa",
+                addHeader(
+                    HttpHeaders.Authorization, """Digest username="Mufasa",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -194,7 +210,8 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="bad response goes here  507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                )
             }
 
             assertTrue(response.requestHandled)
@@ -210,7 +227,8 @@ class DigestTest {
             val response = handleRequest {
                 uri = "/"
 
-                addHeader(HttpHeaders.Authorization, """Digest username="missing",
+                addHeader(
+                    HttpHeaders.Authorization, """Digest username="missing",
                  realm="testrealm@host.com",
                  nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
                  uri="/dir/index.html",
@@ -218,13 +236,96 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="6629fae49393a05397450978507c4ef1",
-                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize()
+                )
             }
 
             assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }
+
+    @Test
+    fun testDigestFromRFCExampleAuthFailedDueToWrongNonce() {
+        val key = "test".toByteArray()
+        val nonceValue = "test-nonce"
+
+        withTestApplication {
+            application.configureDigestServer(
+                nonceManager = StatelessHmacNonceManager(
+                    key,
+                    nonceGenerator = { nonceValue })
+            )
+
+            val challenge = handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+                parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!)
+            }
+
+            val nonce = (challenge as? HttpAuthHeader.Parameterized)?.parameter("nonce")
+
+            assertNotNull(challenge, "Challenge is missing")
+            assertNotNull(nonce, "Nonce is missing")
+
+            val authHeader = HttpAuthHeader.Parameterized(
+                AuthScheme.Digest, linkedMapOf(
+                    "username" to "Mufasa",
+                    "realm" to "testrealm@host.com",
+                    "nonce" to nonce,
+                    "uri" to "/dir/index.html",
+                    "qop" to "auth",
+                    "nc" to "00000001",
+                    "cnonce" to "0a4f113b",
+                    "response" to "unknown yet",
+                    "opaque" to "5ccc069c403ebaf9f0171e9517f40e41"
+                ), HeaderValueEncoding.QUOTED_ALWAYS
+            )
+
+
+            val userRealmPassDigest =
+                digest(MessageDigest.getInstance("MD5"), "Mufasa:testrealm@host.com:Circle Of Life")
+
+            val expectedDigest = authHeader.toDigestCredential().expectedDigest(
+                HttpMethod.Get,
+                MessageDigest.getInstance("MD5"), userRealmPassDigest
+            )
+
+            handleRequest {
+                uri = "/"
+
+                addHeader(
+                    HttpHeaders.Authorization,
+                    authHeader.withReplacedParameter("response", hex(expectedDigest)).render()
+                )
+            }.let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+
+            handleRequest {
+                uri = "/"
+
+                addHeader(
+                    HttpHeaders.Authorization,
+                    authHeader.withReplacedParameter("response", hex(expectedDigest)).withReplacedParameter(
+                        "nonce",
+                        flipLastHexDigit(nonce)
+                    ).render()
+                )
+            }.let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            }
+        }
+    }
+
+    private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
+        when {
+            index != sessionId.lastIndex -> letter
+            letter == '0' -> '1'
+            else -> '0'
+        }
+    }.joinToString("")
 
     private fun digest(digester: MessageDigest, data: String): ByteArray {
         digester.reset()

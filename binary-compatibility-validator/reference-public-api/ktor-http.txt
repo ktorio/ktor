@@ -1012,6 +1012,7 @@ public final class io/ktor/http/auth/HttpAuthHeader$Parameterized : io/ktor/http
 	public fun render ()Ljava/lang/String;
 	public fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
 	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+	public final fun withReplacedParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 }
 
 public final class io/ktor/http/auth/HttpAuthHeader$Parameters {

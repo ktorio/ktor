@@ -35,13 +35,17 @@ fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder().apply 
  * Encode form parameters from a list of pairs to the specified [out] appendable
  */
 fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
-    filter { it.second != null }.joinTo(
+    joinTo(
         out, "&"
     ) {
         val key = it.first.encodeURLParameter(spaceToPlus = true)
-        val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
-
-        "$key=$value"
+        if (it.second == null) {
+            key
+        }
+        else {
+            val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
+            "$key=$value"
+        }
     }
 }
 
@@ -57,6 +61,6 @@ fun Parameters.formUrlEncode(): String = entries()
  */
 fun Parameters.formUrlEncodeTo(out: Appendable) {
     entries()
-        .flatMap { e -> e.value.map { e.key to it } }
+        .flatMap { e -> if (e.value.isEmpty()) listOf(e.key to null) else e.value.map { e.key to it } }
         .formUrlEncodeTo(out)
 }
