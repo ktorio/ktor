@@ -1,5 +1,6 @@
 package io.ktor.server.engine
 
+import io.ktor.application.*
 import java.util.concurrent.*
 
 /**
@@ -36,6 +37,11 @@ interface ApplicationEngine {
      * Environment with which this engine is running
      */
     val environment: ApplicationEngineEnvironment
+
+    /**
+     * Currently running application instance
+     */
+    val application: Application get() = environment.application
 
     /**
      * Starts this [ApplicationEngine]

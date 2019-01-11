@@ -22,11 +22,6 @@ abstract class BaseApplicationEngine(
      */
     open class Configuration : ApplicationEngine.Configuration()
 
-    /**
-     * Currently running application instance
-     */
-    val application: Application get() = environment.application
-
     init {
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
