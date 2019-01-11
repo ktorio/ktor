@@ -24,6 +24,7 @@
       <w>crypto</w>
       <w>datagrams</w>
       <w>deflater</w>
+      <w>deserialized</w>
       <w>dest</w>
       <w>digester</w>
       <w>disguisement</w>
