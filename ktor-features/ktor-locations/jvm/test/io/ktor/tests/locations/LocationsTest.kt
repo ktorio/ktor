@@ -491,6 +491,11 @@ class LocationsTest {
         handleRequest(HttpMethod.Get, "/?text=abc&number=z&longNumber=2").let { call ->
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
+
+        // illegal value for numeric property
+        handleRequest(HttpMethod.Get, "/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
     }
 }
 
