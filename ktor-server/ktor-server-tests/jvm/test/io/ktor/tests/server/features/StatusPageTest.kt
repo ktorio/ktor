@@ -68,9 +68,7 @@ class StatusPageTest {
     @Test
     fun testStatus404() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond(HttpStatusCode.NotFound)
-            }
+            installFallback()
 
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -135,9 +133,7 @@ class StatusPageTest {
         class O
 
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond(HttpStatusCode.NotFound)
-            }
+            installFallback()
 
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
@@ -238,9 +234,7 @@ class StatusPageTest {
                 }
             }
 
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond(HttpStatusCode.NotFound)
-            }
+            installFallback()
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.InternalServerError, call.response.status())
@@ -325,6 +319,14 @@ class StatusPageTest {
 
         handleRequest(HttpMethod.Get, "/cancel").let {
             assertEquals("OK", it.response.content)
+        }
+    }
+}
+
+private fun TestApplicationEngine.installFallback() {
+    application.intercept(ApplicationCallPipeline.Fallback) {
+        if (call.response.status() == null) {
+            call.respond(HttpStatusCode.NotFound)
         }
     }
 }
