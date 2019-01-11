@@ -1,6 +1,7 @@
 package io.ktor.request
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
@@ -68,7 +69,7 @@ suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val transformed = request.pipeline.execute(this, receiveRequest).value
 
     if (!type.isInstance(transformed))
-        throw CannotTransformToTypeException(type)
+        throw CannotTransformContentToTypeException(type)
 
     @Suppress("UNCHECKED_CAST")
     return transformed as T
@@ -131,7 +132,4 @@ suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
 /**
  * Thrown when content cannot be transformed to the desired type.
  */
-abstract class ContentTransformationException(message: String) : Exception(message)
-
-private class CannotTransformToTypeException(type: KClass<*>)
-    : ContentTransformationException("Cannot transform this request's content to $type")
+typealias ContentTransformationException = io.ktor.features.ContentTransformationException
