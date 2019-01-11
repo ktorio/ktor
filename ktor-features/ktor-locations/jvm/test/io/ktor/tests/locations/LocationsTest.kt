@@ -446,12 +446,9 @@ class LocationsTest {
         urlShouldBeHandled("/?e=A", "A")
         urlShouldBeHandled("/?e=B", "B")
 
-        val t = assertFailsWith<DataConversionException> {
-            handleRequest(HttpMethod.Get, "/?e=x")
+        handleRequest(HttpMethod.Get, "/?e=x").let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
-
-        assertTrue { "LocationEnum" in t.message!! || "LocationEnum" in t.cause?.message ?: "" }
-        assertTrue { "x" in t.message!! || "x" in t.cause?.message ?: "" }
     }
 
     @Location("/") class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
@@ -471,6 +468,34 @@ class LocationsTest {
 
         urlShouldBeHandled("/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
             "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890")
+    }
+
+    @Test fun `location parameter mismatch should lead to bad request status`() = withLocationsApplication {
+        @Location("/") data class L(val text: String, val number: Int, val longNumber: Long)
+
+        application.routing {
+            get<L> { instance ->
+                call.respondText("text = ${instance.text}, number = ${instance.number}, longNumber = ${instance.longNumber}")
+            }
+        }
+
+        urlShouldBeHandled("/?text=abc&number=1&longNumber=2", "text = abc, number = 1, longNumber = 2")
+
+        // missing parameter text
+        handleRequest(HttpMethod.Get, "/?number=1&longNumber=2").let { call ->
+            // null because missing parameter leads to routing miss
+            assertEquals(null, call.response.status())
+        }
+
+        // illegal value for numeric property
+        handleRequest(HttpMethod.Get, "/?text=abc&number=z&longNumber=2").let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+
+        // illegal value for numeric property
+        handleRequest(HttpMethod.Get, "/?text=abc&number=${Long.MAX_VALUE}&longNumber=2").let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
     }
 }
 

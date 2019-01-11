@@ -48,7 +48,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
      * Implementation of an [ApplicationFeature] for the [ContentNegotiation]
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
-        override val key = AttributeKey<ContentNegotiation>("ContentNegotiation")
+        override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
             val configuration = Configuration().apply(configure)
@@ -104,12 +104,6 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
         }
     }
 }
-
-/**
- * Thrown when there is no conversion for a content type configured
- */
-class UnsupportedMediaTypeException(contentType: ContentType) :
-        ContentTransformationException("Content type $contentType is not supported")
 
 /**
  * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type

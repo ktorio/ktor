@@ -59,10 +59,18 @@ open class Locations(private val application: Application, private val routeServ
         val values = parameters.getAll(name)
         return when (values) {
             null -> when {
-                !optional -> throw DataConversionException("Parameter '$name' was not found in the map")
+                !optional -> {
+                    throw MissingRequestParameterException(name)
+                }
                 else -> null
             }
-            else -> conversionService.fromValues(values, type)
+            else -> {
+                try {
+                    conversionService.fromValues(values, type)
+                } catch (cause: Throwable) {
+                    throw ParameterConversionException(name, type.toString(), cause)
+                }
+            }
         }
     }
 

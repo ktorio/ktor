@@ -3,6 +3,7 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
@@ -41,7 +42,24 @@ class TestApplicationEngine(
 
     init {
         pipeline.intercept(EnginePipeline.Call) {
-            call.application.execute(call)
+            try {
+                call.application.execute(call)
+            } catch (cause: Throwable) {
+                handleTestFailure(cause)
+            }
+        }
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
+        tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+        try {
+            if (call.response.status() == null) {
+                call.respond(statusCode)
+            }
+        } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }
 
