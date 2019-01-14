@@ -82,9 +82,16 @@ internal class ConnectionPipeline(
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
                     val responseChannel = if (hasBody) ByteChannel() else null
 
+                    var skipTask: Job? = null
+                    val body: ByteReadChannel = if (responseChannel != null) {
+                        val proxyChannel = ByteChannel()
+                        skipTask = skipCancels(responseChannel, proxyChannel)
+                        proxyChannel
+                    } else ByteReadChannel.Empty
+
                     val response = CIOHttpResponse(
                         task.request, requestTime,
-                        responseChannel?.let { skipCancels(it) } ?: ByteReadChannel.Empty,
+                        body,
                         rawResponse,
                         coroutineContext = callContext
                     )
@@ -106,11 +113,14 @@ internal class ConnectionPipeline(
                             }
                         }
                     }
+
+                    skipTask?.join()
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                 }
 
                 task.context[Job]?.join()
+
                 if (shouldClose) break
             }
         } finally {
@@ -126,31 +136,30 @@ internal class ConnectionPipeline(
 }
 
 private fun CoroutineScope.skipCancels(
-    source: ByteReadChannel
-): ByteReadChannel = ByteChannel().also { output ->
-    launch {
-        try {
-            HttpClientDefaultPool.useInstance { buffer ->
-                while (true) {
-                    buffer.clear()
+    input: ByteReadChannel,
+    output: ByteWriteChannel
+): Job = launch {
+    try {
+        HttpClientDefaultPool.useInstance { buffer ->
+            while (true) {
+                buffer.clear()
 
-                    val count = source.readAvailable(buffer)
-                    if (count < 0) break
+                val count = input.readAvailable(buffer)
+                if (count < 0) break
 
-                    buffer.flip()
-                    try {
-                        output.writeFully(buffer)
-                    } catch (_: Throwable) {
-                        // Output channel has been canceled, discard remaining
-                        source.discard()
-                    }
+                buffer.flip()
+                try {
+                    output.writeFully(buffer)
+                } catch (_: Throwable) {
+                    // Output channel has been canceled, discard remaining
+                    input.discard()
                 }
             }
-        } catch (cause: Throwable) {
-            output.close(cause)
-            throw cause
-        } finally {
-            output.close()
         }
+    } catch (cause: Throwable) {
+        output.close(cause)
+        throw cause
+    } finally {
+        output.close()
     }
 }
