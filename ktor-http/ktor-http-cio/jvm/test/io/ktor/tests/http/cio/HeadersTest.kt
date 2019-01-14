@@ -209,4 +209,46 @@ class HeadersTest {
             request.release()
         }
     }
+
+    @Test
+    fun testEmptyHeaderValue() = runBlocking {
+        ch.writeStringUtf8("Host:\r\n\r\n")
+        val headers = parseHeaders(ch, builder)!!
+        assertEquals("", headers["Host"]?.toString())
+
+        headers.release()
+    }
+
+    @Test
+    fun testNoColon(): Unit = runBlocking<Unit> {
+        ch.writeStringUtf8("Host\r\n\r\n")
+
+        assertFails {
+            runBlocking {
+                parseHeaders(ch, builder)
+            }
+        }
+    }
+
+    @Test
+    fun testBlankHeaderValue() = runBlocking {
+        ch.writeStringUtf8("Host: \r\n\r\n")
+        val headers = parseHeaders(ch, builder)!!
+        assertEquals("", headers["Host"]?.toString())
+
+        headers.release()
+    }
+
+
+    @Test
+    fun testWrongHeader() = runBlocking<Unit> {
+        ch.writeStringUtf8("Hello world\r\n\r\n")
+
+        assertFails {
+            runBlocking {
+                parseHeaders(ch, builder)
+            }
+        }
+    }
+
 }
