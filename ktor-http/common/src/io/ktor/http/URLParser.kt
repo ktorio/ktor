@@ -131,7 +131,9 @@ private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: In
 private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
     var current = startIndex
     while (current < endIndex) {
-        if (urlString[current] == ':') return current
+        val char = urlString[current]
+        if (char == ':') return current
+        if (!char.isLetter()) return -1
 
         ++current
     }
@@ -160,3 +162,5 @@ private fun String.indexOfColonInHostPort(startIndex: Int, endIndex: Int): Int {
 
     return -1
 }
+
+private fun Char.isLetter(): Boolean = toLowerCase() in 'a'..'z'

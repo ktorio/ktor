@@ -109,6 +109,7 @@ internal class URLBuilderTest {
         assertEquals("https://example.org/first/./", url.buildString())
     }
 
+    @Test
     fun queryParamsWithNoValue() {
         val url = URLBuilder("https://httpstat.us/?novalue")
         assertEquals("https://httpstat.us/?novalue", url.buildString())
@@ -119,4 +120,15 @@ internal class URLBuilderTest {
         val url = URLBuilder("https://httpstat.us/?empty=")
         assertEquals("https://httpstat.us/?empty=", url.buildString())
     }
+
+    @Test
+    fun emptyProtocolWithPort() {
+        val url = URLBuilder("//whatever:8080/abc")
+
+        assertEquals(URLProtocol.HTTP, url.protocol)
+        assertEquals("whatever", url.host)
+        assertEquals(8080, url.port)
+        assertEquals("/abc", url.encodedPath)
+    }
+
 }
