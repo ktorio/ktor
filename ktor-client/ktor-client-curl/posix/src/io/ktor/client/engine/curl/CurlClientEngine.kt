@@ -29,7 +29,10 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
         val responseData = curlProcessor.executeRequest(curlRequest)
 
         val response = with(responseData) {
-            val headers = parseHeaders(ByteReadChannel(headersBytes))
+            val headerBytes = ByteReadChannel(headersBytes).apply {
+                readUTF8Line()
+            }
+            val headers = parseHeaders(headerBytes)
 
             val body = writer(coroutineContext) {
                 channel.writeFully(bodyBytes)

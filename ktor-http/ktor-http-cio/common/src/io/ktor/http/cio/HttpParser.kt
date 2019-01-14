@@ -107,21 +107,17 @@ internal suspend fun parseHeaders(
             if (range.start == range.end) break
 
             val nameStart = range.start
-            val nameEnd = findColonOrSpace(builder, range)
+            val nameEnd = findLetterBeforeColon(builder, range) + 1
+
+            if (nameEnd <= 0) {
+                val header = builder.substring(nameStart, builder.length)
+                throw ParserException("No colon in HTTP header in $header in builder: \n$builder")
+            }
+
             val nameHash = builder.hashCodeLowerCase(nameStart, nameEnd)
             range.start = nameEnd
 
             skipSpacesAndColon(builder, range)
-            if (range.start == range.end) {
-                throw ParserException(
-                    "No HTTP header value provided for name ${builder.substring(
-                        nameStart,
-                        nameEnd
-                    )}: \n$builder"
-                )
-            }
-
-            // TODO check for trailing spaces in HTTP spec
 
             val valueStart = range.start
             val valueEnd = range.end
