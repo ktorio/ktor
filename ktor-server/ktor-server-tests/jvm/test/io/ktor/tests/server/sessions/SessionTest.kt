@@ -7,15 +7,12 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.route
 import io.ktor.routing.routing
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import io.ktor.util.date.*
 import io.ktor.util.hex
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.coroutines.runBlocking
-import org.junit.Test
 import java.time.Duration
 import java.util.*
 import kotlin.test.*
@@ -648,6 +645,28 @@ class SessionTest {
             val parsedCookies = call.response.cookies[cookieName]!!
             assertNull(parsedCookies.expires)
             assertEquals(0, parsedCookies.maxAge)
+        }
+    }
+
+    @Test
+    fun settingSessionAfterResponseTest(): Unit = withTestApplication {
+        application.install(Sessions) {
+            cookie<TestUserSession>(cookieName)
+        }
+
+        application.routing {
+            get("/after-response") {
+                call.respondText("OK")
+                call.sessions.set(TestUserSession("id", emptyList()))
+            }
+        }
+
+        assertFailsWith<TooLateSessionSetException> {
+            runBlocking {
+                handleRequest(HttpMethod.Get, "/after-response").let { call ->
+                    println(call.response.content)
+                }
+            }
         }
     }
 
