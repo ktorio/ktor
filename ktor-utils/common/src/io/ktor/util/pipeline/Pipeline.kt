@@ -1,7 +1,6 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
-import kotlin.coroutines.*
 import kotlin.jvm.*
 
 /**
@@ -35,8 +34,10 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
         private var interceptors: ArrayList<PipelineInterceptor<TSubject, Call>>
     ) {
         @Suppress("UNCHECKED_CAST")
-        constructor(phase: PipelinePhase,
-                    relation: PipelinePhaseRelation) : this(phase, relation, SharedArrayList as ArrayList<PipelineInterceptor<TSubject, Call>>) {
+        constructor(
+            phase: PipelinePhase,
+            relation: PipelinePhaseRelation
+        ) : this(phase, relation, SharedArrayList as ArrayList<PipelineInterceptor<TSubject, Call>>) {
             check(SharedArrayList.isEmpty()) { "The shared empty array list has been modified" }
         }
 
