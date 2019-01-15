@@ -1,9 +1,9 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
-import java.util.*
+import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -12,9 +12,8 @@ import kotlin.coroutines.*
  */
 @InternalAPI
 class Semaphore(val limit: Int) {
-    private val mutex = Mutex()
-    private var visitors = 0
-    private val waiters: Queue<CancellableContinuation<Unit>> = LinkedList()
+    private val permits = atomic(limit)
+    private val waiters = ConcurrentHashMap<CancellableContinuation<Unit>, Unit>()
 
     init {
         check(limit > 0) { "Semaphore limit should be > 0" }
@@ -23,21 +22,19 @@ class Semaphore(val limit: Int) {
     /**
      * Enters the semaphore.
      *
-     * If the number of visitors didn't reach [limit], this function will return immediately.
+     * If the number of permits didn't reach [limit], this function will return immediately.
      * If the limit is reached, it will wait until [leave] is call from other coroutine.
      */
     suspend fun enter() {
         while (true) {
-            mutex.lock()
-            if (visitors < limit) {
-                ++visitors
-                mutex.unlock()
-                return
-            }
+            val current = permits.value
+            if (current > 0 && permits.compareAndSet(current, current - 1)) return
 
             suspendCancellableCoroutine<Unit> {
-                waiters.offer(it)
-                mutex.unlock()
+                waiters[it] = Unit
+
+                val newValue = permits.value
+                if (newValue > 0 && waiters.remove(it) != null) it.resume(Unit)
             }
         }
     }
@@ -49,15 +46,14 @@ class Semaphore(val limit: Int) {
      * suspended coroutines that invoked the [enter] method.
      */
     fun leave() {
-        runBlocking { mutex.lock() }
-        if (visitors == 0) {
-            mutex.unlock()
-            throw IllegalStateException("Semaphore is empty")
-        }
+        var value = permits.incrementAndGet()
 
-        visitors--
-        val waiter = waiters.poll()
-        mutex.unlock()
-        waiter?.resume(Unit)
+        while (value > 0 && waiters.isNotEmpty()) {
+            val key = waiters.keys().nextElement() ?: continue
+            waiters.remove(key) ?: continue
+
+            key.resume(Unit)
+            value = permits.value
+        }
     }
 }
