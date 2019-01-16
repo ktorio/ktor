@@ -8,7 +8,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class GsonTest {
@@ -95,6 +94,39 @@ class GsonTest {
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
 
+    }
+
+    private data class TextPlainData(val x: Int)
+
+    @Test
+    fun testGsonOnTextAny(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson()
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val instance = call.receive<TextPlainData>()
+                assertEquals(TextPlainData(777), instance)
+                call.respondText("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "text/plain")
+            setBody("{\"x\": 777}")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("{\"x\": 777}")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
     }
 }
 

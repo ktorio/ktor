@@ -93,11 +93,14 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 // skip if a byte channel has been requested so there is nothing to negotiate
                 if (subject.type === ByteReadChannel::class) return@intercept
 
-                val contentType = call.request.contentType().withoutParameters()
-                val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
-                        ?: throw UnsupportedMediaTypeException(contentType)
+                val requestContentType = call.request.contentType().withoutParameters()
+                val suitableConverter =
+                    feature.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
+                        ?: throw UnsupportedMediaTypeException(requestContentType)
+
                 val converted = suitableConverter.converter.convertForReceive(this)
-                        ?: throw UnsupportedMediaTypeException(contentType)
+                    ?: throw UnsupportedMediaTypeException(requestContentType)
+
                 proceedWith(ApplicationReceiveRequest(receive.type, converted))
             }
             return feature
