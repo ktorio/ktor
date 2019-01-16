@@ -17,7 +17,11 @@ import kotlin.reflect.jvm.*
  * GSON converter for [ContentNegotiation] feature
  */
 class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
-    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+    override suspend fun convertForSend(
+        context: PipelineContext<Any, ApplicationCall>,
+        contentType: ContentType,
+        value: Any
+    ): Any? {
         return TextContent(gson.toJson(value), contentType.withCharset(context.call.suitableCharset()))
     }
 
@@ -38,8 +42,10 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 /**
  * Register GSON to [ContentNegotiation] feature
  */
-fun ContentNegotiation.Configuration.gson(contentType: ContentType = ContentType.Application.Json,
-                                          block: GsonBuilder.() -> Unit = {}) {
+fun ContentNegotiation.Configuration.gson(
+    contentType: ContentType = ContentType.Application.Json,
+    block: GsonBuilder.() -> Unit = {}
+) {
     val builder = GsonBuilder()
     builder.apply(block)
     val converter = GsonConverter(builder.create())

@@ -50,7 +50,10 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
         override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): ContentNegotiation {
             val configuration = Configuration().apply(configure)
             val feature = ContentNegotiation(configuration.registrations)
 
@@ -83,7 +86,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 }
 
                 val rendered = converted?.let { transformDefaultContent(it) }
-                        ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
+                    ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
                 proceedWith(rendered)
             }
 
@@ -128,7 +131,11 @@ interface ContentConverter {
      *
      * @return a converted value (possibly an [OutgoingContent]), or null if [value] isn't suitable for this converter
      */
-    suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
+    suspend fun convertForSend(
+        context: PipelineContext<Any, ApplicationCall>,
+        contentType: ContentType,
+        value: Any
+    ): Any?
 
     /**
      * Convert a value (RAW or intermediate) from receive pipeline (deserialize).
