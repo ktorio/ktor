@@ -6,6 +6,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
+import java.lang.IllegalArgumentException
 
 /**
  * Builds a route to match specified [path]
@@ -246,7 +247,12 @@ object PathSegmentSelectorBuilder {
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
             signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
-            signature.endsWith("...") -> PathSegmentTailcardRouteSelector(signature.dropLast(3))
+            signature.endsWith("...") -> {
+                if (suffix != null && suffix.isNotEmpty()) {
+                    throw IllegalArgumentException("Suffix after tailcard is not supported")
+                }
+                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")
+            }
             else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
         }
     }
