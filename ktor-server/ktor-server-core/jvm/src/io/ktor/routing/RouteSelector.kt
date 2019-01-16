@@ -226,11 +226,33 @@ object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.
  * Evaluates a route against any number of trailing path segments, and captures their values
  * @param name is the name of the parameter to capture values to
  */
-data class PathSegmentTailcardRouteSelector(val name: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+    init {
+        require(prefix.none { it == '/' }) { "Multisegment prefix is not supported"}
+    }
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val values = if (name.isEmpty()) parametersOf() else parametersOf(name, context.segments.drop(segmentIndex).map { it })
-        val quality = if (segmentIndex < context.segments.size) RouteSelectorEvaluation.qualityTailcard else RouteSelectorEvaluation.qualityMissing
-        return RouteSelectorEvaluation(true, quality, values, segmentIncrement = context.segments.size - segmentIndex)
+        if (prefix.isNotEmpty()) {
+            val segmentText = context.segments.getOrNull(segmentIndex)
+            if (segmentText == null || !segmentText.startsWith(prefix)) {
+                return RouteSelectorEvaluation.Failed
+            }
+        }
+
+        val values = when {
+            name.isEmpty() -> parametersOf()
+            else -> parametersOf(name, context.segments.drop(segmentIndex).mapIndexed { index, segment ->
+                if (index == 0) segment.drop(prefix.length)
+                else segment
+            })
+        }
+        val quality = when {
+            segmentIndex < context.segments.size -> RouteSelectorEvaluation.qualityTailcard
+            else -> RouteSelectorEvaluation.qualityMissing
+        }
+        return RouteSelectorEvaluation(
+            true, quality, values,
+            segmentIncrement = context.segments.size - segmentIndex
+        )
     }
 
     override fun toString(): String = "{...}"

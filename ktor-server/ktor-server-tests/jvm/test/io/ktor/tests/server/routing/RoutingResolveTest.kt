@@ -573,4 +573,31 @@ class RoutingResolveTest {
         }
     }
 
+    @Test
+    fun testTailcardWithPrefix() {
+        val routing = routing()
+        val prefixChild = routing.route("prefix-{param...}") {
+            handle {}
+        }
+
+        resolve(routing, "/other").let { result ->
+            assertTrue(result is RoutingResolveResult.Failure)
+        }
+        resolve(routing, "/prefix-").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals("", result.parameters["param"])
+        }
+        resolve(routing, "/prefix-value").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals("value", result.parameters["param"])
+        }
+        resolve(routing, "/prefix-a/b/c").let { result ->
+            assertTrue(result is RoutingResolveResult.Success)
+            assertSame(prefixChild, result.route)
+            assertEquals(listOf("a", "b", "c"), result.parameters.getAll("param"))
+        }
+    }
+
 }
