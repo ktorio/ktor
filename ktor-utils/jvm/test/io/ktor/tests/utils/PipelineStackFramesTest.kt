@@ -25,13 +25,13 @@ class PipelineStackFramesTest {
         }
 
         assertEquals(capturedStackTrace,
-            "io/ktor/tests/utils/PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.runPipeline(PipelineStackFramesTest.kt)\n")
+            "io.ktor.tests.utils.PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.runPipeline(PipelineStackFramesTest.kt)\n")
 
         assertEquals(capturedStackTrace2,
-            "io/ktor/tests/utils/PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n")
+            "io.ktor.tests.utils.PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n")
     }
 
     @Test
@@ -50,15 +50,15 @@ class PipelineStackFramesTest {
         }
 
         assertEquals(capturedStackTrace,
-            "io/ktor/tests/utils/PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.callProceed(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.runPipeline(PipelineStackFramesTest.kt)\n")
+            "io.ktor.tests.utils.PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.callProceed(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.runPipeline(PipelineStackFramesTest.kt)\n")
 
 
         assertEquals(capturedStackTrace2,
-            "io/ktor/tests/utils/PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
-                "io/ktor/tests/utils/PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n")
+            "io.ktor.tests.utils.PipelineStackFramesTest.nestedCapture(PipelineStackFramesTest.kt)\n" +
+                "io.ktor.tests.utils.PipelineStackFramesTest.captureStackTrace(PipelineStackFramesTest.kt)\n")
     }
 
     private suspend fun PipelineContext<Unit, Unit>.callProceed() {
