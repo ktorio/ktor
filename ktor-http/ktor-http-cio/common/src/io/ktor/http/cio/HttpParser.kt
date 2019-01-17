@@ -171,6 +171,8 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {
     skipSpaces(text, range)
+
+    check(range.start < range.end) { "Failed to parse version: $text" }
     val exact = versions.search(text, range.start, range.end) { ch, _ -> ch == ' ' }.singleOrNull()
     if (exact != null) {
         range.start += exact.length

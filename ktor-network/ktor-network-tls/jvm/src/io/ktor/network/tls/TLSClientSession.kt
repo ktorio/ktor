@@ -8,29 +8,25 @@ import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
-import javax.net.ssl.*
 import kotlin.coroutines.*
 
-internal class TLSClientSession(
-    rawInput: ByteReadChannel,
-    rawOutput: ByteWriteChannel,
-    trustManager: X509TrustManager?,
-    randomAlgorithm: String,
-    cipherSuites: List<CipherSuite>,
-    serverName: String?,
+internal suspend fun openTLSSession(
+    socket: Socket,
+    input: ByteReadChannel, output: ByteWriteChannel,
+    config: TLSConfig,
+    context: CoroutineContext
+): Socket {
+    val handshake = TLSClientHandshake(input, output, config, context)
+    handshake.negotiate()
+    return TLSSocket(handshake.input, handshake.output, socket, context)
+}
+
+private class TLSSocket(
+    private val input: ReceiveChannel<TLSRecord>,
+    private val output: SendChannel<TLSRecord>,
+    socket: Socket,
     override val coroutineContext: CoroutineContext
-) : CoroutineScope, AReadable, AWritable {
-    private val handshaker = TLSClientHandshake(
-        rawInput, rawOutput, coroutineContext,
-        trustManager, randomAlgorithm, cipherSuites, serverName
-    )
-
-    private val input = handshaker.input
-    private val output = handshaker.output
-
-    suspend fun start() {
-        handshaker.negotiate()
-    }
+) : CoroutineScope, Socket by socket {
 
     override fun attachForReading(channel: ByteChannel): WriterJob = writer(coroutineContext, channel) {
         appDataInputLoop(this.channel)
