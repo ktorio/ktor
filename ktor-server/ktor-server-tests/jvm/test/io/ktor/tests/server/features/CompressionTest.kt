@@ -7,8 +7,8 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import org.junit.Test
 import java.time.*
 import java.util.zip.*
 import kotlin.coroutines.*
@@ -471,6 +471,71 @@ class CompressionTest {
         }
 
         handleAndAssert("/", "gzip", "identity", "Hello!")
+    }
+
+    @Test
+    fun testCompressionUpgradeShouldNotBeCompressed(): Unit = withTestApplication {
+        application.install(Compression)
+
+        application.routing {
+            get("/") {
+                call.respond(object : OutgoingContent.ProtocolUpgrade() {
+                    override suspend fun upgrade(
+                        input: ByteReadChannel,
+                        output: ByteWriteChannel,
+                        engineContext: CoroutineContext,
+                        userContext: CoroutineContext
+                    ): Job {
+                        return launch {
+                            output.close()
+                        }
+                    }
+                })
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(101, call.response.status()?.value)
+            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+        }
+    }
+
+    @Test
+    fun testCompressionContentTypesShouldNotBeCompressed(): Unit = withTestApplication {
+        application.install(Compression)
+
+        application.routing {
+            get("/event-stream") {
+                call.respondText("events", ContentType.Text.EventStream)
+            }
+            get("/video") {
+                call.respondBytes("video".toByteArray(), ContentType.Video.MPEG)
+            }
+            get("/multipart") {
+                call.respondBytes(
+                    ">>>\r\nContent-Disposition: form-data; name=\"title\"\r\n>>>--".toByteArray(),
+                    ContentType.MultiPart.FormData.withParameter("boundary", ">>>")
+                )
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/event-stream").let { call ->
+            assertEquals(200, call.response.status()?.value)
+            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            assertEquals("events", call.response.content)
+            assertEquals(ContentType.Text.EventStream, call.response.contentType().withoutParameters())
+        }
+        handleRequest(HttpMethod.Get, "/video").let { call ->
+            assertEquals(200, call.response.status()?.value)
+            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            assertEquals("video", call.response.content)
+            assertEquals(ContentType.Video.MPEG, call.response.contentType())
+        }
+        handleRequest(HttpMethod.Get, "/multipart").let { call ->
+            assertEquals(200, call.response.status()?.value)
+            assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            assertEquals(ContentType.MultiPart.FormData, call.response.contentType().withoutParameters())
+        }
     }
 
     private fun TestApplicationEngine.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
