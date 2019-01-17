@@ -183,13 +183,13 @@ internal class Endpoint(
 
                 try {
                     with(config.https) {
-                        return@connect connection.tls(
-                            coroutineContext,
-                            trustManager,
-                            randomAlgorithm,
-                            cipherSuites,
-                            address.hostName
-                        )
+                        return@connect connection.tls(coroutineContext) {
+                            trustManager = this@with.trustManager
+                            random = this@with.random
+                            cipherSuites = this@with.cipherSuites
+                            serverName = this@with.serverName ?: address.hostName
+                            certificates += this@with.certificates
+                        }
                     }
                 } catch (cause: Throwable) {
                     try {

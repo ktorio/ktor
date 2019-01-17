@@ -69,51 +69,50 @@ internal class ConnectionPipeline(
                     val rawResponse = parseResponse(networkInput)
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-                    val callContext = task.context
+                    try {
+                        val callContext = task.context
 
-                    val method = task.request.method
-                    val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-                    val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
-                    val chunked = transferEncoding == "chunked"
-                    val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
-                    val headers = CIOHeaders(rawResponse.headers)
+                        val method = task.request.method
+                        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+                        val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
+                        val chunked = transferEncoding == "chunked"
+                        val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
+                        val headers = CIOHeaders(rawResponse.headers)
 
-                    callContext[Job]?.invokeOnCompletion {
-                        rawResponse.release()
-                    }
+                        shouldClose = (connectionType == ConnectionOptions.Close)
 
-                    shouldClose = (connectionType == ConnectionOptions.Close)
+                        val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+                        val responseChannel = if (hasBody) ByteChannel() else null
 
-                    val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
-                    val responseChannel = if (hasBody) ByteChannel() else null
+                        var skipTask: Job? = null
+                        val body: ByteReadChannel = if (responseChannel != null) {
+                            val proxyChannel = ByteChannel()
+                            skipTask = skipCancels(responseChannel, proxyChannel)
+                            proxyChannel
+                        } else ByteReadChannel.Empty
 
-                    var skipTask: Job? = null
-                    val body: ByteReadChannel = if (responseChannel != null) {
-                        val proxyChannel = ByteChannel()
-                        skipTask = skipCancels(responseChannel, proxyChannel)
-                        proxyChannel
-                    } else ByteReadChannel.Empty
-
-                    val response = CIOHttpResponse(
-                        task.request, headers, requestTime,
-                        body,
-                        rawResponse,
-                        coroutineContext = callContext
-                    )
-
-                    task.response.complete(response)
-
-                    responseChannel?.use {
-                        parseHttpBody(
-                            contentLength,
-                            transferEncoding,
-                            connectionType,
-                            networkInput,
-                            this
+                        val response = CIOHttpResponse(
+                            task.request, headers, requestTime,
+                            body,
+                            rawResponse,
+                            coroutineContext = callContext
                         )
-                    }
 
-                    skipTask?.join()
+                        task.response.complete(response)
+
+                        responseChannel?.use {
+                            parseHttpBody(
+                                contentLength,
+                                transferEncoding,
+                                connectionType,
+                                networkInput,
+                                this
+                            )
+                        }
+                        skipTask?.join()
+                    } finally {
+                        rawResponse.headers.release()
+                    }
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                 }

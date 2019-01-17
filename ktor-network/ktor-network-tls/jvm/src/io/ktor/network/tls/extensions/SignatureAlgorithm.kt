@@ -36,6 +36,7 @@ enum class HashAlgorithm(val code: Byte, val openSSLName: String, val macName: S
 enum class SignatureAlgorithm(val code: Byte) {
     ANON(0),
     RSA(1),
+    DSA(2),
     ECDSA(3);
 
     companion object {

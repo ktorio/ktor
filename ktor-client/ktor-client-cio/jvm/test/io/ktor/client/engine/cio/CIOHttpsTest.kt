@@ -1,8 +1,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
-import io.ktor.client.*
-import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -115,13 +113,17 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun customDomainsTest() = clientTest(CIO) {
+    fun customDomainsTest(): Unit = clientTest(CIO) {
         val domains = listOf(
             "https://google.com",
             "https://facebook.com",
-//            "https://elster.de",
+            "https://elster.de",
             "https://freenode.net"
         )
+
+        config {
+            expectSuccess = false
+        }
 
         test { client ->
             domains.forEach { url ->
@@ -131,7 +133,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun repeatRequestTest() = clientTest(CIO) {
+    fun repeatRequestTest(): Unit = clientTest(CIO) {
         config {
             followRedirects = false
 

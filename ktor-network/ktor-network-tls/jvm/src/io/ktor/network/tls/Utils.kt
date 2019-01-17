@@ -2,11 +2,11 @@ package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
 import kotlinx.io.core.*
-import kotlinx.io.core.Closeable
 import java.security.*
 
-internal class Digest : Closeable {
-    private val state = BytePacketBuilder()
+internal fun Digest(): Digest = Digest(BytePacketBuilder())
+
+internal inline class Digest(val state: BytePacketBuilder) : Closeable {
 
     fun update(packet: ByteReadPacket) = synchronized(this) {
         if (packet.isEmpty) return

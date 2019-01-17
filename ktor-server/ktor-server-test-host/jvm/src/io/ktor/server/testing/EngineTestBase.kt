@@ -13,6 +13,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.rules.*
 import org.junit.runners.model.*
@@ -273,6 +274,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 expectSuccess = false
                 engine {
                     pipelining = true
+                    sslContextFactory = SslContextFactory(true)
                 }
             }.use { httpClient ->
                 httpClient.call(url, builder).response.use { response ->
