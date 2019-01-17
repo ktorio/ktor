@@ -34,8 +34,7 @@ internal fun onBodyChunkRequested(
     size: size_t, count: size_t,
     dataRef: COpaquePointer
 ): Long {
-    val streamRef = dataRef.asStableRef<ByteReadPacket>()
-    val body = streamRef.get()
+    val body: ByteReadPacket = dataRef.fromCPointer()
     val requested = (size * count).toLong()
 
     if (body.isEmpty) return 0

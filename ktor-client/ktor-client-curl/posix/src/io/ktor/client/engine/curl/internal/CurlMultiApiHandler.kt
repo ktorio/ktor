@@ -112,10 +112,12 @@ internal class CurlMultiApiHandler : Closeable {
                 val easyHandle = message.easy_handle
                     ?: throw CurlIllegalStateException("Got a null easy handle from the message")
 
-                activeHandles[easyHandle]!!.dispose()
-                activeHandles.remove(easyHandle)
-
-                responseDataList += readResponseDataFromEasyHandle(message.msg, easyHandle)
+                try {
+                    responseDataList += readResponseDataFromEasyHandle(message.msg, easyHandle)
+                } finally {
+                    activeHandles[easyHandle]!!.dispose()
+                    activeHandles.remove(easyHandle)
+                }
             } while (messagesLeft.value != 0)
         }
 
