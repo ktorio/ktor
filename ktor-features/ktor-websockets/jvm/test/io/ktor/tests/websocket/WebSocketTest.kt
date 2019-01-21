@@ -19,6 +19,7 @@ import java.nio.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
@@ -289,6 +290,49 @@ class WebSocketTest {
                             outgoing.send(Frame.Text(text))
                         }
                     } catch (e: ClosedReceiveChannelException) {
+                        // Do nothing!
+                    } catch (e: CancellationException) {
+                        // Do nothing!
+                    } catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            handleWebSocketConversation("/echo") { incoming, outgoing ->
+                val textMessages = listOf("HELLO", "WORLD")
+                for (msg in textMessages) {
+                    outgoing.send(Frame.Text(msg))
+                    assertEquals(msg, (incoming.receive() as Frame.Text).readText())
+                }
+                assertEquals(textMessages, received)
+            }
+        }
+    }
+
+    @Test
+    fun testConversationWithInterceptors() {
+        withTestApplication {
+            application.install(WebSockets)
+
+            application.intercept(ApplicationCallPipeline.Monitoring) {
+                coroutineScope {
+                    proceed()
+                }
+            }
+
+            val received = arrayListOf<String>()
+            application.routing {
+                webSocket("/echo") {
+                    try {
+                        while (true) {
+                            val text = (incoming.receive() as Frame.Text).readText()
+                            received += text
+                            outgoing.send(Frame.Text(text))
+                        }
+                    } catch (e: ClosedReceiveChannelException) {
+                        // Do nothing!
+                    } catch (e: CancellationException) {
                         // Do nothing!
                     } catch (e: Throwable) {
                         e.printStackTrace()
