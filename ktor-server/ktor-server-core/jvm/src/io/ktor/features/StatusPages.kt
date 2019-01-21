@@ -123,13 +123,13 @@ class StatusPages(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
             val configuration = Configuration().apply(configure)
             val feature = StatusPages(configuration)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
-                if (feature.statuses.isNotEmpty()) {
+            if (feature.statuses.isNotEmpty()) {
+                pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
                     feature.interceptResponse(this, message)
                 }
             }
-            pipeline.intercept(ApplicationCallPipeline.Monitoring) {
-                if (feature.exceptions.isNotEmpty()) {
+            if (feature.exceptions.isNotEmpty()) {
+                pipeline.intercept(ApplicationCallPipeline.Monitoring) {
                     feature.interceptCall(this)
                 }
             }
