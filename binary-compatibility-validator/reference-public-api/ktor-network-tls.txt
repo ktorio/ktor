@@ -10,6 +10,12 @@ public final class io/ktor/network/tls/CIOCipherSuites {
 	public final fun getTLS_RSA_WITH_AES_128_GCM_SHA256 ()Lio/ktor/network/tls/CipherSuite;
 }
 
+public final class io/ktor/network/tls/CertificateAndKey {
+	public fun <init> ([Ljava/security/cert/X509Certificate;Ljava/security/PrivateKey;)V
+	public final fun getCertificateChain ()[Ljava/security/cert/X509Certificate;
+	public final fun getKey ()Ljava/security/PrivateKey;
+}
+
 public final class io/ktor/network/tls/CipherSuite {
 	public fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;)V
 	public synthetic fun <init> (SLjava/lang/String;Ljava/lang/String;Lio/ktor/network/tls/SecretExchangeType;Ljava/lang/String;IIIILjava/lang/String;ILio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/CipherType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -55,6 +61,10 @@ public final class io/ktor/network/tls/CipherType : java/lang/Enum {
 	public static final field GCM Lio/ktor/network/tls/CipherType;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/CipherType;
 	public static fun values ()[Lio/ktor/network/tls/CipherType;
+}
+
+public final class io/ktor/network/tls/NoPrivateKeyException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;Ljava/security/KeyStore;)V
 }
 
 public final class io/ktor/network/tls/SecretExchangeType : java/lang/Enum {
@@ -128,12 +138,32 @@ public final class io/ktor/network/tls/TLSAlertType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSAlertType;
 }
 
-public final class io/ktor/network/tls/TLSHandshake {
+public final class io/ktor/network/tls/TLSConfig {
+	public fun <init> (Ljava/security/SecureRandom;Ljava/util/List;Ljavax/net/ssl/X509TrustManager;Ljava/util/List;Ljava/lang/String;)V
+	public final fun getCertificates ()Ljava/util/List;
+	public final fun getCipherSuites ()Ljava/util/List;
+	public final fun getRandom ()Ljava/security/SecureRandom;
+	public final fun getServerName ()Ljava/lang/String;
+	public final fun getTrustManager ()Ljavax/net/ssl/X509TrustManager;
+}
+
+public final class io/ktor/network/tls/TLSConfigBuilder {
 	public fun <init> ()V
-	public final fun getPacket ()Lkotlinx/io/core/ByteReadPacket;
-	public final fun getType ()Lio/ktor/network/tls/TLSHandshakeType;
-	public final fun setPacket (Lkotlinx/io/core/ByteReadPacket;)V
-	public final fun setType (Lio/ktor/network/tls/TLSHandshakeType;)V
+	public final fun build ()Lio/ktor/network/tls/TLSConfig;
+	public final fun getCertificates ()Ljava/util/List;
+	public final fun getCipherSuites ()Ljava/util/List;
+	public final fun getRandom ()Ljava/security/SecureRandom;
+	public final fun getServerName ()Ljava/lang/String;
+	public final fun getTrustManager ()Ljavax/net/ssl/TrustManager;
+	public final fun setCipherSuites (Ljava/util/List;)V
+	public final fun setRandom (Ljava/security/SecureRandom;)V
+	public final fun setServerName (Ljava/lang/String;)V
+	public final fun setTrustManager (Ljavax/net/ssl/TrustManager;)V
+}
+
+public final class io/ktor/network/tls/TLSConfigBuilderKt {
+	public static final fun addCertificateChain (Lio/ktor/network/tls/TLSConfigBuilder;[Ljava/security/cert/X509Certificate;Ljava/security/PrivateKey;)V
+	public static final fun addKeyStore (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[C)V
 }
 
 public final class io/ktor/network/tls/TLSHandshakeType : java/lang/Enum {
@@ -158,17 +188,11 @@ public final class io/ktor/network/tls/TLSHandshakeType$Companion {
 }
 
 public final class io/ktor/network/tls/TLSKt {
+	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lio/ktor/network/tls/TLSConfig;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Ljavax/net/ssl/X509TrustManager;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun tls (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tls$default (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Ljavax/net/ssl/X509TrustManager;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
-public final class io/ktor/network/tls/TLSRecord {
-	public fun <init> ()V
-	public fun <init> (Lio/ktor/network/tls/TLSRecordType;Lio/ktor/network/tls/TLSVersion;Lkotlinx/io/core/ByteReadPacket;)V
-	public synthetic fun <init> (Lio/ktor/network/tls/TLSRecordType;Lio/ktor/network/tls/TLSVersion;Lkotlinx/io/core/ByteReadPacket;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getPacket ()Lkotlinx/io/core/ByteReadPacket;
-	public final fun getType ()Lio/ktor/network/tls/TLSRecordType;
-	public final fun getVersion ()Lio/ktor/network/tls/TLSVersion;
+	public static synthetic fun tls$default (Lio/ktor/network/sockets/Socket;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/network/tls/TLSRecordType : java/lang/Enum {
@@ -323,6 +347,7 @@ public final class io/ktor/network/tls/extensions/PointFormatKt {
 public final class io/ktor/network/tls/extensions/SignatureAlgorithm : java/lang/Enum {
 	public static final field ANON Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public static final field Companion Lio/ktor/network/tls/extensions/SignatureAlgorithm$Companion;
+	public static final field DSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public static final field ECDSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public static final field RSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public final fun getCode ()B
