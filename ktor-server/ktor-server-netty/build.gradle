@@ -36,3 +36,9 @@ if (enableAlpnProp) {
         compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version, classifier: nativeClassifier
     }
 }
+
+if (!project.ext.ideaActive) {
+    dependencies {
+        jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+    }
+}

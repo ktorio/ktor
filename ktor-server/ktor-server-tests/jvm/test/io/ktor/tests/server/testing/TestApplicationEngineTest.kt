@@ -18,40 +18,40 @@ class TestApplicationEngineTest {
     fun testCustomDispatcher() {
         @UseExperimental(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
-                object : CoroutineDispatcher(), Delay by delay {
-                    override fun isDispatchNeeded(context: CoroutineContext): Boolean =
-                            this@withDelay.isDispatchNeeded(context)
+            object : CoroutineDispatcher(), Delay by delay {
+                override fun isDispatchNeeded(context: CoroutineContext): Boolean =
+                    this@withDelay.isDispatchNeeded(context)
 
-                    override fun dispatch(context: CoroutineContext, block: Runnable) =
-                            this@withDelay.dispatch(context, block)
-                }
+                override fun dispatch(context: CoroutineContext, block: Runnable) =
+                    this@withDelay.dispatch(context, block)
+            }
 
         val delayLog = arrayListOf<String>()
         val delayTime = 10_000L
 
         withTestApplication(
-                moduleFunction = {
-                    routing {
-                        get("/") {
-                            delay(delayTime)
-                            delay(delayTime)
-                            call.respondText("OK")
-                        }
+            moduleFunction = {
+                routing {
+                    get("/") {
+                        delay(delayTime)
+                        delay(delayTime)
+                        call.respondText("OK")
                     }
-                },
-                configure = {
-                    @UseExperimental(InternalCoroutinesApi::class)
-                    dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
-                        override fun scheduleResumeAfterDelay(
-                            timeMillis: Long,
-                            continuation: CancellableContinuation<Unit>
-                        ) {
-                            // Run immediately and log it
-                            delayLog += "Delay($timeMillis)"
-                            continuation.resume(Unit)
-                        }
-                    })
                 }
+            },
+            configure = {
+                @UseExperimental(InternalCoroutinesApi::class)
+                dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
+                    override fun scheduleResumeAfterDelay(
+                        timeMillis: Long,
+                        continuation: CancellableContinuation<Unit>
+                    ) {
+                        // Run immediately and log it
+                        delayLog += "Delay($timeMillis)"
+                        continuation.resume(Unit)
+                    }
+                })
+            }
         ) {
             val elapsedTime = measureTimeMillis {
                 handleRequest(HttpMethod.Get, "/").let { call ->

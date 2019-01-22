@@ -28,7 +28,7 @@ class CallLoggingTest {
                 val mdcText = MDC.getCopyOfContextMap()?.let { mdc ->
                     if (mdc.isNotEmpty()) {
                         mdc.entries.sortedBy { it.key }
-                                .joinToString(prefix = " [", postfix = "]") { "${it.key}=${it.value}"}
+                            .joinToString(prefix = " [", postfix = "]") { "${it.key}=${it.value}" }
                     } else {
                         ""
                     }
