@@ -68,7 +68,7 @@ class DigestTest : TestWithKtor() {
     }
 
     @Test
-    fun testBasicAuth() = clientTest(io.ktor.client.engine.cio.CIO) {
+    fun testBasicAuth(): Unit = clientTest(io.ktor.client.engine.cio.CIO) {
         config {
             install(Auth) {
                 basic {
