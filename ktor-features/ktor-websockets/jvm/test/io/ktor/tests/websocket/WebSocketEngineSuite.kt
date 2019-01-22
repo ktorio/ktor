@@ -22,6 +22,7 @@ import java.nio.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
@@ -46,6 +47,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.add(frame.readText())
                         }
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
@@ -102,6 +104,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 try {
                     incoming.consumeEach {
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
@@ -175,6 +178,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.add(frame.readText())
                         }
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                     collected.put(t.toString())
@@ -385,6 +389,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     }
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
