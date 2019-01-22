@@ -16,7 +16,7 @@ class ConfigTest {
         mapConfig.put("auth.values.0", "a")
         mapConfig.put("auth.values.1", "b")
 
-        mapConfig.put("auth.listValues", listOf("a","b","c"))
+        mapConfig.put("auth.listValues", listOf("a", "b", "c"))
 
         val auth = mapConfig.config("auth")
         assertEquals("ktor", auth.property("salt").getString())
@@ -24,18 +24,18 @@ class ConfigTest {
         assertEquals(1, users.size)
         assertEquals("test", users[0].property("name").getString())
 
-        assertEquals(listOf("a","b","c"), auth.property("listValues").getList())
+        assertEquals(listOf("a", "b", "c"), auth.property("listValues").getList())
 
         val values = auth.property("values").getList()
         assertEquals("[a, b]", values.toString())
 
         assertEquals(null, auth.propertyOrNull("missingProperty"))
         assertEquals("SHA-256", auth.propertyOrNull("hashAlgorithm")?.getString())
-        assertEquals(listOf("a","b","c"), auth.propertyOrNull("listValues")?.getList())
+        assertEquals(listOf("a", "b", "c"), auth.propertyOrNull("listValues")?.getList())
 
         assertEquals(null, mapConfig.propertyOrNull("missingProperty"))
         assertEquals(null, mapConfig.propertyOrNull("auth.missingProperty"))
         assertEquals("SHA-256", mapConfig.propertyOrNull("auth.hashAlgorithm")?.getString())
-        assertEquals(listOf("a","b","c"), mapConfig.propertyOrNull("auth.listValues")?.getList())
+        assertEquals(listOf("a", "b", "c"), mapConfig.propertyOrNull("auth.listValues")?.getList())
     }
 }
