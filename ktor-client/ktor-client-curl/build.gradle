@@ -6,7 +6,7 @@ kotlin {
         if (project.ext.ideaActive) {
             current = [posix]
         } else {
-            current = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
+            current = [macosX64, linuxX64, mingwX64]
         }
 
         def paths = ["C:/msys64/mingw64/include", "C:/Tools/msys64/mingw64/include"]

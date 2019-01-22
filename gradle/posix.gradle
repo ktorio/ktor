@@ -6,9 +6,11 @@ kotlin {
             fromPreset(project.ext.ideaPreset, 'posix')
         } else {
             fromPreset(presets.linuxX64, 'linuxX64')
-            fromPreset(presets.iosArm64, 'iosArm64')
-            fromPreset(presets.iosArm32, 'iosArm32')
-            fromPreset(presets.iosX64, 'iosX64')
+            if (project.name != 'ktor-client-curl') {
+                fromPreset(presets.iosArm64, 'iosArm64')
+                fromPreset(presets.iosArm32, 'iosArm32')
+                fromPreset(presets.iosX64, 'iosX64')
+            }
             fromPreset(presets.macosX64, 'macosX64')
             fromPreset(presets.mingwX64, 'mingwX64')
         }
