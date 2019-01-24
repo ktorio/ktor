@@ -56,6 +56,11 @@ publishing {
         def type = it.name
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
+
+        if (type == 'kotlinMultiplatform') {
+            kotlin.rootSoftwareComponent$kotlin_gradle_plugin.publicationDelegate = publishing.publications.getByName("kotlinMultiplatform")
+        }
+
         if (id.endsWith('native')) {
             it.artifact stubJavadoc
             it.artifact stubDokka
