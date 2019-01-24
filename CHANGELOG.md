@@ -34,6 +34,7 @@
 * Fixed network on main thread in CIO (#764)
 * Changed the default algorithm to SHA-256 from SHA-1 for signed server cookies
 * Fixed conflicting `WebSockets` and `StatusPages` (#889)
+* Update gradle to 4.10
 
 # 1.1.1
 > Published 26 Dec 2018
