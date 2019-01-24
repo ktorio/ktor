@@ -27,7 +27,7 @@ def selectArtifactId(project, type, defaultName) {
             return commonIsRoot ? "$name" : "$name-common"
             break
         case 'kotlinMultiplatform':
-            if (!hasNative) return defaultName
+            if (!hasNative) return "$name-kotlinMultiplatform"
             return isCommon ? "$name-native" : "$name"
             break
         case 'jvm':
