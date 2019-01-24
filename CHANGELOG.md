@@ -1,5 +1,5 @@
 # 1.1.2
-> Unpublished yet
+> Published 24 Jan 2019
 
 * Introduced native curl client engine (#479)
 * Added iosArm32 target (except curl) 
@@ -35,6 +35,7 @@
 * Changed the default algorithm to SHA-256 from SHA-1 for signed server cookies
 * Fixed conflicting `WebSockets` and `StatusPages` (#889)
 * Update gradle to 4.10
+* Kotlin 1.3.20, kotlinx.coroutines 1.1.1, kotlinx.serialization 0.10.0
 
 # 1.1.1
 > Published 26 Dec 2018
