@@ -80,15 +80,18 @@ inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bod
 }
 
 /**
- * Append a form part with the specified [key] and [filename] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body
  */
 @UseExperimental(ExperimentalContracts::class)
-fun FormBuilder.append(key: String, filename: String, bodyBuilder: BytePacketBuilder.() -> Unit) {
+fun FormBuilder.append(key: String, filename: String, contentType: ContentType? = null, bodyBuilder: BytePacketBuilder.() -> Unit) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
-    val filenameHeader: Headers = headersOf(
-        HttpHeaders.ContentDisposition, "filename=$filename"
-    )
-    append(key, filenameHeader, bodyBuilder)
+
+    val headersBuilder = HeadersBuilder()
+    headersBuilder[HttpHeaders.ContentDisposition] ="filename=$filename"
+    contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
+    val headers = headersBuilder.build()
+
+    append(key, headers, bodyBuilder)
 }
