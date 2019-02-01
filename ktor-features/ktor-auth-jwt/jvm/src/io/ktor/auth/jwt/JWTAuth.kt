@@ -1,18 +1,27 @@
 package io.ktor.auth.jwt
 
-import com.auth0.jwk.*
-import com.auth0.jwt.*
-import com.auth0.jwt.algorithms.*
-import com.auth0.jwt.exceptions.*
-import com.auth0.jwt.impl.*
-import com.auth0.jwt.interfaces.*
-import io.ktor.application.*
+import com.auth0.jwk.Jwk
+import com.auth0.jwk.JwkException
+import com.auth0.jwk.JwkProvider
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.impl.JWTParser
+import com.auth0.jwt.interfaces.DecodedJWT
+import com.auth0.jwt.interfaces.Payload
+import com.auth0.jwt.interfaces.Verification
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
 import io.ktor.auth.*
-import io.ktor.http.auth.*
-import io.ktor.request.*
-import io.ktor.response.*
-import org.slf4j.*
-import java.security.interfaces.*
+import io.ktor.http.auth.HttpAuthHeader
+import io.ktor.request.ApplicationRequest
+import io.ktor.response.respond
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.security.interfaces.ECPublicKey
+import java.security.interfaces.RSAPublicKey
 import java.util.*
 
 private val JWTAuthKey: Any = "JWTAuth"
@@ -41,6 +50,8 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
 
     internal var schemes = JWTAuthSchemes("Bearer")
     internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
+
+    private var verificationHook: ((Verification) -> Verification) = { it }
 
     /**
      * JWT realm name that will be used during auth challenge
@@ -74,14 +85,28 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
      * @param [issuer] the issuer of the JSON Web Token
      */
     fun verifier(jwkProvider: JwkProvider, issuer: String) {
-        this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes) }
+        this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, verificationHook) }
     }
 
     /**
      * @param [jwkProvider] provides the JSON Web Key
      */
     fun verifier(jwkProvider: JwkProvider) {
-        this.verifier = { token -> getVerifier(jwkProvider, token, schemes) }
+        this.verifier = { token -> getVerifier(jwkProvider, null, token, schemes, verificationHook) }
+    }
+
+    /**
+     * The verification hook allows to configure the verification, allowing for instance to adds some leeway.
+     *
+     * For example:
+     * ```kotlin
+     * verificationHook { it.acceptLeeway(3) }
+     * ```
+     *
+     * @param [hook] provides a hook to configuration verification
+     */
+    fun verificationHook(hook: (Verification) -> Verification) {
+        this.verificationHook = hook
     }
 
     /**
@@ -141,11 +166,12 @@ private fun AuthenticationContext.bearerChallenge(
     it.complete()
 }
 
-private fun getVerifierNullableIssuer(
+private fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
     token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    verificationHook: (Verification) -> Verification
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
@@ -166,23 +192,11 @@ private fun getVerifierNullableIssuer(
         return null
     }
 
+    val verification = verificationHook(JWT.require(algorithm))
     return when (issuer) {
-        null -> JWT.require(algorithm).build()
-        else -> JWT.require(algorithm).withIssuer(issuer).build()
+        null -> verification.build()
+        else -> verification.withIssuer(issuer).build()
     }
-}
-
-private fun getVerifier(
-    jwkProvider: JwkProvider,
-    issuer: String,
-    token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
-): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
-}
-
-private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader, schemes: JWTAuthSchemes): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
 }
 
 private suspend fun verifyAndValidate(

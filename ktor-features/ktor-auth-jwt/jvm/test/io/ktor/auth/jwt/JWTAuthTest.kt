@@ -1,20 +1,39 @@
 package io.ktor.auth.jwt
 
-import com.auth0.jwk.*
-import com.auth0.jwt.*
-import com.auth0.jwt.algorithms.*
-import com.nhaarman.mockito_kotlin.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.testing.*
+import com.auth0.jwk.Jwk
+import com.auth0.jwk.JwkProvider
+import com.auth0.jwk.JwkProviderBuilder
+import com.auth0.jwk.SigningKeyNotFoundException
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.mock
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.authenticate
+import io.ktor.auth.authentication
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.testing.TestApplicationCall
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.withApplication
 import org.junit.Test
-import java.security.*
-import java.security.interfaces.*
-import java.util.concurrent.*
-import kotlin.test.*
+import java.security.KeyPairGenerator
+import java.security.SecureRandom
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class JWTAuthTest {
 
@@ -71,6 +90,23 @@ class JWTAuthTest {
             }
 
             val token = getToken(scheme = "TOKen")
+
+            val response = handleRequestWithToken(token)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
+    fun testJwtSuccessWithLeeway() {
+        withApplication {
+            application.configureServerJwt {
+                verificationHook { it.acceptLeeway(5) }
+            }
+
+            val token = getToken()
 
             val response = handleRequestWithToken(token)
 
