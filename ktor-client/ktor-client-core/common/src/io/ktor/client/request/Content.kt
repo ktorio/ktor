@@ -5,7 +5,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.io.*
 
 abstract class ClientUpgradeContent : OutgoingContent.NoContent() {
-    private val content: ByteChannel = ByteChannel()
+    private val content: ByteChannel by lazy { ByteChannel() }
 
     val output: ByteWriteChannel get() = content
 

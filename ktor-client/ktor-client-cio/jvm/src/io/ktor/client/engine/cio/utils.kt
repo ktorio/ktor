@@ -9,7 +9,7 @@ import io.ktor.http.content.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
-internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
+internal suspend fun HttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()

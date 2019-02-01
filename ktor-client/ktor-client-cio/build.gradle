@@ -5,6 +5,7 @@ kotlin.sourceSets {
         api project(':ktor-client:ktor-client-core')
         api project(':ktor-http:ktor-http-cio')
         api project(':ktor-network:ktor-network-tls')
+        api project(':ktor-client:ktor-client-features:ktor-client-websocket')
     }
     jvmTest.dependencies {
         api project(':ktor-client:ktor-client-tests')

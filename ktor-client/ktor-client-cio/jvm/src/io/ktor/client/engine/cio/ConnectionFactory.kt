@@ -6,17 +6,20 @@ import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import java.net.*
 
-internal class ConnectionFactory(private val selector: SelectorManager, maxConnectionsCount: Int) {
+internal class ConnectionFactory(
+    private val selector: SelectorManager,
+    maxConnectionsCount: Int
+) {
     private val semaphore = Semaphore(maxConnectionsCount)
 
     suspend fun connect(address: InetSocketAddress): Socket {
         semaphore.enter()
         return try {
             aSocket(selector).tcpNoDelay().tcp().connect(address)
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             // a failure or cancellation
             semaphore.leave()
-            throw t
+            throw cause
         }
     }
 

@@ -2,7 +2,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import kotlinx.coroutines.*
@@ -11,7 +13,7 @@ import java.io.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
+internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio"), WebSocketEngine {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
     @UseExperimental(InternalCoroutinesApi::class)
@@ -29,7 +31,12 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
         return@withContext HttpEngineCall(request, response)
     }
 
-    private suspend fun executeRequest(request: DefaultHttpRequest): CIOHttpResponse {
+    override suspend fun execute(request: HttpRequest): WebSocketResponse {
+        val response = executeRequest(request)
+        return response as WebSocketResponse
+    }
+
+    private suspend fun executeRequest(request: HttpRequest): HttpResponse {
         while (true) {
             if (closed.get()) throw ClientClosedException()
 

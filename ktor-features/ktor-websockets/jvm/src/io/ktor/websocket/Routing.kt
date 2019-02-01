@@ -138,7 +138,7 @@ private class WebSocketProtocolsSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol]
-                ?: return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.Failed
 
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
             return RouteSelectorEvaluation.Constant

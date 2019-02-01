@@ -32,7 +32,7 @@ interface HttpRequest : HttpMessage, CoroutineScope {
     val url: Url
 
     /**
-     * Typed [Attributes] associated to this request serving as a lightweight container.
+     * Typed [Attributes] associated to this call serving as a lightweight container.
      */
     val attributes: Attributes
 
@@ -44,13 +44,13 @@ interface HttpRequest : HttpMessage, CoroutineScope {
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("coroutineContext")
     )
-    val executionContext: Job get() = TODO()
+    val executionContext: Job
+        get() = TODO()
 
     /**
      * An [OutgoingContent] representing the request body
      */
     val content: OutgoingContent
-
 }
 
 /**

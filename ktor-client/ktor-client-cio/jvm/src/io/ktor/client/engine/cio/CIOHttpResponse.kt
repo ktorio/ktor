@@ -11,9 +11,10 @@ import kotlin.coroutines.*
 
 internal class CIOHttpResponse(
     request: HttpRequest,
+    override val headers: Headers,
     override val requestTime: GMTDate,
     override val content: ByteReadChannel,
-    private val response: Response,
+    response: Response,
     override val coroutineContext: CoroutineContext
 ) : HttpResponse {
 
@@ -21,14 +22,7 @@ internal class CIOHttpResponse(
 
     override val status: HttpStatusCode = HttpStatusCode(response.status, response.statusText.toString())
 
-    override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
-
-    override val headers: Headers = Headers.build {
-        val origin = CIOHeaders(response.headers)
-        origin.names().forEach {
-            appendAll(it, origin.getAll(it))
-        }
-    }
+    override val version: HttpProtocolVersion = HttpProtocolVersion.parse(response.version)
 
     override val responseTime: GMTDate = GMTDate()
 

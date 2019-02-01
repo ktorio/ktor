@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
@@ -13,9 +14,9 @@ import kotlin.reflect.*
 /**
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
  *
- * [client] - client that executed the call.
+ * @property client: client that executed the call.
  */
-class HttpClientCall internal constructor(
+open class HttpClientCall constructor(
     val client: HttpClient
 ) : CoroutineScope, Closeable {
     private val received = atomic(false)
@@ -23,7 +24,12 @@ class HttpClientCall internal constructor(
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
     /**
-     * Represents the [request] sent by the client.
+     * Typed [Attributes] associated to this call serving as a lightweight container.
+     */
+    val attributes: Attributes get() = request.attributes
+
+    /**
+     * Represents the [request] sent by the client
      */
     lateinit var request: HttpRequest
         internal set
@@ -70,6 +76,12 @@ class HttpClientCall internal constructor(
     }
 }
 
+/**
+ * Raw http call produced by engine.
+ *
+ * @property request - executed http request.
+ * @property response - raw http response
+ */
 data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
 
 /**
@@ -98,6 +110,7 @@ suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo
 /**
  * Exception representing that the response payload has already been received.
  */
+@Suppress("KDocMissingDocumentation")
 class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
     override val message: String = "Response already received: $call"
 }
@@ -106,6 +119,7 @@ class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
  */
+@Suppress("KDocMissingDocumentation")
 class ReceivePipelineException(
     val request: HttpClientCall,
     val info: TypeInfo,
@@ -116,6 +130,7 @@ class ReceivePipelineException(
  * Exception representing the no transformation was found.
  * It includes the received type and the expected type as part of the message.
  */
+@Suppress("KDocMissingDocumentation")
 class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
     override val message: String? = "No transformation found: $from -> $to"
 }
@@ -125,4 +140,5 @@ class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : Unsupport
     ReplaceWith("NoTransformationFoundException"),
     DeprecationLevel.ERROR
 )
+@Suppress("KDocMissingDocumentation")
 typealias NoTransformationFound = NoTransformationFoundException

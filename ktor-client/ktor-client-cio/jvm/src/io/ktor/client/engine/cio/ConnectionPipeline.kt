@@ -76,6 +76,11 @@ internal class ConnectionPipeline(
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
+                    val headers = CIOHeaders(rawResponse.headers)
+
+                    callContext[Job]?.invokeOnCompletion {
+                        rawResponse.release()
+                    }
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
@@ -90,7 +95,7 @@ internal class ConnectionPipeline(
                     } else ByteReadChannel.Empty
 
                     val response = CIOHttpResponse(
-                        task.request, requestTime,
+                        task.request, headers, requestTime,
                         body,
                         rawResponse,
                         coroutineContext = callContext
@@ -99,19 +104,13 @@ internal class ConnectionPipeline(
                     task.response.complete(response)
 
                     responseChannel?.use {
-                        try {
-                            parseHttpBody(
-                                contentLength,
-                                transferEncoding,
-                                connectionType,
-                                networkInput,
-                                this
-                            )
-                        } finally {
-                            callContext[Job]?.invokeOnCompletion {
-                                rawResponse.release()
-                            }
-                        }
+                        parseHttpBody(
+                            contentLength,
+                            transferEncoding,
+                            connectionType,
+                            networkInput,
+                            this
+                        )
                     }
 
                     skipTask?.join()

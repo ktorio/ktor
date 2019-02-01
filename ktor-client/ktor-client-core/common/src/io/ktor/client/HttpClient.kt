@@ -52,14 +52,16 @@ fun HttpClient(
  * Asynchronous client to perform HTTP requests.
  *
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
+ * @property engine: [HttpClientEngine] for executing requests.
  */
 class HttpClient(
-    private val engine: HttpClientEngine,
+    @InternalAPI val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
     private val closed = atomic(false)
 
     override val coroutineContext: CoroutineContext get() = engine.coroutineContext
+
     /**
      * Pipeline used for processing all the requests sent by this client.
      */

@@ -1,5 +1,6 @@
 @file:kotlin.jvm.JvmMultifileClass
 @file:kotlin.jvm.JvmName("CryptoKt")
+
 package io.ktor.util
 
 import kotlinx.io.charsets.*
@@ -50,6 +51,12 @@ fun generateNonce(size: Int): ByteArray = buildPacket {
         writeStringUtf8(generateNonce())
     }
 }.readBytes(size)
+
+/**
+ * Compute SHA-1 hash for the specified [bytes]
+ */
+@KtorExperimentalAPI
+expect fun sha1(bytes: ByteArray): ByteArray
 
 @InternalAPI
 expect fun Digest(name: String): Digest

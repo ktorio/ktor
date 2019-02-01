@@ -11,7 +11,6 @@ import io.ktor.client.engine.*
 @HttpClientDsl
 actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
-): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) }
-    ?: error(
-        "Failed to find HttpClientEngineContainer. Consider adding [HttpClientEngine] implementation in dependencies."
-    )
+): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) } ?: error(
+    "Failed to find HttpClientEngineContainer. Consider adding [HttpClientEngine] implementation in dependencies."
+)

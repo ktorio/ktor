@@ -9,6 +9,10 @@ import io.ktor.http.content.*
 class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")
 
+class UnsupportedUpgradeProtocolException(
+    url: Url
+) : IllegalArgumentException("Unsupported upgrade protocol exception: $url")
+
 /**
  * Constructs a [HttpClientCall] from this [HttpClient] and
  * with the specified HTTP request [builder].

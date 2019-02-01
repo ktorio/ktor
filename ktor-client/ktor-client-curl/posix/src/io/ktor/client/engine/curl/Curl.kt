@@ -1,5 +1,6 @@
 package io.ktor.client.engine.curl
 
+import kotlin.native.concurrent.*
 import io.ktor.client.engine.*
 import libcurl.*
 
@@ -14,6 +15,10 @@ private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL)
 @ThreadLocal
 private val initHook = Curl
 
+/**
+ * [HttpClientEngineFactory] using a curl library in implementation
+ * with the the associated configuration [HttpClientEngineConfig].
+ */
 object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
 
     init {

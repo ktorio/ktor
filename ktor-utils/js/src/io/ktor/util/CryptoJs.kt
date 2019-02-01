@@ -40,3 +40,11 @@ private external object crypto {
 private external class SubtleCrypto {
     fun digest(algoName: String, buffer: ByteArray): Promise<ArrayBuffer>
 }
+
+/**
+ * Compute SHA-1 hash for the specified [bytes]
+ */
+@KtorExperimentalAPI
+actual fun sha1(bytes: ByteArray): ByteArray {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+}
