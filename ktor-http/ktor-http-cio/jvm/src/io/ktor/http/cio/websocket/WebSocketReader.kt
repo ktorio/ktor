@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
-import java.nio.ByteBuffer
+import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
@@ -18,10 +18,10 @@ import kotlin.coroutines.*
  */
 @WebSocketInternalAPI
 class WebSocketReader(
-        private val byteChannel: ByteReadChannel,
-        override val coroutineContext: CoroutineContext,
-        var maxFrameSize: Long,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    private val byteChannel: ByteReadChannel,
+    override val coroutineContext: CoroutineContext,
+    var maxFrameSize: Long,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
     @Suppress("UNUSED_PARAMETER")
@@ -30,9 +30,10 @@ class WebSocketReader(
         replaceWith = ReplaceWith("WebSocketReader(byteChannel, coroutineContext, maxFrameSize, pool)"),
         level = DeprecationLevel.ERROR
     )
-    constructor(byteChannel: ByteReadChannel, maxFrameSize: Long,
-                parent: Job?, coroutineContext: CoroutineContext, pool: ObjectPool<ByteBuffer> = KtorDefaultPool)
-            : this(byteChannel, coroutineContext, maxFrameSize, pool)
+    constructor(
+        byteChannel: ByteReadChannel, maxFrameSize: Long,
+        parent: Job?, coroutineContext: CoroutineContext, pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    ) : this(byteChannel, coroutineContext, maxFrameSize, pool)
 
     private var state = State.HEADER
     private val frameParser = FrameParser()

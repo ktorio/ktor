@@ -1,10 +1,8 @@
 package io.ktor.http.cio.websocket
 
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
-import java.nio.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
@@ -20,19 +18,12 @@ actual sealed class Frame private actual constructor(
     actual val disposableHandle: DisposableHandle
 ) {
     /**
-     * Frame content
-     */
-    val buffer: ByteBuffer = ByteBuffer.wrap(data)
-
-    /**
      * Represents an application level binary frame.
      * In a RAW web socket session a big text frame could be fragmented
      * (separated into several text frames so they have [fin] = false except the last one).
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
      */
     actual class Binary actual constructor(fin: Boolean, data: ByteArray) : Frame(fin, FrameType.BINARY, data) {
-        constructor(fin: Boolean, buffer: ByteBuffer) : this(fin, buffer.moveToByteArray())
-
         actual constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readBytes())
     }
 
@@ -47,7 +38,6 @@ actual sealed class Frame private actual constructor(
     actual class Text actual constructor(fin: Boolean, data: ByteArray) : Frame(fin, FrameType.TEXT, data) {
         actual constructor(text: String) : this(true, text.toByteArray())
         actual constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readBytes())
-        constructor(fin: Boolean, buffer: ByteBuffer) : this(fin, buffer.moveToByteArray())
     }
 
     /**
@@ -63,8 +53,6 @@ actual sealed class Frame private actual constructor(
 
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         actual constructor() : this(Empty)
-
-        constructor(buffer: ByteBuffer) : this(buffer.moveToByteArray())
     }
 
     /**
@@ -73,7 +61,6 @@ actual sealed class Frame private actual constructor(
      */
     actual class Ping actual constructor(data: ByteArray) : Frame(true, FrameType.PING, data) {
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
-        constructor(buffer: ByteBuffer) : this(buffer.moveToByteArray())
     }
 
     /**
@@ -85,12 +72,6 @@ actual sealed class Frame private actual constructor(
         disposableHandle: DisposableHandle
     ) : Frame(true, FrameType.PONG, data, disposableHandle) {
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
-        constructor(
-            buffer: ByteBuffer,
-            disposableHandle: DisposableHandle = NonDisposableHandle
-        ) : this(buffer.moveToByteArray(), disposableHandle)
-
-        constructor(buffer: ByteBuffer) : this(buffer.moveToByteArray(), NonDisposableHandle)
     }
 
     override fun toString() = "Frame $frameType (fin=$fin, buffer len = ${data.size})"
@@ -117,27 +98,5 @@ actual sealed class Frame private actual constructor(
             FrameType.PING -> Ping(data)
             FrameType.PONG -> Pong(data)
         }
-
-        /**
-         * Create a particular [Frame] instance by frame type
-         */
-        fun byType(fin: Boolean, frameType: FrameType, buffer: ByteBuffer): Frame =
-            byType(fin, frameType, buffer.moveToByteArray())
     }
-}
-
-/**
- * Read close reason from close frame or null if no close reason provided
- */
-fun Frame.Close.readReason(): CloseReason? {
-    if (data.size < 2) {
-        return null
-    }
-
-    buffer.mark()
-    val code = buffer.getShort()
-    val message = buffer.decodeString(Charsets.UTF_8)
-    buffer.reset()
-
-    return CloseReason(code, message)
 }

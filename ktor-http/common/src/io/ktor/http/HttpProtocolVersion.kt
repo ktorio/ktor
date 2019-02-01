@@ -14,12 +14,12 @@ data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int)
          * HTTP/2.0 version.
          */
         val HTTP_2_0 = HttpProtocolVersion("HTTP", 2, 0)
-        
+
         /**
          * HTTP/1.1 version.
          */
         val HTTP_1_1 = HttpProtocolVersion("HTTP", 1, 1)
-        
+
         /**
          * HTTP/1.0 version.
          */
@@ -36,12 +36,28 @@ data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int)
         val QUIC = HttpProtocolVersion("QUIC", 1, 0)
 
         /**
-         * Creates an instance of [HttpProtocolVersion] from the given parameters. 
+         * Creates an instance of [HttpProtocolVersion] from the given parameters.
          */
         fun fromValue(name: String, major: Int, minor: Int): HttpProtocolVersion = when {
             name == "HTTP" && major == 1 && minor == 1 -> HTTP_1_1
             name == "HTTP" && major == 2 && minor == 0 -> HTTP_2_0
             else -> HttpProtocolVersion(name, major, minor)
+        }
+
+        /**
+         * Create an instance of [HttpProtocolVersion] from http string representation.
+         */
+        fun parse(value: CharSequence): HttpProtocolVersion {
+            /**
+             * Format: protocol/major.minor
+             */
+            val (protocol, major, minor) = value.split("/", ".").also {
+                check(it.size == 3) {
+                    "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
+                }
+            }
+
+            return fromValue(protocol, major.toInt(), minor.toInt())
         }
     }
 

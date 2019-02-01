@@ -24,10 +24,7 @@ private fun getDigest(text: String, algorithm: String, salt: String): ByteArray 
 @KtorExperimentalAPI
 fun sha1(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA1").digest(bytes)!!
 
-@InternalAPI
-actual fun Digest(name: String): Digest = object : Digest {
-    private val delegate = MessageDigest.getInstance(name)
-
+private inline class DigestImpl(val delegate: MessageDigest) : Digest {
     override fun plusAssign(bytes: ByteArray) {
         delegate.update(bytes)
     }

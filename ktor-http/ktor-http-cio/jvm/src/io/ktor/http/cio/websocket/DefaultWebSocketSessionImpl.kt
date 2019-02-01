@@ -2,12 +2,12 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
-import java.util.concurrent.atomic.*
 
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
 private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
@@ -23,11 +23,11 @@ class DefaultWebSocketSessionImpl(
     private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
-    private val pinger = AtomicReference<SendChannel<Frame.Pong>?>(null)
+    private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
     private val outgoingToBeProcessed = Channel<Frame>(8)
-    private val closed: AtomicBoolean = AtomicBoolean(false)
+    private val closed: AtomicBoolean = atomic(false)
 
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
@@ -79,7 +79,7 @@ class DefaultWebSocketSessionImpl(
                         sendCloseSequence(frame.readReason())
                         return@launch
                     }
-                    is Frame.Pong -> pinger.get()?.send(frame)
+                    is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
                         if (!frame.fin) {
@@ -140,7 +140,7 @@ class DefaultWebSocketSessionImpl(
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
         try {
             runOrCancelPinger()
-            send(Frame.Close(reasonToSend))
+            raw.outgoing.send(Frame.Close(reasonToSend))
         } finally {
             closeReasonRef.complete(reasonToSend)
         }
@@ -148,8 +148,9 @@ class DefaultWebSocketSessionImpl(
 
     private fun runOrCancelPinger() {
         val interval = pingIntervalMillis
+
         val newPinger: SendChannel<Frame.Pong>? = when {
-            closed.get() -> null
+            closed.value -> null
             interval >= 0L -> pinger(raw.outgoing, interval, timeoutMillis, pool)
             else -> null
         }
@@ -161,13 +162,13 @@ class DefaultWebSocketSessionImpl(
 
         newPinger?.offer(EmptyPong) // it is safe here to send dummy pong because pinger will ignore it
 
-        if (closed.get() && newPinger != null) {
+        if (closed.value && newPinger != null) {
             runOrCancelPinger()
         }
     }
 
     companion object {
-        private val EmptyPong = Frame.Pong(ByteBuffer.allocate(0))
+        private val EmptyPong = Frame.Pong(ByteArray(0))
     }
 }
 

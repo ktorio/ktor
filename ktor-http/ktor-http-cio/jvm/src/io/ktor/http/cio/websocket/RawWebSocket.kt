@@ -47,7 +47,7 @@ class RawWebSocket(
     }
 
     override suspend fun close(cause: Throwable?) {
-        terminate()
+        cause?.let { socketJob.completeExceptionally(it) } ?: terminate()
     }
 }
 
