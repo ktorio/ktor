@@ -7,6 +7,7 @@ public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/corout
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getEngine ()Lio/ktor/client/engine/HttpClientEngine;
 	public final fun getEngineConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public final fun getReceivePipeline ()Lio/ktor/client/response/HttpReceivePipeline;
 	public final fun getRequestPipeline ()Lio/ktor/client/request/HttpRequestPipeline;
@@ -54,8 +55,10 @@ public final class io/ktor/client/call/DoubleReceiveException : java/lang/Illega
 	public fun getMessage ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/call/HttpClientCall : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+public class io/ktor/client/call/HttpClientCall : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/client/HttpClient;)V
 	public fun close ()V
+	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getRequest ()Lio/ktor/client/request/HttpRequest;
@@ -113,6 +116,10 @@ public final class io/ktor/client/call/TypeInfo {
 
 public final class io/ktor/client/call/UnsupportedContentTypeException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/http/content/OutgoingContent;)V
+}
+
+public final class io/ktor/client/call/UnsupportedUpgradeProtocolException : java/lang/IllegalArgumentException {
+	public fun <init> (Lio/ktor/http/Url;)V
 }
 
 public final class io/ktor/client/call/UtilsJvmKt {

@@ -47,6 +47,7 @@ public final class io/ktor/util/Base64Kt {
 	public static final fun decodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final fun encodeBase64 (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
+	public static final fun encodeBase64 ([B)Ljava/lang/String;
 }
 
 public final class io/ktor/util/BufferViewJvmKt {
@@ -56,6 +57,10 @@ public final class io/ktor/util/BufferViewJvmKt {
 
 public final class io/ktor/util/ByteChannelsKt {
 	public static final fun split (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/CoroutineScope;)Lkotlin/Pair;
+}
+
+public final class io/ktor/util/BytesKt {
+	public static final fun readShort ([BI)S
 }
 
 public final class io/ktor/util/CaseInsensitiveMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {

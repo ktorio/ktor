@@ -1,0 +1,5 @@
+public final class io/ktor/client/tests/utils/dispatcher/TestJvmKt {
+	public static final fun testSuspend (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun testSuspend$default (Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+

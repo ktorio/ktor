@@ -622,6 +622,7 @@ public final class io/ktor/http/HttpProtocolVersion$Companion {
 	public final fun getHTTP_2_0 ()Lio/ktor/http/HttpProtocolVersion;
 	public final fun getQUIC ()Lio/ktor/http/HttpProtocolVersion;
 	public final fun getSPDY_3 ()Lio/ktor/http/HttpProtocolVersion;
+	public final fun parse (Ljava/lang/CharSequence;)Lio/ktor/http/HttpProtocolVersion;
 }
 
 public final class io/ktor/http/HttpStatusCode {
