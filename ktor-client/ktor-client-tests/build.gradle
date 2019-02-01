@@ -6,6 +6,7 @@ kotlin.sourceSets {
     commonMain.dependencies {
         api project(':ktor-client:ktor-client-core')
         api project(':ktor-client:ktor-client-tests:ktor-client-tests-dispatcher')
+        api project(':ktor-client:ktor-client-features:ktor-client-json')
     }
     jvmMain.dependencies {
         api project(':ktor-server:ktor-server-jetty')
