@@ -12,7 +12,6 @@ import kotlin.coroutines.*
  * Key differences with original implementation:
  *  - responses are added to the engine via enqueueResponse()
  *  - responses are given back in order they were added to the engine
- *  - the request url does not affect the order in which responses are returned
  *  - received requests are saved and can be retrieved via takeRequest()
  *  - stored responses and requests can be reset via reset() thus making the
  *      engine reusable throughout tests
@@ -62,5 +61,4 @@ class MockEngineExtended(
         override fun create(block: HttpClientEngineConfig.() -> Unit): MockEngineExtended =
             MockEngineExtended(HttpClientEngineConfig().apply(block))
     }
-
 }

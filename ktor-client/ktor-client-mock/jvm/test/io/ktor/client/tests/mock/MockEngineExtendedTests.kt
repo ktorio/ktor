@@ -59,7 +59,6 @@ class MockEngineExtendedTests {
         assertEquals(secondCall.url.fullUrl, "https://127.0.0.02")
         assertEquals(secondCall.headers["header"], "second")
         assertEquals((secondCall.content as TextContent).text, "secured")
-
     }
 
     @Test
@@ -77,7 +76,6 @@ class MockEngineExtendedTests {
             }
         }
 
-        client.attributes
         assertEquals(exception.message, "Unhandled http://localhost/unhandled on invocationCount=1")
     }
 
