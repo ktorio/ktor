@@ -172,6 +172,11 @@ abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : Te
                         writeByte(i.toByte())
                     }
                 }
+                append("file2", "urlencoded_name2.jpg", ContentType.Application.OctetStream) {
+                    for (i in 1..4096) {
+                        writeByte(i.toByte())
+                    }
+                }
                 append("hello", 5)
             }
         }
@@ -191,12 +196,13 @@ abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : Te
         }
     }
 
-    private fun filenameAndContentString(provider: () -> Input, headers: Headers): String {
+    private fun filenameContentTypeAndContentString(provider: () -> Input, headers: Headers): String {
         val dispHeader: String = headers.getAll(HttpHeaders.ContentDisposition)!!.joinToString(";")
         val disposition: ContentDisposition = ContentDisposition.parse(dispHeader)
         val filename: String = disposition.parameter("filename") ?: ""
+        val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ""
         val content: String = provider().readText(Charsets.ISO_8859_1)
-        return "$filename$content"
+        return "$filename$contentType$content"
     }
 
     private fun List<PartData>.makeString(): String = buildString {
@@ -204,9 +210,9 @@ abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : Te
         list.forEach {
             appendln(it.name!!)
             val content = when (it) {
-                is PartData.FileItem -> filenameAndContentString(it.provider, it.headers)
+                is PartData.FileItem -> filenameContentTypeAndContentString(it.provider, it.headers)
                 is PartData.FormItem -> it.value
-                is PartData.BinaryItem -> filenameAndContentString(it.provider, it.headers)
+                is PartData.BinaryItem -> filenameContentTypeAndContentString(it.provider, it.headers)
             }
 
             appendln(content)
