@@ -5,22 +5,33 @@ import io.ktor.network.tls.platform.*
 
 
 /**
- * TLS secret key exchange type
+ * TLS secret key exchange type.
  */
 enum class SecretExchangeType(val jvmName: String) {
     /**
-     * Elliptic Curve Diffie-Hellman Exchange
+     * Elliptic Curve Diffie-Hellman Exchange.
      */
     ECDHE("ECDHE_ECDSA"),
 
     /**
-     * RSA key exchange
+     * RSA key exchange.
      */
     RSA("RSA")
 }
 
+/**
+ * Cipher type.
+ */
 enum class CipherType {
+    /**
+     * Galois/Counter Mode.
+     * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
+     */
     GCM,
+    /**
+     * Cipher Block Chaining.
+     * See also: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)
+     */
     CBC
 }
 

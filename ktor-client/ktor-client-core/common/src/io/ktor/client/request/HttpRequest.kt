@@ -40,12 +40,12 @@ interface HttpRequest : HttpMessage, CoroutineScope {
      * A [Job] representing the process of this request.
      */
     @Deprecated(
-        "executionContext is deprecated. Use coroutineContext instead",
+        "[executionContext] is deprecated. Use coroutineContext instead",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("coroutineContext")
     )
     val executionContext: Job
-        get() = TODO()
+        get() = error("[executionContext] is deprecated. Use coroutineContext instead")
 
     /**
      * An [OutgoingContent] representing the request body

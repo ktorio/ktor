@@ -1,7 +1,7 @@
 package io.ktor.util
 
 /**
- * Read [Short] with specified [offset] from [ByteArray].
+ * Read [Short] in network order(BE) with specified [offset] from [ByteArray].
  */
 @InternalAPI
 fun ByteArray.readShort(offset: Int): Short {

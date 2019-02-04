@@ -1,5 +1,6 @@
-package io.ktor.util
+package io.ktor.tests.utils
 
+import io.ktor.util.*
 import kotlin.test.*
 
 

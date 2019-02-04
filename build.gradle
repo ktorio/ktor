@@ -114,6 +114,10 @@ afterEvaluate {
         it.hasProperty("compileKotlinJvm") ? [it.compileKotlinJvm] : []
     }.flatten()
 
+    configure(allCompileKotlinTasks) {
+        kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses"]
+    }
+
     task dokkaWebsite(type: dokka.getClass()) {
         outputFormat = 'kotlin-website'
         outputDirectory = "${rootProject.projectDir}/apidoc"

@@ -1,8 +1,15 @@
 package io.ktor.util
 
+
+/**
+ * Generates a nonce string. Could block if the system's entropy source is empty
+ */
 @InternalAPI
 actual fun generateNonce(): String = error("[generateNonce] is not supported on iOS")
 
+/**
+ * Create [Digest] from specified hash [name].
+ */
 @InternalAPI
 actual fun Digest(name: String): Digest = error("[Digest] is not supported on iOS")
 
@@ -10,6 +17,4 @@ actual fun Digest(name: String): Digest = error("[Digest] is not supported on iO
  * Compute SHA-1 hash for the specified [bytes]
  */
 @KtorExperimentalAPI
-actual fun sha1(bytes: ByteArray): ByteArray {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-}
+actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-native")

@@ -27,8 +27,13 @@ actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
     Digest("SHA1").also { it += bytes }.build()
 }
 
+/**
+ * Create [Digest] from specified hash [name].
+ */
+@KtorExperimentalAPI
 actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
 
+@KtorExperimentalAPI
 private inline class DigestImpl(val delegate: MessageDigest) : Digest {
     override fun plusAssign(bytes: ByteArray) {
         delegate.update(bytes)

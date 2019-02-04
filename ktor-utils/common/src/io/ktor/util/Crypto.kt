@@ -42,9 +42,15 @@ fun hex(s: String): ByteArray {
     return result
 }
 
+/**
+ * Generates a nonce string. Could block if the system's entropy source is empty
+ */
 @InternalAPI
 expect fun generateNonce(): String
 
+/**
+ * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
+ */
 @InternalAPI
 fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
@@ -58,24 +64,45 @@ fun generateNonce(size: Int): ByteArray = buildPacket {
 @KtorExperimentalAPI
 expect fun sha1(bytes: ByteArray): ByteArray
 
+/**
+ * Create [Digest] from specified hash [name].
+ */
 @InternalAPI
 expect fun Digest(name: String): Digest
 
+/**
+ * Stateful digest class specified to calculate digest.
+ */
 @InternalAPI
 interface Digest {
+    /**
+     * Add [bytes] to digest value.
+     */
     operator fun plusAssign(bytes: ByteArray)
 
+    /**
+     * Reset [Digest] state.
+     */
     fun reset()
 
+    /**
+     * Calculate digest bytes.
+     */
     suspend fun build(): ByteArray
 }
 
+/**
+ * Calculate digest from current state and specified [bytes].
+ */
 @InternalAPI
 suspend fun Digest.build(bytes: ByteArray): ByteArray {
     this += bytes
     return build()
 }
 
+/**
+ * Calculate digest from current state and specified [string].
+ */
 @InternalAPI
 suspend fun Digest.build(string: String, charset: Charset = Charsets.UTF_8): ByteArray {
     this += string.toByteArray(charset)
