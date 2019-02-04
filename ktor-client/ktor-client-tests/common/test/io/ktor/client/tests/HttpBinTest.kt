@@ -1,6 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
@@ -21,29 +22,28 @@ class HttpBinTest {
     @Test
     fun getTest() = clientsTest {
         config {
-            installJson()
+            testConfiguration()
         }
 
         test { client ->
             val response = client.get<HttpBinResponse>("http://httpbin.org/get")
-            val expected = HttpBinResponse(
-                "http://httpbin.org/get",
-                emptyMap(),
-                mapOf(
-                    "Accept" to "application/json",
-                    "Connection" to "close",
-                    "Host" to "httpbin.org"
-                )
-            )
 
-            assertEquals(expected, response)
+            assertEquals("http://httpbin.org/get", response.url)
+            assertEquals(emptyMap(), response.args)
+
+            with(response.headers) {
+                assertEquals("application/json", get("Accept"))
+                assertEquals("close", get("Connection"))
+                assertEquals("httpbin.org", get("Host"))
+            }
+
         }
     }
 
     @Test
     fun postTest() = clientsTest {
         config {
-            installJson()
+            testConfiguration()
         }
 
         test { client ->
@@ -51,23 +51,20 @@ class HttpBinTest {
                 body = "Hello, bin!"
             }
 
-            val expected = HttpBinResponse(
-                "http://httpbin.org/post",
-                emptyMap(),
-                mapOf(
-                    "Content-Type" to "text/plain; charset=UTF-8",
-                    "Accept" to "application/json",
-                    "Content-Length" to "11",
-                    "Connection" to "close",
-                    "Host" to "httpbin.org"
-                )
-            )
+            assertEquals("http://httpbin.org/post", response.url)
+            assertEquals(emptyMap(), response.args)
 
-            assertEquals(expected, response)
+            with(response.headers) {
+                assertEquals("text/plain; charset=UTF-8", get("Content-Type"))
+                assertEquals("application/json", get("Accept"))
+                assertEquals("11", get("Content-Length"))
+                assertEquals("close", get("Connection"))
+                assertEquals("httpbin.org", get("Host"))
+            }
         }
     }
 
-    private fun HttpClientConfig<*>.installJson() {
+    private fun HttpClientConfig<*>.testConfiguration() {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json.nonstrict).apply {
                 register(HttpBinResponse.serializer())

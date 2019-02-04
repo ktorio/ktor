@@ -8,13 +8,13 @@ import io.ktor.util.*
 /**
  * Default user-agent feature for [HttpClient].
  *
- * [agent] - value of user-agent header to set.
+ * @property agent: value of user-agent header to set.
  */
 class UserAgent(val agent: String) {
 
     class Config(var agent: String = "Ktor http-client")
 
-    companion object Feature : HttpClientFeature<Config, UserAgent>{
+    companion object Feature : HttpClientFeature<Config, UserAgent> {
         override val key: AttributeKey<UserAgent> = AttributeKey("UserAgent")
 
         override fun prepare(block: Config.() -> Unit): UserAgent = UserAgent(Config().apply(block).agent)
