@@ -116,8 +116,11 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.feature(WebSockets)
 
-    val session =
-        DefaultWebSocketSessionImpl(this, webSockets.pingInterval?.toMillis() ?: -1L, webSockets.timeout.toMillis())
+    val session = DefaultWebSocketSessionImpl(
+        this,
+        webSockets.pingInterval?.toMillis() ?: -1L,
+        webSockets.timeout.toMillis()
+    )
     session.run {
         try {
             toServerSession(call).handler()

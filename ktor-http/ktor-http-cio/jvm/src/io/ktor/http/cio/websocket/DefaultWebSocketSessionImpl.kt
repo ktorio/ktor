@@ -64,7 +64,7 @@ class DefaultWebSocketSessionImpl(
             else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: cause.javaClass.name)
         }
 
-        sendCloseSequence(reason)
+        reason?.let { send(Frame.Close(it)) }
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)

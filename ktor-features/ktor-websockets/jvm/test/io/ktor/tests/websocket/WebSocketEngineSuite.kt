@@ -245,7 +245,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     @Test
     fun testProduceMessages() {
         val count = 125
-        val template = (1..count).map { (it and 0x0f).toString(16) }.joinToString("")
+        val template = (1..count).joinToString("") { (it and 0x0f).toString(16) }
 
         createAndStartServer {
             webSocket("/") {
