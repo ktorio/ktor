@@ -14,8 +14,6 @@ kotlin {
             fromPreset(presets.macosX64, 'macosX64')
             fromPreset(presets.mingwX64, 'mingwX64')
         }
-
-
     }
     sourceSets {
         posixMain.dependencies {
@@ -26,7 +24,7 @@ kotlin {
             implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
         }
 
-        posixTest { dependsOn posixMain}
+        posixTest { dependsOn posixMain }
         posixMain { dependsOn commonMain }
 
         if (!project.ext.ideaActive) {

@@ -2,6 +2,7 @@ package io.ktor.client.features.logging
 
 import io.ktor.application.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -9,6 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class LoggingTest : TestWithKtor() {
@@ -172,7 +174,7 @@ BODY END
     }
 
     @Test
-    fun customServerTest(): Unit = clientTest {
+    fun customServerTest(): Unit = clientsTest {
         val testLogger = TestLogger()
 
         config {
@@ -189,7 +191,7 @@ BODY END
 
     fun makeLog(requestMethod: HttpMethod, path: String, body: String?, logLevel: LogLevel): String {
         val testLogger = TestLogger()
-        clientTest {
+        clientsTest {
 
             config {
                 install(Logging) {
@@ -199,7 +201,7 @@ BODY END
             }
 
             test { client ->
-                client.request<String> {
+                val response = client.request<HttpResponse> {
                     method = requestMethod
 
                     url {
@@ -210,6 +212,10 @@ BODY END
 
                     body?.let { this@request.body = body }
                 }
+
+                response.readText()
+                response.close()
+                response.coroutineContext[Job]?.join()
             }
         }
         return testLogger.dump()

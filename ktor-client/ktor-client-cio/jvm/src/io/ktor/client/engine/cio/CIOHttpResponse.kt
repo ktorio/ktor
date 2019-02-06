@@ -17,7 +17,6 @@ internal class CIOHttpResponse(
     response: Response,
     override val coroutineContext: CoroutineContext
 ) : HttpResponse {
-
     override val call: HttpClientCall = request.call
 
     override val status: HttpStatusCode = HttpStatusCode(response.status, response.statusText.toString())
@@ -25,9 +24,4 @@ internal class CIOHttpResponse(
     override val version: HttpProtocolVersion = HttpProtocolVersion.parse(response.version)
 
     override val responseTime: GMTDate = GMTDate()
-
-    override fun close() {
-        super.close()
-        content.cancel()
-    }
 }
