@@ -46,9 +46,11 @@ class JsonFeature(val serializer: JsonSerializer) {
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
+                if (!context.headers.contains(HttpHeaders.Accept)) {
+                    context.accept(ContentType.Application.Json)
+                }
 
-                context.accept(ContentType.Application.Json)
-                if (context.contentType()?.match(ContentType.Application.Json) != true) {
+                if (!isJson(context.contentType())) {
                     return@intercept
                 }
 
@@ -57,12 +59,17 @@ class JsonFeature(val serializer: JsonSerializer) {
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, response) ->
-                if (response !is HttpResponse
-                    || context.response.contentType()?.match(ContentType.Application.Json) != true
-                ) return@intercept
+                if (response !is HttpResponse || !isJson(context.response.contentType())) {
+                    return@intercept
+                }
 
                 proceedWith(HttpResponseContainer(info, feature.serializer.read(info, response)))
             }
         }
+        
+        private fun isJson(contentType: ContentType?) =
+                contentType != null && (
+                        contentType.contentSubtype.equals("json", ignoreCase = true) ||
+                        contentType.contentSubtype.endsWith("+json", ignoreCase = true))
     }
 }
