@@ -1,5 +1,9 @@
 apply from: rootProject.file("gradle/ide.gradle")
 
+if (project.name != 'ktor-client-curl') {
+    apply from: rootProject.file("gradle/native.gradle")
+}
+
 kotlin {
     targets {
         if (project.ext.ideaActive) {
@@ -42,5 +46,6 @@ kotlin {
         }
     }
 }
+
 
 project.ext.set("hasNative", true)
