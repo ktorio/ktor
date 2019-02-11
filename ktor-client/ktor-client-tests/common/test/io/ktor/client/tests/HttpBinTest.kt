@@ -1,11 +1,13 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
+import kotlinx.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -59,6 +61,17 @@ class HttpBinTest {
                 assertEquals("11", get("Content-Length"))
                 assertEquals("httpbin.org", get("Host"))
             }
+        }
+    }
+
+    @Test
+    fun bytesTest() = clientTest {
+        test { client ->
+            val size = 100 * 1024
+            val response = client.get<HttpResponse>("http://httpbin.org/bytes/$size").use {
+                it.readBytes()
+            }
+            assertEquals(size, response.size)
         }
     }
 
