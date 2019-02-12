@@ -7,10 +7,22 @@ import kotlin.test.*
 
 class DownloadTest {
     @Test
-    fun downloadGoogle() = clientTest {
+    fun testDownloadGoogle() = clientsTest {
         test { client ->
             val response = client.get<String>("http://www.google.com/")
             assertTrue { response.isNotEmpty() }
+        }
+    }
+
+    @Test
+    fun testLocalhostEcho() = clientsTest {
+        val text = "Hello, world"
+        test { client ->
+            val response = client.post<String>("http://0.0.0.0:8080/echo") {
+                body = text
+            }
+
+            assertEquals(text, response)
         }
     }
 }

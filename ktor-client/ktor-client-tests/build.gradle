@@ -2,6 +2,17 @@ description = 'Common tests for client'
 
 apply plugin: "kotlinx-serialization"
 
+class BackgroundJavaProcess extends JavaExec {
+    public Thread thread = new Thread({ super.exec() })
+
+    @TaskAction
+    @Override
+    public void exec() {
+        thread.start()
+        Thread.sleep(1000)
+    }
+}
+
 kotlin.sourceSets {
     commonMain.dependencies {
         api project(':ktor-client:ktor-client-core')
@@ -32,4 +43,34 @@ kotlin.sourceSets {
             }
         }
     }
+}
+
+task startTestServer(type: BackgroundJavaProcess, dependsOn: assemble) {
+    main = "io.ktor.client.tests.utils.TestServerKt"
+    classpath = kotlin.targets.jvm.compilations["test"].runtimeDependencyFiles
+}
+
+if (!project.ext.ideaActive) {
+    def testTasks = [macosX64Test, linuxX64Test, iosTest, mingwX64Test, jvmTest, testMochaChrome, testMochaNode]
+
+    testTasks.each { it ->
+        it.dependsOn startTestServer
+    }
+}
+
+def shutdownServer() {
+    try {
+        def url = new URL("http://0.0.0.0:8080/shutdown")
+        def connection = url.openConnection() as HttpURLConnection
+        connection.requestMethod = "GET"
+        connection.connect()
+        def content = connection.getInputStream()
+        content.readLines()
+        content.close()
+        connection.disconnect()
+    } catch (ignored) {}
+}
+
+gradle.buildFinished {
+    shutdownServer()
 }
