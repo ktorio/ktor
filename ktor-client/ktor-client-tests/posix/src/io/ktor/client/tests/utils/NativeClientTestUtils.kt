@@ -8,5 +8,6 @@ import io.ktor.client.engine.*
 actual fun clientsTest(
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 ) {
+    check(engines.isNotEmpty()) { "No test engines provided." }
     engines.forEach { clientTest(it, block) }
 }

@@ -14,6 +14,8 @@ actual fun clientsTest(
         ServiceLoader.load(it, it.classLoader).toList()
     }
 
+    check(engines.isNotEmpty()) { "No test engines provided." }
+
     engines.forEach {
         clientTest(it.factory, block)
     }
