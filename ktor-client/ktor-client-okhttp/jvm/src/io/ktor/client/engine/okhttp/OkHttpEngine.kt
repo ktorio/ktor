@@ -22,7 +22,7 @@ class OkHttpEngine(
     override val config: OkHttpConfig
 ) : HttpClientJvmEngine("ktor-okhttp"), WebSocketEngine {
 
-    private val engine = OkHttpClient.Builder()
+    private val engine = config.preconfigured ?: OkHttpClient.Builder()
         .apply(config.config)
         .build()!!
 

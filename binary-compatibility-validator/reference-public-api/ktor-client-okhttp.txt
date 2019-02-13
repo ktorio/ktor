@@ -8,6 +8,8 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 	public final fun addInterceptor (Lokhttp3/Interceptor;)V
 	public final fun addNetworkInterceptor (Lokhttp3/Interceptor;)V
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun getPreconfigured ()Lokhttp3/OkHttpClient;
+	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
 }
 
 public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientJvmEngine, io/ktor/client/features/websocket/WebSocketEngine {
