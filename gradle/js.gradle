@@ -102,19 +102,34 @@ prepareMocha.doLast {
 task testMochaChrome(type: NodeTask, dependsOn: prepareMocha) {
     script = file("$node.nodeModulesDir/node_modules/mocha-headless-chrome/bin/start")
     description = "Run js tests in mocha-headless-chrome"
-    args = [compileTestKotlinJs.outputFile, '--file', mochaChromeTestPage]
-    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter', '--no-sandbox']
+    args = [
+        compileTestKotlinJs.outputFile,
+        '--file', mochaChromeTestPage,
+        '-a', 'allow-failed-policy-fetch-for-test',
+        '-a', 'allow-external-pages',
+        '-a', 'no-sandbox',
+        '-a', 'disable-web-security'
+    ]
+
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
 task testMochaNode(type: NodeTask, dependsOn: prepareMocha) {
     script = file("$node.nodeModulesDir/node_modules/mocha/bin/mocha")
     description = "Run js tests in mocha-nodejs"
-    args = [compileTestKotlinJs.outputFile,  '--require', 'source-map-support/register']
-    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter', '--no-sandbox']
+    args = [
+        compileTestKotlinJs.outputFile,
+        '--require', 'source-map-support/register',
+        '-a', 'allow-failed-policy-fetch-for-test',
+        '-a', 'allow-external-pages',
+        '-a', 'no-sandbox',
+        '-a', 'disable-web-security'
+    ]
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
 npmInstall.dependsOn assembleWeb
-jsTest.dependsOn testMochaNode
+//jsTest.dependsOn testMochaNode
 
 if (!project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")) {
     jsTest.dependsOn testMochaChrome

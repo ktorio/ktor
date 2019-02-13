@@ -29,6 +29,12 @@ kotlin.sourceSets {
     jvmTest.dependencies {
         runtimeOnly project(':ktor-client:ktor-client-apache')
         runtimeOnly project(':ktor-client:ktor-client-cio')
+        runtimeOnly project(':ktor-client:ktor-client-android')
+        runtimeOnly project(':ktor-client:ktor-client-okhttp')
+        runtimeOnly project(':ktor-client:ktor-client-jetty')
+    }
+    jsTest.dependencies {
+        api project(':ktor-client:ktor-client-js')
     }
     if (!project.ext.ideaActive) {
         configure([linuxX64Test, mingwX64Test, macosX64Test]) {
