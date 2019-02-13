@@ -21,7 +21,7 @@ import kotlin.reflect.*
  * ```
  */
 @UseExperimental(ImplicitReflectionSerializer::class)
-class KotlinxSerializer(private val json: JSON = JSON.plain) : JsonSerializer {
+class KotlinxSerializer(private val json: Json = Json.plain) : JsonSerializer {
     @Suppress("UNCHECKED_CAST")
     private val mappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
     private val listMappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
@@ -47,7 +47,7 @@ class KotlinxSerializer(private val json: JSON = JSON.plain) : JsonSerializer {
         setMapper(T::class, mapper)
     }
 
-    /** Set the mapping from [T] to [mapper]. */
+    /** Set the mapping from [List<T>] to [mapper]. */
     inline fun <reified T : Any> registerList(mapper: KSerializer<T>) {
         setListMapper(T::class, mapper)
     }
@@ -59,6 +59,9 @@ class KotlinxSerializer(private val json: JSON = JSON.plain) : JsonSerializer {
         register(T::class.serializer())
     }
 
+    /**
+     * Set the mapping from [List<T>] to it's [KSerializer]. This method only works for non-parameterized types.
+     */
     inline fun <reified T : Any> registerList() {
         registerList(T::class.serializer())
     }

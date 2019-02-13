@@ -7,6 +7,8 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
 
+internal const val TEST_SERVER: String = "http://0.0.0.0:8080"
+
 /**
  * Perform test against all clients from dependencies.
  */
