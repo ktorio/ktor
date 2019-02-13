@@ -536,8 +536,9 @@ public final class io/ktor/client/request/forms/FormDataContent : io/ktor/http/c
 
 public final class io/ktor/client/request/forms/FormDslKt {
 	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
-	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun formData (Lkotlin/jvm/functions/Function1;)Ljava/util/List;
 	public static final fun formData ([Lio/ktor/client/request/forms/FormPart;)Ljava/util/List;
 }

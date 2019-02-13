@@ -21,6 +21,25 @@ public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/
 	public final fun setCheck (Lkotlin/jvm/functions/Function2;)V
 }
 
+public final class io/ktor/client/engine/mock/MockEngineExtended : io/ktor/client/engine/HttpClientEngine {
+	public static final field Companion Lio/ktor/client/engine/mock/MockEngineExtended$Companion;
+	public fun <init> (Lio/ktor/client/engine/HttpClientEngineConfig;)V
+	public fun close ()V
+	public final fun enqueueResponses ([Lkotlin/jvm/functions/Function1;)V
+	public fun execute (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun reset ()V
+	public final fun takeRequest (I)Lio/ktor/client/engine/mock/MockHttpRequest;
+	public static synthetic fun takeRequest$default (Lio/ktor/client/engine/mock/MockEngineExtended;IILjava/lang/Object;)Lio/ktor/client/engine/mock/MockHttpRequest;
+}
+
+public final class io/ktor/client/engine/mock/MockEngineExtended$Companion : io/ktor/client/engine/HttpClientEngineFactory {
+	public synthetic fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/mock/MockEngineExtended;
+}
+
 public final class io/ktor/client/engine/mock/MockHttpRequest : io/ktor/client/request/HttpRequest {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/HttpMethod;Lio/ktor/http/Url;Lio/ktor/util/Attributes;Lio/ktor/http/content/OutgoingContent;Lio/ktor/http/Headers;)V
 	public fun getAttributes ()Lio/ktor/util/Attributes;
