@@ -38,19 +38,21 @@ compileTestKotlinJs {
 
 task assembleWeb(type: Sync, group: 'build', dependsOn: compileTestKotlinJs) {
     from compileKotlinJs.destinationDir
-    into "$node.nodeModulesDir/node_modules"
+    into "$project.buildDir/node_modules"
 
-    def configuration = configurations.jsTestRuntimeClasspath
-    from(files {
-        configuration.collect { File file ->
-            file.name.endsWith(".jar") ?
-                zipTree(file.absolutePath).matching {
-                    include '*.js'
-                    include '*.js.map'
-                } :
-                files()
-        }
-    }.builtBy(configuration))
+    afterEvaluate {
+        def configuration = configurations.jsTestRuntimeClasspath
+        from(files {
+            configuration.collect { File file ->
+                file.name.endsWith(".jar") ?
+                    zipTree(file.absolutePath).matching {
+                        include '*.js'
+                        include '*.js.map'
+                    } :
+                    files()
+            }
+        }.builtBy(configuration))
+    }
 }
 
 def mochaChromeTestPage = file("$buildDir/test-page.html")
@@ -61,8 +63,6 @@ task prepareMocha(dependsOn: installDependenciesMocha) {
 
 prepareMocha.doLast {
     def libraryPath = "$buildDir/node_modules"
-
-    def reporter = (project.hasProperty("teamcity")) ? "mocha.setup({reporter: 'teamcity'});" : ""
     mochaChromeTestPage.text = """<!DOCTYPE html>
         <html>
         <head>
@@ -87,7 +87,6 @@ prepareMocha.doLast {
         <script src="$libraryPath/ktor-http.js"></script>
         <script src="$libraryPath/ktor-http-cio.js"></script>
         <script src="$libraryPath/ktor-client-core.js"></script>
-        <script src="$libraryPath/ktor-client.js"></script>
         <script src="$libraryPath/ktor-client-json.js"></script>
         <script src="$libraryPath/ktor-client-auth-basic.js"></script>
         <script src="$libraryPath/ktor-client-tests-dispatcher.js"></script>
@@ -115,7 +114,7 @@ task testMochaNode(type: NodeTask, dependsOn: prepareMocha) {
 }
 
 npmInstall.dependsOn assembleWeb
-//jsTest.dependsOn testMochaNode
+jsTest.dependsOn testMochaNode
 
 if (!project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")) {
     jsTest.dependsOn testMochaChrome
