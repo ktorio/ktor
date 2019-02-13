@@ -91,7 +91,7 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
         httpClient.shutdown()
     }
 
-    protected fun load(url: String) {
+    protected open fun load(url: String) {
         httpClient.load(url)
     }
 
