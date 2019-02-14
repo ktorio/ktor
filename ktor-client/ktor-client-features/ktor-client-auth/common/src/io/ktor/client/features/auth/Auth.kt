@@ -1,13 +1,10 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.content.*
-import io.ktor.pipeline.*
 import io.ktor.util.*
 
 /**
