@@ -5,6 +5,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 /**
  * Add [BasicAuthProvider] to client [Auth] providers.
@@ -43,6 +45,7 @@ class BasicAuthProvider(
     private val password: String,
     private val realm: String?
 ) : AuthProvider {
+    private val defaultCharset = Charset.forName("ISO_8859_1")
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Basic) return false
@@ -61,7 +64,7 @@ class BasicAuthProvider(
 
     private fun constructBasicAuthValue(username: String, password: String): String {
         val authString = "$username:$password"
-        val authBuf = encodeBase64(authString.toByteArray(Charsets.ISO_8859_1))
+        val authBuf = authString.toByteArray(defaultCharset).encodeBase64()
 
         return "Basic $authBuf"
     }
