@@ -82,7 +82,10 @@ allprojects {
     }
 
     apply from: rootProject.file('gradle/dokka.gradle')
-    apply from: rootProject.file('gradle/publish.gradle')
+
+    if (!rootProject.ext.misc.contains(project.name)) {
+        apply from: rootProject.file('gradle/publish.gradle')
+    }
 
     configurations { testOutput }
 
