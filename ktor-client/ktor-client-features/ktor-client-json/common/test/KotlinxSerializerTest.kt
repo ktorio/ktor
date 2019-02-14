@@ -93,7 +93,8 @@ class KotlinxSerializerTest {
             } catch (cause: Throwable) {
                 throwed = true
             }
-            assertTrue(throwed)
+
+            assertTrue(throwed, "Connection exception expected.")
         }
 
     }
