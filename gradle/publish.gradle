@@ -68,6 +68,7 @@ publishing {
                     username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
                     password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
                 }
+                
             }
         }
         maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
@@ -105,3 +106,5 @@ publishing {
         }
     }
 }
+
+publish.dependsOn publishToMavenLocal
