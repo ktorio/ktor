@@ -1,0 +1,35 @@
+apply from: rootProject.file("gradle/ide.gradle")
+
+kotlin {
+    targets {
+        if (project.ext.ideaActive) {
+            fromPreset(project.ext.ideaPreset, 'windows')
+        } else {
+            fromPreset(presets.mingwX64, 'windows')
+        }
+    }
+    sourceSets {
+        windowsMain.dependencies {
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
+            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
+
+            implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+        }
+
+        windowsMain { dependsOn commonMain }
+        windowsTest { dependsOn windowsMain }
+
+        if (!project.ext.ideaActive) {
+            configure([mingwX64Main]) {
+                dependsOn windowsMain
+            }
+
+            configure([mingwX64Test]) {
+                dependsOn windowsTest
+            }
+        }
+    }
+}
+
+project.ext.set("hasNative", true)

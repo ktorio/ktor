@@ -28,10 +28,11 @@ apply from: "gradle/experimental.gradle"
 apply from: 'gradle/verifier.gradle'
 
 /**
- * `darwin` is subset of `posix`.
- * Don't create `posix` and `darwin` sourceSets in single project.
+ * `darwin`/`windows` is subset of `posix`.
+ * Don't create `posix` and `darwin`/`windows` sourceSets in single project.
  */
-def platforms = ["common", "jvm", "js", "posix", "darwin"]
+ext.posixPlatforms = ["darwin", "windows"]
+def platforms = ["common", "jvm", "js", "posix", *posixPlatforms]
 rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
 
 def projectNeedsPlatform(project, platform) {
@@ -39,13 +40,17 @@ def projectNeedsPlatform(project, platform) {
 
     def files = project.projectDir.listFiles()
     def hasPosix = files.any { it.name == "posix" }
-    def hasDarwin = files.any { it.name == "darwin" }
+    def hasPosixPlatforms = posixPlatforms.collectEntries {
+        name -> [(name): files.any { it.name == name }]
+    }
 
-    if (hasPosix && hasDarwin) return false
-
-    if (hasPosix && platform == "darwin") return false
-    if (hasDarwin && platform == "posix") return false
-    if (!hasPosix && !hasDarwin && platform == "darwin") return false
+    if (hasPosix) {
+        if (posixPlatforms.contains(platform)) return false
+        if (hasPosixPlatforms.values().any { it }) return false
+    } else {
+        if (platform == "posix" && hasPosixPlatforms.values().any { it }) return false
+        if (posixPlatforms.contains(platform) && !hasPosixPlatforms.get(platform)) return false
+    }
 
     return files.any { it.name == "common" || it.name == platform }
 }
