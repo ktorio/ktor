@@ -53,7 +53,9 @@ class KotlinxSerializerTest {
     fun testReceiveFromGithub() = clientsTest {
         config {
             install(JsonFeature) {
-                serializer = KotlinxSerializer(Json.nonstrict)
+                serializer = KotlinxSerializer(Json.nonstrict).apply {
+                    register(GithubProfile.serializer())
+                }
             }
         }
 

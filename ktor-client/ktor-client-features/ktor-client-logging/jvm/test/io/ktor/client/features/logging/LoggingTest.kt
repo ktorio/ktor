@@ -38,15 +38,16 @@ class LoggingTest : TestWithKtor() {
             """
 REQUEST: http://localhost:$serverPort/
 METHOD: HttpMethod(value=GET)
-HEADERS
+COMMON HEADERS
 -> Accept: */*
+CONTENT HEADERS
 BODY Content-Type: null
 BODY START
 BODY END
 RESPONSE: 200 OK
 METHOD: HttpMethod(value=GET)
 FROM: http://localhost:$serverPort/
-HEADERS
+COMMON HEADERS
 -> Content-Type: text/plain;charset=utf-8
 -> Content-Length: 9
 BODY Content-Type: text/plain; charset=utf-8
@@ -61,12 +62,13 @@ BODY END
             """
 REQUEST: http://localhost:$serverPort/
 METHOD: HttpMethod(value=GET)
-HEADERS
+COMMON HEADERS
 -> Accept: */*
+CONTENT HEADERS
 RESPONSE: 200 OK
 METHOD: HttpMethod(value=GET)
 FROM: http://localhost:$serverPort/
-HEADERS
+COMMON HEADERS
 -> Content-Type: text/plain;charset=utf-8
 -> Content-Length: 9
 
@@ -109,8 +111,9 @@ FROM: http://localhost:$serverPort/
             """
 REQUEST: http://localhost:$serverPort/
 METHOD: HttpMethod(value=POST)
-HEADERS
+COMMON HEADERS
 -> Accept: */*
+CONTENT HEADERS
 BODY Content-Type: text/plain; charset=UTF-8
 BODY START
 Response data
@@ -118,7 +121,7 @@ BODY END
 RESPONSE: 201 Created
 METHOD: HttpMethod(value=POST)
 FROM: http://localhost:$serverPort/
-HEADERS
+COMMON HEADERS
 -> Content-Type: text/plain;charset=utf-8
 -> Content-Length: 1
 BODY Content-Type: text/plain; charset=utf-8
@@ -136,22 +139,24 @@ BODY END
             """
 REQUEST: http://localhost:$serverPort/301
 METHOD: HttpMethod(value=GET)
-HEADERS
+COMMON HEADERS
 -> Accept: */*
+CONTENT HEADERS
 BODY Content-Type: null
 BODY START
 BODY END
 REQUEST: http://localhost:$serverPort/
 METHOD: HttpMethod(value=GET)
-HEADERS
+COMMON HEADERS
 -> Accept: */*
+CONTENT HEADERS
 BODY Content-Type: null
 BODY START
 BODY END
 RESPONSE: 302 Found
 METHOD: HttpMethod(value=GET)
 FROM: http://localhost:$serverPort/301
-HEADERS
+COMMON HEADERS
 -> Location: /
 -> Content-Length: 0
 BODY Content-Type: null
@@ -161,7 +166,7 @@ BODY END
 RESPONSE: 200 OK
 METHOD: HttpMethod(value=GET)
 FROM: http://localhost:$serverPort/
-HEADERS
+COMMON HEADERS
 -> Content-Type: text/plain;charset=utf-8
 -> Content-Length: 9
 BODY Content-Type: text/plain; charset=utf-8

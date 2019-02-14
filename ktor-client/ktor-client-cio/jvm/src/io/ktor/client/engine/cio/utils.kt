@@ -21,10 +21,6 @@ internal suspend fun HttpRequest.write(output: ByteWriteChannel, callContext: Co
         builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
         builder.headerLine("Host", url.hostWithPort)
 
-        if (!headers.contains(HttpHeaders.UserAgent)) {
-            builder.headerLine("User-Agent", "CIO/ktor")
-        }
-
         mergeHeaders(headers, content) { key, value ->
             builder.headerLine(key, value)
         }

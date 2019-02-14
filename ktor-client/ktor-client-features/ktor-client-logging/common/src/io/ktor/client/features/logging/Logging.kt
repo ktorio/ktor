@@ -40,8 +40,9 @@ class Logging(
             logger.log("REQUEST: ${request.url.buildString()}")
             logger.log("METHOD: ${request.method}")
         }
-        if (level.headers) logHeaders(request.headers.entries())
-        if (level.body) logRequestBody(request.body as OutgoingContent)
+        val content = request.body as OutgoingContent
+        if (level.headers) logHeaders(request.headers.entries(), content.headers)
+        if (level.body) logRequestBody(content)
     }
 
     private suspend fun logResponse(response: HttpResponse): Unit = response.use {
@@ -59,11 +60,20 @@ class Logging(
         }
     }
 
-    private fun logHeaders(headersMap: Set<Map.Entry<String, List<String>>>) {
+    private fun logHeaders(
+        requestHeaders: Set<Map.Entry<String, List<String>>>,
+        contentHeaders: Headers? = null
+    ) {
         with(logger) {
-            log("HEADERS")
+            log("COMMON HEADERS")
+            requestHeaders.forEach { (key, values) ->
+                log("-> $key: ${values.joinToString("; ")}")
+            }
 
-            headersMap.forEach { (key, values) ->
+            contentHeaders ?: return@with
+
+            log("CONTENT HEADERS")
+            contentHeaders.forEach { key, values ->
                 log("-> $key: ${values.joinToString("; ")}")
             }
         }

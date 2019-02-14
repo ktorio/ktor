@@ -24,6 +24,10 @@ fun mergeHeaders(
         block(key, values.joinToString(";"))
     }
 
+    if (requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null) {
+        block(HttpHeaders.UserAgent, "Ktor client")
+    }
+
     val type = content.contentType?.toString() ?: content.headers[HttpHeaders.ContentType]
     val length = content.contentLength?.toString() ?: content.headers[HttpHeaders.ContentLength]
 
