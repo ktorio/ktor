@@ -13,6 +13,7 @@ internal const val TEST_SERVER: String = "http://0.0.0.0:8080"
  * Perform test against all clients from dependencies.
  */
 expect fun clientsTest(
+    skipMissingPlatforms: Boolean = false,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 )
 

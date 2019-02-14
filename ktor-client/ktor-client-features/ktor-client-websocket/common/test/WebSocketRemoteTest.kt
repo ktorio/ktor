@@ -8,7 +8,7 @@ import kotlin.test.*
 class WebSocketRemoteTest {
 
     @Test
-    fun testRemotePingPong() = clientsTest {
+    fun testRemotePingPong() = clientsTest(skipMissingPlatforms = true) {
         val remote = "echo.websocket.org"
 
         config {
@@ -25,7 +25,7 @@ class WebSocketRemoteTest {
     }
 
     @Test
-    fun testSecureRemotePingPong() = clientsTest {
+    fun testSecureRemotePingPong() = clientsTest(skipMissingPlatforms = true) {
         val remote = "echo.websocket.org"
 
         config {
