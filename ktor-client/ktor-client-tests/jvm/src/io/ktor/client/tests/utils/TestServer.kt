@@ -27,6 +27,10 @@ internal fun main(args: Array<String>) {
                 val response = call.receiveText()
                 call.respond(response)
             }
+            get("/bytes") {
+                val size = call.request.queryParameters["size"]!!.toInt()
+                call.respondBytes(makeArray(size))
+            }
         }
     }.start(wait = true)
 }
