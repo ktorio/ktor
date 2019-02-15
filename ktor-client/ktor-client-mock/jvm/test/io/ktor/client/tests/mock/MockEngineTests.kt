@@ -3,15 +3,17 @@ package io.ktor.client.tests.mock
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.serialization.Serializable
 import kotlin.test.*
 
 class MockEngineTests {
-
     @Test
     fun testClientMock() = runBlocking {
         val mockEngine = MockEngine {
@@ -55,6 +57,25 @@ class MockEngineTests {
             assertEquals("Bad Request", response.readText())
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
+    }
+
+    @Serializable
+    data class User(val name: String)
+
+    @Test
+    fun testWithJsonFeature() = runBlocking {
+        val client = HttpClient(MockEngine {
+            val bodyBytes = (content as OutgoingContent.ByteArrayContent).bytes()
+            responseOk(String(bodyBytes))
+        }) {
+            install(JsonFeature)
+        }
+
+        val response = client.get<String>(body = User("admin")) {
+            contentType(ContentType.Application.Json)
+        }
+
+        assertEquals("{\"name\":\"admin\"}", response)
     }
 
     private fun testBlocking(callback: suspend () -> Unit): Unit = run { runBlocking { callback() } }

@@ -9,6 +9,7 @@ import kotlin.coroutines.*
 /**
  * [HttpClientEngine] for writing tests without network.
  */
+@Suppress("KDocMissingDocumentation")
 class MockEngine(
     override val config: MockEngineConfig
 ) : HttpClientEngine {
