@@ -1,5 +1,7 @@
 apply from: rootProject.file("gradle/ide.gradle")
 
+apply plugin: "kotlinx-atomicfu"
+
 if (project.name != 'ktor-client-curl') {
     apply from: rootProject.file("gradle/native.gradle")
 }

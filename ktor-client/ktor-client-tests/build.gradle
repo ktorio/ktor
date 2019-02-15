@@ -9,7 +9,6 @@ class BackgroundJavaProcess extends JavaExec {
     @Override
     public void exec() {
         thread.start()
-        Thread.sleep(1000)
     }
 }
 
@@ -59,10 +58,14 @@ task startTestServer(type: BackgroundJavaProcess, dependsOn: assemble) {
 }
 
 if (!project.ext.ideaActive) {
-    def testTasks = [macosX64Test, linuxX64Test, iosTest, mingwX64Test, jvmTest, testMochaChrome, testMochaNode]
+    def testTasks = [
+        'macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jvmTest', 'testMochaChrome', 'testMochaNode'
+    ]
 
-    testTasks.each { it ->
-        it.dependsOn startTestServer
+    rootProject.allprojects {
+        it.tasks.findAll { it.name in testTasks }.each { testTask ->
+            testTask.dependsOn startTestServer
+        }
     }
 }
 
@@ -76,7 +79,8 @@ def shutdownServer() {
         content.readLines()
         content.close()
         connection.disconnect()
-    } catch (ignored) {}
+    } catch (ignored) {
+    }
 }
 
 gradle.buildFinished {

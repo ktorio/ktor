@@ -8,6 +8,8 @@ if (project.name in project.ext.jdk8Modules) {
     jdk = 7
 }
 
+apply plugin: "kotlinx-atomicfu"
+
 kotlin {
     targets {
         fromPreset(presets.jvm, 'jvm')

@@ -72,7 +72,6 @@ allprojects {
     }
 
     apply plugin: "kotlin-multiplatform"
-    apply plugin: "kotlinx-atomicfu"
 
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
