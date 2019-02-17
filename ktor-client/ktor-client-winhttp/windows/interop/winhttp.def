@@ -1,0 +1,18 @@
+package = winhttp
+headers = minwindef.h minwinbase.h winhttp.h
+compilerOpts = -DUNICODE
+linkerOpts = -lwinhttp
+
+---
+static unsigned int GetHResultFromLastError() {
+    unsigned int lastError = GetLastError();
+    int hr;
+    if (lastError < 0) {
+        hr = lastError;
+    }
+    else {
+        hr = (int)(((unsigned int)lastError & 0x0000FFFF) | (7 << 16) | 0x80000000);
+    }
+
+    return hr;
+}

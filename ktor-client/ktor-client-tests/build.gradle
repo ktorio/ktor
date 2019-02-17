@@ -20,7 +20,7 @@ kotlin.sourceSets {
         runtimeOnly project(':ktor-client:ktor-client-cio')
     }
     if (!project.ext.ideaActive) {
-        configure([linuxX64Test, mingwX64Test, macosX64Test]) {
+        configure([linuxX64Test, macosX64Test]) {
             dependencies {
                 api project(':ktor-client:ktor-client-curl')
             }
@@ -29,6 +29,12 @@ kotlin.sourceSets {
         configure([iosX64Test, iosArm32Test, iosArm64Test, macosX64Test]) {
             dependencies {
                 api project(':ktor-client:ktor-client-ios')
+            }
+        }
+
+        configure([mingwX64Test]) {
+            dependencies {
+                api project(':ktor-client:ktor-client-winhttp')
             }
         }
     }

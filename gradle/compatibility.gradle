@@ -9,6 +9,7 @@ dependencies {
         'ktor-client-json-tests',
         'ktor-client-curl',
         'ktor-client-ios',
+        'ktor-client-winhttp',
         'ktor-client',
         'ktor-client-features'
     ].toSet()

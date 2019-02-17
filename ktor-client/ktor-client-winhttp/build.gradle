@@ -1,0 +1,23 @@
+apply plugin: "kotlinx-serialization"
+
+kotlin {
+    mingwX64('windows').compilations.main {
+        cinterops {
+            winHttp {
+                defFile project.file("windows/interop/winhttp.def")
+            }
+        }
+    }
+
+    sourceSets {
+        windowsMain.dependencies {
+            api project(':ktor-client:ktor-client-core')
+            api project(':ktor-http:ktor-http-cio')
+        }
+        windowsTest.dependencies {
+            api project(':ktor-client:ktor-client-features:ktor-client-logging')
+            api project(':ktor-client:ktor-client-features:ktor-client-json')
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
+        }
+    }
+}
