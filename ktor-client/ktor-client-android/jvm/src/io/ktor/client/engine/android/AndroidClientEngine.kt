@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
+import java.lang.IllegalStateException
 import java.net.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -60,6 +61,10 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
             }
 
             if (outgoingContent !is OutgoingContent.NoContent) {
+                if (method in listOf(HttpMethod.Get, HttpMethod.Head)) throw RequestInvalidException(
+                    "Request of type ${method.value} coudn't send body with [Android] engine"
+                )
+
                 if (contentLength != null) {
                     addRequestProperty(HttpHeaders.ContentLength, contentLength.toString())
                 } else {
@@ -115,3 +120,6 @@ internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadCha
 } catch (_: IOException) {
     errorStream?.buffered()
 }?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
+
+@Suppress("KDocMissingDocumentation")
+class RequestInvalidException(override val message: String): IllegalStateException()
