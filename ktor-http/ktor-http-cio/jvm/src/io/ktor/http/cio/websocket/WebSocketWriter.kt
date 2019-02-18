@@ -11,20 +11,16 @@ import kotlin.coroutines.*
 /**
  * Class that processes written [outgoing] Websocket [Frame],
  * serializes them and writes the bits into the [writeChannel].
+ * @property masking: whether it will mask serialized frames.
+ * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
 @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 class WebSocketWriter(
-        private val writeChannel: ByteWriteChannel,
-        override val coroutineContext: CoroutineContext,
-        /**
-         * Whether it will mask serialized frames.
-         */
-        var masking: Boolean = false,
-        /**
-         * ByteBuffer pool to be used by this writer
-         */
-        val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    private val writeChannel: ByteWriteChannel,
+    override val coroutineContext: CoroutineContext,
+    var masking: Boolean = false,
+    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
     @Deprecated(
@@ -32,11 +28,16 @@ class WebSocketWriter(
         replaceWith = ReplaceWith("WebSocketWriter(writeChannel, coroutineContext, masking, pool)"),
         level = DeprecationLevel.ERROR
     )
-    constructor(writeChannel: ByteWriteChannel,
-                parent: Job?,
-                coroutineContext: CoroutineContext,
-                masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool) : this(writeChannel, coroutineContext + (parent
-            ?: Dispatchers.Unconfined), masking, pool)
+    constructor(
+        writeChannel: ByteWriteChannel,
+        parent: Job?,
+        coroutineContext: CoroutineContext,
+        masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    ) : this(
+        writeChannel,
+        coroutineContext + (parent ?: Dispatchers.Unconfined),
+        masking, pool
+    )
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
@@ -67,13 +68,10 @@ class WebSocketWriter(
 
         consumeEach { message ->
             when (message) {
-                is Frame.Close -> {
-                } // ignore
-                is Frame.Ping, is Frame.Pong -> {
-                } // ignore
+                is Frame.Close -> {} // ignore
+                is Frame.Ping, is Frame.Pong -> {} // ignore
                 is FlushRequest -> message.complete()
-                is Frame.Text, is Frame.Binary -> {
-                } // discard
+                is Frame.Text, is Frame.Binary -> {} // discard
                 else -> throw IllegalArgumentException("unknown message $message")
             }
         }

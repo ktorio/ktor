@@ -44,7 +44,7 @@ expect interface WebSocketSession : CoroutineScope {
      * Close session with the specified [cause] or with no reason if `null`
      */
     @KtorExperimentalAPI
-    suspend fun close(cause: Throwable?)
+    suspend fun close(cause: Throwable? = null)
 }
 
 /**

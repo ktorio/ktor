@@ -2,6 +2,7 @@ package io.ktor.client.features.websocket
 
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlin.test.*
 

@@ -58,6 +58,8 @@ class DefaultWebSocketSessionImpl(
      */
     @KtorExperimentalAPI
     override suspend fun close(cause: Throwable?) {
+        if (closed.value) return
+
         val reason = when (cause) {
             null -> CloseReason(CloseReason.Codes.NORMAL, "OK")
             is ClosedReceiveChannelException, is ClosedSendChannelException -> null
