@@ -15,6 +15,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val hostname = "http://localhost"
 

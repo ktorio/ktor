@@ -24,6 +24,7 @@ public final class io/ktor/client/features/logging/LoggerJvmKt {
 }
 
 public final class io/ktor/client/features/logging/LoggerKt {
+	public static final fun getEMPTY (Lio/ktor/client/features/logging/Logger$Companion;)Lio/ktor/client/features/logging/Logger;
 	public static final fun getSIMPLE (Lio/ktor/client/features/logging/Logger$Companion;)Lio/ktor/client/features/logging/Logger;
 }
 

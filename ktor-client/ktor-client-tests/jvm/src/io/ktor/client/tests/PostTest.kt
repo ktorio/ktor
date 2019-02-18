@@ -15,6 +15,7 @@ import kotlinx.coroutines.io.*
 import org.junit.Assert.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server = embeddedServer(Jetty, serverPort) {
         routing {

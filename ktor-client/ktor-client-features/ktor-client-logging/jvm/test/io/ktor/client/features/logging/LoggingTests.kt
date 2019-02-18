@@ -226,13 +226,3 @@ BODY END
         return testLogger.dump()
     }
 }
-
-private class TestLogger : Logger {
-    private val state = StringBuilder()
-
-    override fun log(message: String) {
-        state.append("$message\n")
-    }
-
-    fun dump(): String = state.toString()
-}

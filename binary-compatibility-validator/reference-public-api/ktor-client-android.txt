@@ -41,3 +41,8 @@ public final class io/ktor/client/engine/android/AndroidHttpResponse : io/ktor/c
 	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
 }
 
+public final class io/ktor/client/engine/android/RequestInvalidException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getMessage ()Ljava/lang/String;
+}
+

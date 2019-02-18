@@ -22,7 +22,7 @@ data class HttpBinResponse(
 class HttpBinTest {
 
     @Test
-    fun getTest() = clientsTest {
+    fun testGet() = clientsTest {
         config {
             testConfiguration()
         }
@@ -42,7 +42,7 @@ class HttpBinTest {
     }
 
     @Test
-    fun postTest() = clientsTest {
+    fun testPost() = clientsTest {
         config {
             testConfiguration()
         }
@@ -65,10 +65,10 @@ class HttpBinTest {
     }
 
     @Test
-    fun bytesTest() = clientTest {
+    fun testBytes() = clientTest {
         test { client ->
             val size = 100 * 1024
-            val response = client.get<HttpResponse>("http://httpbin.org/bytes/$size").use {
+            val response = client.get<HttpResponse>("https://httpbin.org/bytes/$size").use {
                 it.readBytes()
             }
             assertEquals(size, response.size)

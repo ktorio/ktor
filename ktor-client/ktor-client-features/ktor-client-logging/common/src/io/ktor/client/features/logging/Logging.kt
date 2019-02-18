@@ -1,6 +1,7 @@
 package io.ktor.client.features.logging
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.observer.*
 import io.ktor.client.request.*
@@ -58,6 +59,16 @@ class Logging(
         } else {
             response.content.discard()
         }
+    }
+
+    private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
+        if (!level.info) return
+        logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+    }
+
+    private fun logResponseException(context: HttpClientCall, cause: Throwable) {
+        if (!level.info) return
+        logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
     }
 
     private fun logHeaders(
@@ -129,6 +140,23 @@ class Logging(
                 try {
                     feature.logRequest(context)
                 } catch (_: Throwable) {
+
+                }
+
+                try {
+                    proceedWith(subject)
+                } catch (cause: Throwable) {
+                    feature.logRequestException(context, cause)
+                    throw cause
+                }
+            }
+
+            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
+                try {
+                    proceedWith(subject)
+                } catch (cause: Throwable) {
+                    feature.logResponseException(context, cause)
+                    throw cause
                 }
             }
 
@@ -142,6 +170,8 @@ class Logging(
             ResponseObserver.install(ResponseObserver(observer), scope)
         }
     }
+
+
 }
 
 private suspend inline fun ByteReadChannel.readText(charset: Charset): String {

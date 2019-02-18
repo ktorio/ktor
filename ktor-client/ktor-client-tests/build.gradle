@@ -15,6 +15,7 @@ class BackgroundJavaProcess extends JavaExec {
 kotlin.sourceSets {
     commonMain.dependencies {
         api project(':ktor-client:ktor-client-core')
+        api project(':ktor-client:ktor-client-mock')
         api project(':ktor-client:ktor-client-tests:ktor-client-tests-dispatcher')
     }
     commonTest.dependencies {

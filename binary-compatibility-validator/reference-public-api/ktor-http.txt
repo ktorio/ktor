@@ -924,7 +924,10 @@ public final class io/ktor/http/URLUtilsJvmKt {
 }
 
 public final class io/ktor/http/URLUtilsKt {
+	public static final fun URLBuilder (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
+	public static final fun URLBuilder (Lio/ktor/http/Url;)Lio/ktor/http/URLBuilder;
 	public static final fun URLBuilder (Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final fun Url (Lio/ktor/http/URLBuilder;)Lio/ktor/http/Url;
 	public static final fun Url (Ljava/lang/String;)Lio/ktor/http/Url;
 	public static final fun getFullPath (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getHostWithPort (Lio/ktor/http/Url;)Ljava/lang/String;

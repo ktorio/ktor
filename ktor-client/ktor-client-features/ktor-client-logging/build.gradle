@@ -2,6 +2,9 @@ kotlin.sourceSets {
     commonMain.dependencies {
         api project(":ktor-client:ktor-client-core")
     }
+    commonTest.dependencies {
+        api project(":ktor-client:ktor-client-tests")
+    }
 
     jvmMain.dependencies {
         compileOnly("org.slf4j:slf4j-simple:1.6.1")

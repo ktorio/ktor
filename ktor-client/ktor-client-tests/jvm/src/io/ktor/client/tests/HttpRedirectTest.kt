@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {

@@ -21,6 +21,7 @@ import org.junit.Assert.*
 import java.io.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val testSize = listOf(
         0, 1, // small edge cases

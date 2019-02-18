@@ -90,6 +90,7 @@ prepareMocha.doLast {
         <script src="$libraryPath/ktor-client-json.js"></script>
         <script src="$libraryPath/ktor-client-auth-basic.js"></script>
         <script src="$libraryPath/ktor-client-tests-dispatcher.js"></script>
+        <script src="$libraryPath/ktor-client-logging.js"></script>
         <script src="$libraryPath/ktor-client-tests.js"></script>
         <script src="$libraryPath/ktor-client-websocket.js"></script>
         <script src="$compileTestKotlinJs.outputFile"></script>

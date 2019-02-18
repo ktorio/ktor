@@ -13,6 +13,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
