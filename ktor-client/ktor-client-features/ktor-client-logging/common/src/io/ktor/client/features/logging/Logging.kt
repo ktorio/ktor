@@ -37,7 +37,7 @@ class Logging(
 
     private suspend fun logRequest(request: HttpRequestBuilder) {
         if (level.info) {
-            logger.log("REQUEST: ${request.url.buildString()}")
+            logger.log("REQUEST: ${Url(request.url)}")
             logger.log("METHOD: ${request.method}")
         }
         val content = request.body as OutgoingContent
