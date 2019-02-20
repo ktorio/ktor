@@ -26,7 +26,7 @@ kotlin {
             implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
         }
 
-        posixTest { dependsOn posixMain}
+        posixTest
         posixMain { dependsOn commonMain }
 
         if (!project.ext.ideaActive) {
