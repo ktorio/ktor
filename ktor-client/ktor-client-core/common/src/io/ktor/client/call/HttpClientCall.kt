@@ -110,7 +110,7 @@ class ReceivePipelineException(
     val request: HttpClientCall,
     val info: TypeInfo,
     override val cause: Throwable
-) : IllegalStateException("Fail to run receive pipeline")
+) : IllegalStateException("Fail to run receive pipeline: $cause")
 
 /**
  * Exception representing the no transformation was found.
