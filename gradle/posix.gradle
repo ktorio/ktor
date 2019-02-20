@@ -28,7 +28,7 @@ kotlin {
             implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
         }
 
-        posixTest { dependsOn posixMain }
+        posixTest
         posixMain { dependsOn commonMain }
 
         if (!project.ext.ideaActive) {
@@ -39,14 +39,6 @@ kotlin {
             configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, linuxX64Test, mingwX64Test]) {
                 dependsOn posixTest
             }
-
-            iosArm32Test.dependsOn iosArm32Main
-            iosArm64Test.dependsOn iosArm64Main
-            iosX64Test.dependsOn iosX64Main
-            linuxX64Test.dependsOn linuxX64Main
-            macosX64Test.dependsOn macosX64Main
-            iosX64Test.dependsOn iosX64Main
-            mingwX64Test.dependsOn mingwX64Main
         }
     }
 }
