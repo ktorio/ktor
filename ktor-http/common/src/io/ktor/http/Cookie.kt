@@ -203,8 +203,8 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
-private val cookieCharsShouldBeEscaped = setOf(';', ',', '=', '"')
-private fun Char.shouldEscapeInCookies() = this.isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
+private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
+private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePart(name: String, value: Any?, encoding: CookieEncoding) =
