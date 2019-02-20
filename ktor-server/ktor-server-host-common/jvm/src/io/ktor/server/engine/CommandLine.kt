@@ -143,13 +143,13 @@ private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let 
  * Load engine's configuration suitable for all engines from [deploymentConfig]
  */
 fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
-    deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
+    deploymentConfig.propertyOrNull("callGroupSize")?.getInt()?.let {
         callGroupSize = it
     }
-    deploymentConfig.propertyOrNull("connectionGroupSize")?.getString()?.toInt()?.let {
+    deploymentConfig.propertyOrNull("connectionGroupSize")?.getInt()?.let {
         connectionGroupSize = it
     }
-    deploymentConfig.propertyOrNull("workerGroupSize")?.getString()?.toInt()?.let {
+    deploymentConfig.propertyOrNull("workerGroupSize")?.getInt()?.let {
         workerGroupSize = it
     }
 }

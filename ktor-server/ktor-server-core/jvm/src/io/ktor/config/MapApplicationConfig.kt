@@ -1,5 +1,6 @@
 package io.ktor.config
 
+import com.typesafe.config.ConfigFactory
 import io.ktor.util.*
 
 /**
@@ -10,25 +11,25 @@ open class MapApplicationConfig : ApplicationConfig {
     /**
      * A backing map for this config
      */
-    protected val map: MutableMap<String, String>
+    protected val map: MutableMap<String, Any>
 
     /**
      * Config path prefix for this config
      */
     protected val path: String
 
-    private constructor(map: MutableMap<String, String>, path: String) {
+    private constructor(map: MutableMap<String, Any>, path: String) {
         this.map = map
         this.path = path
     }
 
-    constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
-    constructor() : this(mutableMapOf<String, String>(), "")
+    constructor(vararg values: Pair<String, Any>) : this(mutableMapOf(*values), "")
+    constructor() : this(mutableMapOf<String, Any>(), "")
 
     /**
      * Set property value
      */
-    fun put(path: String, value: String) {
+    fun <T : Any> put(path: String, value: T) {
         map[path] = value
     }
 
@@ -44,42 +45,37 @@ open class MapApplicationConfig : ApplicationConfig {
         put(combine(path, "size"), size.toString())
     }
 
-    override fun property(path: String): ApplicationConfigValue {
-        return propertyOrNull(path) ?: throw ApplicationConfigurationException("Property ${combine(this.path, path)} not found.")
+    override fun property(path: String): HoconApplicationConfigValue {
+        return propertyOrNull(path)
+            ?: throw ApplicationConfigurationException("Property ${combine(this.path, path)} not found.")
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
         val key = combine(this.path, path)
-        val size = map[combine(key, "size")] ?: throw ApplicationConfigurationException("Property $key.size not found.")
-        return (0 until size.toInt()).map {
+
+        val rawSize = map[combine(key, "size")]
+        val size = when (rawSize) {
+            is Int -> rawSize
+            is String -> rawSize.toInt()
+            null -> throw ApplicationConfigurationException("Property $key.size not found.")
+            else -> throw ApplicationConfigurationException("Property $key.size is of unhandled type '${rawSize.javaClass}' (should be 'Int' or 'String').")
+        }
+
+        return (0 until size).map {
             MapApplicationConfig(map, combine(key, it.toString()))
         }
     }
 
-    override fun propertyOrNull(path: String): ApplicationConfigValue? {
+    override fun propertyOrNull(path: String): HoconApplicationConfigValue? {
         val key = combine(this.path, path)
         return if (!map.containsKey(key) && !map.containsKey(combine(key, "size"))) {
             null
         } else {
-            MapApplicationConfigValue(map, key)
+            HoconApplicationConfigValue(ConfigFactory.parseMap(map), key)
         }
     }
 
     override fun config(path: String): ApplicationConfig = MapApplicationConfig(map, combine(this.path, path))
-
-    /**
-     * A config value implementation backed by this config's map
-     * @property map is usually owner's backing map
-     * @property path to this value
-     */
-    @KtorExperimentalAPI
-    protected class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
-        override fun getString(): String = map[path]!!
-        override fun getList(): List<String> {
-            val size = map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
-            return (0 until size.toInt()).map { map[combine(path, it.toString())]!! }
-        }
-    }
 }
 
 private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"

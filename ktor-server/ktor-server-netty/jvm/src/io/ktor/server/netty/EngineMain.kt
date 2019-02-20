@@ -20,13 +20,13 @@ object EngineMain {
     private fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
-        deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
+        deploymentConfig.propertyOrNull("requestQueueLimit")?.getInt()?.let {
             requestQueueLimit = it
         }
-        deploymentConfig.propertyOrNull("shareWorkGroup")?.getString()?.toBoolean()?.let {
+        deploymentConfig.propertyOrNull("shareWorkGroup")?.getBoolean()?.let {
             shareWorkGroup = it
         }
-        deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
+        deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getInt()?.let {
             responseWriteTimeoutSeconds = it
         }
     }

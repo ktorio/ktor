@@ -41,10 +41,10 @@ class ApplicationEngineEnvironmentReloading(
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + watchPaths
+    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getStringList() ?: listOf()) + watchPaths
 
     private val moduleFunctionNames: List<String>? = run {
-        val configModules = config.propertyOrNull("ktor.application.modules")?.getList()
+        val configModules = config.propertyOrNull("ktor.application.modules")?.getStringList()
         if (watchPatterns.isEmpty()) configModules
         else {
             val unlinkedModules = modules.map {

@@ -26,7 +26,7 @@ object EngineMain {
     private fun CIOApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
         val deploymentConfig = config.config("ktor.deployment")
         loadCommonConfiguration(deploymentConfig)
-        deploymentConfig.propertyOrNull("connectionIdleTimeoutSeconds")?.getString()?.toInt()?.let {
+        deploymentConfig.propertyOrNull("connectionIdleTimeoutSeconds")?.getInt()?.let {
             connectionIdleTimeoutSeconds = it
         }
     }
