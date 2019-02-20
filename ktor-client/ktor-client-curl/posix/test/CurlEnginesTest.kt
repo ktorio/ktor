@@ -24,13 +24,12 @@ class CurlEnginesTest {
 
     @Test
     fun getTest(): Unit = clientTest { client ->
-        val response = client.get<HttpBinResponse>("http://httpbin.org/get")
+        val response = client.get<HttpBinResponse>("https://httpbin.org/get")
         val expected = HttpBinResponse(
-            "http://httpbin.org/get",
+            "https://httpbin.org/get",
             emptyMap(),
             mapOf(
                 "Accept" to "application/json",
-                "Connection" to "close",
                 "Host" to "httpbin.org"
             )
         )
@@ -40,18 +39,17 @@ class CurlEnginesTest {
 
     @Test
     fun postTest() = clientTest { client ->
-        val response = client.post<HttpBinResponse>("http://httpbin.org/post") {
+        val response = client.post<HttpBinResponse>("https://httpbin.org/post") {
             body = "Hello, bin!"
         }
 
         val expected = HttpBinResponse(
-            "http://httpbin.org/post",
+            "https://httpbin.org/post",
             emptyMap(),
             mapOf(
                 "Content-Type" to "text/plain; charset=UTF-8",
                 "Accept" to "application/json",
                 "Content-Length" to "11",
-                "Connection" to "close",
                 "Host" to "httpbin.org"
             )
         )
