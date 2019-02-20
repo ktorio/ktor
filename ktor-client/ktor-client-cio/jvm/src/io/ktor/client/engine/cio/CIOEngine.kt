@@ -7,11 +7,12 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
+import kotlin.coroutines.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio"), WebSocketEngine {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
@@ -20,7 +21,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
     private val selectorManager by lazy { ActorSelectorManager(dispatcher.blocking(1)) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
-    private val closed = AtomicBoolean()
+    private val closed = atomic(false)
 
     override suspend fun execute(
         call: HttpClientCall, data: HttpRequestData
@@ -38,29 +39,17 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
 
     private suspend fun executeRequest(request: HttpRequest): HttpResponse {
         while (true) {
-            if (closed.get()) throw ClientClosedException()
+            if (closed.value) throw ClientClosedException()
 
-            val endpoint = with(request.url) {
-                val address = "$host:$port:$protocol"
-                endpoints.computeIfAbsentWeak(address) {
-                    val secure = (protocol.isSecure())
-                    Endpoint(
-                        host, port, secure,
-                        config,
-                        connectionFactory, coroutineContext,
-                        onDone = { endpoints.remove(address) }
-                    )
-                }
-            }
-
+            val endpoint = request.url.selectEndpoint()
             val callContext = createCallContext()
             try {
                 return endpoint.execute(request, callContext)
             } catch (cause: ClosedSendChannelException) {
-                if (closed.get()) throw ClientClosedException(cause)
+                if (closed.value) throw ClientClosedException(cause)
                 continue
             } finally {
-                if (closed.get()) endpoint.close()
+                if (closed.value) endpoint.close()
             }
         }
     }
@@ -77,6 +66,25 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
         }
 
         super.close()
+    }
+
+    private fun Url.selectEndpoint(): Endpoint {
+        val address = "$host:$port:$protocol"
+
+        val endpoint = endpoints.computeIfAbsentWeak(address) {
+            val secure = (protocol.isSecure())
+            Endpoint(
+                host, port, secure,
+                config,
+                connectionFactory, coroutineContext,
+                onDone = { endpoints.remove(address) }
+            )
+        }
+
+        endpoint.coroutineContext[Job]?.invokeOnCompletion {
+        }
+
+        return endpoint
     }
 }
 

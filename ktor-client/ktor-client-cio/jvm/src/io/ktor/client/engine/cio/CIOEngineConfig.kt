@@ -31,6 +31,11 @@ class CIOEngineConfig : HttpClientEngineConfig() {
 }
 
 /**
+ * Configure [endpoint] settings.
+ */
+fun CIOEngineConfig.endpoint(block: EndpointConfig.() -> Unit): EndpointConfig = endpoint.apply(block)
+
+/**
  * [Endpoint] settings.
  */
 class EndpointConfig {

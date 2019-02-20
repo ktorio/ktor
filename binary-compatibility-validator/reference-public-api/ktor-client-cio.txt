@@ -12,6 +12,10 @@ public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/en
 	public final fun setMaxConnectionsCount (I)V
 }
 
+public final class io/ktor/client/engine/cio/CIOEngineConfigKt {
+	public static final fun endpoint (Lio/ktor/client/engine/cio/CIOEngineConfig;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/cio/EndpointConfig;
+}
+
 public final class io/ktor/client/engine/cio/CIOEngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
@@ -24,7 +28,7 @@ public final class io/ktor/client/engine/cio/ClientClosedException : java/lang/I
 	public fun getCause ()Ljava/lang/Throwable;
 }
 
-public final class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
+public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
 	public fun <init> ()V
 }
 
@@ -40,6 +44,10 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 	public final fun setKeepAliveTime (J)V
 	public final fun setMaxConnectionsPerRoute (I)V
 	public final fun setPipelineMaxSize (I)V
+}
+
+public final class io/ktor/client/engine/cio/FailToConnectException : io/ktor/client/engine/cio/ConnectException {
+	public fun <init> ()V
 }
 
 public final class io/ktor/client/features/websocket/BuildersCioKt {

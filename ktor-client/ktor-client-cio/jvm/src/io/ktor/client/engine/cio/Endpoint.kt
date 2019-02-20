@@ -207,7 +207,7 @@ internal class Endpoint(
         }
 
         connections.decrementAndGet()
-        throw ConnectException()
+        throw FailToConnectException()
     }
 
     private fun releaseConnection() {
@@ -226,4 +226,14 @@ internal class Endpoint(
 
 @KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
-class ConnectException : Exception("Connect timed out or retry attempts exceeded")
+@Deprecated(
+    "Use [FailToConnectException] instead",
+    level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("FailToConnectException")
+)
+open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
+
+@KtorExperimentalAPI
+@Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
+class FailToConnectException : ConnectException()
+
+

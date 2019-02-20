@@ -4,6 +4,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import kotlin.coroutines.*
 
+/**
+ * Base jvm implementation for [HttpClientEngine]
+ */
+@Suppress("KDocMissingDocumentation")
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val clientContext = CompletableDeferred<Unit>()
     private val callSupervisor = SupervisorJob(clientContext)
@@ -18,7 +22,10 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
         dispatcher + clientContext + CoroutineName("$engineName-context")
     }
 
-    protected fun createCallContext() = coroutineContext + CompletableDeferred<Unit>(callSupervisor)
+    /**
+     * Create [CoroutineContext] to execute call.
+     */
+    protected fun createCallContext(): CoroutineContext = coroutineContext + CompletableDeferred<Unit>(callSupervisor)
 
     override fun close() {
         callSupervisor.cancel()
