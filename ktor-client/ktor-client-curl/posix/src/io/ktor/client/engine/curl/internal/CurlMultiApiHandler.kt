@@ -146,6 +146,13 @@ internal class CurlMultiApiHandler : Closeable {
                 )
             }
 
+            if (httpStatusCode.value == 0L) {
+                return CurlFail(
+                    responseBuilder.request,
+                    CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
+                )
+            }
+
             with(responseBuilder) {
                 val headers = headersBytes.build().readBytes()
                 val body = bodyBytes.build().readBytes()
