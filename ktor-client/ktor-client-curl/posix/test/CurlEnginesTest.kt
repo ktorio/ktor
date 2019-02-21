@@ -23,6 +23,7 @@ data class HttpBinResponse(
 class CurlEnginesTest {
 
     @Test
+    @Ignore
     fun getTest(): Unit = clientTest { client ->
         val response = client.get<HttpBinResponse>("https://httpbin.org/get")
         val expected = HttpBinResponse(
@@ -38,6 +39,7 @@ class CurlEnginesTest {
     }
 
     @Test
+    @Ignore
     fun postTest() = clientTest { client ->
         val response = client.post<HttpBinResponse>("https://httpbin.org/post") {
             body = "Hello, bin!"
