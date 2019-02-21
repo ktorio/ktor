@@ -1,9 +1,10 @@
 # 1.1.3
-> Published 20 Feb 2019
+> Published 21 Feb 2019
 
 * Fixed NoSuchMethodError on Android (#927)
 * Fixed upload file error on JS (#956)
 * Fixed several encodings issues caused corrupted jsons and receive pipeline erros (#920, #787, #866)
+* Fixed curl connection errors reporting
 * Updated jackson dependency (#952)
 
 # 1.1.2
