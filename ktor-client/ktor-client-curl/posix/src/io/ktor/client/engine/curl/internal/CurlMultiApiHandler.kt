@@ -137,38 +137,43 @@ internal class CurlMultiApiHandler : Closeable {
             }
 
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
-            curl_slist_free_all(responseBuilder.request.headers)
+            try {
+                curl_slist_free_all(responseBuilder.request.headers)
 
-            if (message != CURLMSG.CURLMSG_DONE) {
-                return CurlFail(
-                    responseBuilder.request,
-                    CurlIllegalStateException("Request ${responseBuilder.request} failed: $message")
-                )
-            }
+                if (message != CURLMSG.CURLMSG_DONE) {
+                    return CurlFail(
+                        responseBuilder.request,
+                        CurlIllegalStateException("Request ${responseBuilder.request} failed: $message")
+                    )
+                }
 
-            if (httpStatusCode.value == 0L) {
-                return CurlFail(
-                    responseBuilder.request,
-                    CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
-                )
-            }
+                if (httpStatusCode.value == 0L) {
+                    return CurlFail(
+                        responseBuilder.request,
+                        CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
+                    )
+                }
 
-            if (httpStatusCode.value == 0L) {
-                return CurlFail(
-                    responseBuilder.request,
-                    CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
-                )
-            }
+                if (httpStatusCode.value == 0L) {
+                    return CurlFail(
+                        responseBuilder.request,
+                        CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
+                    )
+                }
 
-            with(responseBuilder) {
-                val headers = headersBytes.build().readBytes()
-                val body = bodyBytes.build().readBytes()
+                with(responseBuilder) {
+                    val headers = headersBytes.build().readBytes()
+                    val body = bodyBytes.build().readBytes()
 
-                CurlSuccess(
-                    request,
-                    httpStatusCode.value.toInt(), httpProtocolVersion.value.toUInt(),
-                    headers, body
-                )
+                    CurlSuccess(
+                        request,
+                        httpStatusCode.value.toInt(), httpProtocolVersion.value.toUInt(),
+                        headers, body
+                    )
+                }
+            } finally {
+                responseBuilder.bodyBytes.release()
+                responseBuilder.headersBytes.release()
             }
         } finally {
             curl_multi_remove_handle(multiHandle, easyHandle).verify()
