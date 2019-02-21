@@ -1,14 +1,24 @@
+import java.util.concurrent.TimeUnit
+
 description = 'Common tests for client'
 
 apply plugin: "kotlinx-serialization"
 
-class BackgroundJavaProcess extends JavaExec {
-    public Thread thread = new Thread({ super.exec() })
+class KtorTestServer extends DefaultTask {
+    public FileCollection classpath
+    public String main
+    public Object server
 
     @TaskAction
-    @Override
     public void exec() {
-        thread.start()
+        def urlClassLoaderSource = classpath.collect { file -> file.toURI().toURL() }
+        def loader = new URLClassLoader(urlClassLoaderSource.toArray() as URL[], ClassLoader.systemClassLoader)
+
+        def mainClass = loader.loadClass(main)
+        def main = mainClass.getMethod("startServer")
+        try {
+            server = main.invoke(null)
+        } catch (ignored) {}
     }
 }
 
@@ -53,7 +63,7 @@ kotlin.sourceSets {
     }
 }
 
-task startTestServer(type: BackgroundJavaProcess, dependsOn: assemble) {
+task startTestServer(type: KtorTestServer, dependsOn: assemble) {
     main = "io.ktor.client.tests.utils.TestServerKt"
     classpath = kotlin.targets.jvm.compilations["test"].runtimeDependencyFiles
 }
@@ -70,20 +80,8 @@ if (!project.ext.ideaActive) {
     }
 }
 
-def shutdownServer() {
-    try {
-        def url = new URL("http://0.0.0.0:8080/shutdown")
-        def connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
-        connection.connect()
-        def content = connection.getInputStream()
-        content.readLines()
-        content.close()
-        connection.disconnect()
-    } catch (ignored) {
-    }
-}
-
 gradle.buildFinished {
-    shutdownServer()
+    if (startTestServer.server != null) {
+        startTestServer.server.stop(0L, 0L, TimeUnit.MILLISECONDS)
+    }
 }

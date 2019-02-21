@@ -12,16 +12,11 @@ import org.slf4j.Logger
 
 private val DEFAULT_PORT: Int = 8080
 
-internal fun main(args: Array<String>) {
-    val port = if (args.size > 1) args[1].toInt() else DEFAULT_PORT
+internal fun startServer(): ApplicationEngine {
     val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     logger.level = Level.WARN
 
-    embeddedServer(Jetty, port) {
-        install(ShutDownUrl.ApplicationCallFeature) {
-            shutDownUrl = "/shutdown"
-        }
-
+    return embeddedServer(Jetty, DEFAULT_PORT) {
         routing {
             post("/echo") {
                 val response = call.receiveText()
@@ -32,5 +27,5 @@ internal fun main(args: Array<String>) {
                 call.respondBytes(makeArray(size))
             }
         }
-    }.start(wait = true)
+    }.start()
 }
