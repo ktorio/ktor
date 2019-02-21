@@ -86,7 +86,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             enableHttp2 = false
         }
 
-        if (enableHttp2) {
+        val javaVersion = System.getProperty("java.version")
+        if (enableHttp2 && javaVersion.startsWith("1.8")) {
             Class.forName("sun.security.ssl.ALPNExtension", true, null)
         }
 
