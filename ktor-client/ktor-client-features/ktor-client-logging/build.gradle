@@ -12,5 +12,6 @@ kotlin.sourceSets {
     jvmTest.dependencies {
         implementation project(":ktor-client:ktor-client-tests")
         implementation project(":ktor-client:ktor-client-cio")
+        implementation project(":ktor-client:ktor-client-okhttp")
     }
 }

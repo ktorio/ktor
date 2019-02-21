@@ -98,4 +98,4 @@ RESPONSE http://localhost/ failed with exception: io.ktor.client.features.loggin
     }
 }
 
-internal class CustomError(override val message: String): Throwable()
+internal class CustomError(override val message: String) : Throwable()
