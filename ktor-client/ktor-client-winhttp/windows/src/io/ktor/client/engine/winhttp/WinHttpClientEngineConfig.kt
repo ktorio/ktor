@@ -36,4 +36,10 @@ class WinHttpClientEngineConfig : HttpClientEngineConfig() {
      * The default value is false.
      */
     var isAsynchronousWorkingMode: Boolean = false
+
+    /**
+     * A value indicating whether HTTP 2.0 protocol is enabled in WinHTTP.
+     * The default value is false.
+     */
+    var enableHttp2Protocol: Boolean = false
 }

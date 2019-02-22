@@ -35,6 +35,10 @@ internal class WinHttpClientEngine(override val config: WinHttpClientEngineConfi
             )
 
             session.createRequest(request.method, request.url).use { httpRequest ->
+                if (config.enableHttp2Protocol) {
+                    httpRequest.enableHttp2Protocol()
+                }
+
                 httpRequest.addHeaders(request.headersToList())
 
                 if (isAsyncMode) {

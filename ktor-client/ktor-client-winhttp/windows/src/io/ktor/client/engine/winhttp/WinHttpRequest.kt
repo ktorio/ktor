@@ -85,4 +85,8 @@ internal class WinHttpRequest(
     fun readDataAsync(buffer: Pinned<ByteArray>): Deferred<Int> {
         return context.readDataAsync(buffer)
     }
+
+    fun enableHttp2Protocol() {
+        context.enableHttp2Protocol()
+    }
 }

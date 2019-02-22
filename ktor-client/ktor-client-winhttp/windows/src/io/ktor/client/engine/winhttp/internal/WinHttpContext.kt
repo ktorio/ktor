@@ -44,6 +44,15 @@ internal class WinHttpContext(
         }
     }
 
+    fun enableHttp2Protocol() {
+        memScoped {
+            val flags = alloc<UIntVar> {
+                value = WINHTTP_PROTOCOL_FLAG_HTTP2.convert()
+            }
+            WinHttpSetOption(hRequest, WINHTTP_OPTION_ENABLE_HTTP_PROTOCOL, flags.ptr, UINT_SIZE)
+        }
+    }
+
     fun sendRequest() {
         checkWorkingMode(false)
 
@@ -209,7 +218,7 @@ internal class WinHttpContext(
     private fun getResponseData(): WinHttpResponseData = memScoped {
         val dwStatusCode = alloc<UIntVar>()
         val dwSize = alloc<UIntVar> {
-            value = sizeOf<UIntVar>().convert()
+            value = UINT_SIZE
         }
 
         // Get status code
@@ -227,7 +236,11 @@ internal class WinHttpContext(
         }
 
         val statusCode = dwStatusCode.value.convert<Int>()
-        val httpVersion = getHeader(WINHTTP_QUERY_VERSION) ?: "HTTP/1.1"
+        val httpVersion = if (isResponseHttp2()) {
+            "HTTP/2.0"
+        } else {
+            getHeader(WINHTTP_QUERY_VERSION) ?: "HTTP/1.1"
+        }
         val headers = getHeader(WINHTTP_QUERY_RAW_HEADERS_CRLF) ?: ""
 
         WinHttpResponseData(statusCode, httpVersion, headers)
@@ -254,6 +267,21 @@ internal class WinHttpContext(
         })
     }
 
+    private fun isResponseHttp2(): Boolean {
+        memScoped {
+            val flags = alloc<UIntVar>()
+            val dwSize = alloc<UIntVar> {
+                value = UINT_SIZE
+            }
+            if (WinHttpQueryOption(hRequest, WINHTTP_OPTION_HTTP_PROTOCOL_USED, flags.ptr, dwSize.ptr) != 0) {
+                if ((flags.value.convert<Int>() and WINHTTP_PROTOCOL_FLAG_HTTP2) != 0) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     override fun dispose() {
         if (disposed.getAndSet(true)) return
         reference.dispose()
@@ -275,5 +303,13 @@ internal class WinHttpContext(
             }.toString()
             throw WinHttpIllegalStateException(errorMessage)
         }
+    }
+
+    companion object {
+        private const val WINHTTP_OPTION_ENABLE_HTTP_PROTOCOL = 133u
+        private const val WINHTTP_OPTION_HTTP_PROTOCOL_USED = 134u
+        private const val WINHTTP_PROTOCOL_FLAG_HTTP2 = 0x1
+
+        private val UINT_SIZE: UInt = sizeOf<UIntVar>().convert()
     }
 }
