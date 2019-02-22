@@ -25,7 +25,8 @@ internal class WinHttpClientEngine(override val config: WinHttpClientEngineConfi
         val request = DefaultHttpRequest(call, data)
         val requestTime = GMTDate()
 
-        val response = WinHttpSession().use { session ->
+        val isAsyncMode = config.isAsynchronousWorkingMode
+        val response = WinHttpSession(isAsyncMode).use { session ->
             session.setTimeouts(
                 config.resolveTimeout,
                 config.connectTimeout,
@@ -36,15 +37,27 @@ internal class WinHttpClientEngine(override val config: WinHttpClientEngineConfi
             session.createRequest(request.method, request.url).use { httpRequest ->
                 httpRequest.addHeaders(request.headersToList())
 
-                httpRequest.sendAsync().await()
+                if (isAsyncMode) {
+                    httpRequest.sendAsync().await()
+                } else {
+                    httpRequest.send()
+                }
 
                 request.content.toByteArray()?.let { body ->
                     body.usePinned {
-                        httpRequest.writeBodyAsync(it).await()
+                        if (isAsyncMode) {
+                            httpRequest.writeBodyAsync(it).await()
+                        } else {
+                            httpRequest.writeBody(it)
+                        }
                     }
                 }
 
-                val responseData = httpRequest.readResponseAsync().await()
+                val responseData = if (isAsyncMode) {
+                    httpRequest.readResponseAsync().await()
+                } else {
+                    httpRequest.readResponse()
+                }
                 with(responseData) {
                     val status = HttpStatusCode.fromValue(status)
                     val httpVersion = HttpProtocolVersion.parse(version)
@@ -57,12 +70,20 @@ internal class WinHttpClientEngine(override val config: WinHttpClientEngineConfi
 
                     val body = writer(coroutineContext) {
                         while (true) {
-                            val dataAvailable = httpRequest.queryDataAvailableAsync().await()
+                            val dataAvailable = if (isAsyncMode) {
+                                httpRequest.queryDataAvailableAsync().await()
+                            } else {
+                                httpRequest.queryDataAvailable()
+                            }
                             if (dataAvailable > 0) {
                                 val bufferSize = min(dataAvailable, Int.MAX_VALUE.toLong()).toInt()
                                 val buffer = ByteArray(bufferSize)
                                 val size = buffer.usePinned {
-                                    httpRequest.readDataAsync(it).await()
+                                    if (isAsyncMode) {
+                                        httpRequest.readDataAsync(it).await()
+                                    } else {
+                                        httpRequest.readData(it)
+                                    }
                                 }
                                 channel.writeFully(buffer, 0, size)
                             } else break

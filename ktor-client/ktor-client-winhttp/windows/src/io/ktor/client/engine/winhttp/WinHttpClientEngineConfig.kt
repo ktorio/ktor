@@ -30,4 +30,10 @@ class WinHttpClientEngineConfig : HttpClientEngineConfig() {
      * The initial value is 30,000 (30 seconds).
      */
     var receiveTimeout: Int = 30_000
+
+    /**
+     * An experimental value indicating whether to use the WinHTTP functions asynchronously.
+     * The default value is false.
+     */
+    var isAsynchronousWorkingMode: Boolean = false
 }

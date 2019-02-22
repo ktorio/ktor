@@ -4,18 +4,24 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.COpaquePointer
+import kotlinx.cinterop.convert
 import kotlinx.coroutines.DisposableHandle
 import winhttp.*
 
-internal class WinHttpSession : DisposableHandle {
+internal class WinHttpSession(private val asyncWorkingMode: Boolean) : DisposableHandle {
 
-    private var hSession: COpaquePointer = WinHttpOpen(
-        null, // User agent will be set in request headers
-        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-        null, null,
-        WINHTTP_FLAG_ASYNC
-    ) ?: throw WinHttpIllegalStateException("Unable to create session")
+    private var hSession: COpaquePointer
     private val disposed = atomic(false)
+
+    init {
+        val workingMode = if (asyncWorkingMode) WINHTTP_FLAG_ASYNC else 0
+        hSession = WinHttpOpen(
+            null, // User agent will be set in request headers
+            WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+            null, null,
+            workingMode.convert()
+        ) ?: throw WinHttpIllegalStateException("Unable to create session")
+    }
 
     fun setTimeouts(resolveTimeout: Int, connectTimeout: Int, sendTimeout: Int, receiveTimeout: Int) {
         if (WinHttpSetTimeouts(hSession, resolveTimeout, connectTimeout, sendTimeout, receiveTimeout) == 0) {
@@ -24,7 +30,7 @@ internal class WinHttpSession : DisposableHandle {
     }
 
     fun createRequest(method: HttpMethod, url: Url): WinHttpRequest {
-        return WinHttpRequest(hSession, method, url)
+        return WinHttpRequest(hSession, method, url, asyncWorkingMode)
     }
 
     override fun dispose() {

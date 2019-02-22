@@ -12,7 +12,12 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DisposableHandle
 import winhttp.*
 
-internal class WinHttpRequest(hSession: COpaquePointer, method: HttpMethod, url: Url) : DisposableHandle {
+internal class WinHttpRequest(
+    hSession: COpaquePointer,
+    method: HttpMethod,
+    url: Url,
+    asyncWorkingMode: Boolean
+) : DisposableHandle {
 
     private val hConnect: COpaquePointer
     private val hRequest: COpaquePointer
@@ -25,7 +30,7 @@ internal class WinHttpRequest(hSession: COpaquePointer, method: HttpMethod, url:
         val secure = if (url.protocol.isSecure()) WINHTTP_FLAG_SECURE.convert() else 0u
         hRequest = WinHttpOpenRequest(hConnect, method.value, url.fullPath, null, null, null, secure)
             ?: throw WinHttpIllegalStateException("Unable to open request")
-        context = WinHttpContext(hRequest)
+        context = WinHttpContext(hRequest, asyncWorkingMode)
     }
 
     fun addHeaders(requestHeaders: List<String>) {
@@ -33,6 +38,10 @@ internal class WinHttpRequest(hSession: COpaquePointer, method: HttpMethod, url:
         if (WinHttpAddRequestHeaders(hRequest, headers, (-1).convert(), WINHTTP_ADDREQ_FLAG_ADD) == 0) {
             throw WinHttpIllegalStateException("Unable to add request header")
         }
+    }
+
+    fun send() {
+        context.sendRequest()
     }
 
     fun sendAsync(): Deferred<Unit> {
@@ -45,16 +54,32 @@ internal class WinHttpRequest(hSession: COpaquePointer, method: HttpMethod, url:
         WinHttpCloseHandle(hRequest)
     }
 
+    fun writeBody(body: Pinned<ByteArray>) {
+        return context.writeData(body)
+    }
+
     fun writeBodyAsync(body: Pinned<ByteArray>): Deferred<Unit> {
         return context.writeDataAsync(body)
+    }
+
+    fun readResponse(): WinHttpResponseData {
+        return context.receiveResponse()
     }
 
     fun readResponseAsync(): Deferred<WinHttpResponseData> {
         return context.receiveResponseAsync()
     }
 
+    fun queryDataAvailable(): Long {
+        return context.queryDataAvailable()
+    }
+
     fun queryDataAvailableAsync(): Deferred<Long> {
         return context.queryDataAvailableAsync()
+    }
+
+    fun readData(buffer: Pinned<ByteArray>): Int {
+        return context.readData(buffer)
     }
 
     fun readDataAsync(buffer: Pinned<ByteArray>): Deferred<Int> {
