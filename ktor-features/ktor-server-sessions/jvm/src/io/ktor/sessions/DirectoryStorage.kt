@@ -2,6 +2,7 @@ package io.ktor.sessions
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
 
@@ -28,7 +29,9 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
         val file = fileOf(id)
 
         file.parentFile?.mkdirsOrFail()
-        provider(file.writeChannel())
+        coroutineScope {
+            provider(file.writeChannel(coroutineContext = coroutineContext))
+        }
     }
 
     override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
