@@ -112,11 +112,7 @@ internal class WinHttpContext(
             throw WinHttpIllegalStateException("Unable to receive response: ${GetHResultFromLastError()}")
         }
 
-        receiveResponseResult = CompletableDeferred()
-
-        onReceiveResponse()
-
-        return receiveResponseResult.getCompleted()
+        return getResponseData()
     }
 
     fun receiveResponseAsync(): Deferred<WinHttpResponseData> {
@@ -132,27 +128,12 @@ internal class WinHttpContext(
         return receiveResponseResult
     }
 
-    fun onReceiveResponse(): Unit = memScoped {
-        val dwStatusCode = alloc<UIntVar>()
-        val dwSize = alloc<UIntVar> {
-            value = sizeOf<UIntVar>().convert()
+    fun onReceiveResponse() {
+        try {
+            receiveResponseResult.complete(getResponseData())
+        } catch (e: Throwable) {
+            receiveResponseResult.completeExceptionally(e)
         }
-
-        // Get status code
-        val statusCodeFlags = WINHTTP_QUERY_STATUS_CODE or WINHTTP_QUERY_FLAG_NUMBER
-        if (WinHttpQueryHeaders(hRequest, statusCodeFlags.convert(), null, dwStatusCode.ptr, dwSize.ptr, null) == 0) {
-            reject("Unable to query status code: ${GetHResultFromLastError()}")
-            return@memScoped
-        }
-
-        val statusCode = dwStatusCode.value.convert<Int>()
-        val httpVersion = getHeader(WINHTTP_QUERY_VERSION) ?: "HTTP/1.1"
-        val headers = getHeader(WINHTTP_QUERY_RAW_HEADERS_CRLF) ?: ""
-
-        val responseData = WinHttpResponseData(statusCode, httpVersion, headers)
-        println("Received response: status $statusCode, HTTP version $httpVersion")
-
-        receiveResponseResult.complete(responseData)
     }
 
     fun queryDataAvailable(): Long {
@@ -226,22 +207,47 @@ internal class WinHttpContext(
 
     private fun getLength(dwSize: UIntVar) = (dwSize.value / ShortVar.size.convert()).convert<Int>()
 
+    private fun getResponseData(): WinHttpResponseData = memScoped {
+        val dwStatusCode = alloc<UIntVar>()
+        val dwSize = alloc<UIntVar> {
+            value = sizeOf<UIntVar>().convert()
+        }
+
+        // Get status code
+        val statusCodeFlags = WINHTTP_QUERY_STATUS_CODE or WINHTTP_QUERY_FLAG_NUMBER
+        if (WinHttpQueryHeaders(
+                hRequest,
+                statusCodeFlags.convert(),
+                null,
+                dwStatusCode.ptr,
+                dwSize.ptr,
+                null
+            ) == 0
+        ) {
+            throw WinHttpIllegalStateException("Unable to query status code: ${GetHResultFromLastError()}")
+        }
+
+        val statusCode = dwStatusCode.value.convert<Int>()
+        val httpVersion = getHeader(WINHTTP_QUERY_VERSION) ?: "HTTP/1.1"
+        val headers = getHeader(WINHTTP_QUERY_RAW_HEADERS_CRLF) ?: ""
+
+        WinHttpResponseData(statusCode, httpVersion, headers)
+    }
+
     private fun getHeader(headerId: Int): String? = memScoped {
         val dwSize = alloc<UIntVar>()
 
         // Get headers length
         if (WinHttpQueryHeaders(hRequest, headerId.convert(), null, null, dwSize.ptr, null) == 0) {
             if (GetLastError() != ERROR_INSUFFICIENT_BUFFER.convert<UInt>()) {
-                reject("Unable to query response headers length: ${GetHResultFromLastError()}")
-                return@memScoped null
+                throw WinHttpIllegalStateException("Unable to query response headers length: ${GetHResultFromLastError()}")
             }
         }
 
         // Read headers into buffer
         val buffer = allocArray<ShortVar>(getLength(dwSize) + 1)
         if (WinHttpQueryHeaders(hRequest, headerId.convert(), null, buffer, dwSize.ptr, null) == 0) {
-            reject("Unable to query response headers: ${GetHResultFromLastError()}")
-            return@memScoped null
+            throw WinHttpIllegalStateException("Unable to query response headers: ${GetHResultFromLastError()}")
         }
 
         String(CharArray(getLength(dwSize)) {
