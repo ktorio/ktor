@@ -15,39 +15,30 @@ fun statusCallback(
 ) {
     initRuntimeIfNeeded()
 
-    println("* Received status 0x${dwStatus.toString(16)} for context 0x${dwContext.toString(16)}")
-
     val context = dwContext.toLong().toCPointer<COpaque>()?.asStableRef<WinHttpContext>()?.get()
     if (context?.isDisposed != false) {
-        println("Received invalid context")
         return
     }
 
     when (dwStatus) {
         WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE")
             context.onWriteDataComplete()
         }
         WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE")
             context.onSendRequestComplete()
         }
         WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE")
             context.onReceiveResponse()
         }
         WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE")
             val size = statusInfo!!.toLong().toCPointer<ULongVar>()!![0].convert<Long>()
             context.onQueryDataAvailable(size)
         }
         WINHTTP_CALLBACK_STATUS_READ_COMPLETE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_READ_COMPLETE")
             val size = statusInfoLength.convert<Int>()
             context.onReadComplete(size)
         }
         WINHTTP_CALLBACK_STATUS_REQUEST_ERROR.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_REQUEST_ERROR")
             val result = statusInfo!!.reinterpret<WINHTTP_ASYNC_RESULT>().pointed
             val errorCode = "${result.dwError}"
             val callbackError = when (result.dwResult) {
@@ -61,7 +52,6 @@ fun statusCallback(
             context.reject(callbackError)
         }
         WINHTTP_CALLBACK_STATUS_SECURE_FAILURE.convert<UInt>() -> {
-            println("WINHTTP_CALLBACK_STATUS_SECURE_FAILURE")
             val securityCode = statusInfo!!.reinterpret<UIntVar>().pointed.value
             val securityError = when (securityCode) {
                 WINHTTP_CALLBACK_STATUS_FLAG_CERT_REV_FAILED.convert<UInt>() -> "Certification revocation check check failed"

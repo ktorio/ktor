@@ -29,7 +29,6 @@ internal class WinHttpContext(
 
     fun reject(error: String) {
         dispose()
-        println("Rejecting due to error $error")
 
         val exception = WinHttpIllegalStateException(error)
         if (!asyncWorkingMode) {
