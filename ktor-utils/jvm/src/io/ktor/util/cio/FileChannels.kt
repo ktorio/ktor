@@ -3,6 +3,7 @@ package io.ktor.util.cio
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.nio.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.io.*
@@ -79,18 +80,37 @@ fun File.readChannel(
  * Please note that file writing is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code
  */
+@Deprecated(
+    "Pool is not required here anymore so use writeChannel without specifying a pool.",
+    ReplaceWith("writeChannel()")
+)
+fun File.writeChannel(
+    @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
+): ByteWriteChannel = writeChannel()
+
+@Deprecated(
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN
+)
+@JvmName("writeChannel\$default") // this suffix also adds ACC_SYNTHETIC
+@Suppress("UNUSED_PARAMETER", "KDocMissingDocumentation")
+fun File.writeChannel(
+    pool: ObjectPool<ByteBuffer>,
+    mask: Int,
+    something: Any?
+): ByteWriteChannel = writeChannel()
+
+/**
+ * Open a write channel for file and launch a coroutine to read from it.
+ * Please note that file writing is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
+ * your async code
+ */
 @KtorExperimentalAPI
 fun File.writeChannel(
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): ByteWriteChannel = GlobalScope.reader(Dispatchers.Unconfined, autoFlush = true) {
+    coroutineContext: CoroutineContext = Dispatchers.IO
+): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
     RandomAccessFile(this@writeChannel, "rw").use { file ->
-        pool.useInstance { buffer: ByteBuffer ->
-            while (!channel.isClosedForRead) {
-                buffer.clear()
-                channel.readAvailable(buffer)
-                buffer.flip()
-                file.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit())
-            }
-        }
+        val copied = channel.copyTo(file.channel)
+        file.setLength(copied) // truncate tail that could remain from the previously written data
     }
 }.channel
