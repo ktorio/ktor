@@ -3,8 +3,7 @@ package io.ktor.client.engine.winhttp
 import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
-import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.convert
+import kotlinx.cinterop.*
 import kotlinx.coroutines.DisposableHandle
 import winhttp.*
 
@@ -26,6 +25,18 @@ internal class WinHttpSession(private val asyncWorkingMode: Boolean) : Disposabl
     fun setTimeouts(resolveTimeout: Int, connectTimeout: Int, sendTimeout: Int, receiveTimeout: Int) {
         if (WinHttpSetTimeouts(hSession, resolveTimeout, connectTimeout, sendTimeout, receiveTimeout) == 0) {
             throw WinHttpIllegalStateException("Unable to set session timeouts")
+        }
+    }
+
+    fun setSecurityProtocols(securityProtocols: WinHttpSecurityProtocol) {
+        memScoped {
+            val options = alloc<UIntVar> {
+                value = securityProtocols.value.convert()
+            }
+            val dwSize = sizeOf<UIntVar>().convert<UInt>()
+            if (WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS, options.ptr, dwSize) != 0) {
+                println("Unable to set request option: ${GetHResultFromLastError()}")
+            }
         }
     }
 

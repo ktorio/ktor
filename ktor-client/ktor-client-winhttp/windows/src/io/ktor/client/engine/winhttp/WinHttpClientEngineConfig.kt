@@ -42,4 +42,10 @@ class WinHttpClientEngineConfig : HttpClientEngineConfig() {
      * The default value is false.
      */
     var enableHttp2Protocol: Boolean = false
+
+    /**
+     * A value that allows to set required security protocol versions.
+     * By default will be used system setting.
+     */
+    var securityProtocols: WinHttpSecurityProtocol = WinHttpSecurityProtocol.Default
 }
