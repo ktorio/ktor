@@ -18,6 +18,7 @@ actual fun clientsTest(
     check(skipMissingPlatforms || engines.isNotEmpty()) { "No test engines provided." }
 
     engines.forEach {
+        println(it::class)
         clientTest(it.factory, block)
     }
 }

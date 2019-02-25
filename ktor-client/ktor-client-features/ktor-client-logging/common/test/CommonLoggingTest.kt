@@ -51,8 +51,8 @@ REQUEST http://localhost/ failed with exception: io.ktor.client.features.logging
     }
 
     @Test
-    fun testLogResponseWithException() = clientTest(MockEngine {
-        responseOk("Hello")
+    fun testLogResponseWithException() = clientTest(MockEngine { request ->
+        request.responseOk("Hello")
     }) {
         val testLogger = TestLogger()
 
