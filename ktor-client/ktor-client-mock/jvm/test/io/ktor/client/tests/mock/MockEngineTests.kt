@@ -16,14 +16,14 @@ import kotlin.test.*
 class MockEngineTests {
     @Test
     fun testClientMock() = runBlocking {
-        val mockEngine = MockEngine {
-            if (url.encodedPath == "/") MockHttpResponse(
-                call,
+        val mockEngine = MockEngine { request ->
+            if (request.url.encodedPath == "/") MockHttpResponse(
+                request.call,
                 HttpStatusCode.OK,
                 ByteReadChannel(byteArrayOf(1, 2, 3)),
                 headersOf("X-MyHeader", "MyValue")
             ) else MockHttpResponse(
-                call, HttpStatusCode.NotFound, ByteReadChannel("Not Found ${url.encodedPath}")
+                request.call, HttpStatusCode.NotFound, ByteReadChannel("Not Found ${request.url.encodedPath}")
             )
         }
 
@@ -40,11 +40,11 @@ class MockEngineTests {
 
     @Test
     fun testBasic() = testBlocking {
-        val client = HttpClient(MockEngine {
-            if (url.toString().endsWith("/fail")) {
-                responseError(HttpStatusCode.BadRequest)
+        val client = HttpClient(MockEngine { request ->
+            if (request.url.toString().endsWith("/fail")) {
+                request.responseError(HttpStatusCode.BadRequest)
             } else {
-                responseOk("$url")
+                request.responseOk("${request.url}")
             }
         })
 
@@ -64,9 +64,9 @@ class MockEngineTests {
 
     @Test
     fun testWithJsonFeature() = runBlocking {
-        val client = HttpClient(MockEngine {
-            val bodyBytes = (content as OutgoingContent.ByteArrayContent).bytes()
-            responseOk(String(bodyBytes))
+        val client = HttpClient(MockEngine { request ->
+            val bodyBytes = (request.content as OutgoingContent.ByteArrayContent).bytes()
+            request.responseOk(String(bodyBytes))
         }) {
             install(JsonFeature)
         }

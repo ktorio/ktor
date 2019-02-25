@@ -2,6 +2,7 @@ package io.ktor.client.tests.mock
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.content.*
@@ -14,15 +15,13 @@ class MockEngineExtendedTests {
 
     @Test
     fun testExecutionOrder() = runBlocking {
-        val mockEngine = MockEngineExtended.create().apply {
-            enqueueResponses(
-                { respondOkText("first") },
-                { respondBadRequest() },
-                { respondOkText("third") })
+        val mockEngine = MockEngine.config {
+            addHandler { respondOkText("first") }
+            addHandler { respondBadRequest() }
+            addHandler { respondOkText("third") }
         }
 
         val client = HttpClient(mockEngine) { expectSuccess = false }
-
 
         assertEquals("first", client.get())
         assertEquals("Bad Request", client.get())
@@ -31,12 +30,11 @@ class MockEngineExtendedTests {
 
     @Test
     fun testReceivedRequest() = runBlocking {
-        val mockEngine = MockEngineExtended.create().apply {
-            enqueueResponses(
-                { respondOkText("first") },
-                { respondOkText("second") },
-                { respondOkText("third") })
-        }
+        val mockEngine = MockEngine.config {
+            addHandler { respondOkText("first") }
+            addHandler { respondOkText("second") }
+            addHandler { respondOkText("third") }
+        }.create() as MockEngine
 
         val client = HttpClient(mockEngine)
 
@@ -50,8 +48,8 @@ class MockEngineExtendedTests {
             body = "secured"
         }
 
-        val firstCall = mockEngine.takeRequest(0)
-        val secondCall = mockEngine.takeRequest()
+        val firstCall = mockEngine.requestHistory[0]
+        val secondCall = mockEngine.requestHistory[1]
 
         assertEquals(firstCall.url.fullUrl, "http://127.0.0.1")
         assertEquals(firstCall.headers["header"], "first")
@@ -63,39 +61,24 @@ class MockEngineExtendedTests {
 
     @Test
     fun testUnhandledRequest() = runBlocking {
-        val mockEngine = MockEngineExtended.create().apply {
-            enqueueResponses({ respondOkText("text") })
+        val mockEngine = MockEngine.config {
+            addHandler { respondOkText("text") }
+            reuseHandlers = false
         }
 
         val client = HttpClient(mockEngine)
 
+        runBlocking {
+            client.get<String>("/")
+        }
+
         val exception = assertFails {
             runBlocking {
-                client.get<String>("/")
                 client.get<String>("/unhandled")
             }
         }
 
-        assertEquals(exception.message, "Unhandled http://localhost/unhandled on invocationCount=1")
-    }
-
-    @Test
-    fun testReset() = runBlocking {
-        val mockEngine = MockEngineExtended.create()
-        val client = HttpClient(mockEngine)
-
-        mockEngine.enqueueResponses(
-            { respondOkText("first") },
-            { respondOkText("second") }
-        )
-        assertEquals("first", client.get("/first"))
-        assertEquals("first", mockEngine.takeRequest(0).url.encodedPath, "/first")
-
-        mockEngine.reset()
-
-        mockEngine.enqueueResponses({ respondOkText("third") })
-        assertEquals("third", client.get("/third"))
-        assertEquals("third", mockEngine.takeRequest(0).url.encodedPath, "/third")
+        assertEquals("Unhandled http://localhost/unhandled", exception.message)
     }
 
     private fun HttpClientCall.respondOkText(text: String) = MockHttpResponse(
