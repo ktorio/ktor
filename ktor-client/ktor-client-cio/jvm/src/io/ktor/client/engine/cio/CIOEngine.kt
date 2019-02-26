@@ -81,9 +81,6 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
             )
         }
 
-        endpoint.coroutineContext[Job]?.invokeOnCompletion {
-        }
-
         return endpoint
     }
 }

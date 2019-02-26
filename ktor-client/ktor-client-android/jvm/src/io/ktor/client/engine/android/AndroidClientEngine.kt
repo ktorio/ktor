@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
-import java.lang.IllegalStateException
 import java.net.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -122,4 +121,4 @@ internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadCha
 }?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
 
 @Suppress("KDocMissingDocumentation")
-class RequestInvalidException(override val message: String): IllegalStateException()
+internal class RequestInvalidException(override val message: String): IllegalStateException()

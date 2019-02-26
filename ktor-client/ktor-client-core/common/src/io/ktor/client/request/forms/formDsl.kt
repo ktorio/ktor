@@ -72,7 +72,26 @@ class FormBuilder internal constructor() {
  * Append a form part with the specified [key] using [bodyBuilder] for it's body
  */
 @UseExperimental(ExperimentalContracts::class)
-inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bodyBuilder: BytePacketBuilder.() -> Unit) {
+fun FormBuilder.append(
+    key: String,
+    filename: String,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
+    contract {
+        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
+    }
+    append(key, filename, bodyBuilder)
+}
+
+/**
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body
+ */
+@UseExperimental(ExperimentalContracts::class)
+inline fun FormBuilder.append(
+    key: String,
+    headers: Headers = Headers.Empty,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
@@ -83,13 +102,18 @@ inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bod
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body
  */
 @UseExperimental(ExperimentalContracts::class)
-fun FormBuilder.append(key: String, filename: String, contentType: ContentType? = null, bodyBuilder: BytePacketBuilder.() -> Unit) {
+fun FormBuilder.append(
+    key: String,
+    filename: String,
+    contentType: ContentType?,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
 
     val headersBuilder = HeadersBuilder()
-    headersBuilder[HttpHeaders.ContentDisposition] ="filename=$filename"
+    headersBuilder[HttpHeaders.ContentDisposition] = "filename=$filename"
     contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
     val headers = headersBuilder.build()
 
