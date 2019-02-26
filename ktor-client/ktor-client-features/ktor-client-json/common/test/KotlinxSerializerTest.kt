@@ -99,6 +99,32 @@ class KotlinxSerializerTest {
 
     }
 
+    /**
+     * Waiting for typeOf compiler implementation
+     */
+    @Test
+    @Ignore
+    fun testMultipleListSerializersWithClient() = clientsTest {
+        val testSerializer = KotlinxSerializer().apply {
+            registerList(User.serializer())
+            registerList(Photo.serializer())
+        }
+
+        config {
+            install(JsonFeature) {
+                serializer = testSerializer
+            }
+        }
+
+        test { client ->
+            val users = client.get<List<User>>("$TEST_SERVER/json/users")
+            val photos = client.get<List<Photo>>("$TEST_SERVER/json/photos")
+
+            println(users)
+            println(photos)
+        }
+    }
+
     private fun JsonSerializer.testWrite(data: Any): String =
         (write(data) as? TextContent)?.text ?: error("Failed to get serialized $data")
 }

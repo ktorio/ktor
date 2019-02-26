@@ -2,6 +2,7 @@ package io.ktor.client.tests.utils
 
 import ch.qos.logback.classic.*
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -25,6 +26,14 @@ internal fun startServer(): ApplicationEngine {
             get("/bytes") {
                 val size = call.request.queryParameters["size"]!!.toInt()
                 call.respondBytes(makeArray(size))
+            }
+            route("/json") {
+                get("/users") {
+                    call.respondText("[{id: 42, login: 'TestLogin'}]", contentType = ContentType.Application.Json)
+                }
+                get("/photos") {
+                    call.respondText("[{id: 4242, path: 'cat.jpg'}]", contentType = ContentType.Application.Json)
+                }
             }
         }
     }.start()
