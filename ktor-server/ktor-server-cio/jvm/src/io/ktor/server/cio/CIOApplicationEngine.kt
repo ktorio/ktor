@@ -97,7 +97,9 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             shutdownServer(gracePeriod, timeout, timeUnit)
         } finally {
             @UseExperimental(InternalCoroutinesApi::class)
-            engineDispatcher.close()
+            GlobalScope.launch(engineDispatcher) {
+                engineDispatcher.close()
+            }
         }
     }
 

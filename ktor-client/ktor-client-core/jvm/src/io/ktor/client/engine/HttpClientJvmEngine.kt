@@ -35,8 +35,10 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
         }
 
         clientContext.invokeOnCompletion {
-            @UseExperimental(InternalCoroutinesApi::class)
-            dispatcher.close()
+            GlobalScope.launch(dispatcher) {
+                @UseExperimental(InternalCoroutinesApi::class)
+                dispatcher.close()
+            }
         }
     }
 }
