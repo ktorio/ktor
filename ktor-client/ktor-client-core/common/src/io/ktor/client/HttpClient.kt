@@ -127,7 +127,7 @@ class HttpClient(
      */
     val engineConfig: HttpClientEngineConfig = engine.config
 
-    private val config = HttpClientConfig<HttpClientEngineConfig>()
+    internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
         with(userConfig) {
@@ -136,7 +136,7 @@ class HttpClient(
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) config.install(ExpectSuccess)
+            if (expectSuccess) config.addDefaultResponseValidation()
 
             config.install(HttpSend)
 
@@ -159,7 +159,7 @@ class HttpClient(
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
         engine, HttpClientConfig<HttpClientEngineConfig>().apply {
-            this += userConfig
+            plusAssign(userConfig)
             block()
         }
     )

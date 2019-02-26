@@ -37,7 +37,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     @Test
     fun testNotFound() = clientTest(factory) {
         test { client ->
-            assertFailsWith<BadResponseStatusException> {
+            assertFailsWith<ResponseException> {
                 runBlocking {
                     client.get<String>(path = "/notFound", port = serverPort)
                 }

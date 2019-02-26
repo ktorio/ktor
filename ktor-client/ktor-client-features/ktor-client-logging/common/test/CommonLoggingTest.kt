@@ -74,7 +74,7 @@ REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
             var failed = false
             try {
                 client.get<String>()
-            } catch (_: IllegalStateException) {
+            } catch (_: CustomError) {
                 failed = true
             }
 

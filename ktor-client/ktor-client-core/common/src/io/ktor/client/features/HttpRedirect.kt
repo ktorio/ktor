@@ -12,7 +12,6 @@ import io.ktor.util.*
  * [HttpClient] feature that handles http redirect
  */
 class HttpRedirect {
-
     companion object Feature : HttpClientFeature<Unit, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
@@ -51,14 +50,3 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     HttpStatusCode.PermanentRedirect.value -> true
     else -> false
 }
-
-@Deprecated(
-    "Not thrown anymore. Use SendCountExceedException",
-    replaceWith = ReplaceWith(
-        "SendCountExceedException",
-        "io.ktor.client.features.SendCountExceedException"
-    ),
-    level = DeprecationLevel.ERROR
-)
-@Suppress("KDocMissingDocumentation")
-class RedirectException(val request: HttpRequest, cause: String) : IllegalStateException(cause)
