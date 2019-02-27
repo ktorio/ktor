@@ -6,6 +6,7 @@ node {
 
     download = true
     nodeModulesDir = file(buildDir)
+    workDir = file("${project.buildDir}/nodejs")
 }
 
 repositories.whenObjectAdded {
