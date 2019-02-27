@@ -6,8 +6,7 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DisposableHandle
-import platform.windows.ERROR_INSUFFICIENT_BUFFER
-import platform.windows.GetLastError
+import platform.windows.*
 import winhttp.*
 
 internal class WinHttpContext(
@@ -28,12 +27,11 @@ internal class WinHttpContext(
         get() = disposed.value
 
     fun reject(error: String) {
+        if (!asyncWorkingMode) return
+
         dispose()
 
         val exception = WinHttpIllegalStateException(error)
-        if (!asyncWorkingMode) {
-            throw exception
-        }
 
         when (stage) {
             Stage.SendRequest -> sendRequestResult.completeExceptionally(exception)
@@ -55,31 +53,36 @@ internal class WinHttpContext(
 
     fun sendRequest() {
         checkWorkingMode(false)
-
-        if (WinHttpSendRequest(hRequest, null, 0, null, 0, 0, 0) == 0) {
-            throw WinHttpIllegalStateException("Unable to send request: ${GetHResultFromLastError()}")
-        }
+        sendRequestInternal()
     }
 
     fun sendRequestAsync(): Deferred<Unit> {
         checkWorkingMode(true)
 
+        stage = Stage.SendRequest
+        sendRequestResult = CompletableDeferred()
+
+        sendRequestInternal()
+
+        return sendRequestResult
+    }
+
+    private fun sendRequestInternal() {
         // Set status callback
         val function = staticCFunction(::statusCallback)
-        if (WinHttpSetStatusCallback(hRequest, function, WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS, 0) != null) {
-            throw WinHttpIllegalStateException("Request callback already exists")
+        val notifications = if (asyncWorkingMode) {
+            WINHTTP_CALLBACK_STATUS_SECURE_FAILURE or WINHTTP_CALLBACK_STATUS_SECURE_FAILURE
+        } else WINHTTP_CALLBACK_STATUS_SECURE_FAILURE
+
+        if (WinHttpSetStatusCallback(hRequest, function, notifications.convert(), 0) != null) {
+            throw createWinHttpError("Unable to set request callback")
         }
 
         // Send request
         val reference = reference.asCPointer().rawValue.toLong().convert<ULong>()
         if (WinHttpSendRequest(hRequest, null, 0, null, 0, 0, reference) == 0) {
-            throw WinHttpIllegalStateException("Unable to send request: ${GetHResultFromLastError()}")
+            throw createWinHttpError("Unable to send request")
         }
-
-        stage = Stage.SendRequest
-        sendRequestResult = CompletableDeferred()
-
-        return sendRequestResult
     }
 
     fun onSendRequestComplete() {
@@ -88,25 +91,25 @@ internal class WinHttpContext(
 
     fun writeData(body: Pinned<ByteArray>) {
         checkWorkingMode(false)
-
-        // Write request data
-        if (WinHttpWriteData(hRequest, body.addressOf(0), body.get().size.convert(), null) == 0) {
-            throw WinHttpIllegalStateException("Unable to write request data: ${GetHResultFromLastError()}")
-        }
+        writeDataInternal(body)
     }
 
     fun writeDataAsync(body: Pinned<ByteArray>): Deferred<Unit> {
         checkWorkingMode(true)
 
-        // Write request data
-        if (WinHttpWriteData(hRequest, body.addressOf(0), body.get().size.convert(), null) == 0) {
-            reject("Unable to write request data: ${GetHResultFromLastError()}")
-        }
-
         stage = Stage.WriteData
         writeDataResult = CompletableDeferred()
 
+        writeDataInternal(body)
+
         return writeDataResult
+    }
+
+    private fun writeDataInternal(body: Pinned<ByteArray>) {
+        // Write request data
+        if (WinHttpWriteData(hRequest, body.addressOf(0), body.get().size.convert(), null) == 0) {
+            throw createWinHttpError("Unable to write request data")
+        }
     }
 
     fun onWriteDataComplete() {
@@ -116,9 +119,7 @@ internal class WinHttpContext(
     fun receiveResponse(): WinHttpResponseData {
         checkWorkingMode(false)
 
-        if (WinHttpReceiveResponse(hRequest, null) == 0) {
-            throw WinHttpIllegalStateException("Unable to receive response: ${GetHResultFromLastError()}")
-        }
+        receiveResponseInternal()
 
         return getResponseData()
     }
@@ -126,14 +127,18 @@ internal class WinHttpContext(
     fun receiveResponseAsync(): Deferred<WinHttpResponseData> {
         checkWorkingMode(true)
 
-        if (WinHttpReceiveResponse(hRequest, null) == 0) {
-            throw WinHttpIllegalStateException("Unable to receive response: ${GetHResultFromLastError()}")
-        }
-
         stage = Stage.ReceiveResponse
         receiveResponseResult = CompletableDeferred()
 
+        receiveResponseInternal()
+
         return receiveResponseResult
+    }
+
+    private fun receiveResponseInternal() {
+        if (WinHttpReceiveResponse(hRequest, null) == 0) {
+            throw createWinHttpError("Unable to receive response")
+        }
     }
 
     fun onReceiveResponse() {
@@ -151,7 +156,7 @@ internal class WinHttpContext(
             val numberOfBytesAvailable = alloc<UIntVar>()
 
             if (WinHttpQueryDataAvailable(hRequest, numberOfBytesAvailable.ptr) == 0) {
-                throw WinHttpIllegalStateException("Unable to query data length: ${GetHResultFromLastError()}")
+                throw createWinHttpError("Unable to query data length")
             }
 
             numberOfBytesAvailable.value.convert()
@@ -162,7 +167,7 @@ internal class WinHttpContext(
         checkWorkingMode(true)
 
         if (WinHttpQueryDataAvailable(hRequest, null) == 0) {
-            throw WinHttpIllegalStateException("Unable to query data length: ${GetHResultFromLastError()}")
+            throw createWinHttpError("Unable to query data length")
         }
 
         stage = Stage.QueryDataAvailable
@@ -188,7 +193,7 @@ internal class WinHttpContext(
                     numberOfBytesRead.ptr
                 ) == 0
             ) {
-                throw WinHttpIllegalStateException("Unable to read response data: ${GetHResultFromLastError()}.")
+                throw createWinHttpError("Unable to read response data")
             }
 
             numberOfBytesRead.value.convert()
@@ -199,7 +204,7 @@ internal class WinHttpContext(
         checkWorkingMode(true)
 
         if (WinHttpReadData(hRequest, buffer.addressOf(0), buffer.get().size.convert(), null) == 0) {
-            throw WinHttpIllegalStateException("Unable to read response data: ${GetHResultFromLastError()}.")
+            throw createWinHttpError("Unable to read response data")
         }
 
         stage = Stage.ReadData
@@ -232,7 +237,7 @@ internal class WinHttpContext(
                 null
             ) == 0
         ) {
-            throw WinHttpIllegalStateException("Unable to query status code: ${GetHResultFromLastError()}")
+            throw createWinHttpError("Unable to query status code")
         }
 
         val statusCode = dwStatusCode.value.convert<Int>()
@@ -251,15 +256,16 @@ internal class WinHttpContext(
 
         // Get headers length
         if (WinHttpQueryHeaders(hRequest, headerId.convert(), null, null, dwSize.ptr, null) == 0) {
-            if (GetLastError() != ERROR_INSUFFICIENT_BUFFER.convert<UInt>()) {
-                throw WinHttpIllegalStateException("Unable to query response headers length: ${GetHResultFromLastError()}")
+            val errorCode = GetLastError()
+            if (errorCode != ERROR_INSUFFICIENT_BUFFER.convert<UInt>()) {
+                throw createWinHttpError("Unable to query response headers length")
             }
         }
 
         // Read headers into buffer
         val buffer = allocArray<ShortVar>(getLength(dwSize) + 1)
         if (WinHttpQueryHeaders(hRequest, headerId.convert(), null, buffer, dwSize.ptr, null) == 0) {
-            throw WinHttpIllegalStateException("Unable to query response headers: ${GetHResultFromLastError()}")
+            throw createWinHttpError("Unable to query response headers")
         }
 
         String(CharArray(getLength(dwSize)) {
@@ -284,6 +290,7 @@ internal class WinHttpContext(
 
     override fun dispose() {
         if (disposed.getAndSet(true)) return
+        WinHttpSetStatusCallback(hRequest, null, 0, 0)
         reference.dispose()
     }
 

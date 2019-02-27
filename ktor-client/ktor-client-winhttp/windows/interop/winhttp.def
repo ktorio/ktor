@@ -4,14 +4,13 @@ compilerOpts = -DUNICODE
 linkerOpts = -lwinhttp
 
 ---
-static unsigned int GetHResultFromLastError() {
-    unsigned int lastError = GetLastError();
+static unsigned int GetHResultFromError(unsigned int errorCode) {
     int hr;
-    if (lastError < 0) {
-        hr = lastError;
+    if (errorCode < 0) {
+        hr = errorCode;
     }
     else {
-        hr = (int)(((unsigned int)lastError & 0x0000FFFF) | (7 << 16) | 0x80000000);
+        hr = (int)(((unsigned int)errorCode & 0x0000FFFF) | (7 << 16) | 0x80000000);
     }
 
     return hr;

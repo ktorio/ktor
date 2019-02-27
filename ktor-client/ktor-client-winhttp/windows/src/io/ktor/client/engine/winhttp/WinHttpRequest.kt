@@ -1,7 +1,6 @@
 package io.ktor.client.engine.winhttp
 
-import io.ktor.client.engine.winhttp.internal.WinHttpContext
-import io.ktor.client.engine.winhttp.internal.WinHttpResponseData
+import io.ktor.client.engine.winhttp.internal.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import io.ktor.http.fullPath
@@ -26,17 +25,17 @@ internal class WinHttpRequest(
 
     init {
         hConnect = WinHttpConnect(hSession, url.host, url.port.convert(), 0)
-            ?: throw WinHttpIllegalStateException("Unable to create connection")
+            ?: throw createWinHttpError("Unable to create connection")
         val secure = if (url.protocol.isSecure()) WINHTTP_FLAG_SECURE.convert() else 0u
         hRequest = WinHttpOpenRequest(hConnect, method.value, url.fullPath, null, null, null, secure)
-            ?: throw WinHttpIllegalStateException("Unable to open request")
+            ?: throw createWinHttpError("Unable to open request")
         context = WinHttpContext(hRequest, asyncWorkingMode)
     }
 
     fun addHeaders(requestHeaders: List<String>) {
         val headers = requestHeaders.joinToString("\n")
         if (WinHttpAddRequestHeaders(hRequest, headers, (-1).convert(), WINHTTP_ADDREQ_FLAG_ADD) == 0) {
-            throw WinHttpIllegalStateException("Unable to add request header")
+            throw createWinHttpError("Unable to add request headers")
         }
     }
 

@@ -1,5 +1,6 @@
 package io.ktor.client.engine.winhttp
 
+import io.ktor.client.engine.winhttp.internal.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
@@ -19,12 +20,12 @@ internal class WinHttpSession(private val asyncWorkingMode: Boolean) : Disposabl
             WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
             null, null,
             workingMode.convert()
-        ) ?: throw WinHttpIllegalStateException("Unable to create session")
+        ) ?: throw createWinHttpError("Unable to create session")
     }
 
     fun setTimeouts(resolveTimeout: Int, connectTimeout: Int, sendTimeout: Int, receiveTimeout: Int) {
         if (WinHttpSetTimeouts(hSession, resolveTimeout, connectTimeout, sendTimeout, receiveTimeout) == 0) {
-            throw WinHttpIllegalStateException("Unable to set session timeouts")
+            throw createWinHttpError("Unable to set session timeouts")
         }
     }
 
@@ -34,9 +35,7 @@ internal class WinHttpSession(private val asyncWorkingMode: Boolean) : Disposabl
                 value = securityProtocols.value.convert()
             }
             val dwSize = sizeOf<UIntVar>().convert<UInt>()
-            if (WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS, options.ptr, dwSize) != 0) {
-                println("Unable to set request option: ${GetHResultFromLastError()}")
-            }
+            WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS, options.ptr, dwSize)
         }
     }
 
