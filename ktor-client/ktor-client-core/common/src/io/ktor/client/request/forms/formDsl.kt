@@ -40,26 +40,26 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 }
 
 /**
- * Build multipart form using [block] function
+ * Build multipart form using [block] function.
  */
 fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
- * Form builder type used in [formData] builder function
+ * Form builder type used in [formData] builder function.
  */
 class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
-     * Append a pair [key]:[value] with optional [headers]
+     * Append a pair [key]:[value] with optional [headers].
      */
     fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a form [part]
+     * Append a form [part].
      */
     fun <T : Any> append(part: FormPart<T>) {
         parts += part
@@ -69,7 +69,7 @@ class FormBuilder internal constructor() {
 }
 
 /**
- * Append a form part with the specified [key] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
 fun FormBuilder.append(
@@ -80,11 +80,11 @@ fun FormBuilder.append(
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
-    append(key, filename, bodyBuilder)
+    append(key, filename, null, bodyBuilder)
 }
 
 /**
- * Append a form part with the specified [key] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
 inline fun FormBuilder.append(
@@ -99,7 +99,7 @@ inline fun FormBuilder.append(
 }
 
 /**
- * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
 fun FormBuilder.append(
