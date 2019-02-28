@@ -16,6 +16,7 @@ class MockEngine(
     private var invocationCount = 0
     private val _requestsHistory: MutableList<HttpRequest> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponse> = mutableListOf()
+    private val contextState = CompletableDeferred<Unit>()
 
     init {
         check(config.requestHandlers.size > 0) {
@@ -35,7 +36,7 @@ class MockEngine(
 
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
-    override val coroutineContext: CoroutineContext = dispatcher + CompletableDeferred<Unit>()
+    override val coroutineContext: CoroutineContext = dispatcher + contextState
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
         val request = data.toRequest(call)
@@ -59,6 +60,7 @@ class MockEngine(
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
+        contextState.complete(Unit)
     }
 
     companion object : HttpClientEngineFactory<MockEngineConfig> {
