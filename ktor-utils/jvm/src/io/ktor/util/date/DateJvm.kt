@@ -58,4 +58,4 @@ private fun Calendar.toDate(timestamp: Long?): GMTDate {
 /**
  * Convert to [Date]
  */
-fun GMTDate.toJvmDate(): Date = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.time!!
+fun GMTDate.toJvmDate(): Date = Date(timestamp)
