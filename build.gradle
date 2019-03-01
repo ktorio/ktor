@@ -32,10 +32,10 @@ apply from: 'gradle/verifier.gradle'
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
-rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
+rootProject.ext.skipPublish = ["binary-compatibility-validator", "ktor-server-benchmarks"]
 
 def projectNeedsPlatform(project, platform) {
-    if (rootProject.ext.misc.contains(project.name)) return platform == "jvm"
+    if (rootProject.ext.skipPublish.contains(project.name)) return platform == "jvm"
 
     def files = project.projectDir.listFiles()
     def hasPosix = files.any { it.name == "posix" }
@@ -83,7 +83,7 @@ allprojects {
 
     apply from: rootProject.file('gradle/dokka.gradle')
 
-    if (!rootProject.ext.misc.contains(project.name)) {
+    if (!rootProject.ext.skipPublish.contains(project.name)) {
         apply from: rootProject.file('gradle/publish.gradle')
     }
 
@@ -98,7 +98,7 @@ allprojects {
             kotlin.srcDirs = ["$platform/$srcDir"]
             resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
-            if (rootProject.ext.misc.contains(project.name)) return
+            if (rootProject.ext.skipPublish.contains(project.name)) return
             languageSettings {
                 progressiveMode = true
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }
