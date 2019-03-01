@@ -45,7 +45,7 @@ class BasicAuthProvider(
     private val password: String,
     private val realm: String?
 ) : AuthProvider {
-    private val defaultCharset = Charset.forName("ISO_8859_1")
+    private val defaultCharset = Charsets.UTF_8
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Basic) return false
