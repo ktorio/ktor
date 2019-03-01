@@ -177,10 +177,9 @@ public final class io/ktor/client/engine/UtilsKt {
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
 }
 
-public final class io/ktor/client/features/BadResponseStatusException : java/lang/IllegalStateException {
-	public fun <init> (Lio/ktor/http/HttpStatusCode;Lio/ktor/client/response/HttpResponse;)V
-	public final fun getResponse ()Lio/ktor/client/response/HttpResponse;
-	public final fun getStatusCode ()Lio/ktor/http/HttpStatusCode;
+public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
+	public fun <init> (Lio/ktor/client/response/HttpResponse;)V
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/features/DefaultRequest {
@@ -200,6 +199,10 @@ public final class io/ktor/client/features/DefaultRequestKt {
 	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/client/features/DefaultResponseValidationKt {
+	public static final fun addDefaultResponseValidation (Lio/ktor/client/HttpClientConfig;)V
+}
+
 public final class io/ktor/client/features/DefaultTransformKt {
 	public static final fun defaultTransformers (Lio/ktor/client/HttpClient;)V
 }
@@ -215,6 +218,29 @@ public final class io/ktor/client/features/ExpectSuccess$Companion : io/ktor/cli
 	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
 	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/ExpectSuccess;
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/HttpCallValidator {
+	public static final field Companion Lio/ktor/client/features/HttpCallValidator$Companion;
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+}
+
+public final class io/ktor/client/features/HttpCallValidator$Companion : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/HttpCallValidator;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/HttpCallValidator;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/HttpCallValidator$Config {
+	public fun <init> ()V
+	public final fun handleResponseException (Lkotlin/jvm/functions/Function2;)V
+	public final fun validateResponse (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/client/features/HttpCallValidatorKt {
+	public static final fun HttpResponseValidator (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 }
 
 public abstract interface class io/ktor/client/features/HttpClientFeature {
@@ -283,9 +309,14 @@ public final class io/ktor/client/features/HttpSend$Feature : io/ktor/client/fea
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/features/RedirectException : java/lang/IllegalStateException {
-	public fun <init> (Lio/ktor/client/request/HttpRequest;Ljava/lang/String;)V
-	public final fun getRequest ()Lio/ktor/client/request/HttpRequest;
+public final class io/ktor/client/features/RedirectResponseException : io/ktor/client/features/ResponseException {
+	public fun <init> (Lio/ktor/client/response/HttpResponse;)V
+	public fun getMessage ()Ljava/lang/String;
+}
+
+public class io/ktor/client/features/ResponseException : java/lang/IllegalStateException {
+	public fun <init> (Lio/ktor/client/response/HttpResponse;)V
+	public final fun getResponse ()Lio/ktor/client/response/HttpResponse;
 }
 
 public final class io/ktor/client/features/SendCountExceedException : java/lang/IllegalStateException {
@@ -294,6 +325,11 @@ public final class io/ktor/client/features/SendCountExceedException : java/lang/
 
 public abstract interface class io/ktor/client/features/Sender {
 	public abstract fun execute (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/ServerResponseException : io/ktor/client/features/ResponseException {
+	public fun <init> (Lio/ktor/client/response/HttpResponse;)V
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/features/UserAgent {
