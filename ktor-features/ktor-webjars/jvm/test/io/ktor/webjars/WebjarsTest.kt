@@ -110,6 +110,18 @@ class WebjarsTest {
     }
 
     @Test
+    fun withGetParameters() {
+        withTestApplication {
+            application.install(Webjars)
+
+            handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js?param1=value1").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            }
+        }
+    }
+
+    @Test
     fun withSpecificVersion() {
         withTestApplication {
             application.install(Webjars)
