@@ -50,15 +50,14 @@ class Webjars(val configuration: Configuration) {
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val fullPath = context.call.request.uri.substringBefore("?")
-        val fileName = fileName(fullPath)
-        if (fullPath.startsWith(configuration.path) && context.call.request.httpMethod == HttpMethod.Get && fileName.isNotEmpty()) {
+        if (fullPath.startsWith(configuration.path) && context.call.request.httpMethod == HttpMethod.Get && fileName(fullPath).isNotEmpty()) {
             val resourcePath = fullPath.removePrefix(configuration.path)
             try {
                 val location = extractWebJar(resourcePath)
                 context.call.respond(
                     InputStreamContent(
                         Webjars::class.java.classLoader.getResourceAsStream(location),
-                        ContentType.defaultForFilePath(fileName),
+                        ContentType.defaultForFilePath(fileName(fullPath)),
                         lastModified
                     )
                 )
