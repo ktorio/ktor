@@ -18,6 +18,7 @@ import io.ktor.thymeleaf.Thymeleaf
 import io.ktor.thymeleaf.ThymeleafContent
 import io.ktor.thymeleaf.respondTemplate
 import org.junit.Test
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.StringTemplateResolver
 import java.util.zip.GZIPInputStream
 import kotlin.test.assertEquals
@@ -28,13 +29,13 @@ class ThymeleafTest {
     @Test
     fun testName() {
         withTestApplication {
-            application.setUpTestTemplates()
+            application.setUpThymeleafStringTemplate()
             application.install(ConditionalHeaders)
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
-                    call.respond(ThymeleafContent(TEMPLATE, model, "e"))
+                    call.respond(ThymeleafContent(STRING_TEMPLATE, model, "e"))
                 }
             }
 
@@ -54,7 +55,7 @@ class ThymeleafTest {
     @Test
     fun testCompression() {
         withTestApplication {
-            application.setUpTestTemplates()
+            application.setUpThymeleafStringTemplate()
             application.install(Compression)
             application.install(ConditionalHeaders)
 
@@ -62,7 +63,7 @@ class ThymeleafTest {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
-                    call.respond(ThymeleafContent(TEMPLATE, model, "e"))
+                    call.respond(ThymeleafContent(STRING_TEMPLATE, model, "e"))
                 }
             }
 
@@ -84,14 +85,14 @@ class ThymeleafTest {
     @Test
     fun testWithoutEtag() {
         withTestApplication {
-            application.setUpTestTemplates()
+            application.setUpThymeleafStringTemplate()
             application.install(ConditionalHeaders)
 
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
-                    call.respond(ThymeleafContent(TEMPLATE, model))
+                    call.respond(ThymeleafContent(STRING_TEMPLATE, model))
                 }
             }
 
@@ -111,14 +112,14 @@ class ThymeleafTest {
     @Test
     fun canRespondAppropriately() {
         withTestApplication {
-            application.setUpTestTemplates()
+            application.setUpThymeleafStringTemplate()
             application.install(ConditionalHeaders)
 
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
 
                 get("/") {
-                    call.respondTemplate(TEMPLATE, model)
+                    call.respondTemplate(STRING_TEMPLATE, model)
                 }
             }
 
@@ -135,7 +136,32 @@ class ThymeleafTest {
         }
     }
 
-    private fun Application.setUpTestTemplates() {
+    @Test
+    fun testClassLoaderTemplateResolver() {
+        withTestApplication {
+            application.install(Thymeleaf) {
+                val resolver = ClassLoaderTemplateResolver()
+                resolver.setTemplateMode("HTML")
+                resolver.prefix = "templates/"
+                resolver.suffix = ".html"
+                setTemplateResolver(resolver)
+            }
+            application.install(ConditionalHeaders)
+            application.routing {
+                val model = mapOf("id" to 1, "title" to "Hello, World!")
+                get("/") {
+                    call.respondTemplate("test", model)
+                }
+            }
+            handleRequest(HttpMethod.Get, "/").response.let { response ->
+                val lines = response.content!!.lines()
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Hello, World!</h1>", lines[1])
+            }
+        }
+    }
+
+    private fun Application.setUpThymeleafStringTemplate() {
         install(Thymeleaf) {
             setTemplateResolver(StringTemplateResolver())
         }
@@ -143,7 +169,7 @@ class ThymeleafTest {
 
     companion object {
         val bax = "$"
-        private val TEMPLATE = """
+        private val STRING_TEMPLATE = """
             <p>Hello, [[$bax{id}]]</p>
             <h1 th:text="$bax{title}"></h1>
         """.trimIndent()
