@@ -15,7 +15,7 @@ import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
-class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngine {
+internal class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngine {
     // TODO: replace with UI dispatcher
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
@@ -99,6 +99,8 @@ class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEn
             }
 
             body?.let { nativeRequest.setHTTPBody(it) }
+
+            config.requestConfig.let { nativeRequest.it() }
             session.dataTaskWithRequest(nativeRequest).resume()
         }
     }

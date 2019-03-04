@@ -9,7 +9,7 @@ private val initHook = Ios
 
 /**
  * [HttpClientEngineFactory] using a [NSURLRequest] in implementation
- * with the the associated configuration [HttpClientEngineConfig].
+ * with the the associated requestConfig [HttpClientEngineConfig].
  */
 object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
     init {
