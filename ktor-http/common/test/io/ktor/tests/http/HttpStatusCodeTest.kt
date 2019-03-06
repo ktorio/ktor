@@ -21,7 +21,7 @@ class HttpStatusCodeTest {
 
     @Test
     fun HttpStatusCodeWithDescription() {
-        assertNotEquals(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description("Missing Resource"))
+        assertEquals(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description("Missing Resource"))
     }
 
     @Test
