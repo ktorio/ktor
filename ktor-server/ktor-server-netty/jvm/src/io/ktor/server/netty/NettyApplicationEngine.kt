@@ -48,6 +48,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         var responseWriteTimeoutSeconds: Int = 10
 
         /**
+         * Timeout in seconds for reading requests from client.
+         */
+        var requestReadTimeoutSeconds: Int = 10
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
         var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
@@ -88,6 +93,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds,
+                    configuration.requestReadTimeoutSeconds,
                     configuration.httpServerCodec
                 )
             )
