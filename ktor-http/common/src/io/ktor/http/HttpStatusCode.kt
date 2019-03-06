@@ -9,6 +9,10 @@ package io.ktor.http
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
 
+    override fun equals(other: Any?): Boolean = other is HttpStatusCode && other.value == value
+
+    override fun hashCode(): Int = value.hashCode()
+
     /**
      * Returns a copy of `this` code with a description changed to [value].
      */
