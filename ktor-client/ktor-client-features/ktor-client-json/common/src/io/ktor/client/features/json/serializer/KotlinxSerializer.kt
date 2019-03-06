@@ -21,7 +21,7 @@ import kotlin.reflect.*
  * ```
  */
 @UseExperimental(ImplicitReflectionSerializer::class)
-class KotlinxSerializer(private val json: JSON = JSON.plain) : JsonSerializer {
+class KotlinxSerializer(private val json: Json = Json.plain) : JsonSerializer {
     @Suppress("UNCHECKED_CAST")
     private val mappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
     private val listMappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
