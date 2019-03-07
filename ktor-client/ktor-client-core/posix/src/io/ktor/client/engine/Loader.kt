@@ -1,5 +1,6 @@
 package io.ktor.client.engine
 
+import kotlin.native.concurrent.*
 import io.ktor.util.*
 
 @InternalAPI

@@ -210,6 +210,7 @@ public final class io/ktor/http/ContentType$Text {
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getCSS ()Lio/ktor/http/ContentType;
 	public final fun getCSV ()Lio/ktor/http/ContentType;
+	public final fun getEventStream ()Lio/ktor/http/ContentType;
 	public final fun getHtml ()Lio/ktor/http/ContentType;
 	public final fun getJavaScript ()Lio/ktor/http/ContentType;
 	public final fun getPlain ()Lio/ktor/http/ContentType;
@@ -621,6 +622,7 @@ public final class io/ktor/http/HttpProtocolVersion$Companion {
 	public final fun getHTTP_2_0 ()Lio/ktor/http/HttpProtocolVersion;
 	public final fun getQUIC ()Lio/ktor/http/HttpProtocolVersion;
 	public final fun getSPDY_3 ()Lio/ktor/http/HttpProtocolVersion;
+	public final fun parse (Ljava/lang/CharSequence;)Lio/ktor/http/HttpProtocolVersion;
 }
 
 public final class io/ktor/http/HttpStatusCode {
@@ -922,7 +924,10 @@ public final class io/ktor/http/URLUtilsJvmKt {
 }
 
 public final class io/ktor/http/URLUtilsKt {
+	public static final fun URLBuilder (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
+	public static final fun URLBuilder (Lio/ktor/http/Url;)Lio/ktor/http/URLBuilder;
 	public static final fun URLBuilder (Ljava/lang/String;)Lio/ktor/http/URLBuilder;
+	public static final fun Url (Lio/ktor/http/URLBuilder;)Lio/ktor/http/Url;
 	public static final fun Url (Ljava/lang/String;)Lio/ktor/http/Url;
 	public static final fun getFullPath (Lio/ktor/http/Url;)Ljava/lang/String;
 	public static final fun getHostWithPort (Lio/ktor/http/Url;)Ljava/lang/String;
@@ -1012,6 +1017,7 @@ public final class io/ktor/http/auth/HttpAuthHeader$Parameterized : io/ktor/http
 	public fun render ()Ljava/lang/String;
 	public fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
 	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
+	public final fun withReplacedParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader$Parameterized;
 }
 
 public final class io/ktor/http/auth/HttpAuthHeader$Parameters {

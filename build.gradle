@@ -12,12 +12,11 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
         classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
-        classpath 'de.undercouch:gradle-download-task:3.4.3'
+        classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
     }
 }
 
@@ -33,17 +32,20 @@ apply from: 'gradle/verifier.gradle'
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
-rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
+rootProject.ext.skipPublish = ["binary-compatibility-validator", "ktor-server-benchmarks"]
 
 def projectNeedsPlatform(project, platform) {
-    if (rootProject.ext.misc.contains(project.name)) return platform == "jvm"
+    if (rootProject.ext.skipPublish.contains(project.name)) return platform == "jvm"
 
     def files = project.projectDir.listFiles()
     def hasPosix = files.any { it.name == "posix" }
     def hasDarwin = files.any { it.name == "darwin" }
 
     if (hasPosix && hasDarwin) return false
-    if (!hasDarwin && platform == "darwin") return false
+
+    if (hasPosix && platform == "darwin") return false
+    if (hasDarwin && platform == "posix") return false
+    if (!hasPosix && !hasDarwin && platform == "darwin") return false
 
     return files.any { it.name == "common" || it.name == platform }
 }
@@ -55,15 +57,20 @@ allprojects {
 
     repositories {
         mavenLocal()
-        maven { url "https://dl.bintray.com/kotlin/kotlinx/" }
+        maven {
+            url "https://dl.bintray.com/kotlin/kotlinx/"
+            credentials {
+                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
+                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
+            }
+        }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
-
         jcenter()
+
     }
 
     apply plugin: "kotlin-multiplatform"
-    apply plugin: "kotlinx-atomicfu"
 
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
@@ -75,7 +82,10 @@ allprojects {
     }
 
     apply from: rootProject.file('gradle/dokka.gradle')
-    apply from: rootProject.file('gradle/publish.gradle')
+
+    if (!rootProject.ext.skipPublish.contains(project.name)) {
+        apply from: rootProject.file('gradle/publish.gradle')
+    }
 
     configurations { testOutput }
 
@@ -88,7 +98,7 @@ allprojects {
             kotlin.srcDirs = ["$platform/$srcDir"]
             resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
-            if (rootProject.ext.misc.contains(project.name)) return
+            if (rootProject.ext.skipPublish.contains(project.name)) return
             languageSettings {
                 progressiveMode = true
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }
@@ -105,6 +115,10 @@ afterEvaluate {
     def allCompileKotlinTasks = subprojects.collect {
         it.hasProperty("compileKotlinJvm") ? [it.compileKotlinJvm] : []
     }.flatten()
+
+    configure(allCompileKotlinTasks) {
+        kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses"]
+    }
 
     task dokkaWebsite(type: dokka.getClass()) {
         outputFormat = 'kotlin-website'

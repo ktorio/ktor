@@ -1,21 +1,17 @@
 package io.ktor.tests.server.sessions
 
-import io.ktor.application.call
-import io.ktor.application.install
+import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.route
 import io.ktor.routing.routing
-import io.ktor.server.testing.TestApplicationEngine
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
+import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import io.ktor.util.date.*
 import io.ktor.util.hex
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.jvm.javaio.*
-import kotlinx.coroutines.runBlocking
-import org.junit.Test
 import java.time.Duration
 import java.util.*
 import kotlin.test.*
@@ -649,6 +645,56 @@ class SessionTest {
             assertNull(parsedCookies.expires)
             assertEquals(0, parsedCookies.maxAge)
         }
+    }
+
+    @Test
+    fun settingSessionAfterResponseTest(): Unit = withTestApplication {
+        application.install(Sessions) {
+            cookie<TestUserSession>(cookieName)
+        }
+
+        application.routing {
+            get("/after-response") {
+                call.respondText("OK")
+                call.sessions.set(TestUserSession("id", emptyList()))
+            }
+        }
+
+        assertFailsWith<TooLateSessionSetException> {
+            runBlocking {
+                handleRequest(HttpMethod.Get, "/after-response").let { call ->
+                    println(call.response.content)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSessionLongDuration(): Unit = withTestApplication {
+        val transport = SessionTransportCookie("test", CookieConfiguration().apply {
+            duration = Duration.ofDays(365 * 100)
+        }, emptyList())
+
+        val call = createCall {}
+        transport.send(call, "my-session")
+
+        val cookies = call.response.cookies["test"]
+        assertNotNull(cookies)
+        assertEquals(Int.MAX_VALUE, cookies.maxAge)
+    }
+
+    @Test
+    fun testSessionOverflowDuration(): Unit = withTestApplication {
+        val transport = SessionTransportCookie("test", CookieConfiguration().apply {
+            duration = Duration.ofSeconds(Long.MAX_VALUE)
+        }, emptyList())
+
+        val call = createCall {}
+        transport.send(call, "my-session")
+
+        val cookies = call.response.cookies["test"]
+        assertNotNull(cookies)
+        assertEquals(Int.MAX_VALUE, cookies.maxAge)
     }
 
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->

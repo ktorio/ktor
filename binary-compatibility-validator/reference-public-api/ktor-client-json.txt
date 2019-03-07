@@ -30,8 +30,8 @@ public abstract interface class io/ktor/client/features/json/JsonSerializer {
 public final class io/ktor/client/features/json/serializer/KotlinxSerializer : io/ktor/client/features/json/JsonSerializer {
 	public static final field Companion Lio/ktor/client/features/json/serializer/KotlinxSerializer$Companion;
 	public fun <init> ()V
-	public fun <init> (Lkotlinx/serialization/json/JSON;)V
-	public synthetic fun <init> (Lkotlinx/serialization/json/JSON;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlinx/serialization/json/Json;)V
+	public synthetic fun <init> (Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun read (Lio/ktor/client/call/TypeInfo;Lio/ktor/client/response/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setListMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
 	public final fun setMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V

@@ -16,11 +16,11 @@ import java.time.*
  * @property readResponse if response channel need to be consumed into byteContent
  */
 class TestApplicationResponse(
-    call: TestApplicationCall, val readResponse: Boolean = false
+    call: TestApplicationCall, readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
     /**
-     * Response body text content. Could be blocking.
+     * Response body text content. Could be blocking. Remains `null` until response appears.
      */
     val content: String?
         get() {
@@ -28,8 +28,12 @@ class TestApplicationResponse(
             return byteContent?.toString(charset)
         }
 
+    @Suppress("CanBePrimaryConstructorProperty")
+    @Deprecated("Will be removed from public API")
+    val readResponse: Boolean = readResponse
+
     /**
-     * Response body byte content. Could be blocking
+     * Response body byte content. Could be blocking. Remains `null` until response appears.
      */
     var byteContent: ByteArray? = null
         get() = when {
@@ -44,6 +48,13 @@ class TestApplicationResponse(
 
     @Volatile
     private var responseJob: Deferred<Unit>? = null
+
+    /**
+     * Get completed when a response channel is assigned.
+     * A response could have no channel assigned in some particular failure cases so the deferred could
+     * remain incomplete or become completed exceptionally.
+     */
+    internal val responseChannelDeferred = CompletableDeferred<Unit>()
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -69,14 +80,25 @@ class TestApplicationResponse(
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
-        if (readResponse) {
-            responseJob = async(Dispatchers.Default) {
-                byteContent = result.toByteArray()
-            }
+        if (@Suppress("DEPRECATION") readResponse) {
+            launchResponseJob(result)
         }
 
         responseChannel = result
+        responseChannelDeferred.complete(Unit)
+
         return result
+    }
+
+    private fun launchResponseJob(source: ByteReadChannel) {
+        responseJob = async(Dispatchers.Default) {
+            byteContent = source.toByteArray()
+        }
+    }
+
+    override suspend fun respondOutgoingContent(content: OutgoingContent) {
+        super.respondOutgoingContent(content)
+        responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
     }
 
     /**
@@ -88,7 +110,13 @@ class TestApplicationResponse(
      * Await for response job completion
      */
     @InternalAPI
+    @Suppress("DeprecatedCallableAddReplaceWith")
+    @Deprecated("Will be removed")
     suspend fun flush() {
+        awaitForResponseCompletion()
+    }
+
+    internal suspend fun awaitForResponseCompletion() {
         responseJob?.await()
     }
 
@@ -105,7 +133,7 @@ class TestApplicationResponse(
     /**
      * Wait for websocket session completion
      */
-    fun awaitWebSocket(duration: Duration) = runBlocking {
+    fun awaitWebSocket(duration: Duration): Unit = runBlocking {
         withTimeout(duration.toMillis()) {
             webSocketCompleted.join()
         }

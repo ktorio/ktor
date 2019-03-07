@@ -48,9 +48,12 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
      * Implementation of an [ApplicationFeature] for the [ContentNegotiation]
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
-        override val key = AttributeKey<ContentNegotiation>("ContentNegotiation")
+        override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): ContentNegotiation {
             val configuration = Configuration().apply(configure)
             val feature = ContentNegotiation(configuration.registrations)
 
@@ -83,7 +86,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 }
 
                 val rendered = converted?.let { transformDefaultContent(it) }
-                        ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
+                    ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
                 proceedWith(rendered)
             }
 
@@ -93,23 +96,20 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 // skip if a byte channel has been requested so there is nothing to negotiate
                 if (subject.type === ByteReadChannel::class) return@intercept
 
-                val contentType = call.request.contentType().withoutParameters()
-                val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
-                        ?: throw UnsupportedMediaTypeException(contentType)
+                val requestContentType = call.request.contentType().withoutParameters()
+                val suitableConverter =
+                    feature.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
+                        ?: throw UnsupportedMediaTypeException(requestContentType)
+
                 val converted = suitableConverter.converter.convertForReceive(this)
-                        ?: throw UnsupportedMediaTypeException(contentType)
+                    ?: throw UnsupportedMediaTypeException(requestContentType)
+
                 proceedWith(ApplicationReceiveRequest(receive.type, converted))
             }
             return feature
         }
     }
 }
-
-/**
- * Thrown when there is no conversion for a content type configured
- */
-class UnsupportedMediaTypeException(contentType: ContentType) :
-        ContentTransformationException("Content type $contentType is not supported")
 
 /**
  * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
@@ -131,7 +131,11 @@ interface ContentConverter {
      *
      * @return a converted value (possibly an [OutgoingContent]), or null if [value] isn't suitable for this converter
      */
-    suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
+    suspend fun convertForSend(
+        context: PipelineContext<Any, ApplicationCall>,
+        contentType: ContentType,
+        value: Any
+    ): Any?
 
     /**
      * Convert a value (RAW or intermediate) from receive pipeline (deserialize).

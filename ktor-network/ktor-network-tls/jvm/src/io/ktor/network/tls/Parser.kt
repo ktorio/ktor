@@ -128,7 +128,7 @@ private suspend fun ByteReadChannel.readTLSVersion() =
 private fun ByteReadPacket.readTLSVersion() =
     TLSVersion.byCode(readShort().toInt() and 0xffff)
 
-private fun ByteReadPacket.readTripleByteLength(): Int = (readByte().toInt() and 0xff shl 16) or
+internal fun ByteReadPacket.readTripleByteLength(): Int = (readByte().toInt() and 0xff shl 16) or
     (readShort().toInt() and 0xffff)
 
 internal suspend fun ByteReadChannel.readShortCompatible(): Int {

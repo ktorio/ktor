@@ -207,6 +207,14 @@ class Compression(compression: Configuration) {
             gzip()
             deflate()
             identity()
+
+            excludeContentType(
+                ContentType.Video.Any,
+                ContentType.Image.Any,
+                ContentType.Audio.Any,
+                ContentType.MultiPart.Any,
+                ContentType.Text.EventStream
+            )
         }
 
         /**
@@ -344,7 +352,9 @@ fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Un
 }
 
 /**
- * Appends a custom condition to the encoder or Compression configuration
+ * Appends a custom condition to the encoder or Compression configuration.
+ * A predicate returns `true` when a response need to be compressed.
+ * If at least one condition is not met then the response compression is skipped.
  */
 fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
@@ -372,7 +382,10 @@ fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
  */
 fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
     condition { content ->
-        val contentType = content.contentType ?: return@condition true
-        mimeTypes.none { contentType.match(it) }
+        val contentType = content.contentType
+            ?: response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+            ?: return@condition true
+
+        mimeTypes.none { excludePattern -> contentType.match(excludePattern) }
     }
 }

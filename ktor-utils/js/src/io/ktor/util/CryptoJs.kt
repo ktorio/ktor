@@ -6,12 +6,18 @@ import kotlin.js.*
 
 private const val NONCE_SIZE_IN_BYTES = 8
 
+/**
+ * Generates a nonce string.
+ */
 @InternalAPI
 actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES)
     return hex(crypto.getRandomValues(buffer))
 }
 
+/**
+ * Create [Digest] from specified hash [name].
+ */
 @InternalAPI
 actual fun Digest(name: String): Digest = object : Digest {
     private val state = mutableListOf<ByteArray>()
@@ -40,3 +46,9 @@ private external object crypto {
 private external class SubtleCrypto {
     fun digest(algoName: String, buffer: ByteArray): Promise<ArrayBuffer>
 }
+
+/**
+ * Compute SHA-1 hash for the specified [bytes]
+ */
+@KtorExperimentalAPI
+actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-js")

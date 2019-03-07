@@ -7,6 +7,7 @@ public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/corout
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getEngine ()Lio/ktor/client/engine/HttpClientEngine;
 	public final fun getEngineConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public final fun getReceivePipeline ()Lio/ktor/client/response/HttpReceivePipeline;
 	public final fun getRequestPipeline ()Lio/ktor/client/request/HttpRequestPipeline;
@@ -54,8 +55,10 @@ public final class io/ktor/client/call/DoubleReceiveException : java/lang/Illega
 	public fun getMessage ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/call/HttpClientCall : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+public class io/ktor/client/call/HttpClientCall : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lio/ktor/client/HttpClient;)V
 	public fun close ()V
+	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getRequest ()Lio/ktor/client/request/HttpRequest;
@@ -113,6 +116,10 @@ public final class io/ktor/client/call/TypeInfo {
 
 public final class io/ktor/client/call/UnsupportedContentTypeException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/http/content/OutgoingContent;)V
+}
+
+public final class io/ktor/client/call/UnsupportedUpgradeProtocolException : java/lang/IllegalArgumentException {
+	public fun <init> (Lio/ktor/http/Url;)V
 }
 
 public final class io/ktor/client/call/UtilsJvmKt {
@@ -365,6 +372,7 @@ public final class io/ktor/client/features/cookies/HttpCookiesKt {
 }
 
 public final class io/ktor/client/features/observer/DelegatedCallKt {
+	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lkotlinx/coroutines/io/ByteReadChannel;)Lio/ktor/client/call/HttpClientCall;
 	public static final fun wrapWithContent (Lio/ktor/client/call/HttpClientCall;Lkotlinx/coroutines/io/ByteReadChannel;Z)Lio/ktor/client/call/HttpClientCall;
 }
 
@@ -528,6 +536,7 @@ public final class io/ktor/client/request/forms/FormDataContent : io/ktor/http/c
 
 public final class io/ktor/client/request/forms/FormDslKt {
 	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;)V
+	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function1;)V
 	public static final fun append (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun append$default (Lio/ktor/client/request/forms/FormBuilder;Ljava/lang/String;Lio/ktor/http/Headers;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun formData (Lkotlin/jvm/functions/Function1;)Ljava/util/List;

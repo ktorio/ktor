@@ -74,6 +74,8 @@ class Sessions(val providers: List<SessionProvider>) {
                         }
                     }
                 }
+
+                sessionData.commit()
             }
 
             return sessions
@@ -154,6 +156,12 @@ inline fun <reified T> CurrentSession.getOrSet(name: String = findName(T::class)
 private data class SessionData(val sessions: Sessions,
                                val providerData: Map<String, SessionProviderData>) : CurrentSession {
 
+    private var committed = false
+
+    internal fun commit() {
+        committed = true
+    }
+
     override fun findName(type: KClass<*>): String {
         val entry = providerData.entries.firstOrNull { it.value.provider.type == type } ?:
                 throw IllegalArgumentException("Session data for type `$type` was not registered")
@@ -161,6 +169,9 @@ private data class SessionData(val sessions: Sessions,
     }
 
     override fun set(name: String, value: Any?) {
+        if (committed) {
+            throw TooLateSessionSetException()
+        }
         val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
         if (value != null)
             providerData.provider.tracker.validate(value)
@@ -182,3 +193,9 @@ private data class SessionProviderData(var value: Any?, val incoming: Boolean, v
 
 private val SessionKey = AttributeKey<SessionData>("SessionKey")
 
+/**
+ * This exception is thrown when HTTP response has been already sent but an attempt to modify session is made
+ */
+@InternalAPI
+class TooLateSessionSetException :
+    IllegalStateException("It's too late to set session: response most likely already has been sent")

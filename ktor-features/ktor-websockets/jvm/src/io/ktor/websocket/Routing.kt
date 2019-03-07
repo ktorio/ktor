@@ -116,8 +116,11 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.feature(WebSockets)
 
-    val session =
-        DefaultWebSocketSessionImpl(this, webSockets.pingInterval?.toMillis() ?: -1L, webSockets.timeout.toMillis())
+    val session = DefaultWebSocketSessionImpl(
+        this,
+        webSockets.pingInterval?.toMillis() ?: -1L,
+        webSockets.timeout.toMillis()
+    )
     session.run {
         try {
             toServerSession(call).handler()
@@ -138,7 +141,7 @@ private class WebSocketProtocolsSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol]
-                ?: return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.Failed
 
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
             return RouteSelectorEvaluation.Constant

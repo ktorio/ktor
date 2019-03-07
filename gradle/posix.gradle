@@ -1,19 +1,29 @@
 apply from: rootProject.file("gradle/ide.gradle")
 
+apply plugin: "kotlinx-atomicfu"
+
+if (project.name != 'ktor-client-curl') {
+    apply from: rootProject.file("gradle/native.gradle")
+}
+
 kotlin {
     targets {
         if (project.ext.ideaActive) {
             fromPreset(project.ext.ideaPreset, 'posix')
         } else {
             fromPreset(presets.linuxX64, 'linuxX64')
-            fromPreset(presets.iosArm64, 'iosArm64')
-            fromPreset(presets.iosArm32, 'iosArm32')
-            fromPreset(presets.iosX64, 'iosX64')
+            if (project.name != 'ktor-client-curl') {
+                fromPreset(presets.iosArm64, 'iosArm64')
+                fromPreset(presets.iosArm32, 'iosArm32')
+                fromPreset(presets.iosX64, 'iosX64')
+            }
             fromPreset(presets.macosX64, 'macosX64')
             fromPreset(presets.mingwX64, 'mingwX64')
+
+            configure([mingwX64Test]) {
+                environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
+            }
         }
-
-
     }
     sourceSets {
         posixMain.dependencies {
@@ -24,18 +34,20 @@ kotlin {
             implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
         }
 
-        posixTest { dependsOn posixMain}
+        posixTest
         posixMain { dependsOn commonMain }
 
         if (!project.ext.ideaActive) {
             configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main, linuxX64Main, mingwX64Main]) {
                 dependsOn posixMain
             }
+
             configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, linuxX64Test, mingwX64Test]) {
                 dependsOn posixTest
             }
         }
     }
 }
+
 
 project.ext.set("hasNative", true)

@@ -1,6 +1,6 @@
+
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 
 apply from: project.rootProject.file('gradle/pom.gradle')
 
@@ -17,7 +17,6 @@ task stubDokka(type: Jar) {
 
 def selectArtifactId(project, type, defaultName) {
     def name = project.name
-    def OBSOLETE = "$name-$type-obsolete"
     def isCommon = project.ext.has("commonStructure")
     def commonIsRoot = project.ext.has("commonStructure") && project.ext.commonStructure
     def hasNative = project.ext.has("hasNative") && project.ext.hasNative
@@ -28,7 +27,7 @@ def selectArtifactId(project, type, defaultName) {
             return commonIsRoot ? "$name" : "$name-common"
             break
         case 'kotlinMultiplatform':
-            if (!hasNative) return OBSOLETE
+            if (!hasNative) return "$name-kotlinMultiplatform"
             return isCommon ? "$name-native" : "$name"
             break
         case 'jvm':
@@ -40,13 +39,36 @@ def selectArtifactId(project, type, defaultName) {
     }
 }
 
+def isAvailableForPublication(publication) {
+    def name = publication.name
+    def result = false
+    result = result | (name in ['jvm', 'js', 'metadata', 'kotlinMultiplatform'])
+    result = result | (project.ext.isLinuxHost && name == 'linuxX64')
+    result = result | (project.ext.isWinHost && name == 'mingwX64')
+    result = result | (project.ext.isMacosHost && name in ['iosX64, iosArm32, iosArm64', 'macosX64'])
+
+    return result
+}
+
+tasks.withType(AbstractPublishToMaven).all {
+    onlyIf { isAvailableForPublication(publication) }
+}
+
 publishing {
     repositories {
         maven {
             if (publishLocal) {
                 url globalM2
             } else {
-                url 'https://dl.bintray.com/kotlin/ktor'
+                def user = 'kotlin'
+                def repo = 'ktor'
+                def name = 'ktor'
+                url = "https://api.bintray.com/maven/$user/$repo/$name/;publish=0"
+                credentials {
+                    username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+                    password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+                }
+                
             }
         }
         maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
@@ -57,45 +79,13 @@ publishing {
         def type = it.name
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
+
         if (id.endsWith('native')) {
             it.artifact stubJavadoc
             it.artifact stubDokka
             it.artifact emptyJar
         }
-
-        pom.withXml { pom ->
-            def dependenciesNode = asNode().getAt("dependencies")[0]
-            if (dependenciesNode != null) {
-                dependenciesNode.dependency.each {
-                    it.artifactId.each { node ->
-                        def artifactId = node.text()
-                        if (!artifactId.startsWith("ktor") || !artifactId.endsWith("native")) return
-
-                        switch (type) {
-                            case 'metadata':
-                                if (artifactId.startsWith("ktor-http-cio")) {
-                                    node.setValue("${artifactId[0..-8]}-common")
-                                } else {
-                                    node.setValue("${artifactId[0..-8]}")
-                                }
-                                break
-                            case 'jvm':
-                                if (artifactId.startsWith("ktor-http-cio")) {
-                                    node.setValue("${artifactId[0..-8]}")
-                                } else {
-                                    node.setValue("${artifactId[0..-8]}-jvm")
-                                }
-                                break
-                            case 'js':
-                                node.setValue("${artifactId[0..-8]}-$type")
-                                break
-                        }
-                    }
-                }
-            }
-        }
     }
-
     kotlin.targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
 
@@ -109,47 +99,12 @@ publishing {
             }
 
             if (target.platformType.name != 'native') {
-                publication.gradleModuleMetadataFile = null
-                tasks.matching { it.name == "generateMetadataFileFor${name.capitalize()}Publication" }.all {
-                    onlyIf { false }
-                }
+                publication.moduleDescriptorGenerator = null
             } else {
                 publication.artifact emptyJar
             }
         }
     }
-
-    publications.removeIf { it.artifactId.endsWith("-obsolete") }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-    publish = true
-    override = true
-
-    pkg {
-        userOrg = 'kotlin'
-        repo = 'ktor'
-        name = 'ktor'
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/ktorio/ktor'
-
-        version {
-            name = project.version
-            released = new Date()
-            vcsTag = project.version
-        }
-    }
-}
-
-// TODO :kludge this is required for K/N publishing
-bintrayUpload.dependsOn publishToMavenLocal
-
-// This is for easier debugging of bintray uploading problems
-bintrayUpload.doFirst {
-    publications = project.publishing.publications.findAll { !it.name.contains('-test') }.collect {
-        println("Uploading artifact '$it.groupId:$it.artifactId:$it.version' from publication '$it.name'")
-        it
-    }
-}
+publish.dependsOn publishToMavenLocal

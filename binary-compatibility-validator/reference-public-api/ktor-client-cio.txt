@@ -6,10 +6,14 @@ public final class io/ktor/client/engine/cio/CIO : io/ktor/client/engine/HttpCli
 public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final fun getEndpoint ()Lio/ktor/client/engine/cio/EndpointConfig;
-	public final fun getHttps ()Lio/ktor/client/engine/cio/HttpsConfig;
+	public final fun getHttps ()Lio/ktor/network/tls/TLSConfigBuilder;
 	public final fun getMaxConnectionsCount ()I
-	public final fun https (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/cio/HttpsConfig;
+	public final fun https (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/tls/TLSConfigBuilder;
 	public final fun setMaxConnectionsCount (I)V
+}
+
+public final class io/ktor/client/engine/cio/CIOEngineConfigKt {
+	public static final fun endpoint (Lio/ktor/client/engine/cio/CIOEngineConfig;Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/cio/EndpointConfig;
 }
 
 public final class io/ktor/client/engine/cio/CIOEngineContainer : io/ktor/client/HttpClientEngineContainer {
@@ -24,7 +28,7 @@ public final class io/ktor/client/engine/cio/ClientClosedException : java/lang/I
 	public fun getCause ()Ljava/lang/Throwable;
 }
 
-public final class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
+public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
 	public fun <init> ()V
 }
 
@@ -42,13 +46,18 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 	public final fun setPipelineMaxSize (I)V
 }
 
-public final class io/ktor/client/engine/cio/HttpsConfig {
+public final class io/ktor/client/engine/cio/FailToConnectException : io/ktor/client/engine/cio/ConnectException {
 	public fun <init> ()V
-	public final fun getCipherSuites ()Ljava/util/List;
-	public final fun getRandomAlgorithm ()Ljava/lang/String;
-	public final fun getTrustManager ()Ljavax/net/ssl/X509TrustManager;
-	public final fun setCipherSuites (Ljava/util/List;)V
-	public final fun setRandomAlgorithm (Ljava/lang/String;)V
-	public final fun setTrustManager (Ljavax/net/ssl/X509TrustManager;)V
+}
+
+public final class io/ktor/client/features/websocket/BuildersCioKt {
+	public static final fun webSocketRaw (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun webSocketRaw$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun webSocketRawSession (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun webSocketRawSession$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun wsRaw (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun wsRaw$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun wssRaw (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun wssRaw$default (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

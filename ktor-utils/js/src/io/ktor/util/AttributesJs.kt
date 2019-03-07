@@ -1,5 +1,8 @@
 package io.ktor.util
 
+/**
+ * Create ES specific [Attributes] instance.
+ */
 @JsName("AttributesJsFn")
 actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
 

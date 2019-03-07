@@ -40,15 +40,17 @@ class ResponseObserver(
             scope.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
                 val (loggingContent, responseContent) = response.content.split(scope)
 
+                val newClientCall = context.wrapWithContent(responseContent)
+                val sideCall = newClientCall.wrapWithContent(loggingContent)
+
                 launch {
-                    val callForLog = context.wrapWithContent(loggingContent, shouldCloseOrigin = false)
-                    feature.responseHandler(callForLog.response)
+                    feature.responseHandler(sideCall.response)
                 }
 
-                val newCall = context.wrapWithContent(responseContent, shouldCloseOrigin = true)
-                context.response = newCall.response
-                context.request = newCall.request
+                context.response = newClientCall.response
+                context.request = newClientCall.request
 
+                response.close()
                 proceedWith(context.response)
             }
         }

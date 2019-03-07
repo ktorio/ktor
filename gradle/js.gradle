@@ -38,19 +38,21 @@ compileTestKotlinJs {
 
 task assembleWeb(type: Sync, group: 'build', dependsOn: compileTestKotlinJs) {
     from compileKotlinJs.destinationDir
-    into "$node.nodeModulesDir/node_modules"
+    into "$project.buildDir/node_modules"
 
-    def configuration = configurations.jsTestRuntimeClasspath
-    from(files {
-        configuration.collect { File file ->
-            file.name.endsWith(".jar") ?
-                zipTree(file.absolutePath).matching {
-                    include '*.js'
-                    include '*.js.map'
-                } :
-                files()
-        }
-    }.builtBy(configuration))
+    afterEvaluate {
+        def configuration = configurations.jsTestRuntimeClasspath
+        from(files {
+            configuration.collect { File file ->
+                file.name.endsWith(".jar") ?
+                    zipTree(file.absolutePath).matching {
+                        include '*.js'
+                        include '*.js.map'
+                    } :
+                    files()
+            }
+        }.builtBy(configuration))
+    }
 }
 
 def mochaChromeTestPage = file("$buildDir/test-page.html")
@@ -61,8 +63,6 @@ task prepareMocha(dependsOn: installDependenciesMocha) {
 
 prepareMocha.doLast {
     def libraryPath = "$buildDir/node_modules"
-
-    def reporter = (project.hasProperty("teamcity")) ? "mocha.setup({reporter: 'teamcity'});" : ""
     mochaChromeTestPage.text = """<!DOCTYPE html>
         <html>
         <head>
@@ -87,9 +87,12 @@ prepareMocha.doLast {
         <script src="$libraryPath/ktor-http.js"></script>
         <script src="$libraryPath/ktor-http-cio.js"></script>
         <script src="$libraryPath/ktor-client-core.js"></script>
-        <script src="$libraryPath/ktor-client.js"></script>
         <script src="$libraryPath/ktor-client-json.js"></script>
         <script src="$libraryPath/ktor-client-auth-basic.js"></script>
+        <script src="$libraryPath/ktor-client-tests-dispatcher.js"></script>
+        <script src="$libraryPath/ktor-client-logging.js"></script>
+        <script src="$libraryPath/ktor-client-tests.js"></script>
+        <script src="$libraryPath/ktor-client-websocket.js"></script>
         <script src="$compileTestKotlinJs.outputFile"></script>
         <script>mocha.run();</script>
         </body>
@@ -100,15 +103,30 @@ prepareMocha.doLast {
 task testMochaChrome(type: NodeTask, dependsOn: prepareMocha) {
     script = file("$node.nodeModulesDir/node_modules/mocha-headless-chrome/bin/start")
     description = "Run js tests in mocha-headless-chrome"
-    args = [compileTestKotlinJs.outputFile, '--file', mochaChromeTestPage]
-    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter', '--no-sandbox']
+    args = [
+        compileTestKotlinJs.outputFile,
+        '--file', mochaChromeTestPage,
+        '-a', 'allow-failed-policy-fetch-for-test',
+        '-a', 'allow-external-pages',
+        '-a', 'no-sandbox',
+        '-a', 'disable-web-security'
+    ]
+
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
 task testMochaNode(type: NodeTask, dependsOn: prepareMocha) {
     script = file("$node.nodeModulesDir/node_modules/mocha/bin/mocha")
     description = "Run js tests in mocha-nodejs"
-    args = [compileTestKotlinJs.outputFile,  '--require', 'source-map-support/register']
-    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter', '--no-sandbox']
+    args = [
+        compileTestKotlinJs.outputFile,
+        '--require', 'source-map-support/register',
+        '-a', 'allow-failed-policy-fetch-for-test',
+        '-a', 'allow-external-pages',
+        '-a', 'no-sandbox',
+        '-a', 'disable-web-security'
+    ]
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
 }
 
 npmInstall.dependsOn assembleWeb

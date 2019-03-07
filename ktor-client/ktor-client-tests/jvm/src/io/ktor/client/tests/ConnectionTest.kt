@@ -14,12 +14,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val testContent = buildString {
         append("x".repeat(100))
     }
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, port = serverPort) {
         routing {
             head("/emptyHead") {
                 call.respond(object : OutgoingContent.NoContent() {

@@ -7,18 +7,21 @@ public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine
 	public fun getConfig ()Lio/ktor/client/engine/mock/MockEngineConfig;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getRequestHistory ()Ljava/util/List;
+	public final fun getResponseHistory ()Ljava/util/List;
 }
 
 public final class io/ktor/client/engine/mock/MockEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
-	public final fun invoke (Lkotlin/jvm/functions/Function2;)Lio/ktor/client/engine/mock/MockEngine;
+	public final fun invoke (Lkotlin/jvm/functions/Function3;)Lio/ktor/client/engine/mock/MockEngine;
 }
 
 public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
-	public field check Lkotlin/jvm/functions/Function2;
 	public fun <init> ()V
-	public final fun getCheck ()Lkotlin/jvm/functions/Function2;
-	public final fun setCheck (Lkotlin/jvm/functions/Function2;)V
+	public final fun addHandler (Lkotlin/jvm/functions/Function3;)V
+	public final fun getRequestHandlers ()Ljava/util/List;
+	public final fun getReuseHandlers ()Z
+	public final fun setReuseHandlers (Z)V
 }
 
 public final class io/ktor/client/engine/mock/MockHttpRequest : io/ktor/client/request/HttpRequest {

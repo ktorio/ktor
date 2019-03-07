@@ -20,6 +20,14 @@ fun String.encodeBase64(): String = buildPacket {
 }.encodeBase64()
 
 /**
+ * Encode [ByteArray] in base64 format
+ */
+@InternalAPI
+fun ByteArray.encodeBase64(): String = buildPacket {
+    writeFully(this@encodeBase64)
+}.encodeBase64()
+
+/**
  * Encode [ByteReadPacket] in base64 format
  */
 @InternalAPI

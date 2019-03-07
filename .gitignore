@@ -1,5 +1,6 @@
 build
 .gradle
+.gradletasknamecache
 .idea/*
 !.idea/runConfigurations
 !.idea/runConfigurations/*

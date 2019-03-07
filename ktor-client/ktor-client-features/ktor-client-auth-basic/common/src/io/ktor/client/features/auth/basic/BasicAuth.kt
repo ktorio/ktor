@@ -11,7 +11,10 @@ import io.ktor.util.*
  * as specified in RFC-2617 using [username] and [password].
  *
  * https://www.ietf.org/rfc/rfc2617.txt
+ * @property username: user name.
+ * @property password: user password.
  */
+@Suppress("KDocMissingDocumentation")
 class BasicAuth(val username: String, val password: String) {
 
     class Configuration {
@@ -41,6 +44,9 @@ class BasicAuth(val username: String, val password: String) {
             }
         }
 
+        /**
+         * Create basic auth header value from [username] and [password].
+         */
         fun constructBasicAuthValue(username: String, password: String): String {
             val authString = "$username:$password"
             val authBuf = authString.encodeBase64()

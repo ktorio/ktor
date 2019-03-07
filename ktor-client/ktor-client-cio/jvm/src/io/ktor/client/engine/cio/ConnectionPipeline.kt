@@ -70,21 +70,37 @@ internal class ConnectionPipeline(
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
                     val callContext = task.context
+                    val callJob = callContext[Job]!!
+                    callJob.invokeOnCompletion {
+                        rawResponse.headers.release()
+                    }
 
                     val method = task.request.method
                     val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
+                    val headers = CIOHeaders(rawResponse.headers)
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
                     val responseChannel = if (hasBody) ByteChannel() else null
 
+                    var skipTask: Job? = null
+                    val body: ByteReadChannel = if (responseChannel != null) {
+                        val proxyChannel = ByteChannel()
+                        skipTask = skipCancels(responseChannel, proxyChannel)
+                        proxyChannel
+                    } else ByteReadChannel.Empty
+
+                    callJob.invokeOnCompletion {
+                        body.cancel()
+                    }
+
                     val response = CIOHttpResponse(
-                        task.request, requestTime,
-                        responseChannel?.let { skipCancels(it) } ?: ByteReadChannel.Empty,
+                        task.request, headers, requestTime,
+                        body,
                         rawResponse,
                         coroutineContext = callContext
                     )
@@ -92,25 +108,22 @@ internal class ConnectionPipeline(
                     task.response.complete(response)
 
                     responseChannel?.use {
-                        try {
-                            parseHttpBody(
-                                contentLength,
-                                transferEncoding,
-                                connectionType,
-                                networkInput,
-                                this
-                            )
-                        } finally {
-                            callContext[Job]?.invokeOnCompletion {
-                                rawResponse.release()
-                            }
-                        }
+                        parseHttpBody(
+                            contentLength,
+                            transferEncoding,
+                            connectionType,
+                            networkInput,
+                            this
+                        )
                     }
+
+                    skipTask?.join()
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                 }
 
                 task.context[Job]?.join()
+
                 if (shouldClose) break
             }
         } finally {
@@ -126,31 +139,30 @@ internal class ConnectionPipeline(
 }
 
 private fun CoroutineScope.skipCancels(
-    source: ByteReadChannel
-): ByteReadChannel = ByteChannel().also { output ->
-    launch {
-        try {
-            HttpClientDefaultPool.useInstance { buffer ->
-                while (true) {
-                    buffer.clear()
+    input: ByteReadChannel,
+    output: ByteWriteChannel
+): Job = launch {
+    try {
+        HttpClientDefaultPool.useInstance { buffer ->
+            while (true) {
+                buffer.clear()
 
-                    val count = source.readAvailable(buffer)
-                    if (count < 0) break
+                val count = input.readAvailable(buffer)
+                if (count < 0) break
 
-                    buffer.flip()
-                    try {
-                        output.writeFully(buffer)
-                    } catch (_: Throwable) {
-                        // Output channel has been canceled, discard remaining
-                        source.discard()
-                    }
+                buffer.flip()
+                try {
+                    output.writeFully(buffer)
+                } catch (_: Throwable) {
+                    // Output channel has been canceled, discard remaining
+                    input.discard()
                 }
             }
-        } catch (cause: Throwable) {
-            output.close(cause)
-            throw cause
-        } finally {
-            output.close()
         }
+    } catch (cause: Throwable) {
+        output.close(cause)
+        throw cause
+    } finally {
+        output.close()
     }
 }

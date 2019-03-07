@@ -13,6 +13,7 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {

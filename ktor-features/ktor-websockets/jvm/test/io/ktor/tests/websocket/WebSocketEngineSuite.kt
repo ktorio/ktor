@@ -22,10 +22,13 @@ import java.nio.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
-abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @get:Rule
     val errors = ErrorCollector()
 
@@ -46,6 +49,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.add(frame.readText())
                         }
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
@@ -55,7 +59,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -64,7 +69,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -102,6 +108,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 try {
                     incoming.consumeEach {
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
@@ -111,7 +118,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -120,7 +128,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -175,6 +184,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                             collected.add(frame.readText())
                         }
                     }
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                     collected.put(t.toString())
@@ -185,7 +195,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -194,7 +205,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -233,7 +245,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     @Test
     fun testProduceMessages() {
         val count = 125
-        val template = (1..count).map { (it and 0x0f).toString(16) }.joinToString("")
+        val template = (1..count).joinToString("") { (it and 0x0f).toString(16) }
 
         createAndStartServer {
             webSocket("/") {
@@ -246,7 +258,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -255,7 +268,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -313,7 +327,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -322,7 +337,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -385,6 +401,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     }
 
                     assertEquals(expectedCount, counter - 1, "Not all frames received")
+                } catch (cancelled: CancellationException) {
                 } catch (t: Throwable) {
                     errors.addError(t)
                 }
@@ -394,7 +411,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -403,7 +421,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -457,7 +476,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         socket {
             // send upgrade request
             outputStream.apply {
-                write("""
+                write(
+                    """
                 GET / HTTP/1.1
                 Host: localhost:$port
                 Upgrade: websocket
@@ -466,7 +486,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 Origin: http://localhost:$port
                 Sec-WebSocket-Protocol: chat
                 Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                """.trimIndent().replace("\n", "\r\n").toByteArray()
+                )
                 write("\r\n\r\n".toByteArray())
                 flush()
             }
@@ -498,8 +519,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code,
-                                        replyCloseFrame: Boolean = true) {
+    private fun Socket.assertCloseFrame(
+        closeCode: Short = CloseReason.Codes.NORMAL.code,
+        replyCloseFrame: Boolean = true
+    ) {
         loop@
         while (true) {
             val frame = getInputStream().readFrame()
@@ -524,9 +547,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         val opcodeAndFin = readOrFail()
         val lenAndMask = readOrFail()
 
-        val frameType = FrameType[opcodeAndFin and 0x0f] ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
-        val fin = (opcodeAndFin and 0x80) != 0
+        val frameType = FrameType[opcodeAndFin and 0x0f]
+            ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
 
+        val fin = (opcodeAndFin and 0x80) != 0
         val len1 = lenAndMask and 0x7f
         val mask = (lenAndMask and 0x80) != 0
 
@@ -595,13 +619,13 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
     private fun InputStream.readShortBE() = (readOrFail() shl 8) or readOrFail()
     private fun InputStream.readLongBE() = (readOrFail().toLong() shl 56) or
-            (readOrFail().toLong() shl 48) or
-            (readOrFail().toLong() shl 40) or
-            (readOrFail().toLong() shl 32) or
-            (readOrFail().toLong() shl 24) or
-            (readOrFail().toLong() shl 16) or
-            (readOrFail().toLong() shl 8) or
-            readOrFail().toLong()
+        (readOrFail().toLong() shl 48) or
+        (readOrFail().toLong() shl 40) or
+        (readOrFail().toLong() shl 32) or
+        (readOrFail().toLong() shl 24) or
+        (readOrFail().toLong() shl 16) or
+        (readOrFail().toLong() shl 8) or
+        readOrFail().toLong()
 
     private fun InputStream.readFully(size: Int): ByteArray {
         val array = ByteArray(size)

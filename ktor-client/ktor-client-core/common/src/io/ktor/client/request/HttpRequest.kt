@@ -32,7 +32,7 @@ interface HttpRequest : HttpMessage, CoroutineScope {
     val url: Url
 
     /**
-     * Typed [Attributes] associated to this request serving as a lightweight container.
+     * Typed [Attributes] associated to this call serving as a lightweight container.
      */
     val attributes: Attributes
 
@@ -40,17 +40,17 @@ interface HttpRequest : HttpMessage, CoroutineScope {
      * A [Job] representing the process of this request.
      */
     @Deprecated(
-        "executionContext is deprecated. Use coroutineContext instead",
+        "[executionContext] is deprecated. Use coroutineContext instead",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("coroutineContext")
     )
-    val executionContext: Job get() = TODO()
+    val executionContext: Job
+        get() = error("[executionContext] is deprecated. Use coroutineContext instead")
 
     /**
      * An [OutgoingContent] representing the request body
      */
     val content: OutgoingContent
-
 }
 
 /**

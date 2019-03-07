@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 
@@ -46,13 +47,16 @@ class JsonFeature(val serializer: JsonSerializer) {
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
-
                 context.accept(ContentType.Application.Json)
-                if (context.contentType()?.match(ContentType.Application.Json) != true) {
+
+                if (context.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+                context.headers.remove(HttpHeaders.ContentType)
+
+                if (payload is EmptyContent) {
+                    proceedWith(feature.serializer.write(Unit))
                     return@intercept
                 }
 
-                context.headers.remove(HttpHeaders.ContentType)
                 proceedWith(feature.serializer.write(payload))
             }
 

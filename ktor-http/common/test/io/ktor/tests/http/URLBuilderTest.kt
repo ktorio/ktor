@@ -84,4 +84,51 @@ internal class URLBuilderTest {
         url.takeFrom("/1")
         assertEquals("https://httpstat.us/1", url.buildString())
     }
+
+    @Test
+    fun rewritePathDirectoryWithRelative() {
+        val url = URLBuilder("https://example.org/first/directory/")
+
+        url.takeFrom("relative")
+        assertEquals("https://example.org/first/directory/relative", url.buildString())
+    }
+
+    @Test
+    fun rewritePathFileWithRelative() {
+        val url = URLBuilder("https://example.org/first/file.html")
+
+        url.takeFrom("relative")
+        assertEquals("https://example.org/first/relative", url.buildString())
+    }
+
+    @Test
+    fun rewritePathFileWithDot() {
+        val url = URLBuilder("https://example.org/first/file.html")
+
+        url.takeFrom("./")
+        assertEquals("https://example.org/first/./", url.buildString())
+    }
+
+    @Test
+    fun queryParamsWithNoValue() {
+        val url = URLBuilder("https://httpstat.us/?novalue")
+        assertEquals("https://httpstat.us/?novalue", url.buildString())
+    }
+
+    @Test
+    fun queryParamsWithEmptyValue() {
+        val url = URLBuilder("https://httpstat.us/?empty=")
+        assertEquals("https://httpstat.us/?empty=", url.buildString())
+    }
+
+    @Test
+    fun emptyProtocolWithPort() {
+        val url = URLBuilder("//whatever:8080/abc")
+
+        assertEquals(URLProtocol.HTTP, url.protocol)
+        assertEquals("whatever", url.host)
+        assertEquals(8080, url.port)
+        assertEquals("/abc", url.encodedPath)
+    }
+
 }

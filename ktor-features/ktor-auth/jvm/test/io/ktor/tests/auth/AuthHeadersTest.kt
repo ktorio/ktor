@@ -20,4 +20,44 @@ class AuthHeadersTest {
             assertEquals(header.encoding, header.withParameter("a", "c").encoding)
         }
     }
+
+    @Test
+    fun testReplaceParameter() {
+        HttpAuthHeader.Parameterized("testScheme", linkedMapOf("a" to "2")).let { headerWithNoSuchEntires ->
+            headerWithNoSuchEntires.withReplacedParameter("X", "1").let { result ->
+                assertNotSame(headerWithNoSuchEntires, result)
+                assertEquals(2, result.parameters.size)
+                assertEquals("1", result.parameters.single { it.name == "X" }.value)
+                assertEquals("2", result.parameters.single { it.name == "a" }.value)
+            }
+        }
+        HttpAuthHeader.Parameterized("testScheme", linkedMapOf("a" to "2", "X" to "0"))
+            .let { headerWithSingleOccurrence ->
+                headerWithSingleOccurrence.withReplacedParameter("X", "1").let { result ->
+                    assertNotSame(headerWithSingleOccurrence, result)
+                    assertEquals(2, result.parameters.size)
+                    assertEquals("1", result.parameters.single { it.name == "X" }.value)
+                    assertEquals("2", result.parameters.single { it.name == "a" }.value)
+                }
+            }
+        HttpAuthHeader.Parameterized("testScheme", linkedMapOf("a" to "2", "X" to "0", "X" to "3"))
+            .let { headerWithMultipleOccurrences ->
+                headerWithMultipleOccurrences.withReplacedParameter("X", "1").let { result ->
+                    assertNotSame(headerWithMultipleOccurrences, result)
+                    assertEquals(2, result.parameters.size)
+                    assertEquals("1", result.parameters.single { it.name == "X" }.value)
+                    assertEquals("2", result.parameters.single { it.name == "a" }.value)
+                }
+            }
+        HttpAuthHeader.Parameterized("testScheme", linkedMapOf("a" to "2", "X" to "0", "m" to "2", "X" to "7"))
+            .let { inTheMiddleReplace ->
+                inTheMiddleReplace.withReplacedParameter("X", "1").let { result ->
+                    assertNotSame(inTheMiddleReplace, result)
+                    assertEquals(3, result.parameters.size)
+                    assertEquals("1", result.parameters.single { it.name == "X" }.value)
+                    assertEquals("2", result.parameters.single { it.name == "a" }.value)
+                    assertEquals(1, result.parameters.indexOfLast { it.name == "X" })
+                }
+            }
+    }
 }

@@ -60,15 +60,17 @@ internal fun findSpaceOrEnd(text: CharSequence, range: MutableRange): Int {
     return idx
 }
 
-internal fun findColonOrSpace(text: CharSequence, range: MutableRange): Int {
-    var idx = range.start
+internal fun findLetterBeforeColon(text: CharSequence, range: MutableRange): Int {
+    var index = range.start
+    var lastCharIndex = index
     val end = range.end
 
-    while (idx < end) {
-        val ch = text[idx]
-        if (ch == ' ' || ch == ':') return idx
-        idx++
+    while (index < end) {
+        val ch = text[index]
+        if (ch == ':') return lastCharIndex
+        if (ch != ' ') lastCharIndex = index
+        index++
     }
 
-    return idx
+    return -1
 }

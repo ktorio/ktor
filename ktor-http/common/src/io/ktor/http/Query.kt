@@ -44,7 +44,7 @@ private fun ParametersBuilder.appendParam(query: String, nameIndex: Int, equalIn
 
         if (spaceEndIndex > spaceNameIndex) {
             val name = query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
-            append(name, "")
+            appendAll(name, emptyList())
         }
     } else {
         val spaceNameIndex = trimStart(nameIndex, equalIndex, query)

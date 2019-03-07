@@ -73,7 +73,9 @@
     - Click "Upload new build"
 1. Open ktor-init-tools local repo
     - Edit `gradle.properties` to the next snapshot version
+    - Run `./synchronize_versions.kt` (optional)
     - Edit `ktor-intellij-plugin/resources/META-INF/plugin.xml`, update version attribute as well
+    - Edit `ktor-generator-website/resources/index.html` if `./synchronize_versions.kt` wasn't applied
     - Commit & push
 1. Open your local `ktor` repo
     - Edit `gradle.properties` to the next snapshot version (with `-SNAPSHOT` suffix)

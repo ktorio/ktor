@@ -3,7 +3,7 @@ package io.ktor.util
 import java.util.concurrent.*
 
 /**
- * Create JVM specific attributes instance
+ * Create JVM specific attributes instance.
  */
 actual fun Attributes(concurrent: Boolean): Attributes =
     if (concurrent) ConcurrentSafeAttributes() else HashMapAttributes()

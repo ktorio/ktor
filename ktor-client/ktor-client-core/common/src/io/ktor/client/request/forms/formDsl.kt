@@ -40,26 +40,26 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 }
 
 /**
- * Build multipart form using [block] function
+ * Build multipart form using [block] function.
  */
 fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
- * Form builder type used in [formData] builder function
+ * Form builder type used in [formData] builder function.
  */
 class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
-     * Append a pair [key]:[value] with optional [headers]
+     * Append a pair [key]:[value] with optional [headers].
      */
     fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
-     * Append a form [part]
+     * Append a form [part].
      */
     fun <T : Any> append(part: FormPart<T>) {
         parts += part
@@ -69,10 +69,29 @@ class FormBuilder internal constructor() {
 }
 
 /**
- * Append a form part with the specified [key] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
-inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bodyBuilder: BytePacketBuilder.() -> Unit) {
+fun FormBuilder.append(
+    key: String,
+    filename: String,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
+    contract {
+        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
+    }
+    append(key, filename, null, bodyBuilder)
+}
+
+/**
+ * Append a form part with the specified [key] using [bodyBuilder] for it's body.
+ */
+@UseExperimental(ExperimentalContracts::class)
+inline fun FormBuilder.append(
+    key: String,
+    headers: Headers = Headers.Empty,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
@@ -80,15 +99,23 @@ inline fun FormBuilder.append(key: String, headers: Headers = Headers.Empty, bod
 }
 
 /**
- * Append a form part with the specified [key] and [filename] using [bodyBuilder] for it's body
+ * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
-fun FormBuilder.append(key: String, filename: String, bodyBuilder: BytePacketBuilder.() -> Unit) {
+fun FormBuilder.append(
+    key: String,
+    filename: String,
+    contentType: ContentType?,
+    bodyBuilder: BytePacketBuilder.() -> Unit
+) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
-    val filenameHeader: Headers = headersOf(
-        HttpHeaders.ContentDisposition, "filename=$filename"
-    )
-    append(key, filenameHeader, bodyBuilder)
+
+    val headersBuilder = HeadersBuilder()
+    headersBuilder[HttpHeaders.ContentDisposition] = "filename=$filename"
+    contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
+    val headers = headersBuilder.build()
+
+    append(key, headers, bodyBuilder)
 }

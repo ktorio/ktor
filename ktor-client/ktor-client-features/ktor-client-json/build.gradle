@@ -8,11 +8,20 @@ kotlin {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
             api project(':ktor-client:ktor-client-core')
         }
+        commonTest.dependencies {
+            api project(':ktor-client:ktor-client-tests')
+        }
         jvmMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
         }
         jvmTest.dependencies {
             api project(':ktor-client:ktor-client-tests')
+
+            runtimeOnly project(':ktor-client:ktor-client-apache')
+            runtimeOnly project(':ktor-client:ktor-client-cio')
+            runtimeOnly project(':ktor-client:ktor-client-android')
+            runtimeOnly project(':ktor-client:ktor-client-okhttp')
+            runtimeOnly project(':ktor-client:ktor-client-jetty')
         }
         jsMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
@@ -22,6 +31,21 @@ kotlin {
         }
         posixMain.dependencies {
             api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
+        }
+
+
+        if (!project.ext.ideaActive) {
+            configure([linuxX64Test, mingwX64Test, macosX64Test]) {
+                dependencies {
+                    api project(':ktor-client:ktor-client-curl')
+                }
+            }
+
+            configure([iosX64Test, iosArm32Test, iosArm64Test, macosX64Test]) {
+                dependencies {
+                    api project(':ktor-client:ktor-client-ios')
+                }
+            }
         }
     }
 }

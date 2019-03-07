@@ -6,8 +6,14 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 
 
+@Suppress("KDocMissingDocumentation")
 class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")
+
+@Suppress("KDocMissingDocumentation")
+class UnsupportedUpgradeProtocolException(
+    url: Url
+) : IllegalArgumentException("Unsupported upgrade protocol exception: $url")
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient] and

@@ -1,14 +1,15 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal data class RequestTask(
-    val request: DefaultHttpRequest,
-    val response: CompletableDeferred<CIOHttpResponse>,
+    val request: HttpRequest,
+    val response: CompletableDeferred<HttpResponse>,
     val context: CoroutineContext
 )
 

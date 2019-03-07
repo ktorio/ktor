@@ -2,6 +2,7 @@ package io.ktor.sessions
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
 
@@ -15,7 +16,7 @@ fun directorySessionStorage(rootDir: File, cached: Boolean = true): SessionStora
     false -> DirectoryStorage(rootDir)
 }
 
-internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
+internal class DirectoryStorage(private val dir: File) : SessionStorage, Closeable {
     init {
         dir.mkdirsOrFail()
     }
@@ -28,7 +29,9 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
         val file = fileOf(id)
 
         file.parentFile?.mkdirsOrFail()
-        provider(file.writeChannel())
+        coroutineScope {
+            provider(file.writeChannel(coroutineContext = coroutineContext))
+        }
     }
 
     override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
@@ -55,7 +58,7 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     }
 
     private fun fileOf(id: String) = File(dir, split(id).joinToString(File.separator, postfix = ".dat"))
-    private fun split(id: String) = id.window(2)
+    private fun split(id: String) = id.windowedSequence(size = 2, step = 2, partialWindows = true)
 
     private fun requireId(id: String) {
         if (id.isEmpty()) {
@@ -83,38 +86,5 @@ private tailrec fun File.deleteParentsWhileEmpty(mostTop: File) {
         }
 
         parentFile.deleteParentsWhileEmpty(mostTop)
-    }
-}
-
-private fun <T> Array<T>?.isNullOrEmpty() = this == null || this.isEmpty()
-
-private fun String.window(size: Int, step: Int = size, dropTrailing: Boolean = false): Sequence<String> =
-        if (isEmpty() || (size > length && dropTrailing)) emptySequence()
-        else object : Sequence<String> {
-            override fun iterator(): Iterator<String> = StringWindowIterator(this@window, size, step, dropTrailing)
-        }
-
-private class StringWindowIterator(val string: String, val size: Int, val step: Int, val dropTrailing: Boolean) : AbstractIterator<String>() {
-    var currentIndex = 0
-
-    init {
-        require(step > 0)
-        require(size > 0)
-    }
-
-    override fun computeNext() {
-        if (currentIndex >= string.length) {
-            done()
-            return
-        }
-
-        val endExclusive = currentIndex + size
-        if (endExclusive > string.length && dropTrailing) {
-            done()
-            return
-        }
-
-        setNext(string.substring(currentIndex, Math.min(endExclusive, string.length)))
-        currentIndex = endExclusive
     }
 }

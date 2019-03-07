@@ -10,19 +10,19 @@ import kotlin.test.*
 class CookiesTest {
 
     @Test
-    fun compatibilityTest() = clientTest(MockEngine {
-        assertEquals("*/*", headers[HttpHeaders.Accept])
-        val rawCookies = headers[HttpHeaders.Cookie]!!
+    fun compatibilityTest() = clientTest(MockEngine { request ->
+        assertEquals("*/*", request.headers[HttpHeaders.Accept])
+        val rawCookies = request.headers[HttpHeaders.Cookie]!!
         assertFalse(rawCookies.contains("x-enc"))
 
-        assertEquals(1, headers.getAll(HttpHeaders.Cookie)?.size!!)
+        assertEquals(1, request.headers.getAll(HttpHeaders.Cookie)?.size!!)
         val cookies = parseClientCookiesHeader(rawCookies)
 
         assertEquals(2, cookies.size)
         assertEquals("1,2,3,4".encodeURLParameter(), cookies["first"])
         assertEquals("abc", cookies["second"])
 
-        responseOk()
+        request.responseOk()
     }) {
 
         config {

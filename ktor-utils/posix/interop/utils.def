@@ -1,5 +1,10 @@
 package = utils
 compilerOpts.mingw_x64 = -DMINGW
+compilerOpts.ios_x64 = -DIOS
+compilerOpts.ios_arm64 = -DIOS
+compilerOpts.ios_arm32 = -DIOS
+compilerOpts.macos_x64 = -DMACOS
+compilerOpts.linux_x64 = -DLINUX
 ---
 #include <pthread.h>
 #include <time.h>

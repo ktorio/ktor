@@ -77,8 +77,14 @@ class StatusPages(config: Configuration) {
             if (handler != null) {
                 call.attributes.put(key, this@StatusPages)
                 context.handler(status)
-                context.finish() // TODO: Should we always finish? Handler could skip responding…
+                finishIfResponseSent(context)
             }
+        }
+    }
+
+    private fun finishIfResponseSent(context: PipelineContext<*, ApplicationCall>) {
+        if (context.call.response.status() != null) {
+            context.finish()
         }
     }
 
@@ -88,13 +94,12 @@ class StatusPages(config: Configuration) {
                 context.proceed()
             }
         } catch (exception: Throwable) {
-            if (context.call.response.status() == null) {
-                val handler = findHandlerByType(exception.javaClass)
-                if (handler != null) {
-                    context.handler(exception)
-                } else
-                    throw exception
-            }
+            val handler = findHandlerByType(exception.javaClass)
+            if (handler != null && context.call.response.status() == null) {
+                context.handler(exception)
+                finishIfResponseSent(context)
+            } else
+                throw exception
         }
     }
 
@@ -118,10 +123,16 @@ class StatusPages(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
             val configuration = Configuration().apply(configure)
             val feature = StatusPages(configuration)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
-                feature.interceptResponse(this, message)
+            if (feature.statuses.isNotEmpty()) {
+                pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
+                    feature.interceptResponse(this, message)
+                }
             }
-            pipeline.intercept(ApplicationCallPipeline.Monitoring) { feature.interceptCall(this) }
+            if (feature.exceptions.isNotEmpty()) {
+                pipeline.intercept(ApplicationCallPipeline.Monitoring) {
+                    feature.interceptCall(this)
+                }
+            }
             return feature
         }
     }
@@ -142,6 +153,5 @@ fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePatter
             call.response.status(status)
             call.respond(message)
         }
-        finish()
     }
 }

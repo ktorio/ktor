@@ -1,0 +1,43 @@
+package io.ktor.tests.http
+
+import io.ktor.http.*
+import io.ktor.util.*
+import kotlin.test.*
+
+class ParametersTest {
+    private val parameters = parametersOf(
+        "single" to listOf("a"),
+        "another" to listOf("2"),
+        "multiple" to listOf("3", "4")
+    )
+
+    @Test
+    fun testSingleValues() {
+        val single: String by parameters
+        val another: Int by parameters
+
+        assertEquals("a", single)
+        assertEquals(2, another)
+    }
+
+    @Test
+    fun testMultipleAsStrings() {
+        val multiple: List<String> by parameters
+
+        assertEquals(listOf("3", "4"), multiple)
+    }
+
+    @Test
+    fun testMultipleAsIntegers() {
+        val multiple: List<Int> by parameters
+
+        assertEquals(listOf(3, 4), multiple)
+    }
+
+    @Test
+    fun testMultipleAsLongIntegers() {
+        val multiple: List<Long> by parameters
+
+        assertEquals(listOf(3L, 4L), multiple)
+    }
+}

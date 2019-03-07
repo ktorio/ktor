@@ -1,6 +1,7 @@
 package io.ktor.client.features.logging
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.observer.*
 import io.ktor.client.request.*
@@ -37,19 +38,20 @@ class Logging(
 
     private suspend fun logRequest(request: HttpRequestBuilder) {
         if (level.info) {
-            logger.log("REQUEST: ${request.url.buildString()}")
+            logger.log("REQUEST: ${Url(request.url)}")
             logger.log("METHOD: ${request.method}")
         }
-        if (level.headers) logHeaders(request.headers.entries())
-        if (level.body) logRequestBody(request.body as OutgoingContent)
+        val content = request.body as OutgoingContent
+        if (level.headers) logHeaders(request.headers.entries(), content.headers)
+        if (level.body) logRequestBody(content)
     }
 
-    private suspend fun logResponse(response: HttpResponse) {
-        if (level == LogLevel.NONE) return
-
-        logger.log("RESPONSE: ${response.status}")
-        logger.log("METHOD: ${response.call.request.method}")
-        logger.log("FROM: ${response.call.request.url}")
+    private suspend fun logResponse(response: HttpResponse): Unit = response.use {
+        if (level.info) {
+            logger.log("RESPONSE: ${response.status}")
+            logger.log("METHOD: ${response.call.request.method}")
+            logger.log("FROM: ${response.call.request.url}")
+        }
 
         if (level.headers) logHeaders(response.headers.entries())
         if (level.body) {
@@ -59,11 +61,30 @@ class Logging(
         }
     }
 
-    private fun logHeaders(headersMap: Set<Map.Entry<String, List<String>>>) {
-        with(logger) {
-            log("HEADERS")
+    private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
+        if (!level.info) return
+        logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+    }
 
-            headersMap.forEach { (key, values) ->
+    private fun logResponseException(context: HttpClientCall, cause: Throwable) {
+        if (!level.info) return
+        logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
+    }
+
+    private fun logHeaders(
+        requestHeaders: Set<Map.Entry<String, List<String>>>,
+        contentHeaders: Headers? = null
+    ) {
+        with(logger) {
+            log("COMMON HEADERS")
+            requestHeaders.forEach { (key, values) ->
+                log("-> $key: ${values.joinToString("; ")}")
+            }
+
+            contentHeaders ?: return@with
+
+            log("CONTENT HEADERS")
+            contentHeaders.forEach { key, values ->
                 log("-> $key: ${values.joinToString("; ")}")
             }
         }
@@ -119,6 +140,23 @@ class Logging(
                 try {
                     feature.logRequest(context)
                 } catch (_: Throwable) {
+
+                }
+
+                try {
+                    proceedWith(subject)
+                } catch (cause: Throwable) {
+                    feature.logRequestException(context, cause)
+                    throw cause
+                }
+            }
+
+            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
+                try {
+                    proceedWith(subject)
+                } catch (cause: Throwable) {
+                    feature.logResponseException(context, cause)
+                    throw cause
                 }
             }
 
@@ -132,6 +170,8 @@ class Logging(
             ResponseObserver.install(ResponseObserver(observer), scope)
         }
     }
+
+
 }
 
 private suspend inline fun ByteReadChannel.readText(charset: Charset): String {

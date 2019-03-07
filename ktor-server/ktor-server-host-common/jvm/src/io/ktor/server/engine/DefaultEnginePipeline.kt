@@ -7,8 +7,10 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.nio.channels.*
+import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 
 /**
@@ -34,20 +36,44 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
             call.application.environment.logFailure(call, error)
         } catch (error: Throwable) {
             call.application.environment.logFailure(call, error)
-            try {
-                call.respond(HttpStatusCode.InternalServerError)
-            } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
-            }
+            handleFailure(error)
         } finally {
             try {
                 call.request.receiveChannel().discard()
             } catch (ignore: Throwable) {
-            } finally {
             }
         }
     }
 
     return pipeline
+}
+
+/**
+ * Map [cause] to the corresponding status code or `null` if no default exception mapping for this [cause] type
+ */
+@EngineAPI
+@KtorExperimentalAPI
+fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
+    return when (cause) {
+        is BadRequestException -> HttpStatusCode.BadRequest
+        is NotFoundException -> HttpStatusCode.NotFound
+        is UnsupportedMediaTypeException -> HttpStatusCode.UnsupportedMediaType
+        is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
+        else -> null
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.handleFailure(cause: Throwable) {
+    tryRespondError(defaultExceptionStatusCode(cause) ?: HttpStatusCode.InternalServerError)
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+    try {
+        if (call.response.status() == null) {
+            call.respond(statusCode)
+        }
+    } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+    }
 }
 
 private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Throwable) {

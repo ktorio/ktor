@@ -8,6 +8,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
+/**
+ * Response to use with [MockEngine].
+ */
 class MockHttpResponse(
     override val call: HttpClientCall,
     override val status: HttpStatusCode,

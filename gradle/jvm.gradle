@@ -8,6 +8,8 @@ if (project.name in project.ext.jdk8Modules) {
     jdk = 7
 }
 
+apply plugin: "kotlinx-atomicfu"
+
 kotlin {
     targets {
         fromPreset(presets.jvm, 'jvm')
@@ -67,6 +69,7 @@ kotlin {
             api group: 'junit', name: 'junit', version: junit_version
 
             api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.1.1'
         }
     }
 }

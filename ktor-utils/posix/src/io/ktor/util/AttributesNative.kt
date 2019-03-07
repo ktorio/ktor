@@ -1,8 +1,11 @@
 package io.ktor.util
 
-actual fun Attributes(concurrent: Boolean): Attributes = AttributesIos()
+/**
+ * Create native specific attributes instance.
+ */
+actual fun Attributes(concurrent: Boolean): Attributes = AttributesNative()
 
-private class AttributesIos : Attributes {
+private class AttributesNative : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")

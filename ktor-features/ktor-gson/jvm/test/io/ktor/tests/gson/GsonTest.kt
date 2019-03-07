@@ -8,7 +8,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class GsonTest {
@@ -62,7 +61,14 @@ class GsonTest {
         }
 
         application.routing {
-            val model = MyEntity(777, "Cargo", listOf(ChildEntity("Qube", 1), ChildEntity("Sphere", 2), ChildEntity(uc, 3)))
+            val model = MyEntity(
+                777, "Cargo",
+                listOf(
+                    ChildEntity("Qube", 1),
+                    ChildEntity("Sphere", 2),
+                    ChildEntity(uc, 3)
+                )
+            )
 
             get("/") {
                 call.respond(model)
@@ -71,7 +77,6 @@ class GsonTest {
                 val entity = call.receive<MyEntity>()
                 call.respond(entity.toString())
             }
-
         }
 
         handleRequest(HttpMethod.Get, "/") {
@@ -79,7 +84,10 @@ class GsonTest {
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""), response.content!!.lines())
+            assertEquals(
+                listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"$uc","quantity":3}]}"""),
+                response.content!!.lines()
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -90,12 +98,107 @@ class GsonTest {
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""), response.content!!.lines())
+            assertEquals(
+                listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2), ChildEntity(item=$uc, quantity=3)])"""),
+                response.content!!.lines()
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
 
     }
+
+    private data class TextPlainData(val x: Int)
+
+    @Test
+    fun testGsonOnTextAny(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson()
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val instance = call.receive<TextPlainData>()
+                assertEquals(TextPlainData(777), instance)
+                call.respondText("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "text/plain")
+            setBody("{\"x\": 777}")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("{\"x\": 777}")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+    }
+
+    @Test
+    fun testReceiveExcludedClass(): Unit = withTestApplication {
+        data class Excluded(val x: Int)
+
+        application.install(ContentNegotiation) {
+            gson()
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val result = try {
+                    call.receive<Excluded>().toString()
+                } catch (expected: ExcludedTypeGsonException) {
+                    "OK"
+                }
+                call.respondText(result)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("{\"x\": 777}")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+    }
+
+    private class NullValues()
+
+    @Test
+    fun testReceiveNullValue(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson()
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val result = try {
+                    call.receive<NullValues>().toString()
+                } catch (expected: UnsupportedNullValuesException) {
+                    "OK"
+                }
+                call.respondText(result)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("null")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("OK", it.response.content)
+        }
+    }
+
 }
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)

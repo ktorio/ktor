@@ -17,6 +17,7 @@ import io.ktor.util.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server = embeddedServer(Jetty, serverPort) {
         routing {

@@ -62,11 +62,33 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     }
 
     // Path
-    encodedPath = "/"
-    if (startIndex >= endIndex) return this
+    if (startIndex >= endIndex) {
+        encodedPath = "/"
+        return this
+    }
+
+    encodedPath = if (slashCount == 0) {
+        // Relative path
+        val lastSlashIndex = encodedPath.lastIndexOf('/')
+
+        if (lastSlashIndex != encodedPath.length-1) {
+            // Current path does not end in slash, get rid of last path segment.
+            if (lastSlashIndex != -1) {
+                encodedPath.substring(0, lastSlashIndex+1)
+            } else {
+                "/"
+            }
+        } else {
+            // keep the whole path
+            encodedPath
+        }
+    } else {
+        // overwrite the path
+        ""
+    }
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     val rawPath = urlString.substring(startIndex, pathEnd)
-    encodedPath = rawPath.encodeURLPath()
+    encodedPath += rawPath.encodeURLPath()
     startIndex = pathEnd
 
     // Query
@@ -101,13 +123,17 @@ private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: In
 
     if (colonIndex + 1 < endIndex) {
         port = urlString.substring(colonIndex + 1, endIndex).toInt()
+    } else {
+        port = DEFAULT_PORT
     }
 }
 
 private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
     var current = startIndex
     while (current < endIndex) {
-        if (urlString[current] == ':') return current
+        val char = urlString[current]
+        if (char == ':') return current
+        if (!char.isLetter()) return -1
 
         ++current
     }
@@ -136,3 +162,5 @@ private fun String.indexOfColonInHostPort(startIndex: Int, endIndex: Int): Int {
 
     return -1
 }
+
+private fun Char.isLetter(): Boolean = toLowerCase() in 'a'..'z'

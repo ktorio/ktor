@@ -6,9 +6,10 @@ import org.junit.Test
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
-const val TEST_SIZE = 100
-const val FAIL_TIMEOUT = 100L
+internal const val TEST_SIZE = 100
+internal const val FAIL_TIMEOUT = 100L
 
+@Suppress("KDocMissingDocumentation")
 class SemaphoreTest {
 
     @Test

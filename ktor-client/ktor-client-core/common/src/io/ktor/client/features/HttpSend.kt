@@ -61,7 +61,7 @@ class HttpSend(
                 do {
                     callChanged = false
 
-                    passInterceptors@for (interceptor in feature.interceptors) {
+                    passInterceptors@ for (interceptor in feature.interceptors) {
                         val transformed = interceptor(sender, currentCall)
                         if (transformed === currentCall) continue@passInterceptors
 
@@ -77,7 +77,7 @@ class HttpSend(
     }
 
     private class DefaultSender(private val maxSendCount: Int, private val client: HttpClient) : Sender {
-        private var sentCount =  0
+        private var sentCount: Int = 0
 
         override suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall {
             if (sentCount >= maxSendCount) throw SendCountExceedException("Max send count $maxSendCount exceeded")

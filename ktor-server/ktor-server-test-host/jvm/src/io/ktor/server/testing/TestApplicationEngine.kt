@@ -3,6 +3,8 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.http.content.*
+import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
@@ -41,7 +43,24 @@ class TestApplicationEngine(
 
     init {
         pipeline.intercept(EnginePipeline.Call) {
-            call.application.execute(call)
+            try {
+                call.application.execute(call)
+            } catch (cause: Throwable) {
+                handleTestFailure(cause)
+            }
+        }
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
+        tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
+    }
+
+    private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+        try {
+            if (call.response.status() == null) {
+                call.respond(statusCode)
+            }
+        } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
         }
     }
 
@@ -108,7 +127,7 @@ class TestApplicationEngine(
 
         runBlocking(coroutineContext) {
             pipelineJob.await()
-            call.response.flush()
+            call.response.awaitForResponseCompletion()
             context.cancel()
         }
         processResponse(call)
@@ -116,11 +135,8 @@ class TestApplicationEngine(
         return call
     }
 
-    /**
-     * Make a test request that setup a websocket session and wait for completion
-     */
-    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val call = createCall {
+    private fun createWebSocketCall(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
+        createCall {
             this.uri = uri
             addHeader(HttpHeaders.Connection, "Upgrade")
             addHeader(HttpHeaders.Upgrade, "websocket")
@@ -128,6 +144,12 @@ class TestApplicationEngine(
 
             processRequest(setup)
         }
+
+    /**
+     * Make a test request that setup a websocket session and wait for completion
+     */
+    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val call = createWebSocketCall(uri, setup)
 
         // we can't simply do runBlocking here because runBlocking is not completing
         // until all children completion (writer is the most dangerous example that can cause deadlock here)
@@ -153,13 +175,34 @@ class TestApplicationEngine(
      */
     @UseExperimental(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
-        uri: String, setup: TestApplicationRequest.() -> Unit = {},
+        uri: String,
+        setup: TestApplicationRequest.() -> Unit = {},
         callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
     ): TestApplicationCall {
         val websocketChannel = ByteChannel(true)
-        val call = handleWebSocket(uri) {
-            processRequest(setup)
+        val call = createWebSocketCall(uri) {
+            setup()
             bodyChannel = websocketChannel
+        }
+
+        // we need this to wait for response channel appearance
+        // otherwise we get NPE at websocket reader start attempt
+        val responseSent = CompletableDeferred<Unit>()
+        call.response.responseChannelDeferred.invokeOnCompletion { cause ->
+            when (cause) {
+                null -> responseSent.complete(Unit)
+                else -> responseSent.completeExceptionally(cause)
+            }
+        }
+
+        launch(configuration.dispatcher) {
+            try {
+                // execute server-side
+                pipeline.execute(call)
+            } catch (t: Throwable) {
+                responseSent.completeExceptionally(t)
+                throw t
+            }
         }
 
         val pool = KtorDefaultPool
@@ -167,17 +210,22 @@ class TestApplicationEngine(
         val job = Job()
         val webSocketContext = engineContext + job
 
-        val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-        val reader = WebSocketReader(call.response.websocketChannel()!!, webSocketContext, Int.MAX_VALUE.toLong(), pool)
-
         runBlocking(configuration.dispatcher) {
-            call.callback(reader.incoming, writer.outgoing)
-            writer.flush()
-            writer.close()
-            job.cancelAndJoin()
-        }
+            responseSent.await()
+            processResponse(call)
 
-        processResponse(call)
+            val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
+            val reader = WebSocketReader(call.response.websocketChannel()!!, webSocketContext, Int.MAX_VALUE.toLong(), pool)
+
+            try {
+                // execute client side
+                call.callback(reader.incoming, writer.outgoing)
+            } finally {
+                writer.flush()
+                writer.close()
+                job.cancelAndJoin()
+            }
+        }
 
         return call
     }

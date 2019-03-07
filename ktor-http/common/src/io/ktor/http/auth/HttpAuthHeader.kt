@@ -96,6 +96,32 @@ sealed class HttpAuthHeader(val authScheme: String) {
         fun withParameter(name: String, value: String) =
             Parameterized(authScheme, this.parameters + HeaderValueParam(name, value), encoding)
 
+        /**
+         * Copies this [Parameterized] replacing parameters with [name] assigning new [value]
+         * or appending if no such parameters found.
+         * If there were several pairs they will be reduced into a single pair
+         * at position of first occurrence discarding following pairs with this [name].
+         */
+        @KtorExperimentalAPI
+        fun withReplacedParameter(name: String, value: String): Parameterized {
+            val firstIndex = parameters.indexOfFirst { it.name == name }
+            if (firstIndex == -1) return withParameter(name, value)
+
+            var replaced = false
+            val newParameters = parameters.mapNotNull {
+                when {
+                    it.name != name -> it
+                    !replaced -> {
+                        replaced = true
+                        HeaderValueParam(name, value)
+                    }
+                    else -> null
+                }
+            }
+
+            return Parameterized(authScheme, newParameters, encoding)
+        }
+
         override fun render(encoding: HeaderValueEncoding) =
             parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
 

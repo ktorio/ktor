@@ -13,6 +13,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.rules.*
 import org.junit.runners.model.*
@@ -85,7 +86,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             enableHttp2 = false
         }
 
-        if (enableHttp2) {
+        val javaVersion = System.getProperty("java.version")
+        if (enableHttp2 && javaVersion.startsWith("1.8")) {
             Class.forName("sun.security.ssl.ALPNExtension", true, null)
         }
 
@@ -273,6 +275,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 expectSuccess = false
                 engine {
                     pipelining = true
+                    sslContextFactory = SslContextFactory(true)
                 }
             }.use { httpClient ->
                 httpClient.call(url, builder).response.use { response ->

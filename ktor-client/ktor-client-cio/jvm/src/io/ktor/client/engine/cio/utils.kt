@@ -9,7 +9,7 @@ import io.ktor.http.content.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
-internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
+internal suspend fun HttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
@@ -20,10 +20,6 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel, callCont
     try {
         builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
         builder.headerLine("Host", url.hostWithPort)
-
-        if (!headers.contains(HttpHeaders.UserAgent)) {
-            builder.headerLine("User-Agent", "CIO/ktor")
-        }
 
         mergeHeaders(headers, content) { key, value ->
             builder.headerLine(key, value)

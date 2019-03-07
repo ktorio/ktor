@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private var counter = AtomicInteger()
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {

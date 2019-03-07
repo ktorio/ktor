@@ -107,21 +107,17 @@ internal suspend fun parseHeaders(
             if (range.start == range.end) break
 
             val nameStart = range.start
-            val nameEnd = findColonOrSpace(builder, range)
+            val nameEnd = findLetterBeforeColon(builder, range) + 1
+
+            if (nameEnd <= 0) {
+                val header = builder.substring(nameStart, builder.length)
+                throw ParserException("No colon in HTTP header in $header in builder: \n$builder")
+            }
+
             val nameHash = builder.hashCodeLowerCase(nameStart, nameEnd)
             range.start = nameEnd
 
             skipSpacesAndColon(builder, range)
-            if (range.start == range.end) {
-                throw ParserException(
-                    "No HTTP header value provided for name ${builder.substring(
-                        nameStart,
-                        nameEnd
-                    )}: \n$builder"
-                )
-            }
-
-            // TODO check for trailing spaces in HTTP spec
 
             val valueStart = range.start
             val valueEnd = range.end
@@ -175,6 +171,8 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {
     skipSpaces(text, range)
+
+    check(range.start < range.end) { "Failed to parse version: $text" }
     val exact = versions.search(text, range.start, range.end) { ch, _ -> ch == ' ' }.singleOrNull()
     if (exact != null) {
         range.start += exact.length

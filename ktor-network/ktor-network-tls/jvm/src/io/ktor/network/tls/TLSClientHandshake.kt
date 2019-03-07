@@ -1,6 +1,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
+import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
 import kotlinx.coroutines.*
@@ -15,26 +16,17 @@ import java.security.spec.*
 import javax.crypto.*
 import javax.crypto.spec.*
 import javax.net.ssl.*
+import javax.security.auth.x500.*
 import kotlin.coroutines.*
-
-private data class EncryptionInfo(
-    val serverPublic: PublicKey,
-    val clientPublic: PublicKey,
-    val clientPrivate: PrivateKey
-)
 
 internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
-    override val coroutineContext: CoroutineContext,
-    private val trustManager: X509TrustManager? = null,
-    randomAlgorithm: String = "NativePRNGNonBlocking",
-    private val cipherSuites: List<CipherSuite>,
-    private val serverName: String? = null
+    private val config: TLSConfig,
+    override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     private val digest = Digest()
-    private val random = SecureRandom.getInstance(randomAlgorithm)!!
-    private val clientSeed: ByteArray = random.generateClientSeed()
+    private val clientSeed: ByteArray = config.random.generateClientSeed()
 
     @Volatile
     private lateinit var serverHello: TLSServerHello
@@ -102,10 +94,11 @@ internal class TLSClientHandshake(
     val output: SendChannel<TLSRecord> = actor {
         var useCipher = false
 
-        channel.consumeEach { rawRecord ->
+        for (rawRecord in channel) {
             try {
                 val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
                 if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
+
                 rawOutput.writeRecord(record)
             } catch (cause: Throwable) {
                 channel.close(cause)
@@ -121,7 +114,7 @@ internal class TLSClientHandshake(
             val record = input.receive()
             val packet = record.packet
 
-            while (packet.remaining > 0) {
+            while (packet.isNotEmpty) {
                 val handshake = packet.readTLSHandshake()
                 if (handshake.type == TLSHandshakeType.HelloRequest) continue
                 if (handshake.type != TLSHandshakeType.Finished) {
@@ -139,17 +132,19 @@ internal class TLSClientHandshake(
     }
 
     suspend fun negotiate() {
-        sendClientHello()
-        serverHello = receiveServerHello()
+        digest.use {
+            sendClientHello()
+            serverHello = receiveServerHello()
 
-        verifyHello(serverHello)
-        handleCertificatesAndKeys()
-        receiveServerFinished()
+            verifyHello(serverHello)
+            handleCertificatesAndKeys()
+            receiveServerFinished()
+        }
     }
 
     private fun verifyHello(serverHello: TLSServerHello) {
         val suite = serverHello.cipherSuite
-        check(suite in cipherSuites) { "Unsupported cipher suite ${suite.name} in SERVER_HELLO" }
+        check(suite in config.cipherSuites) { "Unsupported cipher suite ${suite.name} in SERVER_HELLO" }
 
         val clientExchanges = SupportedSignatureAlgorithms.filter {
             it.hash == suite.hash && it.sign == suite.signatureAlgorithm
@@ -172,7 +167,7 @@ internal class TLSClientHandshake(
         sendHandshakeRecord(TLSHandshakeType.ClientHello) {
             // TODO: support session id
             writeTLSClientHello(
-                TLSVersion.TLS12, cipherSuites, clientSeed, ByteArray(32), serverName
+                TLSVersion.TLS12, config.cipherSuites, clientSeed, ByteArray(32), config.serverName
             )
         }
     }
@@ -190,7 +185,7 @@ internal class TLSClientHandshake(
     private suspend fun handleCertificatesAndKeys() {
         val exchangeType = serverHello.cipherSuite.exchangeType
         var serverCertificate: Certificate? = null
-        var certificateRequested = false
+        var certificateInfo: CertificateInfo? = null
         var encryptionInfo: EncryptionInfo? = null
 
         while (true) {
@@ -203,7 +198,7 @@ internal class TLSClientHandshake(
                     val x509s = certs.filterIsInstance<X509Certificate>()
                     if (x509s.isEmpty()) throw TLSException("Server sent no certificate")
 
-                    val manager = trustManager ?: findTrustManager()
+                    val manager = config.trustManager
                     manager.checkServerTrusted(x509s.toTypedArray(), exchangeType.jvmName)
 
                     serverCertificate = x509s.firstOrNull { certificate ->
@@ -216,8 +211,32 @@ internal class TLSClientHandshake(
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
                 TLSHandshakeType.CertificateRequest -> {
-                    certificateRequested = true
-                    check(packet.remaining == 0L)
+                    val typeCount = packet.readByte().toInt() and 0xFF
+                    val types = packet.readBytes(typeCount)
+
+                    val hashAndSignCount = packet.readShort().toInt() and 0xFFFF
+                    val hashAndSign = mutableListOf<HashAndSign>()
+
+                    repeat(hashAndSignCount / 2) {
+                        val hash = packet.readByte()
+                        val sign = packet.readByte()
+                        hashAndSign += HashAndSign(hash, sign)
+                    }
+
+                    val authoritiesSize = packet.readShort().toInt() and 0xFFFF
+                    val authorities = mutableSetOf<Principal>()
+
+                    var position = 0
+                    while (position < authoritiesSize) {
+                        val size = packet.readShort().toInt() and 0xFFFF
+                        position += size
+
+                        val authority = packet.readBytes(size)
+                        authorities += X500Principal(authority)
+                    }
+
+                    certificateInfo = CertificateInfo(types, hashAndSign.toTypedArray(), authorities)
+                    check(packet.isEmpty)
                 }
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
@@ -258,7 +277,7 @@ internal class TLSClientHandshake(
                     handleServerDone(
                         exchangeType,
                         serverCertificate!!,
-                        certificateRequested,
+                        certificateInfo,
                         encryptionInfo
                     )
                     return
@@ -271,26 +290,27 @@ internal class TLSClientHandshake(
     private suspend fun handleServerDone(
         exchangeType: SecretExchangeType,
         serverCertificate: Certificate,
-        certificateRequested: Boolean,
+        certificateInfo: CertificateInfo?,
         encryptionInfo: EncryptionInfo?
     ) {
-        if (certificateRequested) sendClientCertificate()
+        val chain = certificateInfo?.let { sendClientCertificate(it) }
 
         val preSecret: ByteArray = generatePreSecret(encryptionInfo)
+
         sendClientKeyExchange(
             exchangeType,
             serverCertificate,
             preSecret,
-            certificateRequested,
             encryptionInfo
         )
+
         masterSecret = masterSecret(
             SecretKeySpec(preSecret, serverHello.cipherSuite.hash.macName),
             clientSeed, serverHello.serverSeed
         )
         preSecret.fill(0)
 
-        if (certificateRequested) sendClientCertificateVerify()
+        certificateInfo?.let { sendClientCertificateVerify(it, chain!!) }
 
         sendChangeCipherSpec()
         sendClientFinished(masterSecret)
@@ -298,7 +318,7 @@ internal class TLSClientHandshake(
 
     private fun generatePreSecret(encryptionInfo: EncryptionInfo?): ByteArray =
         when (serverHello.cipherSuite.exchangeType) {
-            SecretExchangeType.RSA -> random.generateSeed(48)!!.also {
+            SecretExchangeType.RSA -> config.random.generateSeed(48)!!.also {
                 it[0] = 0x03
                 it[1] = 0x03
             }
@@ -314,17 +334,14 @@ internal class TLSClientHandshake(
         exchangeType: SecretExchangeType,
         serverCertificate: Certificate,
         preSecret: ByteArray,
-        certificateRequested: Boolean,
         encryptionInfo: EncryptionInfo?
     ) {
         val packet = when (exchangeType) {
             RSA -> buildPacket {
-                writeEncryptedPreMasterSecret(preSecret, serverCertificate.publicKey, random)
+                writeEncryptedPreMasterSecret(preSecret, serverCertificate.publicKey, config.random)
             }
             ECDHE -> buildPacket {
-                if (certificateRequested) return@buildPacket // Key exchange has already completed implicit in the certificate message.
                 if (encryptionInfo == null) throw TLSException("ECDHE: Encryption info should be provided")
-
                 writePublicKeyUncompressed(encryptionInfo.clientPublic)
             }
         }
@@ -332,12 +349,55 @@ internal class TLSClientHandshake(
         sendHandshakeRecord(TLSHandshakeType.ClientKeyExchange) { writePacket(packet) }
     }
 
-    private fun sendClientCertificate() {
-        throw TLSException("Client certificates unsupported")
+    private suspend fun sendClientCertificate(info: CertificateInfo): CertificateAndKey? {
+        val chainAndKey = config.certificates.find { candidate ->
+            val leaf = candidate.certificateChain.first()
+
+            val validAlgorithm = when (leaf.publicKey.algorithm) {
+                "RSA" -> info.types.contains(CertificateType.RSA)
+                "DSS" -> info.types.contains(CertificateType.DSS)
+                else -> false
+            }
+
+            if (!validAlgorithm) return@find false
+
+            val hasHashAndSignInCommon = info.hashAndSign.none {
+                it.name.equals(leaf.sigAlgName, ignoreCase = true)
+            }
+
+            if (hasHashAndSignInCommon) return@find false
+
+            info.authorities.isEmpty() || candidate.certificateChain.any { it.issuerDN in info.authorities }
+        }
+
+        sendHandshakeRecord(TLSHandshakeType.Certificate) {
+            writeTLSCertificates(chainAndKey?.certificateChain ?: emptyArray())
+        }
+
+        return chainAndKey
     }
 
-    private fun sendClientCertificateVerify() {
-        throw TLSException("Client certificates unsupported")
+    private suspend fun sendClientCertificateVerify(info: CertificateInfo, certificateAndKey: CertificateAndKey) {
+        val leaf = certificateAndKey.certificateChain.first()
+        val hashAndSign = info.hashAndSign.firstOrNull {
+            it.name.equals(leaf.sigAlgName, ignoreCase = true)
+        } ?: return
+
+        if (hashAndSign.sign == SignatureAlgorithm.DSA) return
+
+        val sign = Signature.getInstance(certificateAndKey.certificateChain.first().sigAlgName)!!
+        sign.initSign(certificateAndKey.key)
+
+        sendHandshakeRecord(TLSHandshakeType.CertificateVerify) {
+            writeByte(hashAndSign.hash.code)
+            writeByte(hashAndSign.sign.code)
+
+            digest.state.preview { sign.update(it.readBytes()) }
+            val signBytes = sign.sign()!!
+
+            writeShort(signBytes.size.toShort())
+            writeFully(signBytes)
+        }
     }
 
     private suspend fun sendChangeCipherSpec() {
@@ -382,17 +442,11 @@ internal class TLSClientHandshake(
         }
 
         digest.update(recordBody)
-        output.send(TLSRecord(TLSRecordType.Handshake, packet = recordBody))
+        val element = TLSRecord(TLSRecordType.Handshake, packet = recordBody)
+        output.send(element)
     }
 }
 
-private fun findTrustManager(): X509TrustManager {
-    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-    factory.init(null as KeyStore?)
-    val manager = factory.trustManagers
-
-    return manager.first { it is X509TrustManager } as X509TrustManager
-}
 
 private fun SecureRandom.generateClientSeed(): ByteArray {
     return generateSeed(32)!!.also {

@@ -8,7 +8,7 @@ import kotlin.browser.*
 import kotlin.coroutines.*
 import kotlin.js.*
 
-object BrowserUtils : Utils() {
+internal object BrowserUtils : Utils() {
     override fun getBodyContentAsChannel(resp: Response, context: CoroutineContext): ByteReadChannel {
         @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         val stream = resp.body as? ReadableStream ?: error("Fail to obtain native stream: $resp")

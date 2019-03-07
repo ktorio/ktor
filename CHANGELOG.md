@@ -1,3 +1,51 @@
+# 1.1.3
+> Published 21 Feb 2019
+
+* Fixed NoSuchMethodError on Android (#927)
+* Fixed upload file error on JS (#956)
+* Fixed several encodings issues caused corrupted jsons and receive pipeline erros (#920, #787, #866)
+* Fixed curl connection errors reporting
+* Updated jackson dependency (#952)
+
+# 1.1.2
+> Published 24 Jan 2019
+
+* Introduced native curl client engine (#479)
+* Added iosArm32 target (except curl) 
+* Host and port route builders (#825)
+* Fixed `host()` and `port()` functions to respect proxy (#834)
+* Fixed classloading issue affecting hot-reload (#825)
+* Fixed hanging CIO client (#800, #806)
+* Added CIO client CBC support (#623, #560, #394)
+* Upgraded JWKS/JWT (#856)
+* Fixed server `MessageDigest` concurrent issues
+* Introduced `NonceManager`, deprecated `OAuth2StateProvider`
+* Prohibited setting session at server after responding the call (#864)
+* Fixed loosing errors in `StatusPages` if there was already a response sent
+* Introduced `application` property on `ApplicationEngine` interface
+* Introduced experimental ktor server exceptions 
+  * `BadRequestException`
+  * `NotFoundException`
+  * `MissingRequestParameterException`
+  * `ParameterConversionException`
+  * supported in locations out of the box (including #767)
+  * experimental parameters delegation support
+* Added routing tailcard prefix support (#876, #526)
+* Fixed registering content converters with custom content type pattern (#872)
+* Improved GSON error diagnostics (#811)
+* Exclude several content types in Compression feature by default: audio, video, event-stream (#817)
+* Fixed hanging handleWebSocketConversation
+* Fixed cookie session max-age value to be bumped to Int.MAX_VALUE (#892)
+* Fixed CIO headers parsing: allowed headers with no values
+* Fixed client websocket nonce size (#861)
+* Fixed client scheme parsing
+* Supported client relative redirects by making #takeFrom() resolve relative urls. (#849)
+* Fixed network on main thread in CIO (#764)
+* Changed the default algorithm to SHA-256 from SHA-1 for signed server cookies
+* Fixed conflicting `WebSockets` and `StatusPages` (#889)
+* Update gradle to 4.10
+* Kotlin 1.3.20, kotlinx.coroutines 1.1.1, kotlinx.serialization 0.10.0
+
 # 1.1.1
 > Published 26 Dec 2018
 

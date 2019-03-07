@@ -23,6 +23,14 @@ expect val Logger.Companion.DEFAULT: Logger
  */
 val Logger.Companion.SIMPLE: Logger get() = SimpleLogger()
 
+/**
+ * Empty [Logger] for test purpose.
+ */
+val Logger.Companion.EMPTY: Logger
+    get() = object : Logger {
+        override fun log(message: String) {}
+    }
+
 private class SimpleLogger : Logger {
     override fun log(message: String) {
         println("HttpClient: $message")

@@ -189,6 +189,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val JavaScript = ContentType("text", "javascript")
         val VCard = ContentType("text", "vcard")
         val Xml = ContentType("text", "xml")
+        val EventStream = ContentType("text", "event-stream")
     }
 
     /**

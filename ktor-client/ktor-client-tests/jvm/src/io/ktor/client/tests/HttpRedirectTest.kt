@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
@@ -38,6 +39,21 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
                 assertEquals("Hello", token)
 
                 call.respondText("OK")
+            }
+            get("/directory/redirectFile") {
+                call.respondRedirect("targetFile")
+            }
+            get("/directory/targetFile") {
+                call.respondText("targetFile")
+            }
+            get("/directory/absoluteRedirectFile") {
+                call.respondRedirect("/directory2/absoluteTargetFile")
+            }
+            get("/directory2/absoluteTargetFile") {
+                call.respondText("absoluteTargetFile")
+            }
+            get("/directory/hostAbsoluteRedirect") {
+                call.respondRedirect("https://httpstat.us/200")
             }
         }
     }
@@ -113,7 +129,34 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
     fun httpStatsTest() = clientTest(factory) {
         test { client ->
             client.get<HttpResponse>("https://httpstat.us/301").use { response ->
-                assertEquals(response.status, HttpStatusCode.OK)
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
+        }
+    }
+
+    @Test
+    fun redirectRelative() = clientTest(factory) {
+        test { client ->
+            client.get<HttpResponse>(path = "/directory/redirectFile", port = serverPort).use {
+                assertEquals("targetFile", it.readText())
+            }
+        }
+    }
+
+    @Test
+    fun redirectAbsolute() = clientTest(factory) {
+        test { client ->
+            client.get<HttpResponse>(path = "/directory/absoluteRedirectFile", port = serverPort).use {
+                assertEquals("absoluteTargetFile", it.readText())
+            }
+        }
+    }
+    @Test
+    fun redirectHostAbsolute() = clientTest(factory) {
+        test { client ->
+            client.get<HttpResponse>(path = "/directory/hostAbsoluteRedirect", port = serverPort).use {
+                assertEquals("200 OK", it.readText())
+                assertEquals("https://httpstat.us/200", it.call.request.url.toString())
             }
         }
     }

@@ -16,10 +16,10 @@ class TestIntegrationBenchmark : IntegrationBenchmark<TestApplicationEngine>() {
 
     override fun load(url: String) {
         server.handleRequest(HttpMethod.Get, url).apply {
-                    if (response.status() != HttpStatusCode.OK) {
-                        throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
-                    }
-                    response.byteContent!!
-                }
+            if (response.status() != HttpStatusCode.OK) {
+                throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
+            }
+            response.byteContent!!
+        }
     }
 }

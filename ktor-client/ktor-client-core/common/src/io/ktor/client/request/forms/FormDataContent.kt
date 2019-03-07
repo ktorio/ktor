@@ -8,7 +8,9 @@ import kotlinx.io.core.*
 import kotlin.random.*
 
 /**
- * [OutgoingContent] with [formData] for application/x-www-form-urlencoded formatted request.
+ * [OutgoingContent] with for application/x-www-form-urlencoded formatted request.
+ *
+ * @param formData: data to send.
  */
 class FormDataContent(
     val formData: Parameters
@@ -22,7 +24,9 @@ class FormDataContent(
 }
 
 /**
- * [OutgoingContent] with [parts] for multipart/form-data formatted request.
+ * [OutgoingContent] for multipart/form-data formatted request.
+ *
+ * @param parts: form part data
  */
 class MultiPartFormDataContent(
     private val parts: List<PartData>
