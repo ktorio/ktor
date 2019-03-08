@@ -48,11 +48,20 @@ class TLSConfigBuilder {
     /**
      * Create [TLSConfig].
      */
-    fun build(): TLSConfig = TLSConfig(
-        random ?: SecureRandom.getInstanceStrong(),
-        certificates, trustManager as? X509TrustManager ?: findTrustManager(),
-        cipherSuites, serverName
-    )
+    fun build(): TLSConfig {
+        val secureRandomInstance = try {
+            SecureRandom.getInstanceStrong()
+        } catch (e: NoSuchMethodError) {
+            //SecureRandom.getInstanceStrong() requires JVM 1.8 and for Android api level 26
+            //if getInstanceStrong() is not available use non-blocking SecureRandom() to get instance
+            SecureRandom()
+        }
+        return TLSConfig(
+            random ?: secureRandomInstance,
+            certificates, trustManager as? X509TrustManager ?: findTrustManager(),
+            cipherSuites, serverName
+        )
+    }
 }
 
 /**
