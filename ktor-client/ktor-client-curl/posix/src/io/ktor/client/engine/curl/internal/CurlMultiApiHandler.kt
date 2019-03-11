@@ -1,6 +1,7 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
+import io.ktor.http.*
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
 import libcurl.*
@@ -52,6 +53,7 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_WRITEFUNCTION, staticCFunction(::onBodyChunkReceived))
             option(CURLOPT_WRITEDATA, responseDataRef)
             option(CURLOPT_PRIVATE, responseDataRef)
+            option(CURLOPT_ACCEPT_ENCODING, "")
         }
 
         curl_multi_add_handle(multiHandle, easyHandle).verify()

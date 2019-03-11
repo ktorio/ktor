@@ -10,5 +10,7 @@ actual fun clientsTest(
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 ) {
     check(skipMissingPlatforms || engines.isNotEmpty()) { "No test engines provided." }
-    engines.forEach { clientTest(it, block) }
+    engines.forEach {
+        clientTest(it, block)
+    }
 }

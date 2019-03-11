@@ -60,5 +60,7 @@ class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State
 
 /**
  * Class representing a typed [response] with an attached [expectedType].
+ * @param expectedType: information about expected type.
+ * @param response: current response state.
  */
 data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)

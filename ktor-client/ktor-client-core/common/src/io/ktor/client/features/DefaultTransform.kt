@@ -5,7 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 
@@ -29,18 +29,20 @@ fun HttpClient.defaultTransformers() {
         }
     }
 
-    responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, response) ->
-        if (response !is HttpResponse) return@intercept
+    responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
+        if (body !is ByteReadChannel) return@intercept
+        val response = context.response
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong() ?: Long.MAX_VALUE
         when (info.type) {
             Unit::class -> {
-                response.content.cancel()
-                response.close()
+                body.cancel()
+                response.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
-            ByteReadChannel::class -> proceedWith(HttpResponseContainer(info, response.content))
+            ByteReadPacket::class,
+            Input::class -> proceedWith(HttpResponseContainer(info, body.readRemaining()))
             ByteArray::class -> {
-                val readRemaining = response.content.readRemaining(contentLength)
+                val readRemaining = body.readRemaining(contentLength)
                 proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
             }
         }

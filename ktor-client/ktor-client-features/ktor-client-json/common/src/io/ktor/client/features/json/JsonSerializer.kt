@@ -1,8 +1,8 @@
 package io.ktor.client.features.json
 
 import io.ktor.client.call.*
-import io.ktor.client.response.*
 import io.ktor.http.content.*
+import kotlinx.io.core.*
 
 /**
  * Client json serializer.
@@ -16,5 +16,5 @@ interface JsonSerializer {
     /**
      * Read content from response using information specified in [type].
      */
-    suspend fun read(type: TypeInfo, response: HttpResponse): Any
+    fun read(type: TypeInfo, body: Input): Any
 }

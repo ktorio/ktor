@@ -17,6 +17,7 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 /** Base class for JSON tests. */
+@Suppress("KDocMissingDocumentation")
 abstract class JsonTest : TestWithKtor() {
     val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
     val users = listOf(

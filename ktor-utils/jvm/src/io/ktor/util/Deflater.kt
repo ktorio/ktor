@@ -2,7 +2,6 @@ package io.ktor.util
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
@@ -11,8 +10,8 @@ import java.util.zip.*
 import kotlin.coroutines.*
 
 
-private const val GZIP_MAGIC = 0x8b1f
-private val headerPadding = ByteArray(7)
+internal const val GZIP_MAGIC: Short = 0x8b1f.toShort()
+internal val GZIP_HEADER_PADDING: ByteArray = ByteArray(7)
 
 private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {
@@ -26,15 +25,15 @@ private fun Deflater.setInput(buffer: ByteBuffer) {
     setInput(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
 }
 
-private fun Checksum.updateKeepPosition(buffer: ByteBuffer) {
+internal fun Checksum.updateKeepPosition(buffer: ByteBuffer) {
     require(buffer.hasArray()) { "buffer need to be array-backed" }
     update(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
 }
 
 private suspend fun ByteWriteChannel.putGzipHeader() {
-    writeShort(GZIP_MAGIC.toShort())
+    writeShort(GZIP_MAGIC)
     writeByte(Deflater.DEFLATED.toByte())
-    writeFully(headerPadding)
+    writeFully(GZIP_HEADER_PADDING)
 }
 
 private suspend fun ByteWriteChannel.putGzipTrailer(crc: Checksum, deflater: Deflater) {

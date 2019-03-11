@@ -64,8 +64,8 @@ class WebSockets(
                 proceedWith(feature.execute(scope, requestData))
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, response) ->
-                if (response !is WebSocketResponse) return@intercept
+            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, _) ->
+                val response = context.response as? WebSocketResponse ?: return@intercept
 
                 with(feature) {
                     val session = response.session

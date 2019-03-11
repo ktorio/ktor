@@ -28,7 +28,5 @@ class WebSocketResponse(
     override val responseTime: GMTDate = GMTDate()
 
     override val content: ByteReadChannel
-        get() = throw WebSocketException(
-            "Bytes from [content] is not available in [WebSocketResponse]. Consider using [session] instead."
-        )
+        get() = ByteReadChannel.Empty
 }

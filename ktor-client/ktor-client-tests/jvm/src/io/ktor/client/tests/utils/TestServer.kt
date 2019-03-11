@@ -2,6 +2,7 @@ package io.ktor.client.tests.utils
 
 import ch.qos.logback.classic.*
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -29,12 +30,39 @@ internal fun startServer(): ApplicationEngine {
             }
             route("/json") {
                 get("/users") {
-                    call.respondText("[{id: 42, login: 'TestLogin'}]", contentType = ContentType.Application.Json)
+                    call.respondText("[{'id': 42, 'login': 'TestLogin'}]", contentType = ContentType.Application.Json)
                 }
                 get("/photos") {
-                    call.respondText("[{id: 4242, path: 'cat.jpg'}]", contentType = ContentType.Application.Json)
+                    call.respondText("[{'id': 4242, 'path': 'cat.jpg'}]", contentType = ContentType.Application.Json)
+                }
+            }
+            route("/compression") {
+                route("/deflate") {
+                    install(Compression) { deflate() }
+                    setCompressionEndpoints()
+                }
+                route("/gzip") {
+                    install(Compression) { gzip() }
+                    setCompressionEndpoints()
+                }
+                route("/identity") {
+                    install(Compression) { identity() }
+                    setCompressionEndpoints()
                 }
             }
         }
     }.start()
+}
+
+private fun Route.setCompressionEndpoints() {
+    get {
+        call.respondText("Compressed response!")
+    }
+}
+
+/**
+ * Start server for tests.
+ */
+fun main() {
+    startServer()
 }

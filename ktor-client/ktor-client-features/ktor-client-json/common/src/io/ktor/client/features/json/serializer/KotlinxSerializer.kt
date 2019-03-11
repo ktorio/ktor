@@ -2,9 +2,9 @@ package io.ktor.client.features.json.serializer
 
 import io.ktor.client.call.*
 import io.ktor.client.features.json.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlinx.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
@@ -77,9 +77,9 @@ class KotlinxSerializer(
         return TextContent(content, ContentType.Application.Json)
     }
 
-    override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
+    override fun read(type: TypeInfo, body: Input): Any {
         val mapper = lookupSerializerByType(type.type)
-        val text = response.readText()
+        val text = body.readText()
 
         @Suppress("UNCHECKED_CAST")
         return json.parse(mapper as KSerializer<Any>, text)

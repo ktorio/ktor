@@ -120,8 +120,8 @@ class KotlinxSerializerTest {
             val users = client.get<List<User>>("$TEST_SERVER/json/users")
             val photos = client.get<List<Photo>>("$TEST_SERVER/json/photos")
 
-            println(users)
-            println(photos)
+            assertEquals(listOf(User(42, "TestLogin")), users)
+            assertEquals(listOf(Photo(4242, "cat.jpg")), photos)
         }
     }
 

@@ -1,6 +1,7 @@
-package io.ktor.client.features.logging
 
 import io.ktor.client.engine.mock.*
+import io.ktor.client.features.logging.*
+import io.ktor.client.features.logging.TestLogger
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -42,7 +43,7 @@ CONTENT HEADERS
 BODY Content-Type: null
 BODY START
 BODY END
-REQUEST http://localhost/ failed with exception: io.ktor.client.features.logging.CustomError: BAD REQUEST
+REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
 
                 """.trimIndent(),
                 testLogger.dump()
@@ -89,7 +90,7 @@ CONTENT HEADERS
 BODY Content-Type: null
 BODY START
 BODY END
-RESPONSE http://localhost/ failed with exception: io.ktor.client.features.logging.CustomError: PARSE ERROR
+RESPONSE http://localhost/ failed with exception: CustomError: PARSE ERROR
 
                 """.trimIndent(),
                 testLogger.dump()

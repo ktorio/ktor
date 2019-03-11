@@ -56,7 +56,7 @@ open class HttpClientCall constructor(
         if (info.type.isInstance(response)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val subject = HttpResponseContainer(info, response)
+        val subject = HttpResponseContainer(info, response.content)
         try {
             val result = client.responsePipeline.execute(this, subject).response
             if (!info.type.isInstance(result)) throw NoTransformationFoundException(result::class, info.type)

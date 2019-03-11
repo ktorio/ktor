@@ -536,7 +536,9 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     }
     val engine = TestApplicationEngine(environment)
     engine.start()
-    return HttpClient(TestHttpClientEngine.config { app = engine })
+    return HttpClient(TestHttpClientEngine.config { app = engine }) {
+        expectSuccess = false
+    }
 }
 
 private fun Parameters.requireParameter(name: String) = get(name)

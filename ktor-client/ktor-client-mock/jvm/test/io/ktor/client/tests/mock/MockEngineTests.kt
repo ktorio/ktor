@@ -46,7 +46,9 @@ class MockEngineTests {
             } else {
                 request.responseOk("${request.url}")
             }
-        })
+        }) {
+            expectSuccess = false
+        }
 
         client.call { url("http://127.0.0.1/normal-request") }.apply {
             assertEquals("http://127.0.0.1/normal-request", response.readText())

@@ -170,8 +170,13 @@ class Logging(
             ResponseObserver.install(ResponseObserver(observer), scope)
         }
     }
+}
 
-
+/**
+ * Configure and install [Logging] in [HttpClient].
+ */
+fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
+    install(Logging, block)
 }
 
 private suspend inline fun ByteReadChannel.readText(charset: Charset): String {

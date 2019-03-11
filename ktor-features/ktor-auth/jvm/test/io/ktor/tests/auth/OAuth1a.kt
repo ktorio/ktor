@@ -402,7 +402,9 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     }
     val engine = TestApplicationEngine(environment)
     engine.start()
-    return HttpClient(TestHttpClientEngine.config { app = engine })
+    return HttpClient(TestHttpClientEngine.config { app = engine }) {
+        expectSuccess = false
+    }
 }
 
 private suspend fun ApplicationCall.fail(text: String?) {

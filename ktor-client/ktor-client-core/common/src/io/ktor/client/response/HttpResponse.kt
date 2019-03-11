@@ -73,7 +73,7 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
  *      So it just acts as a fallback, honoring the server preference.
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
-    val packet = content.readRemaining(Long.MAX_VALUE)
+    val packet = receive<ByteReadPacket>()
     val actualCharset = charset() ?: charset ?: call.responseConfig.defaultCharset
     return packet.readText(charset = actualCharset)
 }

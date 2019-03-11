@@ -7,6 +7,7 @@ import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.io.*
 
 
 /**
@@ -60,12 +61,10 @@ class JsonFeature(val serializer: JsonSerializer) {
                 proceedWith(feature.serializer.write(payload))
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, response) ->
-                if (response !is HttpResponse
-                    || context.response.contentType()?.match(ContentType.Application.Json) != true
-                ) return@intercept
-
-                proceedWith(HttpResponseContainer(info, feature.serializer.read(info, response)))
+            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
+                if (body !is ByteReadChannel) return@intercept
+                if (context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+                proceedWith(HttpResponseContainer(info, feature.serializer.read(info, body.readRemaining())))
             }
         }
     }

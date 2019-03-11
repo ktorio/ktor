@@ -3,15 +3,16 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.response.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 
 internal actual fun HttpClient.platformDefaultTransformers() {
-    responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, response) ->
-        if (response !is HttpResponse) return@intercept
+    responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
+        if (body !is ByteReadChannel) return@intercept
         when (info.type) {
             InputStream::class -> {
-                val stream = response.content.toInputStream(response.coroutineContext[Job])
+                val stream = body.toInputStream(context.coroutineContext[Job])
                 proceedWith(HttpResponseContainer(info, stream))
             }
         }
