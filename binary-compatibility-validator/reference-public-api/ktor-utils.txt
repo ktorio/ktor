@@ -137,6 +137,16 @@ public abstract interface class io/ktor/util/Digest {
 	public abstract fun reset ()V
 }
 
+public abstract interface class io/ktor/util/Encoder {
+	public abstract fun decode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public abstract fun encode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
+}
+
+public final class io/ktor/util/EncodersJvmKt {
+	public static final fun getDeflate ()Lio/ktor/util/Encoder;
+	public static final fun getGZip ()Lio/ktor/util/Encoder;
+}
+
 public final class io/ktor/util/GenerateOnlyNonceManager : io/ktor/util/NonceManager {
 	public static final field INSTANCE Lio/ktor/util/GenerateOnlyNonceManager;
 	public fun newNonce (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -146,6 +156,12 @@ public final class io/ktor/util/GenerateOnlyNonceManager : io/ktor/util/NonceMan
 public final class io/ktor/util/Hash {
 	public static final field INSTANCE Lio/ktor/util/Hash;
 	public final fun combine ([Ljava/lang/Object;)I
+}
+
+public final class io/ktor/util/Identity : io/ktor/util/Encoder {
+	public static final field INSTANCE Lio/ktor/util/Identity;
+	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/InputJvmKt {
