@@ -94,6 +94,7 @@ suspend fun encodeChunked(
  */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val view = IoBuffer.Pool.borrow()
+    @Suppress("DEPRECATION") // here we have a valid reason to set it so suppress here
     view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {

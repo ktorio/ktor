@@ -3,7 +3,6 @@ package io.ktor.http.cio.websocket
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
 import java.nio.*
 
 /**
@@ -56,7 +55,6 @@ actual sealed class Frame private actual constructor(
      */
     actual class Close actual constructor(data: ByteArray) : Frame(true, FrameType.CLOSE, data) {
         actual constructor(reason: CloseReason) : this(buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeShort(reason.code)
             writeStringUtf8(reason.message)
         })
