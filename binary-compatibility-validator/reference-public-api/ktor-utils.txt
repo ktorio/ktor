@@ -1,7 +1,3 @@
-public final class io/ktor/pipeline/CompatibilityKt {
-	public static final fun execute (Lio/ktor/util/pipeline/Pipeline;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class io/ktor/util/AlwaysFailNonceManager : io/ktor/util/NonceManager {
 	public static final field INSTANCE Lio/ktor/util/AlwaysFailNonceManager;
 	public fun newNonce (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

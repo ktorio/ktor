@@ -143,11 +143,11 @@ public abstract interface class io/ktor/client/engine/HttpClientEngine : java/io
 
 public class io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
-	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final synthetic fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getPipelining ()Z
 	public final fun getResponse ()Lio/ktor/client/response/HttpResponseConfig;
 	public final fun getThreadsCount ()I
-	public final fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public final synthetic fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setPipelining (Z)V
 	public final fun setThreadsCount (I)V
 }
@@ -455,7 +455,7 @@ public class io/ktor/client/request/DefaultHttpRequest : io/ktor/client/request/
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getContent ()Lio/ktor/http/content/OutgoingContent;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getMethod ()Lio/ktor/http/HttpMethod;
 	public fun getUrl ()Lio/ktor/http/Url;
@@ -466,14 +466,14 @@ public abstract interface class io/ktor/client/request/HttpRequest : io/ktor/htt
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public abstract fun getContent ()Lio/ktor/http/content/OutgoingContent;
 	public abstract fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public abstract fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public abstract synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public abstract fun getMethod ()Lio/ktor/http/HttpMethod;
 	public abstract fun getUrl ()Lio/ktor/http/Url;
 }
 
 public final class io/ktor/client/request/HttpRequest$DefaultImpls {
 	public static fun getCoroutineContext (Lio/ktor/client/request/HttpRequest;)Lkotlin/coroutines/CoroutineContext;
-	public static fun getExecutionContext (Lio/ktor/client/request/HttpRequest;)Lkotlinx/coroutines/Job;
+	public static synthetic fun getExecutionContext (Lio/ktor/client/request/HttpRequest;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/HttpMessageBuilder {
@@ -616,7 +616,7 @@ public abstract interface class io/ktor/client/response/HttpResponse : io/ktor/h
 	public abstract fun close ()V
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public abstract fun getContent ()Lkotlinx/coroutines/io/ByteReadChannel;
-	public abstract fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public abstract synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public abstract fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getResponseTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getStatus ()Lio/ktor/http/HttpStatusCode;
@@ -625,7 +625,7 @@ public abstract interface class io/ktor/client/response/HttpResponse : io/ktor/h
 
 public final class io/ktor/client/response/HttpResponse$DefaultImpls {
 	public static fun close (Lio/ktor/client/response/HttpResponse;)V
-	public static fun getExecutionContext (Lio/ktor/client/response/HttpResponse;)Lkotlinx/coroutines/Job;
+	public static synthetic fun getExecutionContext (Lio/ktor/client/response/HttpResponse;)Lkotlinx/coroutines/Job;
 }
 
 public class io/ktor/client/response/HttpResponseConfig {

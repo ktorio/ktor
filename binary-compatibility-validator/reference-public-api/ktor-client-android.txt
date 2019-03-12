@@ -33,7 +33,7 @@ public final class io/ktor/client/engine/android/AndroidHttpResponse : io/ktor/c
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getContent ()Lkotlinx/coroutines/io/ByteReadChannel;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;

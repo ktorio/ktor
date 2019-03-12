@@ -4,8 +4,6 @@ public final class io/ktor/http/ApplicationResponsePropertiesJvmKt {
 }
 
 public final class io/ktor/http/ApplicationResponsePropertiesKt {
-	public static final fun contentLength (Lio/ktor/http/HeadersBuilder;J)V
-	public static final fun contentType (Lio/ktor/http/HeadersBuilder;Lio/ktor/http/ContentType;)V
 	public static final fun etag (Lio/ktor/http/HeadersBuilder;Ljava/lang/String;)V
 }
 
