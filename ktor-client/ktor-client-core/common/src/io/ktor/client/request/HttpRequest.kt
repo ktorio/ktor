@@ -36,16 +36,13 @@ interface HttpRequest : HttpMessage, CoroutineScope {
      */
     val attributes: Attributes
 
-    /**
-     * A [Job] representing the process of this request.
-     */
     @Deprecated(
-        "[executionContext] is deprecated. Use coroutineContext instead",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("coroutineContext")
+        "Binary compatibility.",
+        level = DeprecationLevel.HIDDEN
     )
+    @Suppress("unused", "KDocMissingDocumentation")
     val executionContext: Job
-        get() = error("[executionContext] is deprecated. Use coroutineContext instead")
+        get() = coroutineContext[Job]!!
 
     /**
      * An [OutgoingContent] representing the request body

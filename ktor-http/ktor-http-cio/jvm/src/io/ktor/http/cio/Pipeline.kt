@@ -41,21 +41,6 @@ val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-wr
  */
 val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
-@Suppress("KDocMissingDocumentation", "UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
-@Deprecated(
-    "Use startConnectionPipeline with CoroutineScope receiver",
-    level = DeprecationLevel.ERROR
-)
-fun startConnectionPipeline(
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    parentJob: CoroutineContext?,
-    ioContext: CoroutineContext,
-    callContext: CoroutineContext,
-    timeout: WeakTimeoutQueue,
-    handler: HttpRequestHandler
-): Job = TODO("Not supported anymore")
-
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
  * Note that [handler] could be invoked multiple times concurrently due to HTTP pipeline nature

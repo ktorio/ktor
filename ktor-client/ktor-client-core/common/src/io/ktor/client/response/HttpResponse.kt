@@ -44,9 +44,8 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
      * A [Job] representing the process of this response.
      */
     @Deprecated(
-        "executionContext is deprecated. Use coroutineContext instead.",
-        replaceWith = ReplaceWith("coroutineContext"),
-        level = DeprecationLevel.ERROR
+        "Binary compatibility.",
+        level = DeprecationLevel.HIDDEN
     )
     val executionContext: Job
         get() = coroutineContext[Job]!!

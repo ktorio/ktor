@@ -2,7 +2,6 @@ package io.ktor.http.cio.websocket
 
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
@@ -46,7 +45,6 @@ actual sealed class Frame private actual constructor(
      */
     actual class Close actual constructor(data: ByteArray) : Frame(true, FrameType.CLOSE, data) {
         actual constructor(reason: CloseReason) : this(buildPacket {
-            byteOrder = ByteOrder.BIG_ENDIAN
             writeShort(reason.code)
             writeStringUtf8(reason.message)
         })

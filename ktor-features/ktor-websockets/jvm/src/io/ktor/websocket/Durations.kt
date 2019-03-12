@@ -28,17 +28,11 @@ inline var DefaultWebSocketServerSession.timeout: Duration
         timeoutMillis = newDuration.toMillis()
     }
 
-/**
- * Launch pinger coroutine on [coroutineContext] websocket for [session] that is sending ping every specified [period],
- * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
- * to the dedicated [out] channel in case of failure
- */
 @Deprecated(
-    "Use pinger on CoroutineScope",
-    ReplaceWith("session.pinger(session.outgoing, period, timeout, out, pool)"),
-    level = DeprecationLevel.ERROR
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN
 )
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER", "unused", "KDocMissingDocumentation")
 fun pinger(
     session: WebSocketSession,
     period: Duration,

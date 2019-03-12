@@ -29,7 +29,7 @@ class TestApplicationResponse(
         }
 
     @Suppress("CanBePrimaryConstructorProperty")
-    @Deprecated("Will be removed from public API")
+    @Deprecated("Will be removed from public API", level = DeprecationLevel.ERROR)
     val readResponse: Boolean = readResponse
 
     /**
@@ -80,7 +80,7 @@ class TestApplicationResponse(
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
-        if (@Suppress("DEPRECATION") readResponse) {
+        if (@Suppress("DEPRECATION_ERROR") readResponse) {
             launchResponseJob(result)
         }
 
@@ -111,7 +111,7 @@ class TestApplicationResponse(
      */
     @InternalAPI
     @Suppress("DeprecatedCallableAddReplaceWith")
-    @Deprecated("Will be removed")
+    @Deprecated("Will be removed", level = DeprecationLevel.ERROR)
     suspend fun flush() {
         awaitForResponseCompletion()
     }

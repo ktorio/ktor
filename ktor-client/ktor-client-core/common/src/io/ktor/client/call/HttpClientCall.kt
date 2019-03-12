@@ -131,11 +131,3 @@ class ReceivePipelineException(
 class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
     override val message: String? = "No transformation found: $from -> $to"
 }
-
-@Deprecated(
-    "[NoTransformationFound] is deprecated. Use [NoTransformationFoundException] instead",
-    ReplaceWith("NoTransformationFoundException"),
-    DeprecationLevel.ERROR
-)
-@Suppress("KDocMissingDocumentation")
-typealias NoTransformationFound = NoTransformationFoundException

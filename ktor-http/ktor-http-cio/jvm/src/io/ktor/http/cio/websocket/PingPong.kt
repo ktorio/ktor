@@ -16,15 +16,11 @@ private val PongerCoroutineName = CoroutineName("ws-ponger")
 
 private val PingerCoroutineName = CoroutineName("ws-pinger")
 
-/**
- * Launch a ponger actor job on the [coroutineContext] for websocket [session].
- * It is acting for every client's ping frame and replying with corresponding pong
- */
 @Deprecated(
-    "Use ponger with CoroutineScope receiver",
-    ReplaceWith("session.ponger(session.outgoing, pool)"),
-    level = DeprecationLevel.ERROR
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN
 )
+@Suppress("KDocMissingDocumentation", "unused")
 fun ponger(
     session: WebSocketSession,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool

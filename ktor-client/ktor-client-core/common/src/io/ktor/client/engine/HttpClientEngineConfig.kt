@@ -14,10 +14,14 @@ open class HttpClientEngineConfig {
      * The [CoroutineDispatcher] that will be used for the client requests.
      */
     @Deprecated(
-        "Custom dispatcher is deprecated. Consider using threadsCount instead.",
-        level = DeprecationLevel.ERROR
+        "Binary compatibility.",
+        level = DeprecationLevel.HIDDEN
     )
-    var dispatcher: CoroutineDispatcher? = null
+    var dispatcher: CoroutineDispatcher?
+        get() = null
+        set(_) {
+            throw UnsupportedOperationException("Custom dispatcher is deprecated. Use threadsCount instead.")
+        }
 
     /**
      * Network threads count
