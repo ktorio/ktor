@@ -3,10 +3,6 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.tests.*
 import org.junit.*
 
-
-@Ignore
-class OkHttpCacheTest : CacheTest(OkHttp)
-
 class OkHttpCookiesTest : CookiesTest(OkHttp)
 
 class OkHttpAttributesTest : AttributesTest(OkHttp)

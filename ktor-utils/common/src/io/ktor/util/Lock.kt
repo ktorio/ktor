@@ -17,3 +17,13 @@ inline fun <R> Lock.use(block: () -> R): R {
         unlock()
     }
 }
+
+@InternalAPI
+expect class ReadWriteLock() {
+    fun readLock(): LockTicket
+    fun writeLock(): LockTicket
+}
+
+expect class LockTicket {
+    fun unlock()
+}

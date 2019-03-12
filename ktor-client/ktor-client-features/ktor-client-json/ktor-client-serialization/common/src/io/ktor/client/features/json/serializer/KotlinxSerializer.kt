@@ -20,7 +20,7 @@ import kotlin.reflect.*
  * }
  * ```
  */
-@UseExperimental(ImplicitReflectionSerializer::class)
+@UseExperimental(ImplicitReflectionSerializer::class, UnstableDefault::class)
 class KotlinxSerializer(
     private val json: Json = Json.plain
 ) : JsonSerializer {

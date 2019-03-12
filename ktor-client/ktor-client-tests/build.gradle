@@ -89,8 +89,8 @@ rootProject.allprojects {
 }
 
 gradle.buildFinished {
-    println("[TestServer] stop")
     if (startTestServer.server != null) {
         startTestServer.server.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        println("[TestServer] stop")
     }
 }

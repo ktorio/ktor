@@ -4,9 +4,6 @@ import io.ktor.client.tests.*
 import org.junit.*
 
 
-@Ignore
-class CIOCacheTest : CacheTest(CIO)
-
 class CIOCookiesTest : CookiesTest(CIO)
 
 class CIOAttributesTest : AttributesTest(CIO)
