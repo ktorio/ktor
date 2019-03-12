@@ -50,11 +50,9 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
         feature: HttpClientFeature<TBuilder, TFeature>,
         configure: TBuilder.() -> Unit = {}
     ) {
-        val previousConfig = featureConfigurations[feature.key]
+        val previousConfigBlock = featureConfigurations[feature.key]
         featureConfigurations[feature.key] = {
-            previousConfig?.let {
-                it()
-            }
+            previousConfigBlock?.invoke(this)
 
             @Suppress("UNCHECKED_CAST")
             (this as TBuilder).configure()

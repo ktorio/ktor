@@ -58,7 +58,10 @@ open class HttpClientCall constructor(
 
         val subject = HttpResponseContainer(info, response.content)
         val result = client.responsePipeline.execute(this, subject).response
-        if (!info.type.isInstance(result)) throw NoTransformationFoundException(result::class, info.type)
+        if (!info.type.isInstance(result)) {
+            throw NoTransformationFoundException(result::class, info.type)
+        }
+
         return result
     }
 

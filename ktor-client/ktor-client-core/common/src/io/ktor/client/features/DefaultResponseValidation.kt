@@ -37,7 +37,7 @@ open class ResponseException(
  */
 @Suppress("KDocMissingDocumentation")
 class RedirectResponseException(response: HttpResponse) : ResponseException(response) {
-    override val message: String? = "Unhandled redirect: ${response.call.request.url}"
+    override val message: String? = "Unhandled redirect: ${response.call.request.url}. Status: ${response.status}"
 }
 
 /**

@@ -65,8 +65,8 @@ class HttpCallValidator(
         override fun prepare(block: Config.() -> Unit): HttpCallValidator {
             val config = Config().apply(block)
 
-            config.responseValidators.reverse()
-            config.responseExceptionHandlers.reverse()
+            config.responseValidators.reversed()
+            config.responseExceptionHandlers.reversed()
 
             return HttpCallValidator(
                 config.responseValidators,
