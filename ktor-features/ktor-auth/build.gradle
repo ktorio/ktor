@@ -4,7 +4,7 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             api project(':ktor-client:ktor-client-core')
-            api group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+            api group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1', transitive: false
         }
         jvmTest.dependencies {
             api project(':ktor-client:ktor-client-cio')
