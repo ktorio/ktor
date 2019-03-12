@@ -83,6 +83,10 @@ open class HttpClientCall internal constructor(
             throw NoTransformationFoundException(result::class, info.type)
         }
 
+        if (result !is Closeable && result !is HttpRequest) {
+            close()
+        }
+
         return result
     }
 

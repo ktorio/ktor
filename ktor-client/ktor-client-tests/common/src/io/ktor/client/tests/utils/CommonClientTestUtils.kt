@@ -17,6 +17,7 @@ const val TEST_SERVER: String = "http://127.0.0.1:8080"
  */
 expect fun clientsTest(
     skipMissingPlatforms: Boolean = false,
+    skipPlatforms: List<String> = emptyList(),
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 )
 

@@ -63,7 +63,6 @@ internal fun Application.benchmarks() {
 
             route("/websockets") {
                 webSocket("/get/{count}") {
-                    println("connected")
                     val count = call.parameters["count"]!!.toInt()
 
                     repeat(count) {

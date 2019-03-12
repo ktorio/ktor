@@ -42,7 +42,7 @@ internal class ConnectionPipeline(
                     requestLimit.enter()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task))
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                     throw cause
                 }
 
@@ -87,7 +87,11 @@ internal class ConnectionPipeline(
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
-                    val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+                    val hasBody = (contentLength > 0 || chunked) &&
+                        (method != HttpMethod.Head) &&
+                        (status !in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent)) &&
+                        (status.value / 100 != 1)
+
                     val responseChannel = if (hasBody) ByteChannel() else null
 
                     var skipTask: Job? = null
@@ -102,7 +106,7 @@ internal class ConnectionPipeline(
                     }
 
                     val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
-                    task.response.complete(response)
+                    task.response.resume(response)
 
                     responseChannel?.use {
                         parseHttpBody(
@@ -116,7 +120,7 @@ internal class ConnectionPipeline(
 
                     skipTask?.join()
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                 }
 
                 task.context[Job]?.join()

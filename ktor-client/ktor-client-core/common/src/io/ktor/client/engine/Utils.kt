@@ -6,6 +6,12 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 
 /**
+ * Default user agent to use in ktor client.
+ */
+@InternalAPI
+val KTOR_DEFAULT_USER_AGENT = "Ktor client"
+
+/**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
  */
 @InternalAPI
@@ -25,7 +31,7 @@ fun mergeHeaders(
     }
 
     if (requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null) {
-        block(HttpHeaders.UserAgent, "Ktor client")
+        block(HttpHeaders.UserAgent, KTOR_DEFAULT_USER_AGENT)
     }
 
     val type = content.contentType?.toString() ?: content.headers[HttpHeaders.ContentType]

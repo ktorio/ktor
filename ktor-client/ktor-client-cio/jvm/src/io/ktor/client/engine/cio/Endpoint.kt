@@ -1,9 +1,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.http.cio.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
@@ -12,7 +9,6 @@ import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
 import java.io.*
 import java.net.*
 import kotlin.coroutines.*
@@ -54,7 +50,7 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                     throw cause
                 }
             }
@@ -64,12 +60,11 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
-        val result = CompletableDeferred<HttpResponseData>(parent = callContext[Job])
-        val task = RequestTask(request, result, callContext)
-        tasks.offer(task)
-        return result.await()
-    }
+    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData =
+        suspendCancellableCoroutine { continuation ->
+            val task = RequestTask(request, continuation, callContext)
+            tasks.offer(task)
+        }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
         if (deliveryPoint.offer(task)) return
@@ -79,7 +74,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.response.completeExceptionally(cause)
+                task.response.resumeWithException(cause)
                 throw cause
             }
         }
@@ -95,57 +90,22 @@ internal class Endpoint(
             val output = connection.openWriteChannel()
             val requestTime = GMTDate()
 
-            fun closeConnection(cause: Throwable? = null) {
+            request.write(output, callContext)
+            val responseData = readResponse(requestTime, request, input, output, callContext)
+
+            callContext[Job]!!.invokeOnCompletion {
                 try {
-                    input.cancel(cause)
-                    output.close(cause)
+                    input.cancel(it)
+                    output.close(it)
                     connection.close()
                     releaseConnection()
                 } catch (_: Throwable) {
                 }
             }
 
-            request.write(output, callContext)
-
-            val rawResponse = parseResponse(input)
-                ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
-
-            val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
-            val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-            val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
-            val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
-            val headers = CIOHeaders(rawResponse.headers)
-            val version = HttpProtocolVersion.parse(rawResponse.version)
-
-            callContext[Job]!!.invokeOnCompletion {
-                rawResponse.headers.release()
-            }
-
-            if (status == HttpStatusCode.SwitchingProtocols) {
-                val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
-                response.complete(HttpResponseData(status, requestTime, headers, version, session, callContext))
-                return@launch
-            }
-
-            val body = when {
-                request.method == HttpMethod.Head -> {
-                    closeConnection()
-                    ByteReadChannel.Empty
-                }
-                else -> {
-                    val httpBodyParser = GlobalScope.writer(callContext, autoFlush = true) {
-                        parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-                    }
-
-                    httpBodyParser.invokeOnCompletion(::closeConnection)
-                    httpBodyParser.channel
-                }
-            }
-
-            val result = HttpResponseData(status, requestTime, headers, version, body, callContext)
-            response.complete(result)
+            response.resume(responseData)
         } catch (cause: Throwable) {
-            response.completeExceptionally(cause)
+            response.resumeWithException(cause)
         }
     }
 

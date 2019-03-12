@@ -5,20 +5,20 @@ import kotlin.test.*
 class TypeInfoTest {
 
     @Test
-    fun classInMethodTest() {
+    fun testClassInMethod() {
         class Foo
         typeInfo<Foo>()
     }
 
     @Test
     @Ignore
-    fun typeInfoWithClassDefinedInMethodScopeWithComplexName() {
+    fun testTypeInfoWithClassDefinedInMethodScopeWithComplexName() {
         class SomeClass
         typeInfo<SomeClass>()
     }
 
     @Test
-    fun equalsTest() {
+    fun testEquals() {
         class Foo<Bar>
         assertEquals(typeInfo<Foo<Int>>(), typeInfo<Foo<Int>>())
     }
