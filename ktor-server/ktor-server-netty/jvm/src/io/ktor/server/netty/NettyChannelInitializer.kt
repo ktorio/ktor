@@ -105,7 +105,9 @@ class NettyChannelInitializer(
 
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
-                    addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
+                    if(requestReadTimeout > 0) {
+                        addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
+                    }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
