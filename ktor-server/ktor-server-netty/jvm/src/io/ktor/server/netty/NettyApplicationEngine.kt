@@ -48,7 +48,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         var responseWriteTimeoutSeconds: Int = 10
 
         /**
-         * Timeout in seconds for reading requests from client, "0" is inifinite.
+         * Timeout in seconds for reading requests from client, "0" is infinite.
          */
         var requestReadTimeoutSeconds: Int = 0
 
