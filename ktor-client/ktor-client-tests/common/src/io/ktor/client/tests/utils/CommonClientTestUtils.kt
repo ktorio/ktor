@@ -10,7 +10,7 @@ import kotlinx.io.core.*
 /**
  * Local test server url.
  */
-const val TEST_SERVER: String = "http://0.0.0.0:8080"
+const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
  * Perform test against all clients from dependencies.

@@ -18,7 +18,7 @@ class DownloadTest {
     fun testLocalhostEcho() = clientsTest {
         val text = "Hello, world"
         test { client ->
-            val response = client.post<String>("http://0.0.0.0:8080/echo") {
+            val response = client.post<String>("$TEST_SERVER/echo") {
                 body = text
             }
 
