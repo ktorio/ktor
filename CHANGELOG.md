@@ -1,3 +1,26 @@
+# 1.2.0
+> Unpublished yet
+
+* Introduced multiplatform websockets: jvm, js.
+* Added client certificates support.
+* Fixed updating session in directory storage (#963).
+* Added optional contentType to formDsl (#910).
+* `MockEngine` version which favors execution order and returns processed requests (#924).
+* Fixed `Unit` body serialization.
+* Allowed using preconfigured OkHttp client instance.
+* Defined the client default user agent.
+* Improved curl error diagnostics and resource management.
+* Fixed LogLevel.NONE with body bytes.
+* Added CIO endpoint config builder.
+* Fixed status code check in client Auth feature.
+* Fixed client close issue.
+* Fixed: `GMTDate.toJvmDate()` uses current date instead of given date. (#986)
+* Moved client auth to common.
+* Use `UTF-8` as default charset in BasicAuth.
+* Introduced client content encoding feature.
+* Introduced client call validator feature.
+* Old API deprecations and removals.
+
 # 1.1.3
 > Published 21 Feb 2019
 
