@@ -8,7 +8,7 @@ import io.ktor.client.response.*
 /**
  * Single [HttpClientCall] to [HttpResponse] mapper.
  */
-typealias MockRequestHandler = suspend HttpClientCall.(MockHttpRequest) -> HttpResponse
+typealias MockRequestHandler = suspend HttpClientCall.(request: MockHttpRequest) -> HttpResponse
 
 /**
  * [HttpClientEngineConfig] for [MockEngine].
