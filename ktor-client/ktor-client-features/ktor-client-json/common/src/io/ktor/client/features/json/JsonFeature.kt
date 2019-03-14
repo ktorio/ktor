@@ -64,7 +64,11 @@ class JsonFeature(val serializer: JsonSerializer) {
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
                 if (context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
-                proceedWith(HttpResponseContainer(info, feature.serializer.read(info, body.readRemaining())))
+                try {
+                    proceedWith(HttpResponseContainer(info, feature.serializer.read(info, body.readRemaining())))
+                } finally {
+                    context.close()
+                }
             }
         }
     }
