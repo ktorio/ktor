@@ -1,5 +1,15 @@
 package io.ktor.client.features.json
 
-import io.ktor.client.features.json.serializer.*
+import io.ktor.util.*
 
-actual fun defaultSerializer(): JsonSerializer = KotlinxSerializer()
+/**
+ * Platform default serializer.
+ */
+
+actual fun defaultSerializer(): JsonSerializer = serializers.first()
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+val serializers: MutableList<JsonSerializer> by lazy {
+    mutableListOf<JsonSerializer>()
+}
