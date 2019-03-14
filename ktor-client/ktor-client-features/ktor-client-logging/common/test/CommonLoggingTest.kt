@@ -38,6 +38,7 @@ class CommonLoggingTest {
 REQUEST: http://localhost/
 METHOD: HttpMethod(value=GET)
 COMMON HEADERS
+-> Accept-Charset: UTF-8
 -> Accept: */*
 CONTENT HEADERS
 BODY Content-Type: null
@@ -85,6 +86,7 @@ REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
 REQUEST: http://localhost/
 METHOD: HttpMethod(value=GET)
 COMMON HEADERS
+-> Accept-Charset: UTF-8
 -> Accept: */*
 CONTENT HEADERS
 BODY Content-Type: null

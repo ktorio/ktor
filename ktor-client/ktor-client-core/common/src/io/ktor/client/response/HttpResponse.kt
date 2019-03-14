@@ -2,6 +2,7 @@ package io.ktor.client.response
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
@@ -76,6 +77,6 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
     val packet = receive<ByteReadPacket>()
-    val actualCharset = charset() ?: charset ?: call.responseConfig.defaultCharset
+    val actualCharset = charset() ?: charset ?: call.client.feature(HttpPlainText)!!.responseCharsetFallback
     return packet.readText(charset = actualCharset)
 }
