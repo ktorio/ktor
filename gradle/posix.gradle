@@ -6,20 +6,66 @@ if (project.name != 'ktor-client-curl') {
     apply from: rootProject.file("gradle/native.gradle")
 }
 
+def getHostName() {
+    def target = System.getProperty("os.name")
+    if (target == 'Linux') return 'linux'
+    if (target.startsWith('Windows')) return 'windows'
+    if (target.startsWith('Mac')) return 'macos'
+    return 'unknown'
+}
+
+/**
+ * Disable cross compilation for missing cinterop.
+ * @param targets
+ */
+def disableCompilation(targets) {
+    configure(targets) {
+        compilations.all {
+            cinterops.all { project.tasks[interopProcessingTaskName].enabled = false }
+            compileKotlinTask.enabled = false
+        }
+        binaries.all { linkTask.enabled = false }
+
+        mavenPublication { publicationToDisable ->
+            tasks.withType(AbstractPublishToMaven).all {
+                onlyIf { publication != publicationToDisable }
+            }
+            tasks.withType(GenerateModuleMetadata).all {
+                onlyIf { publication.get() != publicationToDisable }
+            }
+        }
+    }
+}
+
 kotlin {
     targets {
         if (project.ext.ideaActive) {
             fromPreset(project.ext.ideaPreset, 'posix')
         } else {
             fromPreset(presets.linuxX64, 'linuxX64')
+            fromPreset(presets.macosX64, 'macosX64')
+            fromPreset(presets.mingwX64, 'mingwX64')
+
             if (project.name != 'ktor-client-curl') {
                 fromPreset(presets.iosArm64, 'iosArm64')
                 fromPreset(presets.iosArm32, 'iosArm32')
                 fromPreset(presets.iosX64, 'iosX64')
             }
-            fromPreset(presets.macosX64, 'macosX64')
-            fromPreset(presets.mingwX64, 'mingwX64')
 
+            def crossCompileTargets = [linuxX64, macosX64, mingwX64]
+            def host = getHostName()
+            switch (host) {
+                case 'linux':
+                    crossCompileTargets.remove(linuxX64)
+                    break
+                case 'windows':
+                    crossCompileTargets.remove(mingwX64)
+                    break
+                case 'macos':
+                    crossCompileTargets.remove(macosX64)
+                    break
+            }
+            disableCompilation(crossCompileTargets)
             configure([mingwX64Test]) {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
