@@ -2,6 +2,7 @@ package io.ktor.client.engine
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
+import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -13,8 +14,8 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val callSupervisor = SupervisorJob(clientContext)
 
     @UseExperimental(InternalCoroutinesApi::class)
-    override val dispatcher: ExperimentalCoroutineDispatcher by lazy {
-        ExperimentalCoroutineDispatcher(config.threadsCount)
+    override val dispatcher: CoroutineDispatcher by lazy {
+        Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher()
     }
 
     @UseExperimental(InternalCoroutinesApi::class)
@@ -32,13 +33,6 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
 
         callSupervisor.invokeOnCompletion {
             clientContext.complete(Unit)
-        }
-
-        clientContext.invokeOnCompletion {
-            GlobalScope.launch(dispatcher) {
-                @UseExperimental(InternalCoroutinesApi::class)
-                dispatcher.close()
-            }
         }
     }
 }
