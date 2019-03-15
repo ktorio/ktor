@@ -12,7 +12,6 @@ import libcurl.*
 @SharedImmutable
 private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL)
 
-@ThreadLocal
 private val initHook = Curl
 
 /**
