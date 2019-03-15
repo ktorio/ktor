@@ -4,7 +4,6 @@ import io.ktor.client.engine.*
 import platform.Foundation.*
 import kotlin.native.concurrent.*
 
-@ThreadLocal
 private val initHook = Ios
 
 /**
