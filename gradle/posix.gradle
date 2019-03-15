@@ -23,6 +23,19 @@ kotlin {
             configure([mingwX64Test]) {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
+
+            configure(['linuxX64']) {
+                def isCurrentHost = (name == getHostName())
+                compilations.all {
+                    cinterops.all {
+                        project.tasks[interopProcessingTaskName].enabled = isCurrentHost
+                    }
+                    compileKotlinTask.enabled = isCurrentHost
+                }
+                binaries.all {
+                    linkTask.enabled = isCurrentHost
+                }
+            }
         }
     }
     sourceSets {
