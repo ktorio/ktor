@@ -18,7 +18,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
     @UseExperimental(InternalCoroutinesApi::class)
-    private val selectorManager by lazy { ActorSelectorManager(dispatcher.blocking(1)) }
+    private val selectorManager by lazy { ActorSelectorManager(dispatcher) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = atomic(false)
