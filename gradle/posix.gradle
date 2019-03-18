@@ -25,6 +25,15 @@ def disableCompilation(targets) {
             compileKotlinTask.enabled = false
         }
         binaries.all { linkTask.enabled = false }
+
+        mavenPublication { publicationToDisable ->
+            tasks.withType(AbstractPublishToMaven).all {
+                onlyIf { publication != publicationToDisable }
+            }
+            tasks.withType(GenerateModuleMetadata).all {
+                onlyIf { publication.get() != publicationToDisable }
+            }
+        }
     }
 }
 
@@ -45,7 +54,7 @@ kotlin {
 
             def crossCompileTargets = [linuxX64, macosX64, mingwX64]
             def host = getHostName()
-            switch(host) {
+            switch (host) {
                 case 'linux':
                     crossCompileTargets.remove(linuxX64)
                     break
