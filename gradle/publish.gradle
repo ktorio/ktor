@@ -7,14 +7,6 @@ apply from: project.rootProject.file('gradle/pom.gradle')
 task emptyJar(type: Jar) {
 }
 
-task stubJavadoc(type: Jar) {
-    classifier 'javadoc'
-}
-
-task stubDokka(type: Jar) {
-    classifier 'kdoc'
-}
-
 def selectArtifactId(project, type, defaultName) {
     def name = project.name
     def isCommon = project.ext.has("commonStructure")
@@ -68,7 +60,6 @@ publishing {
                     username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
                     password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
                 }
-                
             }
         }
         maven { name = "testLocal"; url = "$rootProject.buildDir/m2" }
@@ -81,8 +72,8 @@ publishing {
         it.artifactId = id
 
         if (id.endsWith('native')) {
-            it.artifact stubJavadoc
-            it.artifact stubDokka
+            it.artifact(emptyJar) { classifier 'javadoc' }
+            it.artifact(emptyJar) { classifier 'kdoc' }
             it.artifact emptyJar
         }
     }
@@ -91,11 +82,17 @@ publishing {
 
         if (publication != null) {
             if (target.platformType.name == 'jvm') {
-                publication.artifact javadocJar
+                publication.artifact(emptyJar) {
+                    classifier 'javadoc'
+                }
                 publication.artifact dokkaJar
             } else {
-                publication.artifact stubJavadoc
-                publication.artifact stubDokka
+                publication.artifact(emptyJar) {
+                    classifier 'javadoc'
+                }
+                publication.artifact(emptyJar) {
+                    classifier 'kdoc'
+                }
             }
 
             if (target.platformType.name != 'native') {

@@ -9,6 +9,7 @@ build
 !.idea/dictionaries/*
 out
 *.iml
+.vscode
 
 *.versionsBackup
 *.releaseBackup
