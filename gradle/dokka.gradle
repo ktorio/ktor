@@ -11,23 +11,12 @@ dokka {
     reportUndocumented = false
 }
 
-task dokkaJavadoc(type: dokka.getClass()) {
-    outputFormat = 'javadoc'
-    outputDirectory = "$buildDir/javadoc"
-
-    kotlinTasks {
-        defaultKotlinTasks().findAll { it.name.contains("Jvm") }
-    }
-
-    reportUndocumented = false
-}
-
-task javadocJar(type: Jar, dependsOn: 'dokkaJavadoc') {
-    classifier = 'javadoc'
-    from fileTree(new File(project.buildDir, 'javadoc'))
-}
-
 task dokkaJar(type: Jar, dependsOn: 'dokka') {
-    classifier = 'kdoc'
+    classifier 'kdoc'
     from fileTree(new File(project.buildDir, 'kdoc'))
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from files()
 }
