@@ -2,6 +2,7 @@ package io.ktor.client.request.forms
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 import kotlin.contracts.*
 
@@ -29,7 +30,7 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
             is String -> PartData.FormItem(value, {}, partHeaders)
             is Number -> PartData.FormItem(value.toString(), {}, partHeaders)
             is ByteArray -> PartData.BinaryItem({ buildPacket { writeFully(value) } }, {}, partHeaders)
-            is Input -> PartData.BinaryItem({ value }, { }, partHeaders)
+            is InputProvider -> PartData.BinaryItem(value.block, {}, partHeaders)
             else -> throw error("Unknown form content type: $value")
         }
 
@@ -90,13 +91,22 @@ fun FormBuilder.append(
 inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
-    bodyBuilder: BytePacketBuilder.() -> Unit
+    crossinline bodyBuilder: BytePacketBuilder.() -> Unit
 ) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
-    append(FormPart(key, buildPacket { bodyBuilder() }, headers))
+    append(FormPart(key, InputProvider { buildPacket { bodyBuilder() } }, headers))
 }
+
+/**
+ * Reusable [Input] form entry.
+ *
+ * @param block: content generator
+ */
+@KtorExperimentalAPI
+class InputProvider(val block: () -> Input)
+
 
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.

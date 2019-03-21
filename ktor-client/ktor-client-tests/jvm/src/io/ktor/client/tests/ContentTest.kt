@@ -137,7 +137,7 @@ abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : Te
             )
 
             val response = client.submitForm<String>(
-                path = "news", port = serverPort, encodeInQuery = true, formData = form
+                path = "news", port = serverPort, encodeInQuery = true, formParameters = form
             )
 
             assertEquals("100", response)
@@ -153,7 +153,7 @@ abstract class ContentTest(private val factory: HttpClientEngineFactory<*>) : Te
             )
 
             val response = client.submitForm<String>(
-                path = "sign", port = serverPort, formData = form
+                path = "sign", port = serverPort, formParameters = form
             )
 
             assertEquals("success", response)
