@@ -1,11 +1,15 @@
 description = ''
 
-kotlin {
-    sourceSets {
-        jvmMain {
-            dependencies {
-                api group: 'io.micrometer', name: 'micrometer-core', version: '1.1.0'
-            }
-        }
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        // micrometer uses jdk 1.8 features, so we need to use that version here
+        jvmTarget = "1.8"
     }
 }
+
+kotlin {
+    sourceSets.jvmMain.dependencies {
+        api group: 'io.micrometer', name: 'micrometer-core', version: '1.1.3'
+    }
+}
+
