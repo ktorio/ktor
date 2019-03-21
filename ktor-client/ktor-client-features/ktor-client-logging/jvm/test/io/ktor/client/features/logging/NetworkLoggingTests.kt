@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 @Ignore("Log structure is engine dependent")
-class LoggingTest : TestWithKtor() {
+class NetworkLoggingTest : TestWithKtor() {
     val content = "Response data"
 
     override val server: ApplicationEngine = embeddedServer(Jetty, port = serverPort) {

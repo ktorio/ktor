@@ -37,3 +37,9 @@ fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel,
 
     return first to second
 }
+
+/**
+ * Read channel to byte array.
+ */
+@KtorExperimentalAPI
+suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()
