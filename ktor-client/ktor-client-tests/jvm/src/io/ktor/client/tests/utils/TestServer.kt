@@ -2,6 +2,7 @@ package io.ktor.client.tests.utils
 
 import ch.qos.logback.classic.*
 import io.ktor.application.*
+import io.ktor.auth.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -10,15 +11,24 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import org.slf4j.*
-import org.slf4j.Logger
 
 private val DEFAULT_PORT: Int = 8080
 
 internal fun startServer(): ApplicationEngine {
-    val logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+    val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     logger.level = Level.WARN
 
     return embeddedServer(Jetty, DEFAULT_PORT) {
+        install(Authentication) {
+            basic("test-basic") {
+                realm = "my-server"
+                validate { call ->
+                    if (call.name == "user1" && call.password == "Password1")
+                        UserIdPrincipal("user1")
+                    else null
+                }
+            }
+        }
         routing {
             post("/echo") {
                 val response = call.receiveText()
@@ -48,6 +58,19 @@ internal fun startServer(): ApplicationEngine {
                 route("/identity") {
                     install(Compression) { identity() }
                     setCompressionEndpoints()
+                }
+            }
+            route("/auth") {
+                route("/basic") {
+                    authenticate("test-basic") {
+                        post {
+                            val requestData = call.receiveText()
+                            if (requestData == "{\"test\":\"text\"}")
+                                call.respondText("OK")
+                            else
+                                call.respond(HttpStatusCode.BadRequest)
+                        }
+                    }
                 }
             }
         }
