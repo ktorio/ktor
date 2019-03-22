@@ -72,6 +72,7 @@ class JsonFeature(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
+
                 if (feature.allowedContentTypes.none { context.response.contentType()?.match(it) == true })
                     return@intercept
                 try {
