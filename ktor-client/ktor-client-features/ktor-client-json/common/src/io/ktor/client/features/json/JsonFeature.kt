@@ -72,7 +72,9 @@ class JsonFeature(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
-                if (context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+
+                if (feature.allowedContentTypes.none { context.response.contentType()?.match(it) == true })
+                    return@intercept
                 try {
                     proceedWith(HttpResponseContainer(info, feature.serializer.read(info, body.readRemaining())))
                 } finally {
