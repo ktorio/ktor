@@ -36,7 +36,6 @@ private fun CoroutineScope.inflate(
     source: ByteReadChannel,
     gzip: Boolean = true
 ): ByteReadChannel = writer {
-    source.readByteOrder = ByteOrder.LITTLE_ENDIAN
     val readBuffer = KtorDefaultPool.borrow()
     val writeBuffer = KtorDefaultPool.borrow()
     val inflater = Inflater(true)
