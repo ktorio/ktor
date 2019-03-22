@@ -65,3 +65,8 @@ public final class io/ktor/client/engine/mock/MockHttpResponse : io/ktor/client/
 	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
 }
 
+public final class io/ktor/client/engine/mock/MockUtilsKt {
+	public static final fun toByteArray (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun toByteReadPacket (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
