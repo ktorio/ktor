@@ -73,3 +73,10 @@ class JsonFeature(val serializer: JsonSerializer) {
         }
     }
 }
+
+/**
+ * Install [JsonFeature].
+ */
+fun HttpClientConfig<*>.Json(block: JsonFeature.Config.() -> Unit) {
+    install(JsonFeature, block)
+}

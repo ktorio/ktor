@@ -59,3 +59,10 @@ class Auth(
         }
     }
 }
+
+/**
+ * Install [Auth] feature.
+ */
+fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
+    install(Auth, block)
+}

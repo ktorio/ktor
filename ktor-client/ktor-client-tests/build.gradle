@@ -30,11 +30,13 @@ kotlin.sourceSets {
         api project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization')
     }
     commonTest.dependencies {
-        api project(':ktor-client:ktor-client-features:ktor-client-json')
+        api project(':ktor-client:ktor-client-features:ktor-client-auth')
+        api project(':ktor-client:ktor-client-features:ktor-client-logging')
     }
     jvmMain.dependencies {
         api project(':ktor-server:ktor-server-jetty')
         api project(':ktor-server:ktor-server-netty')
+        api project(':ktor-features:ktor-auth')
         api group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
         api group: 'junit', name: 'junit', version: junit_version
         api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
