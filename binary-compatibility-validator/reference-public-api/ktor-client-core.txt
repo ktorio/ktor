@@ -169,8 +169,7 @@ public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client
 	public fun close ()V
 	protected final fun createCallContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public synthetic fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
-	public fun getDispatcher ()Lkotlinx/coroutines/scheduling/ExperimentalCoroutineDispatcher;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 }
 
 public final class io/ktor/client/engine/UtilsKt {
@@ -593,6 +592,11 @@ public final class io/ktor/client/request/forms/FormPart {
 	public final fun getValue ()Ljava/lang/Object;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/request/forms/InputProvider {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public final fun getBlock ()Lkotlin/jvm/functions/Function0;
 }
 
 public final class io/ktor/client/request/forms/MultiPartFormDataContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {

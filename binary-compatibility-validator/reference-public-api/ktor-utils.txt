@@ -53,6 +53,7 @@ public final class io/ktor/util/BufferViewJvmKt {
 
 public final class io/ktor/util/ByteChannelsKt {
 	public static final fun split (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/CoroutineScope;)Lkotlin/Pair;
+	public static final fun toByteArray (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/BytesKt {
