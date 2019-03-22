@@ -11,12 +11,13 @@ import io.ktor.request.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlin.reflect.*
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.*
 
 /**
  * GSON converter for [ContentNegotiation] feature
  */
-class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
+class GsonConverter(private val gson: Gson = Gson(), private val attemptDeserializeEmptyBodies : Boolean = false) : ContentConverter {
     override suspend fun convertForSend(
         context: PipelineContext<Any, ApplicationCall>,
         contentType: ContentType,
@@ -35,7 +36,12 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
             throw ExcludedTypeGsonException(type)
         }
 
-        return gson.fromJson(reader, type.javaObjectType) ?: throw UnsupportedNullValuesException()
+        var result = gson.fromJson(reader, type.javaObjectType)
+        result = if (result == null && attemptDeserializeEmptyBodies) attemptToDeserializeEmptyBody(type) else result
+
+        if (result == null) throw UnsupportedNullValuesException()
+
+        return result
     }
 }
 
@@ -44,11 +50,12 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
  */
 fun ContentNegotiation.Configuration.gson(
     contentType: ContentType = ContentType.Application.Json,
-    block: GsonBuilder.() -> Unit = {}
+    block: GsonBuilder.() -> Unit = {},
+    attemptDeserializeEmptyBodies : Boolean = false
 ) {
     val builder = GsonBuilder()
     builder.apply(block)
-    val converter = GsonConverter(builder.create())
+    val converter = GsonConverter(builder.create(), attemptDeserializeEmptyBodies = attemptDeserializeEmptyBodies)
     register(contentType, converter)
 }
 

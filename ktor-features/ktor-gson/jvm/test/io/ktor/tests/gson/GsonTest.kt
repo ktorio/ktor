@@ -199,8 +199,31 @@ class GsonTest {
         }
     }
 
+    @Test
+    fun testSendEmptyBody(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson(attemptDeserializeEmptyBodies = true)
+            register(contentType = ContentType.Text.Any, converter = GsonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val result = call.receive<DefaultOrNullableEntity>()
+                call.respond(result)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("")
+        }.let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("{\"optional\":\"DefaultString\"}", it.response.content)
+        }
+    }
 }
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
+data class DefaultOrNullableEntity(val optional : String = "DefaultString", val nullable : String?)
 

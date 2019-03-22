@@ -9,6 +9,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import java.nio.charset.Charset
+import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.primaryConstructor
 
 /**
  * This feature provides automatic content conversion according to Content-Type and Accept headers
@@ -144,6 +147,38 @@ interface ContentConverter {
      * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
      */
     suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
+
+    /**
+     * If no message body has been provided, but the object in question's primary constructor either has 0 arguments,
+     * or arguments which are entirely nullable/optional, this will create the object using that constructor
+     *
+     * Otherwise, will return null
+     *
+     * @param type the type of the object that was trying to be deserialized
+     *
+     * @return if possible a converted value created via primary constructor
+     */
+    suspend fun attemptToDeserializeEmptyBody(type : KClass<*>) : Any? {
+        var result : Any? = null
+
+        if (type.primaryConstructor != null) {
+            val constructor = type.primaryConstructor
+            var allParametersNullableOrDefaultable = true
+            var arguments = HashMap<KParameter, Any?>()
+
+            constructor?.parameters?.forEach {
+                if (!it.isOptional && !it.type.isMarkedNullable) {
+                    allParametersNullableOrDefaultable = false
+                } else if (it.type.isMarkedNullable) {
+                    arguments.put(it, null)
+                }
+            }
+
+            result = if (allParametersNullableOrDefaultable) constructor?.callBy(arguments) else null
+        }
+
+        return result
+    }
 }
 
 /**
