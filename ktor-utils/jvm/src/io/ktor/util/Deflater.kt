@@ -3,7 +3,7 @@ package io.ktor.util
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.io.core.ByteOrder
+import kotlinx.io.bits.*
 import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import java.util.zip.*
@@ -31,14 +31,14 @@ internal fun Checksum.updateKeepPosition(buffer: ByteBuffer) {
 }
 
 private suspend fun ByteWriteChannel.putGzipHeader() {
-    writeShort(GZIP_MAGIC)
+    writeShort(GZIP_MAGIC.reverseByteOrder())
     writeByte(Deflater.DEFLATED.toByte())
     writeFully(GZIP_HEADER_PADDING)
 }
 
 private suspend fun ByteWriteChannel.putGzipTrailer(crc: Checksum, deflater: Deflater) {
-    writeInt(crc.value.toInt())
-    writeInt(deflater.totalIn)
+    writeInt(crc.value.toInt().reverseByteOrder())
+    writeInt(deflater.totalIn.reverseByteOrder())
 }
 
 private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: ByteBuffer, predicate: () -> Boolean) {
@@ -61,7 +61,6 @@ fun ByteReadChannel.deflated(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel = GlobalScope.writer(coroutineContext, autoFlush = true) {
-    channel.writeByteOrder = ByteOrder.LITTLE_ENDIAN
     val crc = CRC32()
     val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
     val input = pool.borrow()
