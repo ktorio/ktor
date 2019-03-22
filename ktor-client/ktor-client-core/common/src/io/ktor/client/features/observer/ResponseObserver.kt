@@ -38,7 +38,7 @@ class ResponseObserver(
         override fun install(feature: ResponseObserver, scope: HttpClient) {
 
             scope.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-                val (loggingContent, responseContent) = response.content.split(scope)
+                val (loggingContent, responseContent) = response.content.split(response)
 
                 val newClientCall = context.wrapWithContent(responseContent)
                 val sideCall = newClientCall.wrapWithContent(loggingContent)
@@ -50,7 +50,8 @@ class ResponseObserver(
                 context.response = newClientCall.response
                 context.request = newClientCall.request
 
-                response.close()
+                @Suppress("UNCHECKED_CAST")
+                (response.coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
                 proceedWith(context.response)
             }
         }

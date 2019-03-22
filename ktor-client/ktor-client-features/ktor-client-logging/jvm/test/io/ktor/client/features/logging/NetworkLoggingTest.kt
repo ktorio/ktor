@@ -1,6 +1,7 @@
 package io.ktor.client.features.logging
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -11,9 +12,9 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.*
 import kotlin.test.*
 
-@Ignore("Log structure is engine dependent")
 class NetworkLoggingTest : TestWithKtor() {
     val content = "Response data"
 
@@ -33,8 +34,9 @@ class NetworkLoggingTest : TestWithKtor() {
     }
 
 
+    @Ignore("Log structure is engine dependent")
     @Test
-    fun loggingLevelTest() = clientsTest {
+    fun testLoggingLevel() = clientsTest {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -109,7 +111,8 @@ FROM: http://localhost:$serverPort/
     }
 
     @Test
-    fun logPostBodyTest() = clientsTest {
+    @Ignore("Log structure is engine dependent")
+    fun testLogPostBody() = clientsTest {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -136,6 +139,7 @@ BODY END
         )
     }
 
+    @Ignore("Log structure is engine dependent")
     @Test
     fun logRedirectTest() = clientsTest {
         checkLog(
@@ -182,7 +186,7 @@ BODY END
     }
 
     @Test
-    fun customServerTest(): Unit = clientsTest {
+    fun customServerHeadersLoggingTest(): Unit = clientsTest {
         val testLogger = TestLogger()
 
         config {
@@ -194,6 +198,27 @@ BODY END
 
         test { client ->
             client.get<String>("http://google.com")
+        }
+    }
+
+    @Test
+    fun customServerTest() = clientsTest {
+        config {
+            Logging {
+                level = LogLevel.ALL
+                logger = Logger.EMPTY
+            }
+        }
+
+        test { client ->
+            client.call {
+                method = HttpMethod.Get
+                url("https://jigsaw.w3.org/HTTP/ChunkedScript")
+            }.use { call ->
+                val responseBytes = ByteArray(65536)
+                val body = call.response.content
+                body.readFully(responseBytes)
+            }
         }
     }
 
@@ -228,7 +253,7 @@ BODY END
             response.close()
             response.coroutineContext[Job]?.join()
 
-            assertEquals(expected, testLogger.dump())
+            assertEquals(expected.toLowerCase(), testLogger.dump().toLowerCase())
         }
     }
 }

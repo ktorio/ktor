@@ -22,8 +22,8 @@ class OkHttpEngine(
     override val config: OkHttpConfig
 ) : HttpClientJvmEngine("ktor-okhttp"), WebSocketEngine {
 
-    private val engine = config.preconfigured
-        ?: OkHttpClient.Builder().apply(config.config).build()!!
+    private val engine: OkHttpClient = config.preconfigured
+        ?: OkHttpClient.Builder().apply(config.config).build()
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
         val request = DefaultHttpRequest(call, data)

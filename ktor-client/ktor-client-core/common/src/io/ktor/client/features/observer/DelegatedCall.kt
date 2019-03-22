@@ -59,6 +59,7 @@ internal class DelegatedResponse(
     override val headers: Headers get() = origin.headers
 
     override fun close() {
+        super.close()
         completionState.complete(Unit)
     }
 }

@@ -57,6 +57,9 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
+        launch {
+            content.discard()
+        }
         @Suppress("UNCHECKED_CAST")
         (coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
     }
