@@ -29,7 +29,10 @@ expect fun defaultSerializer(): JsonSerializer
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is `application/json`
  */
-class JsonFeature(val serializer: JsonSerializer) {
+class JsonFeature(
+    val serializer: JsonSerializer,
+    val allowedContentTypes: List<ContentType>
+) {
     class Config {
         /**
          * Serialized that will be used for serializing requests bodies,
@@ -38,19 +41,25 @@ class JsonFeature(val serializer: JsonSerializer) {
          * Default value is [defultSerializer]
          */
         var serializer: JsonSerializer? = null
+        var allowedContentTypes: List<ContentType>? = null
     }
 
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
         override fun prepare(block: Config.() -> Unit): JsonFeature =
-            JsonFeature(Config().apply(block).serializer ?: defaultSerializer())
+            JsonFeature(
+                Config().apply(block).serializer ?: defaultSerializer(),
+                Config().apply(block).allowedContentTypes ?: listOf(ContentType.Application.Json)
+            )
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
-                context.accept(ContentType.Application.Json)
+                feature.allowedContentTypes.forEach { context.accept(it) }
 
-                if (context.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+                if (feature.allowedContentTypes.none { context.contentType()?.match(it) == true })
+                    return@intercept
+
                 context.headers.remove(HttpHeaders.ContentType)
 
                 if (payload is EmptyContent) {
