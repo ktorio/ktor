@@ -2,6 +2,7 @@ package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -9,6 +10,7 @@ import io.micrometer.core.instrument.*
 import io.micrometer.core.instrument.binder.*
 import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
+import io.micrometer.core.instrument.distribution.*
 import io.micrometer.core.instrument.simple.*
 import org.junit.Test
 import kotlin.reflect.*
@@ -29,7 +31,9 @@ class MicrometerMetricsTests {
                 call.respond("hello")
             }
         }
-        doOneRequest("/uri")
+        handleRequest {
+            uri = "/uri"
+        }
 
         val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
         assertEquals(1, timers.size)
@@ -55,7 +59,9 @@ class MicrometerMetricsTests {
             }
         }
         try {
-            doOneRequest("/uri")
+            handleRequest {
+                uri = "/uri"
+            }
         } catch (e: Exception) {
             // not interesting for this test
         }
@@ -84,7 +90,9 @@ class MicrometerMetricsTests {
             }
         }
 
-        doOneRequest("/uri/someParameterValue")
+        handleRequest {
+            uri = "/uri/someParameterValue"
+        }
 
         with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
             assertEquals(1, size)
@@ -95,6 +103,62 @@ class MicrometerMetricsTests {
                 assertTag("local", "localhost:80")
             }
         }
+    }
+
+    @Test
+    fun `individual tags can be added per call`(): Unit = withTestApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        application.install(MicrometerMetrics) {
+            registry = testRegistry
+            tagCustomizer = {
+                this.tag("customTag", "customValue")
+            }
+        }
+
+        application.routing {
+            get("/uri") {
+                call.respond("some response")
+            }
+        }
+
+        handleRequest {
+            uri = "/uri"
+        }
+
+        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+            assertEquals(1, size)
+            this.first().run {
+                assertTag("customTag", "customValue")
+            }
+        }
+    }
+
+    @Test
+    fun `histogram can be configured`() : Unit = withTestApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        application.install(MicrometerMetrics) {
+            registry = testRegistry
+            distributionStatisticConfig = DistributionStatisticConfig.Builder()
+                .percentiles(0.1, 0.2)
+                .build()
+        }
+
+        application.routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+        }
+        handleRequest {
+            uri = "/uri"
+        }
+
+        val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
+        assertEquals(1, timers.size)
+        val percentileValues = timers.first().takeSnapshot().percentileValues()
+        assertEquals(1, percentileValues.count { it.percentile() == 0.1 }, "$percentileValues should contain a 0.1 percentile")
+        assertEquals(1, percentileValues.count { it.percentile() == 0.2 }, "$percentileValues should contain a 0.2 percentile")
     }
 
     @Test
@@ -137,14 +201,6 @@ class MicrometerMetricsTests {
             JvmThreadMetrics::class,
             "jvm.threads.peak", "jvm.threads.daemon", "jvm.threads.live", "jvm.threads.states"
         )
-    }
-
-
-    private fun TestApplicationEngine.doOneRequest(path: String = "/uri") {
-        handleRequest {
-            uri = path
-            method = HttpMethod.Get
-        }
     }
 
 
