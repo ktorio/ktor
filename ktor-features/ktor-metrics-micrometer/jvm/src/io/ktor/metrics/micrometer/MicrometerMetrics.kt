@@ -1,6 +1,5 @@
 package io.ktor.metrics.micrometer
 
-//import io.ktor.auth.AuthenticationRouteSelector
 import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.routing.*
@@ -12,14 +11,38 @@ import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import java.util.concurrent.atomic.*
 
+
+/**
+ * Enables Micrometer support when installed. Exposes the following metrics:
+ * <ul>
+ *     <li><code>ktor.http.server.requests.active</code>: Gauge - The amount of active ktor requests</i>
+ *     <li><code>ktor.http.server.requests</code>: Timer - Timer for all requests. By default no percentiles or
+ *       histogram is exposed. Use the [Configuration.timerCustomizer] to enable these.
+ *       Tags:
+ *       <ul>
+ *           <li><code>local</code>: The host and port of the request uri (e.g. 'www.ktor.io')</li>
+ *           <li><code>method</code>: The http method (e.g. 'GET')</li>
+ *           <li><code>route</code>: The use ktor route used for this request. (e.g. '/some/path/{someParameter}')
+ *           <li><code>status</code>: The http status code or the Exception name thrown during the request (e.g. '200', 'java.lang.IllegalArgumentException')
+ *        <ul>
+ *     <li>
+ *  <ul>
+ */
 class MicrometerMetrics(
     private val registry: MeterRegistry,
-    private val timerCustomizer: Timer.Builder.() -> Unit
+    private val timerCustomizer: Timer.Builder.(ApplicationCall) -> Unit
 ) {
 
     private val active = registry.gauge("$baseName.requests.active", AtomicInteger(0))
 
+    /**
+     * Configures this Feature
+     * @property registry The meter registry where the meters are registered
+     * @property meterBinders The binders that are automatically bound to the registry
+     * @property timerCustomizer is called to customize the the timer (e.g. to enable histogram or percentile exposure)
+     */
     class Configuration {
+
         lateinit var registry: MeterRegistry
 
         var meterBinders: List<MeterBinder> = listOf(
@@ -31,7 +54,7 @@ class MicrometerMetrics(
             FileDescriptorMetrics()
         )
 
-        var timerCustomizer: Timer.Builder.() -> Unit = {}
+        var timerCustomizer: Timer.Builder.(ApplicationCall) -> Unit = {}
     }
 
     companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
@@ -86,7 +109,7 @@ class MicrometerMetrics(
     private fun ApplicationCall.tags(throwable: Throwable? = null) = listOf<Tag>(
         Tag.of("local", getLocalAddress()),
         Tag.of("method", request.httpMethod.value),
-        Tag.of("route", attributes[measureKey].route?: request.path()),
+        Tag.of("route", attributes[measureKey].route ?: request.path()),
         Tag.of("status", throwable?.let { it::class.qualifiedName } ?: getStatusCode())
     )
 
@@ -94,12 +117,12 @@ class MicrometerMetrics(
         stop(
             Timer.builder(requestTimerName)
                 .tags(call.tags(throwable))
-                .customize()
+                .customize(call)
                 .register(registry)
         )
     }
 
-    private fun Timer.Builder.customize(): Timer.Builder = apply(timerCustomizer)
+    private fun Timer.Builder.customize(call: ApplicationCall): Timer.Builder = apply(this.timerCustomizer(call))
 
     private fun before(call: ApplicationCall) {
         active?.incrementAndGet()
