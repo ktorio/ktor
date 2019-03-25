@@ -10,6 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import io.ktor.websocket.*
 import org.slf4j.*
 
 private val DEFAULT_PORT: Int = 8080
@@ -19,6 +20,7 @@ internal fun startServer(): ApplicationEngine {
     logger.level = Level.WARN
 
     return embeddedServer(Jetty, DEFAULT_PORT) {
+        install(WebSockets)
         install(Authentication) {
             basic("test-basic") {
                 realm = "my-server"
@@ -69,6 +71,15 @@ internal fun startServer(): ApplicationEngine {
                                 call.respondText("OK")
                             else
                                 call.respond(HttpStatusCode.BadRequest)
+                        }
+                        route("/ws") {
+                            route("/echo") {
+                                webSocket(protocol = "ocpp2.0,ocpp1.6") {
+                                    for (message in incoming) {
+                                        send(message)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

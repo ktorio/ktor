@@ -7,7 +7,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.content.*
 import io.ktor.http.*
-import kotlinx.coroutines.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
@@ -16,9 +15,9 @@ class MockEngineExtendedTests {
     @Test
     fun testExecutionOrder() = runBlocking {
         val mockEngine = MockEngine.config {
-            addHandler { respondOkText("first") }
+            addHandler { respondOk("first") }
             addHandler { respondBadRequest() }
-            addHandler { respondOkText("third") }
+            addHandler { respondOk("third") }
         }
 
         val client = HttpClient(mockEngine) { expectSuccess = false }
@@ -31,9 +30,9 @@ class MockEngineExtendedTests {
     @Test
     fun testReceivedRequest() = runBlocking {
         val mockEngine = MockEngine.config {
-            addHandler { respondOkText("first") }
-            addHandler { respondOkText("second") }
-            addHandler { respondOkText("third") }
+            addHandler { respondOk("first") }
+            addHandler { respondOk("second") }
+            addHandler { respondOk("third") }
         }.create() as MockEngine
 
         val client = HttpClient(mockEngine)
@@ -53,16 +52,16 @@ class MockEngineExtendedTests {
 
         assertEquals(firstCall.url.fullUrl, "http://127.0.0.1")
         assertEquals(firstCall.headers["header"], "first")
-        assertEquals((firstCall.content as TextContent).text, "body")
+        assertEquals((firstCall.body as TextContent).text, "body")
         assertEquals(secondCall.url.fullUrl, "https://127.0.0.02")
         assertEquals(secondCall.headers["header"], "second")
-        assertEquals((secondCall.content as TextContent).text, "secured")
+        assertEquals((secondCall.body as TextContent).text, "secured")
     }
 
     @Test
     fun testUnhandledRequest() = runBlocking {
         val mockEngine = MockEngine.config {
-            addHandler { respondOkText("text") }
+            addHandler { respondOk("text") }
             reuseHandlers = false
         }
 
@@ -80,19 +79,6 @@ class MockEngineExtendedTests {
 
         assertEquals("Unhandled http://localhost/unhandled", exception.message)
     }
-
-    private fun HttpClientCall.respondOkText(text: String) = MockHttpResponse(
-        this,
-        HttpStatusCode.OK,
-        ByteReadChannel(text.toByteArray()),
-        headersOf("header", "value")
-    )
-
-    private fun HttpClientCall.respondBadRequest() = MockHttpResponse(
-        this,
-        HttpStatusCode.BadRequest,
-        ByteReadChannel("Bad Request".toByteArray())
-    )
 
     private val Url.fullUrl: String get() = "${protocol.name}://$host"
 }

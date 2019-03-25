@@ -1,5 +1,6 @@
 package io.ktor.client.features.observer
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
@@ -27,11 +28,20 @@ fun HttpClientCall.wrapWithContent(
  * Wrap existing [HttpClientCall] with new [content].
  */
 @KtorExperimentalAPI
-fun HttpClientCall.wrapWithContent(
-    content: ByteReadChannel
-): HttpClientCall = HttpClientCall(client).apply {
-    request = DelegatedRequest(this, this@wrapWithContent.request)
-    response = DelegatedResponse(content, this, this@wrapWithContent.response)
+fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall = DelegatedCall(
+    client, content, this
+)
+
+internal class DelegatedCall(
+    client: HttpClient,
+    content: ByteReadChannel,
+    originCall: HttpClientCall
+) : HttpClientCall(client) {
+
+    init {
+        request = DelegatedRequest(this, originCall.request)
+        response = DelegatedResponse(this, content, originCall.response)
+    }
 }
 
 internal class DelegatedRequest(
@@ -40,8 +50,8 @@ internal class DelegatedRequest(
 ) : HttpRequest by origin
 
 internal class DelegatedResponse(
-    override val content: ByteReadChannel,
     override val call: HttpClientCall,
+    override val content: ByteReadChannel,
     private val origin: HttpResponse
 ) : HttpResponse {
     private val completionState: CompletableDeferred<Unit> = CompletableDeferred(origin.coroutineContext[Job])

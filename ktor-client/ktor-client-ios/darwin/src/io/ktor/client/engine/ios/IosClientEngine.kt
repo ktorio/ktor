@@ -22,11 +22,9 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
     override suspend fun execute(
-        call: HttpClientCall,
         data: HttpRequestData
-    ): HttpEngineCall = suspendCancellableCoroutine { continuation ->
+    ): HttpResponseData = suspendCancellableCoroutine { continuation ->
         val callContext = coroutineContext + CompletableDeferred<Unit>()
-        val request = DefaultHttpRequest(call, data)
         val requestTime = GMTDate()
 
         val delegate = object : NSObject(), NSURLSessionDataDelegateProtocol {
@@ -45,29 +43,31 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                     return
                 }
 
-                val response = task.response as NSHTTPURLResponse
+                val rawResponse = task.response as NSHTTPURLResponse
 
                 @Suppress("UNCHECKED_CAST")
-                val headersDict = response.allHeaderFields as Map<String, String>
+                val headersDict = rawResponse.allHeaderFields as Map<String, String>
 
-                val status = HttpStatusCode.fromValue(response.statusCode.toInt())
+                val status = HttpStatusCode.fromValue(rawResponse.statusCode.toInt())
                 val headers = buildHeaders {
                     headersDict.mapKeys { (key, value) -> append(key, value) }
                 }
 
-                val responseContext = writer(coroutineContext, autoFlush = true) {
+                val responseBody = writer(coroutineContext, autoFlush = true) {
                     while (!chunks.isClosedForReceive) {
                         val chunk = chunks.receive()
                         channel.writeFully(chunk)
                     }
-                }
+                }.channel
 
-                val result = IosHttpResponse(
-                    call, status, headers, requestTime,
-                    responseContext.channel, callContext
+                val version = HttpProtocolVersion.HTTP_1_1
+
+                val response = HttpResponseData(
+                    status, requestTime, headers, version,
+                    responseBody, callContext
                 )
 
-                continuation.resume(HttpEngineCall(request, result))
+                continuation.resume(response)
             }
         }
 
@@ -76,18 +76,18 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
             delegate, delegateQueue = NSOperationQueue.mainQueue()
         )
 
-        val url = URLBuilder().takeFrom(request.url).buildString()
+        val url = URLBuilder().takeFrom(data.url).buildString()
         val nativeRequest = NSMutableURLRequest.requestWithURL(NSURL(string = url))
 
-        mergeHeaders(request.headers, request.content) { key, value ->
+        mergeHeaders(data.headers, data.body) { key, value ->
             nativeRequest.setValue(value, key)
         }
 
         nativeRequest.setCachePolicy(NSURLRequestReloadIgnoringCacheData)
-        nativeRequest.setHTTPMethod(request.method.value)
+        nativeRequest.setHTTPMethod(data.method.value)
 
         launch(callContext) {
-            val content = request.content
+            val content = data.body
             val body = when (content) {
                 is OutgoingContent.ByteArrayContent -> content.bytes().toNSData()
                 is OutgoingContent.WriteChannelContent -> writer(dispatcher) {

@@ -1,8 +1,6 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.websocket.*
@@ -66,8 +64,8 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: HttpRequest, callContext: CoroutineContext): HttpResponse {
-        val result = CompletableDeferred<HttpResponse>(parent = callContext[Job])
+    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
+        val result = CompletableDeferred<HttpResponseData>(parent = callContext[Job])
         val task = RequestTask(request, result, callContext)
         tasks.offer(task)
         return result.await()
@@ -112,22 +110,22 @@ internal class Endpoint(
             val rawResponse = parseResponse(input)
                 ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-            val status = rawResponse.status
+            val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
             val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
             val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
             val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
             val headers = CIOHeaders(rawResponse.headers)
+            val version = HttpProtocolVersion.parse(rawResponse.version)
 
             callContext[Job]!!.invokeOnCompletion {
                 rawResponse.headers.release()
             }
 
-            if (status == HttpStatusCode.SwitchingProtocols.value) {
+            if (status == HttpStatusCode.SwitchingProtocols) {
                 val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
-                response.complete(WebSocketResponse(callContext, requestTime, session))
+                response.complete(HttpResponseData(status, requestTime, headers, version, session, callContext))
                 return@launch
             }
-
 
             val body = when {
                 request.method == HttpMethod.Head -> {
@@ -144,11 +142,7 @@ internal class Endpoint(
                 }
             }
 
-            val result = CIOHttpResponse(
-                request, headers, requestTime, body, rawResponse,
-                coroutineContext = callContext
-            )
-
+            val result = HttpResponseData(status, requestTime, headers, version, body, callContext)
             response.complete(result)
         } catch (cause: Throwable) {
             response.completeExceptionally(cause)
@@ -235,5 +229,3 @@ open class ConnectException : Exception("Connect timed out or retry attempts exc
 @KtorExperimentalAPI
 @Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
 class FailToConnectException : ConnectException()
-
-

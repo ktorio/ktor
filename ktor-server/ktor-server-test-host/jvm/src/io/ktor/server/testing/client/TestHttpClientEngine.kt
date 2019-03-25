@@ -5,32 +5,33 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.network.util.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
+@Suppress("KDocMissingDocumentation")
+@KtorExperimentalAPI
 class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher = Dispatchers.IO
     override val coroutineContext: CoroutineContext = dispatcher
 
     private val app: TestApplicationEngine = config.app
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = coroutineContext + CompletableDeferred<Unit>()
-        val request = TestHttpClientRequest(call, this, data)
-        val responseData = with(request) {
-            runRequest(method, url.fullPath, headers, content).response
-        }
+        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
 
-        val clientResponse = TestHttpClientResponse(
-            call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!, callContext
+        return HttpResponseData(
+            testServerCall.status()!!, GMTDate(),
+            testServerCall.headers.allValues(),
+            HttpProtocolVersion.HTTP_1_1,
+            ByteReadChannel(testServerCall.byteContent!!),
+            callContext
         )
-
-        return HttpEngineCall(request, clientResponse)
     }
 
     private fun runRequest(

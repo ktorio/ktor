@@ -3,9 +3,10 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.utils.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -51,23 +52,6 @@ interface HttpRequest : HttpMessage, CoroutineScope {
 }
 
 /**
- * Default [HttpRequest] implementation.
- */
-open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
-    override val coroutineContext: CoroutineContext get() = call.coroutineContext
-
-    override val method: HttpMethod = data.method
-
-    override val url: Url = data.url
-
-    override val content: OutgoingContent = data.body as OutgoingContent
-
-    override val headers: Headers = data.headers
-
-    override val attributes: Attributes = data.attributes
-}
-
-/**
  * Class for building [HttpRequestData].
  */
 class HttpRequestBuilder : HttpMessageBuilder {
@@ -105,7 +89,9 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Create immutable [HttpRequestData]
      */
     fun build(): HttpRequestData = HttpRequestData(
-        url.build(), method, headers.build(), body, executionContext, Attributes().apply(attributesBuilder)
+        url.build(), method, headers.build(),
+        body as? OutgoingContent ?: error("No request transformation found: $body"),
+        executionContext, Attributes().apply(attributesBuilder)
     )
 
     /**
@@ -136,14 +122,31 @@ class HttpRequestBuilder : HttpMessageBuilder {
  * Actual data of the [HttpRequest], including [url], [method], [headers], [body] and [executionContext].
  * Built by [HttpRequestBuilder].
  */
+@InternalAPI
 class HttpRequestData internal constructor(
     val url: Url,
     val method: HttpMethod,
     val headers: Headers,
-    val body: Any,
+    val body: OutgoingContent,
     val executionContext: Job,
     val attributes: Attributes
 )
+
+
+/**
+ * Data prepared for [HttpResponse].
+ */
+@InternalAPI
+class HttpResponseData constructor(
+    val statusCode: HttpStatusCode,
+    val requestTime: GMTDate,
+    val headers: Headers,
+    val version: HttpProtocolVersion,
+    val body: Any,
+    val callContext: CoroutineContext
+) {
+    val responseTime: GMTDate = GMTDate()
+}
 
 /**
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
@@ -217,3 +220,10 @@ operator fun HttpRequestBuilder.Companion.invoke(
 fun HttpRequestBuilder.url(urlString: String): Unit {
     url.takeFrom(urlString)
 }
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+fun HttpRequestData.isUpgradeRequest(): Boolean {
+    return body is ClientUpgradeContent
+}
+

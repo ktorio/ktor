@@ -9,23 +9,23 @@ import io.ktor.http.content.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
+internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext: CoroutineContext) {
     val builder = RequestResponseBuilder()
 
-    val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+    val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = content.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
     val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
 
     try {
         builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
         builder.headerLine("Host", url.hostWithPort)
 
-        mergeHeaders(headers, content) { key, value ->
+        mergeHeaders(headers, body) { key, value ->
             builder.headerLine(key, value)
         }
 
-        if (chunked && contentEncoding == null && responseEncoding == null && content !is OutgoingContent.NoContent) {
+        if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
         }
 
@@ -36,7 +36,7 @@ internal suspend fun HttpRequest.write(output: ByteWriteChannel, callContext: Co
         builder.release()
     }
 
-    val content = content
+    val content = body
     if (content is OutgoingContent.NoContent)
         return
 

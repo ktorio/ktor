@@ -22,7 +22,7 @@ class CookiesTest {
         assertEquals("1,2,3,4".encodeURLParameter(), cookies["first"])
         assertEquals("abc", cookies["second"])
 
-        request.responseOk()
+        respondOk()
     }) {
 
         config {

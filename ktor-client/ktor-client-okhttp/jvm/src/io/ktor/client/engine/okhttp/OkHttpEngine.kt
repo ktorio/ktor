@@ -20,37 +20,37 @@ import kotlin.coroutines.*
 @Suppress("KDocMissingDocumentation")
 class OkHttpEngine(
     override val config: OkHttpConfig
-) : HttpClientJvmEngine("ktor-okhttp"), WebSocketEngine {
+) : HttpClientJvmEngine("ktor-okhttp") {
 
     private val engine: OkHttpClient = config.preconfigured
         ?: OkHttpClient.Builder().apply(config.config).build()
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = DefaultHttpRequest(call, data)
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = createCallContext()
-        val engineRequest = request.convertToOkHttpRequest(callContext)
-        val response = executeHttpRequest(engineRequest, callContext, call)
+        val engineRequest = data.convertToOkHttpRequest(callContext)
 
-        return HttpEngineCall(request, response)
+        return if (data.isUpgradeRequest()) {
+            executeWebSocketRequest(engineRequest, callContext)
+        } else {
+            executeHttpRequest(engineRequest, callContext)
+        }
     }
 
-    override suspend fun execute(request: HttpRequest): WebSocketResponse {
-        check(request.url.protocol.isWebsocket())
-
-        val callContext = createCallContext()
-        val pingInterval = engine.pingIntervalMillis().toLong()
+    private suspend fun executeWebSocketRequest(
+        engineRequest: Request,
+        callContext: CoroutineContext
+    ): HttpResponseData {
         val requestTime = GMTDate()
-        val engineRequest = request.convertToOkHttpRequest(callContext)
-
         val session = OkHttpWebsocketSession(engine, engineRequest, callContext)
-        return WebSocketResponse(callContext, requestTime, session)
+
+        val originResponse = session.originResponse.await()
+        return buildResponseData(originResponse, requestTime, session, callContext)
     }
 
     private suspend fun executeHttpRequest(
         engineRequest: Request,
-        callContext: CoroutineContext,
-        call: HttpClientCall
-    ): HttpResponse {
+        callContext: CoroutineContext
+    ): HttpResponseData {
         val requestTime = GMTDate()
         val response = engine.execute(engineRequest)
 
@@ -64,24 +64,35 @@ class OkHttpEngine(
             ) ?: ByteReadChannel.Empty
         }
 
-        return OkHttpResponse(response, call, requestTime, responseContent, callContext)
+        return buildResponseData(response, requestTime, responseContent, callContext)
+
+    }
+
+    private fun buildResponseData(
+        response: Response, requestTime: GMTDate, body: Any, callContext: CoroutineContext
+    ): HttpResponseData {
+        val status = HttpStatusCode(response.code(), response.message())
+        val version = response.protocol().fromOkHttp()
+        val headers = response.headers().fromOkHttp()
+
+        return HttpResponseData(status, requestTime, headers, version, body, callContext)
     }
 }
 
-private fun HttpRequest.convertToOkHttpRequest(callContext: CoroutineContext): Request {
+private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
     val builder = Request.Builder()
 
     with(builder) {
         url(url.toString())
 
-        mergeHeaders(headers, content) { key, value ->
+        mergeHeaders(headers, body) { key, value ->
             addHeader(key, value)
         }
 
-        method(method.value, content.convertToOkHttpBody(callContext))
+        method(method.value, body.convertToOkHttpBody(callContext))
     }
 
-    return builder.build()!!
+    return builder.build()
 }
 
 internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext): RequestBody? = when (this) {

@@ -17,7 +17,7 @@ class CallValidatorTest {
 
         config {
             engine {
-                addHandler { it.responseOk() }
+                addHandler { respondOk() }
             }
             HttpResponseValidator {
                 handleResponseException {
@@ -77,7 +77,7 @@ class CallValidatorTest {
         var handleTriggered = false
         config {
             engine {
-                addHandler { response -> response.responseOk() }
+                addHandler { respondOk() }
             }
             HttpResponseValidator {
                 handleResponseException {
@@ -104,7 +104,7 @@ class CallValidatorTest {
 
         config {
             engine {
-                addHandler { it.responseOk() }
+                addHandler { respondOk() }
             }
             HttpResponseValidator {
                 handleResponseException {
@@ -144,7 +144,7 @@ class CallValidatorTest {
             engine {
                 addHandler {
                     val status = HttpStatusCode(42, "Awesome code")
-                    it.response("Awesome response", status)
+                    respond("Awesome response", status)
                 }
             }
 
