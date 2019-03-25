@@ -77,6 +77,10 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
     val packet = receive<ByteReadPacket>()
-    val actualCharset = charset() ?: charset ?: call.client.feature(HttpPlainText)!!.responseCharsetFallback
+    val actualCharset = charset()
+        ?: charset
+        ?: call.client.feature(HttpPlainText)?.responseCharsetFallback
+        ?: Charsets.UTF_8
+
     return packet.readText(charset = actualCharset)
 }

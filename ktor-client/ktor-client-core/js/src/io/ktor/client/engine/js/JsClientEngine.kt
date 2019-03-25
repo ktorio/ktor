@@ -1,51 +1,92 @@
 package io.ktor.client.engine.js
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatible.*
+import io.ktor.client.features.websocket.*
+import io.ktor.client.features.websocket.JsWebSocketSession
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import org.w3c.fetch.*
+import org.w3c.dom.*
+import org.w3c.fetch.Headers
 import kotlin.coroutines.*
 
 internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngine {
-    private val utils by lazy { Utils.get() }
-
     override val dispatcher: CoroutineDispatcher = Dispatchers.Default
 
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
     override suspend fun execute(
-        call: HttpClientCall, data: HttpRequestData
-    ): HttpEngineCall = withContext(dispatcher) {
+        data: HttpRequestData
+    ): HttpResponseData {
         val callContext = CompletableDeferred<Unit>(this@JsClientEngine.coroutineContext[Job]) + dispatcher
 
-        val requestTime = GMTDate()
-        val request = DefaultHttpRequest(call, data)
-        val rawResponse = fetch(request.url, CoroutineScope(callContext).toRaw(request))
+        if (data.isUpgradeRequest()) {
+            return executeWebSocketRequest(data, callContext)
+        }
 
-        val response = JsHttpResponse(
-            call,
+        val requestTime = GMTDate()
+        val rawRequest = data.toRaw(callContext)
+        val rawResponse = fetch(data.url.toString(), rawRequest)
+
+        val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
+        val headers = rawResponse.headers.mapToKtor()
+        val version = HttpProtocolVersion.HTTP_1_1
+
+        return HttpResponseData(
+            status,
             requestTime,
-            rawResponse,
-            utils.getBodyContentAsChannel(rawResponse, callContext),
+            headers, version,
+            readBody(rawResponse, callContext),
             callContext
         )
-        HttpEngineCall(request, response)
     }
 
-    override fun close() {
+    private suspend fun executeWebSocketRequest(
+        request: HttpRequestData,
+        callContext: CoroutineContext
+    ): HttpResponseData {
+        val requestTime = GMTDate()
+
+        val urlString = request.url.toString()
+        val socket: WebSocket = if (PlatformUtils.IS_NODE) {
+            val ws = js("require('ws')")
+            js("new ws(urlString)")
+        } else {
+            WebSocket(urlString)
+        }
+
+        socket.awaitConnection()
+
+        val session = JsWebSocketSession(callContext, socket)
+
+        return HttpResponseData(
+            HttpStatusCode.OK,
+            requestTime,
+            io.ktor.http.Headers.Empty,
+            HttpProtocolVersion.HTTP_1_1,
+            session,
+            callContext
+        )
     }
 
-    private suspend fun fetch(url: Url, request: RequestInit): Response = suspendCancellableCoroutine {
-        utils.fetch(url.toString(), request).then({ response ->
-            it.resume(response)
-        }, { cause ->
-            it.resumeWithException(JsError(cause))
-        })
+    override fun close() {}
+}
+
+private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
+    onopen = { continuation.resume(this) }
+    onerror = { continuation.resumeWithException(WebSocketException("$it")) }
+}
+
+private fun Headers.mapToKtor(): io.ktor.http.Headers = buildHeaders {
+    this@mapToKtor.asDynamic().forEach { value: String, key: String ->
+        append(key, value)
     }
+
+    Unit
 }
 
 /**

@@ -1,7 +1,9 @@
 package io.ktor.client.engine.okhttp
 
+import io.ktor.http.*
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.Headers
 import java.io.*
 import kotlin.coroutines.*
 
@@ -23,4 +25,26 @@ internal suspend fun OkHttpClient.execute(request: Request): Response = suspendC
     it.invokeOnCancellation { _ ->
         call.cancel()
     }
+}
+
+internal fun Headers.fromOkHttp(): io.ktor.http.Headers = object : io.ktor.http.Headers {
+    override val caseInsensitiveName: Boolean = false
+
+    override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name)
+
+    override fun names(): Set<String> = this@fromOkHttp.names()
+
+    override fun entries(): Set<Map.Entry<String, List<String>>> = this@fromOkHttp.toMultimap().entries
+
+    override fun isEmpty(): Boolean = this@fromOkHttp.size() == 0
+}
+
+@Suppress("DEPRECATION")
+internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
+    Protocol.HTTP_1_0 -> HttpProtocolVersion.HTTP_1_0
+    Protocol.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
+    Protocol.SPDY_3 -> HttpProtocolVersion.SPDY_3
+    Protocol.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
+    Protocol.H2_PRIOR_KNOWLEDGE -> HttpProtocolVersion.HTTP_2_0
+    Protocol.QUIC -> HttpProtocolVersion.QUIC
 }

@@ -9,12 +9,15 @@ import okhttp3.*
 import okio.*
 import kotlin.coroutines.*
 
+@UseExperimental(ObsoleteCoroutinesApi::class)
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext
 ) : DefaultWebSocketSession, WebSocketListener() {
     private val websocket: WebSocket = engine.newWebSocket(engineRequest, this)
+
+    internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
     override var pingIntervalMillis: Long
         get() = engine.pingIntervalMillis().toLong()
@@ -60,6 +63,11 @@ internal class OkHttpWebsocketSession(
         }
     }
 
+    override fun onOpen(webSocket: WebSocket, response: Response) {
+        super.onOpen(webSocket, response)
+        originResponse.complete(response)
+    }
+
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
         super.onMessage(webSocket, bytes)
         _incoming.sendBlocking(Frame.Binary(true, bytes.toByteArray()))
@@ -81,6 +89,7 @@ internal class OkHttpWebsocketSession(
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
 
+        originResponse.completeExceptionally(t)
         _incoming.close(t)
         outgoing.close(t)
     }

@@ -54,7 +54,7 @@ REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
 
     @Test
     fun testLogResponseWithException() = clientTest(MockEngine { request ->
-        request.responseOk("Hello")
+        respondOk("Hello")
     }) {
         val testLogger = TestLogger()
 
@@ -91,6 +91,14 @@ COMMON HEADERS
 CONTENT HEADERS
 BODY Content-Type: null
 BODY START
+BODY END
+RESPONSE: 200 OK
+METHOD: HttpMethod(value=GET)
+FROM: http://localhost/
+COMMON HEADERS
+BODY Content-Type: null
+BODY START
+Hello
 BODY END
 RESPONSE http://localhost/ failed with exception: CustomError: PARSE ERROR
 

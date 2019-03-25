@@ -10,11 +10,11 @@ import kotlinx.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequest.toCurlRequest(): CurlRequestData = CurlRequestData(
+internal suspend fun HttpRequestData.toCurlRequest(): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
-    content = content.toCurlByteArray()
+    content = body.toCurlByteArray()
 )
 
 internal class CurlRequestData(

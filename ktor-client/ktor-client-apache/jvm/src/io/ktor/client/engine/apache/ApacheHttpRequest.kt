@@ -1,40 +1,31 @@
 package io.ktor.client.engine.apache
 
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.apache.http.concurrent.*
 import org.apache.http.impl.nio.client.*
-import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
-
-internal class ApacheHttpRequest(
-    override val call: HttpClientCall,
-    requestData: HttpRequestData
-) : HttpRequest {
-    override val attributes: Attributes = requestData.attributes
-
-    override val method: HttpMethod = requestData.method
-    override val url: Url = requestData.url
-    override val headers: Headers = requestData.headers
-    override val content: OutgoingContent = requestData.body as OutgoingContent
-}
-
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
-    call: HttpClientCall,
     request: ApacheRequestProducer,
     callContext: CoroutineContext
-): ApacheHttpResponse {
-    val response = CompletableDeferred<ApacheHttpResponse>()
+): HttpResponseData {
+    val response = CompletableDeferred<HttpResponseData>()
     val requestTime = GMTDate()
 
     val consumer = ApacheResponseConsumer(callContext) { rawResponse, body ->
-        val result = ApacheHttpResponse(call, requestTime, rawResponse, body, callContext)
+        val statusLine = rawResponse.statusLine
+
+        val status = HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
+        val version = with(rawResponse.protocolVersion) { HttpProtocolVersion.fromValue(protocol, major, minor) }
+        val headers = Headers.build {
+            rawResponse.allHeaders.forEach { headerLine ->
+                append(headerLine.name, headerLine.value)
+            }
+        }
+        val result = HttpResponseData(status, requestTime, headers, version, body, callContext)
         response.complete(result)
     }
 

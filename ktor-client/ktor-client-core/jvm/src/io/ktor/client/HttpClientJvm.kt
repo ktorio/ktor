@@ -35,8 +35,7 @@ private val engines: List<HttpClientEngineContainer> = HttpClientEngineContainer
     ServiceLoader.load(it, it.classLoader).toList()
 }
 
-private val FACTORY = engines.firstOrNull()?.factory
-    ?: error(
-        "Failed to find HTTP client engine implementation in the classpath: consider adding client engine dependency. " +
-            "See https://ktor.io/clients/http-client/engines.html"
-    )
+private val FACTORY = engines.firstOrNull()?.factory ?: error(
+    "Failed to find HTTP client engine implementation in the classpath: consider adding client engine dependency. " +
+        "See https://ktor.io/clients/http-client/engines.html"
+)

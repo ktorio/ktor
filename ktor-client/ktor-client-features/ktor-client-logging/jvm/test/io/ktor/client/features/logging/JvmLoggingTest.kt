@@ -7,7 +7,7 @@ import kotlinx.io.core.*
 import kotlin.test.*
 
 
-class CommonLoggingTest {
+class JvmLoggingTest {
     @Test
     fun testLoggingWithForms() = clientTest(MockEngine) {
         val packetLogger = PacketLogger()
@@ -15,14 +15,14 @@ class CommonLoggingTest {
         config {
             engine {
                 addHandler { request ->
-                    val body = request.content.toByteReadPacket().lines().joinToString("\n")
+                    val body = request.body.toByteReadPacket().lines().joinToString("\n")
                     val log = packetLogger.buildLog().lines()
                         .drop(4)
                         .dropLast(3)
                         .joinToString("\n")
 
                     assertEquals(log, body)
-                    request.responseOk()
+                    respondOk()
                 }
             }
 

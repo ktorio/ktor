@@ -75,31 +75,7 @@ class HttpClient(
     /**
      * Pipeline used for sending the request
      */
-    val sendPipeline: HttpSendPipeline = HttpSendPipeline().apply {
-        intercept(HttpSendPipeline.Engine) { content ->
-            val call = HttpClientCall(this@HttpClient)
-            val requestData = HttpRequestBuilder().apply {
-                takeFrom(context)
-                body = content
-            }.build()
-
-            validateHeaders(requestData)
-
-            val (request, response) = engine.execute(call, requestData)
-
-            call.request = request
-            call.response = response
-
-            response.coroutineContext[Job]!!.invokeOnCompletion { cause ->
-                @Suppress("UNCHECKED_CAST")
-                val childContext = requestData.executionContext as CompletableDeferred<Unit>
-                if (cause == null) childContext.complete(Unit) else childContext.completeExceptionally(cause)
-            }
-
-            val receivedCall = receivePipeline.execute(call, call.response).call
-            proceedWith(receivedCall)
-        }
-    }
+    val sendPipeline: HttpSendPipeline = HttpSendPipeline()
 
     /**
      * Pipeline used for receiving request
@@ -130,6 +106,14 @@ class HttpClient(
     internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
+        engine.install(this)
+
+        sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
+            check(call is HttpClientCall)
+            val receivedCall = receivePipeline.execute(call, call.response).call
+            proceedWith(receivedCall)
+        }
+
         with(userConfig) {
             if (useDefaultTransformers) {
                 config.install(HttpPlainText)
@@ -185,14 +169,3 @@ class HttpClient(
 
 }
 
-/**
- * Validates request headers and fails if there are unsafe headers supplied
- */
-private fun validateHeaders(request: HttpRequestData) {
-    val requestHeaders = request.headers
-    for (header in HttpHeaders.UnsafeHeaders) {
-        if (header in requestHeaders) {
-            throw UnsafeHeaderException(header)
-        }
-    }
-}

@@ -10,6 +10,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlin.math.*
 
 /**
  * [HttpClient] feature that encodes [String] request bodies to [TextContent]
@@ -17,7 +18,7 @@ import kotlinx.io.core.*
  *
  * To configure charsets set following properties in [HttpPlainText.Config].
  */
-class HttpPlainText(
+class HttpPlainText internal constructor(
     acceptCharsets: Set<Charset>,
     charsetQuality: Map<Charset, Float>,
     sendCharset: Charset?,
@@ -40,7 +41,9 @@ class HttpPlainText(
                 if (length > 0) append(",")
 
                 check(quality in 0.0..1.0)
-                append("${charset.name};q=$quality")
+
+                val truncatedQuality = (100 * quality).roundToInt() / 100.0
+                append("${charset.name};q=$truncatedQuality")
             }
 
             if (isEmpty()) {
@@ -64,7 +67,9 @@ class HttpPlainText(
         /**
          * Add [charset] to allowed list with selected [quality].
          */
-        fun accept(charset: Charset, quality: Float? = null) {
+        fun register(charset: Charset, quality: Float? = null) {
+            quality?.let { check(it in 0.0..1.0) }
+
             acceptCharsets.add(charset)
 
             if (quality == null) {
@@ -77,7 +82,7 @@ class HttpPlainText(
         /**
          * Explicit [Charset] for sending content.
          *
-         * Send best from [accept] charset if null.
+         * Use first with highest quality from [register] charset if null.
          */
         var sendCharset: Charset? = null
 
@@ -120,9 +125,10 @@ class HttpPlainText(
                 if (content !is String) return@intercept
 
                 val contentType = context.contentType()
-                if (contentType != null) return@intercept
+                if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) return@intercept
 
-                proceedWith(feature.wrapContent(content))
+                val contentCharset = contentType?.charset()
+                proceedWith(feature.wrapContent(content, contentCharset))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
@@ -133,8 +139,9 @@ class HttpPlainText(
         }
     }
 
-    private fun wrapContent(content: String): Any {
-        return TextContent(content, ContentType.Text.Plain.withCharset(requestCharset))
+    private fun wrapContent(content: String, contentCharset: Charset?): Any {
+        val charset = contentCharset ?: requestCharset
+        return TextContent(content, ContentType.Text.Plain.withCharset(charset))
     }
 
     internal fun read(call: HttpClientCall, body: Input): String {
@@ -156,8 +163,8 @@ class HttpPlainText(
         level = DeprecationLevel.ERROR
     )
     var defaultCharset: Charset
-        get () = error("defaultCharset is deprecated")
-        set(_) = error("defaultCharset is deprecated")
+        get() = error("defaultCharset is deprecated")
+        set(value) = error("defaultCharset is deprecated")
 }
 
 /**

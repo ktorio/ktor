@@ -113,12 +113,7 @@ object HttpHeaders {
      */
     fun isUnsafe(header: String): Boolean = UnsafeHeaders.any { it.equals(header, ignoreCase = true) }
 
-    val UnsafeHeaders: Array<String> = arrayOf(
-        HttpHeaders.ContentLength,
-        HttpHeaders.ContentType,
-        HttpHeaders.TransferEncoding,
-        HttpHeaders.Upgrade
-    )
+    val UnsafeHeaders: Array<String> = arrayOf(ContentLength, ContentType, TransferEncoding, Upgrade)
 }
 
 /**

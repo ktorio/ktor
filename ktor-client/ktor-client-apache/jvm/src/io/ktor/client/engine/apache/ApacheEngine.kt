@@ -1,6 +1,5 @@
 package io.ktor.client.engine.apache
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import org.apache.http.impl.nio.client.*
@@ -13,13 +12,10 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
 
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = createCallContext()
-        val engineRequest = ApacheHttpRequest(call, data)
-        val apacheRequest = ApacheRequestProducer(data, config, engineRequest.content, callContext)
-        val engineResponse = engine.sendRequest(call, apacheRequest, callContext)
-
-        return HttpEngineCall(engineRequest, engineResponse)
+        val apacheRequest = ApacheRequestProducer(data, config, callContext)
+        return engine.sendRequest(apacheRequest, callContext)
     }
 
     override fun close() {

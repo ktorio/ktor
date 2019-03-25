@@ -15,6 +15,7 @@ import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
+import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
 internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
@@ -88,30 +89,25 @@ internal class JettyResponseListener(
 
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
-        try {
-            while (!backendChannel.isClosedForReceive) {
-                val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
-                try {
-                    if (buffer.remaining() > 0) channel.writeFully(buffer)
-                    callback.succeeded()
-                } catch (cause: ClosedWriteChannelException) {
-                    callback.failed(cause)
-                    session.endPoint.close()
-                    break
-                } catch (cause: Throwable) {
-                    callback.failed(cause)
-                    session.endPoint.close()
-                    throw cause
-                }
+        while (!backendChannel.isClosedForReceive) {
+            val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
+            try {
+                if (buffer.remaining() > 0) channel.writeFully(buffer)
+                callback.succeeded()
+            } catch (cause: ClosedWriteChannelException) {
+                callback.failed(cause)
+                session.endPoint.close()
+                break
+            } catch (cause: Throwable) {
+                callback.failed(cause)
+                session.endPoint.close()
+                throw cause
             }
-        } catch (cause: Throwable) {
-            channel.close(cause)
-            this@JettyResponseListener.callContext.cancel()
-        } finally {
-            backendChannel.close()
-            backendChannel.consumeEach { it.callback.succeeded() }
-            channel.close()
         }
+    }.invokeOnCompletion { cause ->
+        channel.close(cause)
+        backendChannel.close()
+        GlobalScope.launch { backendChannel.consumeEach { it.callback.succeeded() } }
     }
 
     companion object {

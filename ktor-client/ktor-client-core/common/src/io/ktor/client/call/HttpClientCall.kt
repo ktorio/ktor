@@ -7,16 +7,31 @@ import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
+
+@InternalAPI
+internal fun HttpClientCall(
+    client: HttpClient,
+    requestData: HttpRequestData,
+    responseData: HttpResponseData
+): HttpClientCall = HttpClientCall(client).apply {
+    request = DefaultHttpRequest(this, requestData)
+    response = DefaultHttpResponse(this, responseData)
+
+    if (responseData.body !is ByteReadChannel) {
+        attributes.put(HttpClientCall.CustomResponse, responseData.body)
+    }
+}
 
 /**
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
  *
  * @property client: client that executed the call.
  */
-open class HttpClientCall constructor(
+open class HttpClientCall internal constructor(
     val client: HttpClient
 ) : CoroutineScope, Closeable {
     private val received = atomic(false)
@@ -43,6 +58,10 @@ open class HttpClientCall constructor(
     /**
      * Configuration for the [response].
      */
+    @Deprecated(
+        message = "responseConfig is deprecated. Consider using [Charsets] config instead",
+        level = DeprecationLevel.ERROR
+    )
     val responseConfig: HttpResponseConfig = client.engineConfig.response
 
     /**
@@ -56,7 +75,9 @@ open class HttpClientCall constructor(
         if (info.type.isInstance(response)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val subject = HttpResponseContainer(info, response.content)
+        val responseData  = attributes.getOrNull(CustomResponse) ?: response.content
+
+        val subject = HttpResponseContainer(info, responseData)
         val result = client.responsePipeline.execute(this, subject).response
         if (!info.type.isInstance(result)) {
             throw NoTransformationFoundException(result::class, info.type)
@@ -71,6 +92,17 @@ open class HttpClientCall constructor(
     override fun close() {
         response.close()
     }
+
+    companion object {
+        /**
+         * [CustomResponse] key used to process the response of custom type in case of [HttpClientEngine] can't return body bytes directly.
+         * If present, attribute value will be an initial value for [HttpResponseContainer] in [HttpClient.responsePipeline].
+         *
+         * Example: [WebSocketSession]
+         */
+        @KtorExperimentalAPI
+        val CustomResponse: AttributeKey<Any> = AttributeKey<Any>("CustomResponse")
+    }
 }
 
 /**
@@ -79,6 +111,12 @@ open class HttpClientCall constructor(
  * @property request - executed http request.
  * @property response - raw http response
  */
+@Deprecated(
+    "HttpEngineCall deprecated.",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("HttpResponseData")
+)
+@InternalAPI
 data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
 
 /**

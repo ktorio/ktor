@@ -42,7 +42,7 @@ class Auth(
             scope.feature(HttpSend)!!.intercept { origin ->
                 var call = origin
 
-                while (call.response.status.value == HttpStatusCode.Unauthorized.value) {
+                while (call.response.status == HttpStatusCode.Unauthorized) {
                     val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
                     val provider = feature.providers.find { it.isApplicable(authHeader) } ?: return@intercept call

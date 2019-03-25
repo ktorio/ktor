@@ -27,7 +27,12 @@ class AndroidEngineConfig : HttpClientEngineConfig() {
     var proxy: Proxy? = null
 
     /**
-     * https connection manipulator. inherited methods are not permitted.
+     * Https connection manipulator. inherited methods are not permitted.
      */
     var sslManager: (HttpsURLConnection) -> Unit = {}
+
+    /**
+     * Engine specific request configuration.
+     */
+    var requestConfig: HttpURLConnection.() -> Unit = {}
 }

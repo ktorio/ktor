@@ -1,5 +1,6 @@
 package io.ktor.client.engine.cio
 
+import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -75,12 +76,14 @@ internal class ConnectionPipeline(
                         rawResponse.headers.release()
                     }
 
+                    val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
                     val method = task.request.method
                     val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
                     val headers = CIOHeaders(rawResponse.headers)
+                    val version = HttpProtocolVersion.parse(rawResponse.version)
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
@@ -98,13 +101,7 @@ internal class ConnectionPipeline(
                         body.cancel()
                     }
 
-                    val response = CIOHttpResponse(
-                        task.request, headers, requestTime,
-                        body,
-                        rawResponse,
-                        coroutineContext = callContext
-                    )
-
+                    val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
                     task.response.complete(response)
 
                     responseChannel?.use {

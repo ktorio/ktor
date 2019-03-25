@@ -1,7 +1,10 @@
 package io.ktor.client.engine
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
 
@@ -23,8 +26,36 @@ interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * Creates a new [HttpClientCall] specific for this engine, using a request [data].
      */
-    suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall
+    @InternalAPI
+    suspend fun execute(data: HttpRequestData): HttpResponseData
+
+    /**
+     * Install engine into [HttpClient].
+     */
+    @InternalAPI
+    fun install(client: HttpClient) {
+        client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
+            val requestData = HttpRequestBuilder().apply {
+                takeFrom(context)
+                body = content
+            }.build()
+
+            validateHeaders(requestData)
+
+            val responseData = execute(requestData)
+            val call = HttpClientCall(client, requestData, responseData)
+
+            responseData.callContext[Job]!!.invokeOnCompletion { cause ->
+                @Suppress("UNCHECKED_CAST")
+                val childContext = requestData.executionContext as CompletableDeferred<Unit>
+                if (cause == null) childContext.complete(Unit) else childContext.completeExceptionally(cause)
+            }
+
+            proceedWith(call)
+        }
+    }
 }
+
 
 /**
  * Factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].
@@ -47,6 +78,18 @@ fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() 
         override fun create(block: T.() -> Unit): HttpClientEngine = parent.create {
             nested()
             block()
+        }
+    }
+}
+
+/**
+ * Validates request headers and fails if there are unsafe headers supplied
+ */
+private fun validateHeaders(request: HttpRequestData) {
+    val requestHeaders = request.headers
+    for (header in HttpHeaders.UnsafeHeaders) {
+        if (header in requestHeaders) {
+            throw UnsafeHeaderException(header)
         }
     }
 }
