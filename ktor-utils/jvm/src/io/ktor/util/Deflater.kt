@@ -13,14 +13,14 @@ import kotlin.coroutines.*
 internal const val GZIP_MAGIC: Short = 0x8b1f.toShort()
 internal val GZIP_HEADER_PADDING: ByteArray = ByteArray(7)
 
-private fun Deflater.deflate(outBuffer: ByteBuffer) {
+private fun Deflater.deflateTo(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {
         val written = deflate(outBuffer.array(), outBuffer.arrayOffset() + outBuffer.position(), outBuffer.remaining())
         outBuffer.position(outBuffer.position() + written)
     }
 }
 
-private fun Deflater.setInput(buffer: ByteBuffer) {
+private fun Deflater.setInputBuffer(buffer: ByteBuffer) {
     require(buffer.hasArray()) { "buffer need to be array-backed" }
     setInput(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
 }
@@ -44,7 +44,7 @@ private suspend fun ByteWriteChannel.putGzipTrailer(crc: Checksum, deflater: Def
 private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: ByteBuffer, predicate: () -> Boolean) {
     while (predicate()) {
         buffer.clear()
-        deflater.deflate(buffer)
+        deflater.deflateTo(buffer)
         buffer.flip()
         writeFully(buffer)
     }
@@ -77,7 +77,7 @@ fun ByteReadChannel.deflated(
             input.flip()
 
             crc.updateKeepPosition(input)
-            deflater.setInput(input)
+            deflater.setInputBuffer(input)
             channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
         }
 
