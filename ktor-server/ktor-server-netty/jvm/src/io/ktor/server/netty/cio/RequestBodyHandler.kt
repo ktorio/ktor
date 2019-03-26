@@ -111,6 +111,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     private fun consumeAndReleaseQueue() {
+        @Suppress("DEPRECATION_ERROR")
         while (!queue.isEmpty) {
             val e = try { queue.poll() } catch (t: Throwable) { null } ?: break
 

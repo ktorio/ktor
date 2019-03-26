@@ -38,6 +38,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
+    @Suppress("DEPRECATION_ERROR")
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
