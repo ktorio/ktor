@@ -16,3 +16,6 @@ task dokkaJar(type: Jar, dependsOn: 'dokka') {
     from fileTree(new File(project.buildDir, 'kdoc'))
 }
 
+task dokkaJavadoc {
+    // do nothing
+}
