@@ -113,7 +113,7 @@ class MicrometerMetricsTests {
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
-            tags = {
+            tags {
                 defaultTags()
                 tag("customTag", "customValue")
             }
@@ -136,6 +136,8 @@ class MicrometerMetricsTests {
             }
         }
     }
+
+
 
     @Test
     fun `histogram can be configured`() : Unit = withTestApplication {

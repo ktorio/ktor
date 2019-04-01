@@ -79,8 +79,12 @@ class MicrometerMetrics(
                 .percentiles(0.5, 0.9, 0.95, 0.99)
                 .build()
 
-        var tags: TagBuilder.() -> Unit = {
+        internal var tags: TagBuilder.() -> Unit = {
             defaultTags()
+        }
+
+        fun tags(block: TagBuilder.() -> Unit) {
+            tags = block
         }
     }
 
