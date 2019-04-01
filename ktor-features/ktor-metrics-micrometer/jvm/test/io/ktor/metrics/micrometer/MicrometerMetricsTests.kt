@@ -26,6 +26,7 @@ class MicrometerMetricsTests {
 
         application.routing {
             get("/uri") {
+                testRegistry.assertActive(1.0)
                 call.respond("hello")
             }
         }
@@ -41,6 +42,8 @@ class MicrometerMetricsTests {
             assertTag("method", "GET")
             assertTag("local", "localhost:80")
         }
+
+        testRegistry.assertActive(0.0)
     }
 
     @Test
@@ -53,6 +56,7 @@ class MicrometerMetricsTests {
 
         application.routing {
             get("/uri") {
+                testRegistry.assertActive(1.0)
                 throw IllegalAccessException("something went wrong")
             }
         }
@@ -72,6 +76,7 @@ class MicrometerMetricsTests {
                 assertTag("local", "localhost:80")
             }
         }
+        testRegistry.assertActive(0.0)
     }
 
     @Test
@@ -85,10 +90,6 @@ class MicrometerMetricsTests {
         application.routing {
             get("/uri/{someParameter}") {
                 call.respond("some response")
-
-                application.feature(MicrometerMetrics)
-
-
             }
         }
 
@@ -135,9 +136,12 @@ class MicrometerMetricsTests {
                 assertTag("customTag", "customValue")
             }
         }
+        testRegistry.assertActive(0.0)
     }
 
-
+    private fun MeterRegistry.assertActive(expectedValue: Double) {
+        assertEquals(expectedValue, this[MicrometerMetrics.activeGaugeName].gauge().value())
+    }
 
     @Test
     fun `histogram can be configured`() : Unit = withTestApplication {

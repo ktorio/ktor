@@ -36,7 +36,7 @@ class MicrometerMetrics(
     private val tags: MicrometerMetrics.TagBuilder.() -> Unit
 ) {
 
-    private val active = registry.gauge("$baseName.requests.active", AtomicInteger(0))
+    private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
 
     init {
         enableTimerDistributionConfig(timerDistributionConfig)
@@ -106,15 +106,9 @@ class MicrometerMetrics(
         call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
     }
 
-    private fun after(call: ApplicationCall) {
+    private fun after(call: ApplicationCall, e: Throwable? = null) {
         active?.decrementAndGet()
 
-        call.attributes.getOrNull(measureKey)?.apply {
-            timer.recordDuration(call)
-        }
-    }
-
-    private fun exception(call: ApplicationCall, e: Throwable) {
         call.attributes.getOrNull(measureKey)?.apply {
             timer.recordDuration(call, e)
         }
@@ -123,6 +117,7 @@ class MicrometerMetrics(
     companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
         private const val baseName: String = "ktor.http.server"
         const val requestTimerName = "$baseName.requests"
+        const val activeGaugeName = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -146,8 +141,8 @@ class MicrometerMetrics(
                 try {
                     proceed()
                     feature.after(call)
-                } catch (e: Exception) {
-                    feature.exception(call, e)
+                } catch (e: Throwable) {
+                    feature.after(call, e)
                     throw e
                 }
             }
