@@ -7,6 +7,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -305,6 +306,33 @@ class JWTAuthTest {
         val algorithm = jwk.makeAlgorithm()
         val verifier = JWT.require(algorithm).withIssuer(issuer).build()
         verifier.verify(token)
+    }
+
+    @Test
+    fun authHeaderFromCookie(): Unit = withApplication {
+        application.configureServer {
+            jwt {
+                this@jwt.realm = this@JWTAuthTest.realm
+                authHeader { call ->
+                    call.request.cookies["JWT"]?.let { parseAuthorizationHeader(it) }
+                }
+                verifier(makeJwtVerifier())
+                validate { jwt ->
+                    JWTPrincipal(jwt.payload)
+                }
+            }
+        }
+
+        val token = getToken()
+
+        val response = handleRequest {
+            uri = "/"
+            addHeader(HttpHeaders.Cookie, "JWT=${token.encodeURLParameter()}")
+        }
+
+        assertTrue(response.requestHandled)
+        assertEquals(HttpStatusCode.OK, response.response.status())
+        assertNotNull(response.response.content)
     }
 
     private fun verifyResponseUnauthorized(response: TestApplicationCall) {
