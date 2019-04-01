@@ -8,6 +8,9 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
 
+@Deprecated(replaceWith = DropwizardMetrics::class)
+typealias Metrics = DropwizardMetrics
+
 class DropwizardMetrics(val registry: MetricRegistry) {
     val baseName: String = MetricRegistry.name("ktor.calls")
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
