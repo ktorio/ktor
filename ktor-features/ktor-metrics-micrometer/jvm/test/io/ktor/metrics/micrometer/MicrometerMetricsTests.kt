@@ -1,8 +1,6 @@
 package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -87,6 +85,10 @@ class MicrometerMetricsTests {
         application.routing {
             get("/uri/{someParameter}") {
                 call.respond("some response")
+
+                application.feature(MicrometerMetrics)
+
+
             }
         }
 
@@ -111,8 +113,9 @@ class MicrometerMetricsTests {
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
-            tagCustomizer = {
-                this.tag("customTag", "customValue")
+            tags = {
+                defaultTags()
+                tag("customTag", "customValue")
             }
         }
 
