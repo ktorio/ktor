@@ -40,12 +40,22 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
 
     internal var schemes = JWTAuthSchemes("Bearer")
+    internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
+        { call -> call.request.parseAuthorizationHeaderOrNull() }
+
     internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
 
     /**
      * JWT realm name that will be used during auth challenge
      */
     var realm: String = "Ktor Server"
+
+    /**
+     * Http auth header retrieval function. By default it does parse `Authorization` header content.
+     */
+    fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
+        authHeader = block
+    }
 
     /**
      * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
@@ -110,7 +120,7 @@ fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthent
     val verifier = provider.verifier
     val schemes = provider.schemes
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.request.parseAuthorizationHeaderOrNull()
+        val token = provider.authHeader(call)
         if (token == null) {
             context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes)
             return@intercept
