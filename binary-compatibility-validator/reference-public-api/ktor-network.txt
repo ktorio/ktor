@@ -207,6 +207,7 @@ public final class io/ktor/network/sockets/SocketBuilder : io/ktor/network/socke
 
 public abstract class io/ktor/network/sockets/SocketOptions {
 	public static final field Companion Lio/ktor/network/sockets/SocketOptions$Companion;
+	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
 	protected final fun getCustomOptions ()Ljava/util/Map;
 	public final fun getReuseAddress ()Z
@@ -218,6 +219,7 @@ public abstract class io/ktor/network/sockets/SocketOptions {
 }
 
 public final class io/ktor/network/sockets/SocketOptions$AcceptorOptions : io/ktor/network/sockets/SocketOptions {
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 }
 
 public final class io/ktor/network/sockets/SocketOptions$Companion {
@@ -225,6 +227,7 @@ public final class io/ktor/network/sockets/SocketOptions$Companion {
 }
 
 public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/network/sockets/SocketOptions {
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun getReceiveBufferSize ()I
 	public final fun getSendBufferSize ()I
@@ -233,6 +236,8 @@ public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/n
 }
 
 public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	public final fun getKeepAlive ()Ljava/lang/Boolean;
 	public final fun getLingerSeconds ()I
 	public final fun getNoDelay ()Z
@@ -242,6 +247,8 @@ public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions 
 }
 
 public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
+	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 }
 
 public final class io/ktor/network/sockets/SocketsKt {

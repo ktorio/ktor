@@ -12,6 +12,7 @@ public final class io/ktor/http/BadContentTypeFormatException : java/lang/Except
 }
 
 public abstract class io/ktor/http/CacheControl {
+	public synthetic fun <init> (Lio/ktor/http/CacheControl$Visibility;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getVisibility ()Lio/ktor/http/CacheControl$Visibility;
 }
 
@@ -990,6 +991,7 @@ public final class io/ktor/http/auth/HeaderValueEncoding : java/lang/Enum {
 
 public abstract class io/ktor/http/auth/HttpAuthHeader {
 	public static final field Companion Lio/ktor/http/auth/HttpAuthHeader$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAuthScheme ()Ljava/lang/String;
 	public abstract fun render ()Ljava/lang/String;
 	public abstract fun render (Lio/ktor/http/auth/HeaderValueEncoding;)Ljava/lang/String;
@@ -1196,6 +1198,7 @@ public abstract class io/ktor/http/content/OutgoingContent$WriteChannelContent :
 }
 
 public abstract class io/ktor/http/content/PartData {
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/http/Headers;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getContentDisposition ()Lio/ktor/http/ContentDisposition;
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getDispose ()Lkotlin/jvm/functions/Function0;
