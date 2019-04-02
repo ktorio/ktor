@@ -18,7 +18,7 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
 
     @UseExperimental(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
-        dispatcher + clientContext + CoroutineName("$engineName-context")
+        _dispatcher + clientContext + CoroutineName("$engineName-context")
     }
 
     /**

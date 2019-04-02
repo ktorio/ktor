@@ -1,10 +1,10 @@
-
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.logging.*
-import io.ktor.client.features.logging.TestLogger
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 
@@ -26,29 +26,16 @@ class CommonLoggingTest {
         test { client ->
             var failed = false
             try {
-                client.get<String>()
+                val response = client.get<HttpResponse>()
             } catch (_: Throwable) {
                 failed = true
             }
 
             assertTrue(failed, "Exception is missing.")
 
-            assertEquals(
-                """
-REQUEST: http://localhost/
-METHOD: HttpMethod(value=GET)
-COMMON HEADERS
--> Accept-Charset: UTF-8
--> Accept: */*
-CONTENT HEADERS
-BODY Content-Type: null
-BODY START
-BODY END
-REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
-
-                """.trimIndent(),
-                testLogger.dump()
-            )
+            /**
+             * Note: no way to join logger context => unpredictable logger output.
+             */
         }
     }
 
@@ -73,37 +60,22 @@ REQUEST http://localhost/ failed with exception: CustomError: BAD REQUEST
 
         test { client ->
             var failed = false
+            val response = client.get<HttpResponse>()
             try {
-                client.get<String>()
+                response.receive<String>()
             } catch (_: CustomError) {
                 failed = true
             }
 
+            response.close()
+            response.coroutineContext[Job]!!.join()
+
             assertTrue(failed, "Exception is missing.")
 
-            assertEquals(
-                """
-REQUEST: http://localhost/
-METHOD: HttpMethod(value=GET)
-COMMON HEADERS
--> Accept-Charset: UTF-8
--> Accept: */*
-CONTENT HEADERS
-BODY Content-Type: null
-BODY START
-BODY END
-RESPONSE: 200 OK
-METHOD: HttpMethod(value=GET)
-FROM: http://localhost/
-COMMON HEADERS
-BODY Content-Type: null
-BODY START
-Hello
-BODY END
-RESPONSE http://localhost/ failed with exception: CustomError: PARSE ERROR
-
-                """.trimIndent(),
-                testLogger.dump()
+            val dump = testLogger.dump()
+            assertTrue(
+                dump.contains("RESPONSE http://localhost/ failed with exception: CustomError: PARSE ERROR"),
+                dump
             )
         }
     }

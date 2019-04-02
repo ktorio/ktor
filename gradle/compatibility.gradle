@@ -1,6 +1,3 @@
-configurations {
-    binaryCompatibility
-}
 
 dependencies {
     def excludeList = [
@@ -30,17 +27,3 @@ dependencies {
 
     binaryCompatibility projects.findAll { !excludeList.contains(it.name) }
 }
-
-def buildList = {
-    def allModules = configurations.binaryCompatibility.allDependencies.findAll { it instanceof ProjectDependency }
-
-    return allModules
-        .sort { it.name }
-        .findAll {
-        def isCommon = it.dependencyProject.file("common").exists()
-        def isJvm = it.dependencyProject.file("jvm").exists()
-        isCommon || isJvm ? it.dependencyProject : null
-    }
-}
-
-project.ext.buildList = buildList
