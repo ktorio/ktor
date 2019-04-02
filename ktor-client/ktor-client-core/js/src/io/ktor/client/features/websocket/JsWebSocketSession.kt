@@ -93,6 +93,8 @@ internal class JsWebSocketSession(
             CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: "")
         } ?: CloseReason(CloseReason.Codes.NORMAL, "OK")
 
-        _incoming.send(Frame.Close(reason))
+        websocket.close(reason.code, reason.message)
+        _outgoing.close(cause)
+        _incoming.close(cause)
     }
 }

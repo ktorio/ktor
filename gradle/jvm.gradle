@@ -26,9 +26,6 @@ kotlin {
                 def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
                 if (!compileTask.name.endsWith("Jvm")) return
 
-                // dump declarations from main JVM module for binary-compatibility-validator
-                compileTask.kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-
                 switch (jdk) {
                     case 8:
                         compileTask.kotlinOptions.jdkHome = System.env.JDK_18

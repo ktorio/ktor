@@ -11,6 +11,7 @@ class KtorTestServer extends DefaultTask {
 
     @TaskAction
     public void exec() {
+        println("[TestServer] start")
         def urlClassLoaderSource = classpath.collect { file -> file.toURI().toURL() }
         def loader = new URLClassLoader(urlClassLoaderSource.toArray() as URL[], ClassLoader.systemClassLoader)
 
@@ -18,7 +19,8 @@ class KtorTestServer extends DefaultTask {
         def main = mainClass.getMethod("startServer")
         try {
             server = main.invoke(null)
-        } catch (ignored) {}
+        } catch (ignored) {
+        }
     }
 }
 
@@ -74,17 +76,18 @@ task startTestServer(type: KtorTestServer, dependsOn: assemble) {
 
 if (!project.ext.ideaActive) {
     def testTasks = [
-        'macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jvmTest', 'testMochaChrome', 'testMochaNode'
+        'macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jvmTest', 'jsTestMochaChrome', 'jsTestMochaNode'
     ]
 
     rootProject.allprojects {
-        it.tasks.findAll { it.name in testTasks }.each { testTask ->
+        it.tasks.matching { it.name in testTasks }*.configure { testTask ->
             testTask.dependsOn startTestServer
         }
     }
 }
 
 gradle.buildFinished {
+    println("[TestServer] stop")
     if (startTestServer.server != null) {
         startTestServer.server.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
