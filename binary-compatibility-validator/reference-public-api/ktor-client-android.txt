@@ -5,7 +5,7 @@ public final class io/ktor/client/engine/android/Android : io/ktor/client/engine
 
 public final class io/ktor/client/engine/android/AndroidClientEngine : io/ktor/client/engine/HttpClientJvmEngine {
 	public fun <init> (Lio/ktor/client/engine/android/AndroidEngineConfig;)V
-	public fun execute (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/android/AndroidEngineConfig;
 }
@@ -14,10 +14,12 @@ public final class io/ktor/client/engine/android/AndroidEngineConfig : io/ktor/c
 	public fun <init> ()V
 	public final fun getConnectTimeout ()I
 	public final fun getProxy ()Ljava/net/Proxy;
+	public final fun getRequestConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getSocketTimeout ()I
 	public final fun getSslManager ()Lkotlin/jvm/functions/Function1;
 	public final fun setConnectTimeout (I)V
 	public final fun setProxy (Ljava/net/Proxy;)V
+	public final fun setRequestConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setSocketTimeout (I)V
 	public final fun setSslManager (Lkotlin/jvm/functions/Function1;)V
 }
@@ -25,19 +27,5 @@ public final class io/ktor/client/engine/android/AndroidEngineConfig : io/ktor/c
 public final class io/ktor/client/engine/android/AndroidEngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
-}
-
-public final class io/ktor/client/engine/android/AndroidHttpResponse : io/ktor/client/response/HttpResponse {
-	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/Headers;Lio/ktor/util/date/GMTDate;Lio/ktor/util/date/GMTDate;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/HttpProtocolVersion;Lkotlin/coroutines/CoroutineContext;Ljava/net/HttpURLConnection;)V
-	public fun close ()V
-	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
-	public fun getContent ()Lkotlinx/coroutines/io/ByteReadChannel;
-	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
-	public fun getHeaders ()Lio/ktor/http/Headers;
-	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
-	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;
-	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
-	public fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
 }
 

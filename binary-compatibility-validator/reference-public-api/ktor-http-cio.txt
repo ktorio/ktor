@@ -282,6 +282,7 @@ public final class io/ktor/http/cio/websocket/DefaultWebSocketSessionKt {
 
 public abstract class io/ktor/http/cio/websocket/Frame {
 	public static final field Companion Lio/ktor/http/cio/websocket/Frame$Companion;
+	public synthetic fun <init> (ZLio/ktor/http/cio/websocket/FrameType;[BLkotlinx/coroutines/DisposableHandle;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun copy ()Lio/ktor/http/cio/websocket/Frame;
 	public final fun getBuffer ()Ljava/nio/ByteBuffer;
 	public final fun getData ()[B

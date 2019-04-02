@@ -2,7 +2,7 @@
  * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package kotlinx.coroutines.tools
+package io.ktor.validator
 
 import org.junit.*
 import org.junit.runner.*
@@ -35,13 +35,12 @@ class PublicApiTest(
     fun testApi() {
         val libsDir = File(rootDir, "/build/libs").absoluteFile.normalize()
         val jarFile = getJarPath(libsDir)
-        val kotlinJvmMappingsFiles = listOf(libsDir.resolve("../visibilities.json"))
-        val visibilities =
-            kotlinJvmMappingsFiles
-                .map { readKotlinVisibilities(it) }
-                .reduce { m1, m2 -> m1 + m2 }
-        val api = getBinaryAPI(JarFile(jarFile), visibilities).filterOutNonPublic(nonPublicPackages)
-        api.dumpAndCompareWith(File("reference-public-api").resolve("$moduleName.txt"))
+
+        println("Reading binary API from $jarFile")
+        val api = getBinaryAPI(JarFile(jarFile)).filterOutNonPublic(nonPublicPackages)
+        val target = File("reference-public-api").resolve("$moduleName.txt")
+
+        api.dumpAndCompareWith(target)
     }
 
     private fun getJarPath(libsDir: File): File {
