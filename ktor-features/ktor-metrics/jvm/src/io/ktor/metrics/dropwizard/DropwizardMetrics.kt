@@ -8,7 +8,10 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
 
-@Deprecated(replaceWith = DropwizardMetrics::class)
+@Deprecated(message = "Renamed for additional Micrometer support",
+    replaceWith = ReplaceWith(
+        expression = "DropwizardMetrics",
+        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")))
 typealias Metrics = DropwizardMetrics
 
 class DropwizardMetrics(val registry: MetricRegistry) {
