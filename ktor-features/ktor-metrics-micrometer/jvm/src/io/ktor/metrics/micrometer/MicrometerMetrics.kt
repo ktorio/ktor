@@ -68,6 +68,9 @@ class MicrometerMetrics(
 
         lateinit var registry: MeterRegistry
 
+        internal fun isRegistryInitialized() = this::registry.isInitialized
+
+
         var meterBinders: List<MeterBinder> = listOf(
             ClassLoaderMetrics(),
             JvmMemoryMetrics(),
@@ -138,6 +141,13 @@ class MicrometerMetrics(
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)
+
+            if (!configuration.isRegistryInitialized()) {
+                throw IllegalArgumentException(
+                    "Meter registry is missing. Please initialize the field 'registry'"
+                )
+            }
+
             val feature = MicrometerMetrics(
                 configuration.registry,
                 configuration.distributionStatisticConfig,
