@@ -1,5 +1,6 @@
 package io.ktor.client.engine.cio
 
+import ch.qos.logback.classic.*
 import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
@@ -15,6 +16,8 @@ import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.slf4j.*
+import org.slf4j.Logger
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -23,7 +26,7 @@ import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+        sslConnector(keyStore, "sha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile
 
@@ -86,6 +89,11 @@ class CIOHttpsTest : TestWithKtor() {
     @Test
     fun hello(): Unit = runBlocking {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
+            /**
+             * Outdated by jetty.
+             */
+            if (suite == CIOCipherSuites.ECDHE_ECDSA_AES128_SHA256) return@forEach
+
             clientTest(CIO) {
                 config {
                     engine {
