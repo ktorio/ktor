@@ -114,8 +114,7 @@ class MicrometerMetricsTests {
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
-            tags {
-                defaultTags()
+            timerBuilder { _,_ ->
                 tag("customTag", "customValue")
             }
         }
@@ -245,6 +244,3 @@ class MicrometerMetricsTests {
         assertEquals(expectedValue, tag.value, "Tag value for '$tagName' should be '$expectedValue'")
     }
 }
-
-
-

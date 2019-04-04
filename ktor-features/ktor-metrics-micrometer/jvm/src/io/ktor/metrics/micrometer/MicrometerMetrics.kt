@@ -6,6 +6,7 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.micrometer.core.instrument.*
+import io.micrometer.core.instrument.Tag.*
 import io.micrometer.core.instrument.binder.*
 import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.*
 class MicrometerMetrics(
     private val registry: MeterRegistry,
     timerDistributionConfig: DistributionStatisticConfig,
-    private val tags: MicrometerMetrics.TagBuilder.() -> Unit
+    private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
 ) {
 
     private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
@@ -58,9 +59,11 @@ class MicrometerMetrics(
      * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
      * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
      * @property distributionStatisticConfig configures the histogram and/or percentiles for all request timers. By
-     * default 50%, 90% , 95% and 99% percentiles are configured
-     * @property tags is called to generate the tags for this call. By default, [TagBuilder.defaultTags] are generated
-     */
+     * default 50%, 90% , 95% and 99% percentiles are configured. If your backend supports server side histograms you
+     * should enable these instead with [DistributionStatisticConfig.Builder.percentilesHistogram] as client side
+     * percentiles cannot be aggregated.
+     * @property timerBuilder can be used to configure each timer to add custom tags or configure individual SLAs etc
+     * */
     class Configuration {
 
         lateinit var registry: MeterRegistry
@@ -79,26 +82,36 @@ class MicrometerMetrics(
                 .percentiles(0.5, 0.9, 0.95, 0.99)
                 .build()
 
-        internal var tags: TagBuilder.() -> Unit = {
-            defaultTags()
-        }
+        internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
 
-        fun tags(block: TagBuilder.() -> Unit) {
-            tags = block
+        fun timerBuilder(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
+            timerBuilder = block
         }
     }
 
     private fun Timer.Sample.recordDuration(call: ApplicationCall, throwable: Throwable? = null) {
         stop(
             Timer.builder(requestTimerName)
+                .addDefaultTags(call, throwable)
                 .customize(call, throwable)
                 .register(registry)
         )
     }
 
-    private fun Timer.Builder.customize(call: ApplicationCall, throwable: Throwable?): Timer.Builder =
-        apply { TagBuilder(this, call, throwable).tags() }
+    private fun Timer.Builder.customize(call: ApplicationCall, throwable: Throwable?) =
+        this.apply { timerBuilder(call, throwable) }
 
+    private fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
+        tags(
+            listOf(
+                of("address", call.request.local.let { "${it.host}:${it.port}" }),
+                of("httpMethod", call.request.httpMethod.value),
+                of("route", call.attributes[MicrometerMetrics.measureKey].route ?: call.request.path()),
+                of("status", getStatus(call, throwable))
+            )
+        )
+        return this
+    }
 
     private fun before(call: ApplicationCall) {
         active?.incrementAndGet()
@@ -128,7 +141,7 @@ class MicrometerMetrics(
             val feature = MicrometerMetrics(
                 configuration.registry,
                 configuration.distributionStatisticConfig,
-                configuration.tags
+                configuration.timerBuilder
             )
 
             configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
@@ -154,67 +167,18 @@ class MicrometerMetrics(
             return feature
         }
     }
+}
 
-    private data class CallMeasure(val timer: Timer.Sample, var route: String? = null)
-    /**
-     * Encapsulates the [Timer.Builder] to allow adding or changing individual tags per call. The methods to set a
-     * list of tags like [Timer.Builder.tags] are not available as it would be an easy error source for removing the
-     * default tags ('route', 'method' etc) but.
-     */
-    class TagBuilder(
-        private val builder: Timer.Builder,
-        private val call: ApplicationCall,
-        private val throwable: Throwable?
-    ) {
-
-        /**
-         * @see [Timer.Builder.tag]
-         */
-        fun tag(name: String, value: String) {
-            builder.tag(name, value)
-        }
-
-        /**
-         * adds tags for [localAddress], [status], [route] and [method]
-         */
-        fun defaultTags() {
-            localAddress()
-            status()
-            route()
-            method()
-        }
-
-        /**
-         * adds a tag for the local address in the format <host>:<port>
-         */
-        fun localAddress() = tag("local", call.request.local.let { "${it.host}:${it.port}" })
-
-        /**
-         * adds a tag for the http method (e.g "GET", "POST")
-         */
-        fun method() = tag("method", call.request.httpMethod.value)
-
-        /**
-         * adds a tag for the http route (e.g. "/somePath/{someParameter}")
-         */
-        fun route() = tag("route", call.attributes[measureKey].route ?: call.request.path())
-
-        /**
-         * adds a tag for the responded HTTP status or the throwable thrown during processing of the request
-         * e.g. "200", "401", "java.lang.IllegalStateException"
-         */
-        fun status() = tag("status", getStatus())
+private data class CallMeasure(val timer: Timer.Sample, var route: String? = null)
 
 
-        private fun getStatus(): String {
-            return if (throwable != null) {
-                throwable::class.qualifiedName ?: "anonymous exception"
-            } else {
-                call.response.status()?.value?.toString() ?: throw IllegalStateException(
-                    "Sorry, this should not happen, we should have either a  http status code or a throwable"
-                )
-            }
-        }
+private fun getStatus(call: ApplicationCall, throwable: Throwable?): String {
+    return if (throwable != null) {
+        throwable::class.qualifiedName ?: "anonymous exception"
+    } else {
+        call.response.status()?.value?.toString() ?: throw IllegalStateException(
+            "Sorry, this should not happen, we should have either a  http status code or a throwable"
+        )
     }
 }
 
