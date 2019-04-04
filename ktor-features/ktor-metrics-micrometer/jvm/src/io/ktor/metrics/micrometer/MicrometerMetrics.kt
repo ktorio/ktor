@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.*
  *       histogram is exposed. Use the [Configuration.distributionStatisticConfig] to enable these.
  *       Tags by default (use [Configuration.tags] to configure the tags or add custom tags):
  *       <ul>
- *           <li><code>local</code>: The host and port of the request uri (e.g. 'www.ktor.io')</li>
+ *           <li><code>address</code>: The host and port of the request uri (e.g. 'www.ktor.io:443' from the uri
+ *           'https://www.ktor.io/foo/bar' )</li>
  *           <li><code>method</code>: The http method (e.g. 'GET')</li>
  *           <li><code>route</code>: The use ktor route used for this request. (e.g. '/some/path/{someParameter}')
  *           <li><code>status</code>: The http status code or the Exception name thrown during the request (e.g. '200', 'java.lang.IllegalArgumentException')

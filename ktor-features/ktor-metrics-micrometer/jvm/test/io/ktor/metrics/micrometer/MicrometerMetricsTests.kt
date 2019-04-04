@@ -40,7 +40,7 @@ class MicrometerMetricsTests {
             assertTag("status", "200")
             assertTag("route", "/uri")
             assertTag("method", "GET")
-            assertTag("local", "localhost:80")
+            assertTag("address", "localhost:80")
         }
 
         testRegistry.assertActive(0.0)
@@ -73,7 +73,7 @@ class MicrometerMetricsTests {
                 assertTag("status", "java.lang.IllegalAccessException")
                 assertTag("route", "/uri")
                 assertTag("method", "GET")
-                assertTag("local", "localhost:80")
+                assertTag("address", "localhost:80")
             }
         }
         testRegistry.assertActive(0.0)
@@ -103,7 +103,7 @@ class MicrometerMetricsTests {
                 assertTag("status", "200")
                 assertTag("route", "/uri/{someParameter}")
                 assertTag("method", "GET")
-                assertTag("local", "localhost:80")
+                assertTag("address", "localhost:80")
             }
         }
     }
