@@ -86,7 +86,7 @@ class CallLogging private constructor(
         monitor.subscribe(ApplicationStopped, stopped)
     }
 
-    private fun setupMdc(call: ApplicationCall): Map<String, String> {
+    internal fun setupMdc(call: ApplicationCall): Map<String, String> {
         val result = HashMap<String, String>()
 
         mdcEntries.forEach { entry ->
@@ -98,7 +98,7 @@ class CallLogging private constructor(
         return result
     }
 
-    private fun cleanupMdc() {
+    internal fun cleanupMdc() {
         mdcEntries.forEach {
             MDC.remove(it.name)
         }
@@ -125,14 +125,9 @@ class CallLogging private constructor(
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    val mdc = feature.setupMdc(call)
-                    withContext(MDCSurvivalElement(mdc)) {
-                        try {
-                            proceed()
-                            feature.logSuccess(call)
-                        } finally {
-                            feature.cleanupMdc()
-                        }
+                    withMDC {
+                        proceed()
+                        feature.logSuccess(call)
                     }
                 }
             } else {
@@ -143,6 +138,16 @@ class CallLogging private constructor(
             }
 
             return feature
+        }
+    }
+
+
+    @Suppress("KDocMissingDocumentation")
+    @InternalAPI
+    object Internals {
+        @InternalAPI
+        suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
+            withMDC(block)
         }
     }
 
@@ -157,6 +162,22 @@ class CallLogging private constructor(
     private fun logSuccess(call: ApplicationCall) {
         if (filters.isEmpty() || filters.any { it(call) }) {
             log(formatCall(call))
+        }
+    }
+}
+
+/**
+ * Invoke suspend [block] with a context having MDC configured.
+ */
+private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(crossinline block: suspend C.() -> Unit) {
+    val call = call
+    val feature = call.application.featureOrNull(CallLogging) ?: return block()
+
+    withContext(MDCSurvivalElement(feature.setupMdc(call))) {
+        try {
+            block()
+        } finally {
+            feature.cleanupMdc()
         }
     }
 }

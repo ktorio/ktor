@@ -33,10 +33,18 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
                 call.respond(HttpStatusCode.NotFound)
             }
         } catch (error: ChannelIOException) {
-            call.application.environment.logFailure(call, error)
+            with(CallLogging.Internals) {
+                withMDCBlock {
+                    call.application.environment.logFailure(call, error)
+                }
+            }
         } catch (error: Throwable) {
-            call.application.environment.logFailure(call, error)
-            handleFailure(error)
+            with(CallLogging.Internals) {
+                withMDCBlock {
+                    call.application.environment.logFailure(call, error)
+                    handleFailure(error)
+                }
+            }
         } finally {
             try {
                 call.request.receiveChannel().discard()
