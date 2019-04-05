@@ -94,6 +94,11 @@ class CIOHttpsTest : TestWithKtor() {
              */
             if (suite == CIOCipherSuites.ECDHE_ECDSA_AES128_SHA256) return@forEach
 
+            /**
+             * Too strong for old JDK.
+             */
+            if (suite == CIOCipherSuites.ECDHE_ECDSA_AES256_SHA384) return@forEach
+
             clientTest(CIO) {
                 config {
                     engine {
