@@ -107,6 +107,7 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun generateNonce ()Ljava/lang/String;
 	public static final fun generateNonce (I)[B
 	public static final fun getDigestFunction (Ljava/lang/String;Ljava/lang/String;)Lkotlin/jvm/functions/Function1;
+	public static final fun getDigestFunction (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
 	public static final fun getNonceRandom ()Ljava/util/Random;
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;

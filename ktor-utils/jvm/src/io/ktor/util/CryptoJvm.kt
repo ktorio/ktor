@@ -1,5 +1,6 @@
 @file:kotlin.jvm.JvmMultifileClass
 @file:kotlin.jvm.JvmName("CryptoKt")
+@file:Suppress("FunctionName")
 
 package io.ktor.util
 
@@ -10,12 +11,23 @@ import java.util.*
 /**
  * Create a digest function with the specified [algorithm] and [salt]
  */
-@KtorExperimentalAPI
-fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> getDigest(e, algorithm, salt) }
+@Suppress("DeprecatedCallableAddReplaceWith")
+@Deprecated("Use getDigestFunction with non-constant salt.", level = DeprecationLevel.ERROR)
+fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = getDigestFunction(algorithm) { salt }
 
-private fun getDigest(text: String, algorithm: String, salt: String): ByteArray =
+/**
+ * Create a digest function with the specified [algorithm] and [salt] provider.
+ * @param algorithm digest algorithm name
+ * @param salt a function computing a salt for a particular hash input value
+ */
+@KtorExperimentalAPI
+fun getDigestFunction(algorithm: String, salt: (value: String) -> String): (String) -> ByteArray = { e ->
+    getDigest(e, algorithm, salt)
+}
+
+private fun getDigest(text: String, algorithm: String, salt: (String) -> String): ByteArray =
     with(MessageDigest.getInstance(algorithm)) {
-        update(salt.toByteArray())
+        update(salt(text).toByteArray())
         digest(text.toByteArray())
     }
 
@@ -55,7 +67,7 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
     ReplaceWith("s.toByteArray(Charsets.UTF_8)"),
     level = DeprecationLevel.ERROR
 )
-fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
+fun raw(s: String): ByteArray = s.toByteArray(Charsets.UTF_8)
 
 @Suppress("KDocMissingDocumentation", "unused")
 @Deprecated("Use generateNonce() instead", level = DeprecationLevel.ERROR)
