@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.ldap.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -12,9 +13,6 @@ import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
-import org.junit.*
-import org.junit.Ignore
-import org.junit.Test
 import org.junit.runner.*
 import java.net.*
 import java.util.*
@@ -29,10 +27,12 @@ import kotlin.test.*
         ))
 @Ignore("LdapAuthTest is ignored because it is very slow. Run it explicitly when you need.")
 class LdapAuthTest {
-    @Before
+    @BeforeTest
     fun setUp() {
         // notice: it is just a test: never keep user password but message digest or hash with salt
-        apply(ldapServer.directoryService, getUserAddLdif("uid=user-test,ou=users,ou=system", "test".toByteArray(), "Test user", "test"))
+        apply(ldapServer.directoryService,
+            getUserAddLdif("uid=user-test,ou=users,ou=system", "test".toByteArray(), "Test user", "test")
+        )
     }
 
     @Test
@@ -57,7 +57,15 @@ class LdapAuthTest {
 
             handleRequest(HttpMethod.Get, "/").let { result ->
                 assertTrue(result.requestHandled)
-                assertEquals(result.response.headers[HttpHeaders.WWWAuthenticate], "Basic realm=\"realm\"")
+                result.response.headers[HttpHeaders.WWWAuthenticate].let {
+                    assertNotNull(it, "No auth challenge sent")
+                    val challenge = parseAuthorizationHeader(it)
+                    assertNotNull(challenge, "Challenge has incorrect format")
+                    assertEquals("Basic", challenge.authScheme)
+                    assertTrue(challenge is HttpAuthHeader.Parameterized, "It should be parameterized challenge")
+                    assertEquals("realm", challenge.parameter("realm"))
+                    assertEquals("UTF-8", challenge.parameter("charset"))
+                }
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())) }).let { result ->
@@ -71,6 +79,11 @@ class LdapAuthTest {
                 assertNull(result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertNull(result.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())) }).let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
@@ -127,6 +140,11 @@ class LdapAuthTest {
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+            }
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())) }).let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertNull(result.response.content)
             }
         }
     }
