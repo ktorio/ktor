@@ -11,6 +11,7 @@
 
     <logger name="org.apache.directory.api" level="WARN"/>
     <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="org.eclipse.jetty.util.ssl.SslContextFactory" level="ERROR"/>
     <logger name="io.netty" level="WARN"/>
     <logger name="ktor.test" level="WARN"/>
 
