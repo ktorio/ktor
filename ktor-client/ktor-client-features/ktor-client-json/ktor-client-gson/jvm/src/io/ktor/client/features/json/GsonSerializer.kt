@@ -4,6 +4,7 @@ import com.google.gson.*
 import io.ktor.client.call.*
 import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 
 /**
@@ -16,7 +17,7 @@ class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
     override fun write(data: Any): OutgoingContent = TextContent(backend.toJson(data), ContentType.Application.Json)
 
     override fun read(type: TypeInfo, body: Input): Any {
-        val text = body.readText()
-        return backend.fromJson(text, type.reifiedType)
+        val reader = body.asStream().reader()
+        return backend.fromJson(reader, type.reifiedType)
     }
 }

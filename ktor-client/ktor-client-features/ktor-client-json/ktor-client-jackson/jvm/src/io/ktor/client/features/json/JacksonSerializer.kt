@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.call.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 
 class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
@@ -14,6 +15,7 @@ class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
     override fun write(data: Any) = TextContent(backend.writeValueAsString(data), ContentType.Application.Json)
 
     override fun read(type: TypeInfo, body: Input): Any {
-        return backend.readValue(body.readText(), backend.typeFactory.constructType(type.reifiedType))
+        val reader = body.asStream().reader()
+        return backend.readValue(reader, backend.typeFactory.constructType(type.reifiedType))
     }
 }
