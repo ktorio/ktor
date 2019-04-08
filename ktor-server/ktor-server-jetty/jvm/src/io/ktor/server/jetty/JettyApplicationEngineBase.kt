@@ -9,6 +9,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
+@EngineAPI
 open class JettyApplicationEngineBase(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
@@ -25,7 +26,11 @@ open class JettyApplicationEngineBase(
         var configureServer: Server.() -> Unit = {}
     }
 
-    private val configuration = Configuration().apply(configure)
+    /**
+     * Application engine configuration specifying engine-specific options such as parallelism level.
+     */
+    protected val configuration: Configuration = Configuration().apply(configure)
+
     private var cancellationDeferred: CompletableDeferred<Unit>? = null
 
     /**
