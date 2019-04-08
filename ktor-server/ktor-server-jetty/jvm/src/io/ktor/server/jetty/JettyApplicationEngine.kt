@@ -15,7 +15,7 @@ class JettyApplicationEngine(
     private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())
 
     override fun start(wait: Boolean): JettyApplicationEngine {
-        server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher)
+        server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher, configuration)
         super.start(wait)
         return this
     }

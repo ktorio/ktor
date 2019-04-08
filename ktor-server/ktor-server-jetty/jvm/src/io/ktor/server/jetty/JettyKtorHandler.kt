@@ -1,15 +1,14 @@
 package io.ktor.server.jetty
 
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
-import java.lang.IllegalStateException
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.*
@@ -24,10 +23,12 @@ private val JettyKtorCounter = AtomicLong()
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
     private val pipeline: () -> EnginePipeline,
-    private val engineDispatcher: CoroutineDispatcher
+    private val engineDispatcher: CoroutineDispatcher,
+    configuration: JettyApplicationEngineBase.Configuration
 ) : AbstractHandler(), CoroutineScope {
     private val environmentName = environment.connectors.joinToString("-") { it.port.toString() }
-    private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8) { r ->
+    private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
+    private val executor = ThreadPoolExecutor(configuration.callGroupSize, configuration.callGroupSize * 8, 1L, TimeUnit.MINUTES, queue) { r ->
         Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
     }
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
@@ -75,6 +76,7 @@ internal class JettyKtorHandler(
                 try {
                     pipeline().execute(call)
                 } catch (cancelled: CancellationException) {
+                    @Suppress("BlockingMethodInNonBlockingContext")
                     response.sendError(HttpServletResponse.SC_GONE)
                 } catch (channelFailed: ChannelIOException) {
                 } catch (t: Throwable) {
