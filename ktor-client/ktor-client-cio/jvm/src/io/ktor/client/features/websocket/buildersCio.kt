@@ -47,6 +47,19 @@ suspend fun HttpClient.wsRaw(
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
 
+
+/**
+ * Open [DefaultClientWebSocketSession].
+ */
+suspend fun HttpClient.ws(
+    urlString: String,
+    request: HttpRequestBuilder.() -> Unit = {},
+    block: suspend DefaultClientWebSocketSession.() -> Unit
+): Unit {
+    val url = Url(urlString)
+    webSocket(HttpMethod.Get, url.host, url.port, url.encodedPath, request, block)
+}
+
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */

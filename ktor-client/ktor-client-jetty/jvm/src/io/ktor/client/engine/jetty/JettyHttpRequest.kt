@@ -53,7 +53,8 @@ internal suspend fun HttpRequestData.executeRequest(
 internal suspend fun HTTP2Client.connect(
     url: Url, config: JettyEngineConfig
 ): Session = withPromise { promise ->
-    connect(config.sslContextFactory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
+    val factory = if (url.protocol.isSecure()) config.sslContextFactory else null
+    connect(factory, InetSocketAddress(url.host, url.port), Session.Listener.Adapter(), promise)
 }
 
 private fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {

@@ -7,7 +7,8 @@ dependencies {
         'ktor-client-curl',
         'ktor-client-ios',
         'ktor-client',
-        'ktor-client-features'
+        'ktor-client-features',
+        'ktor-client-benchmarks'
     ].toSet()
 
     def projects = [].toSet()

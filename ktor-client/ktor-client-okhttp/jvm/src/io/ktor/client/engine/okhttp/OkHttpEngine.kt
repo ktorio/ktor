@@ -36,6 +36,16 @@ class OkHttpEngine(
         }
     }
 
+    override fun close() {
+        super.close()
+
+        coroutineContext[Job]?.invokeOnCompletion {
+            engine.dispatcher().executorService().shutdown()
+            engine.connectionPool().evictAll()
+            engine.cache()?.close()
+        }
+    }
+
     private suspend fun executeWebSocketRequest(
         engineRequest: Request,
         callContext: CoroutineContext
