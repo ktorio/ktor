@@ -1,4 +1,10 @@
 pluginManagement {
+    repositories {
+        mavenCentral()
+        jcenter()
+        gradlePluginPortal()
+        maven { url "https://dl.bintray.com/orangy/maven" }
+    }
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "kotlin2js") {
@@ -41,6 +47,7 @@ includeEx ':ktor-client:ktor-client-jetty'
 includeEx ':ktor-client:ktor-client-js'
 includeEx ':ktor-client:ktor-client-mock'
 includeEx ':ktor-client:ktor-client-okhttp'
+includeEx ':ktor-client:ktor-client-benchmarks'
 includeEx ':ktor-client:ktor-client-features'
 includeEx ':ktor-client:ktor-client-features:ktor-client-json'
 includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-tests'

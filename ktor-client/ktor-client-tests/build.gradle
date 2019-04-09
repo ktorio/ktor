@@ -74,15 +74,17 @@ task startTestServer(type: KtorTestServer, dependsOn: assemble) {
     classpath = kotlin.targets.jvm.compilations["test"].runtimeDependencyFiles
 }
 
-if (!project.ext.ideaActive) {
-    def testTasks = [
-        'macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jvmTest', 'jsTestMochaChrome', 'jsTestMochaNode'
-    ]
+def testTasks = [
+    'jvmTest', 'jvmBenchmark'
+]
 
-    rootProject.allprojects {
-        it.tasks.matching { it.name in testTasks }*.configure { testTask ->
-            testTask.dependsOn startTestServer
-        }
+if (!project.ext.ideaActive) {
+    testTasks += ['macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jsTestMochaChrome', 'jsTestMochaNode']
+}
+
+rootProject.allprojects {
+    it.tasks.matching { it.name in testTasks }*.configure { testTask ->
+        testTask.dependsOn startTestServer
     }
 }
 
