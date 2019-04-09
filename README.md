@@ -69,5 +69,10 @@ Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations
 
 ## Inspirations
 
-Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated. 
+Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
+
+## Reporting Security Vulnerabilities
+
+If you find a security vulnerability in Ktor, we kindly request that instead of using our public issue tracker, you instead reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
+
 
