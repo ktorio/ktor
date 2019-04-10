@@ -19,7 +19,7 @@ import kotlin.math.*
  * To configure charsets set following properties in [HttpPlainText.Config].
  */
 class HttpPlainText internal constructor(
-    acceptCharsets: Set<Charset>,
+    charsets: Set<Charset>,
     charsetQuality: Map<Charset, Float>,
     sendCharset: Charset?,
     internal val responseCharsetFallback: Charset
@@ -29,7 +29,7 @@ class HttpPlainText internal constructor(
 
     init {
         val withQuality = charsetQuality.toList().sortedByDescending { it.second }
-        val withoutQuality = acceptCharsets.filter { !charsetQuality.containsKey(it) }.sortedBy { it.name }
+        val withoutQuality = charsets.filter { !charsetQuality.containsKey(it) }.sortedBy { it.name }
 
         acceptCharsetHeader = buildString {
             withoutQuality.forEach {
@@ -61,7 +61,7 @@ class HttpPlainText internal constructor(
      * Charset configuration for [HttpPlainText] feature.
      */
     class Config {
-        internal val acceptCharsets: MutableSet<Charset> = mutableSetOf()
+        internal val charsets: MutableSet<Charset> = mutableSetOf()
         internal val charsetQuality: MutableMap<Charset, Float> = mutableMapOf()
 
         /**
@@ -70,7 +70,7 @@ class HttpPlainText internal constructor(
         fun register(charset: Charset, quality: Float? = null) {
             quality?.let { check(it in 0.0..1.0) }
 
-            acceptCharsets.add(charset)
+            charsets.add(charset)
 
             if (quality == null) {
                 charsetQuality.remove(charset)
@@ -96,8 +96,8 @@ class HttpPlainText internal constructor(
          * Default [Charset] to use.
          */
         @Deprecated(
-            "Use [accept] method instead.",
-            replaceWith = ReplaceWith("accept()"),
+            "Use [register] method instead.",
+            replaceWith = ReplaceWith("register()"),
             level = DeprecationLevel.ERROR
         )
         var defaultCharset: Charset = Charsets.UTF_8
@@ -112,7 +112,7 @@ class HttpPlainText internal constructor(
 
             with(config) {
                 return HttpPlainText(
-                    acceptCharsets, charsetQuality,
+                    charsets, charsetQuality,
                     sendCharset, responseCharsetFallback
                 )
             }
@@ -158,8 +158,8 @@ class HttpPlainText internal constructor(
      * Deprecated
      */
     @Deprecated(
-        "Use [Config.accept] method instead.",
-        replaceWith = ReplaceWith("accept()"),
+        "Use [Config.register] method instead.",
+        replaceWith = ReplaceWith("register()"),
         level = DeprecationLevel.ERROR
     )
     var defaultCharset: Charset
@@ -173,8 +173,8 @@ class HttpPlainText internal constructor(
  * ```kotlin
  * val client = HttpClient {
  *     Charsets {
- *         accept(Charsets.UTF_8)
- *         accept(Charsets.ISO_8859_1, quality = 0.1)
+ *         register(Charsets.UTF_8)
+ *         register(Charsets.ISO_8859_1, quality = 0.1)
  *     }
  * }
  * ```
