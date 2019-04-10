@@ -107,12 +107,11 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-@Deprecated("Use configuration for ConditionalHeaders")
+@Deprecated("Use configuration for ConditionalHeaders or configure block of call.respond function.")
 suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = EntityTagVersion(etag)
     val result = version.check(request.headers)
     if (putHeader) {
-        // TODO: use version.appendHeader
         response.header(HttpHeaders.ETag, etag)
     }
     when (result) {
@@ -125,19 +124,28 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
 /**
  * Retrieves LastModified and ETag versions from this [OutgoingContent] headers
  */
+@Deprecated("Use versions or headers.parseVersions()")
 val OutgoingContent.defaultVersions: List<Version>
     get() {
         val extensionVersions = versions
         if (extensionVersions.isNotEmpty())
             return extensionVersions
 
-        val headers = headers
-        val lastModifiedHeaders = headers.getAll(HttpHeaders.LastModified) ?: emptyList()
-        val etagHeaders = headers.getAll(HttpHeaders.ETag) ?: emptyList()
-        val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
-        lastModifiedHeaders.mapTo(versions) {
-            LastModifiedVersion(ZonedDateTime.parse(it, httpDateFormat))
-        }
-        etagHeaders.mapTo(versions) { EntityTagVersion(it) }
-        return versions
+        return headers.parseVersions()
     }
+
+/**
+ * Retrieves LastModified and ETag versions from headers.
+ */
+fun Headers.parseVersions(): List<Version> {
+    val lastModifiedHeaders = getAll(HttpHeaders.LastModified) ?: emptyList()
+    val etagHeaders = getAll(HttpHeaders.ETag) ?: emptyList()
+    val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
+
+    lastModifiedHeaders.mapTo(versions) {
+        LastModifiedVersion(ZonedDateTime.parse(it, httpDateFormat))
+    }
+    etagHeaders.mapTo(versions) { EntityTagVersion(it) }
+
+    return versions
+}
