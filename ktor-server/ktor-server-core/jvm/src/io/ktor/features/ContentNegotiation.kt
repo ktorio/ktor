@@ -11,6 +11,28 @@ import kotlinx.coroutines.io.*
 import java.nio.charset.Charset
 
 /**
+ * Functional type for accepted content types contributor
+ * @see ContentNegotiation.Configuration.accept
+ */
+@KtorExperimentalAPI
+typealias AcceptHeaderContributor = (
+    call: ApplicationCall,
+    acceptedContentTypes: List<ContentTypeWithQuality>
+) -> List<ContentTypeWithQuality>
+
+/**
+ * Pair of [ContentType] and [quality] usually parsed from [HttpHeaders.Accept] headers.
+ * @param contentType
+ * @param quality
+ */
+@KtorExperimentalAPI
+data class ContentTypeWithQuality(val contentType: ContentType, val quality: Double = 1.0) {
+    init {
+        require(quality in 0.0 .. 1.0) { "Quality should be in range [0, 1]: $quality" }
+    }
+}
+
+/**
  * This feature provides automatic content conversion according to Content-Type and Accept headers
  *
  * See normative documents:
@@ -20,7 +42,8 @@ import java.nio.charset.Charset
  *
  * @param registrations is a list of registered converters for ContentTypes
  */
-class ContentNegotiation(val registrations: List<ConverterRegistration>) {
+class ContentNegotiation(val registrations: List<ConverterRegistration>,
+                         private val acceptContributors: List<AcceptHeaderContributor>) {
 
     /**
      * Specifies which [converter] to use for a particular [contentType]
@@ -34,6 +57,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
      */
     class Configuration {
         internal val registrations = mutableListOf<ConverterRegistration>()
+        internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
 
         /**
          * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
@@ -41,6 +65,21 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
         fun <T : ContentConverter> register(contentType: ContentType, converter: T, configuration: T.() -> Unit = {}) {
             val registration = ConverterRegistration(contentType, converter.apply(configuration))
             registrations.add(registration)
+        }
+
+        /**
+         * Register a custom accepted content types [contributor]. A [contributor] function takes [ApplicationCall]
+         * and a list of content types accepted according to [HttpHeaders.Accept] header or provided by the previous
+         * contributor if exists. Result of this [contributor] should be a list of accepted content types
+         * with quality. A [contributor] could either keep or replace input list of accepted content types depending
+         * on use-case. For example a contributor taking `format=json` request parameter could replace the original
+         * content types list with the specified one from the uri argument.
+         * Note that the returned list of accepted types will be sorted according to quality using [sortedByQuality]
+         * so a custom [contributor] may keep it unsorted and should not rely on input list order.
+         */
+        @KtorExperimentalAPI
+        fun accept(contributor: AcceptHeaderContributor) {
+            acceptContributors.add(contributor)
         }
     }
 
@@ -55,7 +94,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             configure: Configuration.() -> Unit
         ): ContentNegotiation {
             val configuration = Configuration().apply(configure)
-            val feature = ContentNegotiation(configuration.registrations)
+            val feature = ContentNegotiation(configuration.registrations, configuration.acceptContributors)
 
             // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
             pipeline.intercept(ApplicationCallPipeline.Features) {
@@ -69,7 +108,13 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
                 if (subject is OutgoingContent) return@intercept
 
-                val acceptItems = call.request.acceptItems()
+                val acceptHeader = parseHeaderValue(call.request.header(HttpHeaders.Accept))
+                    .map { ContentTypeWithQuality(ContentType.parse(it.value), it.quality) }
+
+                val acceptItems = feature.acceptContributors.fold(acceptHeader) { acc, e ->
+                    e(call, acc)
+                }.distinct().sortedByQuality()
+
                 val suitableConverters = if (acceptItems.isEmpty()) {
                     // all converters are suitable since client didn't indicate what it wants
                     feature.registrations
@@ -156,6 +201,24 @@ fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): C
         Charset.isSupported(charset) -> return Charset.forName(charset)
     }
     return defaultCharset
+}
+
+/**
+ * Returns a list of content types sorted by quality, number of asterisks and number of parameters.
+ * @see parseAndSortContentTypeHeader
+ */
+@KtorExperimentalAPI
+fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQuality> {
+    return sortedWith(
+        compareByDescending<ContentTypeWithQuality> { it.quality }.thenBy {
+            val contentType = it.contentType
+            var asterisks = 0
+            if (contentType.contentType == "*")
+                asterisks += 2
+            if (contentType.contentSubtype == "*")
+                asterisks++
+            asterisks
+        }.thenByDescending { it.contentType.parameters.size })
 }
 
 private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
