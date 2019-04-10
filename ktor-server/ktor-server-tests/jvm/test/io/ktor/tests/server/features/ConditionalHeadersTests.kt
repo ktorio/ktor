@@ -7,7 +7,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
@@ -159,7 +158,7 @@ class ETagsTest {
 }
 
 @RunWith(Parameterized::class)
-class LastModifiedTest(name: String, zone: ZoneId) {
+class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
