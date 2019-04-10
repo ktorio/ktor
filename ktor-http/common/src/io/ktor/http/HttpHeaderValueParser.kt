@@ -28,9 +28,10 @@ data class HeaderValueParam(val name: String, val value: String) {
  */
 data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
     /**
-     * Value's quality according to `q` parameter or `1.0` if missing
+     * Value's quality according to `q` parameter or `1.0` if missing or invalid
      */
-    val quality: Double = params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull() ?: 1.0
+    val quality: Double =
+        params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull()?.takeIf { it in 0.0..1.0 } ?: 1.0
 }
 
 /**
