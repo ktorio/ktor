@@ -6,12 +6,10 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.engine.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.CancellationException
-import org.junit.Test
 import kotlin.test.*
 
 class StatusPageTest {
@@ -289,6 +287,7 @@ class StatusPageTest {
     }
 
     @Test
+    @Suppress("RedundantAsync", "IMPLICIT_NOTHING_AS_TYPE_PARAMETER", "ReplaceSingleLineLet")
     fun testErrorInAsync(): Unit = withTestApplication<Unit> {
         class AsyncFailedException : Exception()
 
@@ -323,6 +322,7 @@ class StatusPageTest {
         }
     }
 
+    @Suppress("ReplaceSingleLineLet")
     @Test
     fun testDefaultKtorExceptionWithoutFeature(): Unit = withTestApplication {
         application.routing {
