@@ -81,6 +81,12 @@ class ApplicationEngineEnvironmentBuilder {
     val modules = mutableListOf<Application.() -> Unit>()
 
     /**
+     * Application's root path (prefix, context path in servlet container).
+     */
+    @KtorExperimentalAPI
+    var rootPath: String = ""
+
+    /**
      * Install application module
      */
     fun module(body: Application.() -> Unit) {
@@ -95,7 +101,7 @@ class ApplicationEngineEnvironmentBuilder {
         builder(this)
         return ApplicationEngineEnvironmentReloading(
             classLoader, log, config, connectors, modules, watchPaths,
-            parentCoroutineContext
+            parentCoroutineContext, rootPath
         )
     }
 }
