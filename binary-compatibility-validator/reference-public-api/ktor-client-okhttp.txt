@@ -14,6 +14,7 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 
 public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientJvmEngine {
 	public fun <init> (Lio/ktor/client/engine/okhttp/OkHttpConfig;)V
+	public fun close ()V
 	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/okhttp/OkHttpConfig;

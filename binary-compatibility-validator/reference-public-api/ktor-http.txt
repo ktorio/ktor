@@ -546,6 +546,7 @@ public abstract interface class io/ktor/http/HttpMessageBuilder {
 }
 
 public final class io/ktor/http/HttpMessagePropertiesJvmKt {
+	public static final fun date (Lio/ktor/http/HttpMessage;)Ljava/util/Date;
 	public static final fun expires (Lio/ktor/http/HttpMessage;)Ljava/util/Date;
 	public static final fun expires (Lio/ktor/http/HttpMessageBuilder;)Ljava/util/Date;
 	public static final fun ifModifiedSince (Lio/ktor/http/HttpMessageBuilder;Ljava/util/Date;)V
@@ -554,6 +555,7 @@ public final class io/ktor/http/HttpMessagePropertiesJvmKt {
 }
 
 public final class io/ktor/http/HttpMessagePropertiesKt {
+	public static final fun cacheControl (Lio/ktor/http/HttpMessage;)Ljava/util/List;
 	public static final fun charset (Lio/ktor/http/HttpMessage;)Ljava/nio/charset/Charset;
 	public static final fun charset (Lio/ktor/http/HttpMessageBuilder;)Ljava/nio/charset/Charset;
 	public static final fun charset (Lio/ktor/http/HttpMessageBuilder;Ljava/nio/charset/Charset;)Lkotlin/Unit;
@@ -1195,6 +1197,14 @@ public abstract class io/ktor/http/content/OutgoingContent$ReadChannelContent : 
 public abstract class io/ktor/http/content/OutgoingContent$WriteChannelContent : io/ktor/http/content/OutgoingContent {
 	public fun <init> ()V
 	public abstract fun writeTo (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/content/OutputStreamContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun writeTo (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/http/content/PartData {

@@ -91,7 +91,7 @@ public abstract interface class io/ktor/network/sockets/AReadable {
 
 public abstract interface class io/ktor/network/sockets/ASocket : java/io/Closeable, kotlinx/coroutines/DisposableHandle {
 	public abstract fun dispose ()V
-	public abstract fun getSocketContext ()Lkotlinx/coroutines/Deferred;
+	public abstract fun getSocketContext ()Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/network/sockets/ASocket$DefaultImpls {
