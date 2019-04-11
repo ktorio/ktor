@@ -70,7 +70,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
     @get:Rule
     open val timeout = PublishedTimeout(
-        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(10))
+        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong()
+            ?: TimeUnit.MINUTES.toSeconds(10))
     )
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout.seconds).toInt() }
@@ -222,17 +223,20 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
+
     protected fun withUrl(
-        path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit
+        path: String,
+        builder: suspend HttpRequestBuilder.() -> Unit = {},
+        block: suspend HttpResponse.(Int) -> Unit
     ) {
-        withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
+        withUrl("http://127.0.0.1:$port$path", port, builder, block)
 
         if (enableSsl) {
-            withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+            withUrl("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
 
         if (enableHttp2 && enableSsl) {
-            withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+            withHttp2("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
     }
 
@@ -247,7 +251,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     private fun withUrl(
-        url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit,
+        url: String, port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
         withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
@@ -266,8 +271,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     private fun withHttp2(
-        url: URL, port: Int,
-        builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
+        url: String, port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
         withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
             HttpClient(Jetty) {
@@ -278,7 +283,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                     sslContextFactory = SslContextFactory(true)
                 }
             }.use { httpClient ->
-                httpClient.call(url, builder).response.use { response ->
+                httpClient.call(urlString = url, block = builder).response.use { response ->
                     block(response, port)
                 }
             }
