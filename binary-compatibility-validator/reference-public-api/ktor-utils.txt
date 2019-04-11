@@ -99,6 +99,11 @@ public final class io/ktor/util/CollectionsKt {
 	public static final fun caseInsensitiveMap ()Ljava/util/Map;
 }
 
+public final class io/ktor/util/CoroutinesUtilsKt {
+	public static final fun printDebugTree (Lkotlinx/coroutines/Job;I)V
+	public static synthetic fun printDebugTree$default (Lkotlinx/coroutines/Job;IILjava/lang/Object;)V
+}
+
 public final class io/ktor/util/CryptoKt {
 	public static final fun Digest (Ljava/lang/String;)Lio/ktor/util/Digest;
 	public static final fun build (Lio/ktor/util/Digest;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -182,6 +187,11 @@ public final class io/ktor/util/LockKt {
 	public static final fun use (Lio/ktor/util/Lock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 }
 
+public final class io/ktor/util/LockTicket {
+	public fun <init> (Ljava/util/concurrent/locks/Lock;)V
+	public final fun unlock ()V
+}
+
 public final class io/ktor/util/LoggingKt {
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
 }
@@ -218,6 +228,12 @@ public final class io/ktor/util/PathKt {
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
 	public static final fun getLength (Lkotlin/ranges/LongRange;)J
+}
+
+public final class io/ktor/util/ReadWriteLock {
+	public fun <init> ()V
+	public final fun readLock ()Lio/ktor/util/LockTicket;
+	public final fun writeLock ()Lio/ktor/util/LockTicket;
 }
 
 public final class io/ktor/util/ReflectionKt {
@@ -425,6 +441,45 @@ public final class io/ktor/util/cio/Semaphore {
 	public final fun enter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getLimit ()I
 	public final fun leave ()V
+}
+
+public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
+	public fun <init> ()V
+	public fun clear ()V
+	public fun containsKey (Ljava/lang/Object;)Z
+	public fun containsValue (Ljava/lang/Object;)Z
+	public final fun entrySet ()Ljava/util/Set;
+	public fun get (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun getEntries ()Ljava/util/Set;
+	public fun getKeys ()Ljava/util/Set;
+	public final fun getOrDefault (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public fun getSize ()I
+	public fun getValues ()Ljava/util/Collection;
+	public fun isEmpty ()Z
+	public final fun keySet ()Ljava/util/Set;
+	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun putAll (Ljava/util/Map;)V
+	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun size ()I
+	public final fun values ()Ljava/util/Collection;
+}
+
+public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
+	public fun <init> ()V
+	public fun add (Ljava/lang/Object;)Z
+	public fun addAll (Ljava/util/Collection;)Z
+	public fun clear ()V
+	public fun contains (Ljava/lang/Object;)Z
+	public fun containsAll (Ljava/util/Collection;)Z
+	public fun getSize ()I
+	public fun isEmpty ()Z
+	public fun iterator ()Ljava/util/Iterator;
+	public fun remove (Ljava/lang/Object;)Z
+	public fun removeAll (Ljava/util/Collection;)Z
+	public fun retainAll (Ljava/util/Collection;)Z
+	public final fun size ()I
+	public fun toArray ()[Ljava/lang/Object;
+	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
 }
 
 public final class io/ktor/util/date/DateJvmKt {

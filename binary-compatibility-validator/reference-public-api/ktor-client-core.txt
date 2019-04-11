@@ -101,6 +101,10 @@ public final class io/ktor/client/call/ReceivePipelineException : java/lang/Ille
 	public final fun getRequest ()Lio/ktor/client/call/HttpClientCall;
 }
 
+public final class io/ktor/client/call/SavedCallKt {
+	public static final fun save (Lio/ktor/client/call/HttpClientCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public class io/ktor/client/call/TypeBase {
 	public fun <init> ()V
 }
@@ -183,6 +187,7 @@ public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client
 }
 
 public final class io/ktor/client/engine/UtilsKt {
+	public static final fun getKTOR_DEFAULT_USER_AGENT ()Ljava/lang/String;
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
 }
 
@@ -377,6 +382,55 @@ public final class io/ktor/client/features/UserAgentKt {
 	public static final fun CurlUserAgent (Lio/ktor/client/HttpClientConfig;)V
 }
 
+public final class io/ktor/client/features/cache/HttpCache {
+	public static final field Companion Lio/ktor/client/features/cache/HttpCache$Companion;
+	public fun <init> (Lio/ktor/client/features/cache/storage/HttpCacheStorage;Lio/ktor/client/features/cache/storage/HttpCacheStorage;)V
+	public final fun getPrivateStorage ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
+	public final fun getPublicStorage ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
+}
+
+public final class io/ktor/client/features/cache/HttpCache$Companion : io/ktor/client/features/HttpClientFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/client/features/cache/HttpCache;Lio/ktor/client/HttpClient;)V
+	public synthetic fun install (Ljava/lang/Object;Lio/ktor/client/HttpClient;)V
+	public fun prepare (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/features/cache/HttpCache;
+	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/client/features/cache/HttpCache$Config {
+	public fun <init> ()V
+	public final fun getPrivateStorage ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
+	public final fun getPublicStorage ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
+	public final fun setPrivateStorage (Lio/ktor/client/features/cache/storage/HttpCacheStorage;)V
+	public final fun setPublicStorage (Lio/ktor/client/features/cache/storage/HttpCacheStorage;)V
+}
+
+public final class io/ktor/client/features/cache/HttpCacheEntry {
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()[B
+	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
+	public final fun getResponse ()Lio/ktor/client/response/HttpResponse;
+	public final fun getVaryKeys ()Ljava/util/Map;
+	public fun hashCode ()I
+}
+
+public final class io/ktor/client/features/cache/InvalidCacheStateException : java/lang/IllegalStateException {
+	public fun <init> (Lio/ktor/http/Url;)V
+}
+
+public abstract class io/ktor/client/features/cache/storage/HttpCacheStorage {
+	public static final field Companion Lio/ktor/client/features/cache/storage/HttpCacheStorage$Companion;
+	public fun <init> ()V
+	public abstract fun find (Lio/ktor/http/Url;Ljava/util/Map;)Lio/ktor/client/features/cache/HttpCacheEntry;
+	public abstract fun findByUrl (Lio/ktor/http/Url;)Ljava/util/Set;
+	public abstract fun store (Lio/ktor/http/Url;Lio/ktor/client/features/cache/HttpCacheEntry;)V
+}
+
+public final class io/ktor/client/features/cache/storage/HttpCacheStorage$Companion {
+	public final fun getDisabled ()Lio/ktor/client/features/cache/storage/HttpCacheStorage;
+	public final fun getUnlimited ()Lkotlin/jvm/functions/Function0;
+}
+
 public final class io/ktor/client/features/cookies/AcceptAllCookiesStorage : io/ktor/client/features/cookies/CookiesStorage {
 	public fun <init> ()V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -569,6 +623,7 @@ public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/Http
 	public static final field Companion Lio/ktor/client/request/HttpRequestBuilder$Companion;
 	public fun <init> ()V
 	public final fun build ()Lio/ktor/client/request/HttpRequestData;
+	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getBody ()Ljava/lang/Object;
 	public final fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public fun getHeaders ()Lio/ktor/http/HeadersBuilder;
@@ -710,11 +765,9 @@ public final class io/ktor/client/request/forms/MultiPartFormDataContent : io/kt
 
 public final class io/ktor/client/response/DefaultHttpResponse : io/ktor/client/response/HttpResponse {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpResponseData;)V
-	public fun close ()V
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getContent ()Lkotlinx/coroutines/io/ByteReadChannel;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
-	public synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public fun getHeaders ()Lio/ktor/http/Headers;
 	public fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public fun getResponseTime ()Lio/ktor/util/date/GMTDate;
@@ -733,20 +786,16 @@ public final class io/ktor/client/response/HttpReceivePipeline$Phases {
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
 }
 
-public abstract interface class io/ktor/client/response/HttpResponse : io/ktor/http/HttpMessage, java/io/Closeable, kotlinx/coroutines/CoroutineScope {
-	public abstract fun close ()V
+public abstract class io/ktor/client/response/HttpResponse : io/ktor/http/HttpMessage, java/io/Closeable, kotlinx/coroutines/CoroutineScope {
+	public fun <init> ()V
+	public fun close ()V
 	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public abstract fun getContent ()Lkotlinx/coroutines/io/ByteReadChannel;
-	public abstract synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
+	public final synthetic fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public abstract fun getRequestTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getResponseTime ()Lio/ktor/util/date/GMTDate;
 	public abstract fun getStatus ()Lio/ktor/http/HttpStatusCode;
 	public abstract fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
-}
-
-public final class io/ktor/client/response/HttpResponse$DefaultImpls {
-	public static fun close (Lio/ktor/client/response/HttpResponse;)V
-	public static synthetic fun getExecutionContext (Lio/ktor/client/response/HttpResponse;)Lkotlinx/coroutines/Job;
 }
 
 public class io/ktor/client/response/HttpResponseConfig {
