@@ -27,8 +27,14 @@ import java.util.concurrent.atomic.*
  *           'https://www.ktor.io/foo/bar' )</li>
  *           <li><code>method</code>: The http method (e.g. 'GET')</li>
  *           <li><code>route</code>: The use ktor route used for this request. (e.g. '/some/path/{someParameter}')
- *           <li><code>status</code>: The http status code or the Exception name thrown during the request (e.g. '200', 'java.lang.IllegalArgumentException')
+ *           <li><code>status</code>: The http status code that was set in the response) or "n/a" if no status code was set
+ *           (either an exception was thrown) or no handler is configured to handle the request</li>
+ *           <li><code>exception</code>: The class name of the exception that was eventually thrown while processing
+ *           the request (or 'n/a' if no exception had been thrown.</li>
  *        <ul>
+ *            Please note, it can happen that both <code>status</code> and <code>exception</code> are
+ *            either set (e.g. when the exception is thrown after the status was set) or both have the
+ *            value "none". e.g. when there is no handler registered for that route.
  *     <li>
  *  <ul>
  */
@@ -109,9 +115,10 @@ class MicrometerMetrics(
         tags(
             listOf(
                 of("address", call.request.local.let { "${it.host}:${it.port}" }),
-                of("httpMethod", call.request.httpMethod.value),
+                of("method", call.request.httpMethod.value),
                 of("route", call.attributes[MicrometerMetrics.measureKey].route ?: call.request.path()),
-                of("status", getStatus(call, throwable))
+                of("status", call.response.status()?.value?.toString() ?: "n/a"),
+                of("exception", throwable?.let { it::class.qualifiedName } ?: "n/a")
             )
         )
         return this
