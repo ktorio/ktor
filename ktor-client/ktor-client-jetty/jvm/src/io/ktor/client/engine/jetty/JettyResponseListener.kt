@@ -55,7 +55,7 @@ internal class JettyResponseListener(
     }
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
-        val data = frame.data.copy()
+        val data = frame.data!!
         try {
             if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
                 throw IOException("backendChannel.offer() failed")
@@ -64,7 +64,7 @@ internal class JettyResponseListener(
             if (frame.isEndStream) backendChannel.close()
         } catch (cause: Throwable) {
             backendChannel.close(cause)
-            callback.succeeded()
+            callback.failed(cause)
         }
     }
 

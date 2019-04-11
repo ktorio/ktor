@@ -15,7 +15,7 @@ import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
-import java.io.*
+import org.eclipse.jetty.util.*
 import java.net.*
 import java.nio.*
 import kotlin.coroutines.*
@@ -25,7 +25,7 @@ internal suspend fun HttpRequestData.executeRequest(
 ): HttpResponseData {
     val requestTime = GMTDate()
     val session: HTTP2ClientSession = client.connect(url, config).apply {
-        settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
+        settings(SettingsFrame(emptyMap(), true), Callback.NOOP)
     } as HTTP2ClientSession
 
     val headersFrame = prepareHeadersFrame()
