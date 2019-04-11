@@ -74,9 +74,21 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
      */
     fun resolve(): RoutingResolveResult {
-        val result = resolve(routing, 0)
+        val root = routing
+        val rootResult = root.selector.evaluate(this, 0)
+        if (!rootResult.succeeded) {
+            return rootResolveFailed(root)
+        }
+
+        val result = resolve(root, rootResult.segmentIncrement)
         trace?.apply { tracers.forEach { it(this) } }
         return result
+    }
+
+    private fun rootResolveFailed(root: Route): RoutingResolveResult.Failure {
+        return RoutingResolveResult.Failure(root, "rootPath didn't match").also { result ->
+            trace?.skip(root, 0, result)
+        }
     }
 
     private fun resolve(entry: Route, segmentIndex: Int): RoutingResolveResult {
