@@ -90,9 +90,14 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         }
     }
 
-    override fun toString() = when {
-        parent == null -> "/"
-        parent.parent == null -> "/$selector"
+    override fun toString(): String = when {
+        parent == null -> "/$selector"
+        parent.parent == null -> parent.toString().let { parentText ->
+            when {
+                parentText.endsWith('/') -> "$parentText$selector"
+                else -> "$parentText/$selector"
+            }
+        }
         else -> "$parent/$selector"
     }
 }

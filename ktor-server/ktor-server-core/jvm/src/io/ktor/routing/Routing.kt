@@ -11,7 +11,8 @@ import io.ktor.util.*
  * Root routing node for an [Application]
  * @param application is an instance of [Application] for this routing
  */
-class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
+class Routing(val application: Application) :
+    Route(parent = null, selector = RootRouteSelector(application.environment.rootPath)) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
@@ -36,7 +37,8 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
-        val receivePipeline = merge(context.call.request.pipeline,
+        val receivePipeline = merge(
+            context.call.request.pipeline,
             routingCallPipeline.receivePipeline
         ) { ApplicationReceivePipeline() }
 
@@ -94,14 +96,6 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
             return routing
         }
     }
-
-    private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-        override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-            throw UnsupportedOperationException("Root selector should not be evaluated")
-        }
-
-        override fun toString(): String = ""
-    }
 }
 
 /**
@@ -110,7 +104,8 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
 val Route.application: Application
     get() = when {
         this is Routing -> application
-        else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
+        else -> parent?.application
+            ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
     }
 
 /**
