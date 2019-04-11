@@ -33,22 +33,37 @@ class ApplicationEngineEnvironmentReloading(
         override val connectors: List<EngineConnectorConfig>,
         private val modules: List<Application.() -> Unit>,
         private val watchPaths: List<String> = emptyList(),
-        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        override val rootPath: String = ""
 ) : ApplicationEngineEnvironment {
+
+    @Suppress("UNUSED")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(
+        classLoader: ClassLoader,
+        log: Logger,
+        config: ApplicationConfig,
+        connectors: List<EngineConnectorConfig>,
+        modules: List<Application.() -> Unit>,
+        watchPaths: List<String> = emptyList(),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+    ) : this(classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, "/")
 
     private var _applicationInstance: Application? = null
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + watchPaths
+    private val watchPatterns: List<String> =
+        (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + watchPaths
 
     private val moduleFunctionNames: List<String>? = run {
         val configModules = config.propertyOrNull("ktor.application.modules")?.getList()
         if (watchPatterns.isEmpty()) configModules
         else {
             val unlinkedModules = modules.map {
-                val fn = (it as? KFunction<*>)?.javaMethod ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
+                val fn = (it as? KFunction<*>)?.javaMethod
+                    ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
                 val clazz = fn.declaringClass
                 val name = fn.name
                 "${clazz.name}.$name"

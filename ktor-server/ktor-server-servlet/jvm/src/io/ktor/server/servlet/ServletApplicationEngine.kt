@@ -43,6 +43,7 @@ open class ServletApplicationEngine : KtorServlet() {
             config = HoconApplicationConfig(combinedConfig)
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
+            rootPath = servletContext.contextPath ?: "/"
         }.apply {
             monitor.subscribe(ApplicationStarting)  {
                 it.receivePipeline.merge(enginePipeline.receivePipeline)
@@ -71,8 +72,8 @@ open class ServletApplicationEngine : KtorServlet() {
      * Called by the servlet container when loading the servlet (on load)
      */
     override fun init() {
-        super.init()
         environment.start()
+        super.init()
     }
 
     override fun destroy() {
