@@ -14,10 +14,10 @@ import kotlin.test.*
 
 class JacksonTest: JsonTest() {
     override val serializerImpl = JacksonSerializer()
-    
+
     override fun createRoutes(routing: Routing): Unit = with(routing) {
         super.createRoutes(routing)
-        
+
         post("/jackson") {
             assertEquals(Jackson("request", null), call.receive())
             call.respond(
@@ -28,11 +28,11 @@ class JacksonTest: JsonTest() {
             ) // encoded with GsonConverter
         }
     }
-    
+
     @Test
     fun testJackson() = clientTest(CIO) {
         configClient()
-        
+
         test { client ->
             val response = client.post<Response<List<Jackson>>>(
                 port = serverPort, path = "jackson", body = Jackson(
@@ -42,13 +42,13 @@ class JacksonTest: JsonTest() {
             ) {
                 contentType(ContentType.Application.Json)
             }
-            
+
             assertTrue(response.ok)
             val list = response.result!!
             assertEquals(1, list.size)
-            assertEquals(Jackson("response", "not_ignored"), list[0]) // encoded with GsonConverter
+            assertEquals(Jackson("response", null), list[0]) // encoded with GsonConverter
         }
     }
-    
+
     data class Jackson(val value: String, @JsonIgnore val ignoredValue: String?)
 }

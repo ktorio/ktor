@@ -88,6 +88,7 @@ class CIOHttpsTest : TestWithKtor() {
 
     @Test
     fun hello(): Unit = runBlocking {
+        val fails = mutableMapOf<CipherSuite, Throwable>()
         CIOCipherSuites.SupportedSuites.forEach { suite ->
             /**
              * Outdated by jetty.
@@ -110,10 +111,24 @@ class CIOHttpsTest : TestWithKtor() {
                 }
 
                 test { client ->
-                    val actual = client.get<String>("https://127.0.0.1:$serverPort/")
-                    assertEquals("Hello, world", actual)
+                    try {
+                        val actual = client.get<String>("https://127.0.0.1:$serverPort/")
+                        assertEquals("Hello, world", actual)
+                    } catch (cause: Throwable) {
+                        fails[suite] = cause
+                    }
                 }
             }
+        }
+
+        if (fails.isNotEmpty()) {
+            val message = buildString {
+                for ((suite, exception) in fails.entries) {
+                    appendln("${suite.name}: $exception")
+                }
+            }
+
+            fail(message)
         }
     }
 
