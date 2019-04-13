@@ -1,3 +1,9 @@
+# 1.1.4
+> Published 13 Apr 2019
+
+* Upgrade to Kotlin 1.3.30
+* Upgrade coroutines to 1.2.0
+
 # 1.1.3
 > Published 21 Feb 2019
 
