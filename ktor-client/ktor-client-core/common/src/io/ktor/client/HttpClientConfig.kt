@@ -61,7 +61,7 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
         if (features.containsKey(feature.key)) return
 
         features[feature.key] = { scope ->
-            val attributes = scope.attributes.computeIfAbsent(FEATURE_INSTALLED_LIST) { Attributes() }
+            val attributes = scope.attributes.computeIfAbsent(FEATURE_INSTALLED_LIST) { Attributes(concurrent = true) }
             val config = scope.config.featureConfigurations[feature.key]!!
             val featureData = feature.prepare(config)
 

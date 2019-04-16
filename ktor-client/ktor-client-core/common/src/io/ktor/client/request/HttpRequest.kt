@@ -81,8 +81,14 @@ class HttpRequestBuilder : HttpMessageBuilder {
     @KtorExperimentalAPI
     val executionContext: Job = CompletableDeferred<Unit>()
 
-    private var attributesBuilder: Attributes.() -> Unit = {}
+    /**
+     * Call specific attributes.
+     */
+    val attributes: Attributes = Attributes(concurrent = true)
 
+    /**
+     * Executes a [block] that configures the [URLBuilder] associated to this request.
+     */
     fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
 
     /**
@@ -91,15 +97,14 @@ class HttpRequestBuilder : HttpMessageBuilder {
     fun build(): HttpRequestData = HttpRequestData(
         url.build(), method, headers.build(),
         body as? OutgoingContent ?: error("No request transformation found: $body"),
-        executionContext, Attributes().apply(attributesBuilder)
+        executionContext, attributes
     )
 
     /**
-     * Set request specific attributes specified by [block]
+     * Set request specific attributes specified by [block].
      */
     fun setAttributes(block: Attributes.() -> Unit) {
-        val old = attributesBuilder
-        attributesBuilder = { old(); block() }
+        attributes.apply(block)
     }
 
     /**
@@ -110,7 +115,10 @@ class HttpRequestBuilder : HttpMessageBuilder {
         body = builder.body
         url.takeFrom(builder.url)
         headers.appendAll(builder.headers)
-        attributesBuilder = builder.attributesBuilder
+        builder.attributes.allKeys.forEach {
+            @Suppress("UNCHECKED_CAST")
+            attributes.put(it as AttributeKey<Any>, builder.attributes[it])
+        }
 
         return this
     }
