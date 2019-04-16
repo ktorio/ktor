@@ -85,7 +85,7 @@ class HttpClient(
     /**
      * Typed attributes used as a lightweight container for this client.
      */
-    val attributes: Attributes = Attributes()
+    val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Dispatcher handles io operations
