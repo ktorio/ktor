@@ -5,17 +5,29 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
 import io.micrometer.core.instrument.*
 import io.micrometer.core.instrument.binder.*
 import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
 import io.micrometer.core.instrument.simple.*
+import org.junit.*
 import org.junit.Test
 import kotlin.reflect.*
 import kotlin.test.*
 
+
 class MicrometerMetricsTests {
+
+    var noHandlerHandledReqeust = false
+    var throwableCaughtInEngine: Throwable? = null
+
+    @Before
+    fun reset() {
+        noHandlerHandledReqeust = false
+        throwableCaughtInEngine = null
+    }
 
     @Test
     fun `time is measured for requests`(): Unit = withTestApplication {
@@ -31,6 +43,7 @@ class MicrometerMetricsTests {
                 call.respond("hello")
             }
         }
+
         handleRequest {
             uri = "/uri"
         }
@@ -38,7 +51,7 @@ class MicrometerMetricsTests {
         val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
         assertEquals(1, timers.size)
         timers.first().run {
-            assertTag("exception", "n/a")
+            assertTag("throwable", "n/a")
             assertTag("status", "200")
             assertTag("route", "/uri")
             assertTag("method", "GET")
@@ -52,69 +65,39 @@ class MicrometerMetricsTests {
     fun `errors are recorded`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
+        installDefaultBehaviour()
+
         application.install(MicrometerMetrics) {
             registry = testRegistry
         }
 
+        val illegalAccessException = IllegalAccessException("something went wrong")
+
         application.routing {
             get("/uri") {
                 testRegistry.assertActive(1.0)
-                throw IllegalAccessException("something went wrong")
+                throw illegalAccessException
             }
         }
-        try {
-            handleRequest {
-                uri = "/uri"
-            }
-        } catch (e: Exception) {
-            // not interesting for this test
+
+        handleRequest {
+            uri = "/uri"
         }
+
+
         with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
-                assertTag("exception", "java.lang.IllegalAccessException")
-                assertTag("status", "n/a")
+                assertTag("throwable", "java.lang.IllegalAccessException")
+                assertTag("status", "500")
                 assertTag("route", "/uri")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
             }
         }
         testRegistry.assertActive(0.0)
-    }
+        assertSame(illegalAccessException, throwableCaughtInEngine)
 
-    @Test
-    fun `errors with status are recorded`(): Unit = withTestApplication {
-        val testRegistry = SimpleMeterRegistry()
-
-        application.install(MicrometerMetrics) {
-            registry = testRegistry
-        }
-
-        application.routing {
-            get("/uri") {
-                testRegistry.assertActive(1.0)
-                call.response.status(HttpStatusCode.fromValue(200))
-                throw IllegalAccessException("something went wrong")
-            }
-        }
-        try {
-            handleRequest {
-                uri = "/uri"
-            }
-        } catch (e: Exception) {
-            // not interesting for this test
-        }
-        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
-            assertEquals(1, size)
-            this.first().run {
-                assertTag("exception", "java.lang.IllegalAccessException")
-                assertTag("status", "200")
-                assertTag("route", "/uri")
-                assertTag("method", "GET")
-                assertTag("address", "localhost:80")
-            }
-        }
-        testRegistry.assertActive(0.0)
     }
 
     @Test
@@ -138,7 +121,7 @@ class MicrometerMetricsTests {
         with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
-                assertTag("exception", "n/a")
+                assertTag("throwable", "n/a")
                 assertTag("status", "200")
                 assertTag("route", "/uri/{someParameter}")
                 assertTag("method", "GET")
@@ -153,7 +136,7 @@ class MicrometerMetricsTests {
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
-            timerBuilder { _,_ ->
+            timerBuilder { _, _ ->
                 tag("customTag", "customValue")
             }
         }
@@ -182,7 +165,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `histogram can be configured`() : Unit = withTestApplication {
+    fun `histogram can be configured`(): Unit = withTestApplication {
         val testRegistry = SimpleMeterRegistry()
 
         application.install(MicrometerMetrics) {
@@ -204,18 +187,29 @@ class MicrometerMetricsTests {
         val timers = testRegistry.find(MicrometerMetrics.requestTimerName).timers()
         assertEquals(1, timers.size)
         val percentileValues = timers.first().takeSnapshot().percentileValues()
-        assertEquals(1, percentileValues.count { it.percentile() == 0.1 }, "$percentileValues should contain a 0.1 percentile")
-        assertEquals(1, percentileValues.count { it.percentile() == 0.2 }, "$percentileValues should contain a 0.2 percentile")
+        assertEquals(
+            1,
+            percentileValues.count { it.percentile() == 0.1 },
+            "$percentileValues should contain a 0.1 percentile"
+        )
+        assertEquals(
+            1,
+            percentileValues.count { it.percentile() == 0.2 },
+            "$percentileValues should contain a 0.2 percentile"
+        )
     }
 
     @Test
-    fun `no handler results in no status and no exception`() : Unit  = withTestApplication{
+    fun `no handler results in status 404 and no exception`(): Unit = withTestApplication {
 
         val testRegistry = SimpleMeterRegistry()
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
         }
+
+
+        installDefaultBehaviour()
 
         // no routing config
 
@@ -226,15 +220,36 @@ class MicrometerMetricsTests {
         with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
             assertEquals(1, size)
             this.first().run {
-                assertTag("exception", "n/a")
-                assertTag("status", "n/a")
+                assertTag("throwable", "n/a")
+                assertTag("status", "404")
                 assertTag("route", "/uri")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
             }
         }
 
+        assertNull(throwableCaughtInEngine)
+        assertTrue(noHandlerHandledReqeust)
 
+
+    }
+
+    private fun TestApplicationEngine.installDefaultBehaviour() {
+
+        this.callInterceptor = {
+            try {
+                call.application.execute(call)
+                if (call.response.status() == null) {
+                    noHandlerHandledReqeust = true
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            } catch (t: Throwable) {
+                throwableCaughtInEngine = t
+                if (call.response.status() == null) {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+        }
     }
 
     @Test

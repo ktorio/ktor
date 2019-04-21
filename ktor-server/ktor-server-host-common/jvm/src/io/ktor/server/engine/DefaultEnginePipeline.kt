@@ -17,7 +17,7 @@ import java.util.concurrent.CancellationException
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
 @EngineAPI
-fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
+fun  defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline()
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->

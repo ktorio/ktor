@@ -2,6 +2,7 @@ package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
 import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
@@ -27,14 +28,13 @@ import java.util.concurrent.atomic.*
  *           'https://www.ktor.io/foo/bar' )</li>
  *           <li><code>method</code>: The http method (e.g. 'GET')</li>
  *           <li><code>route</code>: The use ktor route used for this request. (e.g. '/some/path/{someParameter}')
- *           <li><code>status</code>: The http status code that was set in the response) or "n/a" if no status code was set
- *           (either an exception was thrown) or no handler is configured to handle the request</li>
- *           <li><code>exception</code>: The class name of the exception that was eventually thrown while processing
- *           the request (or 'n/a' if no exception had been thrown.</li>
+ *           <li><code>status</code>: The http status code that was set in the response) (or 404 if no handler was
+ *           found for this request or 500 if an exception was thrown</li>
+ *           <li><code>throwable</code>: The class name of the throwable that was eventually thrown while processing
+ *           the request (or 'n/a' if no throwable had been thrown). Please note, that if an exception is thrown after
+ *           calling [io.ktor.response.ApplicationResponseFunctionsKt.respond(io.ktor.application.ApplicationCall, java.lang.Object, kotlin.coroutines.Continuation<? super kotlin.Unit>)]
+ *           , the tag is still "n/a"</li>
  *        <ul>
- *            Please note, it can happen that both <code>status</code> and <code>exception</code> are
- *            either set (e.g. when the exception is thrown after the status was set) or both have the
- *            value "none". e.g. when there is no handler registered for that route.
  *     <li>
  *  <ul>
  */
@@ -99,8 +99,8 @@ class MicrometerMetrics(
         }
     }
 
-    private fun Timer.Sample.recordDuration(call: ApplicationCall, throwable: Throwable? = null) {
-        stop(
+    private fun CallMeasure.recordDuration(call: ApplicationCall) {
+        timer.stop(
             Timer.builder(requestTimerName)
                 .addDefaultTags(call, throwable)
                 .customize(call, throwable)
@@ -116,9 +116,9 @@ class MicrometerMetrics(
             listOf(
                 of("address", call.request.local.let { "${it.host}:${it.port}" }),
                 of("method", call.request.httpMethod.value),
-                of("route", call.attributes[MicrometerMetrics.measureKey].route ?: call.request.path()),
+                of("route", call.attributes[measureKey].route ?: call.request.path()),
                 of("status", call.response.status()?.value?.toString() ?: "n/a"),
-                of("exception", throwable?.let { it::class.qualifiedName } ?: "n/a")
+                of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
             )
         )
         return this
@@ -130,11 +130,16 @@ class MicrometerMetrics(
         call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
     }
 
-    private fun after(call: ApplicationCall, e: Throwable? = null) {
+    private fun after(call: ApplicationCall) {
         active?.decrementAndGet()
 
+        call.attributes.getOrNull(measureKey)?.recordDuration(call)
+
+    }
+
+    private fun throwable(call: ApplicationCall, t: Throwable) {
         call.attributes.getOrNull(measureKey)?.apply {
-            timer.recordDuration(call, e)
+            throwable = t
         }
     }
 
@@ -171,10 +176,19 @@ class MicrometerMetrics(
                 feature.before(call)
                 try {
                     proceed()
-                    feature.after(call)
                 } catch (e: Throwable) {
-                    feature.after(call, e)
+                    feature.throwable(call, e)
                     throw e
+                }
+            }
+
+            val postSendPhase = PipelinePhase("MetricsPostSend")
+            pipeline.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.After, postSendPhase)
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
+                try {
+                    proceed()
+                } finally {
+                    feature.after(call)
                 }
             }
 
@@ -185,19 +199,16 @@ class MicrometerMetrics(
             return feature
         }
     }
+
+
 }
 
-private data class CallMeasure(val timer: Timer.Sample, var route: String? = null)
 
 
-private fun getStatus(call: ApplicationCall, throwable: Throwable?): String {
-    return if (throwable != null) {
-        throwable::class.qualifiedName ?: "anonymous exception"
-    } else {
-        call.response.status()?.value?.toString() ?: throw IllegalStateException(
-            "Sorry, this should not happen, we should have either a  http status code or a throwable"
-        )
-    }
-}
+private data class CallMeasure(
+    val timer: Timer.Sample,
+    var route: String? = null,
+    var throwable: Throwable? = null
+)
 
 
