@@ -1,4 +1,4 @@
-package io.ktor.metrics
+package io.ktor.metrics.dropwizard
 
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
@@ -8,7 +8,13 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
 
-class Metrics(val registry: MetricRegistry) {
+@Deprecated(message = "Renamed for additional Micrometer support",
+    replaceWith = ReplaceWith(
+        expression = "DropwizardMetrics",
+        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")))
+typealias Metrics = DropwizardMetrics
+
+class DropwizardMetrics(val registry: MetricRegistry) {
     val baseName: String = MetricRegistry.name("ktor.calls")
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
     private val active = registry.counter(MetricRegistry.name(baseName, "active"))
@@ -19,16 +25,16 @@ class Metrics(val registry: MetricRegistry) {
         val registry = MetricRegistry()
     }
 
-    companion object Feature : ApplicationFeature<Application, Configuration, Metrics> {
-        override val key = AttributeKey<Metrics>("metrics")
+    companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
+        override val key = AttributeKey<DropwizardMetrics>("metrics")
 
         private class RoutingMetrics(val name: String, val context: Timer.Context)
 
         private val routingMetricsKey = AttributeKey<RoutingMetrics>("metrics")
 
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): DropwizardMetrics {
             val configuration = Configuration().apply(configure)
-            val feature = Metrics(configuration.registry)
+            val feature = DropwizardMetrics(configuration.registry)
 
             configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
             configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
@@ -56,7 +62,10 @@ class Metrics(val registry: MetricRegistry) {
                 val timer = feature.registry.timer(MetricRegistry.name(name, "timer"))
                 meter.mark()
                 val context = timer.time()
-                call.attributes.put(routingMetricsKey, RoutingMetrics(name, context))
+                call.attributes.put(
+                    routingMetricsKey,
+                    RoutingMetrics(name, context)
+                )
             }
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
