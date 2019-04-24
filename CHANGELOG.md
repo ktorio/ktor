@@ -1,3 +1,9 @@
+# 1.1.5
+> Published 24 Apr 2019
+
+* Minimized jetty core pool size and make it configurable (#1083)
+* Servlet engine fixed to use servlet config instead of context (#1063)
+
 # 1.1.4
 > Published 13 Apr 2019
 
