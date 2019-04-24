@@ -16,7 +16,7 @@ class AcceptAllCookiesStorage() : CookiesStorage {
 
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.use {
         val date = GMTDate()
-        if (date.timestamp < oldestCookie.value) cleanup(date.timestamp)
+        if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
 
         return container.filter { it.matches(requestUrl) }
     }
@@ -28,6 +28,11 @@ class AcceptAllCookiesStorage() : CookiesStorage {
 
         container.removeAll { it.name == cookie.name && it.matches(requestUrl) }
         container.add(cookie.fillDefaults(requestUrl))
+        cookie.expires?.timestamp?.let { expires ->
+            if (oldestCookie.value > expires) {
+                oldestCookie.value = expires
+            }
+        }
     }
 
     private fun cleanup(timestamp: Long) {
