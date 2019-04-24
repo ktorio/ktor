@@ -74,7 +74,7 @@ class CookieConfiguration {
     /**
      * Cookie path
      */
-    var path: String? = null
+    var path: String? = "/"
 
     /**
      * Send cookies only over secure connection
