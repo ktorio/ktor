@@ -73,6 +73,12 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
                 assertTrue(call.request.cookies.rawCookies.isEmpty())
                 call.respond("OK")
             }
+            get("/expire") {
+                call.request.cookies.rawCookies.forEach { (name, _) ->
+                    call.response.cookies.appendExpired(name, path = "/")
+                }
+                call.respond("OK")
+            }
         }
     }
 
@@ -109,6 +115,25 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
                 client.get<Unit>(path = "/update-user-id", port = serverPort)
                 assertEquals(before + 1, client.getId())
                 assertEquals("ktor", client.cookies(hostname)["user"]?.value)
+            }
+        }
+    }
+
+    @Test
+    fun testExpiration(): Unit = clientTest(factory) {
+        config {
+            install(HttpCookies) {
+                default {
+                    runBlocking {
+                        addCookie(hostname, Cookie("id", "777", domain = "localhost", path = "/"))
+                    }
+                }
+            }
+
+            test { client ->
+                assertFalse(client.cookies(hostname).isEmpty())
+                client.get<Unit>(path = "/expire", port = serverPort)
+                assertTrue(client.cookies(hostname).isEmpty(), "cookie should be expired")
             }
         }
     }
