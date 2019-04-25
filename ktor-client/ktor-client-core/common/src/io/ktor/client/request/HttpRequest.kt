@@ -79,7 +79,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     @KtorExperimentalAPI
-    val executionContext: Job = CompletableDeferred<Unit>()
+    val executionContext: Job = Job()
 
     /**
      * Call specific attributes.

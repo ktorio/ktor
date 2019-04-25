@@ -1,6 +1,5 @@
 package io.ktor.client.engine.cio
 
-import ch.qos.logback.classic.*
 import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
@@ -16,8 +15,6 @@ import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
-import org.slf4j.*
-import org.slf4j.Logger
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -88,7 +85,6 @@ class CIOHttpsTest : TestWithKtor() {
 
     @Test
     fun hello(): Unit = runBlocking {
-        val fails = mutableMapOf<CipherSuite, Throwable>()
         CIOCipherSuites.SupportedSuites.forEach { suite ->
             /**
              * Outdated by jetty.
@@ -99,6 +95,12 @@ class CIOHttpsTest : TestWithKtor() {
              * Too strong for old JDK.
              */
             if (suite == CIOCipherSuites.ECDHE_ECDSA_AES256_SHA384) return@forEach
+
+            /**
+             * Deprecated since jdk11.
+             */
+            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
+            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256) return@forEach
 
             clientTest(CIO) {
                 config {
@@ -112,23 +114,16 @@ class CIOHttpsTest : TestWithKtor() {
 
                 test { client ->
                     try {
+                        println("Starting: ${suite.name}")
                         val actual = client.get<String>("https://127.0.0.1:$serverPort/")
                         assertEquals("Hello, world", actual)
                     } catch (cause: Throwable) {
-                        fails[suite] = cause
+                        println("${suite.name}: $cause")
+                        client.cancel()
+                        fail("${suite.name}: $cause")
                     }
                 }
             }
-        }
-
-        if (fails.isNotEmpty()) {
-            val message = buildString {
-                for ((suite, exception) in fails.entries) {
-                    appendln("${suite.name}: $exception")
-                }
-            }
-
-            fail(message)
         }
     }
 
@@ -137,6 +132,7 @@ class CIOHttpsTest : TestWithKtor() {
         test { client ->
             val response = client.get<HttpResponse>("https://kotlinlang.org")
             assertEquals(HttpStatusCode.OK, response.status)
+            response.close()
         }
     }
 

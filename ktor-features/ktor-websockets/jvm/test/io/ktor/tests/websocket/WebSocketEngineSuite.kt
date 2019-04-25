@@ -41,7 +41,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
 
-        createAndStartServer {
+        val engine = createAndStartServer {
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->

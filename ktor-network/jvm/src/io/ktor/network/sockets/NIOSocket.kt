@@ -16,13 +16,13 @@ internal abstract class NIOSocketImpl<out S>(
     val selector: SelectorManager,
     val pool: ObjectPool<ByteBuffer>?
 ) : ReadWriteSocket, SelectableBase(channel), CoroutineScope
-        where S : java.nio.channels.ByteChannel, S : java.nio.channels.SelectableChannel {
+    where S : java.nio.channels.ByteChannel, S : java.nio.channels.SelectableChannel {
 
     private val closeFlag = AtomicBoolean()
     private val readerJob = AtomicReference<ReaderJob?>()
     private val writerJob = AtomicReference<WriterJob?>()
 
-    override val socketContext = CompletableDeferred<Unit>()
+    override val socketContext: CompletableJob = Job()
 
     override val coroutineContext: CoroutineContext
         get() = socketContext
@@ -61,7 +61,12 @@ internal abstract class NIOSocketImpl<out S>(
         }
     }
 
-    private fun <J : Job> attachFor(name: String, channel: ByteChannel, ref: AtomicReference<J?>, producer: () -> J): J {
+    private fun <J : Job> attachFor(
+        name: String,
+        channel: ByteChannel,
+        ref: AtomicReference<J?>,
+        producer: () -> J
+    ): J {
         if (closeFlag.get()) {
             val e = ClosedChannelException()
             channel.close(e)
@@ -95,7 +100,7 @@ internal abstract class NIOSocketImpl<out S>(
         return try {
             channel.close()
             super.close()
-            socketContext.complete(Unit)
+            socketContext.complete()
             null
         } catch (t: Throwable) {
             t
@@ -112,7 +117,7 @@ internal abstract class NIOSocketImpl<out S>(
 
             val combined = combine(combine(e1, e2), e3)
 
-            if (combined == null) socketContext.complete(Unit) else socketContext.completeExceptionally(combined)
+            if (combined == null) socketContext.complete() else socketContext.completeExceptionally(combined)
         }
     }
 
@@ -132,6 +137,6 @@ internal abstract class NIOSocketImpl<out S>(
     @UseExperimental(InternalCoroutinesApi::class)
     private val AtomicReference<out Job?>.exception: Throwable?
         get() = get()?.takeUnless { it.isActive || it.isCancelled }
-                ?.getCancellationException() // TODO it should be completable deferred or provide its own exception
-                ?.let { (it as? CancellationException)?.cause }
+            ?.getCancellationException() // TODO it should be completable deferred or provide its own exception
+            ?.let { (it as? CancellationException)?.cause }
 }

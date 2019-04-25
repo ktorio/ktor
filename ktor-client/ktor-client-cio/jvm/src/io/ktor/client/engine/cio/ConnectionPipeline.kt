@@ -90,7 +90,7 @@ internal class ConnectionPipeline(
                     val hasBody = (contentLength > 0 || chunked) &&
                         (method != HttpMethod.Head) &&
                         (status !in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent)) &&
-                        (status.value / 100 != 1)
+                        !status.isInformational()
 
                     val responseChannel = if (hasBody) ByteChannel() else null
 

@@ -1,9 +1,9 @@
 package io.ktor.server.cio
 
 import io.ktor.application.*
-import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
 import java.util.concurrent.*
@@ -38,9 +38,11 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     @UseExperimental(InternalCoroutinesApi::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
-    private val stopRequest = CompletableDeferred<Unit>()
+    private val stopRequest: CompletableJob = Job()
 
-    private val serverJob = CoroutineScope(environment.parentCoroutineContext + engineDispatcher).launch(start = CoroutineStart.LAZY) {
+    private val serverJob = CoroutineScope(
+        environment.parentCoroutineContext + engineDispatcher
+    ).launch(start = CoroutineStart.LAZY) {
         // starting
         withContext(userDispatcher) {
             environment.start()
@@ -55,13 +57,13 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
                 connectors.add(connector)
             }
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             connectors.forEach { it.rootServerJob.cancel() }
-            stopRequest.completeExceptionally(t)
-            throw t
+            stopRequest.completeExceptionally(cause)
+            throw cause
         }
 
-        stopRequest.await()
+        stopRequest.join()
 
         // stopping
         connectors.forEach { it.acceptJob.cancel() }
@@ -71,7 +73,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         }
     }
 
-    private val scope: CoroutineScope = CoroutineScope(environment.parentCoroutineContext + engineDispatcher + serverJob)
+    private val scope: CoroutineScope =
+        CoroutineScope(environment.parentCoroutineContext + engineDispatcher + serverJob)
 
     override fun start(wait: Boolean): ApplicationEngine {
         serverJob.start()
@@ -104,7 +107,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     }
 
     private fun shutdownServer(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        stopRequest.complete(Unit)
+        stopRequest.complete()
 
         runBlocking {
             val result = withTimeoutOrNull(timeUnit.toMillis(gracePeriod)) {

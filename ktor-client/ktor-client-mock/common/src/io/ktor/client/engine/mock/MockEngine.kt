@@ -14,7 +14,7 @@ class MockEngine(
     private var invocationCount = 0
     private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
-    private val contextState = CompletableDeferred<Unit>()
+    private val contextState: CompletableJob = Job()
 
     init {
         check(config.requestHandlers.size > 0) {
@@ -56,7 +56,7 @@ class MockEngine(
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
-        contextState.complete(Unit)
+        contextState.complete()
     }
 
     companion object : HttpClientEngineFactory<MockEngineConfig> {

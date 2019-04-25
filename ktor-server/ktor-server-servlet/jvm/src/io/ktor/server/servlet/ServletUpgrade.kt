@@ -70,7 +70,7 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest
-    private val upgradeJob = CompletableDeferred<Unit>()
+    private val upgradeJob: CompletableJob = Job()
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 

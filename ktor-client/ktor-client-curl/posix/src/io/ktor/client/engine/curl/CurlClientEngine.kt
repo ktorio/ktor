@@ -19,7 +19,7 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
     override suspend fun execute(
         data: HttpRequestData
     ): HttpResponseData {
-        val callContext = coroutineContext + CompletableDeferred<Unit>()
+        val callContext = coroutineContext + Job()
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest()

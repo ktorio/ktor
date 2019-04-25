@@ -1778,7 +1778,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         assertFailsWith<IOException> {
             // ensure that the server is not running anymore
-            withUrl("/") { call.receive<String>() }
+            withUrl("/") {
+                call.receive<String>()
+                fail("Shouldn't happen")
+            }
         }
     }
 

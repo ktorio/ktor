@@ -22,7 +22,10 @@ class ServerSocketTest : CoroutineScope {
     private var tearDown = false
     private val selector = ActorSelectorManager(exec.asCoroutineDispatcher() + testJob)
     private var client: Pair<java.net.Socket, Thread>? = null
+
+    @Volatile
     private var serverSocket = CompletableDeferred<ServerSocket>()
+
     @Volatile
     private var server: Job? = null
     private var failure: Throwable? = null
@@ -58,13 +61,13 @@ class ServerSocketTest : CoroutineScope {
 
     @Test
     fun testBindAndAccept() {
-        server {  }
-        client {  }
+        server { }
+        client { }
     }
 
     @Test
     fun testRead() {
-        server { client ->
+        val server = server { client ->
             assertEquals("123", client.openReadChannel().readUTF8Line())
         }
 
@@ -73,11 +76,16 @@ class ServerSocketTest : CoroutineScope {
                 os.write("123".toByteArray())
             }
         }
+
+        server.cancel()
+        runBlocking {
+            server.join()
+        }
     }
 
     @Test
     fun testWrite() {
-        server { client ->
+        val server = server { client ->
             val channel = client.openWriteChannel(true)
             channel.writeStringUtf8("123")
         }
@@ -85,9 +93,14 @@ class ServerSocketTest : CoroutineScope {
         client { socket ->
             assertEquals("123", socket.getInputStream().reader().use { it.readText() })
         }
+
+        server.cancel()
+        runBlocking { server.join() }
     }
 
-    private fun server(block: suspend (Socket) -> Unit) {
+    private fun server(block: suspend (Socket) -> Unit): Job {
+        serverSocket = CompletableDeferred()
+
         val job = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
             try {
                 val server = aSocket(selector).tcp().bind(null)
@@ -114,8 +127,10 @@ class ServerSocketTest : CoroutineScope {
                 addFailure(e)
             }
         }
+
         server = job
         job.start()
+        return job
     }
 
     private fun client(block: (java.net.Socket) -> Unit) {

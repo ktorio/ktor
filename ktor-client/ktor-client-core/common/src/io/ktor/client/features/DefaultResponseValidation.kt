@@ -1,7 +1,15 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.call.SavedHttpCall
+import io.ktor.client.features.observer.*
 import io.ktor.client.response.*
+import io.ktor.util.*
+import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
+
+private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
 /**
  * Default response validation.
@@ -11,14 +19,24 @@ fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
         validateResponse { response ->
             val statusCode = response.status.value
-            when (statusCode) {
-                in 300..399 -> throw RedirectResponseException(response)
-                in 400..499 -> throw ClientRequestException(response)
-                in 500..599 -> throw ServerResponseException(response)
-            }
+            val originCall = response.call
+            if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) return@validateResponse
 
-            if (statusCode >= 600) {
-                throw ResponseException(response)
+            response.use {
+                val exceptionCall = originCall.save().apply {
+                    attributes.put(ValidateMark, Unit)
+                }
+
+                val exceptionResponse = exceptionCall.response
+                when (statusCode) {
+                    in 300..399 -> throw RedirectResponseException(exceptionResponse)
+                    in 400..499 -> throw ClientRequestException(exceptionResponse)
+                    in 500..599 -> throw ServerResponseException(exceptionResponse)
+                }
+
+                if (statusCode >= 600) {
+                    throw ResponseException(exceptionResponse)
+                }
             }
         }
     }
@@ -59,5 +77,3 @@ class ClientRequestException(
 ) : ResponseException(response) {
     override val message: String? = "Client request(${response.call.request.url}) invalid: ${response.status}"
 }
-
-

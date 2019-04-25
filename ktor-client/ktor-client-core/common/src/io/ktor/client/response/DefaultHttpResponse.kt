@@ -12,7 +12,7 @@ import kotlin.coroutines.*
  * Default [HttpResponse] implementation.
  */
 @InternalAPI
-class DefaultHttpResponse(override val call: HttpClientCall, responseData: HttpResponseData) : HttpResponse {
+class DefaultHttpResponse(override val call: HttpClientCall, responseData: HttpResponseData) : HttpResponse() {
     override val coroutineContext: CoroutineContext = responseData.callContext
 
     override val status: HttpStatusCode = responseData.statusCode

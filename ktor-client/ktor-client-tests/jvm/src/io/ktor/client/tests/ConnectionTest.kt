@@ -45,15 +45,17 @@ abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWit
                     }
                 }.response
 
-                assert(response.status.isSuccess())
-                assert(response.readBytes().isEmpty())
+                response.use {
+                    assert(it.status.isSuccess())
+                    assert(it.readBytes().isEmpty())
+                }
             }
         }
     }
 
     @Test
     fun closeResponseWithConnectionPipelineTest() = clientTest(factory) {
-        suspend fun HttpClient.receive(): HttpClientCall = call {
+        suspend fun HttpClient.testCall(): HttpClientCall = call {
             url {
                 port = serverPort
                 encodedPath = "/ok"
@@ -61,8 +63,8 @@ abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWit
         }
 
         test { client ->
-            client.receive().close()
-            assertEquals(testContent, client.receive().response.readText())
+            client.testCall().close()
+            assertEquals(testContent, client.testCall().receive())
         }
     }
 }

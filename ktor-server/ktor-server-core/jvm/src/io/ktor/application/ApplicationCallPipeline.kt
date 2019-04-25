@@ -3,7 +3,6 @@ package io.ktor.application
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
-import kotlinx.coroutines.*
 
 /**
  * Pipeline configuration for executing [ApplicationCall] instances

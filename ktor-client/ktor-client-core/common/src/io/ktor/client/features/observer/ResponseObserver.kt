@@ -51,7 +51,7 @@ class ResponseObserver(
                 context.request = newClientCall.request
 
                 @Suppress("UNCHECKED_CAST")
-                (response.coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
+                (response.coroutineContext[Job] as CompletableJob).complete()
                 proceedWith(context.response)
             }
         }

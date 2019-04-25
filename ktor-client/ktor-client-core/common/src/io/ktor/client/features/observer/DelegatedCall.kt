@@ -53,8 +53,8 @@ internal class DelegatedResponse(
     override val call: HttpClientCall,
     override val content: ByteReadChannel,
     private val origin: HttpResponse
-) : HttpResponse {
-    private val completionState: CompletableDeferred<Unit> = CompletableDeferred(origin.coroutineContext[Job])
+) : HttpResponse() {
+    private val completionState: CompletableJob = Job(origin.coroutineContext[Job])
 
     override val coroutineContext: CoroutineContext = origin.coroutineContext + completionState
 
@@ -70,6 +70,6 @@ internal class DelegatedResponse(
 
     override fun close() {
         super.close()
-        completionState.complete(Unit)
+        completionState.complete()
     }
 }

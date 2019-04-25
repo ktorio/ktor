@@ -8,9 +8,12 @@ import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
+import kotlin.coroutines.*
 
 private val IncomingProcessorCoroutineName = CoroutineName("ws-incoming-processor")
 private val OutgoingProcessorCoroutineName = CoroutineName("ws-outgoing-processor")
+
+private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
 
 /**
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
@@ -21,21 +24,35 @@ class DefaultWebSocketSessionImpl(
     pingInterval: Long = -1L,
     override var timeoutMillis: Long = 15000L,
     private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-) : DefaultWebSocketSession, WebSocketSession by raw {
-
+) : DefaultWebSocketSession, WebSocketSession {
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
     private val outgoingToBeProcessed = Channel<Frame>(8)
     private val closed: AtomicBoolean = atomic(false)
+    private val context = Job(raw.coroutineContext[Job])
 
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
+    override val coroutineContext: CoroutineContext =
+        raw.coroutineContext + context + CoroutineName("ws-default")
+
+    override var masking: Boolean
+        get() = raw.masking
+        set(value) {
+            raw.masking = value
+        }
+
+    override var maxFrameSize: Long
+        get() = raw.maxFrameSize
+        set(value) {
+            raw.maxFrameSize = value
+        }
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
     override var pingIntervalMillis: Long = pingInterval
-        set (newValue) {
+        set(newValue) {
             field = newValue
             runOrCancelPinger()
         }
@@ -53,15 +70,23 @@ class DefaultWebSocketSessionImpl(
         sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
+    override suspend fun flush() {
+        raw.flush()
+    }
+
+    override fun terminate() {
+        context.cancel()
+        raw.terminate()
+    }
+
     /**
      * Close session with the specified [cause] or with no reason if `null`
      */
     @KtorExperimentalAPI
     override suspend fun close(cause: Throwable?) {
         if (closed.value) return
-
         val reason = when (cause) {
-            null -> CloseReason(CloseReason.Codes.NORMAL, "OK")
+            null -> NORMAL_CLOSE
             is ClosedReceiveChannelException, is ClosedSendChannelException -> null
             else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: cause.javaClass.name)
         }
@@ -78,7 +103,7 @@ class DefaultWebSocketSessionImpl(
             raw.incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Close -> {
-                        sendCloseSequence(frame.readReason())
+                        outgoing.send(Frame.Close(frame.readReason() ?: NORMAL_CLOSE))
                         return@launch
                     }
                     is Frame.Pong -> pinger.value?.send(frame)
@@ -101,9 +126,9 @@ class DefaultWebSocketSessionImpl(
                 }
             }
         } catch (ignore: ClosedSendChannelException) {
-        } catch (t: Throwable) {
-            ponger.close(t)
-            filtered.close(t)
+        } catch (cause: Throwable) {
+            ponger.close(cause)
+            filtered.close(cause)
         } finally {
             ponger.close()
             last?.release()
@@ -116,28 +141,30 @@ class DefaultWebSocketSessionImpl(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            outgoingToBeProcessed.consumeEach { frame ->
-                when (frame) {
-                    is Frame.Close -> {
-                        sendCloseSequence(frame.readReason())
-                        return@consumeEach
-                    }
-                    else -> raw.outgoing.send(frame)
+            for (frame in outgoingToBeProcessed) {
+                if (frame is Frame.Close) {
+                    sendCloseSequence(frame.readReason())
+                    break
                 }
+
+                raw.outgoing.send(frame)
             }
         } catch (ignore: ClosedSendChannelException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: CancellationException) {
         } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
-            raw.outgoing.close(cause)
+            outgoingToBeProcessed.close()
+            raw.close(cause)
         } finally {
-            raw.outgoing.close()
+            outgoingToBeProcessed.close()
+            raw.close()
         }
     }
 
     private suspend fun sendCloseSequence(reason: CloseReason?) {
         if (!closed.compareAndSet(false, true)) return
+        context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
         try {

@@ -58,7 +58,9 @@ fun <T : HttpClientEngineConfig> clientTest(
         builder.test(it)
     }
 
-    client.coroutineContext[Job]!!.join()
+    client.coroutineContext[Job]!!.apply {
+        join()
+    }
 }
 
 @InternalAPI

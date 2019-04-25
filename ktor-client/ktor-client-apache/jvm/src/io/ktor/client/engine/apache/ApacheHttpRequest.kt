@@ -43,17 +43,21 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
         }
     }
 
-    val future = try {
-        execute(request, consumer, callback)
+    response.invokeOnCompletion { cause ->
+        cause ?: return@invokeOnCompletion
+        callContext.cancel()
+    }
+
+    try {
+        val future = execute(request, consumer, callback)
+        response.invokeOnCompletion { cause ->
+            cause ?: return@invokeOnCompletion
+            future.cancel(true)
+        }
+
     } catch (cause: Throwable) {
         response.completeExceptionally(cause)
         throw cause
-    }
-
-    response.invokeOnCompletion { cause ->
-        cause ?: return@invokeOnCompletion
-        future.cancel(true)
-        callContext.cancel()
     }
 
     return response.await()

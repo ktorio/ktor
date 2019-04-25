@@ -31,7 +31,11 @@ internal class CIOEngine(
                 return endpoint.execute(data, callContext)
             } catch (cause: ClosedSendChannelException) {
                 if (closed.value) throw ClientClosedException(cause)
+                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
                 continue
+            } catch (cause: Throwable) {
+                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
+                throw cause
             } finally {
                 if (closed.value) endpoint.close()
             }

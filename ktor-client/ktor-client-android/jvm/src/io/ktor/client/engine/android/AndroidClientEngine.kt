@@ -24,7 +24,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         data: HttpRequestData
     ): HttpResponseData {
         val callContext = createCallContext()
-        return withContext(callContext) {
+        return async(callContext) {
             val requestTime = GMTDate()
 
             val url = URLBuilder().takeFrom(data.url).buildString()
@@ -78,8 +78,8 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
                 headerFields?.forEach { (key, values) -> key?.let { appendAll(it, values) } }
             }.build()
 
-            return@withContext HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
-        }
+            return@async HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
+        }.await()
     }
 
     private fun getProxyAwareConnection(urlString: String): HttpURLConnection {

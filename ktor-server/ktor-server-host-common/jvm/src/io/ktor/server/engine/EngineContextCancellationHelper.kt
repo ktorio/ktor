@@ -9,11 +9,10 @@ import java.util.concurrent.*
  */
 @EngineAPI
 @KtorExperimentalAPI
-fun ApplicationEngine.stopServerOnCancellation(): CompletableDeferred<Unit> {
-    return environment.parentCoroutineContext[Job]?.launchOnCancellation {
+fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
+    environment.parentCoroutineContext[Job]?.launchOnCancellation {
         stop(1, 5, TimeUnit.SECONDS)
-    } ?: CompletableDeferred()
-}
+    } ?: Job()
 
 /**
  * Launch a coroutine with [block] body when the parent job is cancelled or a returned deferred is cancelled.
@@ -21,14 +20,19 @@ fun ApplicationEngine.stopServerOnCancellation(): CompletableDeferred<Unit> {
  * otherwise the parent job will be unable to complete successfully.
  */
 @InternalAPI
-fun Job.launchOnCancellation(block: suspend (cause: Throwable) -> Unit): CompletableDeferred<Unit> {
-    val deferred = CompletableDeferred<Unit>(parent = this)
+fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
+    val deferred: CompletableJob = Job(parent = this)
 
     GlobalScope.launch(this + Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
+        var cancelled = false
         try {
-            deferred.await()
-        } catch (t: Throwable) {
-            block(t)
+            deferred.join()
+        } catch (_: Throwable) {
+            cancelled = true
+        }
+
+        if (cancelled || deferred.isCancelled) {
+            block()
         }
     }
 

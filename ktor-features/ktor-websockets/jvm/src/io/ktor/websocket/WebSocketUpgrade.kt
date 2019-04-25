@@ -57,12 +57,14 @@ class WebSocketUpgrade(
             coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         )
 
-        return webSocket.launch(WebSocketHandlerCoroutineName) {
+        webSocket.launch(WebSocketHandlerCoroutineName) {
             try {
                 webSocket.start(handle)
             } catch (cause: Throwable) {
             }
         }
+
+        return webSocket.coroutineContext[Job]!!
     }
 
     companion object {

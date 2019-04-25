@@ -1,6 +1,8 @@
 package io.ktor.client.engine.jetty
 
+import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.util.*
 
 /**
  * [HttpClientEngineFactory] using `org.eclipse.jetty.http2:http2-client`
@@ -11,4 +13,10 @@ import io.ktor.client.engine.*
 object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
     override fun create(block: JettyEngineConfig.() -> Unit): HttpClientEngine =
         JettyHttp2Engine(JettyEngineConfig().apply(block))
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+class JettyEngineContainer : HttpClientEngineContainer {
+    override val factory: HttpClientEngineFactory<*> = Jetty
 }

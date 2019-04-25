@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
  * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
 class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline(), CoroutineScope {
+
     private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
     override val coroutineContext = environment.parentCoroutineContext + applicationJob

@@ -27,7 +27,6 @@ class WebSocketRemoteTest {
 
     @Test
     fun testSecureRemotePingPong() = clientsTest(skipMissingPlatforms = true) {
-
         config {
             install(WebSockets)
         }

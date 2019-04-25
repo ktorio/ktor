@@ -36,7 +36,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
-    private var cancellationDeferred: CompletableDeferred<Unit>? = null
+    private var cancellationDeferred: CompletableJob? = null
 
     private val ktorServlet = object : KtorServlet() {
         override val enginePipeline: EnginePipeline
@@ -117,7 +117,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         if (stopped.compareAndSet(false, true)) {
-            cancellationDeferred?.complete(Unit)
+            cancellationDeferred?.complete()
             environment.monitor.raise(ApplicationStopPreparing, environment)
             server.stop()
             environment.stop()

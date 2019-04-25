@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.http.*
 import io.ktor.util.date.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.charsets.*
@@ -13,33 +14,33 @@ import kotlinx.io.core.*
 /**
  * A response for [HttpClient], second part of [HttpClientCall].
  */
-interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
+abstract class HttpResponse : HttpMessage, CoroutineScope, Closeable {
     /**
      * The associated [HttpClientCall] containing both
      * the underlying [HttpClientCall.request] and [HttpClientCall.response].
      */
-    val call: HttpClientCall
+    abstract val call: HttpClientCall
 
     /**
      * The [HttpStatusCode] returned by the server. It includes both,
      * the [HttpStatusCode.description] and the [HttpStatusCode.value] (code).
      */
-    val status: HttpStatusCode
+    abstract val status: HttpStatusCode
 
     /**
      * HTTP version. Usually [HttpProtocolVersion.HTTP_1_1] or [HttpProtocolVersion.HTTP_2_0].
      */
-    val version: HttpProtocolVersion
+    abstract val version: HttpProtocolVersion
 
     /**
      * [GMTDate] of the request start.
      */
-    val requestTime: GMTDate
+    abstract val requestTime: GMTDate
 
     /**
      * [GMTDate] of the response start.
      */
-    val responseTime: GMTDate
+    abstract val responseTime: GMTDate
 
     /**
      * A [Job] representing the process of this response.
@@ -54,15 +55,19 @@ interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
     /**
      * [ByteReadChannel] with the payload of the response.
      */
-    val content: ByteReadChannel
+    abstract val content: ByteReadChannel
+
+    private val closed: AtomicBoolean = atomic(false)
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
+        if (!closed.compareAndSet(false , true)) return
+
         launch {
             content.discard()
         }
         @Suppress("UNCHECKED_CAST")
-        (coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
+        (coroutineContext[Job] as CompletableJob).complete()
     }
 }
 

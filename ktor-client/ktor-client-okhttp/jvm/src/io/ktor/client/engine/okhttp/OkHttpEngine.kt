@@ -2,9 +2,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -29,10 +27,15 @@ class OkHttpEngine(
         val callContext = createCallContext()
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
-        return if (data.isUpgradeRequest()) {
-            executeWebSocketRequest(engineRequest, callContext)
-        } else {
-            executeHttpRequest(engineRequest, callContext)
+        return try {
+            if (data.isUpgradeRequest()) {
+                executeWebSocketRequest(engineRequest, callContext)
+            } else {
+                executeHttpRequest(engineRequest, callContext)
+            }
+        } catch (cause: Throwable) {
+            (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
+            throw cause
         }
     }
 
@@ -67,12 +70,12 @@ class OkHttpEngine(
         val body = response.body()
         callContext[Job]?.invokeOnCompletion { body?.close() }
 
-        val responseContent = withContext(callContext) {
+        val responseContent = async(callContext) {
             body?.byteStream()?.toByteReadChannel(
                 context = callContext,
                 pool = KtorDefaultPool
             ) ?: ByteReadChannel.Empty
-        }
+        }.await()
 
         return buildResponseData(response, requestTime, responseContent, callContext)
 

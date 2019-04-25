@@ -9,12 +9,14 @@ import kotlin.coroutines.*
  */
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
-    private val clientContext = CompletableDeferred<Unit>()
-    private val callSupervisor = SupervisorJob(clientContext)
-    private val _dispatcher by lazy { Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher() }
+    private val clientContext = SupervisorJob()
+    private val _dispatcher by lazy {
+        Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher()
+    }
 
     @UseExperimental(InternalCoroutinesApi::class)
-    override val dispatcher: CoroutineDispatcher get() = _dispatcher
+    override val dispatcher: CoroutineDispatcher
+        get() = _dispatcher
 
     @UseExperimental(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
@@ -24,13 +26,12 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     /**
      * Create [CoroutineContext] to execute call.
      */
-    protected fun createCallContext(): CoroutineContext = coroutineContext + CompletableDeferred<Unit>(callSupervisor)
+    protected fun createCallContext(): CoroutineContext = coroutineContext + Job(clientContext)
 
     override fun close() {
-        callSupervisor.cancel()
+        clientContext.complete()
 
-        callSupervisor.invokeOnCompletion {
-            clientContext.complete(Unit)
+        clientContext.invokeOnCompletion {
             _dispatcher.close()
         }
     }
