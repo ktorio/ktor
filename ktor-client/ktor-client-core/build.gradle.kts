@@ -30,9 +30,6 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-client:ktor-client-tests"))
             api(project(":ktor-client:ktor-client-cio"))
-            api(project(":ktor-client:ktor-client-apache"))
-            api(project(":ktor-client:ktor-client-android"))
-            api(project(":ktor-client:ktor-client-jetty"))
             api(project(":ktor-client:ktor-client-okhttp"))
             api(project(":ktor-client:ktor-client-tests"))
             api(project(":ktor-features:ktor-websockets"))
@@ -44,7 +41,7 @@ kotlin.sourceSets {
         listOf("macosX64Test", "linuxX64Test", "mingwX64Test").map { named<KotlinSourceSet>(it) }.forEach {
             it {
                 dependencies {
-                    api(project(":ktor-client:ktor-client-curl"))
+//                    api(project(":ktor-client:ktor-client-curl"))
                 }
             }
         }
@@ -52,7 +49,7 @@ kotlin.sourceSets {
         listOf("macosX64Test", "iosX64Test", "iosArm32Test", "iosArm64Test").map { named<KotlinSourceSet>(it) }.forEach {
             it {
                 dependencies {
-                    api(project(":ktor-client:ktor-client-ios"))
+//                    api(project(":ktor-client:ktor-client-ios"))
                 }
             }
         }

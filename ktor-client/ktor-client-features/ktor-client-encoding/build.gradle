@@ -13,7 +13,7 @@ kotlin.sourceSets {
         implementation project(":ktor-client:ktor-client-cio")
         implementation project(":ktor-client:ktor-client-apache")
 
-        implementation project(":ktor-client:ktor-client-jetty")
+//        implementation project(":ktor-client:ktor-client-jetty")
     }
     if (!project.ext.ideaActive) {
         configure([macosX64Test, iosX64Test]) {

@@ -56,7 +56,6 @@ includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-jackso
 includeEx ':ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization'
 includeEx ':ktor-client:ktor-client-features:ktor-client-auth'
 includeEx ':ktor-client:ktor-client-features:ktor-client-auth-basic'
-includeEx ':ktor-client:ktor-client-features:ktor-client-websocket'
 includeEx ':ktor-client:ktor-client-features:ktor-client-logging'
 includeEx ':ktor-client:ktor-client-features:ktor-client-encoding'
 includeEx ':ktor-features:ktor-freemarker'
