@@ -1,16 +1,12 @@
 package io.ktor.client.features.cache
 
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
-import kotlin.coroutines.*
 
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry = response.use {
     val body = it.content.readRemaining().readBytes()
@@ -33,9 +29,9 @@ class HttpCacheEntry internal constructor(
     }
 
     internal fun produceResponse(): HttpResponse {
-        val call = HttpCacheCall(response.call.client)
-        call.response = HttpCacheResponse(call, body, response)
-        call.request = HttpCacheRequest(call, response.call.request)
+        val call = SavedHttpCall(response.call.client)
+        call.response = SavedHttpResponse(call, body, response)
+        call.request = SavedHttpRequest(call, response.call.request)
 
         return call.response
     }
@@ -92,22 +88,4 @@ internal fun HttpCacheEntry.shouldValidate(): Boolean {
     result = result || CacheControl.NO_CACHE in cacheControl
 
     return result
-}
-
-private class HttpCacheCall(client: HttpClient) : HttpClientCall(client)
-
-private class HttpCacheRequest(
-    override val call: HttpCacheCall, origin: HttpRequest
-) : HttpRequest by origin
-
-private class HttpCacheResponse(
-    override val call: HttpCacheCall, body: ByteArray, origin: HttpResponse
-) : HttpResponse by origin {
-    override val coroutineContext: CoroutineContext = origin.coroutineContext + Job()
-
-    override val content: ByteReadChannel = ByteReadChannel(body)
-
-    override fun close() {
-        (coroutineContext[Job] as CompletableJob).complete()
-    }
 }

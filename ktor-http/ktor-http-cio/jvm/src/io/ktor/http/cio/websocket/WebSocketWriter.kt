@@ -1,5 +1,6 @@
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -62,6 +63,9 @@ class WebSocketWriter(
                 }
             }
         } finally {
+            (coroutineContext[Job] as? CompletableJob)?.apply {
+                complete()
+            }
             close()
             writeChannel.close()
         }
@@ -69,9 +73,11 @@ class WebSocketWriter(
         consumeEach { message ->
             when (message) {
                 is Frame.Close -> {} // ignore
-                is Frame.Ping, is Frame.Pong -> {} // ignore
+                is Frame.Ping, is Frame.Pong -> {
+                } // ignore
                 is FlushRequest -> message.complete()
-                is Frame.Text, is Frame.Binary -> {} // discard
+                is Frame.Text, is Frame.Binary -> {
+                } // discard
                 else -> throw IllegalArgumentException("unknown message $message")
             }
         }
@@ -155,8 +161,8 @@ class WebSocketWriter(
     }
 
     private class FlushRequest(parent: Job?) {
-        private val done = CompletableDeferred<Unit>(parent)
-        fun complete() = done.complete(Unit)
-        suspend fun await() = done.await()
+        private val done: CompletableJob = Job(parent)
+        fun complete(): Boolean = done.complete()
+        suspend fun await(): Unit = done.join()
     }
 }

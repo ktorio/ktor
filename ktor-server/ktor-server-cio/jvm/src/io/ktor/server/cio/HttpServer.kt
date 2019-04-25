@@ -71,12 +71,12 @@ fun CoroutineScope.httpServer(
 ): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
-    val serverLatch = CompletableDeferred<Unit>()
+    val serverLatch: CompletableJob = Job()
     val serverJob = launch(
         context = CoroutineName("server-root-${settings.port}"),
         start = CoroutineStart.UNDISPATCHED
     ) {
-        serverLatch.await()
+        serverLatch.join()
     }
 
     val selector = ActorSelectorManager(coroutineContext)
@@ -120,9 +120,9 @@ fun CoroutineScope.httpServer(
         }
     }
 
-    acceptJob.invokeOnCompletion { t ->
-        t?.let { socket.completeExceptionally(it) }
-        serverLatch.complete(Unit)
+    acceptJob.invokeOnCompletion { cause ->
+        cause?.let { socket.completeExceptionally(it) }
+        serverLatch.complete()
         timeout.process()
     }
 

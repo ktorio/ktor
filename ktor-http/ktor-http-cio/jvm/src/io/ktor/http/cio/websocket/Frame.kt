@@ -54,11 +54,11 @@ actual sealed class Frame private actual constructor(
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
      */
     actual class Close actual constructor(data: ByteArray) : Frame(true, FrameType.CLOSE, data) {
+
         actual constructor(reason: CloseReason) : this(buildPacket {
             writeShort(reason.code)
             writeStringUtf8(reason.message)
         })
-
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         actual constructor() : this(Empty)
 

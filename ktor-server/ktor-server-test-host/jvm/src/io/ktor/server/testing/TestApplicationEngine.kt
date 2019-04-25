@@ -192,10 +192,10 @@ class TestApplicationEngine(
 
         // we need this to wait for response channel appearance
         // otherwise we get NPE at websocket reader start attempt
-        val responseSent = CompletableDeferred<Unit>()
+        val responseSent: CompletableJob = Job()
         call.response.responseChannelDeferred.invokeOnCompletion { cause ->
             when (cause) {
-                null -> responseSent.complete(Unit)
+                null -> responseSent.complete()
                 else -> responseSent.completeExceptionally(cause)
             }
         }
@@ -216,12 +216,12 @@ class TestApplicationEngine(
         val webSocketContext = engineContext + job
 
         runBlocking(configuration.dispatcher) {
-            responseSent.await()
+            responseSent.join()
             processResponse(call)
 
             val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-            val reader =
-                WebSocketReader(call.response.websocketChannel()!!, webSocketContext, Int.MAX_VALUE.toLong(), pool)
+            val responseChannel = call.response.websocketChannel()!!
+            val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
             try {
                 // execute client side

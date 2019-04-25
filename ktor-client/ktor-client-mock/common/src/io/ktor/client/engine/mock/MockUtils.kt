@@ -85,4 +85,4 @@ fun respond(
     status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, createMockCallContext()
 )
 
-private fun createMockCallContext(): CoroutineContext = Dispatchers.Default + CompletableDeferred<Unit>()
+private fun createMockCallContext(): CoroutineContext = Dispatchers.Default + Job()

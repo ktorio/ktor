@@ -30,14 +30,14 @@ class WebSockets(
     val timeout: Duration,
     val maxFrameSize: Long,
     val masking: Boolean
-): CoroutineScope {
-    private val parent = CompletableDeferred<Unit>()
+) : CoroutineScope {
+    private val parent: CompletableJob = Job()
 
     override val coroutineContext: CoroutineContext
         get() = parent
 
     private fun shutdown() {
-        parent.complete(Unit)
+        parent.complete()
     }
 
     /**

@@ -34,7 +34,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
-    override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
+    override val coroutineContext: CoroutineContext =
+        Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
 
     /**
      * Called by the servlet container when loading the servlet (on load)
@@ -81,7 +82,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         val asyncDispatchers = asyncDispatchers.value
 
         launch(asyncDispatchers.dispatcher) {
-            val call = AsyncServletApplicationCall(application, request, response,
+            val call = AsyncServletApplicationCall(
+                application, request, response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,
@@ -94,8 +96,10 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 try {
                     asyncContext.complete()
                 } catch (alreadyCompleted: IllegalStateException) {
-                    application.log.debug("AsyncContext is already completed due to previous I/O error",
-                            alreadyCompleted)
+                    application.log.debug(
+                        "AsyncContext is already completed due to previous I/O error",
+                        alreadyCompleted
+                    )
                 }
             }
         }

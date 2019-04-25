@@ -1,7 +1,6 @@
 package io.ktor.util
 
 import kotlinx.cinterop.*
-import platform.linux.*
 import utils.*
 import kotlin.native.concurrent.*
 
@@ -32,6 +31,7 @@ actual class ReadWriteLock actual constructor() {
         freeze()
         ktor_rwlock_create(lock)
     }
+
     actual fun readLock(): LockTicket {
         ktor_rwlock_read(lock)
         return ticket

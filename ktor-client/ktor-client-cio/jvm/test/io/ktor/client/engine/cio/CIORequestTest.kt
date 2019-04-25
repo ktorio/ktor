@@ -41,11 +41,12 @@ class CIORequestTest : TestWithKtor() {
             }
 
             assertEquals(headerValue, response.headers["LongHeader"])
+
+            response.close()
         }
     }
 
     @Test
-    @Ignore
     fun closeTest() = runBlocking {
         val client = HttpClient(CIO)
         client.get<String>(path = "/echo", port = serverPort)

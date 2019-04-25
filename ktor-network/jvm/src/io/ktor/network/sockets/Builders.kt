@@ -93,16 +93,14 @@ class TcpSocketBuilder internal constructor(
     suspend fun connect(
         remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
-    ): Socket {
-        return selector.buildOrClose({ openSocketChannel() }) {
-            val options = options.peer().tcp()
-            configure(options)
-            assignOptions(options)
-            nonBlocking()
+    ): Socket = selector.buildOrClose({ openSocketChannel() }) {
+        val options = options.peer().tcp()
+        configure(options)
+        assignOptions(options)
+        nonBlocking()
 
-            SocketImpl(this, socket()!!, selector).apply {
-                connect(remoteAddress)
-            }
+        SocketImpl(this, socket()!!, selector).apply {
+            connect(remoteAddress)
         }
     }
 

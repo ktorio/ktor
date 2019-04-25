@@ -1,7 +1,6 @@
 package io.ktor.client.tests
 
 import io.ktor.application.*
-import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -59,5 +58,3 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
         }
     }
 }
-
-

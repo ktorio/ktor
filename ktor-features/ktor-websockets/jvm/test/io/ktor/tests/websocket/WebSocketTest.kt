@@ -11,7 +11,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
@@ -163,7 +162,8 @@ class WebSocketTest {
                 }
             }
 
-            handleWebSocket("/aaa") {}.let { call ->
+            handleWebSocket("/aaa") {
+            }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
                 val p = FrameParser()
                 val bb = ByteBuffer.wrap(call.response.byteContent)

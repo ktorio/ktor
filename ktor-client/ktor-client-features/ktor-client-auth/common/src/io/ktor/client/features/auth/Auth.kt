@@ -51,6 +51,7 @@ class Auth(
                     request.takeFrom(call.request)
                     provider.addRequestHeaders(request)
 
+                    call.close()
                     call = execute(request)
                 }
 

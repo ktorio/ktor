@@ -7,7 +7,6 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.Test
 import java.math.*
 import kotlin.test.*

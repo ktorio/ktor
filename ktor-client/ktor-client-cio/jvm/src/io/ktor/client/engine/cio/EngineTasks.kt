@@ -1,7 +1,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*

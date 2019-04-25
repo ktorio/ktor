@@ -24,7 +24,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
     override suspend fun execute(
         data: HttpRequestData
     ): HttpResponseData = suspendCancellableCoroutine { continuation ->
-        val callContext = coroutineContext + CompletableDeferred<Unit>()
+        val callContext = coroutineContext + Job()
         val requestTime = GMTDate()
 
         val delegate = object : NSObject(), NSURLSessionDataDelegateProtocol {

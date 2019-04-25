@@ -93,7 +93,7 @@ internal suspend fun readResponse(
     val body = when {
         request.method == HttpMethod.Head ||
             status in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent) ||
-            status.value / 100 == 1 -> {
+            status.isInformational() -> {
             ByteReadChannel.Empty
         }
         else -> {
@@ -107,3 +107,5 @@ internal suspend fun readResponse(
 
     return HttpResponseData(status, requestTime, headers, version, body, callContext)
 }
+
+internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1

@@ -22,7 +22,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
     private val app: TestApplicationEngine = config.app
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = coroutineContext + CompletableDeferred<Unit>()
+        val callContext = coroutineContext + Job()
         val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
 
         return HttpResponseData(

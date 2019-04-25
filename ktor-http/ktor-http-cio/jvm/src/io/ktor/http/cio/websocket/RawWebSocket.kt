@@ -3,7 +3,6 @@ package io.ktor.http.cio.websocket
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
@@ -22,10 +21,9 @@ class RawWebSocket(
     coroutineContext: CoroutineContext,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : WebSocketSession {
-    private val socketJob = CompletableDeferred<Unit>(coroutineContext[Job])
+    private val socketJob: CompletableJob = Job(coroutineContext[Job])
 
-    override val coroutineContext: CoroutineContext = coroutineContext + socketJob
-
+    override val coroutineContext: CoroutineContext = coroutineContext + socketJob + CoroutineName("raw-ws")
     override val incoming: ReceiveChannel<Frame> get() = reader.incoming
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
 
@@ -37,17 +35,27 @@ class RawWebSocket(
         writer.masking = newValue
     }
 
-    internal val writer = WebSocketWriter(output, this.coroutineContext, masking, pool)
-    internal val reader: WebSocketReader = WebSocketReader(input, this.coroutineContext, maxFrameSize, pool)
+    internal val writer: WebSocketWriter = WebSocketWriter(output, this.coroutineContext, masking, pool)
+    internal val reader: WebSocketReader = WebSocketReader(input, Job() + coroutineContext, maxFrameSize, pool)
+
+    init {
+        coroutineContext[Job]?.invokeOnCompletion {
+            reader.cancel()
+        }
+    }
 
     override suspend fun flush(): Unit = writer.flush()
 
     override fun terminate() {
-        socketJob.completeExceptionally(CancellationException("WebSockedHandler terminated normally"))
+        outgoing.close()
+        socketJob.complete()
     }
 
     override suspend fun close(cause: Throwable?) {
-        cause?.let { socketJob.completeExceptionally(it) } ?: terminate()
+        if (cause != null) {
+            socketJob.completeExceptionally(cause)
+            outgoing.close(cause)
+        } else terminate()
     }
 }
 
