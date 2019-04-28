@@ -11,13 +11,7 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.micrometer.core.instrument.*
-import io.micrometer.core.instrument.Tag.*
-import io.micrometer.core.instrument.binder.*
-import io.micrometer.core.instrument.binder.jvm.*
-import io.micrometer.core.instrument.binder.system.*
-import io.micrometer.core.instrument.config.*
-import io.micrometer.core.instrument.distribution.*
-import java.util.concurrent.atomic.*
+
 
 /**
  * Enables Micrometer support when installed. Exposes the following metrics:
@@ -41,191 +35,40 @@ import java.util.concurrent.atomic.*
  *     <li>
  *  <ul>
  */
-class MicrometerMetrics(
-    private val registry: MeterRegistry,
-    timerDistributionConfig: DistributionStatisticConfig,
-    private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
-) {
+class MicrometerMetrics(config: Configuration) :
+    AbstractMicrometerMetrics<MeterRegistry, MicrometerMetrics.Configuration>(config) {
 
-    private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
-
-    init {
-        enableTimerDistributionConfig(timerDistributionConfig)
-    }
-
-    private fun enableTimerDistributionConfig(timerDistributionConfig: DistributionStatisticConfig) {
-        registry.config().meterFilter(object : MeterFilter {
-            override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                if (id.name == requestTimerName)
-                    timerDistributionConfig.merge(config)
-                else
-                    config
-        })
-    }
-
-    /**
-     * Configures this Feature
-     * @property registry The meter registry where the meters are registered. Mandatory
-     * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
-     * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
-     * @property distributionStatisticConfig configures the histogram and/or percentiles for all request timers. By
-     * default 50%, 90% , 95% and 99% percentiles are configured. If your backend supports server side histograms you
-     * should enable these instead with [DistributionStatisticConfig.Builder.percentilesHistogram] as client side
-     * percentiles cannot be aggregated.
-     * @property timers can be used to configure each timer to add custom tags or configure individual SLAs etc
-     * */
-    class Configuration {
-
-        lateinit var registry: MeterRegistry
-
-        internal fun isRegistryInitialized() = this::registry.isInitialized
-
-
-        var meterBinders: List<MeterBinder> = listOf(
-            ClassLoaderMetrics(),
-            JvmMemoryMetrics(),
-            JvmGcMetrics(),
-            ProcessorMetrics(),
-            JvmThreadMetrics(),
-            FileDescriptorMetrics()
-        )
-
-        var distributionStatisticConfig: DistributionStatisticConfig =
-            DistributionStatisticConfig.Builder()
-                .percentiles(0.5, 0.9, 0.95, 0.99)
-                .build()
-
-        internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
-
-        /**
-         * Configure micrometer timers
-         */
-        fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
-            timerBuilder = block
-        }
-    }
-
-    private fun CallMeasure.recordDuration(call: ApplicationCall) {
-        timer.stop(
-            Timer.builder(requestTimerName)
-                .addDefaultTags(call, throwable)
-                .customize(call, throwable)
-                .register(registry)
-        )
-    }
-
-    private fun Timer.Builder.customize(call: ApplicationCall, throwable: Throwable?) =
-        this.apply { timerBuilder(call, throwable) }
-
-    private fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
-        tags(
-            listOf(
-                of("address", call.request.local.let { "${it.host}:${it.port}" }),
-                of("method", call.request.httpMethod.value),
-                of("route", call.attributes[measureKey].route ?: call.request.path()),
-                of("status", call.response.status()?.value?.toString() ?: "n/a"),
-                of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
-            )
-        )
-        return this
-    }
-
-    private fun before(call: ApplicationCall) {
-        active?.incrementAndGet()
-
-        call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
-    }
-
-    private fun after(call: ApplicationCall) {
-        active?.decrementAndGet()
-
-        call.attributes.getOrNull(measureKey)?.recordDuration(call)
-
-    }
-
-    private fun throwable(call: ApplicationCall, t: Throwable) {
-        call.attributes.getOrNull(measureKey)?.apply {
-            throwable = t
-        }
-    }
+    class Configuration : AbstractConfiguration<MeterRegistry>()
 
     /**
      * Micrometer feature installation object
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
-        private const val baseName: String = "ktor.http.server"
+    companion object MetricsFeature : AbstractMetricsFeature<MeterRegistry, Configuration>(::MicrometerMetrics, ::Configuration) {
 
         /**
          * Request time timer name
          */
-        const val requestTimerName: String = "$baseName.requests"
+        @Deprecated(
+            "Use AbstractMicrometerMetrics.activeGaugeName instead.",
+            replaceWith = ReplaceWith("AbstractMicrometerMetrics.activeGaugeName"))
+        const val activeGaugeName = AbstractMicrometerMetrics.activeGaugeName
 
         /**
          * Active requests gauge name
          */
-        const val activeGaugeName: String = "$baseName.requests.active"
-
-        private val measureKey = AttributeKey<CallMeasure>("metrics")
-
-        override val key: AttributeKey<MicrometerMetrics> = AttributeKey("metrics")
-
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
-            val configuration = Configuration().apply(configure)
-
-            if (!configuration.isRegistryInitialized()) {
-                throw IllegalArgumentException(
-                    "Meter registry is missing. Please initialize the field 'registry'"
-                )
-            }
-
-            val feature = MicrometerMetrics(
-                configuration.registry,
-                configuration.distributionStatisticConfig,
-                configuration.timerBuilder
-            )
-
-            configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
-
-            val phase = PipelinePhase("MicrometerMetrics")
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
-
-            pipeline.intercept(phase) {
-                feature.before(call)
-                try {
-                    proceed()
-                } catch (e: Throwable) {
-                    feature.throwable(call, e)
-                    throw e
-                }
-            }
-
-            val postSendPhase = PipelinePhase("MicrometerMetricsPostSend")
-            pipeline.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.After, postSendPhase)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
-                try {
-                    proceed()
-                } finally {
-                    feature.after(call)
-                }
-            }
-
-            pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
-                call.attributes[measureKey].route = call.route.parent.toString()
-            }
-
-            return feature
-        }
+        @Deprecated(
+            "Use AbstractMicrometerMetrics.requestTimerName instead.",
+            replaceWith = ReplaceWith("AbstractMicrometerMetrics.requestTimerName"))
+        const val requestTimerName = AbstractMicrometerMetrics.requestTimerName
     }
-
-
 }
 
+/**
+ * The meter registry registered for this feature
+ */
+val PipelineContext<Unit, ApplicationCall>.meterRegistry
+    get() = call.application.feature(MicrometerMetrics).config.registry
 
 
-private data class CallMeasure(
-    val timer: Timer.Sample,
-    var route: String? = null,
-    var throwable: Throwable? = null
-)
 
 

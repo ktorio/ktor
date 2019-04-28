@@ -1,0 +1,18 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+description = ''
+
+tasks.withType(KotlinCompile).all {
+    kotlinOptions {
+        // micrometer uses jdk 1.8 features, so we need to use that version here
+        jvmTarget = "1.8"
+    }
+}
+
+kotlin {
+    sourceSets.jvmMain.dependencies {
+        api ('io.micrometer:micrometer-registry-prometheus:1.1.4')
+        api project(':ktor-features:ktor-metrics-micrometer')
+    }
+}
+
