@@ -16,7 +16,14 @@ import kotlin.reflect.*
  */
 class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializer) : SessionTracker {
     override suspend fun load(call: ApplicationCall, transport: String?): Any? {
-        return transport?.let { serializer.deserialize(it) }
+        return transport?.let { serialized ->
+            try {
+                serializer.deserialize(serialized)
+            } catch (t: Throwable) {
+                call.application.log.debug("Failed to deserialize session: $serialized", t)
+                null
+            }
+        }
     }
 
     override suspend fun store(call: ApplicationCall, value: Any): String {
