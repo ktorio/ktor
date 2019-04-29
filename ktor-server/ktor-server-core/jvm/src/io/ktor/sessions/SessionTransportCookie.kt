@@ -88,7 +88,7 @@ class CookieConfiguration {
     /**
      * This cookie is only for transferring over HTTP(s) and shouldn't be accessible via JavaScript
      */
-    var httpOnly: Boolean = false
+    var httpOnly: Boolean = true
 
     /**
      * Any additional extra cookie parameters
