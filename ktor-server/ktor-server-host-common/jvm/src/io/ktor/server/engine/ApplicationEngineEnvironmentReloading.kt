@@ -308,6 +308,7 @@ class ApplicationEngineEnvironmentReloading(
             val staticFunctions = clazz.methods
                     .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
                     .mapNotNull { it.kotlinFunction }
+                    .filter { it.isApplicableFunction() }
 
             staticFunctions.bestFunction()?.let { moduleFunction ->
                 if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
@@ -328,11 +329,13 @@ class ApplicationEngineEnvironmentReloading(
                 return
             }
 
-            val kclass = clazz.kotlin
-            val instance = createModuleContainer(kclass, application)
-            kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
-                callFunctionWithInjection(instance, moduleFunction, application)
-                return
+            clazz.takeIfNotFacade()?.let { kclass ->
+                kclass.functions.filter { it.name == functionName && it.isApplicableFunction() }
+                    .bestFunction()?.let { moduleFunction ->
+                    val instance = createModuleContainer(kclass, application)
+                    callFunctionWithInjection(instance, moduleFunction, application)
+                    return
+                }
             }
         }
 
@@ -405,5 +408,33 @@ class ApplicationEngineEnvironmentReloading(
 
         private val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
         private val ApplicationClassInstance = Application::class.java
+
+        private fun KFunction<*>.isApplicableFunction(): Boolean {
+            if (isOperator || isInfix || isInline || isAbstract) return false
+            if (isSuspend) return false // not supported yet
+
+            extensionReceiverParameter?.let {
+                if (!isApplication(it) && !isApplicationEnvironment(it)) return false
+            }
+
+            javaMethod?.let {
+                if (it.isSynthetic) return false
+
+                // static no-arg function is useless as a module function since no application instance available
+                // so nothing could be configured
+                if (Modifier.isStatic(it.modifiers) && parameters.isEmpty()) {
+                    return false
+                }
+            }
+
+            return parameters.all { isApplication(it) || isApplicationEnvironment(it) || it.kind == KParameter.Kind.INSTANCE }
+        }
+
+        private fun Class<*>.takeIfNotFacade(): KClass<*>? {
+            if (getAnnotation(Metadata::class.java)?.takeIf { it.kind == 1 } != null) {
+                return kotlin
+            }
+            return null
+        }
     }
 }
