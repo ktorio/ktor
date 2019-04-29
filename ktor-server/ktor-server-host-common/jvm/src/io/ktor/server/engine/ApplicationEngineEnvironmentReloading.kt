@@ -286,8 +286,12 @@ class ApplicationEngineEnvironmentReloading(
         val application = Application(this)
         safeRiseEvent(ApplicationStarting, application)
 
-        moduleFunctionNames?.forEach { fqName ->
-            executeModuleFunction(classLoader, fqName, application)
+        avoidingDoubleStartup {
+            moduleFunctionNames?.forEach { fqName ->
+                avoidingDoubleStartupFor(fqName) {
+                    executeModuleFunction(classLoader, fqName, application)
+                }
+            }
         }
 
         if (watchPatterns.isEmpty()) {
@@ -296,6 +300,32 @@ class ApplicationEngineEnvironmentReloading(
 
         safeRiseEvent(ApplicationStarted, application)
         return application
+    }
+
+    private fun avoidingDoubleStartup(block: () -> Unit) {
+        try {
+            block()
+        } finally {
+            currentStartupModules.get()?.let {
+                if (it.isEmpty()) {
+                    currentStartupModules.remove()
+                }
+            }
+        }
+    }
+
+    private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
+        val modules = currentStartupModules.getOrSet { ArrayList(1) }
+        if (modules.contains(fqName)) {
+            throw IllegalStateException("Module startup is already in progress for " +
+                "function $fqName (recursive module startup from module main?)")
+        }
+        modules.add(fqName)
+        try {
+            block()
+        } finally {
+            modules.remove(fqName)
+        }
     }
 
     private fun executeModuleFunction(classLoader: ClassLoader, fqName: String, application: Application) {
@@ -402,6 +432,8 @@ class ApplicationEngineEnvironmentReloading(
     }
 
     companion object {
+        private val currentStartupModules = ThreadLocal<MutableList<String>>()
+
         private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
         private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, ApplicationEnvironmentClassInstance)
         private fun isApplication(p: KParameter) = isParameterOfType(p, ApplicationClassInstance)
