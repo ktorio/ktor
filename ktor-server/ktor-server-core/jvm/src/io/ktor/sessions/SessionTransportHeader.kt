@@ -26,4 +26,8 @@ class SessionTransportHeader(val name: String,
     }
 
     override fun clear(call: ApplicationCall) {}
+
+    override fun toString(): String {
+        return "SessionTransportHeader: $name"
+    }
 }

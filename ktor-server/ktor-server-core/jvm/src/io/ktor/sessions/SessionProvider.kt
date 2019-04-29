@@ -17,4 +17,8 @@ import kotlin.reflect.*
 class SessionProvider(val name: String,
                       val type: KClass<*>,
                       val transport: SessionTransport,
-                      val tracker: SessionTracker)
+                      val tracker: SessionTracker) {
+    override fun toString(): String {
+        return "SessionProvider(name = $name, type = $type, transport = $transport, tracker = $tracker)"
+    }
+}
