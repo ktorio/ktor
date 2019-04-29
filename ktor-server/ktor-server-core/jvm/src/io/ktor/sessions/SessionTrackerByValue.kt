@@ -40,5 +40,9 @@ class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializ
     override suspend fun clear(call: ApplicationCall) {
         // it's stateless, so nothing to clear
     }
+
+    override fun toString(): String {
+        return "SessionTrackerByValue"
+    }
 }
 

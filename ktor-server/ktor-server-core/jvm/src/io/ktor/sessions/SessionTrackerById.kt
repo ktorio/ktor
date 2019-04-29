@@ -63,4 +63,8 @@ class SessionTrackerById(
             throw IllegalArgumentException("Value for this session tracker expected to be of type $type but was $value")
         }
     }
+
+    override fun toString(): String {
+        return "SessionTrackerById: $storage"
+    }
 }
