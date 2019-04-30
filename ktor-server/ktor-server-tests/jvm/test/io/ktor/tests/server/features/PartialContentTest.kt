@@ -73,7 +73,7 @@ class PartialContentTest {
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-4/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
-            assertEquals("packa", result.response.content)
+            assertEquals("/*\n *", result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
     }
@@ -86,7 +86,7 @@ class PartialContentTest {
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
-            assertEquals("p", result.response.content)
+            assertEquals("/", result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
     }
@@ -98,7 +98,7 @@ class PartialContentTest {
         }.let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
-            assertEquals("ac", result.response.content)
+            assertEquals("*\n", result.response.content)
             assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
@@ -143,7 +143,7 @@ class PartialContentTest {
         }.let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
-            assertEquals("p", result.response.content)
+            assertEquals("/", result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
@@ -156,7 +156,7 @@ class PartialContentTest {
         }.let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
-            assertEquals("p", result.response.content)
+            assertEquals("/", result.response.content)
             assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
@@ -213,8 +213,8 @@ class PartialContentTest {
                 @Suppress("DEPRECATION_ERROR")
                 (kotlin.test.assert(parts) {
                     sizeShouldBe(2)
-                    elementAtShouldBe(0, "p")
-                    elementAtShouldBe(1, "c")
+                    elementAtShouldBe(0, "/")
+                    elementAtShouldBe(1, "\n")
                 })
             }
         }
@@ -229,7 +229,7 @@ class PartialContentTest {
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PartialContent, result.response.status())
             assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
-            assertEquals("pac", result.response.content)
+            assertEquals("/*\n", result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
     }

@@ -461,7 +461,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             File("ktor-server/ktor-server-core/jvm/src")
         ).filter { it.exists() }
             .flatMap { it.walkBottomUp().asIterable() }
-            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
+            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == '/' } }
 
         testLog.trace("test file is $file")
 
@@ -476,13 +476,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("p", readText())
+            assertEquals("/", readText())
         }
         withUrl("/", {
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("ac", readText())
+            assertEquals("*\n", readText())
         }
     }
 
@@ -493,7 +493,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             File("jvm/test"), File("ktor-server/ktor-server-core/jvm/src")
         ).filter { it.exists() }
             .flatMap { it.walkBottomUp().asIterable() }
-            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }
+            .first { it.extension == "kt" && it.reader().use { it.read().toChar() == '/' } }
 
         testLog.trace("test file is $file")
 
@@ -511,7 +511,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("p", readText()) // it should be no compression if range requested
+            assertEquals("/", readText()) // it should be no compression if range requested
         }
     }
 
