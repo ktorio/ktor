@@ -7,6 +7,7 @@ import kotlin.test.*
 class CodecTest {
     private val swissAndGerman = "\u0047\u0072\u00fc\u0065\u007a\u0069\u005f\u007a\u00e4\u006d\u00e4"
     private val russian = "\u0412\u0441\u0435\u043c\u005f\u043f\u0440\u0438\u0432\u0435\u0442"
+    private val urlPath = "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana\u2013Champaign_logo.svg"
 
     @Test/*(timeout = 1000L)*/
     @Ignore
@@ -96,6 +97,13 @@ class CodecTest {
         assertFails {
             "%0".decodeURLQueryComponent()
         }
+    }
+
+    @Test
+    fun testEncodeURLPathUTF() {
+        assertEquals("/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana%E2%80%93Champaign_logo.svg", urlPath.encodeURLPath())
+        assertEquals("%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82", russian.encodeURLPath())
+        assertEquals("Gr%C3%BCezi_z%C3%A4m%C3%A4", swissAndGerman.encodeURLPath())
     }
 
     private fun encodeAndDecodeTest(text: String) {

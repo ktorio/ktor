@@ -5,6 +5,7 @@ import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
 private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
 private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
 
 /**
@@ -53,10 +54,12 @@ fun String.encodeURLQueryComponent(
  * Encode URL path or component. It escapes all illegal or ambiguous characters
  */
 fun String.encodeURLPath(): String = buildString {
+    val charset = Charsets.UTF_8
+
     var index = 0
     while (index < this@encodeURLPath.length) {
         val current = this@encodeURLPath[index]
-        if (current == '/' || current.toByte() in URL_ALPHABET || current in VALID_PATH_PART) {
+        if (current == '/' || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
             append(current)
             index++
             continue
@@ -75,7 +78,10 @@ fun String.encodeURLPath(): String = buildString {
             continue
         }
 
-        append(current.toByte().percentEncode())
+        // we need to call newEncoder() for every symbol, otherwise it won't work
+        charset.newEncoder().encode(this@encodeURLPath, index, index + 1).forEach {
+            append(it.percentEncode())
+        }
         index++
     }
 }
