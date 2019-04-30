@@ -124,15 +124,6 @@ class ApplicationEngineEnvironmentReloading(
         _applicationInstance ?: throw IllegalStateException("ApplicationEngineEnvironment was not started")
     }
 
-    private fun ClassLoader.allURLs(): Set<URL> {
-        val parentUrls = parent?.allURLs() ?: emptySet()
-        if (this is URLClassLoader) {
-            val urls = urLs.filterNotNull().toSet()
-            return urls + parentUrls
-        }
-        return parentUrls
-    }
-
     private fun createApplication(): Pair<Application, ClassLoader> {
         val classLoader = createClassLoader()
         val currentThread = Thread.currentThread()
