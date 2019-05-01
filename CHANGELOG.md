@@ -20,6 +20,31 @@
 * Introduced client content encoding feature.
 * Introduced client call validator feature.
 * Old API deprecations and removals.
+* Fixed gzip/deflate on JDK11
+* Introduced JWT auth header retrieval configuration (#1048)
+* `CallLogging` message format customization (#1047)
+* Fixed logging error with no call-related MDC (#1033)
+* Avoided using constant hash salt in `UserHashedTableAuth`
+* Added LDAP auth provider proper characters escaping
+* Minimized jetty core pool size and made it configurable (#1083)
+* Made servlet engine use servlet config instead of context (#1063)
+* Introduced accepted content types contributor in ContentNegotiation (#357)
+* Introduced `ApplicationEnvironment.rootPath` with servlet engine support (context path) (#738)
+* Support for `rootPath` in routing by default (#738)
+* Introduce ability to serve web resources from WAR
+* Added micrometer metrics (#1037)
+* Added Thymeleaf templating feature (#988)
+* Cookie session use `/` path by default (#1043)
+* Add hot reload experimental support for JDK9+ (VM option required)
+* `HttpStatusCode` equals check is amended
+* Added client `AcceptCharset` header support
+* `KotlinxSerializer` moved to a separate artifact
+* Client engine API simplified
+* Introduced client cache support
+* Jetty upgraded to 9.4.15.v20190215
+* okhttp client upgraded to 3.14.0
+* Kotlin 1.3.31
+* kotlinx.coroutines 1.2.1
 
 # 1.1.5
 > Published 24 Apr 2019
