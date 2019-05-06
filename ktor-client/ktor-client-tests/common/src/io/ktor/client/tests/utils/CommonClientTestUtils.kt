@@ -52,8 +52,15 @@ fun <T : HttpClientEngineConfig> clientTest(
         builder.test(it)
     }
 
-    client.coroutineContext[Job]!!.apply {
-        join()
+    try {
+        withTimeout(5000) {
+            client.coroutineContext[Job]!!.apply {
+                join()
+            }
+        }
+    } catch (cause: Throwable) {
+        client.cancel()
+        throw cause
     }
 }
 
