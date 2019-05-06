@@ -19,4 +19,6 @@ object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
 @Suppress("KDocMissingDocumentation")
 class OkHttpEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = OkHttp
+
+    override fun toString(): String = "OkHttp"
 }

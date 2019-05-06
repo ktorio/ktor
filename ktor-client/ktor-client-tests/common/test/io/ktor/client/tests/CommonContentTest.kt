@@ -11,10 +11,10 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
-class CommonContentTest {
+class CommonContentTest : ClientLoader() {
 
     @Test
-    fun testPostWithEmptyBody() = clientsTest {
+    fun testPostWithEmptyBody() = clientTests {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer()

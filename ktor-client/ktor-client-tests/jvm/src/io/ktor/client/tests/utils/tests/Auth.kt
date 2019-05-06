@@ -12,7 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 
-fun Application.authTestServer() {
+internal fun Application.authTestServer() {
     install(Authentication) {
         basic("test-basic") {
             realm = "my-server"

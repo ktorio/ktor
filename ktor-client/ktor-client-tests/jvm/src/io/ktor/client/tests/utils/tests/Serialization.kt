@@ -9,7 +9,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Application.serializationTestServer() {
+internal fun Application.serializationTestServer() {
     routing {
         route("/json") {
             get("/users") {

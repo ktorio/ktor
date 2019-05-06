@@ -13,9 +13,9 @@ import io.ktor.routing.*
 import io.ktor.util.date.*
 import java.util.concurrent.atomic.*
 
-val counter = AtomicInteger(0)
+internal val counter = AtomicInteger(0)
 
-fun Application.cacheTestServer() {
+internal fun Application.cacheTestServer() {
     routing {
         route("/cache") {
             install(CachingHeaders)

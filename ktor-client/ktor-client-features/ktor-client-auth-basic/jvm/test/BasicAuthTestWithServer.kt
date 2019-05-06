@@ -28,7 +28,7 @@ class BasicAuthTestWithServer : TestWithKtor() {
     }
 
     @Test
-    fun testHandle() = clientTest(CIO){
+    fun testHandle() = clientTest(CIO) {
         config {
             install(BasicAuth) {
                 username = "testUsername"

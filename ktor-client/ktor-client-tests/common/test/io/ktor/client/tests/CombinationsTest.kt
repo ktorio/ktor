@@ -20,11 +20,11 @@ import kotlin.test.*
 @Serializable
 class TestClass(val test: String)
 
-class CombinationsTest {
+class CombinationsTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testAuthJsonLogging() = clientsTest {
+    fun testAuthJsonLogging() = clientTests {
         config {
             Auth {
                 basic {
@@ -54,7 +54,7 @@ class CombinationsTest {
 
     @Test
     @Ignore
-    fun testWebsocketWithAuth() = clientsTest(skipMissingPlatforms = true) {
+    fun testWebsocketWithAuth() = clientTests {
         config {
             Logging {
                 level = LogLevel.INFO

@@ -24,4 +24,6 @@ object CIO : HttpClientEngineFactory<CIOEngineConfig> {
 @Suppress("KDocMissingDocumentation")
 class CIOEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = CIO
+
+    override fun toString(): String = "CIO"
 }

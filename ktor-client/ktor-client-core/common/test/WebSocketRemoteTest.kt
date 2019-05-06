@@ -10,11 +10,11 @@ import io.ktor.http.cio.websocket.*
 import kotlinx.io.core.*
 import kotlin.test.*
 
-class WebSocketRemoteTest {
+class WebSocketRemoteTest : ClientLoader() {
     private val echoWebsocket = "echo.websocket.org"
 
     @Test
-    fun testRemotePingPong() = clientsTest(skipMissingPlatforms = true) {
+    fun testRemotePingPong() = clientTests {
 
         config {
             install(WebSockets)
@@ -30,7 +30,7 @@ class WebSocketRemoteTest {
     }
 
     @Test
-    fun testSecureRemotePingPong() = clientsTest(skipMissingPlatforms = true) {
+    fun testSecureRemotePingPong() = clientTests {
         config {
             install(WebSockets)
         }
@@ -45,7 +45,7 @@ class WebSocketRemoteTest {
     }
 
     @Test
-    fun testWithLogging() = clientsTest(skipMissingPlatforms = true) {
+    fun testWithLogging() = clientTests {
         config {
             install(Logging) {
                 level = LogLevel.ALL

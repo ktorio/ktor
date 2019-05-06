@@ -10,9 +10,9 @@ import io.ktor.client.tests.utils.*
 import kotlinx.io.core.*
 import kotlin.test.*
 
-class RemoteTests {
+class RemoteTests : ClientLoader() {
     @Test
-    fun testDownloadWithNoneLogLevel() = clientsTest(skipMissingPlatforms = true) {
+    fun testDownloadWithNoneLogLevel() = clientTests {
         config {
             install(Logging) {
                 level = LogLevel.NONE

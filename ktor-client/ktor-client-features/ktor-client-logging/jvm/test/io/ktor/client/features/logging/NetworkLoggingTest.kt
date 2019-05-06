@@ -4,43 +4,22 @@
 
 package io.ktor.client.features.logging
 
-import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.test.*
 
-class NetworkLoggingTest : TestWithKtor() {
-    val content = "Response data"
-
-    override val server: ApplicationEngine = embeddedServer(Jetty, port = serverPort) {
-        routing {
-            get("/") {
-                call.respondText("home page")
-            }
-            post("/") {
-                assertEquals(content, call.receiveText())
-                call.respondText("/", status = HttpStatusCode.Created)
-            }
-            get("/301") {
-                call.respondRedirect("/")
-            }
-        }
-    }
-
+class NetworkLoggingTest : ClientLoader() {
+    private val content = "Response data"
+    private val serverPort = 8080
 
     @Ignore("Log structure is engine dependent")
     @Test
-    fun testLoggingLevel() = clientsTest {
+    fun testLoggingLevel() = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -116,7 +95,7 @@ FROM: http://localhost:$serverPort/
 
     @Test
     @Ignore("Log structure is engine dependent")
-    fun testLogPostBody() = clientsTest {
+    fun testLogPostBody() = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -145,7 +124,7 @@ BODY END
 
     @Ignore("Log structure is engine dependent")
     @Test
-    fun logRedirectTest() = clientsTest {
+    fun logRedirectTest() = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/301
@@ -190,7 +169,7 @@ BODY END
     }
 
     @Test
-    fun customServerHeadersLoggingTest(): Unit = clientsTest {
+    fun customServerHeadersLoggingTest(): Unit = clientTests {
         val testLogger = TestLogger()
 
         config {
@@ -206,7 +185,7 @@ BODY END
     }
 
     @Test
-    fun customServerTest() = clientsTest {
+    fun customServerTest() = clientTests {
         config {
             Logging {
                 level = LogLevel.ALL
@@ -245,10 +224,9 @@ BODY END
                 method = requestMethod
 
                 url {
-                    encodedPath = path
+                    encodedPath = "/logging/$path"
+                    port = serverPort
                 }
-
-                port = serverPort
 
                 body?.let { this@request.body = body }
             }

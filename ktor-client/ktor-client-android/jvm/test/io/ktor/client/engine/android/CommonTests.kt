@@ -16,8 +16,6 @@ class AndroidPostTest : PostTest(Android)
 @Ignore
 class AndroidMultithreadedTest : MultithreadedTest(Android)
 
-class AndroidContentTest : ContentTest(Android)
-
 class AndroidRedirectTest : HttpRedirectTest(Android)
 
 class AndroidBuildersTest : BuildersTest(Android)
