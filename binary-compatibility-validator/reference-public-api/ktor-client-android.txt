@@ -27,5 +27,6 @@ public final class io/ktor/client/engine/android/AndroidEngineConfig : io/ktor/c
 public final class io/ktor/client/engine/android/AndroidEngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
 }
 
