@@ -12,5 +12,6 @@ public final class io/ktor/client/engine/jetty/JettyEngineConfig : io/ktor/clien
 public final class io/ktor/client/engine/jetty/JettyEngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
 }
 
