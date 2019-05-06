@@ -86,7 +86,7 @@ internal fun Appendable.appendUrlFullPath(
     queryParameters: Parameters,
     trailingQuery: Boolean
 ) {
-    if (!encodedPath.startsWith("/")) {
+    if (encodedPath.isNotBlank() && !encodedPath.startsWith("/")) {
         append('/')
     }
 
