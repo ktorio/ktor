@@ -23,4 +23,6 @@ object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
 @Suppress("KDocMissingDocumentation")
 class JettyEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Jetty
+
+    override fun toString(): String = "Jetty"
 }

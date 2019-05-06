@@ -17,15 +17,6 @@ import kotlinx.io.core.*
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
- * Perform test against all clients from dependencies.
- */
-expect fun clientsTest(
-    skipMissingPlatforms: Boolean = false,
-    skipPlatforms: List<String> = emptyList(),
-    block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-)
-
-/**
  * Perform test with selected client [engine].
  */
 fun clientTest(
@@ -43,8 +34,7 @@ fun clientTest(
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
     @Suppress("UNCHECKED_CAST")
-    client
-        .config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+    client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
         .use { client -> builder.test(client) }
 }
 

@@ -9,9 +9,9 @@ import io.ktor.client.tests.utils.*
 import kotlin.test.*
 
 
-class DownloadTest {
+class DownloadTest : ClientLoader() {
     @Test
-    fun testDownloadGoogle() = clientsTest {
+    fun testDownloadGoogle() = clientTests {
         test { client ->
             val response = client.get<String>("http://www.google.com/")
             assertTrue { response.isNotEmpty() }
@@ -19,7 +19,7 @@ class DownloadTest {
     }
 
     @Test
-    fun testLocalhostEcho() = clientsTest {
+    fun testLocalhostEcho() = clientTests {
         val text = "Hello, world"
         test { client ->
             val response = client.post<String>("$TEST_SERVER/echo") {

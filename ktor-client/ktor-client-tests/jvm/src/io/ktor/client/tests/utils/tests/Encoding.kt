@@ -9,7 +9,7 @@ import io.ktor.features.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Application.encodingTestServer() {
+internal fun Application.encodingTestServer() {
     routing {
         route("/compression") {
             route("/deflate") {

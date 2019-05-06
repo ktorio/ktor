@@ -16,8 +16,6 @@ class OkHttpPostTest : PostTest(OkHttp)
 @Ignore
 class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
 
-class OkHttpContentTest : ContentTest(OkHttp)
-
 class OkHttpBuildersTest : BuildersTest(OkHttp)
 
 class OkHttpFeaturesTest : FeaturesTest(OkHttp)

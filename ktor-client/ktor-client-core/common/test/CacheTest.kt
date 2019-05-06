@@ -10,9 +10,9 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class CacheTest {
+class CacheTest : ClientLoader() {
     @Test
-    fun testNoStore() = clientsTest(skipMissingPlatforms = true) {
+    fun testNoStore() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -36,7 +36,7 @@ class CacheTest {
     }
 
     @Test
-    fun testNoCache() = clientsTest(skipMissingPlatforms = true) {
+    fun testNoCache() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -60,7 +60,7 @@ class CacheTest {
     }
 
     @Test
-    fun testETagCache() = clientsTest(skipPlatforms = listOf("js"), skipMissingPlatforms = true) {
+    fun testETagCache() = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -82,7 +82,7 @@ class CacheTest {
     }
 
     @Test
-    fun testLastModified() = clientsTest(skipPlatforms = listOf("js"), skipMissingPlatforms = true) {
+    fun testLastModified() = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -104,7 +104,7 @@ class CacheTest {
     }
 
     @Test
-    fun testVary() = clientsTest(skipPlatforms = listOf("js"), skipMissingPlatforms = true) {
+    fun testVary() = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -150,7 +150,7 @@ class CacheTest {
     }
 
     @Test
-    fun testMaxAge() = clientsTest(skipMissingPlatforms = true) {
+    fun testMaxAge() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -175,7 +175,7 @@ class CacheTest {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientsTest(skipMissingPlatforms = true) {
+    fun testPublicAndPrivateCache() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {

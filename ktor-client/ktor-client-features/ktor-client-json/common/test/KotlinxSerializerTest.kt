@@ -27,7 +27,7 @@ data class GithubProfile(
     val name: String
 )
 
-class KotlinxSerializerTest {
+class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testRegisterCustom() {
         val serializer = KotlinxSerializer().apply {
@@ -54,7 +54,7 @@ class KotlinxSerializerTest {
     }
 
     @Test
-    fun testReceiveFromGithub() = clientsTest {
+    fun testReceiveFromGithub() = clientTests {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer(Json.nonstrict).apply {
@@ -70,7 +70,7 @@ class KotlinxSerializerTest {
     }
 
     @Test
-    fun testCustomFormBody() = clientsTest {
+    fun testCustomFormBody() = clientTests {
         config {
             install(JsonFeature)
         }
@@ -108,7 +108,7 @@ class KotlinxSerializerTest {
      */
     @Test
     @Ignore
-    fun testMultipleListSerializersWithClient() = clientsTest {
+    fun testMultipleListSerializersWithClient() = clientTests {
         val testSerializer = KotlinxSerializer().apply {
             registerList(User.serializer())
             registerList(Photo.serializer())

@@ -10,25 +10,23 @@ import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
 
-class ContentEncodingTest {
+class ContentEncodingTest : ClientLoader() {
     @Test
-    fun testIdentity() {
-        clientsTest {
-            config {
-                ContentEncoding {
-                    identity()
-                }
+    fun testIdentity() = clientTests {
+        config {
+            ContentEncoding {
+                identity()
             }
+        }
 
-            test { client ->
-                val response = client.get<String>("$TEST_URL/identity")
-                assertEquals("Compressed response!", response)
-            }
+        test { client ->
+            val response = client.get<String>("$TEST_URL/identity")
+            assertEquals("Compressed response!", response)
         }
     }
 
     @Test
-    fun testDeflate() = clientsTest {
+    fun testDeflate() = clientTests {
         config {
             ContentEncoding {
                 deflate()
@@ -42,7 +40,7 @@ class ContentEncodingTest {
     }
 
     @Test
-    fun testGZip() = clientsTest {
+    fun testGZip() = clientTests {
         config {
             ContentEncoding {
                 gzip()
