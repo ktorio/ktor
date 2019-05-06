@@ -8,15 +8,25 @@ import io.ktor.application.*
 
 /**
  * Represents an authentication provider with the given name
- * @property name is the name of the provider, or `null` for a default provider
  */
-open class AuthenticationProvider(val name: String? = null) {
+open class AuthenticationProvider(config: Configuration) {
+
+    @Deprecated("Provider should be built using configuration that need to be passed via constructor instead.")
+    constructor(name: String? = null) : this(NamedConfiguration(name))
+
+    private var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = config.filterPredicates
+
+    /**
+     * Provider name or `null` for a default provider
+     */
+    val name: String? = config.name
+
     /**
      * Authentication pipeline for this provider
      */
-    val pipeline = AuthenticationPipeline()
-
-    private var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = null
+    val pipeline: AuthenticationPipeline = AuthenticationPipeline().also { pipeline ->
+        pipeline.merge(config.pipeline)
+    }
 
     /**
      * Authentication filters specifying if authentication is required for particular [ApplicationCall]
@@ -28,9 +38,41 @@ open class AuthenticationProvider(val name: String? = null) {
     /**
      * Adds an authentication filter to the list
      */
+    @Deprecated("List of predicates should be built in configuration and then be passed via constructor instead.")
     fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
         val list = filterPredicates ?: mutableListOf()
         list.add(predicate)
         filterPredicates = list
     }
+
+    /**
+     * Authentication provider configuration base class
+     * @property name is the name of the provider, or `null` for a default provider.
+     */
+    open class Configuration protected constructor(val name: String?) {
+        /**
+         * Authentication pipeline for this provider
+         */
+        val pipeline: AuthenticationPipeline = AuthenticationPipeline()
+
+        /**
+         * Authentication filters specifying if authentication is required for particular [ApplicationCall]
+         *
+         * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
+         */
+        internal var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = null
+
+        /**
+         * Adds an authentication filter to the list.
+         * For every application call the specified [predicate] is applied and if it returns `true` then the
+         * authentication provider is skipped (no auth required for this call with this provider).
+         */
+        fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
+            val list = filterPredicates ?: mutableListOf()
+            list.add(predicate)
+            filterPredicates = list
+        }
+    }
+
+    private class NamedConfiguration(name: String?) : Configuration(name)
 }

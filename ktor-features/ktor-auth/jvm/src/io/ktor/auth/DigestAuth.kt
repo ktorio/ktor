@@ -13,44 +13,65 @@ import java.security.*
 
 /**
  * Represents a Digest authentication provider
- * @param name is the name of the provider, or `null` for a default provider
+ * @property realm specifies value to be passed in `WWW-Authenticate` header
+ * @property algorithmName Message digest algorithm to be used. Usually only `MD5` is supported by clients.
  */
-class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    /**
-     * Specifies realm to be passed in `WWW-Authenticate` header
-     */
-    var realm: String = "Ktor Server"
+class DigestAuthenticationProvider internal constructor(
+    config: Configuration
+) : AuthenticationProvider(config) {
 
-    /**
-     * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
-     */
-    var algorithmName: String = "MD5"
+    val realm: String = config.realm
 
-    /**
-     * [NonceManager] to be used to generate nonce values
-     */
     @KtorExperimentalAPI
-    var nonceManager: NonceManager = GenerateOnlyNonceManager
+    val algorithmName: String = config.algorithmName
 
-    /**
-     * Message digest algorithm to be used
-     */
-    @Deprecated("Specify algorithm name instead")
-    var digester: MessageDigest
-        get() = MessageDigest.getInstance(algorithmName)
-        set(newValue) {
-            algorithmName = newValue.algorithm
-        }
-
-    /**
-     * username and password digest function
-     */
     @KtorExperimentalAPI
-    var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
-        MessageDigest.getInstance(algorithmName).let { digester ->
-            digester.reset()
-            digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
-            digester.digest()
+    internal val nonceManager: NonceManager = config.nonceManager
+
+    @KtorExperimentalAPI
+    internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? =
+        config.userNameRealmPasswordDigestProvider
+
+    /**
+     * Digest auth configuration
+     */
+    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        /**
+         * Specifies realm to be passed in `WWW-Authenticate` header
+         */
+        var realm: String = "Ktor Server"
+
+        /**
+         * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
+         */
+        var algorithmName: String = "MD5"
+
+        /**
+         * [NonceManager] to be used to generate nonce values
+         */
+        @KtorExperimentalAPI
+        var nonceManager: NonceManager = GenerateOnlyNonceManager
+
+        /**
+         * Message digest algorithm to be used
+         */
+        @Deprecated("Specify algorithm name instead")
+        var digester: MessageDigest
+            get() = MessageDigest.getInstance(algorithmName)
+            set(newValue) {
+                algorithmName = newValue.algorithm
+            }
+
+        /**
+         * username and password digest function
+         */
+        @KtorExperimentalAPI
+        var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
+            MessageDigest.getInstance(algorithmName).let { digester ->
+                digester.reset()
+                digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
+                digester.digest()
+            }
         }
     }
 }
@@ -58,8 +79,11 @@ class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name)
 /**
  * Installs Digest Authentication mechanism
  */
-fun Authentication.Configuration.digest(name: String? = null, configure: DigestAuthenticationProvider.() -> Unit) {
-    val provider = DigestAuthenticationProvider(name).apply(configure)
+fun Authentication.Configuration.digest(
+    name: String? = null,
+    configure: DigestAuthenticationProvider.Configuration.() -> Unit
+) {
+    val provider = DigestAuthenticationProvider(DigestAuthenticationProvider.Configuration(name).apply(configure))
 
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val authorizationHeader = call.request.parseAuthorizationHeader()

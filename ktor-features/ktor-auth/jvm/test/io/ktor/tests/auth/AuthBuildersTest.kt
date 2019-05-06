@@ -449,13 +449,11 @@ class AuthBuildersTest {
     fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
         application.apply {
             authentication {
-                register(object : AuthenticationProvider("custom") {
-                    init {
-                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                            context.authentication.error(this, AuthenticationFailedCause.Error("test"))
-                        }
+                provider("custom") {
+                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                        context.authentication.error(this, AuthenticationFailedCause.Error("test"))
                     }
-                })
+                }
             }
             routing {
                 authenticate("custom") {
@@ -485,16 +483,14 @@ class AuthBuildersTest {
     fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication<Unit> {
         application.apply {
             authentication {
-                register(object : AuthenticationProvider("custom") {
-                    init {
-                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                            context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
-                                call.respondText("Challenge")
-                                it.complete()
-                            }
+                provider("custom") {
+                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                        context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
+                            call.respondText("Challenge")
+                            it.complete()
                         }
                     }
-                })
+                }
             }
             routing {
                 authenticate("custom") {

@@ -19,28 +19,43 @@ val OAuthKey: Any = "OAuth"
 /**
  * Represents an OAuth provider for [Authentication] feature
  */
-class OAuthAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    /**
-     * HTTP client instance used by this provider to make HTTP calls to OAuth server
-     */
-    lateinit var client: HttpClient
+class OAuthAuthenticationProvider internal constructor(config : Configuration) : AuthenticationProvider(config) {
+
+    internal val client: HttpClient = config.client
+    internal val providerLookup: ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
+    internal val urlProvider: ApplicationCall.(OAuthServerSettings) -> String = config.urlProvider
 
     /**
-     * Lookup function to find OAuth server settings for the particular call
+     * OAuth provider configuration
      */
-    lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        /**
+         * HTTP client instance used by this provider to make HTTP calls to OAuth server
+         */
+        lateinit var client: HttpClient
 
-    /**
-     * URL provider that should produce login url for the particular call
-     */
-    lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+        /**
+         * Lookup function to find OAuth server settings for the particular call
+         */
+        lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+
+        /**
+         * URL provider that should produce login url for the particular call
+         */
+        lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+
+        internal fun build() = OAuthAuthenticationProvider(this)
+    }
 }
 
 /**
  * Installs OAuth Authentication mechanism
  */
-fun Authentication.Configuration.oauth(name: String? = null, configure: OAuthAuthenticationProvider.() -> Unit) {
-    val provider = OAuthAuthenticationProvider(name).apply(configure)
+fun Authentication.Configuration.oauth(
+    name: String? = null,
+    configure: OAuthAuthenticationProvider.Configuration.() -> Unit
+) {
+    val provider = OAuthAuthenticationProvider.Configuration(name).apply(configure).build()
     provider.oauth1a()
     provider.oauth2()
     register(provider)

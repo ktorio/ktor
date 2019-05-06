@@ -13,23 +13,29 @@ import kotlin.reflect.*
 
 /**
  * Represents a session-based authentication provider
- * @param name is the name of the provider, or `null` for a default provider
- * @param type of session
- * @param challenge to be used if there is no session
- * @param validator applied to an application all and session providing a [Principal]
+ * @property type of session
+ * @property challenge to be used if there is no session
+ * @property validator applied to an application all and session providing a [Principal]
  */
 class SessionAuthenticationProvider<T : Any> private constructor(
-    name: String?,
-    val type: KClass<T>,
-    val challenge: SessionAuthChallenge<T>,
-    val validator: ApplicationCall.(T) -> Principal?
-) :
-    AuthenticationProvider(name) {
+    config: Configuration<T>
+) : AuthenticationProvider(config) {
+    val type: KClass<T> = config.type
+
+    @PublishedApi
+    internal val challenge: SessionAuthChallenge<T> = config.challenge
+
+    @PublishedApi
+    internal val validator: ApplicationCall.(T) -> Principal? = config.validator
+
     /**
      * Session auth configuration
      */
-    class Configuration<T : Any>(private val name: String?, private val type: KClass<T>) {
-        private var validator: ApplicationCall.(T) -> Principal? = UninitializedValidator
+    class Configuration<T : Any> @PublishedApi internal constructor(
+        name: String?,
+        internal val type: KClass<T>
+    ) : AuthenticationProvider.Configuration(name) {
+        internal var validator: ApplicationCall.(T) -> Principal? = UninitializedValidator
 
         /**
          * A response to send back if authentication failed
@@ -52,7 +58,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         @PublishedApi
         internal fun buildProvider(): SessionAuthenticationProvider<T> {
             verifyConfiguration()
-            return SessionAuthenticationProvider(name, type, challenge, validator)
+            return SessionAuthenticationProvider(this)
         }
     }
 

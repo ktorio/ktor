@@ -380,7 +380,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.() -> Unit = {}) = configureServer {
+    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Configuration.() -> Unit = {}) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             verifier(makeJwtVerifier())
