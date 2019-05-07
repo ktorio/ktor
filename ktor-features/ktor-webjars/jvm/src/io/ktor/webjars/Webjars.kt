@@ -58,9 +58,10 @@ class Webjars(val configuration: Configuration) {
             val resourcePath = fullPath.removePrefix(configuration.path)
             try {
                 val location = extractWebJar(resourcePath)
+                val stream = Webjars::class.java.classLoader.getResourceAsStream(location) ?: return
                 context.call.respond(
                     InputStreamContent(
-                        Webjars::class.java.classLoader.getResourceAsStream(location),
+                        stream,
                         ContentType.defaultForFilePath(fileName(fullPath)),
                         lastModified
                     )
