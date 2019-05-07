@@ -82,7 +82,9 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
-    private fun makeDedicatedRequest(task: RequestTask): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
+    private fun makeDedicatedRequest(
+        task: RequestTask
+    ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
         val (request, response, callContext) = task
         try {
             val connection = connect()
@@ -90,8 +92,16 @@ internal class Endpoint(
             val output = connection.openWriteChannel()
             val requestTime = GMTDate()
 
-            request.write(output, callContext)
-            val responseData = readResponse(requestTime, request, input, output, callContext)
+            val timeout = config.requestTimeout
+            val responseData = if (timeout == 0L) {
+                request.write(output, callContext)
+                readResponse(requestTime, request, input, output, callContext)
+            } else {
+                withTimeout(timeout) {
+                    request.write(output, callContext)
+                    readResponse(requestTime, request, input, output, callContext)
+                }
+            }
 
             callContext[Job]!!.invokeOnCompletion { cause ->
                 try {
