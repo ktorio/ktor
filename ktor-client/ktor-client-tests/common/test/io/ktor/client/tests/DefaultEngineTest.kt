@@ -9,6 +9,7 @@ import kotlin.test.*
 
 class DefaultEngineTest {
     @Test
+    @Ignore
     fun instantiationTest() {
         val client = HttpClient()
         client.close()
