@@ -38,7 +38,7 @@ internal class JettyKtorHandler(
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
     private val multipartConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
-    private val handlerJob = Job(environment.parentCoroutineContext[Job])
+    private val handlerJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext = environment.parentCoroutineContext + handlerJob
 
