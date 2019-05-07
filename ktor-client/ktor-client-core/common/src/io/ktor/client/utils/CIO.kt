@@ -4,8 +4,6 @@
 
 package io.ktor.client.utils
 
-import kotlinx.coroutines.*
-
 /**
  * Maximum number of buffers to be allocated in the [HttpClientDefaultPool].
  */

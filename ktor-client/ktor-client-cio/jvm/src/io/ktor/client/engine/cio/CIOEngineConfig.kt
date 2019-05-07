@@ -29,6 +29,13 @@ class CIOEngineConfig : HttpClientEngineConfig() {
     var maxConnectionsCount: Int = 1000
 
     /**
+     * Timeout to get send request headers and get first response bytes(in millis).
+     *
+     * Use 0 to disable.
+     */
+    var requestTimeout: Long = 15000
+
+    /**
      * [https] settings.
      */
     fun https(block: TLSConfigBuilder.() -> Unit): TLSConfigBuilder = https.apply(block)
@@ -54,7 +61,7 @@ class EndpointConfig {
     var keepAliveTime: Long = 5000
 
     /**
-     * Maximum number of requests per single pipeline
+     * Maximum number of requests per single pipeline.
      */
     var pipelineMaxSize: Int = 20
 
