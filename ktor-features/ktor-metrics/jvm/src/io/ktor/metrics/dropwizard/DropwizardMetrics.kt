@@ -46,7 +46,7 @@ class DropwizardMetrics(val registry: MetricRegistry) {
             configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
             configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
 
-            val phase = PipelinePhase("Metrics")
+            val phase = PipelinePhase("DropwizardMetrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
             pipeline.intercept(phase) {
                 feature.before(call)

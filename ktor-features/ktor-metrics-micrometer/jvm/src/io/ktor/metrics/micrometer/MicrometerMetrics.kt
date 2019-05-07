@@ -173,7 +173,7 @@ class MicrometerMetrics(
 
             configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
 
-            val phase = PipelinePhase("Metrics")
+            val phase = PipelinePhase("MicrometerMetrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
 
             pipeline.intercept(phase) {
@@ -186,7 +186,7 @@ class MicrometerMetrics(
                 }
             }
 
-            val postSendPhase = PipelinePhase("MetricsPostSend")
+            val postSendPhase = PipelinePhase("MicrometerMetricsPostSend")
             pipeline.sendPipeline.insertPhaseAfter(ApplicationSendPipeline.After, postSendPhase)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) {
                 try {
