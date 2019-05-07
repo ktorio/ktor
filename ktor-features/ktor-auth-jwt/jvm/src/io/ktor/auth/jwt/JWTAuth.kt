@@ -38,6 +38,11 @@ class JWTCredential(val payload: Payload) : Credential
 class JWTPrincipal(val payload: Payload) : Principal
 
 /**
+ * JWT verifier configuration function. It is applied on the verifier builder.
+ */
+typealias JWTConfigureFunction = Verification.() -> Unit
+
+/**
  * JWT authentication provider that will be registered with the specified [name]
  */
 class JWTAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
@@ -98,16 +103,18 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
         /**
          * @param [jwkProvider] provides the JSON Web Key
          * @param [issuer] the issuer of the JSON Web Token
+         * * @param configure function will be applied during [JWTVerifier] construction
          */
-        fun verifier(jwkProvider: JwkProvider, issuer: String) {
-            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes) }
+        fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
+            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
         }
 
         /**
          * @param [jwkProvider] provides the JSON Web Key
+         * @param configure function will be applied during [JWTVerifier] construction
          */
-        fun verifier(jwkProvider: JwkProvider) {
-            this.verifier = { token -> getVerifier(jwkProvider, token, schemes) }
+        fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
+            this.verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
         }
 
         /**
@@ -173,11 +180,12 @@ private fun AuthenticationContext.bearerChallenge(
     it.complete()
 }
 
-private fun getVerifierNullableIssuer(
+private fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
     token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    jwtConfigure: Verification.() -> Unit
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
@@ -199,22 +207,18 @@ private fun getVerifierNullableIssuer(
     }
 
     return when (issuer) {
-        null -> JWT.require(algorithm).build()
-        else -> JWT.require(algorithm).withIssuer(issuer).build()
-    }
+        null -> JWT.require(algorithm)
+        else -> JWT.require(algorithm).withIssuer(issuer)
+    }.apply(jwtConfigure).build()
 }
 
 private fun getVerifier(
     jwkProvider: JwkProvider,
-    issuer: String,
     token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    configure: JWTConfigureFunction
 ): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
-}
-
-private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader, schemes: JWTAuthSchemes): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
+    return getVerifier(jwkProvider, null, token, schemes, configure)
 }
 
 private suspend fun verifyAndValidate(
