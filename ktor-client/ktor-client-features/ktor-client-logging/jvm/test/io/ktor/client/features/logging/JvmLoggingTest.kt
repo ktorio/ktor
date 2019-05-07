@@ -19,8 +19,10 @@ class JvmLoggingTest {
         config {
             engine {
                 addHandler { request ->
-                    val body = request.body.toByteReadPacket().lines().joinToString("\n")
-                    val log = packetLogger.buildLog().lines()
+                    val lines1 = request.body.toByteReadPacket().lines()
+                    val body = lines1.joinToString("\n")
+                    val lines = packetLogger.buildLog().lines()
+                    val log = lines
                         .drop(4)
                         .dropLast(3)
                         .joinToString("\n")

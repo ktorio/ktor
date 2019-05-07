@@ -35,8 +35,9 @@ sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
      * Represents a binary item
      * @property provider of content bytes
      */
-    class BinaryItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) :
-        PartData(dispose, partHeaders)
+    class BinaryItem(
+        val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers
+    ) : PartData(dispose, partHeaders)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing

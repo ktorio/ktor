@@ -5,19 +5,14 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.application.*
-import io.ktor.auth.*
 import io.ktor.client.tests.utils.tests.*
-import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.util.*
 import io.ktor.websocket.*
-import kotlin.test.*
 
-fun Application.tests() {
+internal fun Application.tests() {
     install(WebSockets)
 
     authTestServer()
@@ -37,4 +32,9 @@ fun Application.tests() {
             call.respondBytes(makeArray(size))
         }
     }
+}
+
+internal suspend fun ApplicationCall.fail(text: String): Nothing {
+    respondText(text, status = HttpStatusCode(400, text))
+    error(text)
 }

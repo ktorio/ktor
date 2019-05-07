@@ -88,7 +88,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun hello(): Unit = runBlocking {
+    fun hello(): Unit {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
             /**
              * Outdated by jetty.
@@ -134,9 +134,9 @@ class CIOHttpsTest : TestWithKtor() {
     @Test
     fun external(): Unit = clientTest(CIO) {
         test { client ->
-            val response = client.get<HttpResponse>("https://kotlinlang.org")
-            assertEquals(HttpStatusCode.OK, response.status)
-            response.close()
+            client.get<HttpResponse>("https://kotlinlang.org").use { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
         }
     }
 

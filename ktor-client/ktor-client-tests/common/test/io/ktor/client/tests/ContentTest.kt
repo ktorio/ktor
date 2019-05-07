@@ -144,6 +144,29 @@ class ContentTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testFormDataWithContentLength() = clientTests(listOf("js")) {
+        test { client ->
+            client.submitForm<Unit> {
+                url("$TEST_SERVER/content/file-upload")
+                method = HttpMethod.Put
+
+                body = MultiPartFormDataContent(
+                    formData {
+                        appendInput(
+                            "image",
+                            Headers.build {
+                                append(HttpHeaders.ContentType, "image/jpg")
+                                append(HttpHeaders.ContentDisposition, "filename=hello.jpg")
+                            },
+                            size = 4
+                        ) { buildPacket { writeInt(42) } }
+                    }
+                )
+            }
+        }
+    }
+
     private suspend inline fun <reified Response : Any> HttpClient.echo(body: Any): Response =
         post("$TEST_SERVER/content/echo") {
             this.body = body
