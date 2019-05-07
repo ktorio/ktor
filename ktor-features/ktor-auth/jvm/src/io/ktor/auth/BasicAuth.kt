@@ -28,7 +28,7 @@ class BasicAuthenticationProvider internal constructor(
      * Basic auth configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
+        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         /**
          * Specifies realm to be passed in `WWW-Authenticate` header

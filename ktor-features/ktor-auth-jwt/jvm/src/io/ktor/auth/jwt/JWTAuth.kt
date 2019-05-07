@@ -52,7 +52,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
      * JWT auth provider configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
+        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = { null }
 
         internal var schemes = JWTAuthSchemes("Bearer")
 

@@ -128,7 +128,7 @@ class DigestTest {
                 val p = "Circle Of Life"
                 realm = "testrealm@host.com"
                 this.nonceManager = nonceManager
-                userNameRealmPasswordDigestProvider = { userName, realm ->
+                digestProvider { userName, realm ->
                     when (userName) {
                         "missing" -> null
                         else -> digest(MessageDigest.getInstance("MD5"), "$userName:$realm:$p")

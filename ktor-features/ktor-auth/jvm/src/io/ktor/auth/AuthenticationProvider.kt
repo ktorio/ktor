@@ -7,6 +7,16 @@ package io.ktor.auth
 import io.ktor.application.*
 
 /**
+ * Predicate function that accepts an application call and returns `true` or `false`
+ */
+typealias ApplicationCallPredicate = (ApplicationCall) -> Boolean
+
+/**
+ * Authentication function that accepts and verifies credentials and returns a principal when verification successful.
+ */
+typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -> Principal?
+
+/**
  * Represents an authentication provider with the given name
  */
 open class AuthenticationProvider(config: Configuration) {
@@ -14,7 +24,7 @@ open class AuthenticationProvider(config: Configuration) {
     @Deprecated("Provider should be built using configuration that need to be passed via constructor instead.")
     constructor(name: String? = null) : this(NamedConfiguration(name))
 
-    private var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = config.filterPredicates
+    private var filterPredicates: MutableList<ApplicationCallPredicate>? = config.filterPredicates
 
     /**
      * Provider name or `null` for a default provider
@@ -33,7 +43,7 @@ open class AuthenticationProvider(config: Configuration) {
      *
      * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
      */
-    val skipWhen: List<(ApplicationCall) -> Boolean> get() = filterPredicates ?: emptyList()
+    val skipWhen: List<ApplicationCallPredicate> get() = filterPredicates ?: emptyList()
 
     /**
      * Adds an authentication filter to the list
@@ -60,7 +70,7 @@ open class AuthenticationProvider(config: Configuration) {
          *
          * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
          */
-        internal var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = null
+        internal var filterPredicates: MutableList<ApplicationCallPredicate>? = null
 
         /**
          * Adds an authentication filter to the list.

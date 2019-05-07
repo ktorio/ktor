@@ -26,7 +26,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     internal val challenge: SessionAuthChallenge<T> = config.challenge
 
     @PublishedApi
-    internal val validator: ApplicationCall.(T) -> Principal? = config.validator
+    internal val validator: AuthenticationFunction<T> = config.validator
 
     /**
      * Session auth configuration
@@ -35,7 +35,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         name: String?,
         internal val type: KClass<T>
     ) : AuthenticationProvider.Configuration(name) {
-        internal var validator: ApplicationCall.(T) -> Principal? = UninitializedValidator
+        internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
         /**
          * A response to send back if authentication failed
@@ -46,7 +46,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
          * Sets a validation function that will check given [T] session instance and return [Principal],
          * or null if the session does not correspond to an authenticated principal
          */
-        fun validate(block: ApplicationCall.(T) -> Principal?) {
+        fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
             validator = block
         }
@@ -63,7 +63,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     }
 
     companion object {
-        private val UninitializedValidator: ApplicationCall.(Any) -> Principal? = {
+        private val UninitializedValidator: suspend ApplicationCall.(Any) -> Principal? = {
             error("It should be a validator supplied to a session auth provider")
         }
     }
@@ -107,9 +107,7 @@ inline fun <reified T : Any> Authentication.Configuration.session(
                 if (session == null) AuthenticationFailedCause.NoCredentials else AuthenticationFailedCause.InvalidCredentials
             if (provider.challenge != SessionAuthChallenge.Ignore) {
                 context.challenge(SessionAuthChallengeKey, cause) {
-                    val challenge = provider.challenge
-
-                    when (challenge) {
+                    when (val challenge = provider.challenge) {
                         is SessionAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
                         is SessionAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, session))
                     }
@@ -148,11 +146,11 @@ sealed class SessionAuthChallenge<in T : Any> {
          * The default session auth challenge kind
          */
         @KtorExperimentalAPI
-        val Default = Ignore
+        val Default: SessionAuthChallenge<Any> = Ignore
     }
 }
 
 /**
  * A key used to register auth challenge
  */
-const val SessionAuthChallengeKey = "SessionAuth"
+const val SessionAuthChallengeKey: String = "SessionAuth"

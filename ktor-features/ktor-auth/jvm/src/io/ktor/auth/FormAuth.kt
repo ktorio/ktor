@@ -19,14 +19,14 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
 
     internal val challenge: FormAuthChallenge = config.challenge
 
-    internal val authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? =
+    internal val authenticationFunction: AuthenticationFunction<UserPasswordCredential> =
         config.authenticationFunction
 
     /**
      * Form auth provider configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
+        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         /**
          * POST parameter to fetch for a user name

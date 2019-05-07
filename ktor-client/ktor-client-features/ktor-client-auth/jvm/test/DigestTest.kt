@@ -25,7 +25,7 @@ class DigestTest : TestWithKtor() {
                 algorithmName = "MD5"
                 realm = "testrealm@host.com"
 
-                userNameRealmPasswordDigestProvider = { userName, realm ->
+                digestProvider { userName, realm ->
                     digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
                 }
             }

@@ -29,13 +29,20 @@ class DigestAuthenticationProvider internal constructor(
     internal val nonceManager: NonceManager = config.nonceManager
 
     @KtorExperimentalAPI
-    internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? =
-        config.userNameRealmPasswordDigestProvider
+    internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
 
     /**
      * Digest auth configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        internal var digestProvider : DigestProviderFunction = { userName, realm ->
+            MessageDigest.getInstance(algorithmName).let { digester ->
+                digester.reset()
+                digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
+                digester.digest()
+            }
+        }
+
         /**
          * Specifies realm to be passed in `WWW-Authenticate` header
          */
@@ -55,6 +62,7 @@ class DigestAuthenticationProvider internal constructor(
         /**
          * Message digest algorithm to be used
          */
+        @Suppress("unused")
         @Deprecated("Specify algorithm name instead")
         var digester: MessageDigest
             get() = MessageDigest.getInstance(algorithmName)
@@ -65,16 +73,31 @@ class DigestAuthenticationProvider internal constructor(
         /**
          * username and password digest function
          */
-        @KtorExperimentalAPI
-        var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
-            MessageDigest.getInstance(algorithmName).let { digester ->
-                digester.reset()
-                digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
-                digester.digest()
+        @Suppress("unused")
+        @Deprecated("Use digestProvider { } function instead.")
+        var userNameRealmPasswordDigestProvider: DigestProviderFunction
+            get() = digestProvider
+            set(newProvider) {
+                digestProvider = newProvider
             }
+
+        /**
+         * Configures digest provider function that should fetch or compute message digest for the specified
+         * `userName` and `realm`. A message digest is usually computed based on user name (login), realm and password
+         * concatenated with colon character ':'. For example `"$userName:$realm:$password"`.
+         */
+        @KtorExperimentalAPI
+        fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
+            digestProvider = digest
         }
     }
 }
+
+/**
+ * Provides message digest for the specified username and realm or returns `null` if the user is missing.
+ * This function could fetch digest from a database or compute it instead.
+ */
+typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
 
 /**
  * Installs Digest Authentication mechanism
