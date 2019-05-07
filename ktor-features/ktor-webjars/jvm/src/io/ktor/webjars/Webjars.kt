@@ -21,7 +21,7 @@ import java.time.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-class Webjars(val configuration: Configuration) {
+class Webjars(private val configuration: Configuration) {
 
     private fun fileName(path: String): String = Paths.get(path).fileName?.toString() ?: ""
 
@@ -38,18 +38,20 @@ class Webjars(val configuration: Configuration) {
 
     @KtorExperimentalAPI
     class Configuration {
-        var path = "/webjars/"
+        var path: String = "/webjars/"
             set(value) {
-                var buffer = StringBuilder(value)
-                if (!value.startsWith("/")) {
-                    buffer.insert(0, "/")
+                field = buildString(value.length + 2) {
+                    if (!value.startsWith('/')) {
+                        append('/')
+                    }
+                    append(value)
+                    if (!endsWith('/')) {
+                        append('/')
+                    }
                 }
-                if (!buffer.endsWith("/")) {
-                    buffer.append("/")
-                }
-                field = buffer.toString()
             }
-        var zone = ZoneId.systemDefault()
+
+        var zone: ZoneId = ZoneId.systemDefault()
     }
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
@@ -77,9 +79,9 @@ class Webjars(val configuration: Configuration) {
     }
 
     @KtorExperimentalAPI
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Webjars.Configuration, Webjars> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Webjars> {
 
-        override val key = AttributeKey<Webjars>("Webjars")
+        override val key: AttributeKey<Webjars> = AttributeKey("Webjars")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Webjars {
             val configuration = Configuration().apply(configure)
@@ -99,7 +101,7 @@ class Webjars(val configuration: Configuration) {
 private class InputStreamContent(
     val input: InputStream,
     override val contentType: ContentType,
-    val lastModified: ZonedDateTime
+    lastModified: ZonedDateTime
 ) : OutgoingContent.ReadChannelContent() {
     init {
         versions += LastModifiedVersion(lastModified)
