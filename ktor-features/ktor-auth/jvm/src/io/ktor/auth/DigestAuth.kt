@@ -69,7 +69,7 @@ class DigestAuthenticationProvider internal constructor(
         var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
             MessageDigest.getInstance(algorithmName).let { digester ->
                 digester.reset()
-                digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
+                digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
                 digester.digest()
             }
         }
