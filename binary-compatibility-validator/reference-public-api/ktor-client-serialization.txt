@@ -7,6 +7,7 @@ public final class io/ktor/client/features/json/serializer/KotlinxSerializer : i
 	public final fun setListMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
 	public final fun setMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
 	public fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
+	public fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;)Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/client/features/json/serializer/KotlinxSerializer$Companion {

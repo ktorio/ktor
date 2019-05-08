@@ -17,7 +17,8 @@ class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
 
     private val backend: Gson = GsonBuilder().apply(block).create()
 
-    override fun write(data: Any): OutgoingContent = TextContent(backend.toJson(data), ContentType.Application.Json)
+    override fun write(data: Any, contentType: ContentType): OutgoingContent =
+        TextContent(backend.toJson(data), contentType)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()

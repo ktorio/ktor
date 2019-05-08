@@ -5,8 +5,10 @@
 package io.ktor.client.features.json
 
 import io.ktor.client.call.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.io.core.*
+import kotlin.jvm.*
 
 /**
  * Client json serializer.
@@ -15,7 +17,16 @@ interface JsonSerializer {
     /**
      * Convert data object to [OutgoingContent].
      */
-    fun write(data: Any): OutgoingContent
+    fun write(data: Any, contentType: ContentType): OutgoingContent
+
+    /**
+     * Convert data object to [OutgoingContent].
+     */
+    @Deprecated(
+        "Use write(data, contentType) instead",
+        ReplaceWith("write(data, ContentType.Application.Json)", "io.ktor.http.ContentType")
+    )
+    fun write(data: Any): OutgoingContent = write(data, ContentType.Application.Json)
 
     /**
      * Read content from response using information specified in [type].
