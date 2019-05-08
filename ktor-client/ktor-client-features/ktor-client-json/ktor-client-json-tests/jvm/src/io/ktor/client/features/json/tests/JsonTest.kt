@@ -1,5 +1,6 @@
 package io.ktor.client.features.json.tests
 
+import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
@@ -34,6 +35,8 @@ abstract class JsonTest : TestWithKtor() {
         }
     }
 
+    val customContentType = ContentType.parse("application/x-json")
+
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/widget") {
             val received = call.receive<Widget>()
@@ -43,6 +46,10 @@ abstract class JsonTest : TestWithKtor() {
         get("/users") {
             call.respond(Response(true, users))
         }
+        get("/users-x") { // route for testing custom content type, namely "application/x-json"
+            val txt = Gson().toJson(Response(true, users))
+            call.respondText(text = txt, contentType = customContentType, status = HttpStatusCode.Accepted)
+        }
     }
 
     protected abstract val serializerImpl: JsonSerializer?
@@ -51,6 +58,15 @@ abstract class JsonTest : TestWithKtor() {
         config {
             install(JsonFeature) {
                 serializer = serializerImpl
+            }
+        }
+    }
+
+    private fun TestClientBuilder<*>.configCustomContentTypeClient() {
+        config {
+            install(JsonFeature) {
+                serializer = serializerImpl
+                allowedContentTypes = listOf(customContentType)
             }
         }
     }
@@ -74,6 +90,19 @@ abstract class JsonTest : TestWithKtor() {
 
         test { client ->
             val result = client.get<Response<List<User>>>(path = "/users", port = serverPort)
+
+            assertTrue(result.ok)
+            assertNotNull(result.result)
+            assertEquals(users, result.result)
+        }
+    }
+
+    @Test
+    fun testCustomContentTypes() = clientTest(CIO) {
+        configCustomContentTypeClient()
+
+        test { client ->
+            val result = client.get<Response<List<User>>>(path = "/users-x", port = serverPort)
 
             assertTrue(result.ok)
             assertNotNull(result.result)

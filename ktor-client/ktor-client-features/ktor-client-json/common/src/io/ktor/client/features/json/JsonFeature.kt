@@ -20,38 +20,55 @@ import kotlinx.coroutines.io.*
  */
 expect fun defaultSerializer(): JsonSerializer
 
+@KtorExperimentalAPI
+fun defaultAllowedContentTypes(): List<ContentType> = listOf(ContentType.Application.Json)
+
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
  * to request and from response bodies using a [serializer].
  *
  * The default [serializer] is [GsonSerializer].
+ * The default [allowedContentTypes] is a list which contains [ContentType.Application.Json]
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
- *       and the Content-Type is `application/json`
+ *       and the Content-Type is one of [allowedContentTypes] list.
+ *
  */
 class JsonFeature(
     val serializer: JsonSerializer,
-    val allowedContentTypes: List<ContentType>
+    @KtorExperimentalAPI val allowedContentTypes: List<ContentType>
 ) {
     class Config {
         /**
          * Serialized that will be used for serializing requests bodies,
-         * and de-serializing response bodies when Content-Type matches `application/json`.
+         * and de-serializing response bodies when Content-Type matches to one of [allowedContentTypes].
          *
-         * Default value is [defultSerializer]
+         * Default value for [serializer] is [defultSerializer].
+         * And default for [allowedContentTypes] is a list which contains [ContentType.Application.Json]
+         * If you want to allow other content types to be serialized into Json object, set [allowedContentTypes].
+         *
+         * Note: Empty [allowedContentTypes] is not allowed. (ex: allowedContentTypes = listOf())
+         *       If you force to set empty list, it would throw the exception on runtime.
          */
         var serializer: JsonSerializer? = null
-        var allowedContentTypes: List<ContentType>? = null
+        var allowedContentTypes: List<ContentType> = defaultAllowedContentTypes()
+        init {
+            if (allowedContentTypes.isEmpty()) {
+                throw EmptyContentTypeListException()
+            }
+        }
     }
 
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
-        override fun prepare(block: Config.() -> Unit): JsonFeature =
-            JsonFeature(
-                Config().apply(block).serializer ?: defaultSerializer(),
-                Config().apply(block).allowedContentTypes ?: listOf(ContentType.Application.Json)
-            )
+        override fun prepare(block: Config.() -> Unit): JsonFeature {
+            val config = Config().apply(block)
+            val serializer = config.serializer ?: defaultSerializer()
+            val allowedContentTypes = config.allowedContentTypes
+
+            return JsonFeature(serializer, allowedContentTypes)
+        }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
@@ -84,6 +101,8 @@ class JsonFeature(
         }
     }
 }
+
+internal class EmptyContentTypeListException : Throwable("at least one Content-Type should be given: default is listOf(ContentType.Application.Json)")
 
 /**
  * Install [JsonFeature].
