@@ -8,6 +8,7 @@ import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -129,5 +130,5 @@ class KotlinxSerializerTest {
     }
 
     private fun JsonSerializer.testWrite(data: Any): String =
-        (write(data) as? TextContent)?.text ?: error("Failed to get serialized $data")
+        (write(data, ContentType.Application.Json) as? TextContent)?.text ?: error("Failed to get serialized $data")
 }

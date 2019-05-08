@@ -72,13 +72,13 @@ class KotlinxSerializer(
         registerList(T::class.serializer())
     }
 
-    override fun write(data: Any): OutgoingContent {
+    override fun write(data: Any, contentType: ContentType): OutgoingContent {
         val serializer = lookupSerializerByData(data)
 
         @Suppress("UNCHECKED_CAST")
         val content = json.stringify(serializer as KSerializer<Any>, data)
 
-        return TextContent(content, ContentType.Application.Json)
+        return TextContent(content, contentType)
     }
 
     override fun read(type: TypeInfo, body: Input): Any {
