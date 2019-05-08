@@ -31,12 +31,7 @@ fun URLBuilder.takeFrom(uri: URI) {
     }
 
     uri.host?.let { host = it }
-    uri.rawPath?.let {
-        encodedPath = when (it) {
-            "" -> "/"
-            else -> it
-        }
-    }
+    encodedPath = uri.rawPath
     uri.query?.let { parameters.appendAll(parseQueryString(it)) }
     if (uri.query?.isEmpty() == true) {
         trailingQuery = true

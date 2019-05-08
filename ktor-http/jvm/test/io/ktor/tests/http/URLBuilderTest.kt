@@ -44,6 +44,22 @@ class URLBuilderTestJvm {
     }
 
     @Test
+    fun testEmptyPath() {
+        val urlStr1 = "http://localhost"
+        val urlStr2 = "http://localhost?param1=foo"
+
+        val url1 = URLBuilder().apply {
+            takeFrom(URI.create(urlStr1))
+        }
+        val url2 = URLBuilder().apply {
+            takeFrom(URI.create(urlStr2))
+        }
+
+        assertEquals(urlStr1, url1.buildString())
+        assertEquals(urlStr2, url2.buildString())
+    }
+
+    @Test
     fun testCustom() {
         val url = URLBuilder().apply {
             takeFrom(URI.create("custom://localhost:8080/path"))

@@ -120,7 +120,7 @@ class UrlTest {
     }
 
     @Test
-    fun testMissingSlash() {
+    fun testRetainEmptyPath() {
         val urlString = "https://www.test.com?test=ok&authtoken=testToken"
         val url = Url(urlString)
 
@@ -128,7 +128,7 @@ class UrlTest {
             assertEquals(URLProtocol.HTTPS, protocol)
             assertEquals("www.test.com", host)
             assertEquals("", encodedPath)
-            assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
+            assertEquals("https://www.test.com?test=ok&authtoken=testToken", url.toString())
         }
     }
 
