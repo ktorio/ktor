@@ -44,11 +44,11 @@ class JsonFeature(
          * and de-serializing response bodies when Content-Type matches to one of [allowedContentTypes].
          *
          * Default value for [serializer] is [defultSerializer].
-         * And default for [allowedContentTypes] is a list which contains [ContentType.Application.Json]
+         * And default for [allowedContentTypes] is [defaultAllowedContentTypes]
          * If you want to allow other content types to be serialized into Json object, set [allowedContentTypes].
          *
-         * Note: Empty [allowedContentTypes] is not allowed. (ex: allowedContentTypes = listOf())
-         *       If you force to set empty list, it would throw the exception on runtime.
+         * Note: Empty list of [allowedContentTypes] is not allowed. (ex: allowedContentTypes = listOf())
+         *       If you force to set this variable as empty list, it would throw the exception on runtime.
          */
         var serializer: JsonSerializer? = null
         var allowedContentTypes: List<ContentType> = defaultAllowedContentTypes()
