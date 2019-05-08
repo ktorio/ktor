@@ -20,6 +20,11 @@ import kotlinx.coroutines.io.*
  */
 expect fun defaultSerializer(): JsonSerializer
 
+/**
+ * Default allowed Content-Type
+ *
+ * Return a list which contains [ContentType.Application.Json]
+ */
 @KtorExperimentalAPI
 fun defaultAllowedContentTypes(): List<ContentType> = listOf(ContentType.Application.Json)
 
@@ -28,7 +33,7 @@ fun defaultAllowedContentTypes(): List<ContentType> = listOf(ContentType.Applica
  * to request and from response bodies using a [serializer].
  *
  * The default [serializer] is [GsonSerializer].
- * The default [allowedContentTypes] is a list which contains [ContentType.Application.Json]
+ * The default [allowedContentTypes] is a list [defaultAllowedContentTypes]
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is one of [allowedContentTypes] list.
@@ -43,7 +48,7 @@ class JsonFeature(
          * Serialized that will be used for serializing requests bodies,
          * and de-serializing response bodies when Content-Type matches to one of [allowedContentTypes].
          *
-         * Default value for [serializer] is [defultSerializer].
+         * Default value for [serializer] is [defaultSerializer].
          * And default for [allowedContentTypes] is [defaultAllowedContentTypes]
          * If you want to allow other content types to be serialized into Json object, set [allowedContentTypes].
          *
