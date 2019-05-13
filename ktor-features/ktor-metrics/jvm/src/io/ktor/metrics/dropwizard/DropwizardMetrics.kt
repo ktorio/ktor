@@ -12,23 +12,45 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*
 
-@Deprecated(message = "Renamed for additional Micrometer support",
+/**
+ * Dropwizard metrics feature. Use [DropwizardMetrics] or instead.
+ */
+@Suppress("unused")
+@Deprecated(message = "Use DropwizardMetrics or MicrometerMetrics instead.",
     replaceWith = ReplaceWith(
         expression = "DropwizardMetrics",
         imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")))
 typealias Metrics = DropwizardMetrics
 
-class DropwizardMetrics(val registry: MetricRegistry) {
-    val baseName: String = MetricRegistry.name("ktor.calls")
+/**
+ * Dropwizard metrics support feature. See https://ktor.io/servers/features/metrics.html for details.
+ * @property registry dropwizard metrics registry
+ * @property baseName metrics base name (prefix)
+ */
+class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = MetricRegistry.name("ktor.calls")) {
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
     private val active = registry.counter(MetricRegistry.name(baseName, "active"))
     private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
     private val httpStatus = ConcurrentHashMap<Int, Meter>()
 
+    /**
+     * Metrics feature configuration object that is used during feature installation.
+     */
     class Configuration {
-        val registry = MetricRegistry()
+        /**
+         * Dropwizard metrics base name (prefix)
+         */
+        var baseName: String = MetricRegistry.name("ktor.calls")
+
+        /**
+         * Dropwizard metric registry.
+         */
+        var registry: MetricRegistry = MetricRegistry()
     }
 
+    /**
+     * Metrics feature companion
+     */
     companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
         override val key = AttributeKey<DropwizardMetrics>("metrics")
 
@@ -38,7 +60,7 @@ class DropwizardMetrics(val registry: MetricRegistry) {
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DropwizardMetrics {
             val configuration = Configuration().apply(configure)
-            val feature = DropwizardMetrics(configuration.registry)
+            val feature = DropwizardMetrics(configuration.registry, configuration.baseName)
 
             configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
             configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
