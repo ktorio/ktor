@@ -143,6 +143,7 @@ fun Authentication.Configuration.digest(
                         UnauthorizedResponse(
                             HttpAuthHeader.digestAuthChallenge(
                                 provider.realm,
+                                algorithm = provider.algorithmName,
                                 nonce = provider.nonceManager.newNonce()
                             )
                         )
