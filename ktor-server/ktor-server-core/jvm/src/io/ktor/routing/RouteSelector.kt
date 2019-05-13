@@ -16,6 +16,7 @@ import io.ktor.util.*
  * @param parameters is an instance of [Parameters] with parameters filled by [RouteSelector]
  * @param segmentIncrement is a value indicating how many path segments has been consumed by a selector
  */
+@Suppress("RemoveRedundantQualifierName", "PublicApiImplicitType")
 data class RouteSelectorEvaluation(val succeeded: Boolean,
                                    val quality: Double,
                                    val parameters: Parameters = Parameters.Empty,
