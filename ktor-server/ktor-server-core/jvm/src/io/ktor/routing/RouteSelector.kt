@@ -270,6 +270,7 @@ object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.
 /**
  * Evaluates a route against any number of trailing path segments, and captures their values
  * @param name is the name of the parameter to capture values to
+ * @property prefix before the tailcard (static text)
  */
 data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
     init {
