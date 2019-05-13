@@ -6,14 +6,23 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
 import org.junit.runner.*
+import org.junit.runners.*
+import java.util.*
 
 /**
  * Helper interface to test client.
  */
-@RunWith(ClientRunner::class)
+@RunWith(Parameterized::class)
 actual abstract class ClientLoader {
+
+    @Parameterized.Parameter
     lateinit var engine: HttpClientEngineContainer
+
+    @get:Rule
+    open val timeout = CoroutinesTimeout.seconds(30)
 
     /**
      * Perform test against all clients from dependencies.
@@ -24,5 +33,13 @@ actual abstract class ClientLoader {
     ) {
         if ("jvm" in skipPlatforms) return
         clientTest(engine.factory, block)
+    }
+
+    companion object {
+        @JvmStatic
+        @Parameterized.Parameters(name = "{0}")
+        fun engines(): List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
+            ServiceLoader.load(it, it.classLoader).toList()
+        }
     }
 }

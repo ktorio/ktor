@@ -44,6 +44,8 @@ kotlin.sourceSets {
         api group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
         api group: 'junit', name: 'junit', version: junit_version
         api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
     }
     jvmTest.dependencies {
         runtimeOnly project(':ktor-client:ktor-client-apache')

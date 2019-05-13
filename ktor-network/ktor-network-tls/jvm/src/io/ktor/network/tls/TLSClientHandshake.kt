@@ -322,7 +322,8 @@ internal class TLSClientHandshake(
 
     private fun generatePreSecret(encryptionInfo: EncryptionInfo?): ByteArray =
         when (serverHello.cipherSuite.exchangeType) {
-            SecretExchangeType.RSA -> config.random.generateSeed(48)!!.also {
+            SecretExchangeType.RSA -> ByteArray(48).also {
+                config.random.nextBytes(it)
                 it[0] = 0x03
                 it[1] = 0x03
             }
@@ -453,7 +454,9 @@ internal class TLSClientHandshake(
 
 
 private fun SecureRandom.generateClientSeed(): ByteArray {
-    return generateSeed(32)!!.also {
+    val seed = ByteArray(32)
+    nextBytes(seed)
+    return seed.also {
         val unixTime = (System.currentTimeMillis() / 1000L)
         it[0] = (unixTime shr 24).toByte()
         it[1] = (unixTime shr 16).toByte()

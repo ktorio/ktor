@@ -23,6 +23,7 @@ import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
+import org.junit.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -35,6 +36,8 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation")
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -149,7 +152,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             assertEquals(HttpStatusCode.InternalServerError.value, status.value)
 
             while (true) {
-                val exception = collected.poll(timeout.seconds, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break
@@ -160,7 +163,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/respondWrite") {
             assertEquals(HttpStatusCode.OK.value, status.value)
             while (true) {
-                val exception = collected.poll(timeout.seconds, TimeUnit.SECONDS)
+                val exception = collected.poll(timeout, TimeUnit.SECONDS)
                 if (exception is ExpectedException) {
                     assertEquals(message, exception.message)
                     break

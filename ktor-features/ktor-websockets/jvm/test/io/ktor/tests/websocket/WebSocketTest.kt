@@ -14,6 +14,7 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.io.core.*
 import org.junit.*
 import org.junit.Test
@@ -28,7 +29,7 @@ import kotlin.test.*
 @UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
-    val timeout = Timeout(30, TimeUnit.SECONDS)
+    val timeout = CoroutinesTimeout.seconds(30)
 
     @Test
     fun testSingleEcho() {

@@ -53,7 +53,7 @@ class TLSConfigBuilder {
      * Create [TLSConfig].
      */
     fun build(): TLSConfig = TLSConfig(
-        random ?: SecureRandom.getInstanceStrong(),
+        random ?: SecureRandom(),
         certificates, trustManager as? X509TrustManager ?: findTrustManager(),
         cipherSuites, serverName
     )

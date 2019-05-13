@@ -7,7 +7,9 @@ package io.ktor.client.tests.utils
 import ch.qos.logback.classic.*
 import ch.qos.logback.classic.Logger
 import io.ktor.server.engine.*
+import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
+import org.junit.rules.*
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
@@ -15,6 +17,9 @@ import java.util.concurrent.*
 @Suppress("KDocMissingDocumentation")
 abstract class TestWithKtor {
     protected val serverPort: Int = ServerSocket(0).use { it.localPort }
+
+    @get:Rule
+    open val timeout = CoroutinesTimeout.seconds(3 * 60)
 
     abstract val server: ApplicationEngine
 
