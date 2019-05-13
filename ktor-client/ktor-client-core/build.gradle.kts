@@ -31,7 +31,6 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-tests"))
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-client:ktor-client-okhttp"))
-            api(project(":ktor-client:ktor-client-tests"))
             api(project(":ktor-features:ktor-websockets"))
         }
     }

@@ -15,15 +15,22 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
+import org.junit.rules.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.test.*
+import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation", "BlockingMethodInNonBlockingContext")
 class ConnectErrorsTest {
+    @get:Rule
+    val timeout = CoroutinesTimeout.seconds(60)
+
     private val serverSocket = ServerSocket(0, 1)
 
     @AfterTest

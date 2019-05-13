@@ -9,6 +9,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import org.junit.*
 import java.io.*
@@ -16,6 +17,9 @@ import java.net.*
 import javax.net.ssl.*
 
 class ConnectionTests {
+
+    @get:Rule
+    val timeout = CoroutinesTimeout.seconds(10)
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {

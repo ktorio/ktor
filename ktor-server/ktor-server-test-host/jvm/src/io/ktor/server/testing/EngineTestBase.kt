@@ -17,6 +17,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.rules.*
@@ -72,13 +73,16 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     @get:Rule
     val test = TestName()
 
-    @get:Rule
-    open val timeout = PublishedTimeout(
-        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong()
-            ?: TimeUnit.MINUTES.toSeconds(10))
-    )
+    open val timeout = if (isUnderDebugger) {
+        1000000
+    } else {
+        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(1))
+    }
 
-    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout.seconds).toInt() }
+    @get:Rule
+    val timeoutRule by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
+
+    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
     fun setUpBase() {
@@ -117,7 +121,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             testJob.invokeOnCompletion {
                 closeThread.start()
             }
-            closeThread.join(TimeUnit.SECONDS.toMillis(timeout.seconds))
+            closeThread.join(TimeUnit.SECONDS.toMillis(timeout))
         }
     }
 
@@ -207,7 +211,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout.seconds))) {
+            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout))) {
                 server.environment.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
@@ -259,7 +263,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
             HttpClient(CIO) {
                 engine {
                     https.trustManager = trustManager
@@ -278,7 +282,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         url: String, port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
             HttpClient(Jetty) {
                 followRedirects = false
                 expectSuccess = false
@@ -293,8 +297,6 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             }
         }
     }
-
-    class PublishedTimeout(val seconds: Long) : Timeout(seconds, TimeUnit.SECONDS)
 
     companion object {
         val keyStoreFile = File("build/temp.jks")

@@ -21,6 +21,8 @@ kotlin.sourceSets.jvmMain.dependencies {
 
     api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
     api group: 'junit', name: 'junit', version: junit_version
+
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
 }
 
 if (!project.ext.ideaActive) {

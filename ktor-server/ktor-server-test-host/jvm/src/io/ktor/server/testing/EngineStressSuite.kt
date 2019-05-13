@@ -13,6 +13,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.streams.*
 import org.junit.*
@@ -37,7 +38,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         enableSsl = false
     }
 
-//    private val timeMillis: Long = TimeUnit.SECONDS.toMillis(10L)
+    //    private val timeMillis: Long = TimeUnit.SECONDS.toMillis(10L)
     private val timeMillis: Long = TimeUnit.MINUTES.toMillis(2L)
     private val gracefulMillis: Long = TimeUnit.SECONDS.toMillis(20L)
     private val shutdownMillis: Long = TimeUnit.SECONDS.toMillis(40L)
@@ -46,8 +47,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    @get:Rule
-    override val timeout = PublishedTimeout(TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis))
+    override val timeout = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
 
     @Test
     fun `single connection single thread no pipelining`() {
@@ -204,7 +204,12 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         createAndStartServer {
             handle {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+                    override suspend fun upgrade(
+                        input: ByteReadChannel,
+                        output: ByteWriteChannel,
+                        engineContext: CoroutineContext,
+                        userContext: CoroutineContext
+                    ): Job {
                         return launch(engineContext) {
                             try {
                                 output.writeFully(endMarkerCrLfBytes)

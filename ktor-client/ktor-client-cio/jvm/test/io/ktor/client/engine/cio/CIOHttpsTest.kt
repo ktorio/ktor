@@ -26,6 +26,7 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
+
     override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
         sslConnector(keyStore, "sha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
@@ -103,8 +104,11 @@ class CIOHttpsTest : TestWithKtor() {
             /**
              * Deprecated since jdk11.
              */
-            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
+            if (suite == CIOCipherSuites.ECDHE_RSA_AES128_SHA256) return@forEach
             if (suite == CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256) return@forEach
+
+//            Mandatory
+//            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
 
             clientTest(CIO) {
                 config {
