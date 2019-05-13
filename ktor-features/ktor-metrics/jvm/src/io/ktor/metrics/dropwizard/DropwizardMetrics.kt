@@ -13,16 +13,6 @@ import io.ktor.util.*
 import java.util.concurrent.*
 
 /**
- * Dropwizard metrics feature. Use [DropwizardMetrics] or instead.
- */
-@Suppress("unused")
-@Deprecated(message = "Use DropwizardMetrics or MicrometerMetrics instead.",
-    replaceWith = ReplaceWith(
-        expression = "DropwizardMetrics",
-        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")))
-typealias Metrics = DropwizardMetrics
-
-/**
  * Dropwizard metrics support feature. See https://ktor.io/servers/features/metrics.html for details.
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
