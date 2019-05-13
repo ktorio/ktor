@@ -19,7 +19,6 @@ import io.micrometer.core.instrument.config.*
 import io.micrometer.core.instrument.distribution.*
 import java.util.concurrent.atomic.*
 
-
 /**
  * Enables Micrometer support when installed. Exposes the following metrics:
  * <ul>
@@ -73,7 +72,7 @@ class MicrometerMetrics(
      * default 50%, 90% , 95% and 99% percentiles are configured. If your backend supports server side histograms you
      * should enable these instead with [DistributionStatisticConfig.Builder.percentilesHistogram] as client side
      * percentiles cannot be aggregated.
-     * @property timerBuilder can be used to configure each timer to add custom tags or configure individual SLAs etc
+     * @property timers can be used to configure each timer to add custom tags or configure individual SLAs etc
      * */
     class Configuration {
 
@@ -98,8 +97,19 @@ class MicrometerMetrics(
 
         internal var timerBuilder: Timer.Builder.(ApplicationCall, Throwable?) -> Unit = { _, _ -> }
 
-        fun timerBuilder(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
+        /**
+         * Configure micrometer timers
+         */
+        fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
             timerBuilder = block
+        }
+
+        /**
+         * Configure micrometer timers
+         */
+        @Deprecated("Use timers instead.", ReplaceWith("timers(block)"), level = DeprecationLevel.ERROR)
+        fun timerBuilder(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
+            timers(block)
         }
     }
 
@@ -147,14 +157,25 @@ class MicrometerMetrics(
         }
     }
 
+    /**
+     * Micrometer feature installation object
+     */
     companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
         private const val baseName: String = "ktor.http.server"
-        const val requestTimerName = "$baseName.requests"
-        const val activeGaugeName = "$baseName.requests.active"
+
+        /**
+         * Request time timer name
+         */
+        const val requestTimerName: String = "$baseName.requests"
+
+        /**
+         * Active requests gauge name
+         */
+        const val activeGaugeName: String = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
-        override val key = AttributeKey<MicrometerMetrics>("metrics")
+        override val key: AttributeKey<MicrometerMetrics> = AttributeKey("metrics")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)

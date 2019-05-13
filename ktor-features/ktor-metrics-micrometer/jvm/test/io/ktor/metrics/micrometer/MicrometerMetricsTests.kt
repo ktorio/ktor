@@ -140,7 +140,7 @@ class MicrometerMetricsTests {
 
         application.install(MicrometerMetrics) {
             registry = testRegistry
-            timerBuilder { _, _ ->
+            timers { _, _ ->
                 tag("customTag", "customValue")
             }
         }
