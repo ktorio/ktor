@@ -41,6 +41,16 @@
 * `KotlinxSerializer` moved to a separate artifact
 * Client engine API simplified
 * Introduced client cache support
+* Server authenticator config reworked
+* Server digest auth updated to use UTF-8
+* Added experimental android client line-wrapping logger
+* Fixed webjars parameters handling and several minor fixes
+* Introduced JWTVerifier configure block when using JWKProvider
+* Added client json feature custom content types support 
+* Fixed incorrect url encoding for some characters (#1094)
+* Fixed hanging jetty server engine 
+* Introduced CIO client engine request timeout config
+* Added client multipart content length support
 * Jetty upgraded to 9.4.15.v20190215
 * okhttp client upgraded to 3.14.0
 * Kotlin 1.3.31
