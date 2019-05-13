@@ -53,6 +53,7 @@
 * Added client multipart content length support
 * Jetty upgraded to 9.4.15.v20190215
 * okhttp client upgraded to 3.14.0
+* Fixed CIO client CPU utilization issue
 * Kotlin 1.3.31
 * kotlinx.coroutines 1.2.1
 
