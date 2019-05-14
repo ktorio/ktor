@@ -139,15 +139,16 @@ fun Authentication.Configuration.digest(
                 }
 
                 context.challenge(digestAuthenticationChallengeKey, cause) {
-                    call.respond(
-                        UnauthorizedResponse(
-                            HttpAuthHeader.digestAuthChallenge(
-                                provider.realm,
-                                algorithm = provider.algorithmName,
-                                nonce = provider.nonceManager.newNonce()
-                            )
-                        )
+                    val challenge = HttpAuthHeader.digestAuthChallenge(
+                        realm = provider.realm,
+                        algorithm = provider.algorithmName,
+                        nonce = provider.nonceManager.newNonce()
                     )
+                    val response = when (provider.useForbiddenResponse) {
+                        true -> ForbiddenResponse(challenge)
+                        false -> UnauthorizedResponse(challenge)
+                    }
+                    call.respond(response)
                     it.complete()
                 }
             }

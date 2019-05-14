@@ -82,7 +82,13 @@ fun Authentication.Configuration.form(
             val cause = if (credentials == null) AuthenticationFailedCause.NoCredentials else AuthenticationFailedCause.InvalidCredentials
             context.challenge(formAuthenticationChallengeKey, cause) {
                 when (challenge) {
-                    FormAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
+                    FormAuthChallenge.Unauthorized -> {
+                        val response = when (provider.useForbiddenResponse) {
+                            true -> HttpStatusCode.Forbidden
+                            false -> HttpStatusCode.Unauthorized
+                        }
+                        call.respond(response)
+                    }
                     is FormAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, credentials))
                 }
                 it.complete()

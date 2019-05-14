@@ -52,6 +52,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
     internal val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     internal val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
     internal val authenticationFunction = config.authenticationFunction
+    internal val useForbiddenResponse = config.useForbiddenResponse
 
     /**
      * JWT auth provider configuration
@@ -148,10 +149,11 @@ fun Authentication.Configuration.jwt(
     val authenticate = provider.authenticationFunction
     val verifier = provider.verifier
     val schemes = provider.schemes
+    val useForbiddenResponse = provider.useForbiddenResponse
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = provider.authHeader(call)
         if (token == null) {
-            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes)
+            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes, useForbiddenResponse)
             return@intercept
         }
 
@@ -160,7 +162,7 @@ fun Authentication.Configuration.jwt(
             if (principal != null) {
                 context.principal(principal)
             } else {
-                context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes)
+                context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes, useForbiddenResponse)
             }
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
@@ -174,9 +176,15 @@ fun Authentication.Configuration.jwt(
 private fun AuthenticationContext.bearerChallenge(
     cause: AuthenticationFailedCause,
     realm: String,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    useForbiddenResponse: Boolean
 ) = challenge(JWTAuthKey, cause) {
-    call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, schemes)))
+    val challenge = HttpAuthHeader.bearerAuthChallenge(realm, schemes)
+    val response = when (useForbiddenResponse) {
+        true -> ForbiddenResponse(challenge)
+        false -> UnauthorizedResponse(challenge)
+    }
+    call.respond(response)
     it.complete()
 }
 

@@ -83,7 +83,12 @@ fun Authentication.Configuration.basic(
 
         if (cause != null) {
             context.challenge(basicAuthenticationChallengeKey, cause) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
+                val challenge = HttpAuthHeader.basicAuthChallenge(realm, charset)
+                val response = when (provider.useForbiddenResponse) {
+                    true -> ForbiddenResponse(challenge)
+                    false -> UnauthorizedResponse(challenge)
+                }
+                call.respond(response)
                 it.complete()
             }
         }
