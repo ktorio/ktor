@@ -184,7 +184,6 @@ class EventLoopGroupProxy(val channel: KClass<out ServerSocketChannel>, group: E
 
     companion object {
 
-        @Suppress("WhenWithOnlyElse")
         fun create(parallelism: Int): EventLoopGroupProxy {
             return when {
                 KQueue.isAvailable() -> EventLoopGroupProxy(KQueueServerSocketChannel::class, KQueueEventLoopGroup(parallelism))
