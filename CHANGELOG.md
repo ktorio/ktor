@@ -1,5 +1,5 @@
 # 1.2.0
-> Unpublished yet
+> 14 May 2019
 
 * Introduced multiplatform websockets: jvm, js.
 * Added client certificates support.
