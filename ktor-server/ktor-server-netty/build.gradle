@@ -40,11 +40,6 @@ if (enableAlpnProp) {
     }
 }
 
-//dependencies {
-//    compile group: 'io.netty', name: 'netty-transport-native-kqueue', version: netty_version
-//    compile group: 'io.netty', name: 'netty-transport-native-epoll', version: netty_version
-//}
-
 if (!project.ext.ideaActive) {
     dependencies {
         jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
