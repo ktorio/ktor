@@ -8,13 +8,17 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.netty.bootstrap.*
+import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.*
 import io.netty.channel.nio.*
+import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
+import io.netty.channel.epoll.*
+import io.netty.channel.kqueue.*
 import kotlinx.coroutines.*
 import io.netty.handler.codec.http.*
 import java.util.concurrent.*
+import kotlin.reflect.KClass
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
@@ -64,20 +68,26 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
 
     private val configuration = Configuration().apply(configure)
 
-    // accepts connections
-    private val connectionEventGroup = NettyConnectionPool(configuration.connectionGroupSize)
+    /**
+     * [EventLoopGroupProxy] for accepting connections
+     */
+    private val connectionEventGroup = EventLoopGroupProxy.create(configuration.connectionGroupSize)
 
-    // processes socket data and parse HTTP, may also process calls if shareWorkGroup is true
+    /**
+     * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
+     */
     private val workerEventGroup = if (configuration.shareWorkGroup)
-        NettyWorkerPool(configuration.workerGroupSize + configuration.callGroupSize)
+        EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
     else
-        NettyWorkerPool(configuration.workerGroupSize)
+        EventLoopGroupProxy.create(configuration.workerGroupSize)
 
-    // processes calls
+    /**
+     * [EventLoopGroupProxy] for processing [ApplicationCall] instances
+     */
     private val callEventGroup = if (configuration.shareWorkGroup)
         workerEventGroup
     else
-        NettyCallPool(configuration.callGroupSize)
+        EventLoopGroupProxy.create(configuration.callGroupSize)
 
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
@@ -88,7 +98,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         ServerBootstrap().apply {
             configuration.configureBootstrap(this)
             group(connectionEventGroup, workerEventGroup)
-            channel(NioServerSocketChannel::class.java)
+            channel(connectionEventGroup.channel.java)
             childHandler(
                 NettyChannelInitializer(
                     pipeline, environment,
@@ -163,16 +173,19 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
 }
 
 /**
- * [NioEventLoopGroup] for accepting connections
+ * Transparently allows for the creation of [EventLoopGroup]'s utilising the optimal implementation for
+ * a given operating system, subject to availability, or falling back to [NioEventLoopGroup] if none is available.
  */
-class NettyConnectionPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+class EventLoopGroupProxy(val channel: KClass<out ServerSocketChannel>, group: EventLoopGroup) : EventLoopGroup by group {
 
-/**
- * [NioEventLoopGroup] for processing incoming requests and doing engine's internal work
- */
-class NettyWorkerPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+    companion object {
 
-/**
- * [NioEventLoopGroup] for processing [ApplicationCall] instances
- */
-class NettyCallPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+        fun create(parallelism: Int): EventLoopGroupProxy {
+            return when {
+                KQueue.isAvailable() -> EventLoopGroupProxy(KQueueServerSocketChannel::class, KQueueEventLoopGroup(parallelism))
+                Epoll.isAvailable() -> EventLoopGroupProxy(EpollServerSocketChannel::class, EpollEventLoopGroup(parallelism))
+                else -> EventLoopGroupProxy(NioServerSocketChannel::class, NioEventLoopGroup(parallelism))
+            }
+        }
+    }
+}
