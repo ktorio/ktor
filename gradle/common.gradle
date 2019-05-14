@@ -4,7 +4,7 @@ kotlin.sourceSets {
         api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
         api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
         api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version
-        api group: 'org.jetbrains.kotlinx', name: 'atomicfu', version: atomic_fu_version
+        api group: 'org.jetbrains.kotlinx', name: 'atomicfu', version: atomicfu_version
 
         api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version
     }

@@ -1,6 +1,27 @@
 import org.jetbrains.kotlin.konan.target.HostManager
 
 buildscript {
+   /*
+    * These property group is used to build ktor against Kotlin compiler snapshot.
+    * How does it work:
+    * When build_snapshot_train is set to true, kotlin_version property is overridden with kotlin_snapshot_version,
+    * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
+    * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
+    * DO NOT change the name of these properties without adapting kotlinx.train build chain.
+    */
+    def prop = rootProject.properties['build_snapshot_train']
+    ext.build_snapshot_train = prop != null && prop != ""
+    if (build_snapshot_train) {
+        ext.kotlin_version = rootProject.properties['kotlin_snapshot_version']
+        if (kotlin_version == null) {
+            throw new IllegalArgumentException("'kotlin_snapshot_version' should be defined when building with snapshot compiler")
+        }
+        repositories {
+            mavenLocal()
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        }
+    }
+
     repositories {
         mavenLocal()
         jcenter()
@@ -16,7 +37,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-        classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
+        classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
@@ -58,10 +79,36 @@ def projectNeedsPlatform(project, platform) {
 
 apply from: rootProject.file('gradle/nodejs.gradle')
 
+def check(Object version, String libVersion, String libName) {
+    if (version != libVersion) {
+        throw new IllegalStateException("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
+    }
+}
+
 allprojects {
     group = "io.ktor"
     version = configuredVersion
     project.ext.hostManager = new HostManager()
+
+    if (build_snapshot_train) {
+        ext.kotlin_version = rootProject.properties['kotlin_snapshot_version']
+        println "Using Kotlin $kotlin_version for project $it"
+        def deployVersion = properties['DeployVersion']
+        if (deployVersion != null) version = deployVersion
+
+        def skipSnapshotChecks = rootProject.properties['skip_snapshot_checks'] != null
+        if (!skipSnapshotChecks) {
+            check(version, atomicfu_version, "atomicfu")
+            check(version, coroutines_version, "coroutines")
+            check(version, serialization_version, "serialization")
+            check(version, kotlinx_io_version, "kotlinx-io")
+        }
+        kotlin_version = rootProject.properties['kotlin_snapshot_version']
+        repositories {
+            mavenLocal()
+            maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        }
+    }
 
     repositories {
         mavenLocal()
@@ -113,6 +160,37 @@ allprojects {
 
                 if (project.path.startsWith(":ktor-server:ktor-server") && project.name != "ktor-server-core") {
                     useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
+                }
+            }
+        }
+    }
+}
+
+println("Using Kotlin compiler version: $org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION")
+if (build_snapshot_train) {
+    println "Hacking test tasks, removing stress and flaky tests"
+    allprojects {
+        tasks.withType(Test).all {
+            exclude '*ServerSocketTest*'
+            exclude '*NettyStressTest*'
+            exclude '*CIOMultithreadedTest*'
+            exclude '*testBlockingConcurrency*'
+            exclude '*testBigFile*'
+            exclude '*numberTest*'
+            exclude '*testWithPause*'
+        }
+    }
+
+    println "Manifest of kotlin-compiler-embeddable.jar"
+    configure(subprojects.findAll { it.name == "ktor-client" }) {
+        configurations.matching { it.name == "kotlinCompilerClasspath" }.all {
+            resolvedConfiguration.getFiles().findAll { it.name.contains("kotlin-compiler-embeddable") }.each {
+                def manifest = zipTree(it).matching {
+                    include 'META-INF/MANIFEST.MF'
+                }.getFiles().first()
+
+                manifest.readLines().each {
+                    println it
                 }
             }
         }

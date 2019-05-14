@@ -20,7 +20,7 @@ kotlin {
             implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
             implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
 
-            implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+            implementation "org.jetbrains.kotlinx:atomicfu:$atomicfu_version"
         }
 
         darwinMain { dependsOn commonMain }
