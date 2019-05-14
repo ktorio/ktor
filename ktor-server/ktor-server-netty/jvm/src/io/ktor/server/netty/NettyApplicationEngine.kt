@@ -76,13 +76,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
-    // accepts connections
     private val connectionEventGroup = EventLoopGroupProxy.create(configuration.connectionGroupSize)
 
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
-    // processes socket data and parse HTTP, may also process calls if shareWorkGroup is true
     private val workerEventGroup = if (configuration.shareWorkGroup)
         EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
     else
@@ -91,7 +89,6 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     /**
      * [EventLoopGroupProxy] for processing [ApplicationCall] instances
      */
-    // processes calls
     private val callEventGroup = if (configuration.shareWorkGroup)
         workerEventGroup
     else
@@ -180,6 +177,10 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 }
 
+/**
+ * Transparently allows for the creation of [EventLoopGroup]'s utilising the optimal implementation for
+ * a given operating system, subject to availability, or falling back to [NioEventLoopGroup] if none is available.
+ */
 class EventLoopGroupProxy(val channel: KClass<out ServerSocketChannel>, group: EventLoopGroup) : EventLoopGroup by group {
 
     companion object {
