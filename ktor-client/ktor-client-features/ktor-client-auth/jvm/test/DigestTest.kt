@@ -83,7 +83,9 @@ class DigestTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<String>(path = "/basic", port = serverPort)
+            client.get<String>(path = "/basic", port = serverPort).use{
+                assert(it.status.isSuccess())
+            }
         }
     }
 
