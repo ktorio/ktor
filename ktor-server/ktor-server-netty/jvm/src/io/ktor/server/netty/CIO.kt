@@ -13,6 +13,7 @@ import java.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
+@Suppress("IMPLICIT_NOTHING_AS_TYPE_PARAMETER")
 private val identityErrorHandler = { t: Throwable, c: Continuation<*> ->
     c.resumeWithException(t)
 }
@@ -25,6 +26,7 @@ suspend fun <T> Future<T>.suspendAwait(): T {
     return suspendAwait(identityErrorHandler)
 }
 
+@Suppress("IMPLICIT_NOTHING_AS_TYPE_PARAMETER")
 private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
     if (t is IOException) c.resumeWithException(ChannelWriteException("Write operation future failed", t))
     else c.resumeWithException(t)
@@ -43,7 +45,11 @@ suspend fun <T> Future<T>.suspendWriteAwait(): T {
  */
 suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {
     @Suppress("BlockingMethodInNonBlockingContext")
-    if (isDone) return try { get() } catch (t: Throwable) { throw t.unwrap() }
+    if (isDone) return try {
+        get()
+    } catch (t: Throwable) {
+        throw t.unwrap()
+    }
 
     return suspendCancellableCoroutine { continuation ->
         addListener(CoroutineListener(this, continuation, exception))
@@ -64,9 +70,10 @@ internal object NettyDispatcher : CoroutineDispatcher() {
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 
-private class CoroutineListener<T, F : Future<T>>(private val future: F,
-                                                  private val continuation: CancellableContinuation<T>,
-                                                  private val exception: (Throwable, Continuation<T>) -> Unit
+private class CoroutineListener<T, F : Future<T>>(
+    private val future: F,
+    private val continuation: CancellableContinuation<T>,
+    private val exception: (Throwable, Continuation<T>) -> Unit
 ) : GenericFutureListener<F>, CompletionHandler {
     init {
         continuation.invokeOnCancellation(this)
