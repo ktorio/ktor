@@ -5,11 +5,9 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
-import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.*
 /**
  * Open [DefaultClientWebSocketSession].
  */

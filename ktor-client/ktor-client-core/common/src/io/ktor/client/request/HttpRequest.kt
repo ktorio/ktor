@@ -134,7 +134,6 @@ class HttpRequestBuilder : HttpMessageBuilder {
  * Actual data of the [HttpRequest], including [url], [method], [headers], [body] and [executionContext].
  * Built by [HttpRequestBuilder].
  */
-@InternalAPI
 class HttpRequestData internal constructor(
     val url: Url,
     val method: HttpMethod,
@@ -148,7 +147,6 @@ class HttpRequestData internal constructor(
 /**
  * Data prepared for [HttpResponse].
  */
-@InternalAPI
 class HttpResponseData constructor(
     val statusCode: HttpStatusCode,
     val requestTime: GMTDate,

@@ -59,7 +59,7 @@ fun HttpClient(
  * @property engine: [HttpClientEngine] for executing requests.
  */
 class HttpClient(
-    @InternalAPI val engine: HttpClientEngine,
+    val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
     private val closed = atomic(false)
