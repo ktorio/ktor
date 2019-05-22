@@ -31,14 +31,8 @@ interface SessionTransportTransformer {
  * @return A string representing the original session contents.
  */
 fun List<SessionTransportTransformer>.transformRead(cookieValue: String?): String? {
-    var value = cookieValue
-    for (t in this) {
-        if (value == null) {
-            break
-        }
-        value = t.transformRead(value)
-    }
-    return value
+    val value = cookieValue ?: return null
+    return this.asReversed().fold(value) { v, t -> t.transformRead(v) ?: return null }
 }
 
 /**
