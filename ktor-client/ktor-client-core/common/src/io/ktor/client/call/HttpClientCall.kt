@@ -78,12 +78,16 @@ open class HttpClientCall internal constructor(
         if (info.type.isInstance(response)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val responseData  = attributes.getOrNull(CustomResponse) ?: response.content
+        val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
         val subject = HttpResponseContainer(info, responseData)
         val result = client.responsePipeline.execute(this, subject).response
         if (!info.type.isInstance(result)) {
             throw NoTransformationFoundException(result::class, info.type)
+        }
+
+        if (result is ByteReadChannel) {
+            return response.channelWithCloseHandling()
         }
 
         if (result !is Closeable && result !is HttpRequest) {

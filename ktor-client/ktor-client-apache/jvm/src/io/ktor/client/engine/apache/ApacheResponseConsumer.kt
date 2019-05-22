@@ -16,7 +16,6 @@ import org.apache.http.protocol.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.*
 
-
 private const val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 
 internal class ApacheResponseConsumer(

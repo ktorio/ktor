@@ -65,7 +65,7 @@ abstract class HttpResponse : HttpMessage, CoroutineScope, Closeable {
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
-        if (!closed.compareAndSet(false , true)) return
+        if (!closed.compareAndSet(false, true)) return
 
         launch {
             content.discard()

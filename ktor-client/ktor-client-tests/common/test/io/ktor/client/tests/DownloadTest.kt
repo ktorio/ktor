@@ -6,8 +6,8 @@ package io.ktor.client.tests
 
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import kotlinx.coroutines.io.*
 import kotlin.test.*
-
 
 class DownloadTest : ClientLoader() {
     @Test
@@ -27,6 +27,15 @@ class DownloadTest : ClientLoader() {
             }
 
             assertEquals(text, response)
+        }
+    }
+
+    @Test
+    fun testEchoWithChannelBody() = clientTests {
+        val text = "Hello, world"
+        test { client ->
+            val response = client.get<ByteReadChannel>("http://www.google.com/")
+            response.readRemaining()
         }
     }
 }
