@@ -454,7 +454,8 @@ class ApplicationEngineEnvironmentReloading(
                 }
             }
 
-            return parameters.all { isApplication(it) || isApplicationEnvironment(it) || it.kind == KParameter.Kind.INSTANCE }
+            return parameters.all { isApplication(it) || isApplicationEnvironment(it)
+                || it.kind == KParameter.Kind.INSTANCE || it.isOptional }
         }
 
         private fun Class<*>.takeIfNotFacade(): KClass<*>? {
