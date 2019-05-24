@@ -5,9 +5,9 @@
 package io.ktor.client.call
 
 
-actual interface Type {}
+actual interface Type
 
-object IosType : Type {}
+object IosType : Type
 
 @PublishedApi()
 internal open class TypeBase<T>

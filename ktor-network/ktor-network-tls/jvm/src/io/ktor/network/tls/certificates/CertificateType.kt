@@ -4,8 +4,6 @@
 
 package io.ktor.network.tls.certificates
 
-import io.ktor.network.tls.*
-
 /**
  * Type of client certificate.
  * see also https://tools.ietf.org/html/rfc5246#section-7.4.4

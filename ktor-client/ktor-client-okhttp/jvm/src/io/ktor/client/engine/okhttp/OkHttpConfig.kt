@@ -6,7 +6,6 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.engine.*
 import okhttp3.*
-import java.util.concurrent.*
 
 /**
  * Configuration for [OkHttp] client engine.

@@ -5,7 +5,6 @@
 package io.ktor.client.engine.jetty
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +18,6 @@ import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
 internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)

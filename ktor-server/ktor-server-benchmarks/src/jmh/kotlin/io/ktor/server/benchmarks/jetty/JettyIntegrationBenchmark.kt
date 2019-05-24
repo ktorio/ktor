@@ -15,7 +15,7 @@ class JettyIntegrationBenchmark : IntegrationBenchmark<JettyApplicationEngine>()
     }
 }
 
-class JettyAsyncIntegrationBenchmark() : AsyncIntegrationBenchmark<JettyApplicationEngine>() {
+class JettyAsyncIntegrationBenchmark : AsyncIntegrationBenchmark<JettyApplicationEngine>() {
     override fun createServer(port: Int, main: Application.() -> Unit): JettyApplicationEngine {
         return embeddedServer(Jetty, port, module = main)
     }

@@ -8,13 +8,12 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlin.test.*
 
 class MockEngineTests {

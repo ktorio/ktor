@@ -26,7 +26,7 @@ internal suspend fun OkHttpClient.execute(request: Request): Response = suspendC
 
     call.enqueue(callback)
 
-    it.invokeOnCancellation { _ ->
+    it.invokeOnCancellation {
         call.cancel()
     }
 }

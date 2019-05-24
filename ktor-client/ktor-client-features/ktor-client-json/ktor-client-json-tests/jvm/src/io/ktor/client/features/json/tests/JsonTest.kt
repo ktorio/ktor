@@ -4,12 +4,10 @@
 
 package io.ktor.client.features.json.tests
 
-import com.google.gson.*
 import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
-import io.ktor.client.features.json.JsonSerializer
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*

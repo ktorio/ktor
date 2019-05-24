@@ -15,7 +15,7 @@ class NettyIntegrationBenchmark : IntegrationBenchmark<NettyApplicationEngine>()
     }
 }
 
-class NettyAsyncIntegrationBenchmark() : AsyncIntegrationBenchmark<NettyApplicationEngine>() {
+class NettyAsyncIntegrationBenchmark : AsyncIntegrationBenchmark<NettyApplicationEngine>() {
     override fun createServer(port: Int, main: Application.() -> Unit): NettyApplicationEngine {
         return embeddedServer(Netty, port, module = main)
     }

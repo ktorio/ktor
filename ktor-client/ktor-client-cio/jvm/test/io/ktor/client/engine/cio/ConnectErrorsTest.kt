@@ -17,7 +17,6 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
-import org.junit.rules.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*

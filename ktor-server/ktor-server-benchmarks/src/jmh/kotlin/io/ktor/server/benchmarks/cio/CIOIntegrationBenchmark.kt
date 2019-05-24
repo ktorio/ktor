@@ -15,7 +15,7 @@ class CIOIntegrationBenchmark : IntegrationBenchmark<CIOApplicationEngine>() {
     }
 }
 
-class CIOAsyncIntegrationBenchmark() : AsyncIntegrationBenchmark<CIOApplicationEngine>() {
+class CIOAsyncIntegrationBenchmark : AsyncIntegrationBenchmark<CIOApplicationEngine>() {
     override fun createServer(port: Int, main: Application.() -> Unit): CIOApplicationEngine {
         return embeddedServer(CIO, port, module = main)
     }

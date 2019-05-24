@@ -4,24 +4,22 @@
 
 package io.ktor.server.testing
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.application.*
 import io.ktor.client.response.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.streams.*
-import org.junit.*
 import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
-import java.nio.ByteBuffer
+import java.nio.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*

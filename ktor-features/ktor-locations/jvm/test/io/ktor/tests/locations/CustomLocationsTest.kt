@@ -35,7 +35,7 @@ object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locat
     }
 }
 
-class index()
+class index
 class bye(val value: String)
 
 @Location("entity/{id}")

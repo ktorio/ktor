@@ -8,8 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.util.pipeline.*
 import io.ktor.util.*
 
 /**

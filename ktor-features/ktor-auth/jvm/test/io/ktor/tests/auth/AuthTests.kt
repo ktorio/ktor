@@ -4,7 +4,6 @@
 
 package io.ktor.tests.auth
 
-import io.ktor.auth.*
 import io.ktor.http.auth.*
 import java.util.*
 import kotlin.test.*

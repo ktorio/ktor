@@ -18,11 +18,9 @@ import kotlinx.coroutines.debug.junit4.*
 import kotlinx.io.core.*
 import org.junit.*
 import org.junit.Test
-import org.junit.rules.*
 import java.nio.*
 import java.time.*
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 

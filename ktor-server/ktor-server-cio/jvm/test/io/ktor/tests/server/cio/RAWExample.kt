@@ -4,11 +4,9 @@
 
 package io.ktor.tests.server.cio
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.time.*

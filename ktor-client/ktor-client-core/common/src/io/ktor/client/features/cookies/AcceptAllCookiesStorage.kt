@@ -13,7 +13,7 @@ import kotlin.math.*
 /**
  * [CookiesStorage] that stores all the cookies in an in-memory map.
  */
-class AcceptAllCookiesStorage() : CookiesStorage {
+class AcceptAllCookiesStorage : CookiesStorage {
     private val container: MutableList<Cookie> = mutableListOf()
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Lock()

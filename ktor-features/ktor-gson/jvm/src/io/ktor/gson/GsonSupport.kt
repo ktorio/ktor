@@ -59,7 +59,7 @@ fun ContentNegotiation.Configuration.gson(
 internal class ExcludedTypeGsonException(val type: KClass<*>) :
     Exception("Type ${type.jvmName} is excluded so couldn't be used in receive")
 
-internal class UnsupportedNullValuesException() :
+internal class UnsupportedNullValuesException :
     ContentTransformationException("Receiving null values is not supported")
 
 private fun Gson.isExcluded(type: KClass<*>) =

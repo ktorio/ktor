@@ -4,13 +4,8 @@
 
 package io.ktor.client.engine.apache
 
-import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.tests.*
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import org.junit.*
 
 
 class ApacheCookiesTest : CookiesTest(Apache)
@@ -34,31 +29,3 @@ class ApacheFeaturesTest : FeaturesTest(Apache)
 class ApacheConnectionTest : ConnectionTest(Apache)
 
 class ApacheHttpClientTest : HttpClientTest(Apache)
-
-suspend fun main() {
-    val client = HttpClient(Apache) {
-
-        engine {
-            socketTimeout = 0
-
-            customizeClient {
-                setMaxConnPerRoute(0)
-                setMaxConnTotal(0)
-            }
-        }
-    }
-
-    var attempt = 0
-
-    while(true) {
-        val response = client.call("https://tickets.fcbayern.com/Internetverkauf/EventList.aspx") {
-            method = HttpMethod.Get
-        }.response
-
-        println("[${++attempt}] Status Code: [${response.status.value}]")
-
-        response.close()
-
-        delay(5000)
-    }
-}

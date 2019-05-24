@@ -13,7 +13,7 @@ import java.util.jar.*
 fun main(args: Array<String>) {
     val src = args[0]
     println(src)
-    println("------------------\n");
+    println("------------------\n")
     getBinaryAPI(JarFile(src)).filterOutNonPublic().dump()
 }
 

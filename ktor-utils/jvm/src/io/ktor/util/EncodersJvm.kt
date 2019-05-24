@@ -8,7 +8,6 @@ import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
 import java.nio.*
 import java.util.zip.*
 

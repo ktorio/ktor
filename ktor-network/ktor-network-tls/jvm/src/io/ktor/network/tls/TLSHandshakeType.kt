@@ -47,7 +47,7 @@ enum class ServerKeyExchangeType(val code: Int) {
     NamedCurve(3);
 
     companion object {
-        private val byCode = Array(256) { idx -> values().firstOrNull() { it.code == idx } }
+        private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find an instance of [ServerKeyExchangeType] by it's numeric code or fail

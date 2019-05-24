@@ -5,7 +5,6 @@
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
-import kotlinx.coroutines.io.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.coroutines.*

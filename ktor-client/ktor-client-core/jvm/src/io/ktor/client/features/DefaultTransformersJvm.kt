@@ -9,7 +9,6 @@ import io.ktor.client.response.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
-import kotlinx.io.streams.*
 import java.io.*
 
 internal actual fun HttpClient.platformDefaultTransformers() {

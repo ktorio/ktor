@@ -8,7 +8,6 @@ import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.io.core.*
-import kotlin.jvm.*
 
 /**
  * Client json serializer.

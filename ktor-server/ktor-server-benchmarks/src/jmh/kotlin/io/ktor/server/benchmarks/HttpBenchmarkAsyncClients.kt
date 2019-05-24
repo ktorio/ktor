@@ -4,13 +4,12 @@
 
 package io.ktor.server.benchmarks
 
-import io.ktor.util.cio.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import org.openjdk.jmh.infra.*
 import java.nio.*

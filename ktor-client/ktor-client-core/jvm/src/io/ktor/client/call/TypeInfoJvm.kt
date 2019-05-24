@@ -5,7 +5,6 @@
 package io.ktor.client.call
 
 import java.lang.reflect.*
-import kotlin.reflect.*
 
 actual typealias Type = java.lang.reflect.Type
 

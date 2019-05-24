@@ -4,7 +4,6 @@
 
 package io.ktor.http.cio.websocket
 
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -46,7 +45,7 @@ class WebSocketWriter(
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
-        pool.useInstance { it: ByteBuffer -> writeLoop(it) }
+        pool.useInstance { writeLoop(it) }
     }
 
     /**

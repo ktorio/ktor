@@ -6,9 +6,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.network.tls.*
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
 
 /**
  * Configuration for [CIO] client engine.

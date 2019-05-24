@@ -12,7 +12,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.io.*
-import kotlin.coroutines.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.ERROR)
 @Suppress("KDocMissingDocumentation")

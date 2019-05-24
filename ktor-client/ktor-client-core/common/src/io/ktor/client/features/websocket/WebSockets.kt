@@ -31,7 +31,7 @@ class WebSockets(
         override fun prepare(block: Unit.() -> Unit): WebSockets = WebSockets()
 
         override fun install(feature: WebSockets, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Render) { _ ->
+            scope.requestPipeline.intercept(HttpRequestPipeline.Render) {
                 if (!context.url.protocol.isWebsocket()) return@intercept
 
                 proceedWith(WebSocketContent())

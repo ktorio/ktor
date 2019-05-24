@@ -9,7 +9,6 @@ import ch.qos.logback.classic.Logger
 import io.ktor.server.engine.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
-import org.junit.rules.*
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*

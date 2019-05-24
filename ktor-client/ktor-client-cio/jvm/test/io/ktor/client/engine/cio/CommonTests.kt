@@ -5,7 +5,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.tests.*
-import org.junit.*
 
 
 class CIOCookiesTest : CookiesTest(CIO)

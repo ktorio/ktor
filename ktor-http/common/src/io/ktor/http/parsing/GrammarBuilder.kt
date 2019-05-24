@@ -4,7 +4,7 @@
 
 package io.ktor.http.parsing
 
-internal class GrammarBuilder() {
+internal class GrammarBuilder {
     private val grammars = mutableListOf<Grammar>()
 
     infix fun then(grammar: Grammar): GrammarBuilder {

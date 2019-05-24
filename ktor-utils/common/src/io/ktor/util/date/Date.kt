@@ -5,7 +5,6 @@
 package io.ktor.util.date
 
 import io.ktor.util.*
-import kotlin.math.*
 
 /**
  * According to:

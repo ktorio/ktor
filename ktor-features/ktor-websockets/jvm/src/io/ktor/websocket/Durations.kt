@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.time.*
-import kotlin.coroutines.*
 
 /**
  * Ping interval or `null` to disable pinger. Please note that pongs will be handled despite of this setting.

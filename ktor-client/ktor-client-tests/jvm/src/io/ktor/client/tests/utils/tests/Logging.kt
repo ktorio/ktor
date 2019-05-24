@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlin.test.*
 
 internal fun Application.loggingTestServer() {
     routing {

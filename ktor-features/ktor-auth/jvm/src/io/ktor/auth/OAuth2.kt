@@ -369,7 +369,7 @@ sealed class OAuth2Exception(message: String, val errorCode: String?) : Exceptio
      * decoded but the response doesn't contain error code nor access token
      */
     @KtorExperimentalAPI
-    class MissingAccessToken() :
+    class MissingAccessToken :
         OAuth2Exception("OAuth2 server response is OK neither error nor access token provided", null)
 
     /**

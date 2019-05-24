@@ -10,7 +10,7 @@ import io.ktor.util.pipeline.*
 /**
  * Represents authentication [Pipeline] for checking and requesting authentication
  */
-class AuthenticationPipeline() : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
+class AuthenticationPipeline : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
 
     companion object {
         /**

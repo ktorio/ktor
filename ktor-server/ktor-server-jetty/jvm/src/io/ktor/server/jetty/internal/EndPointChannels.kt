@@ -4,15 +4,13 @@
 
 package io.ktor.server.jetty.internal
 
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
-import java.lang.Runnable
-import java.nio.ByteBuffer
+import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*

@@ -33,7 +33,7 @@ open class Placeholder<TOuter> {
 /**
  * Placeholder that can appear multiple times
  */
-open class PlaceholderList<TOuter, TInner>() {
+open class PlaceholderList<TOuter, TInner> {
     private var items = ArrayList<PlaceholderItem<TInner>>()
     operator fun invoke(meta: String = "", content: TInner.(Placeholder<TInner>) -> Unit = {}) {
         val placeholder = PlaceholderItem<TInner>(items.size, items)

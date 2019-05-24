@@ -174,7 +174,7 @@ class GsonTest {
         }
     }
 
-    private class NullValues()
+    private class NullValues
 
     @Test
     fun testReceiveNullValue(): Unit = withTestApplication {

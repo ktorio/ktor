@@ -11,14 +11,12 @@ import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import org.junit.*
 import org.junit.Test
-import org.junit.rules.*
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.test.*
 
 class ServerSocketTest : CoroutineScope {
