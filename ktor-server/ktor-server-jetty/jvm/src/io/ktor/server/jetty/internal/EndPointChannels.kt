@@ -28,9 +28,10 @@ private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
-internal class EndPointReader(endpoint: EndPoint,
-                              override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel)
-    : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
+internal class EndPointReader(
+    endpoint: EndPoint,
+    override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel
+) : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
     private val currentHandler = AtomicReference<Continuation<Unit>>()
     private val buffer = JettyWebSocketPool.borrow()
 
