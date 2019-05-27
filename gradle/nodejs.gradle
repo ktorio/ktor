@@ -12,7 +12,7 @@ infra {
                 "-a", "disable-web-security"
             )
 
-            if (!project.hasProperty("teamcity")) {
+            if (!project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")) {
                 headlessChromeVersion = mocha_headless_chrome_version
                 install("mocha-teamcity-reporter", mocha_teamcity_reporter_version)
             }
