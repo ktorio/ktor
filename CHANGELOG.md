@@ -1,3 +1,13 @@
+# 1.2.1
+>  Published 27 May 2019
+
+* Fixed module function lookup (regress, #1132)
+* Fixed SessionTransportTransformers application order (#1147)
+* Fixed double content length header in requests on older Androids (#1060)
+* Fixed receiving a byte channel crash on Android (#1140)
+* Fixed websocket sockets lifecyle on Jetty engine
+* Downgraded Gradle to reduce gradle metadata version
+
 # 1.2.0
 > 14 May 2019
 
