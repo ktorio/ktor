@@ -4,28 +4,19 @@
 
 package io.ktor.util
 
-import kotlinx.coroutines.*
 import kotlin.coroutines.*
-
-/**
- * Print [Job] children tree.
- */
-@InternalAPI
-fun Job.printDebugTree(offset: Int = 0) {
-    println(" ".repeat(offset) + this)
-
-    children.forEach {
-        it.printDebugTree(offset + 2)
-    }
-
-    if (offset == 0) println()
-}
 
 @InternalAPI
 @Suppress("NOTHING_TO_INLINE")
-internal expect inline fun <R, A>
+internal actual inline fun <R, A>
     (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
     arg: A,
     continuation: Continuation<Unit>
-): Any?
+): Any? {
+
+    @Suppress("UNCHECKED_CAST")
+    val function = (this as Function3<R, A, Continuation<Unit>, Any?>)
+    return function.invoke(receiver, arg, continuation)
+}
+

@@ -263,17 +263,3 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
         throw IllegalStateException("Unexpected rootContinuation content: $rootContinuation")
     }
 }
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun <R, A>
-    (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
-    receiver: R,
-    arg: A,
-    continuation: Continuation<Unit>
-): Any? {
-
-    @Suppress("UNCHECKED_CAST")
-    val function = (this as Function3<R, A, Continuation<Unit>, Any?>)
-    return function.invoke(receiver, arg, continuation)
-}
-
