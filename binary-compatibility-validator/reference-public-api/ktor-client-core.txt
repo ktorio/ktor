@@ -434,16 +434,18 @@ public final class io/ktor/client/features/cache/storage/HttpCacheStorage$Compan
 public final class io/ktor/client/features/cookies/AcceptAllCookiesStorage : io/ktor/client/features/cookies/CookiesStorage {
 	public fun <init> ()V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close ()V
 	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/cookies/ConstantCookiesStorage : io/ktor/client/features/cookies/CookiesStorage {
 	public fun <init> ([Lio/ktor/http/Cookie;)V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close ()V
 	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface class io/ktor/client/features/cookies/CookiesStorage {
+public abstract interface class io/ktor/client/features/cookies/CookiesStorage : java/io/Closeable {
 	public abstract fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -452,9 +454,10 @@ public final class io/ktor/client/features/cookies/CookiesStorageKt {
 	public static final fun addCookie (Lio/ktor/client/features/cookies/CookiesStorage;Ljava/lang/String;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/features/cookies/HttpCookies {
+public final class io/ktor/client/features/cookies/HttpCookies : java/io/Closeable {
 	public static final field Companion Lio/ktor/client/features/cookies/HttpCookies$Companion;
 	public fun <init> (Lio/ktor/client/features/cookies/CookiesStorage;)V
+	public fun close ()V
 	public final fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -909,6 +912,7 @@ public final class io/ktor/client/utils/ContentKt {
 
 public final class io/ktor/client/utils/EmptyContent : io/ktor/http/content/OutgoingContent$NoContent {
 	public static final field INSTANCE Lio/ktor/client/utils/EmptyContent;
+	public fun getContentLength ()Ljava/lang/Long;
 }
 
 public final class io/ktor/client/utils/HeadersKt {
