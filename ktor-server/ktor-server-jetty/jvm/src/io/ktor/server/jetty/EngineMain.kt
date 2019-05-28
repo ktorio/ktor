@@ -8,11 +8,11 @@ import io.ktor.config.*
 import io.ktor.server.engine.*
 
 /**
- * Jetty development engine
+ * Jetty engine
  */
 object EngineMain {
     /**
-     * Main function for starting DevelopmentEngine with Jetty
+     * Main function for starting EngineMain with Jetty
      * Creates an embedded Jetty application with an environment built from command line arguments.
      */
     @JvmStatic
