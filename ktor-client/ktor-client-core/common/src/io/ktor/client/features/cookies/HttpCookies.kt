@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.io.core.*
 
 /**
  * [HttpClient] feature that handles sent `Cookie`, and received `Set-Cookie` headers,
@@ -18,9 +19,16 @@ import io.ktor.util.*
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
  * cookies when installing.
  */
-class HttpCookies(private val storage: CookiesStorage) {
+class HttpCookies(private val storage: CookiesStorage) : Closeable {
 
+    /**
+     * Find all cookies by [requestUrl].
+     */
     suspend fun get(requestUrl: Url): List<Cookie> = storage.get(requestUrl)
+
+    override fun close() {
+        storage.close()
+    }
 
     class Config {
         private val defaults = mutableListOf<CookiesStorage.() -> Unit>()

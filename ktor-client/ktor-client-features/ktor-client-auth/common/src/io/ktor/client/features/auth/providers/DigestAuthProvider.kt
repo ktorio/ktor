@@ -44,7 +44,6 @@ class DigestAuthProvider(
     val realm: String?,
     val algorithmName: String = "MD5"
 ) : AuthProvider {
-    private val digest = Digest(algorithmName)
     private val serverNonce = atomic<String?>(null)
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
@@ -100,9 +99,8 @@ class DigestAuthProvider(
         }
     }
 
-    private val lock = Lock()
-    private suspend fun makeDigest(data: String): ByteArray = lock.use {
-        digest.reset()
-        return@use digest.build(data.toByteArray(Charsets.UTF_8))
+    private suspend fun makeDigest(data: String): ByteArray {
+        val digest = Digest(algorithmName)
+        return digest.build(data.toByteArray(Charsets.UTF_8))
     }
 }
