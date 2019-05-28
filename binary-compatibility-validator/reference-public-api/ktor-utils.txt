@@ -177,19 +177,15 @@ public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
-public final class io/ktor/util/Lock {
+public final class io/ktor/util/Lock : java/io/Closeable {
 	public fun <init> ()V
+	public fun close ()V
 	public final fun lock ()V
 	public final fun unlock ()V
 }
 
 public final class io/ktor/util/LockKt {
-	public static final fun use (Lio/ktor/util/Lock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
-}
-
-public final class io/ktor/util/LockTicket {
-	public fun <init> (Ljava/util/concurrent/locks/Lock;)V
-	public final fun unlock ()V
+	public static final fun withLock (Lio/ktor/util/Lock;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/LoggingKt {
@@ -228,12 +224,6 @@ public final class io/ktor/util/PathKt {
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
 	public static final fun getLength (Lkotlin/ranges/LongRange;)J
-}
-
-public final class io/ktor/util/ReadWriteLock {
-	public fun <init> ()V
-	public final fun readLock ()Lio/ktor/util/LockTicket;
-	public final fun writeLock ()Lio/ktor/util/LockTicket;
 }
 
 public final class io/ktor/util/ReflectionKt {
