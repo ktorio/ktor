@@ -5,11 +5,12 @@
 package io.ktor.client.features.cookies
 
 import io.ktor.http.*
+import kotlinx.io.core.*
 
 /**
  * Storage for [Cookie].
  */
-interface CookiesStorage {
+interface CookiesStorage : Closeable {
     /**
      * Gets a map of [String] to [Cookie] for a specific [host].
      */
@@ -21,6 +22,9 @@ interface CookiesStorage {
     suspend fun addCookie(requestUrl: Url, cookie: Cookie)
 }
 
+/**
+ * Add [cookie] with key [urlString] to storage.
+ */
 suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
     addCookie(Url(urlString), cookie)
 }

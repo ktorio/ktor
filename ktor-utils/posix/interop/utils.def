@@ -8,56 +8,63 @@ compilerOpts.linux_x64 = -DLINUX
 ---
 #include <pthread.h>
 #include <time.h>
+#include <stdio.h>
 
 /* Mutex */
 typedef struct ktor_mutex {
-    pthread_mutex_t* mutex;
+    pthread_mutex_t mutex;
 } ktor_mutex_t;
 
 
-void ktor_mutex_create(ktor_mutex_t* mutex) {
-    pthread_mutex_init(mutex->mutex, NULL);
+static inline int ktor_mutex_create(ktor_mutex_t *mutex) {
+    pthread_mutexattr_t attributes;
+    pthread_mutexattr_init(&attributes);
+    pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_RECURSIVE);
+    return pthread_mutex_init(&mutex->mutex, &attributes);
 }
 
-void ktor_mutex_lock(ktor_mutex_t* mutex) {
-    pthread_mutex_lock(mutex->mutex);
+static inline int ktor_mutex_lock(ktor_mutex_t* mutex) {
+    return pthread_mutex_lock(&mutex->mutex);
 }
 
-void ktor_mutex_unlock(ktor_mutex_t* mutex) {
-    pthread_mutex_unlock(mutex->mutex);
+static inline int ktor_mutex_unlock(ktor_mutex_t* mutex) {
+    return pthread_mutex_unlock(&mutex->mutex);
 }
 
-void ktor_mutex_destroy(ktor_mutex_t* mutex) {
-    pthread_mutex_destroy(mutex->mutex);
+static inline int ktor_mutex_destroy(ktor_mutex_t* mutex) {
+    return pthread_mutex_destroy(&mutex->mutex);
 }
 
 /* Read-Write lock */
 typedef struct ktor_rwlock {
-    pthread_rwlock_t* lock;
+    pthread_rwlock_t lock;
 } ktor_rwlock;
 
-void ktor_rwlock_create(ktor_rwlock* lock) {
-    pthread_rwlock_init(lock->lock, NULL);
+static inline int ktor_rwlock_create(ktor_rwlock* lock) {
+    pthread_mutexattr_t attributes;
+    pthread_mutexattr_init(&attributes);
+    pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_RECURSIVE);
+    return pthread_rwlock_init(&lock->lock, &attributes);
 }
 
-void ktor_rwlock_read(ktor_rwlock* lock) {
-    pthread_rwlock_rdlock(lock->lock);
+static inline int ktor_rwlock_read(ktor_rwlock* lock) {
+    return pthread_rwlock_rdlock(&lock->lock);
 }
 
-void ktor_rwlock_write(ktor_rwlock* lock) {
-    pthread_rwlock_wrlock(lock->lock);
+static inline int ktor_rwlock_write(ktor_rwlock* lock) {
+    return pthread_rwlock_wrlock(&lock->lock);
 }
 
-void ktor_rwlock_unlock(ktor_rwlock* lock) {
-    pthread_rwlock_unlock(lock->lock);
+static inline int ktor_rwlock_unlock(ktor_rwlock* lock) {
+    return pthread_rwlock_unlock(&lock->lock);
 }
 
-void ktor_rwlock_destroy(ktor_rwlock* lock) {
-    pthread_rwlock_destroy(lock->lock);
+static inline int ktor_rwlock_destroy(ktor_rwlock* lock) {
+    return pthread_rwlock_destroy(&lock->lock);
 }
 
 /* Time */
-time_t ktor_time(struct tm* tm) {
+static inline time_t ktor_time(struct tm* tm) {
 #ifndef MINGW
     return timegm(tm);
 #else

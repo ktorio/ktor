@@ -15,4 +15,6 @@ class ConstantCookiesStorage(vararg cookies: Cookie) : CookiesStorage {
     override suspend fun get(requestUrl: Url): List<Cookie> = storage.filter { it.matches(requestUrl) }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {}
+
+    override fun close() {}
 }

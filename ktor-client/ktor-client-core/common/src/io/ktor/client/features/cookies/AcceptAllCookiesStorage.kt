@@ -18,16 +18,16 @@ class AcceptAllCookiesStorage : CookiesStorage {
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Lock()
 
-    override suspend fun get(requestUrl: Url): List<Cookie> = mutex.use {
+    override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
         val date = GMTDate()
         if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
 
         return container.filter { it.matches(requestUrl) }
     }
 
-    override suspend fun addCookie(requestUrl: Url, cookie: Cookie): Unit = mutex.use {
+    override suspend fun addCookie(requestUrl: Url, cookie: Cookie): Unit = mutex.withLock {
         with(cookie) {
-            if (name.isBlank()) return@use
+            if (name.isBlank()) return@withLock
         }
 
         container.removeAll { it.name == cookie.name && it.matches(requestUrl) }
@@ -37,6 +37,10 @@ class AcceptAllCookiesStorage : CookiesStorage {
                 oldestCookie.value = expires
             }
         }
+    }
+
+    override fun close() {
+        mutex.close()
     }
 
     private fun cleanup(timestamp: Long) {
