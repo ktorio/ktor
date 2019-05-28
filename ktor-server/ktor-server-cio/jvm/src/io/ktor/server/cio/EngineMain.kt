@@ -9,11 +9,11 @@ import io.ktor.server.engine.*
 import java.util.concurrent.*
 
 /**
- * Default development engine with main function that starts CIO engine using application.conf
+ * Default engine with main function that starts CIO engine using application.conf
  */
 object EngineMain {
     /**
-     * CIO development engine entry point
+     * CIO engine entry point
      */
     @JvmStatic
     fun main(args: Array<String>) {

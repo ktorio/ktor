@@ -8,11 +8,11 @@ import io.ktor.config.*
 import io.ktor.server.engine.*
 
 /**
- * Netty development engine
+ * Netty engine
  */
 object EngineMain {
     /**
-     * Main function for starting DevelopmentEngine with Netty
+     * Main function for starting EngineMain with Netty
      * Creates an embedded Netty application with an environment built from command line arguments.
      */
     @JvmStatic
