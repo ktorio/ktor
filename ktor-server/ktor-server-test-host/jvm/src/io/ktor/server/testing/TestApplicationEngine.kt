@@ -1,9 +1,12 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
@@ -13,7 +16,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
 import kotlinx.coroutines.io.*
-import java.lang.IllegalStateException
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
@@ -42,14 +44,21 @@ class TestApplicationEngine(
     private val configuration = Configuration().apply(configure)
 
     init {
-        pipeline.intercept(EnginePipeline.Call) {
+        pipeline.intercept(EnginePipeline.Call) {callInterceptor(Unit)}
+    }
+
+    /**
+     * interceptor for engine calls. can be modified to emulate certain engine behaviour (e.g. error handling)
+     */
+    var callInterceptor: PipelineInterceptor<Unit, ApplicationCall> =
+        {
             try {
                 call.application.execute(call)
             } catch (cause: Throwable) {
                 handleTestFailure(cause)
             }
         }
-    }
+
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
         tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
@@ -187,10 +196,10 @@ class TestApplicationEngine(
 
         // we need this to wait for response channel appearance
         // otherwise we get NPE at websocket reader start attempt
-        val responseSent = CompletableDeferred<Unit>()
+        val responseSent: CompletableJob = Job()
         call.response.responseChannelDeferred.invokeOnCompletion { cause ->
             when (cause) {
-                null -> responseSent.complete(Unit)
+                null -> responseSent.complete()
                 else -> responseSent.completeExceptionally(cause)
             }
         }
@@ -211,11 +220,12 @@ class TestApplicationEngine(
         val webSocketContext = engineContext + job
 
         runBlocking(configuration.dispatcher) {
-            responseSent.await()
+            responseSent.join()
             processResponse(call)
 
             val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
-            val reader = WebSocketReader(call.response.websocketChannel()!!, webSocketContext, Int.MAX_VALUE.toLong(), pool)
+            val responseChannel = call.response.websocketChannel()!!
+            val reader = WebSocketReader(responseChannel, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
             try {
                 // execute client side

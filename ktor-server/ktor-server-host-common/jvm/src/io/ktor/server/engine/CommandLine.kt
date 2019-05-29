@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.engine
 
 import com.typesafe.config.*
@@ -34,6 +38,8 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val hostPortPath = "ktor.deployment.port"
     val hostWatchPaths = "ktor.deployment.watch"
 
+    val rootPathPath = "ktor.deployment.rootPath"
+
     val hostSslPortPath = "ktor.deployment.sslPort"
     val hostSslKeyStore = "ktor.security.ssl.keyStore"
     val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
@@ -46,12 +52,14 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
         appLog.error("Configuration file '$configFile' specified as command line argument was not found")
         appLog.warn("Will attempt to start without loading configuration…")
     }
+    val rootPath = argsMap["-path"] ?: combinedConfig.tryGetString(rootPathPath) ?: ""
 
     val environment = applicationEngineEnvironment {
         log = appLog
         classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
             ?: ApplicationEnvironment::class.java.classLoader
         config = HoconApplicationConfig(combinedConfig)
+        this.rootPath = rootPath
 
         val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
         if (combinedConfig.hasPath("ktor")) {

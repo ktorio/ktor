@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
@@ -11,15 +15,21 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.test.*
+import kotlin.test.Test
 
 @Suppress("KDocMissingDocumentation", "BlockingMethodInNonBlockingContext")
 class ConnectErrorsTest {
+    @get:Rule
+    val timeout = CoroutinesTimeout.seconds(60)
+
     private val serverSocket = ServerSocket(0, 1)
 
     @AfterTest

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests.mock
 
 import io.ktor.client.*
@@ -9,30 +13,27 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlin.test.*
 
 class MockEngineTests {
     @Test
     fun testClientMock() = runBlocking {
-        val mockEngine = MockEngine { request ->
-            if (request.url.encodedPath == "/") MockHttpResponse(
-                request.call,
-                HttpStatusCode.OK,
-                ByteReadChannel(byteArrayOf(1, 2, 3)),
-                headersOf("X-MyHeader", "MyValue")
-            ) else MockHttpResponse(
-                request.call, HttpStatusCode.NotFound, ByteReadChannel("Not Found ${request.url.encodedPath}")
-            )
-        }
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { request ->
+                    if (request.url.encodedPath == "/") return@addHandler respond(
+                        byteArrayOf(1, 2, 3), headers = headersOf("X-MyHeader", "My Value")
+                    )
 
-        val client = HttpClient(mockEngine) {
+                    return@addHandler respondError(HttpStatusCode.NotFound, "Not Found ${request.url.encodedPath}")
+                }
+            }
             expectSuccess = false
         }
 
         assertEquals(byteArrayOf(1, 2, 3).toList(), client.get<ByteArray>("/").toList())
-        assertEquals("MyValue", client.call("/").response.headers["X-MyHeader"])
+        assertEquals("My Value", client.call("/").response.headers["X-MyHeader"])
         assertEquals("Not Found other/path", client.get<String>("/other/path"))
 
         Unit
@@ -42,11 +43,13 @@ class MockEngineTests {
     fun testBasic() = testBlocking {
         val client = HttpClient(MockEngine { request ->
             if (request.url.toString().endsWith("/fail")) {
-                request.responseError(HttpStatusCode.BadRequest)
+                respondBadRequest()
             } else {
-                request.responseOk("${request.url}")
+                respondOk("${request.url}")
             }
-        })
+        }) {
+            expectSuccess = false
+        }
 
         client.call { url("http://127.0.0.1/normal-request") }.apply {
             assertEquals("http://127.0.0.1/normal-request", response.readText())
@@ -65,8 +68,8 @@ class MockEngineTests {
     @Test
     fun testWithJsonFeature() = runBlocking {
         val client = HttpClient(MockEngine { request ->
-            val bodyBytes = (request.content as OutgoingContent.ByteArrayContent).bytes()
-            request.responseOk(String(bodyBytes))
+            val bodyBytes = (request.body as OutgoingContent.ByteArrayContent).bytes()
+            respondOk(String(bodyBytes))
         }) {
             install(JsonFeature)
         }

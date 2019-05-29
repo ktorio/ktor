@@ -10,7 +10,6 @@ kotlin {
             api group: 'org.eclipse.jetty', name: 'jetty-alpn-openjdk8-server', version: jetty_version
             api group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: jetty_version
             api group: 'org.eclipse.jetty.http2', name: 'http2-server', version: jetty_version
-
         }
         jvmTest.dependencies {
             api project(':ktor-server:ktor-server-core')

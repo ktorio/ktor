@@ -1,6 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
+import io.ktor.http.*
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
 import libcurl.*
@@ -52,6 +57,7 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_WRITEFUNCTION, staticCFunction(::onBodyChunkReceived))
             option(CURLOPT_WRITEDATA, responseDataRef)
             option(CURLOPT_PRIVATE, responseDataRef)
+            option(CURLOPT_ACCEPT_ENCODING, "")
         }
 
         curl_multi_add_handle(multiHandle, easyHandle).verify()
@@ -144,13 +150,6 @@ internal class CurlMultiApiHandler : Closeable {
                     return CurlFail(
                         responseBuilder.request,
                         CurlIllegalStateException("Request ${responseBuilder.request} failed: $message")
-                    )
-                }
-
-                if (httpStatusCode.value == 0L) {
-                    return CurlFail(
-                        responseBuilder.request,
-                        CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
                     )
                 }
 

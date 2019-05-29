@@ -1,9 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.mock
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -14,8 +16,9 @@ class MockEngine(
     override val config: MockEngineConfig
 ) : HttpClientEngine {
     private var invocationCount = 0
-    private val _requestsHistory: MutableList<HttpRequest> = mutableListOf()
-    private val _responseHistory: MutableList<HttpResponse> = mutableListOf()
+    private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
+    private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
+    private val contextState: CompletableJob = Job()
 
     init {
         check(config.requestHandlers.size > 0) {
@@ -26,21 +29,19 @@ class MockEngine(
     /**
      * History of executed requests.
      */
-    val requestHistory: List<HttpRequest> get() = _requestsHistory
+    val requestHistory: List<HttpRequestData> get() = _requestsHistory
 
     /**
      * History of sent responses.
      */
-    val responseHistory: List<HttpResponse> get() = _responseHistory
+    val responseHistory: List<HttpResponseData> get() = _responseHistory
 
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
-    override val coroutineContext: CoroutineContext = dispatcher + CompletableDeferred<Unit>()
+    override val coroutineContext: CoroutineContext = dispatcher + contextState
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = data.toRequest(call)
-
-        if (invocationCount >= config.requestHandlers.size) error("Unhandled ${request.url}")
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
         val handler = config.requestHandlers[invocationCount]
 
         invocationCount += 1
@@ -49,16 +50,17 @@ class MockEngine(
         }
 
 
-        val response = call.handler(request)
+        val response = handler(data)
 
-        _requestsHistory.add(request)
+        _requestsHistory.add(data)
         _responseHistory.add(response)
 
-        return HttpEngineCall(request, response)
+        return response
     }
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
+        contextState.complete()
     }
 
     companion object : HttpClientEngineFactory<MockEngineConfig> {
@@ -68,7 +70,7 @@ class MockEngine(
         /**
          * Create [MockEngine] instance with single request handler.
          */
-        operator fun invoke(handler: suspend HttpClientCall.(MockHttpRequest) -> HttpResponse): MockEngine =
+        operator fun invoke(handler: suspend (HttpRequestData) -> HttpResponseData): MockEngine =
             MockEngine(MockEngineConfig().apply {
                 requestHandlers.add(handler)
             })

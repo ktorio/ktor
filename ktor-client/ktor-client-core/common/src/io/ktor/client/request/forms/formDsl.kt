@@ -1,7 +1,12 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.request.forms
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 import kotlin.contracts.*
 
@@ -21,16 +26,30 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
     val result = mutableListOf<PartData>()
 
     values.forEach { (key, value, headers) ->
-        val partHeaders = Headers.build {
+        val partHeaders = HeadersBuilder().apply {
             append(HttpHeaders.ContentDisposition, "form-data;name=$key")
             appendAll(headers)
         }
         val part = when (value) {
-            is String -> PartData.FormItem(value, {}, partHeaders)
-            is Number -> PartData.FormItem(value.toString(), {}, partHeaders)
-            is ByteArray -> PartData.BinaryItem({ buildPacket { writeFully(value) } }, {}, partHeaders)
-            is Input -> PartData.BinaryItem({ value }, { }, partHeaders)
-            else -> throw error("Unknown form content type: $value")
+            is String -> PartData.FormItem(value, {}, partHeaders.build())
+            is Number -> PartData.FormItem(value.toString(), {}, partHeaders.build())
+            is ByteArray -> {
+                partHeaders.append(HttpHeaders.ContentLength, value.size.toString())
+                PartData.BinaryItem({ ByteReadPacket(value) }, {}, partHeaders.build())
+            }
+            is ByteReadPacket -> {
+                partHeaders.append(HttpHeaders.ContentLength, value.remaining.toString())
+                PartData.BinaryItem({ value.copy() }, { value.close() }, partHeaders.build())
+            }
+            is InputProvider -> {
+                val size = value.size
+                if (size != null) {
+                    partHeaders.append(HttpHeaders.ContentLength, size.toString())
+                }
+                PartData.BinaryItem(value.block, {}, partHeaders.build())
+            }
+            is Input -> error("Can't use [Input] as part of form: $value. Consider using [InputProvider] instead.")
+            else -> error("Unknown form content type: $value")
         }
 
         result += part
@@ -54,8 +73,62 @@ class FormBuilder internal constructor() {
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
+    @InternalAPI
     fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    fun append(key: String, value: String, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    fun append(key: String, value: Number, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    fun append(key: String, value: InputProvider, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[InputProvider(block)] with optional [headers].
+     */
+    fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
+        parts += FormPart(key, InputProvider(size, block), headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
+        parts += FormPart(key, value, headers)
+    }
+
+    /**
+     * Append a pair [key]:[value] with optional [headers].
+     */
+    @Deprecated(
+        "Input is not reusable. Please use [InputProvider] instead.",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("appendInput(key, headers) { /* create fresh input here */ }")
+    )
+    fun append(key: String, value: Input, headers: Headers = Headers.Empty) {
     }
 
     /**
@@ -72,31 +145,26 @@ class FormBuilder internal constructor() {
  * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
 @UseExperimental(ExperimentalContracts::class)
-fun FormBuilder.append(
-    key: String,
-    filename: String,
-    bodyBuilder: BytePacketBuilder.() -> Unit
-) {
-    contract {
-        callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
-    }
-    append(key, filename, null, bodyBuilder)
-}
-
-/**
- * Append a form part with the specified [key] using [bodyBuilder] for it's body.
- */
-@UseExperimental(ExperimentalContracts::class)
 inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
-    bodyBuilder: BytePacketBuilder.() -> Unit
+    size: Long? = null,
+    crossinline bodyBuilder: BytePacketBuilder.() -> Unit
 ) {
     contract {
         callsInPlace(bodyBuilder, InvocationKind.EXACTLY_ONCE)
     }
-    append(FormPart(key, buildPacket { bodyBuilder() }, headers))
+    append(FormPart(key, InputProvider(size) { buildPacket { bodyBuilder() } }, headers))
 }
+
+/**
+ * Reusable [Input] form entry.
+ *
+ * @param block: content generator
+ */
+@KtorExperimentalAPI
+class InputProvider(val size: Long? = null, val block: () -> Input)
+
 
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
@@ -105,7 +173,8 @@ inline fun FormBuilder.append(
 fun FormBuilder.append(
     key: String,
     filename: String,
-    contentType: ContentType?,
+    contentType: ContentType? = null,
+    size: Long? = null,
     bodyBuilder: BytePacketBuilder.() -> Unit
 ) {
     contract {
@@ -117,5 +186,5 @@ fun FormBuilder.append(
     contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
     val headers = headersBuilder.build()
 
-    append(key, headers, bodyBuilder)
+    append(key, headers, size, bodyBuilder)
 }

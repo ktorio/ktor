@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.sessions
 
 import io.ktor.application.*
@@ -695,6 +699,29 @@ class SessionTest {
         val cookies = call.response.cookies["test"]
         assertNotNull(cookies)
         assertEquals(Int.MAX_VALUE, cookies.maxAge)
+    }
+
+    @Test
+    fun testDuplicateProvidersDiagnostics(): Unit = withTestApplication {
+        application.install(Sessions) {
+            cookie<TestUserSession>("name1")
+
+            assertFails("Registering the same provider twice should be prohibited") {
+                cookie<TestUserSession>("name1")
+            }
+
+            assertFails("Registering provider with the same name should be prohibited") {
+                cookie<TestUserSessionB>("name1")
+            }
+
+            assertFails("Registering provider with the same type should be prohibited") {
+                cookie<TestUserSession>("name2")
+            }
+
+            on("Registering another provider should be allowed") {
+                cookie<TestUserSessionB>("name2")
+            }
+        }
     }
 
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->

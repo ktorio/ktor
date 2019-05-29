@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.jetty
 
 import io.ktor.server.engine.*
@@ -15,7 +19,7 @@ class JettyApplicationEngine(
     private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())
 
     override fun start(wait: Boolean): JettyApplicationEngine {
-        server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher)
+        server.handler = JettyKtorHandler(environment, this::pipeline, dispatcher, configuration)
         super.start(wait)
         return this
     }

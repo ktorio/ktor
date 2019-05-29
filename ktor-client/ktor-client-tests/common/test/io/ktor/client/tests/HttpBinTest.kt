@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.client.*
@@ -6,7 +10,6 @@ import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.*
 import kotlinx.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -19,10 +22,10 @@ data class HttpBinResponse(
     val headers: Map<String, String>
 )
 
-class HttpBinTest {
+class HttpBinTest : ClientLoader() {
 
     @Test
-    fun testGet() = clientsTest {
+    fun testGet() = clientTests {
         config {
             testConfiguration()
         }
@@ -42,7 +45,7 @@ class HttpBinTest {
     }
 
     @Test
-    fun testPost() = clientsTest {
+    fun testPost() = clientTests {
         config {
             testConfiguration()
         }
@@ -65,7 +68,7 @@ class HttpBinTest {
     }
 
     @Test
-    fun testBytes() = clientTest {
+    fun testBytes() = clientTests {
         test { client ->
             val size = 100 * 1024
             val response = client.get<HttpResponse>("https://httpbin.org/bytes/$size").use {

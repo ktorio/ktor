@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
@@ -41,7 +45,7 @@ class WebSocketWriter(
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
-        pool.useInstance { it: ByteBuffer -> writeLoop(it) }
+        pool.useInstance { writeLoop(it) }
     }
 
     /**
@@ -62,6 +66,9 @@ class WebSocketWriter(
                 }
             }
         } finally {
+            (coroutineContext[Job] as? CompletableJob)?.apply {
+                complete()
+            }
             close()
             writeChannel.close()
         }
@@ -69,9 +76,11 @@ class WebSocketWriter(
         consumeEach { message ->
             when (message) {
                 is Frame.Close -> {} // ignore
-                is Frame.Ping, is Frame.Pong -> {} // ignore
+                is Frame.Ping, is Frame.Pong -> {
+                } // ignore
                 is FlushRequest -> message.complete()
-                is Frame.Text, is Frame.Binary -> {} // discard
+                is Frame.Text, is Frame.Binary -> {
+                } // discard
                 else -> throw IllegalArgumentException("unknown message $message")
             }
         }
@@ -155,8 +164,8 @@ class WebSocketWriter(
     }
 
     private class FlushRequest(parent: Job?) {
-        private val done = CompletableDeferred<Unit>(parent)
-        fun complete() = done.complete(Unit)
-        suspend fun await() = done.await()
+        private val done: CompletableJob = Job(parent)
+        fun complete(): Boolean = done.complete()
+        suspend fun await(): Unit = done.join()
     }
 }

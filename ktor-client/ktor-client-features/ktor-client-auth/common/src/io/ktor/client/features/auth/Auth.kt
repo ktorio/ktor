@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.auth
 
 import io.ktor.client.*
@@ -42,7 +46,7 @@ class Auth(
             scope.feature(HttpSend)!!.intercept { origin ->
                 var call = origin
 
-                while (call.response.status.value == HttpStatusCode.Unauthorized.value) {
+                while (call.response.status == HttpStatusCode.Unauthorized) {
                     val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
                     val provider = feature.providers.find { it.isApplicable(authHeader) } ?: return@intercept call
@@ -51,6 +55,7 @@ class Auth(
                     request.takeFrom(call.request)
                     provider.addRequestHeaders(request)
 
+                    call.close()
                     call = execute(request)
                 }
 
@@ -58,4 +63,11 @@ class Auth(
             }
         }
     }
+}
+
+/**
+ * Install [Auth] feature.
+ */
+fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
+    install(Auth, block)
 }

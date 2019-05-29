@@ -1,10 +1,14 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.content
 
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.*
 import java.io.*
-import java.nio.file.*
+import java.net.*
 
 /**
  * @param path is a relative path to the resource
@@ -19,35 +23,48 @@ fun ApplicationCall.resolveResource(
     classLoader: ClassLoader = application.environment.classLoader,
     mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
 ): OutgoingContent? {
-    val packagePath = (resourcePackage?.replace('.', '/') ?: "").appendPathPart(path)
-    val normalizedPath = Paths.get(packagePath).normalizeAndRelativize()
-    val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
+    val normalizedPath = (resourcePackage.orEmpty().split('.', '/', '\\') +
+        path.split('/', '\\')).normalizePathComponents().joinToString("/")
 
     // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
 
-    for (url in classLoader.getResources(normalizedResource).asSequence()) {
-        when (url.protocol) {
-            "file" -> {
-                val file = File(url.path.decodeURLPart())
-                return if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
-            }
-            "jar" -> {
-                return if (packagePath.endsWith("/")) {
-                    null
-                } else {
-                    val zipFile = findContainingJarFile(url.toString())
-                    JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
-                }
-            }
-            "jrt" -> {
-                return URIFileContent(url, mimeResolve(url.path.extension()))
-            }
-            else -> {
-            }
+    for (url in classLoader.getResources(normalizedPath).asSequence()) {
+        resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { content ->
+            return content
         }
     }
 
     return null
+}
+
+/**
+ * Attempt to find a local file or a file inside of zip. This is not required but very good to have
+ * to improve performance and unnecessary [java.io.InputStream] creation.
+ */
+@InternalAPI
+fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
+    return when (url.protocol) {
+        "file" -> {
+            val file = File(url.path.decodeURLPart())
+            if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
+        }
+        "jar" -> {
+            if (path.endsWith("/")) {
+                null
+            } else {
+                val zipFile = findContainingJarFile(url.toString())
+                JarFileContent(zipFile, path, mimeResolve(url.path.extension()))
+            }
+        }
+        "jrt" -> {
+            URIFileContent(url, mimeResolve(url.path.extension()))
+        }
+        else -> null
+    }
 }
 
 internal fun findContainingJarFile(url: String): File {
@@ -65,15 +82,4 @@ private fun String.extension(): String {
     val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
     return if (indexOfDot >= 0) substring(indexOfDot) else ""
-}
-
-private fun String.appendPathPart(part: String): String {
-    val count = (if (isNotEmpty() && this[length - 1] == '/') 1 else 0) +
-        (if (part.isNotEmpty() && part[0] == '/') 1 else 0)
-
-    return when (count) {
-        2 -> this + part.removePrefix("/")
-        1 -> this + part
-        else -> StringBuilder(length + part.length + 1).apply { append(this@appendPathPart); append('/'); append(part) }.toString()
-    }
 }

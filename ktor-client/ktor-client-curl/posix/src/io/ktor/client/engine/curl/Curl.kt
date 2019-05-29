@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.curl
 
 import kotlin.native.concurrent.*
@@ -12,7 +16,6 @@ import libcurl.*
 @SharedImmutable
 private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL)
 
-@ThreadLocal
 private val initHook = Curl
 
 /**

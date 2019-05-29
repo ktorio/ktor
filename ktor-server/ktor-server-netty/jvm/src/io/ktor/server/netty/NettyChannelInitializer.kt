@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.netty
 
 import io.ktor.server.engine.*
@@ -30,6 +34,7 @@ class NettyChannelInitializer(
     private val requestQueueLimit: Int,
     private val runningLimit: Int,
     private val responseWriteTimeout: Int,
+    private val requestReadTimeout: Int,
     private val httpServerCodec: () -> HttpServerCodec
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
@@ -104,6 +109,9 @@ class NettyChannelInitializer(
 
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
+                    if(requestReadTimeout > 0) {
+                        addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
+                    }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))

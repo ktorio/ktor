@@ -1,19 +1,22 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import org.junit.*
 import org.junit.Test
-import org.junit.rules.*
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.jvm.*
 import kotlin.test.*
 
 class ServerSocketTest : CoroutineScope {
@@ -22,7 +25,10 @@ class ServerSocketTest : CoroutineScope {
     private var tearDown = false
     private val selector = ActorSelectorManager(exec.asCoroutineDispatcher() + testJob)
     private var client: Pair<java.net.Socket, Thread>? = null
+
+    @Volatile
     private var serverSocket = CompletableDeferred<ServerSocket>()
+
     @Volatile
     private var server: Job? = null
     private var failure: Throwable? = null
@@ -32,7 +38,7 @@ class ServerSocketTest : CoroutineScope {
         get() = testJob
 
     @get:Rule
-    val timeout = Timeout(15L, TimeUnit.SECONDS)
+    val timeout = CoroutinesTimeout.seconds(15)
 
     @After
     fun tearDown() {
@@ -58,13 +64,13 @@ class ServerSocketTest : CoroutineScope {
 
     @Test
     fun testBindAndAccept() {
-        server {  }
-        client {  }
+        server { }
+        client { }
     }
 
     @Test
     fun testRead() {
-        server { client ->
+        val server = server { client ->
             assertEquals("123", client.openReadChannel().readUTF8Line())
         }
 
@@ -73,11 +79,16 @@ class ServerSocketTest : CoroutineScope {
                 os.write("123".toByteArray())
             }
         }
+
+        server.cancel()
+        runBlocking {
+            server.join()
+        }
     }
 
     @Test
     fun testWrite() {
-        server { client ->
+        val server = server { client ->
             val channel = client.openWriteChannel(true)
             channel.writeStringUtf8("123")
         }
@@ -85,9 +96,14 @@ class ServerSocketTest : CoroutineScope {
         client { socket ->
             assertEquals("123", socket.getInputStream().reader().use { it.readText() })
         }
+
+        server.cancel()
+        runBlocking { server.join() }
     }
 
-    private fun server(block: suspend (Socket) -> Unit) {
+    private fun server(block: suspend (Socket) -> Unit): Job {
+        serverSocket = CompletableDeferred()
+
         val job = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
             try {
                 val server = aSocket(selector).tcp().bind(null)
@@ -114,8 +130,10 @@ class ServerSocketTest : CoroutineScope {
                 addFailure(e)
             }
         }
+
         server = job
         job.start()
+        return job
     }
 
     private fun client(block: (java.net.Socket) -> Unit) {

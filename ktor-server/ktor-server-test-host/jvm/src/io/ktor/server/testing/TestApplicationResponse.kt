@@ -1,15 +1,19 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.testing
 
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.time.*
+import kotlin.coroutines.*
 
 /**
  * Represents test call response received from server
@@ -29,7 +33,7 @@ class TestApplicationResponse(
         }
 
     @Suppress("CanBePrimaryConstructorProperty")
-    @Deprecated("Will be removed from public API")
+    @Deprecated("Will be removed from public API", level = DeprecationLevel.ERROR)
     val readResponse: Boolean = readResponse
 
     /**
@@ -44,17 +48,17 @@ class TestApplicationResponse(
         private set
 
     @Volatile
-    private var responseChannel: ByteChannel? = null
+    private var responseChannel: ByteReadChannel? = null
 
     @Volatile
-    private var responseJob: Deferred<Unit>? = null
+    private var responseJob: Job? = null
 
     /**
      * Get completed when a response channel is assigned.
      * A response could have no channel assigned in some particular failure cases so the deferred could
      * remain incomplete or become completed exceptionally.
      */
-    internal val responseChannelDeferred = CompletableDeferred<Unit>()
+    internal val responseChannelDeferred: CompletableJob = Job()
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -80,14 +84,22 @@ class TestApplicationResponse(
     override suspend fun responseChannel(): ByteWriteChannel {
         val result = ByteChannel(autoFlush = true)
 
-        if (@Suppress("DEPRECATION") readResponse) {
+        if (@Suppress("DEPRECATION_ERROR") readResponse) {
             launchResponseJob(result)
         }
 
-        responseChannel = result
-        responseChannelDeferred.complete(Unit)
+        val job = GlobalScope.reader(responseJob ?: EmptyCoroutineContext) {
+            channel.copyAndClose(result, Long.MAX_VALUE)
+        }
 
-        return result
+        if (responseJob == null) {
+            responseJob = job
+        }
+
+        responseChannel = result
+        responseChannelDeferred.complete()
+
+        return job.channel
     }
 
     private fun launchResponseJob(source: ByteReadChannel) {
@@ -111,23 +123,27 @@ class TestApplicationResponse(
      */
     @InternalAPI
     @Suppress("DeprecatedCallableAddReplaceWith")
-    @Deprecated("Will be removed")
+    @Deprecated("Will be removed", level = DeprecationLevel.ERROR)
     suspend fun flush() {
         awaitForResponseCompletion()
     }
 
     internal suspend fun awaitForResponseCompletion() {
-        responseJob?.await()
+        responseJob?.join()
     }
 
     // Websockets & upgrade
-    private val webSocketCompleted: CompletableDeferred<Unit> = CompletableDeferred()
+    private val webSocketCompleted: CompletableJob = Job()
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        upgrade.upgrade(call.receiveChannel(), responseChannel(), Dispatchers.Default, Dispatchers.Unconfined)
-            .invokeOnCompletion {
-                webSocketCompleted.complete(Unit)
-            }
+        upgrade.upgrade(
+            call.receiveChannel(),
+            responseChannel(),
+            Dispatchers.Default,
+            Dispatchers.Default
+        ).invokeOnCompletion {
+            webSocketCompleted.complete()
+        }
     }
 
     /**
@@ -135,8 +151,12 @@ class TestApplicationResponse(
      */
     fun awaitWebSocket(duration: Duration): Unit = runBlocking {
         withTimeout(duration.toMillis()) {
+            responseChannelDeferred.join()
+            responseJob?.join()
             webSocketCompleted.join()
         }
+
+        Unit
     }
 
     /**

@@ -1,22 +1,25 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.testing
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.application.*
 import io.ktor.client.response.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.streams.*
-import org.junit.*
 import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
-import java.nio.ByteBuffer
+import java.nio.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
@@ -33,7 +36,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         enableSsl = false
     }
 
-//    private val timeMillis: Long = TimeUnit.SECONDS.toMillis(10L)
+    //    private val timeMillis: Long = TimeUnit.SECONDS.toMillis(10L)
     private val timeMillis: Long = TimeUnit.MINUTES.toMillis(2L)
     private val gracefulMillis: Long = TimeUnit.SECONDS.toMillis(20L)
     private val shutdownMillis: Long = TimeUnit.SECONDS.toMillis(40L)
@@ -42,8 +45,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    @get:Rule
-    override val timeout = PublishedTimeout(TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis))
+    override val timeout = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
 
     @Test
     fun `single connection single thread no pipelining`() {
@@ -200,7 +202,12 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         createAndStartServer {
             handle {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+                    override suspend fun upgrade(
+                        input: ByteReadChannel,
+                        output: ByteWriteChannel,
+                        engineContext: CoroutineContext,
+                        userContext: CoroutineContext
+                    ): Job {
                         return launch(engineContext) {
                             try {
                                 output.writeFully(endMarkerCrLfBytes)

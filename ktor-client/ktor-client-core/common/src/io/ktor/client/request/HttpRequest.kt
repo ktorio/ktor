@@ -1,11 +1,16 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.request
 
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.utils.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -36,38 +41,18 @@ interface HttpRequest : HttpMessage, CoroutineScope {
      */
     val attributes: Attributes
 
-    /**
-     * A [Job] representing the process of this request.
-     */
     @Deprecated(
-        "[executionContext] is deprecated. Use coroutineContext instead",
-        level = DeprecationLevel.ERROR,
-        replaceWith = ReplaceWith("coroutineContext")
+        "Binary compatibility.",
+        level = DeprecationLevel.HIDDEN
     )
+    @Suppress("unused", "KDocMissingDocumentation")
     val executionContext: Job
-        get() = error("[executionContext] is deprecated. Use coroutineContext instead")
+        get() = coroutineContext[Job]!!
 
     /**
      * An [OutgoingContent] representing the request body
      */
     val content: OutgoingContent
-}
-
-/**
- * Default [HttpRequest] implementation.
- */
-open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
-    override val coroutineContext: CoroutineContext get() = call.coroutineContext
-
-    override val method: HttpMethod = data.method
-
-    override val url: Url = data.url
-
-    override val content: OutgoingContent = data.body as OutgoingContent
-
-    override val headers: Headers = data.headers
-
-    override val attributes: Attributes = data.attributes
 }
 
 /**
@@ -98,25 +83,32 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     @KtorExperimentalAPI
-    val executionContext: Job = CompletableDeferred<Unit>()
+    val executionContext: Job = Job()
 
-    private var attributesBuilder: Attributes.() -> Unit = {}
+    /**
+     * Call specific attributes.
+     */
+    val attributes: Attributes = Attributes(concurrent = true)
 
+    /**
+     * Executes a [block] that configures the [URLBuilder] associated to this request.
+     */
     fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
 
     /**
      * Create immutable [HttpRequestData]
      */
     fun build(): HttpRequestData = HttpRequestData(
-        url.build(), method, headers.build(), body, executionContext, Attributes().apply(attributesBuilder)
+        url.build(), method, headers.build(),
+        body as? OutgoingContent ?: error("No request transformation found: $body"),
+        executionContext, attributes
     )
 
     /**
-     * Set request specific attributes specified by [block]
+     * Set request specific attributes specified by [block].
      */
     fun setAttributes(block: Attributes.() -> Unit) {
-        val old = attributesBuilder
-        attributesBuilder = { old(); block() }
+        attributes.apply(block)
     }
 
     /**
@@ -127,7 +119,10 @@ class HttpRequestBuilder : HttpMessageBuilder {
         body = builder.body
         url.takeFrom(builder.url)
         headers.appendAll(builder.headers)
-        attributesBuilder = builder.attributesBuilder
+        builder.attributes.allKeys.forEach {
+            @Suppress("UNCHECKED_CAST")
+            attributes.put(it as AttributeKey<Any>, builder.attributes[it])
+        }
 
         return this
     }
@@ -143,10 +138,25 @@ class HttpRequestData internal constructor(
     val url: Url,
     val method: HttpMethod,
     val headers: Headers,
-    val body: Any,
+    val body: OutgoingContent,
     val executionContext: Job,
     val attributes: Attributes
 )
+
+
+/**
+ * Data prepared for [HttpResponse].
+ */
+class HttpResponseData constructor(
+    val statusCode: HttpStatusCode,
+    val requestTime: GMTDate,
+    val headers: Headers,
+    val version: HttpProtocolVersion,
+    val body: Any,
+    val callContext: CoroutineContext
+) {
+    val responseTime: GMTDate = GMTDate()
+}
 
 /**
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
@@ -220,3 +230,10 @@ operator fun HttpRequestBuilder.Companion.invoke(
 fun HttpRequestBuilder.url(urlString: String): Unit {
     url.takeFrom(urlString)
 }
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+fun HttpRequestData.isUpgradeRequest(): Boolean {
+    return body is ClientUpgradeContent
+}
+

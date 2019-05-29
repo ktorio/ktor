@@ -1,7 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.scheduling.*
+import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -9,36 +13,30 @@ import kotlin.coroutines.*
  */
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
-    private val clientContext = CompletableDeferred<Unit>()
-    private val callSupervisor = SupervisorJob(clientContext)
-
-    @UseExperimental(InternalCoroutinesApi::class)
-    override val dispatcher: ExperimentalCoroutineDispatcher by lazy {
-        ExperimentalCoroutineDispatcher(config.threadsCount)
+    private val clientContext = SupervisorJob()
+    private val _dispatcher by lazy {
+        Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher()
     }
 
     @UseExperimental(InternalCoroutinesApi::class)
+    override val dispatcher: CoroutineDispatcher
+        get() = _dispatcher
+
+    @UseExperimental(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
-        dispatcher + clientContext + CoroutineName("$engineName-context")
+        _dispatcher + clientContext + CoroutineName("$engineName-context")
     }
 
     /**
      * Create [CoroutineContext] to execute call.
      */
-    protected fun createCallContext(): CoroutineContext = coroutineContext + CompletableDeferred<Unit>(callSupervisor)
+    protected fun createCallContext(): CoroutineContext = coroutineContext + Job(clientContext)
 
     override fun close() {
-        callSupervisor.cancel()
-
-        callSupervisor.invokeOnCompletion {
-            clientContext.complete(Unit)
-        }
+        clientContext.complete()
 
         clientContext.invokeOnCompletion {
-            GlobalScope.launch(dispatcher) {
-                @UseExperimental(InternalCoroutinesApi::class)
-                dispatcher.close()
-            }
+            _dispatcher.close()
         }
     }
 }

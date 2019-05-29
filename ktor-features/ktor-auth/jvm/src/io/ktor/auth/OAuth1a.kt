@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -311,7 +315,7 @@ sealed class OAuth1aException(message: String) : Exception(message) {
     /**
      * Thrown when an OAuth1a server didn't provide access token
      */
-    class MissingTokenException() : OAuth1aException("The OAuth1a server didn't provide access token")
+    class MissingTokenException : OAuth1aException("The OAuth1a server didn't provide access token")
 
     /**
      * Represents any other OAuth1a error

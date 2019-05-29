@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.features
 
 import io.ktor.application.*
@@ -18,7 +22,8 @@ class CallLogging private constructor(
     private val monitor: ApplicationEvents,
     private val level: Level,
     private val filters: List<(ApplicationCall) -> Boolean>,
-    private val mdcEntries: List<MDCEntry>
+    private val mdcEntries: List<MDCEntry>,
+    private val formatCall: (ApplicationCall) -> String
 ) {
 
     internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
@@ -29,6 +34,7 @@ class CallLogging private constructor(
     class Configuration {
         internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
         internal val mdcEntries = mutableListOf<MDCEntry>()
+        internal var formatCall: (ApplicationCall) -> String = ::defaultFormat
 
         /**
          * Logging level for [CallLogging], default is [Level.TRACE]
@@ -55,6 +61,13 @@ class CallLogging private constructor(
         fun mdc(name: String, provider: (ApplicationCall) -> String?) {
             mdcEntries.add(MDCEntry(name, provider))
         }
+
+        /**
+         * Configure application call log message.
+         */
+        fun format(formatter: (ApplicationCall) -> String) {
+            formatCall = formatter
+        }
     }
 
     private val starting: (Application) -> Unit = { log("Application starting: $it") }
@@ -77,7 +90,7 @@ class CallLogging private constructor(
         monitor.subscribe(ApplicationStopped, stopped)
     }
 
-    private fun setupMdc(call: ApplicationCall): Map<String, String> {
+    internal fun setupMdc(call: ApplicationCall): Map<String, String> {
         val result = HashMap<String, String>()
 
         mdcEntries.forEach { entry ->
@@ -89,7 +102,7 @@ class CallLogging private constructor(
         return result
     }
 
-    private fun cleanupMdc() {
+    internal fun cleanupMdc() {
         mdcEntries.forEach {
             MDC.remove(it.name)
         }
@@ -108,21 +121,17 @@ class CallLogging private constructor(
                 pipeline.environment.monitor,
                 configuration.level,
                 configuration.filters.toList(),
-                configuration.mdcEntries.toList()
+                configuration.mdcEntries.toList(),
+                configuration.formatCall
             )
 
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingPhase)
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    val mdc = feature.setupMdc(call)
-                    withContext(MDCSurvivalElement(mdc)) {
-                        try {
-                            proceed()
-                            feature.logSuccess(call)
-                        } finally {
-                            feature.cleanupMdc()
-                        }
+                    withMDC {
+                        proceed()
+                        feature.logSuccess(call)
                     }
                 }
             } else {
@@ -136,6 +145,16 @@ class CallLogging private constructor(
         }
     }
 
+
+    @Suppress("KDocMissingDocumentation")
+    @InternalAPI
+    object Internals {
+        @InternalAPI
+        suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
+            withMDC(block)
+        }
+    }
+
     private fun log(message: String) = when (level) {
         Level.ERROR -> log.error(message)
         Level.WARN -> log.warn(message)
@@ -146,11 +165,23 @@ class CallLogging private constructor(
 
     private fun logSuccess(call: ApplicationCall) {
         if (filters.isEmpty() || filters.any { it(call) }) {
-            val status = call.response.status() ?: "Unhandled"
-            when (status) {
-                HttpStatusCode.Found -> log("$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}")
-                else -> log("$status: ${call.request.toLogString()}")
-            }
+            log(formatCall(call))
+        }
+    }
+}
+
+/**
+ * Invoke suspend [block] with a context having MDC configured.
+ */
+private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(crossinline block: suspend C.() -> Unit) {
+    val call = call
+    val feature = call.application.featureOrNull(CallLogging) ?: return block()
+
+    withContext(MDCSurvivalElement(feature.setupMdc(call))) {
+        try {
+            block()
+        } finally {
+            feature.cleanupMdc()
         }
     }
 }
@@ -185,4 +216,9 @@ private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElemen
     }
 
     private object Key : CoroutineContext.Key<MDCSurvivalElement>
+}
+
+private fun defaultFormat(call: ApplicationCall): String = when (val status = call.response.status() ?: "Unhandled") {
+    HttpStatusCode.Found -> "$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}"
+    else -> "$status: ${call.request.toLogString()}"
 }

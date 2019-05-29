@@ -1,5 +1,10 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
+import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -41,7 +46,7 @@ internal class ConnectionPipeline(
                     requestLimit.enter()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task))
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                     throw cause
                 }
 
@@ -75,16 +80,22 @@ internal class ConnectionPipeline(
                         rawResponse.headers.release()
                     }
 
+                    val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
                     val method = task.request.method
                     val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
                     val headers = CIOHeaders(rawResponse.headers)
+                    val version = HttpProtocolVersion.parse(rawResponse.version)
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
-                    val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+                    val hasBody = (contentLength > 0 || chunked) &&
+                        (method != HttpMethod.Head) &&
+                        (status !in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent)) &&
+                        !status.isInformational()
+
                     val responseChannel = if (hasBody) ByteChannel() else null
 
                     var skipTask: Job? = null
@@ -98,14 +109,8 @@ internal class ConnectionPipeline(
                         body.cancel()
                     }
 
-                    val response = CIOHttpResponse(
-                        task.request, headers, requestTime,
-                        body,
-                        rawResponse,
-                        coroutineContext = callContext
-                    )
-
-                    task.response.complete(response)
+                    val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
+                    task.response.resume(response)
 
                     responseChannel?.use {
                         parseHttpBody(
@@ -119,7 +124,7 @@ internal class ConnectionPipeline(
 
                     skipTask?.join()
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                 }
 
                 task.context[Job]?.join()

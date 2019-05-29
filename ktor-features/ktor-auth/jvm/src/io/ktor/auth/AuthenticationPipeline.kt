@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -6,7 +10,7 @@ import io.ktor.util.pipeline.*
 /**
  * Represents authentication [Pipeline] for checking and requesting authentication
  */
-class AuthenticationPipeline() : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
+class AuthenticationPipeline : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
 
     companion object {
         /**

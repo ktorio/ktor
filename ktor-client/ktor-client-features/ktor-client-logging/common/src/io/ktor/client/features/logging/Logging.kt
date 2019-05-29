@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.logging
 
 import io.ktor.client.*
@@ -170,11 +174,14 @@ class Logging(
             ResponseObserver.install(ResponseObserver(observer), scope)
         }
     }
-
-
 }
 
-private suspend inline fun ByteReadChannel.readText(charset: Charset): String {
-    val packet = readRemaining(Long.MAX_VALUE, 0)
-    return packet.readText(charset = charset)
+/**
+ * Configure and install [Logging] in [HttpClient].
+ */
+fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
+    install(Logging, block)
 }
+
+private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
+    readRemaining().readText(charset = charset)

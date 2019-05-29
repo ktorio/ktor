@@ -1,10 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.android
 
 import io.ktor.client.tests.*
 import org.junit.*
-
-@Ignore
-class AndroidCacheTest : CacheTest(Android)
 
 class AndroidCookiesTest : CookiesTest(Android)
 
@@ -14,8 +15,6 @@ class AndroidPostTest : PostTest(Android)
 
 @Ignore
 class AndroidMultithreadedTest : MultithreadedTest(Android)
-
-class AndroidContentTest : ContentTest(Android)
 
 class AndroidRedirectTest : HttpRedirectTest(Android)
 

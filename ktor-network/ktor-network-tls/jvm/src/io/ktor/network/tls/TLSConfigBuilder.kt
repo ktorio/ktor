@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.tls
 
 import java.security.*
@@ -48,20 +52,11 @@ class TLSConfigBuilder {
     /**
      * Create [TLSConfig].
      */
-    fun build(): TLSConfig {
-        val secureRandomInstance = try {
-            SecureRandom.getInstanceStrong()
-        } catch (e: NoSuchMethodError) {
-            //SecureRandom.getInstanceStrong() requires JVM 1.8 and for Android api level 26
-            //if getInstanceStrong() is not available use non-blocking SecureRandom() to get instance
-            SecureRandom()
-        }
-        return TLSConfig(
-            random ?: secureRandomInstance,
-            certificates, trustManager as? X509TrustManager ?: findTrustManager(),
-            cipherSuites, serverName
-        )
-    }
+    fun build(): TLSConfig = TLSConfig(
+        random ?: SecureRandom(),
+        certificates, trustManager as? X509TrustManager ?: findTrustManager(),
+        cipherSuites, serverName
+    )
 }
 
 /**

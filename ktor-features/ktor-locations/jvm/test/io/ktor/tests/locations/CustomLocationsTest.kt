@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 @file:UseExperimental(KtorExperimentalLocationsAPI::class)
 
 package io.ktor.tests.locations
@@ -31,7 +35,7 @@ object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locat
     }
 }
 
-class index()
+class index
 class bye(val value: String)
 
 @Location("entity/{id}")

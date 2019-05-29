@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth.jwt
 
 import com.auth0.jwk.*
@@ -7,6 +11,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -142,6 +147,21 @@ class JWTAuthTest {
     fun testJwkSuccessNoIssuer() {
         withApplication {
             application.configureServerJwkNoIssuer(mock = true)
+
+            val token = getJwkToken()
+
+            val response = handleRequestWithToken(token)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
+    fun testJwkSuccessWithLeeway() {
+        withApplication {
+            application.configureServerJwtWithLeeway(mock = true)
 
             val token = getJwkToken()
 
@@ -307,6 +327,33 @@ class JWTAuthTest {
         verifier.verify(token)
     }
 
+    @Test
+    fun authHeaderFromCookie(): Unit = withApplication {
+        application.configureServer {
+            jwt {
+                this@jwt.realm = this@JWTAuthTest.realm
+                authHeader { call ->
+                    call.request.cookies["JWT"]?.let { parseAuthorizationHeader(it) }
+                }
+                verifier(makeJwtVerifier())
+                validate { jwt ->
+                    JWTPrincipal(jwt.payload)
+                }
+            }
+        }
+
+        val token = getToken()
+
+        val response = handleRequest {
+            uri = "/"
+            addHeader(HttpHeaders.Cookie, "JWT=${token.encodeURLParameter()}")
+        }
+
+        assertTrue(response.requestHandled)
+        assertEquals(HttpStatusCode.OK, response.response.status())
+        assertNotNull(response.response.content)
+    }
+
     private fun verifyResponseUnauthorized(response: TestApplicationCall) {
         assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.Unauthorized, response.response.status())
@@ -348,7 +395,23 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.() -> Unit = {}) = configureServer {
+    private fun Application.configureServerJwtWithLeeway(mock: Boolean = false) = configureServer {
+        jwt {
+            this@jwt.realm = this@JWTAuthTest.realm
+            verifier(if (mock) getJwkProviderMock() else makeJwkProvider()) {
+                acceptLeeway(5)
+            }
+            validate { credential ->
+                when {
+                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    else -> null
+                }
+            }
+
+        }
+    }
+
+    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.Configuration.() -> Unit = {}) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             verifier(makeJwtVerifier())

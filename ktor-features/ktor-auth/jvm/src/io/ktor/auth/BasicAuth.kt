@@ -1,52 +1,72 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.util.*
 import java.nio.charset.*
-import java.util.*
-
 
 /**
  * Represents a Basic authentication provider
- * @param name is the name of the provider, or `null` for a default provider
+ * @property name is the name of the provider, or `null` for a default provider
  */
-class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
+class BasicAuthenticationProvider internal constructor(
+    configuration: Configuration
+) : AuthenticationProvider(configuration) {
+    internal val realm: String = configuration.realm
+
+    internal val charset: Charset? = configuration.charset
+
+    internal val authenticationFunction = configuration.authenticationFunction
 
     /**
-     * Specifies realm to be passed in `WWW-Authenticate` header
+     * Basic auth configuration
      */
-    var realm: String = "Ktor Server"
+    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
-    /**
-     * Specifies the charset to be used. It can be either UTF_8 or null.
-     */
-    var charset: Charset? = Charsets.UTF_8
-        set(value) {
-            if (value != null && value != Charsets.UTF_8) {
-                // https://tools.ietf.org/html/rfc7617#section-2.1
-                // 'The only allowed value is "UTF-8"; it is to be matched case-insensitively'
-                throw IllegalArgumentException("Basic Authentication charset can be either UTF-8 or null")
+        /**
+         * Specifies realm to be passed in `WWW-Authenticate` header
+         */
+        var realm: String = "Ktor Server"
+
+        /**
+         * Specifies the charset to be used. It can be either UTF_8 or null.
+         * Setting `null` turns legacy mode on that actually means that ISO-8859-1 is used.
+         */
+        var charset: Charset? = Charsets.UTF_8
+            set(value) {
+                if (value != null && value != Charsets.UTF_8) {
+                    // https://tools.ietf.org/html/rfc7617#section-2.1
+                    // 'The only allowed value is "UTF-8"; it is to be matched case-insensitively'
+                    throw IllegalArgumentException("Basic Authentication charset can be either UTF-8 or null")
+                }
+                field = value
             }
-            field = value
-        }
 
-    /**
-     * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
-     * or null if credential does not correspond to an authenticated principal
-     */
-    fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
-        authenticationFunction = body
+        /**
+         * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
+         * or null if credential does not correspond to an authenticated principal
+         */
+        fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
+            authenticationFunction = body
+        }
     }
 }
 
 /**
  * Installs Basic Authentication mechanism
  */
-fun Authentication.Configuration.basic(name: String? = null, configure: BasicAuthenticationProvider.() -> Unit) {
-    val provider = BasicAuthenticationProvider(name).apply(configure)
+fun Authentication.Configuration.basic(
+    name: String? = null,
+    configure: BasicAuthenticationProvider.Configuration.() -> Unit
+) {
+    val provider = BasicAuthenticationProvider(BasicAuthenticationProvider.Configuration(name).apply(configure))
     val realm = provider.realm
     val charset = provider.charset
     val authenticate = provider.authenticationFunction
@@ -78,27 +98,29 @@ fun Authentication.Configuration.basic(name: String? = null, configure: BasicAut
 /**
  * Retrieves Basic authentication credentials for this [ApplicationRequest]
  */
+@KtorExperimentalAPI
 fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
-    val parsed = parseAuthorizationHeader()
-    when (parsed) {
+    when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
             // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case
             // sensitive; thus BASIC, or Basic, or basic are all valid.
-            if (!parsed.authScheme.equals("Basic", ignoreCase = true)) {
+            if (!authHeader.authScheme.equals("Basic", ignoreCase = true)) {
                 return null
             }
 
             val userPass = try {
-                Base64.getDecoder().decode(parsed.blob).toString(charset ?: Charsets.ISO_8859_1)
-            } catch (e : IllegalArgumentException) {
+                decodeBase64(authHeader.blob).toString(charset ?: Charsets.ISO_8859_1)
+            } catch (e: Throwable) {
                 return null
             }
 
-            if (":" !in userPass) {
+            val colonIndex = userPass.indexOf(':')
+
+            if (colonIndex == -1) {
                 return null
             }
 
-            return UserPasswordCredential(userPass.substringBefore(":"), userPass.substringAfter(":"))
+            return UserPasswordCredential(userPass.substring(0, colonIndex), userPass.substring(colonIndex + 1))
         }
         else -> return null
     }

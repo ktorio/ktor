@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
@@ -43,7 +47,7 @@ enum class ServerKeyExchangeType(val code: Int) {
     NamedCurve(3);
 
     companion object {
-        private val byCode = Array(256) { idx -> values().firstOrNull() { it.code == idx } }
+        private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find an instance of [ServerKeyExchangeType] by it's numeric code or fail

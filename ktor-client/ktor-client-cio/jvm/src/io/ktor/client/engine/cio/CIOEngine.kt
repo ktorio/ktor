@@ -1,10 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import kotlinx.atomicfu.*
@@ -12,42 +13,33 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.util.concurrent.*
-import kotlin.coroutines.*
 
-internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio"), WebSocketEngine {
+internal class CIOEngine(
+    override val config: CIOEngineConfig
+) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
     @UseExperimental(InternalCoroutinesApi::class)
-    private val selectorManager by lazy { ActorSelectorManager(dispatcher.blocking(1)) }
+    private val selectorManager by lazy { ActorSelectorManager(dispatcher) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = atomic(false)
 
-    override suspend fun execute(
-        call: HttpClientCall, data: HttpRequestData
-    ): HttpEngineCall = withContext(coroutineContext) {
-        val request = DefaultHttpRequest(call, data)
-        val response = executeRequest(request)
-
-        return@withContext HttpEngineCall(request, response)
-    }
-
-    override suspend fun execute(request: HttpRequest): WebSocketResponse {
-        val response = executeRequest(request)
-        return response as WebSocketResponse
-    }
-
-    private suspend fun executeRequest(request: HttpRequest): HttpResponse {
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
         while (true) {
             if (closed.value) throw ClientClosedException()
 
-            val endpoint = request.url.selectEndpoint()
+            val endpoint = data.url.selectEndpoint()
             val callContext = createCallContext()
             try {
-                return endpoint.execute(request, callContext)
+                return endpoint.execute(data, callContext)
             } catch (cause: ClosedSendChannelException) {
                 if (closed.value) throw ClientClosedException(cause)
+                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
                 continue
+            } catch (cause: Throwable) {
+                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
+                throw cause
             } finally {
                 if (closed.value) endpoint.close()
             }
@@ -71,7 +63,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
     private fun Url.selectEndpoint(): Endpoint {
         val address = "$host:$port:$protocol"
 
-        val endpoint = endpoints.computeIfAbsentWeak(address) {
+        return endpoints.computeIfAbsentWeak(address) {
             val secure = (protocol.isSecure())
             Endpoint(
                 host, port, secure,
@@ -80,8 +72,6 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEn
                 onDone = { endpoints.remove(address) }
             )
         }
-
-        return endpoint
     }
 }
 

@@ -1,8 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.engine.*
 import okhttp3.*
-import java.util.concurrent.*
 
 /**
  * Configuration for [OkHttp] client engine.

@@ -1,42 +1,40 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.jetty
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import kotlinx.coroutines.*
-import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.util.ssl.*
-import java.net.*
-
+import org.eclipse.jetty.util.thread.*
 
 internal class JettyHttp2Engine(
     override val config: JettyEngineConfig
 ) : HttpClientJvmEngine("ktor-jetty") {
-
-    private val sslContextFactory: SslContextFactory = config.sslContextFactory
-
     private val jettyClient = HTTP2Client().apply {
-        addBean(sslContextFactory)
+        addBean(config.sslContextFactory)
+
+        executor = QueuedThreadPool().apply {
+            name = "ktor-jetty-client-qtp"
+        }
+
         start()
     }
 
-    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = createCallContext()
-        val request = JettyHttpRequest(call, this, data, callContext)
-        val response = request.execute()
-
-        return HttpEngineCall(request, response)
-    }
-
-    internal suspend fun connect(host: String, port: Int): Session = withPromise { promise ->
-        jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promise)
+        return try {
+            data.executeRequest(jettyClient, config, callContext)
+        } catch (cause: Throwable) {
+            (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
+            throw cause
+        }
     }
 
     override fun close() {
         super.close()
-
         jettyClient.stop()
     }
 }

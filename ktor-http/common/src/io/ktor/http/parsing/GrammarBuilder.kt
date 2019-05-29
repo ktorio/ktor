@@ -1,6 +1,10 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.parsing
 
-internal class GrammarBuilder() {
+internal class GrammarBuilder {
     private val grammars = mutableListOf<Grammar>()
 
     infix fun then(grammar: Grammar): GrammarBuilder {

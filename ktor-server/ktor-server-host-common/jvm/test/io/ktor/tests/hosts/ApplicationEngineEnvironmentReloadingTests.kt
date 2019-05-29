@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
@@ -248,6 +252,55 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
+    @Test fun `top level module function with default arg`() {
+        val environment = applicationEngineEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.parseMap(
+                mapOf(
+                    "ktor.deployment.environment" to "test",
+                    "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg")
+                )))
+
+        }
+        environment.start()
+        val application = environment.application
+        assertNotNull(application)
+        assertEquals("topLevelWithDefaultArg", application.attributes[TestKey])
+        environment.stop()
+    }
+
+    @Test fun `static module function with default arg`() {
+        val environment = applicationEngineEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.parseMap(
+                mapOf(
+                    "ktor.deployment.environment" to "test",
+                    "ktor.application.modules" to listOf(Companion::class.jvmName + ".functionWithDefaultArg")
+                )))
+
+        }
+        environment.start()
+        val application = environment.application
+        assertNotNull(application)
+        assertEquals("functionWithDefaultArg", application.attributes[TestKey])
+        environment.stop()
+    }
+
+    @Test fun `top level module function with jvm overloads`() {
+        val environment = applicationEngineEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.parseMap(
+                mapOf(
+                    "ktor.deployment.environment" to "test",
+                    "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads")
+                )))
+
+        }
+        environment.start()
+        val application = environment.application
+        assertNotNull(application)
+        assertEquals("topLevelWithJvmOverloads", application.attributes[TestKey])
+        environment.stop()
+    }
+
+
     object NoArgModuleFunction {
         var result = 0
 
@@ -325,6 +378,11 @@ class ApplicationEngineEnvironmentReloadingTests {
         fun companionObjectJvmStaticFunction(app: Application) {
             app.attributes.put(TestKey, "companionObjectJvmStaticFunction")
         }
+
+        @JvmStatic
+        fun Application.functionWithDefaultArg(test: Boolean = false) {
+            attributes.put(TestKey, "functionWithDefaultArg")
+        }
     }
 }
 
@@ -339,4 +397,13 @@ fun topLevelFunction(app: Application) {
 @Suppress("unused")
 fun topLevelFunction() {
     error("Shouldn't be invoked")
+}
+
+fun Application.topLevelWithDefaultArg(testing: Boolean = false) {
+    attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelWithDefaultArg")
+}
+
+@JvmOverloads
+fun Application.topLevelWithJvmOverloads(testing: Boolean = false) {
+    attributes.put(ApplicationEngineEnvironmentReloadingTests.TestKey, "topLevelWithJvmOverloads")
 }

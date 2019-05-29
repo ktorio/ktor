@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 /**
@@ -8,6 +12,10 @@ package io.ktor.http
 @Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
+
+    override fun equals(other: Any?): Boolean = other is HttpStatusCode && other.value == value
+
+    override fun hashCode(): Int = value.hashCode()
 
     /**
      * Returns a copy of `this` code with a description changed to [value].

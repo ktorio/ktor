@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.http
 
 import io.ktor.http.*
@@ -116,7 +120,7 @@ class UrlTest {
     }
 
     @Test
-    fun testMissingSlash() {
+    fun testRetainEmptyPath() {
         val urlString = "https://www.test.com?test=ok&authtoken=testToken"
         val url = Url(urlString)
 
@@ -124,7 +128,7 @@ class UrlTest {
             assertEquals(URLProtocol.HTTPS, protocol)
             assertEquals("www.test.com", host)
             assertEquals("", encodedPath)
-            assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
+            assertEquals("https://www.test.com?test=ok&authtoken=testToken", url.toString())
         }
     }
 

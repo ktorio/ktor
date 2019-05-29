@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.sessions
 
 import io.ktor.application.*
@@ -58,5 +62,9 @@ class SessionTrackerById(
         if (!type.javaObjectType.isAssignableFrom(value.javaClass)) {
             throw IllegalArgumentException("Value for this session tracker expected to be of type $type but was $value")
         }
+    }
+
+    override fun toString(): String {
+        return "SessionTrackerById: $storage"
     }
 }

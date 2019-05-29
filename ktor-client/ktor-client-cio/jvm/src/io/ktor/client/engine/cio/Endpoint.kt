@@ -1,11 +1,10 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
-import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
-import io.ktor.http.*
-import io.ktor.http.cio.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
@@ -14,7 +13,6 @@ import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
 import java.io.*
 import java.net.*
 import kotlin.coroutines.*
@@ -39,14 +37,8 @@ internal class Endpoint(
     private val postman = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
-                val task = withTimeoutOrNull(maxEndpointIdleTime) {
+                val task = withTimeout(maxEndpointIdleTime) {
                     tasks.receive()
-                }
-
-                if (task == null) {
-                    onDone()
-                    tasks.close()
-                    continue
                 }
 
                 try {
@@ -56,22 +48,23 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
+                    task.response.resumeWithException(cause)
                     throw cause
                 }
             }
-        } catch (_: Throwable) {
+        } catch (cause: Throwable) {
         } finally {
             deliveryPoint.close()
+            tasks.close()
+            onDone()
         }
     }
 
-    suspend fun execute(request: HttpRequest, callContext: CoroutineContext): HttpResponse {
-        val result = CompletableDeferred<HttpResponse>(parent = callContext[Job])
-        val task = RequestTask(request, result, callContext)
-        tasks.offer(task)
-        return result.await()
-    }
+    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData =
+        suspendCancellableCoroutine { continuation ->
+            val task = RequestTask(request, continuation, callContext)
+            tasks.offer(task)
+        }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
         if (deliveryPoint.offer(task)) return
@@ -81,7 +74,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.response.completeExceptionally(cause)
+                task.response.resumeWithException(cause)
                 throw cause
             }
         }
@@ -89,7 +82,9 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
-    private fun makeDedicatedRequest(task: RequestTask): Job = launch {
+    private fun makeDedicatedRequest(
+        task: RequestTask
+    ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
         val (request, response, callContext) = task
         try {
             val connection = connect()
@@ -97,7 +92,18 @@ internal class Endpoint(
             val output = connection.openWriteChannel()
             val requestTime = GMTDate()
 
-            fun closeConnection(cause: Throwable? = null) {
+            val timeout = config.requestTimeout
+            val responseData = if (timeout == 0L) {
+                request.write(output, callContext)
+                readResponse(requestTime, request, input, output, callContext)
+            } else {
+                withTimeout(timeout) {
+                    request.write(output, callContext)
+                    readResponse(requestTime, request, input, output, callContext)
+                }
+            }
+
+            callContext[Job]!!.invokeOnCompletion { cause ->
                 try {
                     input.cancel(cause)
                     output.close(cause)
@@ -107,51 +113,9 @@ internal class Endpoint(
                 }
             }
 
-            request.write(output, callContext)
-
-            val rawResponse = parseResponse(input)
-                ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
-
-            val status = rawResponse.status
-            val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-            val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
-            val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
-            val headers = CIOHeaders(rawResponse.headers)
-
-            callContext[Job]!!.invokeOnCompletion {
-                rawResponse.headers.release()
-            }
-
-            if (status == HttpStatusCode.SwitchingProtocols.value) {
-                val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)
-                response.complete(WebSocketResponse(callContext, requestTime, session))
-                return@launch
-            }
-
-
-            val body = when {
-                request.method == HttpMethod.Head -> {
-                    closeConnection()
-                    ByteReadChannel.Empty
-                }
-                else -> {
-                    val httpBodyParser = GlobalScope.writer(callContext, autoFlush = true) {
-                        parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-                    }
-
-                    httpBodyParser.invokeOnCompletion(::closeConnection)
-                    httpBodyParser.channel
-                }
-            }
-
-            val result = CIOHttpResponse(
-                request, headers, requestTime, body, rawResponse,
-                coroutineContext = callContext
-            )
-
-            response.complete(result)
+            response.resume(responseData)
         } catch (cause: Throwable) {
-            response.completeExceptionally(cause)
+            response.resumeWithException(cause)
         }
     }
 
@@ -235,5 +199,3 @@ open class ConnectException : Exception("Connect timed out or retry attempts exc
 @KtorExperimentalAPI
 @Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
 class FailToConnectException : ConnectException()
-
-

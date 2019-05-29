@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
@@ -94,6 +98,7 @@ suspend fun encodeChunked(
  */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val view = IoBuffer.Pool.borrow()
+    @Suppress("DEPRECATION") // here we have a valid reason to set it so suppress here
     view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {

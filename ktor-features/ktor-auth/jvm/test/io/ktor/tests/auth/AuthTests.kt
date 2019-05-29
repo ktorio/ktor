@@ -1,6 +1,9 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.auth
 
-import io.ktor.auth.*
 import io.ktor.http.auth.*
 import java.util.*
 import kotlin.test.*

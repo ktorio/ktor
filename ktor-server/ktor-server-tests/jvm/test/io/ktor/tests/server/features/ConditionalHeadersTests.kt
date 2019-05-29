@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
@@ -7,7 +11,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
@@ -159,7 +162,7 @@ class ETagsTest {
 }
 
 @RunWith(Parameterized::class)
-class LastModifiedTest(name: String, zone: ZoneId) {
+class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")

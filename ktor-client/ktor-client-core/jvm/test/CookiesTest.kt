@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
@@ -22,7 +26,7 @@ class CookiesTest {
         assertEquals("1,2,3,4".encodeURLParameter(), cookies["first"])
         assertEquals("abc", cookies["second"])
 
-        request.responseOk()
+        respondOk()
     }) {
 
         config {

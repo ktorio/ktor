@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
@@ -46,6 +50,19 @@ suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
+
+
+/**
+ * Open [DefaultClientWebSocketSession].
+ */
+suspend fun HttpClient.ws(
+    urlString: String,
+    request: HttpRequestBuilder.() -> Unit = {},
+    block: suspend DefaultClientWebSocketSession.() -> Unit
+): Unit {
+    val url = Url(urlString)
+    webSocket(HttpMethod.Get, url.host, url.port, url.encodedPath, request, block)
+}
 
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.

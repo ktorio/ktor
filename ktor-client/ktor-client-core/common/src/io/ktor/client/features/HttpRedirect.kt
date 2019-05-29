@@ -1,18 +1,19 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.util.pipeline.*
 import io.ktor.util.*
 
 /**
  * [HttpClient] feature that handles http redirect
  */
 class HttpRedirect {
-
     companion object Feature : HttpClientFeature<Unit, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
@@ -30,6 +31,8 @@ class HttpRedirect {
             var call = origin
             while (true) {
                 val location = call.response.headers[HttpHeaders.Location]
+
+                call.close()
 
                 call = execute(HttpRequestBuilder().apply {
                     takeFrom(origin.request)
@@ -51,14 +54,3 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     HttpStatusCode.PermanentRedirect.value -> true
     else -> false
 }
-
-@Deprecated(
-    "Not thrown anymore. Use SendCountExceedException",
-    replaceWith = ReplaceWith(
-        "SendCountExceedException",
-        "io.ktor.client.features.SendCountExceedException"
-    ),
-    level = DeprecationLevel.ERROR
-)
-@Suppress("KDocMissingDocumentation")
-class RedirectException(val request: HttpRequest, cause: String) : IllegalStateException(cause)

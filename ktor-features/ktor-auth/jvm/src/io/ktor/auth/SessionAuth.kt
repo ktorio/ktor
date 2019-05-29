@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -9,23 +13,29 @@ import kotlin.reflect.*
 
 /**
  * Represents a session-based authentication provider
- * @param name is the name of the provider, or `null` for a default provider
- * @param type of session
- * @param challenge to be used if there is no session
- * @param validator applied to an application all and session providing a [Principal]
+ * @property type of session
+ * @property challenge to be used if there is no session
+ * @property validator applied to an application all and session providing a [Principal]
  */
 class SessionAuthenticationProvider<T : Any> private constructor(
-    name: String?,
-    val type: KClass<T>,
-    val challenge: SessionAuthChallenge<T>,
-    val validator: ApplicationCall.(T) -> Principal?
-) :
-    AuthenticationProvider(name) {
+    config: Configuration<T>
+) : AuthenticationProvider(config) {
+    val type: KClass<T> = config.type
+
+    @PublishedApi
+    internal val challenge: SessionAuthChallenge<T> = config.challenge
+
+    @PublishedApi
+    internal val validator: AuthenticationFunction<T> = config.validator
+
     /**
      * Session auth configuration
      */
-    class Configuration<T : Any>(private val name: String?, private val type: KClass<T>) {
-        private var validator: ApplicationCall.(T) -> Principal? = UninitializedValidator
+    class Configuration<T : Any> @PublishedApi internal constructor(
+        name: String?,
+        internal val type: KClass<T>
+    ) : AuthenticationProvider.Configuration(name) {
+        internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
         /**
          * A response to send back if authentication failed
@@ -36,7 +46,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
          * Sets a validation function that will check given [T] session instance and return [Principal],
          * or null if the session does not correspond to an authenticated principal
          */
-        fun validate(block: ApplicationCall.(T) -> Principal?) {
+        fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
             validator = block
         }
@@ -48,12 +58,12 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         @PublishedApi
         internal fun buildProvider(): SessionAuthenticationProvider<T> {
             verifyConfiguration()
-            return SessionAuthenticationProvider(name, type, challenge, validator)
+            return SessionAuthenticationProvider(this)
         }
     }
 
     companion object {
-        private val UninitializedValidator: ApplicationCall.(Any) -> Principal? = {
+        private val UninitializedValidator: suspend ApplicationCall.(Any) -> Principal? = {
             error("It should be a validator supplied to a session auth provider")
         }
     }
@@ -97,9 +107,7 @@ inline fun <reified T : Any> Authentication.Configuration.session(
                 if (session == null) AuthenticationFailedCause.NoCredentials else AuthenticationFailedCause.InvalidCredentials
             if (provider.challenge != SessionAuthChallenge.Ignore) {
                 context.challenge(SessionAuthChallengeKey, cause) {
-                    val challenge = provider.challenge
-
-                    when (challenge) {
+                    when (val challenge = provider.challenge) {
                         is SessionAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
                         is SessionAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, session))
                     }
@@ -138,11 +146,11 @@ sealed class SessionAuthChallenge<in T : Any> {
          * The default session auth challenge kind
          */
         @KtorExperimentalAPI
-        val Default = Ignore
+        val Default: SessionAuthChallenge<Any> = Ignore
     }
 }
 
 /**
  * A key used to register auth challenge
  */
-const val SessionAuthChallengeKey = "SessionAuth"
+const val SessionAuthChallengeKey: String = "SessionAuth"

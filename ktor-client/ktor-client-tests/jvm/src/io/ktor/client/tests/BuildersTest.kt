@@ -1,7 +1,10 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.application.*
-import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -37,7 +40,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     @Test
     fun testNotFound() = clientTest(factory) {
         test { client ->
-            assertFailsWith<BadResponseStatusException> {
+            assertFailsWith<ResponseException> {
                 runBlocking {
                     client.get<String>(path = "/notFound", port = serverPort)
                 }
@@ -59,5 +62,3 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
         }
     }
 }
-
-

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.response
 
 import io.ktor.client.*
@@ -60,5 +64,7 @@ class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State
 
 /**
  * Class representing a typed [response] with an attached [expectedType].
+ * @param expectedType: information about expected type.
+ * @param response: current response state.
  */
 data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)

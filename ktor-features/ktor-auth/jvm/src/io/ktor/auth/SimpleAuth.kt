@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.config.*
@@ -26,8 +30,11 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
 class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
 
     // shortcut for tests
-    constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256", "ktor"), table)
+    @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.ERROR)
+    constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
 
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Configuring from an application config is no longer supported.", level = DeprecationLevel.ERROR)
     constructor(config: ApplicationConfig) : this(
         getDigestFunction(
             config.property("hashAlgorithm").getString(),

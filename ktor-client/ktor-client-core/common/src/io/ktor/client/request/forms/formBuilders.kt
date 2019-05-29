@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.request.forms
 
 import io.ktor.client.*
@@ -7,44 +11,44 @@ import io.ktor.http.content.*
 
 
 /**
- * Submit [formData] request.
+ * Submit [formParameters] request.
  *
- * If [encodeInQuery] specified encode [formData] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formData] encoded in body.
+ * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
+ * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
  *
- * [formData] encoded using application/x-www-form-urlencoded format.
+ * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
 suspend inline fun <reified T> HttpClient.submitForm(
-    formData: Parameters = Parameters.Empty,
+    formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     if (encodeInQuery) {
         method = HttpMethod.Get
-        url.parameters.appendAll(formData)
+        url.parameters.appendAll(formParameters)
     } else {
         method = HttpMethod.Post
-        body = FormDataContent(formData)
+        body = FormDataContent(formParameters)
     }
 
     block()
 }
 
 /**
- * Submit [formData] request.
+ * Submit [formParameters] request.
  *
- * If [encodeInQuery] specified encode [formData] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formData] encoded in body.
+ * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
+ * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
  *
  * [url] destination
- * [formData] encoded using application/x-www-form-urlencoded format.
+ * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
 suspend inline fun <reified T> HttpClient.submitForm(
     url: String,
-    formData: Parameters = Parameters.Empty,
+    formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitForm(formData, encodeInQuery) {
+): T = submitForm(formParameters, encodeInQuery) {
     url(url)
     block()
 }
@@ -79,24 +83,23 @@ suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     block()
 }
 
-
 /**
- * Submit [formData] request.
+ * Submit [formParameters] request.
  *
- * If [encodeInQuery] specified encode [formData] in url parameters and use [HttpMethod.Get] for the request.
- * Otherwise send [HttpMethod.Post] request with [formData] encoded in body.
+ * If [encodeInQuery] specified encode [formParameters] in url parameters and use [HttpMethod.Get] for the request.
+ * Otherwise send [HttpMethod.Post] request with [formParameters] encoded in body.
  *
- * [formData] encoded using application/x-www-form-urlencoded format.
+ * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
 suspend inline fun <reified T> HttpClient.submitForm(
     scheme: String = "http",
     host: String = "localhost",
     port: Int = 80,
     path: String = "/",
-    formData: Parameters = Parameters.Empty,
+    formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitForm(formData, encodeInQuery) {
+): T = submitForm(formParameters, encodeInQuery) {
     url(scheme, host, port, path)
     apply(block)
 }

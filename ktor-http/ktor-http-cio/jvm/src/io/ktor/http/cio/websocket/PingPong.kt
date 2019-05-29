@@ -1,30 +1,28 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.channels.Channel
-import io.ktor.util.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.CancellationException
-import kotlin.coroutines.*
 import kotlin.random.*
 
 private val PongerCoroutineName = CoroutineName("ws-ponger")
 
 private val PingerCoroutineName = CoroutineName("ws-pinger")
 
-/**
- * Launch a ponger actor job on the [coroutineContext] for websocket [session].
- * It is acting for every client's ping frame and replying with corresponding pong
- */
 @Deprecated(
-    "Use ponger with CoroutineScope receiver",
-    ReplaceWith("session.ponger(session.outgoing, pool)"),
-    level = DeprecationLevel.ERROR
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN
 )
+@Suppress("KDocMissingDocumentation", "unused")
 fun ponger(
     session: WebSocketSession,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
@@ -59,52 +57,63 @@ fun CoroutineScope.pinger(
     periodMillis: Long,
     timeoutMillis: Long,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = actor(PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {
-    // note that this coroutine need to be lazy
-    val buffer = pool.borrow()
-    val encoder = Charsets.ISO_8859_1.newEncoder()
-    val random = Random(System.currentTimeMillis())
-    val pingIdBytes = ByteArray(32)
+): SendChannel<Frame.Pong> {
+    val actorJob = Job()
+    val result = actor<Frame.Pong>(
+        actorJob + PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY
+    ) {
+        // note that this coroutine need to be lazy
+        val buffer = pool.borrow()
+        val encoder = Charsets.ISO_8859_1.newEncoder()
+        val random = Random(System.currentTimeMillis())
+        val pingIdBytes = ByteArray(32)
 
-    try {
-        while (!isClosedForReceive) {
-            // drop pongs during period delay as they are irrelevant
-            // here timeout is expected so ignore it
-            withTimeoutOrNull(periodMillis) {
-                while (true) {
-                    receive() // timeout causes loop to break on receive
+        try {
+            while (!isClosedForReceive) {
+                // drop pongs during period delay as they are irrelevant
+                // here timeout is expected so ignore it
+                withTimeoutOrNull(periodMillis) {
+                    while (true) {
+                        receive() // timeout causes loop to break on receive
+                    }
+                }
+
+                random.nextBytes(pingIdBytes)
+                val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
+
+                val rc = withTimeoutOrNull(timeoutMillis) {
+                    outgoing.sendPing(buffer, encoder, pingMessage)
+
+                    // wait for valid pong message
+                    while (true) {
+                        val msg = receive()
+                        if (msg.buffer.decodeString(Charsets.ISO_8859_1) == pingMessage) break
+                    }
+                }
+
+                if (rc == null) {
+                    // timeout
+                    // we were unable to send ping or hadn't get valid pong message in time
+                    // so we are triggering close sequence (if already started then the following close frame could be ignored)
+
+                    val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
+                    outgoing.send(closeFrame)
+                    break
                 }
             }
-
-            random.nextBytes(pingIdBytes)
-            val pingMessage = "[ping ${hex(pingIdBytes)} ping]"
-
-            val rc = withTimeoutOrNull(timeoutMillis) {
-                outgoing.sendPing(buffer, encoder, pingMessage)
-
-                // wait for valid pong message
-                while (true) {
-                    val msg = receive()
-                    if (msg.buffer.decodeString(Charsets.ISO_8859_1) == pingMessage) break
-                }
-            }
-
-            if (rc == null) {
-                // timeout
-                // we were unable to send ping or hadn't get valid pong message in time
-                // so we are triggering close sequence (if already started then the following close frame could be ignored)
-
-                val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
-                outgoing.send(closeFrame)
-                break
-            }
+        } catch (ignore: CancellationException) {
+        } catch (ignore: ClosedReceiveChannelException) {
+        } catch (ignore: ClosedSendChannelException) {
+        } finally {
+            pool.recycle(buffer)
         }
-    } catch (ignore: CancellationException) {
-    } catch (ignore: ClosedReceiveChannelException) {
-    } catch (ignore: ClosedSendChannelException) {
-    } finally {
-        pool.recycle(buffer)
     }
+
+    coroutineContext[Job]!!.invokeOnCompletion {
+        actorJob.cancel()
+    }
+
+    return result
 }
 
 private suspend fun SendChannel<Frame.Ping>.sendPing(

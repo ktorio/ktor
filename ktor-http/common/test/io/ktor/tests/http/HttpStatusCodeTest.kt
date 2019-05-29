@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.http
 
 import io.ktor.http.*
@@ -21,7 +25,7 @@ class HttpStatusCodeTest {
 
     @Test
     fun HttpStatusCodeWithDescription() {
-        assertNotEquals(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description("Missing Resource"))
+        assertEquals(HttpStatusCode.NotFound, HttpStatusCode.NotFound.description("Missing Resource"))
     }
 
     @Test

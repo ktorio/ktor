@@ -7,8 +7,11 @@ build
 !.idea/vcs.xml
 !.idea/dictionaries
 !.idea/dictionaries/*
+!.idea/copyright
+!.idea/copyright/*
 out
 *.iml
+.vscode
 
 *.versionsBackup
 *.releaseBackup
@@ -25,3 +28,4 @@ bin/
 .project
 .classpath
 .konan
+

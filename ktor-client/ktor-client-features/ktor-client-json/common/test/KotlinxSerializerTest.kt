@@ -1,9 +1,14 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.json
 
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -22,11 +27,10 @@ data class GithubProfile(
     val name: String
 )
 
-class KotlinxSerializerTest {
+class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testRegisterCustom() {
         val serializer = KotlinxSerializer().apply {
-            @UseExperimental(ImplicitReflectionSerializer::class)
             register(User.serializer())
         }
 
@@ -50,7 +54,7 @@ class KotlinxSerializerTest {
     }
 
     @Test
-    fun testReceiveFromGithub() = clientsTest {
+    fun testReceiveFromGithub() = clientTests {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer(Json.nonstrict).apply {
@@ -66,7 +70,7 @@ class KotlinxSerializerTest {
     }
 
     @Test
-    fun testCustomFormBody() = clientsTest {
+    fun testCustomFormBody() = clientTests {
         config {
             install(JsonFeature)
         }
@@ -104,7 +108,7 @@ class KotlinxSerializerTest {
      */
     @Test
     @Ignore
-    fun testMultipleListSerializersWithClient() = clientsTest {
+    fun testMultipleListSerializersWithClient() = clientTests {
         val testSerializer = KotlinxSerializer().apply {
             registerList(User.serializer())
             registerList(Photo.serializer())
@@ -120,11 +124,11 @@ class KotlinxSerializerTest {
             val users = client.get<List<User>>("$TEST_SERVER/json/users")
             val photos = client.get<List<Photo>>("$TEST_SERVER/json/photos")
 
-            println(users)
-            println(photos)
+            assertEquals(listOf(User(42, "TestLogin")), users)
+            assertEquals(listOf(Photo(4242, "cat.jpg")), photos)
         }
     }
 
     private fun JsonSerializer.testWrite(data: Any): String =
-        (write(data) as? TextContent)?.text ?: error("Failed to get serialized $data")
+        (write(data, ContentType.Application.Json) as? TextContent)?.text ?: error("Failed to get serialized $data")
 }

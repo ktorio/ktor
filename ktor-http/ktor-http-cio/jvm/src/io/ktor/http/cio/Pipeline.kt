@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio
 
 import io.ktor.http.*
@@ -8,7 +12,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.io.*
-import kotlin.coroutines.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.ERROR)
 @Suppress("KDocMissingDocumentation")
@@ -40,21 +43,6 @@ val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-wr
  * HTTP request handler coroutine name
  */
 val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
-
-@Suppress("KDocMissingDocumentation", "UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
-@Deprecated(
-    "Use startConnectionPipeline with CoroutineScope receiver",
-    level = DeprecationLevel.ERROR
-)
-fun startConnectionPipeline(
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    parentJob: CoroutineContext?,
-    ioContext: CoroutineContext,
-    callContext: CoroutineContext,
-    timeout: WeakTimeoutQueue,
-    handler: HttpRequestHandler
-): Job = TODO("Not supported anymore")
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.

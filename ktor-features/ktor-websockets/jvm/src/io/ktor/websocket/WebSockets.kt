@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.websocket
 
 import io.ktor.application.*
@@ -30,14 +34,14 @@ class WebSockets(
     val timeout: Duration,
     val maxFrameSize: Long,
     val masking: Boolean
-): CoroutineScope {
-    private val parent = CompletableDeferred<Unit>()
+) : CoroutineScope {
+    private val parent: CompletableJob = Job()
 
     override val coroutineContext: CoroutineContext
         get() = parent
 
     private fun shutdown() {
-        parent.complete(Unit)
+        parent.complete()
     }
 
     /**

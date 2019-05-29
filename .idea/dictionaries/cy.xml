@@ -15,6 +15,7 @@
       <w>byteranges</w>
       <w>cacheable</w>
       <w>changeit</w>
+      <w>cnonce</w>
       <w>codec</w>
       <w>codecs</w>
       <w>conjuror</w>
@@ -32,6 +33,7 @@
       <w>djvu</w>
       <w>doctype</w>
       <w>dquotes</w>
+      <w>dropwizard</w>
       <w>ecdhe</w>
       <w>endian</w>
       <w>endlines</w>
@@ -108,6 +110,7 @@
       <w>subfolder</w>
       <w>subtrim</w>
       <w>tagline</w>
+      <w>tailcard</w>
       <w>tcnative</w>
       <w>teardowns</w>
       <w>testuser</w>

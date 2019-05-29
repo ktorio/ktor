@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.apache
 
 import io.ktor.client.utils.*
@@ -11,7 +15,6 @@ import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.*
-
 
 private const val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 

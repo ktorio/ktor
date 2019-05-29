@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth.ldap
 
 import io.ktor.auth.*
@@ -40,7 +44,7 @@ fun ldapAuthenticate(
 
     val configurator: (MutableMap<String, Any?>) -> Unit = { env ->
         env[Context.SECURITY_AUTHENTICATION] = "simple"
-        env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(credential.name)
+        env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(ldapEscape(credential.name))
         env[Context.SECURITY_CREDENTIALS] = credential.password
     }
 
@@ -68,4 +72,51 @@ private fun ldapLogin(ldapURL: String, ldapEnvironmentBuilder: (MutableMap<Strin
     return InitialDirContext(env)
 }
 
+internal fun ldapEscape(string: String): String {
+    for (index in 0 .. string.lastIndex) {
+        val character = string[index]
+        if (character.shouldEscape()) {
+            return ldapEscapeImpl(string, index)
+        }
+    }
 
+    return string
+}
+
+private fun ldapEscapeImpl(string: String, firstIndex: Int): String = buildString {
+    var lastIndex = 0
+    for (index in firstIndex .. string.lastIndex) {
+        val character = string[index]
+        if (character.shouldEscape()) {
+            append(string, lastIndex, index)
+            if (character in ESCAPE_CHARACTERS) {
+                append('\\')
+                append(character)
+            } else {
+                character.toString().toByteArray().let { encoded ->
+                    for (byteIndex in 0 until encoded.size) {
+                        val unsignedValue = encoded[byteIndex].toInt() and 0xff
+                        append('\\')
+                        append(unsignedValue.toString(16).padStart(2, '0'))
+                    }
+                }
+            }
+
+            lastIndex = index + 1
+        }
+    }
+
+    append(string, lastIndex, string.length)
+}
+
+private val ESCAPE_CHARACTERS = charArrayOf(' ', '"', '#', '+', ',', ';', '<', '=', '>', '\\')
+
+private fun Char.shouldEscape(): Boolean = this.toInt().let { codepoint ->
+    when (codepoint) {
+        in 0x3f .. 0x7e -> codepoint == 0x5c // the only forbidden character is backslash
+        in 0x2d .. 0x3a -> false // minus, point, slash (allowed), digits + colon :
+        in 0x24 .. 0x2a -> false // $%&'()*
+        0x21 -> false // exclamation
+        else -> true
+    }
+}

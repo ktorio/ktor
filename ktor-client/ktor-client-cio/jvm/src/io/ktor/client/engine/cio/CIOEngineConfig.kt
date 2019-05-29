@@ -1,10 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
 import io.ktor.network.tls.*
-import java.security.*
-import java.security.cert.*
-import javax.net.ssl.*
 
 /**
  * Configuration for [CIO] client engine.
@@ -23,6 +24,13 @@ class CIOEngineConfig : HttpClientEngineConfig() {
      * Maximum allowed connections count.
      */
     var maxConnectionsCount: Int = 1000
+
+    /**
+     * Timeout to get send request headers and get first response bytes(in millis).
+     *
+     * Use 0 to disable.
+     */
+    var requestTimeout: Long = 15000
 
     /**
      * [https] settings.
@@ -50,7 +58,7 @@ class EndpointConfig {
     var keepAliveTime: Long = 5000
 
     /**
-     * Maximum number of requests per single pipeline
+     * Maximum number of requests per single pipeline.
      */
     var pipelineMaxSize: Int = 20
 

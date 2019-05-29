@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.*
@@ -25,18 +29,34 @@ internal fun CURLcode.verify() {
     }
 }
 
-internal fun EasyHandle.option(option: CURLoption, vararg variadicArguments: Any) {
-    curl_easy_setopt(this, option, *variadicArguments).verify()
+internal fun EasyHandle.option(option: CURLoption, optionValue: Int) {
+    curl_easy_setopt(this, option, optionValue).verify()
 }
 
-internal fun EasyHandle.getInfo(info: CURLINFO, vararg variadicArguments: Any) {
-    curl_easy_getinfo(this, info, *variadicArguments).verify()
+internal fun EasyHandle.option(option: CURLoption, optionValue: Long) {
+    curl_easy_setopt(this, option, optionValue).verify()
 }
 
-internal fun HttpRequest.headersToCurl(): CPointer<curl_slist> {
+internal fun EasyHandle.option(option: CURLoption, optionValue: CPointer<*>) {
+    curl_easy_setopt(this, option, optionValue).verify()
+}
+
+internal fun EasyHandle.option(option: CURLoption, optionValue: CValuesRef<*>) {
+    curl_easy_setopt(this, option, optionValue).verify()
+}
+
+internal fun EasyHandle.option(option: CURLoption, optionValue: String) {
+    curl_easy_setopt(this, option, optionValue).verify()
+}
+
+internal fun EasyHandle.getInfo(info: CURLINFO, optionValue: CPointer<*>) {
+    curl_easy_getinfo(this, info, optionValue).verify()
+}
+
+internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     var result: CPointer<curl_slist>? = null
 
-    mergeHeaders(headers, content) { key, value ->
+    mergeHeaders(headers, body) { key, value ->
         val header = "$key: $value"
         result = curl_slist_append(result, header)
     }

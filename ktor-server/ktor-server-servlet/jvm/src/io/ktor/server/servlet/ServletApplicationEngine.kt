@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.servlet
 
 import com.typesafe.config.*
@@ -5,6 +9,7 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.server.engine.*
 import org.slf4j.*
+import javax.servlet.*
 import javax.servlet.annotation.*
 
 /**
@@ -14,11 +19,15 @@ import javax.servlet.annotation.*
 open class ServletApplicationEngine : KtorServlet() {
     private val environment: ApplicationEngineEnvironment by lazy {
         val servletContext = servletContext
+        val servletConfig = servletConfig
 
         servletContext.getAttribute(ApplicationEngineEnvironmentAttributeKey)?.let { return@lazy it as ApplicationEngineEnvironment }
 
-        val parameterNames = servletContext.initParameterNames.toList().filter { it.startsWith("io.ktor") }
-        val parameters = parameterNames.associateBy({ it.removePrefix("io.ktor.") }, { servletContext.getInitParameter(it) })
+        val parameterNames = (servletContext.initParameterNames?.toList().orEmpty() +
+            servletConfig.initParameterNames?.toList().orEmpty()).filter { it.startsWith("io.ktor") }.distinct()
+        val parameters = parameterNames.associateBy({ it.removePrefix("io.ktor.") }, {
+            servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it)
+        })
 
         val hocon = ConfigFactory.parseMap(parameters)
         val configPath = "ktor.config"
@@ -26,7 +35,8 @@ open class ServletApplicationEngine : KtorServlet() {
 
         val combinedConfig = if (hocon.hasPath(configPath)) {
             val configStream = servletContext.classLoader.getResourceAsStream(hocon.getString(configPath))
-            val loadedKtorConfig = ConfigFactory.parseReader(configStream.bufferedReader())
+                ?: throw ServletException("No config ${hocon.getString(configPath)} found for the servlet named $servletName")
+            val loadedKtorConfig = configStream.bufferedReader().use { ConfigFactory.parseReader(it) }
             hocon.withFallback(loadedKtorConfig)
         } else
             hocon.withFallback(ConfigFactory.load())
@@ -37,6 +47,7 @@ open class ServletApplicationEngine : KtorServlet() {
             config = HoconApplicationConfig(combinedConfig)
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
+            rootPath = servletContext.contextPath ?: "/"
         }.apply {
             monitor.subscribe(ApplicationStarting)  {
                 it.receivePipeline.merge(enginePipeline.receivePipeline)
@@ -65,8 +76,8 @@ open class ServletApplicationEngine : KtorServlet() {
      * Called by the servlet container when loading the servlet (on load)
      */
     override fun init() {
-        super.init()
         environment.start()
+        super.init()
     }
 
     override fun destroy() {

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.routing
 
 import io.ktor.application.*
@@ -90,9 +94,14 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         }
     }
 
-    override fun toString() = when {
-        parent == null -> "/"
-        parent.parent == null -> "/$selector"
+    override fun toString(): String = when {
+        parent == null -> "/$selector"
+        parent.parent == null -> parent.toString().let { parentText ->
+            when {
+                parentText.endsWith('/') -> "$parentText$selector"
+                else -> "$parentText/$selector"
+            }
+        }
         else -> "$parent/$selector"
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine
 
 import io.ktor.client.*
@@ -14,20 +18,25 @@ open class HttpClientEngineConfig {
      * The [CoroutineDispatcher] that will be used for the client requests.
      */
     @Deprecated(
-        "Custom dispatcher is deprecated. Consider using threadsCount instead.",
-        level = DeprecationLevel.ERROR
+        "Binary compatibility.",
+        level = DeprecationLevel.HIDDEN
     )
-    var dispatcher: CoroutineDispatcher? = null
+    var dispatcher: CoroutineDispatcher?
+        get() = null
+        set(_) {
+            throw UnsupportedOperationException("Custom dispatcher is deprecated. Use threadsCount instead.")
+        }
 
     /**
-     * Network threads count
+     * Network threads count advice.
      */
     @KtorExperimentalAPI
     var threadsCount: Int = 4
 
     /**
-     * Enable http pipelining
+     * Enable http pipelining advice.
      */
+    @KtorExperimentalAPI
     var pipelining: Boolean = false
 
     /**

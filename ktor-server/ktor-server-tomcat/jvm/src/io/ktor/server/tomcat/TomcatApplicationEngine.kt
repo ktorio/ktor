@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.tomcat
 
 import io.ktor.application.*
@@ -36,7 +40,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
-    private var cancellationDeferred: CompletableDeferred<Unit>? = null
+    private var cancellationDeferred: CompletableJob? = null
 
     private val ktorServlet = object : KtorServlet() {
         override val enginePipeline: EnginePipeline
@@ -117,7 +121,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         if (stopped.compareAndSet(false, true)) {
-            cancellationDeferred?.complete(Unit)
+            cancellationDeferred?.complete()
             environment.monitor.raise(ApplicationStopPreparing, environment)
             server.stop()
             environment.stop()

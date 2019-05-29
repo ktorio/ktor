@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client
 
 import io.ktor.client.engine.*
@@ -10,8 +14,10 @@ import kotlin.collections.set
  */
 @HttpClientDsl
 class HttpClientConfig<T : HttpClientEngineConfig> {
-    private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
-    private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
+    private val features: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = mutableMapOf()
+    private val featureConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = mutableMapOf()
+
+    private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = mutableMapOf()
 
     internal var engineConfig: T.() -> Unit = {}
 
@@ -48,10 +54,20 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
         feature: HttpClientFeature<TBuilder, TFeature>,
         configure: TBuilder.() -> Unit = {}
     ) {
-        val featureData = feature.prepare(configure)
+        val previousConfigBlock = featureConfigurations[feature.key]
+        featureConfigurations[feature.key] = {
+            previousConfigBlock?.invoke(this)
+
+            @Suppress("UNCHECKED_CAST")
+            (this as TBuilder).configure()
+        }
+
+        if (features.containsKey(feature.key)) return
 
         features[feature.key] = { scope ->
-            val attributes = scope.attributes.computeIfAbsent(FEATURE_INSTALLED_LIST) { Attributes() }
+            val attributes = scope.attributes.computeIfAbsent(FEATURE_INSTALLED_LIST) { Attributes(concurrent = true) }
+            val config = scope.config.featureConfigurations[feature.key]!!
+            val featureData = feature.prepare(config)
 
             feature.install(featureData, scope)
             attributes.put(feature.key, featureData)
@@ -80,10 +96,7 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
      */
     fun clone(): HttpClientConfig<T> {
         val result = HttpClientConfig<T>()
-        result.features.putAll(features)
-        result.customInterceptors.putAll(customInterceptors)
-        result.engineConfig = engineConfig
-
+        result += this
         return result
     }
 
@@ -96,6 +109,7 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
         expectSuccess = other.expectSuccess
 
         features += other.features
+        featureConfigurations += other.featureConfigurations
         customInterceptors += other.customInterceptors
     }
 }
@@ -104,4 +118,4 @@ class HttpClientConfig<T : HttpClientEngineConfig> {
  * Dsl marker for [HttpClient] dsl.
  */
 @DslMarker
-annotation class HttpClientDsl()
+annotation class HttpClientDsl

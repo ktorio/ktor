@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.sessions
 
 import io.ktor.application.*
@@ -14,17 +18,28 @@ class Sessions(val providers: List<SessionProvider>) {
      * Sessions configuration builder
      */
     class Configuration {
+        private val registered = ArrayList<SessionProvider>()
+
         /**
          * List of session providers to be registered
          */
-        val providers = mutableListOf<SessionProvider>()
+        val providers: List<SessionProvider> get() = registered.toList()
 
         /**
          * Register a session [provider]
          */
         fun register(provider: SessionProvider) {
-            // todo: check that type & name is unique
-            providers.add(provider)
+            registered.firstOrNull { it.name == provider.name }?.let { alreadyRegistered ->
+                throw IllegalArgumentException("There is already registered session provider with " +
+                    "name ${provider.name}: $alreadyRegistered")
+            }
+
+            registered.firstOrNull { it.type == provider.type }?.let { alreadyRegistered ->
+                throw IllegalArgumentException("There is already registered session provider for type" +
+                    " ${provider.type}: $alreadyRegistered")
+            }
+
+            registered.add(provider)
         }
     }
 

@@ -1,19 +1,24 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.json
 
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.call.*
-import io.ktor.client.response.*
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import kotlinx.io.core.*
 
 class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
 
     private val backend = jacksonObjectMapper().apply(block)
 
-    override fun write(data: Any) = TextContent(backend.writeValueAsString(data), ContentType.Application.Json)
+    override fun write(data: Any, contentType: ContentType): OutgoingContent =
+        TextContent(backend.writeValueAsString(data), contentType)
 
-    override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
-        return backend.readValue(response.readText(), backend.typeFactory.constructType(type.reifiedType))
+    override fun read(type: TypeInfo, body: Input): Any {
+        return backend.readValue(body.readText(), backend.typeFactory.constructType(type.reifiedType))
     }
 }

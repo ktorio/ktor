@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType", "MayBeConstant")
@@ -113,12 +117,7 @@ object HttpHeaders {
      */
     fun isUnsafe(header: String): Boolean = UnsafeHeaders.any { it.equals(header, ignoreCase = true) }
 
-    val UnsafeHeaders: Array<String> = arrayOf(
-        HttpHeaders.ContentLength,
-        HttpHeaders.ContentType,
-        HttpHeaders.TransferEncoding,
-        HttpHeaders.Upgrade
-    )
+    val UnsafeHeaders: Array<String> = arrayOf(ContentLength, ContentType, TransferEncoding, Upgrade)
 }
 
 /**

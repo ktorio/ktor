@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.cio
 
 import io.ktor.config.*
@@ -5,11 +9,11 @@ import io.ktor.server.engine.*
 import java.util.concurrent.*
 
 /**
- * Default development engine with main function that starts CIO engine using application.conf
+ * Default engine with main function that starts CIO engine using application.conf
  */
 object EngineMain {
     /**
-     * CIO development engine entry point
+     * CIO engine entry point
      */
     @JvmStatic
     fun main(args: Array<String>) {
