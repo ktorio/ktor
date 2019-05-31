@@ -163,16 +163,6 @@ sealed class SocketOptions(
     }
 
     companion object {
-        /**
-         * Default socket options
-         */
-        @Deprecated(
-            "Not supported anymore", level = DeprecationLevel.ERROR,
-            replaceWith = ReplaceWith("TODO(\"Not supported anymore\")")
-        )
-        val Empty: SocketOptions
-            get() = TODO("Not supported anymore")
-
         internal fun create(): SocketOptions = GeneralSocketOptions(HashMap())
     }
 }

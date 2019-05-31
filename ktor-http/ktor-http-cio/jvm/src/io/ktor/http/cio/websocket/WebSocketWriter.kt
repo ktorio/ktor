@@ -27,22 +27,6 @@ class WebSocketWriter(
     val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
-    @Deprecated(
-        "Specify parent through coroutineContext",
-        replaceWith = ReplaceWith("WebSocketWriter(writeChannel, coroutineContext, masking, pool)"),
-        level = DeprecationLevel.ERROR
-    )
-    constructor(
-        writeChannel: ByteWriteChannel,
-        parent: Job?,
-        coroutineContext: CoroutineContext,
-        masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-    ) : this(
-        writeChannel,
-        coroutineContext + (parent ?: Dispatchers.Unconfined),
-        masking, pool
-    )
-
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
         pool.useInstance { writeLoop(it) }

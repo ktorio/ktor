@@ -45,10 +45,12 @@ suspend fun <T> Future<T>.suspendWriteAwait(): T {
  */
 suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {
     @Suppress("BlockingMethodInNonBlockingContext")
-    if (isDone) return try {
-        get()
-    } catch (t: Throwable) {
-        throw t.unwrap()
+    if (isDone) {
+        try {
+            return get()
+        } catch (t: Throwable) {
+            throw t.unwrap()
+        }
     }
 
     return suspendCancellableCoroutine { continuation ->

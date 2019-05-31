@@ -30,7 +30,7 @@ enum class OAuthVersion {
  * a signature. It is important that it should be a way to verify state. So all states need to be saved somehow or
  * a state need to be a signed set of parameters that could be verified later
  */
-@Deprecated("Use NonceManager instead")
+@Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
 interface OAuth2StateProvider {
     /**
      * Generates a new state for given [call]
@@ -46,8 +46,8 @@ interface OAuth2StateProvider {
 /**
  * The default state provider that does generate random nonce and don't keep them
  */
-@Suppress("DEPRECATION")
-@Deprecated("Use NonceManager instead")
+@Suppress("DEPRECATION_ERROR")
+@Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
 object DefaultOAuth2StateProvider : OAuth2StateProvider {
     override suspend fun getState(call: ApplicationCall): String {
         return generateNonce()
@@ -57,7 +57,7 @@ object DefaultOAuth2StateProvider : OAuth2StateProvider {
     }
 }
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 @Deprecated("This need to be removed with OAuth2StateProvider")
 private fun NonceManager.asOauthStateProvider(): OAuth2StateProvider = object : OAuth2StateProvider {
     override suspend fun getState(call: ApplicationCall): String {
@@ -122,8 +122,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
 
         val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        @Suppress("DEPRECATION")
-        @Deprecated("Use nonceManager instead")
+        @Suppress("DEPRECATION_ERROR")
+        @Deprecated("Use nonceManager instead", level = DeprecationLevel.ERROR)
         val stateProvider: OAuth2StateProvider = nonceManager.asOauthStateProvider(),
 
         val authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
@@ -156,8 +156,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
             authorizeUrlInterceptor
         )
 
-        @Suppress("DEPRECATION")
-        @Deprecated("Use NonceManager instead")
+        @Suppress("DEPRECATION_ERROR", "unused")
+        @Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
         constructor(
             name: String,
             authorizeUrl: String,
@@ -282,7 +282,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(
                 provider, callbackUrl,
-                @Suppress("DEPRECATION") provider.stateProvider.getState(call),
+                @Suppress("DEPRECATION_ERROR") provider.stateProvider.getState(call),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor
             )

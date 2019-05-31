@@ -9,24 +9,10 @@ import kotlinx.coroutines.*
 import kotlinx.io.pool.*
 import java.nio.*
 
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated(
-    "Binary compatibility",
-    level = DeprecationLevel.HIDDEN
-)
-val HTTP_CLIENT_THREAD_COUNT: Int = 2
-
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated(
-    "Binary compatibility",
-    level = DeprecationLevel.HIDDEN
-)
-val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher get() = Dispatchers.IO
-
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
-
+@InternalAPI
 val HttpClientDefaultPool = ByteBufferPool()
 
 @InternalAPI

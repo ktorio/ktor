@@ -46,7 +46,7 @@ object GenerateOnlyNonceManager : NonceManager {
  * Stub implementation that always fails.
  * Will be removed so no public signatures should rely on it
  */
-@Deprecated("This should be removed with OAuth2StateProvider")
+@Deprecated("This should be removed with OAuth2StateProvider", level = DeprecationLevel.ERROR)
 @InternalAPI
 object AlwaysFailNonceManager : NonceManager {
     override suspend fun newNonce(): String {

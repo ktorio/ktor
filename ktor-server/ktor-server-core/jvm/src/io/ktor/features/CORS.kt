@@ -48,12 +48,6 @@ class CORS(configuration: Configuration) {
     /**
      * Set of all allowed headers
      */
-    @Deprecated("Use allHeadersSet instead", ReplaceWith("allHeadersSet"), level = DeprecationLevel.ERROR)
-    val headers: Set<String> get() = allHeadersSet
-
-    /**
-     * Set of all allowed headers
-     */
     val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCase() }.toSet()
 
     private val headersListHeaderValue = allHeaders.sorted().joinToString(", ")

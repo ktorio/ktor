@@ -13,8 +13,8 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.io.*
 
-@Deprecated("This is going to become private", level = DeprecationLevel.ERROR)
-@Suppress("KDocMissingDocumentation")
+@Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
+@Suppress("KDocMissingDocumentation", "unused")
 fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return isLastHttpRequest(http11, connectionOptions)
 }

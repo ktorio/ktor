@@ -23,7 +23,7 @@ import kotlin.coroutines.intrinsics.*
 @KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     @Suppress("DEPRECATION_ERROR")
-    private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
+    private val dispatcherThreadGroup = ThreadGroup("io-pool-group-sub")
 
     private val tasks = LockFreeLinkedListHead()
 
