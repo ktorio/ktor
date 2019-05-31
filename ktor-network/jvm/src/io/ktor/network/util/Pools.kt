@@ -10,16 +10,14 @@ import kotlinx.coroutines.*
 import kotlinx.io.pool.*
 import java.nio.*
 
-@Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
-@Deprecated("This is going to be removed", level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")
+@Deprecated("This is going to be removed", level = DeprecationLevel.HIDDEN)
 val ioThreadGroup = ThreadGroup("io-pool-group")
-
-private val cpuCount = Runtime.getRuntime().availableProcessors()
 
 /**
  * The default I/O coroutine dispatcher
  */
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "unused")
 @Deprecated(
     "Use Dispatchers.IO instead for both blocking and non-blocking I/O",
     replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers"),

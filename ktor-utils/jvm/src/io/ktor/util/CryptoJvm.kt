@@ -65,23 +65,19 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
 /**
  * Encode string as UTF-8 bytes
  */
-@KtorExperimentalAPI
+@Suppress("unused")
 @Deprecated(
     "Will be removed in future releases",
     ReplaceWith("s.toByteArray(Charsets.UTF_8)"),
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.HIDDEN
 )
 fun raw(s: String): ByteArray = s.toByteArray(Charsets.UTF_8)
-
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use generateNonce() instead", level = DeprecationLevel.ERROR)
-val nonceRandom: Random by lazy { SecureRandom() }
 
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
-@KtorExperimentalAPI
-@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"), level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"), level = DeprecationLevel.HIDDEN)
 fun nextNonce(): String = generateNonce()
 
 /**

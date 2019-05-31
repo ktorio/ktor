@@ -11,6 +11,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.openjdk.jmh.annotations.*
+import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
 @State(Scope.Benchmark)
@@ -33,13 +34,18 @@ class BaselinePipeline {
 }
 
 private fun <T> runAndEnsureNoSuspensions(block: suspend () -> T): T {
-    @Suppress("DEPRECATION")
     val result = block.startCoroutineUninterceptedOrReturn(NoopContinuation)
     if (result == COROUTINE_SUSPENDED) {
         throw IllegalStateException("function passed to runAndEnsureNoSuspensions suspended")
     }
     @Suppress("UNCHECKED_CAST")
     return result as T
+}
+
+private object NoopContinuation : Continuation<Any?> {
+    override fun resumeWith(result: Result<Any?>) {}
+
+    override val context: CoroutineContext = Dispatchers.Unconfined
 }
 
 @State(Scope.Benchmark)

@@ -113,11 +113,10 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun generateNonce (I)[B
 	public static final fun getDigestFunction (Ljava/lang/String;Ljava/lang/String;)Lkotlin/jvm/functions/Function1;
 	public static final fun getDigestFunction (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
-	public static final fun getNonceRandom ()Ljava/util/Random;
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;
-	public static final fun nextNonce ()Ljava/lang/String;
-	public static final fun raw (Ljava/lang/String;)[B
+	public static final synthetic fun nextNonce ()Ljava/lang/String;
+	public static final synthetic fun raw (Ljava/lang/String;)[B
 	public static final fun sha1 ([B)[B
 }
 
@@ -227,7 +226,7 @@ public final class io/ktor/util/RangesKt {
 }
 
 public final class io/ktor/util/ReflectionKt {
-	public static final fun findAllSupertypes (Ljava/lang/Class;)Ljava/util/List;
+	public static final synthetic fun findAllSupertypes (Ljava/lang/Class;)Ljava/util/List;
 }
 
 public final class io/ktor/util/StatelessHmacNonceManager : io/ktor/util/NonceManager {
@@ -419,11 +418,9 @@ public final class io/ktor/util/cio/OutputStreamAdaptersKt {
 
 public final class io/ktor/util/cio/ReadersKt {
 	public static final fun pass (Lkotlinx/coroutines/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final synthetic fun pass (Lkotlinx/coroutines/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun toByteArray (Lkotlinx/coroutines/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun toByteArray$default (Lkotlinx/coroutines/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun use (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
-	public static final synthetic fun use (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/cio/Semaphore {

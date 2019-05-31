@@ -7,8 +7,8 @@ package io.ktor.util.cio
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Will become private", level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 object NoopContinuation : Continuation<Any?> {
     override fun resumeWith(result: Result<Any?>) {}
 

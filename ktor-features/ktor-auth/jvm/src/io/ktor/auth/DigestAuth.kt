@@ -63,7 +63,7 @@ class DigestAuthenticationProvider internal constructor(
          * Message digest algorithm to be used
          */
         @Suppress("unused")
-        @Deprecated("Specify algorithm name instead")
+        @Deprecated("Specify algorithm name instead", level = DeprecationLevel.ERROR)
         var digester: MessageDigest
             get() = MessageDigest.getInstance(algorithmName)
             set(newValue) {

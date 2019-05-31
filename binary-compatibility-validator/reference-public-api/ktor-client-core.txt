@@ -868,8 +868,6 @@ public final class io/ktor/client/utils/ByteBufferPool : kotlinx/io/pool/Default
 }
 
 public final class io/ktor/client/utils/CIOJvmKt {
-	public static final synthetic fun getHTTP_CLIENT_DEFAULT_DISPATCHER ()Lkotlinx/coroutines/CoroutineDispatcher;
-	public static final synthetic fun getHTTP_CLIENT_THREAD_COUNT ()I
 	public static final fun getHttpClientDefaultPool ()Lio/ktor/client/utils/ByteBufferPool;
 }
 

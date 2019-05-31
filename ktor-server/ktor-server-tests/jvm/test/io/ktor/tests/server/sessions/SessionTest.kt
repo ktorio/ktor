@@ -109,7 +109,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     transform(SessionTransportTransformerDigest())
                 }
             }
@@ -489,7 +489,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     identity { (id++).toString() }
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     transform(SessionTransportTransformerDigest(algorithm = "SHA-256"))
                 }
             }
@@ -542,7 +542,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<EmptySession>("EMPTY")
                 header<TestUserSession>(cookieName, sessionStorage) {
-                    @Suppress("DEPRECATION")
+                    @Suppress("DEPRECATION_ERROR")
                     transform(SessionTransportTransformerDigest())
                 }
             }

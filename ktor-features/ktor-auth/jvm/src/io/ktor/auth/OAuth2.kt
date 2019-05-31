@@ -34,7 +34,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val token = call.oauth2HandleCallback()
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
-            @Suppress("DEPRECATION")
+            @Suppress("DEPRECATION_ERROR")
             val stateProvider = provider.stateProvider
 
             call.redirectAuthenticateOAuth2(
@@ -50,7 +50,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
                     Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
-                    val stateProvider = @Suppress("DEPRECATION") provider.stateProvider
+                    val stateProvider = @Suppress("DEPRECATION_ERROR") provider.stateProvider
                     call.redirectAuthenticateOAuth2(
                         provider, callbackRedirectUrl,
                         state = stateProvider.getState(call),
@@ -112,7 +112,7 @@ internal suspend fun oauth2RequestAccessToken(
         extraParameters,
         configure,
         settings.accessTokenRequiresBasicAuth,
-        @Suppress("DEPRECATION") settings.stateProvider
+        @Suppress("DEPRECATION_ERROR") settings.stateProvider
     )
 }
 
@@ -157,7 +157,7 @@ private suspend fun oauth2RequestAccessToken(
     extraParameters: Map<String, String> = emptyMap(),
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
@@ -308,7 +308,7 @@ suspend fun verifyWithOAuth2(
             OAuth2RequestParameters.Password to credential.password
         ),
         useBasicAuth = true,
-        stateProvider = @Suppress("DEPRECATION") settings.stateProvider,
+        stateProvider = @Suppress("DEPRECATION_ERROR") settings.stateProvider,
         grantType = OAuthGrantTypes.Password
     )
 }

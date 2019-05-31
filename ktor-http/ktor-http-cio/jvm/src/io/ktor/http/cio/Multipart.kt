@@ -68,9 +68,9 @@ sealed class MultipartEvent {
     }
 }
 
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "unused")
 @Deprecated("Simply copy required number of bytes from input to output instead",
-    level = DeprecationLevel.ERROR)
+    level = DeprecationLevel.HIDDEN)
 suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
     input.copyTo(out, length)
@@ -195,7 +195,7 @@ fun expectMultipart(headers: HttpHeadersMap): Boolean {
 }
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
-@Deprecated("Specify CoroutineScope explicitly", level = DeprecationLevel.ERROR)
+@Deprecated("Specify CoroutineScope explicitly", level = DeprecationLevel.HIDDEN)
 fun parseMultipart(
     coroutineContext: CoroutineContext,
     input: ByteReadChannel,
@@ -217,7 +217,7 @@ fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMa
 }
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
-@Deprecated("Specify coroutine scope explicitly", level = DeprecationLevel.ERROR)
+@Deprecated("Specify coroutine scope explicitly", level = DeprecationLevel.HIDDEN)
 fun parseMultipart(
     coroutineContext: CoroutineContext,
     input: ByteReadChannel,
@@ -248,7 +248,7 @@ private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
 @Suppress("KDocMissingDocumentation", "unused", "DeprecatedCallableAddReplaceWith")
-@Deprecated("Use parseMultipart with coroutine scope specified", level = DeprecationLevel.ERROR)
+@Deprecated("Use parseMultipart with coroutine scope specified", level = DeprecationLevel.HIDDEN)
 fun parseMultipart(
     coroutineContext: CoroutineContext,
     boundaryPrefixed: ByteBuffer,

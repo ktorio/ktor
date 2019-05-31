@@ -42,15 +42,15 @@ data class HttpServerSettings(
     val connectionIdleTimeoutSeconds: Long = 45
 )
 
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Use httpServer with CoroutineScope receiver", level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
     val parent = parentJob ?: Dispatchers.Default
     return CoroutineScope(parent).httpServer(settings, handler = handler)
 }
 
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Use httpServer with CoroutineScope receiver", level = DeprecationLevel.ERROR)
+@Suppress("KDocMissingDocumentation", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun httpServer(
     settings: HttpServerSettings,
     parentJob: Job? = null,
@@ -61,8 +61,8 @@ fun httpServer(
         throw UnsupportedOperationException()
     }
 
-    @Suppress("DEPRECATION_ERROR")
-    return httpServer(settings, parentJob, handler)
+    val parent = parentJob ?: Dispatchers.Default
+    return CoroutineScope(parent).httpServer(settings, handler = handler)
 }
 
 /**

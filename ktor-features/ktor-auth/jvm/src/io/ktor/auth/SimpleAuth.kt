@@ -28,8 +28,7 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
  */
 @KtorExperimentalAPI
 class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
-
-    // shortcut for tests
+    @Suppress("unused")
     @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.ERROR)
     constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
 

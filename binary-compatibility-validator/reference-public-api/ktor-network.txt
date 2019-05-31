@@ -223,7 +223,6 @@ public final class io/ktor/network/sockets/SocketOptions$AcceptorOptions : io/kt
 }
 
 public final class io/ktor/network/sockets/SocketOptions$Companion {
-	public final fun getEmpty ()Lio/ktor/network/sockets/SocketOptions;
 }
 
 public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/network/sockets/SocketOptions {
@@ -321,6 +320,6 @@ public final class io/ktor/network/util/IOCoroutineDispatcher : kotlinx/coroutin
 public final class io/ktor/network/util/PoolsKt {
 	public static final fun getDefaultDatagramByteBufferPool ()Lkotlinx/io/pool/ObjectPool;
 	public static final fun getIoCoroutineDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
-	public static final fun getIoThreadGroup ()Ljava/lang/ThreadGroup;
+	public static final synthetic fun getIoThreadGroup ()Ljava/lang/ThreadGroup;
 }
 

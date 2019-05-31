@@ -19,7 +19,8 @@ private const val delimiter = '/'
  */
 @Deprecated(
     "This authentication kind is potentially vulnerable with several hash functions." +
-        " Use SessionTransportTransformerMessageAuthentication instead or ensure you are using secure enough hash."
+        " Use SessionTransportTransformerMessageAuthentication instead or ensure you are using secure enough hash.",
+    level = DeprecationLevel.ERROR
 )
 class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-384") :
     SessionTransportTransformer {
