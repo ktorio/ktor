@@ -4,7 +4,9 @@
 
 package io.ktor.server.tomcat
 
+import io.ktor.config.*
 import io.ktor.server.engine.*
+import java.util.concurrent.*
 
 /**
  * Tomcat engine
@@ -17,7 +19,18 @@ object EngineMain {
     @JvmStatic
     fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
-        TomcatApplicationEngine(applicationEnvironment, {}).start(true)
+        val engine = TomcatApplicationEngine(applicationEnvironment) {
+            loadConfiguration(applicationEnvironment.config)
+        }
+        engine.addShutdownHook {
+            engine.stop(3, 5, TimeUnit.SECONDS)
+        }
+        engine.start(true)
+    }
+
+    private fun TomcatApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+        val deploymentConfig = config.config("ktor.deployment")
+        loadCommonConfiguration(deploymentConfig)
     }
 }
 

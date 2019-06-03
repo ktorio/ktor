@@ -18,12 +18,10 @@ object EngineMain {
     @JvmStatic
     fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
-        val engine = CIOApplicationEngine(applicationEnvironment, { loadConfiguration(applicationEnvironment.config) })
-        Runtime.getRuntime().addShutdownHook(object : Thread() {
-            override fun run() {
-                engine.stop(3, 5, TimeUnit.SECONDS)
-            }
-        })
+        val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
+        engine.addShutdownHook {
+            engine.stop(3, 5, TimeUnit.SECONDS)
+        }
         engine.start(true)
     }
 

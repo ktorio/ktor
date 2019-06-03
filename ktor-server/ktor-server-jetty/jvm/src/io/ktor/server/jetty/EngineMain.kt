@@ -6,6 +6,7 @@ package io.ktor.server.jetty
 
 import io.ktor.config.*
 import io.ktor.server.engine.*
+import java.util.concurrent.*
 
 /**
  * Jetty engine
@@ -18,7 +19,11 @@ object EngineMain {
     @JvmStatic
     fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
-        JettyApplicationEngine(applicationEnvironment, { loadConfiguration(applicationEnvironment.config) }).start()
+        val engine = JettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
+        engine.addShutdownHook {
+            engine.stop(3, 5, TimeUnit.SECONDS)
+        }
+        engine.start(true)
     }
 
     private fun JettyApplicationEngineBase.Configuration.loadConfiguration(config: ApplicationConfig) {

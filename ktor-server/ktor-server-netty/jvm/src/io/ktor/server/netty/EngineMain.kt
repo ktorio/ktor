@@ -6,6 +6,7 @@ package io.ktor.server.netty
 
 import io.ktor.config.*
 import io.ktor.server.engine.*
+import java.util.concurrent.*
 
 /**
  * Netty engine
@@ -18,7 +19,11 @@ object EngineMain {
     @JvmStatic
     fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
-        NettyApplicationEngine(applicationEnvironment, { loadConfiguration(applicationEnvironment.config) }).start()
+        val engine = NettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
+        engine.addShutdownHook {
+            engine.stop(3, 5, TimeUnit.SECONDS)
+        }
+        engine.start(true)
     }
 
     private fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
