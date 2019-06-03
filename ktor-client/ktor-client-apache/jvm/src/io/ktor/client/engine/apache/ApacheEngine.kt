@@ -6,6 +6,7 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import kotlinx.coroutines.*
 import org.apache.http.impl.nio.client.*
 import org.apache.http.impl.nio.reactor.*
 
@@ -24,9 +25,8 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
 
     override fun close() {
         super.close()
-        try {
+        coroutineContext[Job]?.invokeOnCompletion {
             engine.close()
-        } catch (_: Throwable) {
         }
     }
 
