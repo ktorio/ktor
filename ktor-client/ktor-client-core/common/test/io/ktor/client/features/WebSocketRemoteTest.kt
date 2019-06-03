@@ -1,10 +1,10 @@
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-package io.ktor.client.features.websocket
+package io.ktor.client.features
 
 import io.ktor.client.features.logging.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.io.core.*
