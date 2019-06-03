@@ -35,6 +35,8 @@ internal class JettyHttp2Engine(
 
     override fun close() {
         super.close()
-        jettyClient.stop()
+        coroutineContext[Job]?.invokeOnCompletion {
+            jettyClient.stop()
+        }
     }
 }
