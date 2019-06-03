@@ -18,6 +18,7 @@ internal class JettyHttp2Engine(
 
         executor = QueuedThreadPool().apply {
             name = "ktor-jetty-client-qtp"
+            isDaemon = config.daemon
         }
 
         start()

@@ -18,9 +18,11 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     abstract override val config: HttpClientJvmEngineConfig
 
     private val clientContext = SupervisorJob()
-    private val _dispatcher by lazy {
+    protected val executorService: ExecutorService by lazy {
         Executors.newFixedThreadPool(config.threadsCount, KtorThreadFactory(config.daemon))
-            .asCoroutineDispatcher()
+    }
+    private val _dispatcher by lazy {
+        executorService.asCoroutineDispatcher()
     }
 
     @UseExperimental(InternalCoroutinesApi::class)
@@ -45,7 +47,7 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
         }
     }
 
-    private class KtorThreadFactory(private val daemon: Boolean) : ThreadFactory {
+    protected class KtorThreadFactory(private val daemon: Boolean) : ThreadFactory {
         private val group = System.getSecurityManager()?.threadGroup ?: Thread.currentThread().threadGroup
         private val namePrefix = "ktor-${poolNumber.getAndIncrement()}-thread-"
         private val threadNumber = atomic(1)
