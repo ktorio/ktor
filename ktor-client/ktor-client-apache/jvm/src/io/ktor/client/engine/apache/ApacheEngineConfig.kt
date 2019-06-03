@@ -12,7 +12,7 @@ import javax.net.ssl.*
 /**
  * Configuration for [Apache] implementation of [HttpClientEngineFactory].
  */
-class ApacheEngineConfig : HttpClientEngineConfig() {
+class ApacheEngineConfig : HttpClientJvmEngineConfig() {
     /**
      * Whether or not, it will follow `Location` headers. `false` by default.
      * It uses the default number of redirects defined by Apache's HttpClient that is 50.

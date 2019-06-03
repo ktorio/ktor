@@ -10,7 +10,7 @@ import okhttp3.*
 /**
  * Configuration for [OkHttp] client engine.
  */
-class OkHttpConfig : HttpClientEngineConfig() {
+class OkHttpConfig : HttpClientJvmEngineConfig() {
 
     internal var config: OkHttpClient.Builder.() -> Unit = {}
 

@@ -11,7 +11,7 @@ import org.eclipse.jetty.util.ssl.*
 /**
  * Configuration for [Jetty] implementation of [HttpClientEngineFactory].
  */
-class JettyEngineConfig : HttpClientEngineConfig() {
+class JettyEngineConfig : HttpClientJvmEngineConfig() {
     /**
      * A Jetty's [SslContextFactory]. By default it trusts all the certificates.
      */

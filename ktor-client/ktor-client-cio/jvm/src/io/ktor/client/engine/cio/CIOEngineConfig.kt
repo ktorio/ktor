@@ -10,7 +10,7 @@ import io.ktor.network.tls.*
 /**
  * Configuration for [CIO] client engine.
  */
-class CIOEngineConfig : HttpClientEngineConfig() {
+class CIOEngineConfig : HttpClientJvmEngineConfig() {
     /**
      * [Endpoint] settings.
      */

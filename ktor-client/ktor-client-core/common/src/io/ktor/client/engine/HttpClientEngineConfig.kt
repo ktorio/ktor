@@ -28,12 +28,6 @@ open class HttpClientEngineConfig {
         }
 
     /**
-     * Network threads count advice.
-     */
-    @KtorExperimentalAPI
-    var threadsCount: Int = 4
-
-    /**
      * Enable http pipelining advice.
      */
     @KtorExperimentalAPI

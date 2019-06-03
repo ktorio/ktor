@@ -4,7 +4,9 @@
 
 package io.ktor.client.engine
 
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
@@ -13,9 +15,12 @@ import kotlin.coroutines.*
  */
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
+    abstract override val config: HttpClientJvmEngineConfig
+
     private val clientContext = SupervisorJob()
     private val _dispatcher by lazy {
-        Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher()
+        Executors.newFixedThreadPool(config.threadsCount, KtorThreadFactory(config.daemon))
+            .asCoroutineDispatcher()
     }
 
     @UseExperimental(InternalCoroutinesApi::class)
@@ -37,6 +42,23 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
 
         clientContext.invokeOnCompletion {
             _dispatcher.close()
+        }
+    }
+
+    private class KtorThreadFactory(private val daemon: Boolean) : ThreadFactory {
+        private val group = System.getSecurityManager()?.threadGroup ?: Thread.currentThread().threadGroup
+        private val namePrefix = "ktor-${poolNumber.getAndIncrement()}-thread-"
+        private val threadNumber = atomic(1)
+
+        override fun newThread(r: Runnable): Thread {
+            val thread = Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0)
+            thread.isDaemon = daemon
+            thread.priority = Thread.NORM_PRIORITY
+            return thread
+        }
+
+        companion object {
+            private val poolNumber = atomic(1)
         }
     }
 }

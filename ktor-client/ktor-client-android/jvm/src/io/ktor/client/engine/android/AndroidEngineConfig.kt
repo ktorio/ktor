@@ -12,7 +12,7 @@ import javax.net.ssl.*
 /**
  * Configuration for [Android] client engine.
  */
-class AndroidEngineConfig : HttpClientEngineConfig() {
+class AndroidEngineConfig : HttpClientJvmEngineConfig() {
     /**
      * Max milliseconds to establish an HTTP connection - default 10 seconds.
      * A value of 0 represents infinite.
