@@ -44,15 +44,25 @@ class MockEngine(
         if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
         val handler = config.requestHandlers[invocationCount]
 
+        val builder = HttpRequestBuilder()
+        with(builder) {
+            url(data.url)
+            method = data.method
+            body = data.body
+            mergeHeaders(data.headers, data.body) { key, value ->
+                headers.append(key, value)
+            }
+        }
+        val engineRequest = builder.build()
+
         invocationCount += 1
         if (config.reuseHandlers) {
             invocationCount %= config.requestHandlers.size
         }
 
+        val response = handler(engineRequest)
 
-        val response = handler(data)
-
-        _requestsHistory.add(data)
+        _requestsHistory.add(engineRequest)
         _responseHistory.add(response)
 
         return response

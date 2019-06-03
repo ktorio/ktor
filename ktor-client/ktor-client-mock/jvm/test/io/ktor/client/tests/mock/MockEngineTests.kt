@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -60,6 +61,23 @@ class MockEngineTests {
             assertEquals("Bad Request", response.readText())
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
+    }
+
+    @Test
+    fun testRequestContentType() = testBlocking {
+        var actualContentType: String? = null
+        val client = HttpClient(MockEngine { request ->
+            actualContentType = request.headers[HttpHeaders.ContentType]
+            respondOk("${request.url}")
+        })
+
+        val formDataContent = FormDataContent(Parameters.build { append("myKey", "myValue") })
+        client.post<String> {
+            url("http://127.0.0.1/formdata-content")
+            body = formDataContent
+        }
+
+        assertEquals(actualContentType, formDataContent.contentType.toString())
     }
 
     @Serializable
