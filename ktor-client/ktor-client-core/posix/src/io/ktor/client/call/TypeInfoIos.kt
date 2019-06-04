@@ -4,6 +4,8 @@
 
 package io.ktor.client.call
 
+import kotlin.reflect.*
+
 
 actual interface Type
 
@@ -16,3 +18,8 @@ actual inline fun <reified T> typeInfo(): TypeInfo {
     val kClass = T::class
     return TypeInfo(kClass, IosType)
 }
+
+/**
+ * Check [this] is instance of [type].
+ */
+internal actual fun Any.instanceOf(type: KClass<*>): Boolean = type.isInstance(this)

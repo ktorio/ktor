@@ -22,3 +22,8 @@ data class TypeInfo(val type: KClass<*>, val reifiedType: Type)
  * Returns [TypeInfo] for the specified type [T]
  */
 expect inline fun <reified T> typeInfo(): TypeInfo
+
+/**
+ * Check [this] is instance of [type].
+ */
+internal expect fun Any.instanceOf(type: KClass<*>): Boolean
