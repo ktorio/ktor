@@ -306,6 +306,16 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwkInvalidTokenCustomChallenge() {
+        withApplication {
+            application.configureServerJwk(mock = true, challenge = true)
+            val token = "Bearer wrong"
+            val response = handleRequestWithToken(token)
+            verifyResponseForbidden(response)
+        }
+    }
+
+    @Test
     fun verifyWithMock() {
         val token = getJwkToken(prefix = false)
         val provider = getJwkProviderMock()
@@ -360,6 +370,12 @@ class JWTAuthTest {
         assertNull(response.response.content)
     }
 
+    private fun verifyResponseForbidden(response: TestApplicationCall) {
+        assertTrue(response.requestHandled)
+        assertEquals(HttpStatusCode.Forbidden, response.response.status())
+        assertNull(response.response.content)
+    }
+
     private fun TestApplicationEngine.handleRequestWithToken(token: String): TestApplicationCall {
         return handleRequest {
             uri = "/"
@@ -367,7 +383,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwk(mock: Boolean = false) = configureServer {
+    private fun Application.configureServerJwk(mock: Boolean = false, challenge: Boolean = false) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             verifier(if (mock) getJwkProviderMock() else makeJwkProvider(), issuer)
@@ -377,7 +393,18 @@ class JWTAuthTest {
                     else -> null
                 }
             }
-
+            if (challenge) {
+                challenge { defaultScheme, realm ->
+                    call.respond(
+                        ForbiddenResponse(
+                            HttpAuthHeader.Parameterized(
+                                defaultScheme,
+                                mapOf(HttpAuthHeader.Parameters.Realm to realm)
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.sessions.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlin.reflect.*
 
 /**
@@ -23,7 +24,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     val type: KClass<T> = config.type
 
     @PublishedApi
-    internal val challenge: SessionAuthChallenge<T> = config.challenge
+    internal val challenge: SessionAuthChallengeFunction<T> = config.challengeFunction
 
     @PublishedApi
     internal val validator: AuthenticationFunction<T> = config.validator
@@ -37,10 +38,49 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     ) : AuthenticationProvider.Configuration(name) {
         internal var validator: AuthenticationFunction<T> = UninitializedValidator
 
+        internal var challengeFunction: SessionAuthChallengeFunction<T> = {
+        }
+
+        @Suppress("DEPRECATION")
+        private var _challenge: SessionAuthChallenge<T>? = SessionAuthChallenge.Ignore
+
         /**
          * A response to send back if authentication failed
          */
-        var challenge: SessionAuthChallenge<T> = SessionAuthChallenge.Default
+        @Suppress("DEPRECATION")
+        @Deprecated("Use challenge() instead.")
+        var challenge: SessionAuthChallenge<T>
+            get() = _challenge ?: error("Challenge is already configured via challenge {} function.")
+            set(value) {
+                _challenge = value
+                challengeFunction = {
+                    sessionAuthChallengeCompatibility(value, it)
+                }
+            }
+
+        /**
+         * A response to send back if authentication failed
+         */
+        fun challenge(block: SessionAuthChallengeFunction<T>) {
+            _challenge = null
+            challengeFunction = block
+        }
+
+        /**
+         * A response to send back if authentication failed
+         */
+        fun challenge(redirectUrl: String) {
+            challenge {
+                call.respondRedirect(redirectUrl)
+            }
+        }
+
+        /**
+         * A response to send back if authentication failed
+         */
+        fun challenge(redirect: Url) {
+            challenge(redirect.toString())
+        }
 
         /**
          * Sets a validation function that will check given [T] session instance and return [Principal],
@@ -74,12 +114,27 @@ class SessionAuthenticationProvider<T : Any> private constructor(
  * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
  * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Configuration.validate] configuration
  */
+@Deprecated("Use session(name) { } instead specifying validate as well.",
+    replaceWith = ReplaceWith("session<T>(name) { validate { session -> session }\nthis.challenge { TODO(\"Implement your challenge\") }}"))
+@Suppress("DEPRECATION")
 inline fun <reified T : Principal> Authentication.Configuration.session(
     name: String? = null,
-    challenge: SessionAuthChallenge<T> = SessionAuthChallenge.Default
+    challenge: SessionAuthChallenge<T>
 ) {
     session<T>(name) {
         this.challenge = challenge
+        validate { session -> session }
+    }
+}
+
+/**
+ * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
+ * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Configuration.validate] configuration
+ */
+inline fun <reified T : Principal> Authentication.Configuration.session(
+    name: String? = null
+) {
+    session<T>(name) {
         validate { session -> session }
     }
 }
@@ -104,13 +159,12 @@ inline fun <reified T : Any> Authentication.Configuration.session(
             context.principal(principal)
         } else {
             val cause =
-                if (session == null) AuthenticationFailedCause.NoCredentials else AuthenticationFailedCause.InvalidCredentials
-            if (provider.challenge != SessionAuthChallenge.Ignore) {
-                context.challenge(SessionAuthChallengeKey, cause) {
-                    when (val challenge = provider.challenge) {
-                        is SessionAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
-                        is SessionAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, session))
-                    }
+                if (session == null) AuthenticationFailedCause.NoCredentials
+                else AuthenticationFailedCause.InvalidCredentials
+
+            context.challenge(SessionAuthChallengeKey, cause) {
+                provider.challenge(this, principal)
+                if (!it.completed && call.response.status() != null) {
                     it.complete()
                 }
             }
@@ -121,24 +175,34 @@ inline fun <reified T : Any> Authentication.Configuration.session(
 }
 
 /**
- * Specifies what to send back if form authentication fails.
+ * Specifies what to send back if session authentication fails.
  */
+typealias SessionAuthChallengeFunction<T> = suspend PipelineContext<*, ApplicationCall>.(T?) -> Unit
+
+/**
+ * Specifies what to send back if authentication fails.
+ */
+@Suppress("DEPRECATION")
+@Deprecated("Use challenge {} instead.")
 sealed class SessionAuthChallenge<in T : Any> {
     /**
      * Redirect to an URL provided by the given function.
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
+    @Deprecated("Use challenge {} instead.")
     class Redirect<in T : Any>(val url: ApplicationCall.(T?) -> String) : SessionAuthChallenge<T>()
 
     /**
      * Respond with [HttpStatusCode.Unauthorized].
      */
+    @Deprecated("Use challenge {} instead.")
     object Unauthorized : SessionAuthChallenge<Any>()
 
     /**
      * Does nothing so other authentication methods could provide their challenges.
      * This is the  default and recommended way
      */
+    @Deprecated("Use challenge {} instead.")
     object Ignore : SessionAuthChallenge<Any>()
 
     companion object {
@@ -146,6 +210,7 @@ sealed class SessionAuthChallenge<in T : Any> {
          * The default session auth challenge kind
          */
         @KtorExperimentalAPI
+        @Deprecated("Use challenge {} instead.")
         val Default: SessionAuthChallenge<Any> = Ignore
     }
 }
@@ -154,3 +219,15 @@ sealed class SessionAuthChallenge<in T : Any> {
  * A key used to register auth challenge
  */
 const val SessionAuthChallengeKey: String = "SessionAuth"
+
+@Suppress("DEPRECATION")
+private suspend fun <T : Any> PipelineContext<*, ApplicationCall>.sessionAuthChallengeCompatibility(
+    challenge: SessionAuthChallenge<T>,
+    session: T?
+) {
+    when (challenge) {
+        SessionAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
+        is SessionAuthChallenge.Redirect<T> -> call.respondRedirect(challenge.url(call, session))
+        SessionAuthChallenge.Ignore -> {}
+    }
+}

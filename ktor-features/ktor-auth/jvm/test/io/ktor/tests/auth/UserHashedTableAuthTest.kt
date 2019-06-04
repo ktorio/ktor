@@ -40,7 +40,7 @@ class UserHashedTableAuthTest {
         withTestApplication {
             application.install(Authentication) {
                 form {
-                    challenge = FormAuthChallenge.Redirect({ "/unauthorized" })
+                    challenge("/unauthorized")
                     validate { hashedUserTable.authenticate(it) }
                 }
                 form("checkOnly") {
