@@ -28,12 +28,6 @@ kotlin {
                     }
                 }
             }
-
-            compilations.test {
-                if (platform.name == "mingwX64") {
-                    linkerOpts "-LC:/msys64/mingw64/lib -LC:/Tools/msys64/mingw64/lib -lcurl"
-                }
-            }
         }
     }
 
