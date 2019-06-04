@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.sessions
 
 import io.ktor.util.*
@@ -29,7 +33,7 @@ import javax.crypto.spec.*
 class SessionTransportTransformerEncrypt(
     val encryptionKeySpec: SecretKeySpec,
     val signKeySpec: SecretKeySpec,
-    val ivGenerator: (size: Int) -> ByteArray = { size -> SecureRandom().generateSeed(size) },
+    val ivGenerator: (size: Int) -> ByteArray = { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
     val encryptAlgorithm: String = encryptionKeySpec.algorithm,
     val signAlgorithm: String = signKeySpec.algorithm
 ) : SessionTransportTransformer {
@@ -53,7 +57,7 @@ class SessionTransportTransformerEncrypt(
     constructor(
         encryptionKey: ByteArray,
         signKey: ByteArray,
-        ivGenerator: (size: Int) -> ByteArray = { size -> SecureRandom().generateSeed(size) },
+        ivGenerator: (size: Int) -> ByteArray = { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
         encryptAlgorithm: String = "AES",
         signAlgorithm: String = "HmacSHA256"
     ) : this(
@@ -64,10 +68,10 @@ class SessionTransportTransformerEncrypt(
 
     override fun transformRead(transportValue: String): String? {
         try {
-            val encrypedMac = transportValue.substringAfterLast('/', "")
+            val encryptedMac = transportValue.substringAfterLast('/', "")
             val iv = hex(transportValue.substringBeforeLast('/'))
-            val encrypted = hex(encrypedMac.substringBeforeLast(':'))
-            val macHex = encrypedMac.substringAfterLast(':', "")
+            val encrypted = hex(encryptedMac.substringBeforeLast(':'))
+            val macHex = encryptedMac.substringAfterLast(':', "")
             val decrypted = decrypt(iv, encrypted)
 
             if (hex(mac(decrypted)) != macHex) {

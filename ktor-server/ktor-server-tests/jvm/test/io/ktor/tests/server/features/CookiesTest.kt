@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
@@ -10,55 +14,62 @@ import java.text.*
 import java.time.*
 import java.time.format.*
 import kotlin.test.*
-import org.junit.Test as test
 
 class CookiesTest {
-    @test fun `simple cookies`() {
+    @Test
+    fun `simple cookies`() {
         withRawCookies("SESSION=123; HOST=abc") {
             assertEquals("123", cookies["SESSION"])
             assertEquals("abc", cookies["HOST"])
         }
     }
 
-    @test fun `old fashioned obsolete cookies syntax`() {
+    @Test
+    fun `old fashioned obsolete cookies syntax`() {
         withRawCookies("\$Version=1; SESSION=456; \$Path=/; HOST=def") {
             assertEquals("456", cookies["SESSION"])
             assertEquals("def", cookies["HOST"])
         }
     }
 
-    @test fun `missing space`() {
+    @Test
+    fun `missing space`() {
         withRawCookies("SESSION=456;\$Path=/; HOST=def") {
             assertEquals("456", cookies["SESSION"])
             assertEquals("def", cookies["HOST"])
         }
     }
 
-    @test fun `decode encoded cookies`() {
+    @Test
+    fun `decode encoded cookies`() {
         withRawCookies("SESSION=1+2") {
             assertEquals("1 2", cookies["SESSION"])
         }
     }
 
-    @test fun `decode dquotes encoded cookies`() {
+    @Test
+    fun `decode dquotes encoded cookies`() {
         withRawCookies("SESSION=\"1 2\"") {
             assertEquals("1 2", cookies["SESSION", CookieEncoding.DQUOTES])
         }
     }
 
-    @test fun `add cookies simple`() {
+    @Test
+    fun `add cookies simple`() {
         testSetCookies("SESSION=123") {
             cookies.append("SESSION", "123")
         }
     }
 
-    @test fun `add cookies with max age`() {
+    @Test
+    fun `add cookies with max age`() {
         testSetCookies("SESSION=123; Max-Age=7") {
             cookies.append("SESSION", "123", maxAge = 7)
         }
     }
 
-    @test fun `add cookies with expires`() {
+    @Test
+    fun `add cookies with expires`() {
         val date = LocalDate
             .parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd"))
             .atStartOfDay(ZoneId.of("GMT"))!!
@@ -69,7 +80,8 @@ class CookiesTest {
         }
     }
 
-    @test fun `add cookies old Date`() {
+    @Test
+    fun `add cookies old Date`() {
         val date = SimpleDateFormat("yyyyMMdd z")
             .parse("20150818 GMT")
         testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 00:00:00 GMT") {
@@ -77,7 +89,8 @@ class CookiesTest {
         }
     }
 
-    @test fun `add cookies with expires at specified time zone`() {
+    @Test
+    fun `add cookies with expires at specified time zone`() {
         val zoneId = ZoneId.ofOffset("UTC", ZoneOffset.ofHours(3))
         val date = LocalDate
             .parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd"))
@@ -88,37 +101,43 @@ class CookiesTest {
         }
     }
 
-    @test fun `add cookies with flags and extensions`() {
+    @Test
+    fun `add cookies with flags and extensions`() {
         testSetCookies("SESSION=123; Secure; Flag; Test=1") {
             cookies.append("SESSION", "123", secure = true, extensions = linkedMapOf("Flag" to null, "Test" to "1"))
         }
     }
 
-    @test fun `add cookies expired`() {
+    @Test
+    fun `add cookies expired`() {
         testSetCookies("SESSION=; Expires=Thu, 01 Jan 1970 00:00:00 GMT") {
             cookies.appendExpired("SESSION")
         }
     }
 
-    @test fun `add cookies bad characters`() {
+    @Test
+    fun `add cookies bad characters`() {
         testSetCookies("AB=1%3A2") {
             cookies.append("AB", "1:2")
         }
     }
 
-    @test fun `add cookies encoding simple no quotes`() {
+    @Test
+    fun `add cookies encoding simple no quotes`() {
         testSetCookies("A=1") {
             cookies.append("A", "1", encoding = CookieEncoding.DQUOTES)
         }
     }
 
-    @test fun `add cookies encoding simple with quotes`() {
+    @Test
+    fun `add cookies encoding simple with quotes`() {
         testSetCookies("A=\"1 2\"") {
             cookies.append("A", "1 2", encoding = CookieEncoding.DQUOTES)
         }
     }
 
-    @test fun `add cookie and get it`() {
+    @Test
+    fun `add cookie and get it`() {
         withTestApplicationResponse {
             cookies.append("key", "value")
 
@@ -127,7 +146,8 @@ class CookiesTest {
         }
     }
 
-    @test fun `add multiple cookies`() {
+    @Test
+    fun `add multiple cookies`() {
         withTestApplicationResponse {
             cookies.append("a", "1")
             cookies.append("b", "2")
@@ -136,7 +156,7 @@ class CookiesTest {
         }
     }
 
-    @test
+    @Test
     fun testSecureCookieHttp() {
         withTestApplication {
             application.routing {
@@ -152,7 +172,7 @@ class CookiesTest {
         }
     }
 
-    @test
+    @Test
     fun testSecureCookieHttps() {
         withTestApplication {
             application.routing {
@@ -194,16 +214,19 @@ class CookiesTest {
 }
 
 class DQuotesEncodingTest {
-    @test fun `no bad characters`() {
+    @Test
+    fun `no bad characters`() {
         testEncode("abc", "abc")
     }
 
-    @test fun `space inside`() {
+    @Test
+    fun `space inside`() {
         testEncode("\"abc 123\"", "abc 123")
     }
 
-    @test fun `equals inside`() {
-        testEncode("\"abc=123\"", "abc=123")
+    @Test
+    fun `equals inside`() {
+        testEncode("abc=123", "abc=123")
     }
 
     private fun testEncode(expected: String, value: String) {
@@ -214,15 +237,18 @@ class DQuotesEncodingTest {
 }
 
 class Base64EncodingTest {
-    @test fun `no bad characters`() {
+    @Test
+    fun `no bad characters`() {
         testEncode("YWJj", "abc")
     }
 
-    @test fun `space inside`() {
+    @Test
+    fun `space inside`() {
         testEncode("YWJjIDEyMw==", "abc 123")
     }
 
-    @test fun `equals inside`() {
+    @Test
+    fun `equals inside`() {
         testEncode("YWJjPTEyMw==", "abc=123")
     }
 
@@ -235,15 +261,18 @@ class Base64EncodingTest {
 }
 
 class URIEncodingTest {
-    @test fun `no bad characters`() {
+    @Test
+    fun `no bad characters`() {
         testEncode("abc", "abc")
     }
 
-    @test fun `space inside`() {
+    @Test
+    fun `space inside`() {
         testEncode("abc+123", "abc 123")
     }
 
-    @test fun `equals inside`() {
+    @Test
+    fun `equals inside`() {
         testEncode("abc%3D123", "abc=123")
     }
 
@@ -254,8 +283,18 @@ class URIEncodingTest {
     }
 }
 
+class RawCookieTest {
+    @Test
+    fun testRawEncodingWithEquals() {
+        val cookieValue = "my.value.key=my.value.value+my.value.id=5"
+        val encoded = encodeCookieValue(cookieValue, CookieEncoding.RAW)
+        assertEquals(cookieValue, encoded)
+    }
+}
+
 class ParserServerSetCookieTest {
-    @test fun testSimpleParse() {
+    @Test
+    fun testSimpleParse() {
         val header = "key=value; max-Age=999; \$extension=1; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
@@ -266,7 +305,8 @@ class ParserServerSetCookieTest {
         assertEquals(CookieEncoding.URI_ENCODING, parsed.encoding)
     }
 
-    @test fun testSimpleParseCustomEncoding() {
+    @Test
+    fun testSimpleParseCustomEncoding() {
         val header = "key=value; max-Age=999; \$extension=1; \$x-enc=RAW"
         val parsed = parseServerSetCookieHeader(header)
 
@@ -277,7 +317,8 @@ class ParserServerSetCookieTest {
         assertEquals(CookieEncoding.RAW, parsed.encoding)
     }
 
-    @test fun testSimpleParseMissingEncoding() {
+    @Test
+    fun testSimpleParseMissingEncoding() {
         val header = "key=value; max-Age=999; \$extension=1; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
@@ -288,7 +329,8 @@ class ParserServerSetCookieTest {
         assertEquals(CookieEncoding.URI_ENCODING, parsed.encoding)
     }
 
-    @test fun testSimpleParseVersionAtStart() {
+    @Test
+    fun testSimpleParseVersionAtStart() {
         val header = "\$Version=1; key=value; max-Age=999; \$extension=1; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
@@ -299,7 +341,8 @@ class ParserServerSetCookieTest {
         assertEquals(CookieEncoding.URI_ENCODING, parsed.encoding)
     }
 
-    @test fun testParseWithQuotes() {
+    @Test
+    fun testParseWithQuotes() {
         val header = "key=\"aaa; bbb = ccc\"; max-Age=999; \$extension=1; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
@@ -310,8 +353,10 @@ class ParserServerSetCookieTest {
         assertEquals(CookieEncoding.URI_ENCODING, parsed.encoding)
     }
 
-    @test fun testParseExpires() {
-        val header = "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
+    @Test
+    fun testParseExpires() {
+        val header =
+            "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
         val expires = parsed.expires
@@ -321,7 +366,8 @@ class ParserServerSetCookieTest {
         assertEquals(16, expires.dayOfMonth)
     }
 
-    @test fun testParseBase64() {
+    @Test
+    fun testParseBase64() {
         val header = "SESSION=MTIzCg==; \$x-enc=BASE64_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
         assertEquals("123\n", parsed.value)

@@ -1,14 +1,16 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.jetty.internal
 
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
-import java.lang.Runnable
-import java.nio.ByteBuffer
+import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -26,9 +28,10 @@ private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
-internal class EndPointReader(endpoint: EndPoint,
-                              override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel)
-    : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
+internal class EndPointReader(
+    endpoint: EndPoint,
+    override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel
+) : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
     private val currentHandler = AtomicReference<Continuation<Unit>>()
     private val buffer = JettyWebSocketPool.borrow()
 

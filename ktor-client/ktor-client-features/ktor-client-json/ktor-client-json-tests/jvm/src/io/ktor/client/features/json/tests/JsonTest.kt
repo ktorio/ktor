@@ -1,9 +1,15 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.json.tests
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.features.*
 import io.ktor.gson.*
@@ -17,6 +23,7 @@ import kotlinx.serialization.*
 import kotlin.test.*
 
 /** Base class for JSON tests. */
+@Suppress("KDocMissingDocumentation")
 abstract class JsonTest : TestWithKtor() {
     val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
     val users = listOf(
@@ -27,11 +34,14 @@ abstract class JsonTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         install(ContentNegotiation) {
             gson()
+            gson(customContentType)
         }
         routing {
             createRoutes(this)
         }
     }
+
+    val customContentType = ContentType.parse("application/x-json")
 
     protected open fun createRoutes(routing: Routing): Unit = with(routing) {
         post("/widget") {
@@ -42,6 +52,17 @@ abstract class JsonTest : TestWithKtor() {
         get("/users") {
             call.respond(Response(true, users))
         }
+        get("/users-x") { // route for testing custom content type, namely "application/x-json"
+            call.respond(Response(true, users))
+        }
+        post("/post-x") {
+            require(call.request.contentType().withoutParameters() == customContentType) {
+                "Request body content type should be $customContentType"
+            }
+
+            val requestPayload = call.receive<User>()
+            call.respondText(requestPayload.toString())
+        }
     }
 
     protected abstract val serializerImpl: JsonSerializer?
@@ -50,6 +71,15 @@ abstract class JsonTest : TestWithKtor() {
         config {
             install(JsonFeature) {
                 serializer = serializerImpl
+            }
+        }
+    }
+
+    private fun TestClientBuilder<*>.configCustomContentTypeClient(block: JsonFeature.Config.() -> Unit) {
+        config {
+            install(JsonFeature) {
+                serializer = serializerImpl
+                block()
             }
         }
     }
@@ -77,6 +107,94 @@ abstract class JsonTest : TestWithKtor() {
             assertTrue(result.ok)
             assertNotNull(result.result)
             assertEquals(users, result.result)
+        }
+    }
+
+    @Test
+    fun testCustomContentTypes() = clientTest(CIO) {
+        configCustomContentTypeClient {
+            acceptContentTypes = listOf(customContentType)
+        }
+
+        test { client ->
+            val result = client.get<Response<List<User>>>(path = "/users-x", port = serverPort)
+
+            assertTrue(result.ok)
+            assertNotNull(result.result)
+            assertEquals(users, result.result)
+        }
+
+        test { client ->
+            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+                val result = response.receive<Response<List<User>>>()
+
+                assertTrue(result.ok)
+                assertNotNull(result.result)
+                assertEquals(users, result.result)
+
+                assertEquals(customContentType, response.contentType()?.withoutParameters())
+            }
+        }
+
+        test { client ->
+            val payload = User("name1", 99)
+
+            val result = client.post<String>(path = "/post-x", port = serverPort) {
+                body = payload
+                contentType(customContentType)
+            }
+
+            assertEquals(payload.toString(), result)
+        }
+    }
+
+    @Test
+    fun testCustomContentTypesMultiple() = clientTest(CIO) {
+        configCustomContentTypeClient {
+            acceptContentTypes = listOf(ContentType.Application.Json, customContentType)
+        }
+
+        test { client ->
+            val payload = User("name2", 98)
+
+            val result = client.post<String>(path = "/post-x", port = serverPort) {
+                body = payload
+                contentType(customContentType)
+            }
+
+            assertEquals(payload.toString(), result)
+        }
+    }
+
+    @Test
+    fun testCustomContentTypesWildcard() = clientTest(CIO) {
+        configCustomContentTypeClient {
+            acceptContentTypes = listOf(ContentType.Application.Any)
+        }
+
+        test { client ->
+            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+                val result = response.receive<Response<List<User>>>()
+
+                assertTrue(result.ok)
+                assertNotNull(result.result)
+                assertEquals(users, result.result)
+
+                // json is registered first on server so it should win
+                // since Accept header consist of the wildcard
+                assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+            }
+        }
+
+        test { client ->
+            val payload = User("name3", 97)
+
+            val result = client.post<String>(path = "/post-x", port = serverPort) {
+                body = payload
+                contentType(customContentType) // custom content type should match the wildcard
+            }
+
+            assertEquals(payload.toString(), result)
         }
     }
 

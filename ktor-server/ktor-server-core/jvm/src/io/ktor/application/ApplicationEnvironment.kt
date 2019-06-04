@@ -1,6 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.application
 
 import io.ktor.config.*
+import io.ktor.util.*
 import org.slf4j.*
 import kotlin.coroutines.*
 
@@ -34,4 +39,10 @@ interface ApplicationEnvironment {
      * Provides events on Application lifecycle
      */
     val monitor: ApplicationEvents
+
+    /**
+     * Application's root path (prefix, context path in servlet container).
+     */
+    @KtorExperimentalAPI
+    val rootPath: String
 }

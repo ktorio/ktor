@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -8,12 +12,12 @@ import kotlin.test.*
 class UserAgentTest {
 
     @Test
-    fun simpleInstallTest() = clientTest(MockEngine {
+    fun simpleInstallTest() = clientTest(MockEngine { request ->
         assertEquals(
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36",
-            headers[HttpHeaders.UserAgent]
+            request.headers[HttpHeaders.UserAgent]
         )
-        responseOk()
+        respondOk()
     }) {
         config {
             BrowserUserAgent()

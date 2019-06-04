@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 import kotlinx.io.charsets.*
@@ -126,6 +130,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val Zip = ContentType("application", "zip")
         val GZip = ContentType("application", "gzip")
         val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
+        val Pdf = ContentType("application", "pdf")
     }
 
     /**

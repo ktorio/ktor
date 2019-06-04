@@ -1,18 +1,40 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 import io.ktor.util.*
 
 /**
- * Construct [Url] from [urlString]
+ * Construct [Url] from [urlString].
  */
 @Suppress("FunctionName")
 fun Url(urlString: String): Url = URLBuilder(urlString).build()
 
 /**
- * Construct [URLBuilder] from [urlString]
+ * Construct [Url] from [builder] without building origin.
+ */
+@Suppress("FunctionName")
+fun Url(builder: URLBuilder): Url = URLBuilder().takeFrom(builder).build()
+
+/**
+ * Construct [URLBuilder] from [urlString].
  */
 @Suppress("FunctionName")
 fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
+
+/**
+ * Construct [URLBuilder] from [url].
+ */
+@Suppress("FunctionName")
+fun URLBuilder(url: Url): URLBuilder = URLBuilder().takeFrom(url)
+
+/**
+ * Construct [URLBuilder] from [builder].
+ */
+@Suppress("FunctionName")
+fun URLBuilder(builder: URLBuilder): URLBuilder = URLBuilder().takeFrom(builder)
 
 /**
  * Take components from another [url] builder
@@ -64,7 +86,7 @@ internal fun Appendable.appendUrlFullPath(
     queryParameters: Parameters,
     trailingQuery: Boolean
 ) {
-    if (!encodedPath.startsWith("/")) {
+    if (encodedPath.isNotBlank() && !encodedPath.startsWith("/")) {
         append('/')
     }
 

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.jetty.internal
 
 import io.ktor.http.content.*
@@ -35,7 +39,7 @@ object JettyUpgradeImpl : ServletUpgrade {
             val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
 
             job.invokeOnCompletion {
-                connection.endPoint.idleTimeout = TimeUnit.SECONDS.toMillis(30L)
+                connection.close()
             }
 
             job.join()

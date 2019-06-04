@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.auth
 
 import io.ktor.application.*
@@ -124,7 +128,7 @@ class DigestTest {
                 val p = "Circle Of Life"
                 realm = "testrealm@host.com"
                 this.nonceManager = nonceManager
-                userNameRealmPasswordDigestProvider = { userName, realm ->
+                digestProvider { userName, realm ->
                     when (userName) {
                         "missing" -> null
                         else -> digest(MessageDigest.getInstance("MD5"), "$userName:$realm:$p")

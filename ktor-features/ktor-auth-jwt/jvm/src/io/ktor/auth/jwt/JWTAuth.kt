@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth.jwt
 
 import com.auth0.jwk.*
@@ -34,62 +38,94 @@ class JWTCredential(val payload: Payload) : Credential
 class JWTPrincipal(val payload: Payload) : Principal
 
 /**
+ * JWT verifier configuration function. It is applied on the verifier builder.
+ */
+typealias JWTConfigureFunction = Verification.() -> Unit
+
+/**
  * JWT authentication provider that will be registered with the specified [name]
  */
-class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
+class JWTAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
 
-    internal var schemes = JWTAuthSchemes("Bearer")
-    internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
-
-    /**
-     * JWT realm name that will be used during auth challenge
-     */
-    var realm: String = "Ktor Server"
+    internal val realm: String = config.realm
+    internal val schemes: JWTAuthSchemes = config.schemes
+    internal val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
+    internal val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
+    internal val authenticationFunction = config.authenticationFunction
 
     /**
-     * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
-     * @param [additionalSchemes] additional schemes that will be accepted when validating the authentication
+     * JWT auth provider configuration
      */
-    fun authSchemes(defaultScheme: String = "Bearer", vararg additionalSchemes: String) {
-        schemes = JWTAuthSchemes(defaultScheme, *additionalSchemes)
-    }
+    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = { null }
 
-    /**
-     * @param [verifier] verifies token format and signature
-     */
-    fun verifier(verifier: JWTVerifier) {
-        this.verifier = { verifier }
-    }
+        internal var schemes = JWTAuthSchemes("Bearer")
 
-    /**
-     * @param [verifier] verifies token format and signature
-     */
-    fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
-        this.verifier = verifier
-    }
+        internal var authHeader: (ApplicationCall) -> HttpAuthHeader? =
+            { call -> call.request.parseAuthorizationHeaderOrNull() }
 
-    /**
-     * @param [jwkProvider] provides the JSON Web Key
-     * @param [issuer] the issuer of the JSON Web Token
-     */
-    fun verifier(jwkProvider: JwkProvider, issuer: String) {
-        this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes) }
-    }
+        internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
 
-    /**
-     * @param [jwkProvider] provides the JSON Web Key
-     */
-    fun verifier(jwkProvider: JwkProvider) {
-        this.verifier = { token -> getVerifier(jwkProvider, token, schemes) }
-    }
+        /**
+         * JWT realm name that will be used during auth challenge
+         */
+        var realm: String = "Ktor Server"
 
-    /**
-     * Apply [validate] function to every call with [JWTCredential]
-     * @return a principal (usually an instance of [JWTPrincipal]) or `null`
-     */
-    fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
-        authenticationFunction = validate
+        /**
+         * Http auth header retrieval function. By default it does parse `Authorization` header content.
+         */
+        fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
+            authHeader = block
+        }
+
+        /**
+         * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
+         * @param [additionalSchemes] additional schemes that will be accepted when validating the authentication
+         */
+        fun authSchemes(defaultScheme: String = "Bearer", vararg additionalSchemes: String) {
+            schemes = JWTAuthSchemes(defaultScheme, *additionalSchemes)
+        }
+
+        /**
+         * @param [verifier] verifies token format and signature
+         */
+        fun verifier(verifier: JWTVerifier) {
+            this.verifier = { verifier }
+        }
+
+        /**
+         * @param [verifier] verifies token format and signature
+         */
+        fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
+            this.verifier = verifier
+        }
+
+        /**
+         * @param [jwkProvider] provides the JSON Web Key
+         * @param [issuer] the issuer of the JSON Web Token
+         * * @param configure function will be applied during [JWTVerifier] construction
+         */
+        fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
+            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
+        }
+
+        /**
+         * @param [jwkProvider] provides the JSON Web Key
+         * @param configure function will be applied during [JWTVerifier] construction
+         */
+        fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
+            this.verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
+        }
+
+        /**
+         * Apply [validate] function to every call with [JWTCredential]
+         * @return a principal (usually an instance of [JWTPrincipal]) or `null`
+         */
+        fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
+            authenticationFunction = validate
+        }
+
+        internal fun build() = JWTAuthenticationProvider(this)
     }
 }
 
@@ -103,14 +139,17 @@ internal class JWTAuthSchemes(val defaultScheme: String, vararg additionalScheme
 /**
  * Installs JWT Authentication mechanism
  */
-fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthenticationProvider.() -> Unit) {
-    val provider = JWTAuthenticationProvider(name).apply(configure)
+fun Authentication.Configuration.jwt(
+    name: String? = null,
+    configure: JWTAuthenticationProvider.Configuration.() -> Unit
+) {
+    val provider = JWTAuthenticationProvider.Configuration(name).apply(configure).build()
     val realm = provider.realm
     val authenticate = provider.authenticationFunction
     val verifier = provider.verifier
     val schemes = provider.schemes
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.request.parseAuthorizationHeaderOrNull()
+        val token = provider.authHeader(call)
         if (token == null) {
             context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes)
             return@intercept
@@ -141,11 +180,12 @@ private fun AuthenticationContext.bearerChallenge(
     it.complete()
 }
 
-private fun getVerifierNullableIssuer(
+private fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
     token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    jwtConfigure: Verification.() -> Unit
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
@@ -167,22 +207,18 @@ private fun getVerifierNullableIssuer(
     }
 
     return when (issuer) {
-        null -> JWT.require(algorithm).build()
-        else -> JWT.require(algorithm).withIssuer(issuer).build()
-    }
+        null -> JWT.require(algorithm)
+        else -> JWT.require(algorithm).withIssuer(issuer)
+    }.apply(jwtConfigure).build()
 }
 
 private fun getVerifier(
     jwkProvider: JwkProvider,
-    issuer: String,
     token: HttpAuthHeader,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    configure: JWTConfigureFunction
 ): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
-}
-
-private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader, schemes: JWTAuthSchemes): JWTVerifier? {
-    return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
+    return getVerifier(jwkProvider, null, token, schemes, configure)
 }
 
 private suspend fun verifyAndValidate(

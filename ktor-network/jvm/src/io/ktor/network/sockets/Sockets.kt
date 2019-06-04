@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets
 
 import io.ktor.util.*
@@ -14,7 +18,7 @@ interface ASocket : Closeable, DisposableHandle {
      * Represents a socket lifetime, completes at socket closure
      */
     @KtorExperimentalAPI
-    val socketContext: Deferred<Unit>
+    val socketContext: Job
 
     override fun dispose() {
         try {
@@ -32,7 +36,12 @@ val ASocket.isClosed: Boolean get() = socketContext.isCompleted
 /**
  * Await until socket close
  */
-suspend fun ASocket.awaitClosed(): Unit = socketContext.await()
+suspend fun ASocket.awaitClosed(): Unit {
+    socketContext.join()
+
+    @UseExperimental(InternalCoroutinesApi::class)
+    if (socketContext.isCancelled) throw socketContext.getCancellationException()
+}
 
 /**
  * Represent a connected socket

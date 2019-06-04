@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.locations
 
 import io.ktor.application.*
@@ -7,7 +11,6 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.Test
 import java.math.*
 import kotlin.test.*
@@ -20,7 +23,7 @@ private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = w
 
 @UseExperimental(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
-    @Location("/") class index()
+    @Location("/") class index
 
     @Test fun `location without URL`() = withLocationsApplication {
         val href = application.locations.href(index())
@@ -37,7 +40,7 @@ class LocationsTest {
     @Test fun `locationLocal`() {
         // ^^^ do not add spaces to method name, inline breaks
 
-        @Location("/") class indexLocal()
+        @Location("/") class indexLocal
         withLocationsApplication {
             val href = application.locations.href(indexLocal())
             assertEquals("/", href)
@@ -51,7 +54,7 @@ class LocationsTest {
         }
     }
 
-    @Location("/about") class about()
+    @Location("/about") class about
 
     @Test fun `location with URL`() = withLocationsApplication {
         val href = application.locations.href(about())
@@ -115,7 +118,7 @@ class LocationsTest {
 
     @Location("/container/{id}") class pathContainer(val id: Int) {
         @Location("/items") class items(val container: pathContainer)
-        @Location("/items") class badItems()
+        @Location("/items") class badItems
     }
 
     @Test fun `location with path parameter and nested data`() = withLocationsApplication {
@@ -138,7 +141,7 @@ class LocationsTest {
 
     @Location("/container") class queryContainer(val id: Int) {
         @Location("/items") class items(val container: queryContainer)
-        @Location("/items") class badItems()
+        @Location("/items") class badItems
     }
 
     @Test fun `location with query parameter and nested data`() = withLocationsApplication {
@@ -232,8 +235,8 @@ class LocationsTest {
         urlShouldBeHandled("/container/123/items?optional=text")
     }
 
-    @Location("/container") class simpleContainer() {
-        @Location("/items") class items()
+    @Location("/container") class simpleContainer {
+        @Location("/items") class items
     }
 
     @Test fun `location with simple path container and items`() = withLocationsApplication {
@@ -326,8 +329,8 @@ class LocationsTest {
         urlShouldBeHandled(href, "[]")
     }
 
-    @Location("/space in") class SpaceInPath()
-    @Location("/plus+in") class PlusInPath()
+    @Location("/space in") class SpaceInPath
+    @Location("/plus+in") class PlusInPath
 
     @Test
     fun testURLBuilder() = withLocationsApplication {

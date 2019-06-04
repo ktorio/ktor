@@ -1,8 +1,8 @@
 /*
- * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package kotlinx.coroutines.tools
+package io.ktor.validator
 
 import java.io.*
 import kotlin.test.*

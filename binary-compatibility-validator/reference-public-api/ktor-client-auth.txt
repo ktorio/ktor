@@ -14,6 +14,10 @@ public final class io/ktor/client/features/auth/Auth$Feature : io/ktor/client/fe
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/features/auth/AuthKt {
+	public static final fun Auth (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+}
+
 public abstract interface class io/ktor/client/features/auth/AuthProvider {
 	public abstract fun addRequestHeaders (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun isApplicable (Lio/ktor/http/auth/HttpAuthHeader;)Z

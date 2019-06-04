@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.routing
 
 import io.ktor.http.*
@@ -7,15 +11,7 @@ import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
-private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        throw UnsupportedOperationException("Root selector should not be evaluated")
-    }
-
-    override fun toString(): String = ""
-}
-
-fun routing() = Route(parent = null, selector = RootRouteSelector)
+fun routing(rootPath: String = "") = Route(parent = null, selector = RootRouteSelector(rootPath))
 fun resolve(routing: Route, path: String, parameters: Parameters = Parameters.Empty, headers: Headers = Headers.Empty): RoutingResolveResult {
     return withTestApplication {
         RoutingResolveContext(routing, TestApplicationCall(application, coroutineContext = coroutineContext).apply {
@@ -40,6 +36,43 @@ class RoutingResolveTest {
         val result = resolve(root, "/foo/bar")
         assertTrue(result is RoutingResolveResult.Failure)
         assertEquals(root, result.route)
+    }
+
+    @Test
+    fun `custom root path`() {
+        val root = routing("context/path")
+        val child = root.handle(PathSegmentConstantRouteSelector("foo"))
+
+        on("resolving /") {
+            val result = resolve(root, "/")
+            it("shouldn't succeed") {
+                assertTrue(result is RoutingResolveResult.Failure)
+            }
+        }
+        on("resolving /other/path") {
+            val result = resolve(root, "/other/path")
+            it("shouldn't succeed") {
+                assertTrue(result is RoutingResolveResult.Failure)
+            }
+        }
+        on("resolving /context/path") {
+            val result = resolve(root, "/context/path")
+            it("should succeed") {
+                assertTrue(result is RoutingResolveResult.Failure)
+            }
+        }
+        on("resolving /context/path/foo") {
+            val result = resolve(root, "/context/path/foo")
+            it("should succeed") {
+                assertTrue(result is RoutingResolveResult.Success)
+            }
+        }
+        on("resolving /context/path/foo/bar") {
+            val result = resolve(root, "/context/path/foo/bar")
+            it("shouldn't succeed") {
+                assertTrue(result is RoutingResolveResult.Failure)
+            }
+        }
     }
 
     @Test

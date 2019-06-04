@@ -4,9 +4,10 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url "https://plugins.gradle.org/m2/" }
+        gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven { url "https://dl.bintray.com/orangy/maven" }
     }
 
     dependencies {
@@ -15,10 +16,14 @@ buildscript {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_plugin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomic_fu_version"
-        classpath "com.moowork.gradle:gradle-node-plugin:$gradle_node_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+        classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
+        classpath "org.jetbrains.gradle.benchmarks:benchmarks.plugin:$benchmarks_version"
+        classpath "kotlinx.team:kotlinx.team.infra:$infra_version"
     }
 }
+
+apply plugin: 'kotlinx.team.infra'
 
 ext.configuredVersion = project.hasProperty("releaseVersion") ? project.releaseVersion : project.version
 ext.globalM2 = "$buildDir/m2"
@@ -32,10 +37,10 @@ apply from: 'gradle/verifier.gradle'
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
-rootProject.ext.misc = ["binary-compatibility-validator", "ktor-server-benchmarks"]
+rootProject.ext.skipPublish = ["binary-compatibility-validator", "ktor-server-benchmarks"]
 
 def projectNeedsPlatform(project, platform) {
-    if (rootProject.ext.misc.contains(project.name)) return platform == "jvm"
+    if (rootProject.ext.skipPublish.contains(project.name)) return platform == "jvm"
 
     def files = project.projectDir.listFiles()
     def hasPosix = files.any { it.name == "posix" }
@@ -49,6 +54,8 @@ def projectNeedsPlatform(project, platform) {
 
     return files.any { it.name == "common" || it.name == platform }
 }
+
+apply from: rootProject.file('gradle/nodejs.gradle')
 
 allprojects {
     group = "io.ktor"
@@ -66,12 +73,12 @@ allprojects {
         }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
 
     }
 
     apply plugin: "kotlin-multiplatform"
-    apply plugin: "kotlinx-atomicfu"
 
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
@@ -82,8 +89,10 @@ allprojects {
         }
     }
 
-    apply from: rootProject.file('gradle/dokka.gradle')
-    apply from: rootProject.file('gradle/publish.gradle')
+    if (!rootProject.ext.skipPublish.contains(project.name)) {
+        apply from: rootProject.file('gradle/dokka.gradle')
+        apply from: rootProject.file('gradle/publish.gradle')
+    }
 
     configurations { testOutput }
 
@@ -96,7 +105,7 @@ allprojects {
             kotlin.srcDirs = ["$platform/$srcDir"]
             resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
-            if (rootProject.ext.misc.contains(project.name)) return
+            if (rootProject.ext.skipPublish.contains(project.name)) return
             languageSettings {
                 progressiveMode = true
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }

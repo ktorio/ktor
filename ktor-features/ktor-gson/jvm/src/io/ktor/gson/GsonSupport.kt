@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.gson
 
 import com.google.gson.*
@@ -55,7 +59,7 @@ fun ContentNegotiation.Configuration.gson(
 internal class ExcludedTypeGsonException(val type: KClass<*>) :
     Exception("Type ${type.jvmName} is excluded so couldn't be used in receive")
 
-internal class UnsupportedNullValuesException() :
+internal class UnsupportedNullValuesException :
     ContentTransformationException("Receiving null values is not supported")
 
 private fun Gson.isExcluded(type: KClass<*>) =

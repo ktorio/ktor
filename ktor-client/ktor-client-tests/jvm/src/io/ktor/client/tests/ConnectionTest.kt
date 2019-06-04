@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.application.*
@@ -14,12 +18,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val testContent = buildString {
         append("x".repeat(100))
     }
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, port = serverPort) {
         routing {
             head("/emptyHead") {
                 call.respond(object : OutgoingContent.NoContent() {
@@ -44,15 +49,17 @@ abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWit
                     }
                 }.response
 
-                assert(response.status.isSuccess())
-                assert(response.readBytes().isEmpty())
+                response.use {
+                    assert(it.status.isSuccess())
+                    assert(it.readBytes().isEmpty())
+                }
             }
         }
     }
 
     @Test
     fun closeResponseWithConnectionPipelineTest() = clientTest(factory) {
-        suspend fun HttpClient.receive(): HttpClientCall = call {
+        suspend fun HttpClient.testCall(): HttpClientCall = call {
             url {
                 port = serverPort
                 encodedPath = "/ok"
@@ -60,8 +67,8 @@ abstract class ConnectionTest(val factory: HttpClientEngineFactory<*>) : TestWit
         }
 
         test { client ->
-            client.receive().close()
-            assertEquals(testContent, client.receive().response.readText())
+            client.testCall().close()
+            assertEquals(testContent, client.testCall().receive())
         }
     }
 }

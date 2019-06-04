@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.auth
 
 import io.ktor.application.*
@@ -17,10 +21,11 @@ class UserHashedTableAuthTest {
     fun testConfigInlined() {
         testSingle(UserHashedTableAuth(table = mapOf(
                 "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
-        )))
+        ), digester = getDigestFunction("SHA-256") { "ktor" }))
     }
 
     @Test
+    @Suppress("DEPRECATION_ERROR")
     fun testConfigParse() {
         val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")

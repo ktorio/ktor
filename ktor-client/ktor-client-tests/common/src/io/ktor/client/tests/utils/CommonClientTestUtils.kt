@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
@@ -8,11 +12,9 @@ import kotlinx.coroutines.*
 import kotlinx.io.core.*
 
 /**
- * Perform test against all clients from dependencies.
+ * Local test server url.
  */
-expect fun clientsTest(
-    block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-)
+const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
  * Perform test with selected client [engine].
@@ -32,8 +34,7 @@ fun clientTest(
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
     @Suppress("UNCHECKED_CAST")
-    client
-        .config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+    client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
         .use { client -> builder.test(client) }
 }
 
@@ -51,7 +52,12 @@ fun <T : HttpClientEngineConfig> clientTest(
         builder.test(it)
     }
 
-    client.coroutineContext[Job]!!.join()
+    try {
+        client.coroutineContext[Job]?.join()
+    } catch (cause: Throwable) {
+        client.cancel()
+        throw cause
+    }
 }
 
 @InternalAPI

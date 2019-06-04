@@ -1,38 +1,39 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features
 
 import io.ktor.client.*
-import io.ktor.client.response.*
-import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 
-/**
- * Terminate response pipeline with fail status code in response.
- */
-class ExpectSuccess(
-) {
+@Deprecated(
+    "[BadResponseStatusException] is deprecated. Use [ResponseException] instead.",
+    ReplaceWith("ResponseException"),
+    DeprecationLevel.ERROR
+)
+@Suppress("KDocMissingDocumentation")
+typealias BadResponseStatusException = ResponseException
+
+@Deprecated(
+    "Use [HttpCallValidator] instead.",
+    ReplaceWith("HttpCallValidator"),
+    DeprecationLevel.ERROR
+)
+@Suppress("KDocMissingDocumentation")
+class ExpectSuccess {
+    @Suppress("DEPRECATION_ERROR")
     companion object : HttpClientFeature<Unit, ExpectSuccess> {
-        override val key: AttributeKey<ExpectSuccess> = AttributeKey("ExpectSuccess")
 
-        override fun prepare(block: Unit.() -> Unit): ExpectSuccess = ExpectSuccess()
+        override val key: AttributeKey<ExpectSuccess>
+            get() = error("Deprecated")
+
+        override fun prepare(block: Unit.() -> Unit): ExpectSuccess {
+            error("Deprecated")
+        }
 
         override fun install(feature: ExpectSuccess, scope: HttpClient) {
-            scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
-                val response = context.response
-                if (response.status.value >= 300) throw BadResponseStatusException(response.status, response)
-            }
+            error("Deprecated")
         }
     }
 }
-
-class BadResponseStatusException(
-    val statusCode: HttpStatusCode,
-    val response: HttpResponse
-) : IllegalStateException("Received bad status code: $statusCode. Expected status code < 300.")
-
-@Deprecated(
-    "[BadResponseStatus] is deprecated. Use [BadResponseStatusException] instead.",
-    ReplaceWith("BadResponseStatusException"),
-    DeprecationLevel.ERROR
-)
-typealias BadResponseStatus = BadResponseStatusException

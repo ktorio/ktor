@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client
 
 import io.ktor.client.call.*
@@ -5,7 +9,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -55,7 +58,7 @@ fun HttpClient(
  * @property engine: [HttpClientEngine] for executing requests.
  */
 class HttpClient(
-    @InternalAPI val engine: HttpClientEngine,
+    val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
     private val closed = atomic(false)
@@ -75,31 +78,7 @@ class HttpClient(
     /**
      * Pipeline used for sending the request
      */
-    val sendPipeline: HttpSendPipeline = HttpSendPipeline().apply {
-        intercept(HttpSendPipeline.Engine) { content ->
-            val call = HttpClientCall(this@HttpClient)
-            val requestData = HttpRequestBuilder().apply {
-                takeFrom(context)
-                body = content
-            }.build()
-
-            validateHeaders(requestData)
-
-            val (request, response) = engine.execute(call, requestData)
-
-            call.request = request
-            call.response = response
-
-            response.coroutineContext[Job]!!.invokeOnCompletion { cause ->
-                @Suppress("UNCHECKED_CAST")
-                val childContext = requestData.executionContext as CompletableDeferred<Unit>
-                if (cause == null) childContext.complete(Unit) else childContext.completeExceptionally(cause)
-            }
-
-            val receivedCall = receivePipeline.execute(call, call.response).call
-            proceedWith(receivedCall)
-        }
-    }
+    val sendPipeline: HttpSendPipeline = HttpSendPipeline()
 
     /**
      * Pipeline used for receiving request
@@ -109,7 +88,7 @@ class HttpClient(
     /**
      * Typed attributes used as a lightweight container for this client.
      */
-    val attributes: Attributes = Attributes()
+    val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Dispatcher handles io operations
@@ -127,16 +106,24 @@ class HttpClient(
      */
     val engineConfig: HttpClientEngineConfig = engine.config
 
-    private val config = HttpClientConfig<HttpClientEngineConfig>()
+    internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
+        engine.install(this)
+
+        sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
+            check(call is HttpClientCall)
+            val receivedCall = receivePipeline.execute(call, call.response).call
+            proceedWith(receivedCall)
+        }
+
         with(userConfig) {
             if (useDefaultTransformers) {
                 config.install(HttpPlainText)
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) config.install(ExpectSuccess)
+            if (expectSuccess) config.addDefaultResponseValidation()
 
             config.install(HttpSend)
 
@@ -159,7 +146,7 @@ class HttpClient(
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
         engine, HttpClientConfig<HttpClientEngineConfig>().apply {
-            this += userConfig
+            plusAssign(userConfig)
             block()
         }
     )
@@ -185,14 +172,3 @@ class HttpClient(
 
 }
 
-/**
- * Validates request headers and fails if there are unsafe headers supplied
- */
-private fun validateHeaders(request: HttpRequestData) {
-    val requestHeaders = request.headers
-    for (header in HttpHeaders.UnsafeHeaders) {
-        if (header in requestHeaders) {
-            throw UnsafeHeaderException(header)
-        }
-    }
-}

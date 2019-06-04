@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.http
 
 import io.ktor.http.*
@@ -37,6 +41,22 @@ class URLBuilderTestJvm {
         }
 
         assertEquals("http://localhost/path", url.buildString())
+    }
+
+    @Test
+    fun testEmptyPath() {
+        val urlStr1 = "http://localhost"
+        val urlStr2 = "http://localhost?param1=foo"
+
+        val url1 = URLBuilder().apply {
+            takeFrom(URI.create(urlStr1))
+        }
+        val url2 = URLBuilder().apply {
+            takeFrom(URI.create(urlStr2))
+        }
+
+        assertEquals(urlStr1, url1.buildString())
+        assertEquals(urlStr2, url2.buildString())
     }
 
     @Test

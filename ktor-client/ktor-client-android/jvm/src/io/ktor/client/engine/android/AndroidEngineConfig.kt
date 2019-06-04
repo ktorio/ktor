@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.android
 
 import io.ktor.client.engine.*
@@ -27,7 +31,12 @@ class AndroidEngineConfig : HttpClientEngineConfig() {
     var proxy: Proxy? = null
 
     /**
-     * https connection manipulator. inherited methods are not permitted.
+     * Https connection manipulator. inherited methods are not permitted.
      */
     var sslManager: (HttpsURLConnection) -> Unit = {}
+
+    /**
+     * Engine specific request configuration.
+     */
+    var requestConfig: HttpURLConnection.() -> Unit = {}
 }

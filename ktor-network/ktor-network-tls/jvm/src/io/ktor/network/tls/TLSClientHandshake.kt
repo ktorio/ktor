@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
@@ -15,7 +19,6 @@ import java.security.interfaces.*
 import java.security.spec.*
 import javax.crypto.*
 import javax.crypto.spec.*
-import javax.net.ssl.*
 import javax.security.auth.x500.*
 import kotlin.coroutines.*
 
@@ -318,7 +321,8 @@ internal class TLSClientHandshake(
 
     private fun generatePreSecret(encryptionInfo: EncryptionInfo?): ByteArray =
         when (serverHello.cipherSuite.exchangeType) {
-            SecretExchangeType.RSA -> config.random.generateSeed(48)!!.also {
+            SecretExchangeType.RSA -> ByteArray(48).also {
+                config.random.nextBytes(it)
                 it[0] = 0x03
                 it[1] = 0x03
             }
@@ -449,7 +453,9 @@ internal class TLSClientHandshake(
 
 
 private fun SecureRandom.generateClientSeed(): ByteArray {
-    return generateSeed(32)!!.also {
+    val seed = ByteArray(32)
+    nextBytes(seed)
+    return seed.also {
         val unixTime = (System.currentTimeMillis() / 1000L)
         it[0] = (unixTime shr 24).toByte()
         it[1] = (unixTime shr 16).toByte()

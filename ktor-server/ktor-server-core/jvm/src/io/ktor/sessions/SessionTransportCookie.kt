@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.sessions
 
 import io.ktor.application.*
@@ -50,6 +54,10 @@ class SessionTransportCookie(
     override fun clear(call: ApplicationCall) {
         call.response.cookies.appendExpired(name, configuration.domain, configuration.path)
     }
+
+    override fun toString(): String {
+        return "SessionTransportCookie: $name"
+    }
 }
 
 /**
@@ -74,7 +82,7 @@ class CookieConfiguration {
     /**
      * Cookie path
      */
-    var path: String? = null
+    var path: String? = "/"
 
     /**
      * Send cookies only over secure connection
@@ -84,7 +92,7 @@ class CookieConfiguration {
     /**
      * This cookie is only for transferring over HTTP(s) and shouldn't be accessible via JavaScript
      */
-    var httpOnly: Boolean = false
+    var httpOnly: Boolean = true
 
     /**
      * Any additional extra cookie parameters

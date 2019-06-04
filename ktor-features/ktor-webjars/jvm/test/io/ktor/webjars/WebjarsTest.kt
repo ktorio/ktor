@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.webjars
 
 import io.ktor.application.call
@@ -99,6 +103,18 @@ class WebjarsTest {
             application.install(Webjars)
 
             handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            }
+        }
+    }
+
+    @Test
+    fun withGetParameters() {
+        withTestApplication {
+            application.install(Webjars)
+
+            handleRequest(HttpMethod.Get, "/webjars/jquery/jquery.js?param1=value1").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
             }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
@@ -7,7 +11,6 @@ import kotlinx.coroutines.channels.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.time.*
-import kotlin.coroutines.*
 
 /**
  * Ping interval or `null` to disable pinger. Please note that pongs will be handled despite of this setting.
@@ -28,17 +31,11 @@ inline var DefaultWebSocketServerSession.timeout: Duration
         timeoutMillis = newDuration.toMillis()
     }
 
-/**
- * Launch pinger coroutine on [coroutineContext] websocket for [session] that is sending ping every specified [period],
- * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
- * to the dedicated [out] channel in case of failure
- */
 @Deprecated(
-    "Use pinger on CoroutineScope",
-    ReplaceWith("session.pinger(session.outgoing, period, timeout, out, pool)"),
-    level = DeprecationLevel.ERROR
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN
 )
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER", "unused", "KDocMissingDocumentation")
 fun pinger(
     session: WebSocketSession,
     period: Duration,

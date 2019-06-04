@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.features.auth.Auth
@@ -21,7 +25,7 @@ class DigestTest : TestWithKtor() {
                 algorithmName = "MD5"
                 realm = "testrealm@host.com"
 
-                userNameRealmPasswordDigestProvider = { userName, realm ->
+                digestProvider { userName, realm ->
                     digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
                 }
             }

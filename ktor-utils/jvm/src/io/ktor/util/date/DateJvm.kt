@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.util.date
 
 import java.util.*
@@ -58,4 +62,4 @@ private fun Calendar.toDate(timestamp: Long?): GMTDate {
 /**
  * Convert to [Date]
  */
-fun GMTDate.toJvmDate(): Date = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.time!!
+fun GMTDate.toJvmDate(): Date = Date(timestamp)

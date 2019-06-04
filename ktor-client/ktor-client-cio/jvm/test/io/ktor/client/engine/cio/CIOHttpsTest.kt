@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
@@ -22,8 +26,9 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
+
     override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+        sslConnector(keyStore, "sha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile
 
@@ -84,8 +89,27 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun hello(): Unit = runBlocking {
+    fun hello(): Unit {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
+            /**
+             * Outdated by jetty.
+             */
+            if (suite == CIOCipherSuites.ECDHE_ECDSA_AES128_SHA256) return@forEach
+
+            /**
+             * Too strong for old JDK.
+             */
+            if (suite == CIOCipherSuites.ECDHE_ECDSA_AES256_SHA384) return@forEach
+
+            /**
+             * Deprecated since jdk11.
+             */
+            if (suite == CIOCipherSuites.ECDHE_RSA_AES128_SHA256) return@forEach
+            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256) return@forEach
+
+//            Mandatory
+//            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
+
             clientTest(CIO) {
                 config {
                     engine {
@@ -97,8 +121,15 @@ class CIOHttpsTest : TestWithKtor() {
                 }
 
                 test { client ->
-                    val actual = client.get<String>("https://127.0.0.1:$serverPort/")
-                    assertEquals("Hello, world", actual)
+                    try {
+                        println("Starting: ${suite.name}")
+                        val actual = client.get<String>("https://127.0.0.1:$serverPort/")
+                        assertEquals("Hello, world", actual)
+                    } catch (cause: Throwable) {
+                        println("${suite.name}: $cause")
+                        client.cancel()
+                        fail("${suite.name}: $cause")
+                    }
                 }
             }
         }
@@ -107,8 +138,9 @@ class CIOHttpsTest : TestWithKtor() {
     @Test
     fun external(): Unit = clientTest(CIO) {
         test { client ->
-            val response = client.get<HttpResponse>("https://kotlinlang.org")
-            assertEquals(HttpStatusCode.OK, response.status)
+            client.get<HttpResponse>("https://kotlinlang.org").use { response ->
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
         }
     }
 

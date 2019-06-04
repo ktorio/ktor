@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.tls.tests
 
 import io.ktor.network.selector.*
@@ -5,6 +9,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import org.junit.*
 import java.io.*
@@ -12,6 +17,9 @@ import java.net.*
 import javax.net.ssl.*
 
 class ConnectionTests {
+
+    @get:Rule
+    val timeout = CoroutinesTimeout.seconds(10)
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {

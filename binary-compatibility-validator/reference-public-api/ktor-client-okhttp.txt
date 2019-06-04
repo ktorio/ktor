@@ -8,12 +8,14 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 	public final fun addInterceptor (Lokhttp3/Interceptor;)V
 	public final fun addNetworkInterceptor (Lokhttp3/Interceptor;)V
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun getPreconfigured ()Lokhttp3/OkHttpClient;
+	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
 }
 
-public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientJvmEngine, io/ktor/client/features/websocket/WebSocketEngine {
+public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientJvmEngine {
 	public fun <init> (Lio/ktor/client/engine/okhttp/OkHttpConfig;)V
-	public fun execute (Lio/ktor/client/call/HttpClientCall;Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun execute (Lio/ktor/client/request/HttpRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/okhttp/OkHttpConfig;
 }
@@ -21,6 +23,7 @@ public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/en
 public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException {

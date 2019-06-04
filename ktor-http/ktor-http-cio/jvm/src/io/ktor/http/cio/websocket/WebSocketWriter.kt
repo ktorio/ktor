@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
@@ -11,20 +15,16 @@ import kotlin.coroutines.*
 /**
  * Class that processes written [outgoing] Websocket [Frame],
  * serializes them and writes the bits into the [writeChannel].
+ * @property masking: whether it will mask serialized frames.
+ * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
 @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 class WebSocketWriter(
-        private val writeChannel: ByteWriteChannel,
-        override val coroutineContext: CoroutineContext,
-        /**
-         * Whether it will mask serialized frames.
-         */
-        var masking: Boolean = false,
-        /**
-         * ByteBuffer pool to be used by this writer
-         */
-        val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    private val writeChannel: ByteWriteChannel,
+    override val coroutineContext: CoroutineContext,
+    var masking: Boolean = false,
+    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
     @Deprecated(
@@ -32,15 +32,20 @@ class WebSocketWriter(
         replaceWith = ReplaceWith("WebSocketWriter(writeChannel, coroutineContext, masking, pool)"),
         level = DeprecationLevel.ERROR
     )
-    constructor(writeChannel: ByteWriteChannel,
-                parent: Job?,
-                coroutineContext: CoroutineContext,
-                masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool) : this(writeChannel, coroutineContext + (parent
-            ?: Dispatchers.Unconfined), masking, pool)
+    constructor(
+        writeChannel: ByteWriteChannel,
+        parent: Job?,
+        coroutineContext: CoroutineContext,
+        masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    ) : this(
+        writeChannel,
+        coroutineContext + (parent ?: Dispatchers.Unconfined),
+        masking, pool
+    )
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
-        pool.useInstance { it: ByteBuffer -> writeLoop(it) }
+        pool.useInstance { writeLoop(it) }
     }
 
     /**
@@ -61,14 +66,16 @@ class WebSocketWriter(
                 }
             }
         } finally {
+            (coroutineContext[Job] as? CompletableJob)?.apply {
+                complete()
+            }
             close()
             writeChannel.close()
         }
 
         consumeEach { message ->
             when (message) {
-                is Frame.Close -> {
-                } // ignore
+                is Frame.Close -> {} // ignore
                 is Frame.Ping, is Frame.Pong -> {
                 } // ignore
                 is FlushRequest -> message.complete()
@@ -157,8 +164,8 @@ class WebSocketWriter(
     }
 
     private class FlushRequest(parent: Job?) {
-        private val done = CompletableDeferred<Unit>(parent)
-        fun complete() = done.complete(Unit)
-        suspend fun await() = done.await()
+        private val done: CompletableJob = Job(parent)
+        fun complete(): Boolean = done.complete()
+        suspend fun await(): Unit = done.join()
     }
 }

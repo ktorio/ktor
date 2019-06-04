@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.application.*
@@ -15,6 +19,7 @@ import kotlinx.coroutines.io.*
 import org.junit.Assert.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server = embeddedServer(Jetty, serverPort) {
         routing {

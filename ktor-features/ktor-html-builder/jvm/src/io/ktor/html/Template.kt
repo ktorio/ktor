@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.html
 
 import java.util.*
@@ -29,7 +33,7 @@ open class Placeholder<TOuter> {
 /**
  * Placeholder that can appear multiple times
  */
-open class PlaceholderList<TOuter, TInner>() {
+open class PlaceholderList<TOuter, TInner> {
     private var items = ArrayList<PlaceholderItem<TInner>>()
     operator fun invoke(meta: String = "", content: TInner.(Placeholder<TInner>) -> Unit = {}) {
         val placeholder = PlaceholderItem<TInner>(items.size, items)

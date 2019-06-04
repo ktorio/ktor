@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.websocket
 
 import io.ktor.application.*
@@ -10,22 +14,20 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
 import org.junit.*
 import org.junit.Test
-import org.junit.rules.*
 import java.nio.*
 import java.time.*
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
 @UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
-    val timeout = Timeout(30, TimeUnit.SECONDS)
+    val timeout = CoroutinesTimeout.seconds(30)
 
     @Test
     fun testSingleEcho() {
@@ -64,7 +66,6 @@ class WebSocketTest {
                 webSocketRaw("/receiveSize") {
                     val frame = incoming.receive()
                     val bytes = buildPacket {
-                        byteOrder = ByteOrder.BIG_ENDIAN
                         writeInt(frame.buffer.remaining())
                     }
 
@@ -164,7 +165,8 @@ class WebSocketTest {
                 }
             }
 
-            handleWebSocket("/aaa") {}.let { call ->
+            handleWebSocket("/aaa") {
+            }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
                 val p = FrameParser()
                 val bb = ByteBuffer.wrap(call.response.byteContent)

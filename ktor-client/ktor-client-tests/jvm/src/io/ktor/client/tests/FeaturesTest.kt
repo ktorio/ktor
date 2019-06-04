@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.application.*
@@ -13,6 +17,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlin.test.*
 
+@Suppress("KDocMissingDocumentation")
 abstract class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
@@ -27,9 +32,10 @@ abstract class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : T
         }
     }
 
+
     @Test
     fun ignoreBodyTest() {
-        clientTest(factory) {
+        val testCase: suspend TestClientBuilder<*>.() -> Unit = {
             test { client ->
                 listOf(0, 1, 1024, 4 * 1024, 16 * 1024, 16 * 1024 * 1024).forEach {
                     client.get<Unit>(path = "/body", port = serverPort) {
@@ -39,21 +45,16 @@ abstract class FeaturesTest(private val factory: HttpClientEngineFactory<*>) : T
             }
         }
 
-        clientTest(factory) {
+        clientTest(factory, testCase)
 
+        clientTest(factory) {
             config {
                 engine {
                     pipelining = false
                 }
             }
 
-            test { client ->
-                listOf(0, 1, 1024, 4 * 1024, 16 * 1024, 16 * 1024 * 1024).forEach {
-                    client.get<Unit>(path = "/body", port = serverPort) {
-                        parameter("size", it.toString())
-                    }
-                }
-            }
+            testCase()
         }
     }
 

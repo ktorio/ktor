@@ -1,14 +1,23 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.call
 
 import io.ktor.client.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.io.*
 
 
+@Suppress("KDocMissingDocumentation")
 class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")
 
+@Suppress("KDocMissingDocumentation")
 class UnsupportedUpgradeProtocolException(
     url: Url
 ) : IllegalArgumentException("Unsupported upgrade protocol exception: $url")
@@ -42,3 +51,8 @@ suspend fun HttpClient.call(
     this.url.takeFrom(url)
     block()
 }
+
+internal fun HttpResponse.channelWithCloseHandling(): ByteReadChannel = writer(Dispatchers.Unconfined) {
+    content.joinTo(channel, closeOnEnd = true)
+    this@channelWithCloseHandling.close()
+}.channel

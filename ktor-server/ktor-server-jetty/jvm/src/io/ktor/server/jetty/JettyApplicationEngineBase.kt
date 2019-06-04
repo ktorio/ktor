@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.jetty
 
 import io.ktor.application.*
@@ -9,6 +13,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
+@EngineAPI
 open class JettyApplicationEngineBase(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
@@ -25,8 +30,12 @@ open class JettyApplicationEngineBase(
         var configureServer: Server.() -> Unit = {}
     }
 
-    private val configuration = Configuration().apply(configure)
-    private var cancellationDeferred: CompletableDeferred<Unit>? = null
+    /**
+     * Application engine configuration specifying engine-specific options such as parallelism level.
+     */
+    protected val configuration: Configuration = Configuration().apply(configure)
+
+    private var cancellationDeferred: CompletableJob? = null
 
     /**
      * Jetty server instance being configuring and starting
@@ -49,7 +58,7 @@ open class JettyApplicationEngineBase(
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        cancellationDeferred?.complete(Unit)
+        cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()

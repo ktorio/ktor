@@ -1,3 +1,4 @@
+
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
@@ -5,14 +6,6 @@ apply plugin: 'com.jfrog.bintray'
 apply from: project.rootProject.file('gradle/pom.gradle')
 
 task emptyJar(type: Jar) {
-}
-
-task stubJavadoc(type: Jar) {
-    classifier 'javadoc'
-}
-
-task stubDokka(type: Jar) {
-    classifier 'kdoc'
 }
 
 def selectArtifactId(project, type, defaultName) {
@@ -57,46 +50,10 @@ publishing {
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
 
-        if (type == 'kotlinMultiplatform') {
-            kotlin.rootSoftwareComponent$kotlin_gradle_plugin.publicationDelegate = publishing.publications.getByName("kotlinMultiplatform")
-        }
-
         if (id.endsWith('native')) {
-            it.artifact stubJavadoc
-            it.artifact stubDokka
+            it.artifact(emptyJar) { classifier 'javadoc' }
+            it.artifact(emptyJar) { classifier 'kdoc' }
             it.artifact emptyJar
-        }
-
-        pom.withXml { pom ->
-            def dependenciesNode = asNode().getAt("dependencies")[0]
-            if (dependenciesNode != null) {
-                dependenciesNode.dependency.each {
-                    it.artifactId.each { node ->
-                        def artifactId = node.text()
-                        if (!artifactId.startsWith("ktor") || !artifactId.endsWith("native")) return
-
-                        switch (type) {
-                            case 'metadata':
-                                if (artifactId.startsWith("ktor-http-cio")) {
-                                    node.setValue("${artifactId[0..-8]}-common")
-                                } else {
-                                    node.setValue("${artifactId[0..-8]}")
-                                }
-                                break
-                            case 'jvm':
-                                if (artifactId.startsWith("ktor-http-cio")) {
-                                    node.setValue("${artifactId[0..-8]}")
-                                } else {
-                                    node.setValue("${artifactId[0..-8]}-jvm")
-                                }
-                                break
-                            case 'js':
-                                node.setValue("${artifactId[0..-8]}-$type")
-                                break
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -105,11 +62,17 @@ publishing {
 
         if (publication != null) {
             if (target.platformType.name == 'jvm') {
-                publication.artifact javadocJar
+                publication.artifact(emptyJar) {
+                    classifier 'javadoc'
+                }
                 publication.artifact dokkaJar
             } else {
-                publication.artifact stubJavadoc
-                publication.artifact stubDokka
+                publication.artifact(emptyJar) {
+                    classifier 'javadoc'
+                }
+                publication.artifact(emptyJar) {
+                    classifier 'kdoc'
+                }
             }
 
             if (target.platformType.name != 'native') {

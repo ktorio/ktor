@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -34,11 +38,10 @@ class Authentication(config: Configuration) {
          * Register a provider with the specified [name] and [configure] it
          * @throws IllegalArgumentException if there is already provider installed with the same name
          */
-        fun provider(name: String? = null, configure: AuthenticationProvider.() -> Unit) {
-            if (providers.any { it.name == name })
-                throw IllegalArgumentException("Provider with the name $name is already registered")
-            val configuration = AuthenticationProvider(name).apply(configure)
-            providers.add(configuration)
+        fun provider(name: String? = null, configure: AuthenticationProvider.Configuration.() -> Unit) {
+            requireProviderNotRegistered(name)
+            val configuration = LambdaProviderConfig(name).apply(configure)
+            providers.add(configuration.buildProvider())
         }
 
         /**
@@ -46,12 +49,20 @@ class Authentication(config: Configuration) {
          * @throws IllegalArgumentException if there is already provider installed with the same name
          */
         fun register(provider: AuthenticationProvider) {
-            if (providers.any { it.name == provider.name })
-                throw IllegalArgumentException("Provider with the name ${provider.name} is already registered")
+            requireProviderNotRegistered(provider.name)
             providers.add(provider)
         }
 
+        private fun requireProviderNotRegistered(providerName: String?) {
+            if (providers.any { it.name == providerName })
+                throw IllegalArgumentException("Provider with the name $providerName is already registered")
+        }
+
         internal fun copy(): Configuration = Configuration(providers)
+    }
+
+    private class LambdaProviderConfig(name: String?) : AuthenticationProvider.Configuration(name) {
+        internal fun buildProvider() = AuthenticationProvider(this)
     }
 
     init {

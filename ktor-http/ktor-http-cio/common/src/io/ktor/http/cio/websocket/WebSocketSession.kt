@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
@@ -44,7 +48,7 @@ expect interface WebSocketSession : CoroutineScope {
      * Close session with the specified [cause] or with no reason if `null`
      */
     @KtorExperimentalAPI
-    suspend fun close(cause: Throwable?)
+    suspend fun close(cause: Throwable? = null)
 }
 
 /**

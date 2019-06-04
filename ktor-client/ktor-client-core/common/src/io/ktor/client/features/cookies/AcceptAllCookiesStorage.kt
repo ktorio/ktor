@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.cookies
 
 import io.ktor.http.*
@@ -9,14 +13,14 @@ import kotlin.math.*
 /**
  * [CookiesStorage] that stores all the cookies in an in-memory map.
  */
-class AcceptAllCookiesStorage() : CookiesStorage {
+class AcceptAllCookiesStorage : CookiesStorage {
     private val container: MutableList<Cookie> = mutableListOf()
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Lock()
 
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.use {
         val date = GMTDate()
-        if (date.timestamp < oldestCookie.value) cleanup(date.timestamp)
+        if (date.timestamp >= oldestCookie.value) cleanup(date.timestamp)
 
         return container.filter { it.matches(requestUrl) }
     }
@@ -28,6 +32,11 @@ class AcceptAllCookiesStorage() : CookiesStorage {
 
         container.removeAll { it.name == cookie.name && it.matches(requestUrl) }
         container.add(cookie.fillDefaults(requestUrl))
+        cookie.expires?.timestamp?.let { expires ->
+            if (oldestCookie.value > expires) {
+                oldestCookie.value = expires
+            }
+        }
     }
 
     private fun cleanup(timestamp: Long) {

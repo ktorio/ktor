@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -7,40 +11,58 @@ import io.ktor.response.*
 
 /**
  * Represents a form-based authentication provider
- * @param name is the name of the provider, or `null` for a default provider
  */
-class FormAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
+class FormAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
+    internal val userParamName: String = config.userParamName
+
+    internal val passwordParamName: String = config.passwordParamName
+
+    internal val challenge: FormAuthChallenge = config.challenge
+
+    internal val authenticationFunction: AuthenticationFunction<UserPasswordCredential> =
+        config.authenticationFunction
 
     /**
-     * POST parameter to fetch for a user name
+     * Form auth provider configuration
      */
-    var userParamName: String = "user"
+    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
-    /**
-     * POST parameter to fetch for a user password
-     */
-    var passwordParamName: String = "password"
+        /**
+         * POST parameter to fetch for a user name
+         */
+        var userParamName: String = "user"
 
-    /**
-     * A response to send back if authentication failed
-     */
-    var challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized
+        /**
+         * POST parameter to fetch for a user password
+         */
+        var passwordParamName: String = "password"
 
-    /**
-     * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
-     * or null if credential does not correspond to an authenticated principal
-     */
-    fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
-        authenticationFunction = body
+        /**
+         * A response to send back if authentication failed
+         */
+        var challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized
+
+        /**
+         * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
+         * or null if credential does not correspond to an authenticated principal
+         */
+        fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
+            authenticationFunction = body
+        }
+
+        internal fun build() = FormAuthenticationProvider(this)
     }
 }
 
 /**
  * Installs Form Authentication mechanism
  */
-fun Authentication.Configuration.form(name: String? = null, configure: FormAuthenticationProvider.() -> Unit) {
-    val provider = FormAuthenticationProvider(name).apply(configure)
+fun Authentication.Configuration.form(
+    name: String? = null,
+    configure: FormAuthenticationProvider.Configuration.() -> Unit
+) {
+    val provider = FormAuthenticationProvider.Configuration(name).apply(configure).build()
     val userParamName = provider.userParamName
     val passwordParamName = provider.passwordParamName
     val validate = provider.authenticationFunction

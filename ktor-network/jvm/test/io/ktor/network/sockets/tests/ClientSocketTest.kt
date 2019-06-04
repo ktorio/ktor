@@ -1,9 +1,14 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.io.*
 import org.junit.*
 import org.junit.Test
@@ -20,7 +25,7 @@ class ClientSocketTest {
     private var server: Pair<ServerSocket, Thread>? = null
 
     @get:Rule
-    val timeout = Timeout(15L, TimeUnit.SECONDS)
+    val timeout = CoroutinesTimeout.seconds(15)
 
     @get:Rule
     val errors = ErrorCollector()

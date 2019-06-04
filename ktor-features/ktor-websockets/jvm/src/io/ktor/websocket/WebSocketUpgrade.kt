@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.websocket
 
 import io.ktor.application.*
@@ -57,12 +61,14 @@ class WebSocketUpgrade(
             coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         )
 
-        return webSocket.launch(WebSocketHandlerCoroutineName) {
+        webSocket.launch(WebSocketHandlerCoroutineName) {
             try {
                 webSocket.start(handle)
             } catch (cause: Throwable) {
             }
         }
+
+        return webSocket.coroutineContext[Job]!!
     }
 
     companion object {

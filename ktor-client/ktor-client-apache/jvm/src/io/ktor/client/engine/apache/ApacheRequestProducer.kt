@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.apache
 
 import io.ktor.client.call.*
@@ -26,7 +30,6 @@ import kotlin.coroutines.*
 internal class ApacheRequestProducer(
     private val requestData: HttpRequestData,
     private val config: ApacheEngineConfig,
-    private val body: OutgoingContent,
     private val callContext: CoroutineContext
 ) : HttpAsyncRequestProducer {
     private val requestChannel = Channel<ByteBuffer>(1)
@@ -37,7 +40,7 @@ internal class ApacheRequestProducer(
     private val currentBuffer: AtomicRef<ByteBuffer?> = atomic(null)
 
     init {
-        when (body) {
+        when (val body = requestData.body) {
             is OutgoingContent.ByteArrayContent -> {
                 requestChannel.offer(ByteBuffer.wrap(body.bytes()))
                 requestChannel.close()
@@ -120,7 +123,7 @@ internal class ApacheRequestProducer(
         val builder = RequestBuilder.create(method.value)!!
         builder.uri = url.toURI()
 
-        val content = this@ApacheRequestProducer.body
+        val content = requestData.body
         val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
         val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()
 
@@ -180,7 +183,7 @@ internal class ApacheRequestProducer(
     }
 
     private fun ByteBuffer.recycle() {
-        if (body is OutgoingContent.WriteChannelContent || body is OutgoingContent.ReadChannelContent) {
+        if (requestData.body is OutgoingContent.WriteChannelContent || requestData.body is OutgoingContent.ReadChannelContent) {
             HttpClientDefaultPool.recycle(this)
         }
     }

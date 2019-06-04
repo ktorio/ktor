@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.auth
 
 import io.ktor.application.*
@@ -15,7 +19,7 @@ class AuthenticationContext(val call: ApplicationCall) {
      * Retrieves authenticated principal, or returns null if no user was authenticated
      */
     var principal by Delegates.vetoable<Principal?>(null) { _, old, _ ->
-        require(old == null) { "Principal can be only assigned once" };
+        require(old == null) { "Principal can be only assigned once" }
         true
     }
 

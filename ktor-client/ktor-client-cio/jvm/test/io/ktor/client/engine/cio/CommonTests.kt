@@ -1,11 +1,11 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
 import io.ktor.client.tests.*
-import org.junit.*
 
-
-@Ignore
-class CIOCacheTest : CacheTest(CIO)
 
 class CIOCookiesTest : CookiesTest(CIO)
 
@@ -16,8 +16,6 @@ class CIOPostTest : PostTest(CIO)
 class CIOFullFormTest : FullFormTest(CIO)
 
 class CIOMultithreadedTest : MultithreadedTest(CIO)
-
-class CIOContentTest : ContentTest(CIO)
 
 class CIORedirectTest : HttpRedirectTest(CIO)
 

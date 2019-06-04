@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
@@ -96,6 +100,33 @@ class CallLoggingTest {
     }
 
     @Test
+    fun `can customize message format`() {
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    format { call ->
+                        "${call.request.uri} -> ${call.response.status()}"
+                    }
+                }
+                routing {
+                    get("/{...}") {
+                        call.respondText("OK")
+                    }
+                }
+            }
+            log = logger
+        }
+        withApplication(environment) {
+            handleRequest(HttpMethod.Get, "/uri-123").let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals("OK", call.response.content)
+
+                assertTrue("TRACE: /uri-123 -> 200 OK" in messages)
+            }
+        }
+    }
+
+    @Test
     fun `can filter calls to log`() {
         val environment = createTestEnvironment {
             module {
@@ -170,7 +201,6 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
                     assertTrue { call.requestHandled }
 
-                    println(messages.joinToString("\n"))
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                 }
@@ -209,7 +239,6 @@ class CallLoggingTest {
                 handleRequest(HttpMethod.Get, "/uri1").let { call ->
                     assertTrue { call.requestHandled }
 
-                    println(messages.joinToString("\n"))
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                     assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
                 }

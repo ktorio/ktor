@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.*
@@ -15,4 +19,6 @@ object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
 @Suppress("KDocMissingDocumentation")
 class OkHttpEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = OkHttp
+
+    override fun toString(): String = "OkHttp"
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.util
 
 import kotlinx.coroutines.*
@@ -37,3 +41,9 @@ fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel,
 
     return first to second
 }
+
+/**
+ * Read channel to byte array.
+ */
+@KtorExperimentalAPI
+suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.tls
 
 import java.security.*
@@ -49,7 +53,7 @@ class TLSConfigBuilder {
      * Create [TLSConfig].
      */
     fun build(): TLSConfig = TLSConfig(
-        random ?: SecureRandom.getInstanceStrong(),
+        random ?: SecureRandom(),
         certificates, trustManager as? X509TrustManager ?: findTrustManager(),
         cipherSuites, serverName
     )

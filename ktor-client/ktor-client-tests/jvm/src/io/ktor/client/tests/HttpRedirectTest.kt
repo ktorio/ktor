@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.application.*
@@ -16,6 +20,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 
+@Suppress("KDocMissingDocumentation")
 abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
@@ -128,7 +133,7 @@ abstract class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>)
     fun httpStatsTest() = clientTest(factory) {
         test { client ->
             client.get<HttpResponse>("https://httpstat.us/301").use { response ->
-                assertEquals(response.status, HttpStatusCode.OK)
+                assertEquals(HttpStatusCode.OK, response.status)
             }
         }
     }

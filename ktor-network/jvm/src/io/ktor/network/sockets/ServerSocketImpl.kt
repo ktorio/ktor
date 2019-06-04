@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
@@ -6,14 +10,15 @@ import java.net.*
 import java.nio.channels.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
-internal class ServerSocketImpl(override val channel: ServerSocketChannel, val selector: SelectorManager)
-    : ServerSocket,
-        Selectable by SelectableBase(channel) {
+internal class ServerSocketImpl(
+    override val channel: ServerSocketChannel,
+    val selector: SelectorManager
+) : ServerSocket, Selectable by SelectableBase(channel) {
     init {
         require(!channel.isBlocking) { "channel need to be configured as non-blocking" }
     }
 
-    override val socketContext = CompletableDeferred<Unit>()
+    override val socketContext: CompletableJob = Job()
 
     override val localAddress: SocketAddress
         get() = channel.socket().localSocketAddress
@@ -47,9 +52,9 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
                 selector.notifyClosed(this)
             }
 
-            socketContext.complete(Unit)
-        } catch (t: Throwable) {
-            socketContext.completeExceptionally(t)
+            socketContext.complete()
+        } catch (cause: Throwable) {
+            socketContext.completeExceptionally(cause)
         }
     }
 

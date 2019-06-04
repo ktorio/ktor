@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.benchmarks.netty
 
 import io.ktor.application.*
@@ -11,7 +15,7 @@ class NettyIntegrationBenchmark : IntegrationBenchmark<NettyApplicationEngine>()
     }
 }
 
-class NettyAsyncIntegrationBenchmark() : AsyncIntegrationBenchmark<NettyApplicationEngine>() {
+class NettyAsyncIntegrationBenchmark : AsyncIntegrationBenchmark<NettyApplicationEngine>() {
     override fun createServer(port: Int, main: Application.() -> Unit): NettyApplicationEngine {
         return embeddedServer(Netty, port, module = main)
     }

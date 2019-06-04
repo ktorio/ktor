@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.netty
 
 import io.ktor.application.*
@@ -48,6 +52,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         var responseWriteTimeoutSeconds: Int = 10
 
         /**
+         * Timeout in seconds for reading requests from client, "0" is infinite.
+         */
+        var requestReadTimeoutSeconds: Int = 0
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
         var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
@@ -72,7 +81,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
 
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
-    private var cancellationDeferred: CompletableDeferred<Unit>? = null
+    private var cancellationDeferred: CompletableJob? = null
 
     private var channels: List<Channel>? = null
     private val bootstraps = environment.connectors.map { connector ->
@@ -88,6 +97,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds,
+                    configuration.requestReadTimeoutSeconds,
                     configuration.httpServerCodec
                 )
             )
@@ -119,7 +129,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        cancellationDeferred?.complete(Unit)
+        cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
 

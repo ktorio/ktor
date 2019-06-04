@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.call.*
@@ -10,11 +14,11 @@ import kotlinx.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequest.toCurlRequest(): CurlRequestData = CurlRequestData(
+internal suspend fun HttpRequestData.toCurlRequest(): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
-    content = content.toCurlByteArray()
+    content = body.toCurlByteArray()
 )
 
 internal class CurlRequestData(

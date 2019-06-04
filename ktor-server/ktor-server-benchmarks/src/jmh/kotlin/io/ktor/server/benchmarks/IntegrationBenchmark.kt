@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.benchmarks
 
 import ch.qos.logback.classic.Level
@@ -91,7 +95,7 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
         httpClient.shutdown()
     }
 
-    protected fun load(url: String) {
+    protected open fun load(url: String) {
         httpClient.load(url)
     }
 

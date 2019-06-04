@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.util
 
 import kotlinx.coroutines.*
@@ -12,7 +16,12 @@ private const val NONCE_SIZE_IN_BYTES = 8
 @InternalAPI
 actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES)
-    return hex(crypto.getRandomValues(buffer))
+    if (PlatformUtils.IS_NODE) {
+        crypto.randomFillSync(buffer)
+    } else {
+        crypto.getRandomValues(buffer)
+    }
+    return hex(buffer)
 }
 
 /**
@@ -37,10 +46,14 @@ actual fun Digest(name: String): Digest = object : Digest {
     }
 }
 
-private external object crypto {
+private val crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("crypto")
+
+private external class Crypto {
     val subtle: SubtleCrypto
 
-    fun getRandomValues(array: ByteArray): ByteArray
+    fun getRandomValues(array: ByteArray)
+
+    fun randomFillSync(array: ByteArray)
 }
 
 private external class SubtleCrypto {

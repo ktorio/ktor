@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
@@ -93,16 +97,14 @@ class TcpSocketBuilder internal constructor(
     suspend fun connect(
         remoteAddress: SocketAddress,
         configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
-    ): Socket {
-        return selector.buildOrClose({ openSocketChannel() }) {
-            val options = options.peer().tcp()
-            configure(options)
-            assignOptions(options)
-            nonBlocking()
+    ): Socket = selector.buildOrClose({ openSocketChannel() }) {
+        val options = options.peer().tcp()
+        configure(options)
+        assignOptions(options)
+        nonBlocking()
 
-            SocketImpl(this, socket()!!, selector).apply {
-                connect(remoteAddress)
-            }
+        SocketImpl(this, socket()!!, selector).apply {
+            connect(remoteAddress)
         }
     }
 

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
@@ -10,7 +14,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.io.*
-import org.junit.Test
 import java.io.*
 import kotlin.test.*
 
@@ -68,7 +71,7 @@ class ContentNegotiationTest {
     }
 
     @Test
-    fun testEmpty() = withTestApplication {
+    fun testEmpty(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
         }
 
@@ -300,6 +303,7 @@ class ContentNegotiationTest {
         }
     }
 
+    @Suppress("ReplaceSingleLineLet", "MoveLambdaOutsideParentheses")
     @Test
     fun testReceiveTransformedByDefault(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
@@ -372,6 +376,74 @@ class ContentNegotiationTest {
             )
         }.let { call ->
             assertEquals("parts: [field1]", call.response.content)
+        }
+    }
+
+    @Test
+    fun testCustomAcceptedContentTypesContributor(): Unit = withTestApplication {
+        with(application) {
+            install(ContentNegotiation) {
+                register(ContentType.Text.Plain, textContentConverter)
+                register(ContentType.Text.Html, textContentConverter)
+
+                accept { call, acceptedContentTypes ->
+                    call.request.queryParameters["format"]?.let { format ->
+                        when (format) {
+                            "text" -> listOf(ContentTypeWithQuality(ContentType.Text.Plain))
+                            "html" -> listOf(ContentTypeWithQuality(ContentType.Text.Html))
+                            else -> null
+                        }
+                    } ?: acceptedContentTypes
+                }
+            }
+
+            routing {
+                get("/") {
+                    call.respond(Wrapper("test content"))
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/plain")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/html")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/plain, text/html")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/plain; q=0.9, text/html")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+        }
+
+        handleRequest(HttpMethod.Get, "/?format=html") {
+            addHeader(HttpHeaders.Accept, "text/plain")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Html, call.response.contentType().withoutParameters())
+        }
+
+        handleRequest(HttpMethod.Get, "/?format=text") {
+            addHeader(HttpHeaders.Accept, "text/html")
+        }.let { call ->
+            assertEquals("test content", call.response.content)
+            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
         }
     }
 }

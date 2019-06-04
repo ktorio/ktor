@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http
 
 import io.ktor.util.*
@@ -203,8 +207,8 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
-private val cookieCharsShouldBeEscaped = setOf(';', ',', '=', '"')
-private fun Char.shouldEscapeInCookies() = this.isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
+private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
+private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePart(name: String, value: Any?, encoding: CookieEncoding) =

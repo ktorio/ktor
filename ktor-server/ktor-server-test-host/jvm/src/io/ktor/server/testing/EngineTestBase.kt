@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.testing
 
 import io.ktor.application.*
@@ -13,6 +17,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.rules.*
@@ -68,12 +73,16 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     @get:Rule
     val test = TestName()
 
-    @get:Rule
-    open val timeout = PublishedTimeout(
-        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(10))
-    )
+    open val timeout = if (isUnderDebugger) {
+        1000000
+    } else {
+        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(1))
+    }
 
-    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout.seconds).toInt() }
+    @get:Rule
+    val timeoutRule by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
+
+    protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
     fun setUpBase() {
@@ -86,7 +95,8 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             enableHttp2 = false
         }
 
-        if (enableHttp2) {
+        val javaVersion = System.getProperty("java.version")
+        if (enableHttp2 && javaVersion.startsWith("1.8")) {
             Class.forName("sun.security.ssl.ALPNExtension", true, null)
         }
 
@@ -111,7 +121,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             testJob.invokeOnCompletion {
                 closeThread.start()
             }
-            closeThread.join(TimeUnit.SECONDS.toMillis(timeout.seconds))
+            closeThread.join(TimeUnit.SECONDS.toMillis(timeout))
         }
     }
 
@@ -201,7 +211,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val starting = GlobalScope.async(testDispatcher) {
             server.start(wait = false)
 
-            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout.seconds))) {
+            withTimeout(TimeUnit.SECONDS.toMillis(minOf(10, timeout))) {
                 server.environment.connectors.forEach { connector ->
                     waitForPort(connector.port)
                 }
@@ -221,17 +231,20 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
+
     protected fun withUrl(
-        path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit
+        path: String,
+        builder: suspend HttpRequestBuilder.() -> Unit = {},
+        block: suspend HttpResponse.(Int) -> Unit
     ) {
-        withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
+        withUrl("http://127.0.0.1:$port$path", port, builder, block)
 
         if (enableSsl) {
-            withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+            withUrl("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
 
         if (enableHttp2 && enableSsl) {
-            withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+            withHttp2("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
     }
 
@@ -246,10 +259,11 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     private fun withUrl(
-        url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit,
+        url: String, port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
             HttpClient(CIO) {
                 engine {
                     https.trustManager = trustManager
@@ -265,10 +279,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     private fun withHttp2(
-        url: URL, port: Int,
-        builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
+        url: String, port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
     ): Unit = runBlocking {
-        withTimeout(TimeUnit.SECONDS.toMillis(timeout.seconds)) {
+        withTimeout(TimeUnit.SECONDS.toMillis(timeout)) {
             HttpClient(Jetty) {
                 followRedirects = false
                 expectSuccess = false
@@ -277,14 +291,12 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                     sslContextFactory = SslContextFactory(true)
                 }
             }.use { httpClient ->
-                httpClient.call(url, builder).response.use { response ->
+                httpClient.call(urlString = url, block = builder).response.use { response ->
                     block(response, port)
                 }
             }
         }
     }
-
-    class PublishedTimeout(val seconds: Long) : Timeout(seconds, TimeUnit.SECONDS)
 
     companion object {
         val keyStoreFile = File("build/temp.jks")

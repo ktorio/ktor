@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.websocket
 
 import io.ktor.application.*
@@ -41,7 +45,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
 
-        createAndStartServer {
+        val engine = createAndStartServer {
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->

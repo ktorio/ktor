@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.content
 
 import io.ktor.http.*
@@ -31,8 +35,9 @@ sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
      * Represents a binary item
      * @property provider of content bytes
      */
-    class BinaryItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) :
-        PartData(dispose, partHeaders)
+    class BinaryItem(
+        val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers
+    ) : PartData(dispose, partHeaders)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing

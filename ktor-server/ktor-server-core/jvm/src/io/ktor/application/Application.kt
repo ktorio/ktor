@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.application
 
 import kotlinx.coroutines.*
@@ -10,6 +14,7 @@ import kotlinx.coroutines.*
  * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
 class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline(), CoroutineScope {
+
     private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
     override val coroutineContext = environment.parentCoroutineContext + applicationJob

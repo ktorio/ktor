@@ -1,16 +1,14 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.http.content
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.io.jvm.javaio.*
-import kotlinx.io.pool.*
-import java.io.*
 import java.net.*
-import java.nio.*
-import kotlin.coroutines.*
 
 /**
  * Represents a content that is served from the specified [uri]

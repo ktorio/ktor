@@ -1,6 +1,9 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.curl
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.client.request.*
@@ -18,17 +21,15 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
     private val curlProcessor = CurlProcessor(coroutineContext)
 
     override suspend fun execute(
-        call: HttpClientCall,
         data: HttpRequestData
-    ): HttpEngineCall {
-        val callContext = coroutineContext + CompletableDeferred<Unit>()
-        val request = DefaultHttpRequest(call, data)
+    ): HttpResponseData {
+        val callContext = coroutineContext + Job()
         val requestTime = GMTDate()
 
-        val curlRequest = request.toCurlRequest()
+        val curlRequest = data.toCurlRequest()
         val responseData = curlProcessor.executeRequest(curlRequest)
 
-        val response = with(responseData) {
+        return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {
                 readUTF8Line()
             }
@@ -44,13 +45,11 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
                 headers.release()
             }
 
-            CurlHttpResponse(
-                call, status, CIOHeaders(headers), requestTime,
-                body, callContext, version.fromCurl()
+            HttpResponseData(
+                status, requestTime, CIOHeaders(headers), version.fromCurl(),
+                body, callContext
             )
         }
-
-        return HttpEngineCall(request, response)
     }
 
     override fun close() {
@@ -59,6 +58,8 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
 
+@Suppress("KDocMissingDocumentation")
 class CurlRuntimeException(cause: String) : RuntimeException(cause)

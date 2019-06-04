@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.servlet
 
 import io.ktor.http.content.*
@@ -70,7 +74,7 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest
-    private val upgradeJob = CompletableDeferred<Unit>()
+    private val upgradeJob: CompletableJob = Job()
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 

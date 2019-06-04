@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests.cio
 
 import io.ktor.util.cio.*
@@ -6,9 +10,10 @@ import org.junit.Test
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
-const val TEST_SIZE = 100
-const val FAIL_TIMEOUT = 100L
+internal const val TEST_SIZE = 100
+internal const val FAIL_TIMEOUT = 100L
 
+@Suppress("KDocMissingDocumentation")
 class SemaphoreTest {
 
     @Test

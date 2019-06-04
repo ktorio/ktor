@@ -18,7 +18,9 @@ configure(tasks.jvmTest) {
     exclude("**/*StressTest*")
 
     if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-        def bootClasspath = configurations.boot.files
-        jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+        jvmArgs {
+            def bootClasspath = configurations.boot.files
+            bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" }.iterator()
+        }
     }
 }

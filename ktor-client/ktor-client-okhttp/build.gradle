@@ -1,8 +1,6 @@
 kotlin.sourceSets {
     jvmMain.dependencies {
         api project(':ktor-client:ktor-client-core')
-
-        api project(':ktor-client:ktor-client-features:ktor-client-websocket')
         api "com.squareup.okhttp3:okhttp:$okhttp_version"
     }
     jvmTest.dependencies {

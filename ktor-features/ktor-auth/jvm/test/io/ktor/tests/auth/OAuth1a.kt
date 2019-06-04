@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.auth
 
 import io.ktor.application.*
@@ -402,7 +406,9 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
     }
     val engine = TestApplicationEngine(environment)
     engine.start()
-    return HttpClient(TestHttpClientEngine.config { app = engine })
+    return HttpClient(TestHttpClientEngine.config { app = engine }) {
+        expectSuccess = false
+    }
 }
 
 private suspend fun ApplicationCall.fail(text: String?) {

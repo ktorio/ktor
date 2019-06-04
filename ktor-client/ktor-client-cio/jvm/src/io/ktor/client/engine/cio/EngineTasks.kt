@@ -1,19 +1,22 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal data class RequestTask(
-    val request: HttpRequest,
-    val response: CompletableDeferred<HttpResponse>,
+    val request: HttpRequestData,
+    val response: CancellableContinuation<HttpResponseData>,
     val context: CoroutineContext
 )
 
-internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.content.headers).any {
+internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.body.headers).any {
     it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
 } || request.method !in listOf(HttpMethod.Get, HttpMethod.Head)
 

@@ -1,11 +1,16 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import kotlinx.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -17,23 +22,22 @@ data class HttpBinResponse(
     val headers: Map<String, String>
 )
 
-class HttpBinTest {
+class HttpBinTest : ClientLoader() {
 
     @Test
-    fun getTest() = clientsTest {
+    fun testGet() = clientTests {
         config {
             testConfiguration()
         }
 
         test { client ->
-            val response = client.get<HttpBinResponse>("http://httpbin.org/get")
+            val response = client.get<HttpBinResponse>("https://httpbin.org/get")
 
-            assertEquals("http://httpbin.org/get", response.url)
+            assertEquals("https://httpbin.org/get", response.url)
             assertEquals(emptyMap(), response.args)
 
             with(response.headers) {
                 assertEquals("application/json", get("Accept"))
-                assertEquals("close", get("Connection"))
                 assertEquals("httpbin.org", get("Host"))
             }
 
@@ -41,26 +45,36 @@ class HttpBinTest {
     }
 
     @Test
-    fun postTest() = clientsTest {
+    fun testPost() = clientTests {
         config {
             testConfiguration()
         }
 
         test { client ->
-            val response = client.post<HttpBinResponse>("http://httpbin.org/post") {
+            val response = client.post<HttpBinResponse>("https://httpbin.org/post") {
                 body = "Hello, bin!"
             }
 
-            assertEquals("http://httpbin.org/post", response.url)
+            assertEquals("https://httpbin.org/post", response.url)
             assertEquals(emptyMap(), response.args)
 
             with(response.headers) {
                 assertEquals("text/plain; charset=UTF-8", get("Content-Type"))
                 assertEquals("application/json", get("Accept"))
                 assertEquals("11", get("Content-Length"))
-                assertEquals("close", get("Connection"))
                 assertEquals("httpbin.org", get("Host"))
             }
+        }
+    }
+
+    @Test
+    fun testBytes() = clientTests {
+        test { client ->
+            val size = 100 * 1024
+            val response = client.get<HttpResponse>("https://httpbin.org/bytes/$size").use {
+                it.readBytes()
+            }
+            assertEquals(size, response.size)
         }
     }
 

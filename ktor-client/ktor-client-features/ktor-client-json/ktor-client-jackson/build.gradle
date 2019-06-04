@@ -1,7 +1,7 @@
 kotlin.sourceSets {
     jvmMain.dependencies {
         api project(':ktor-client:ktor-client-features:ktor-client-json')
-        api group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.2'
+        api group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jackson_version
     }
     jvmTest.dependencies {
         api project(':ktor-client:ktor-client-cio')

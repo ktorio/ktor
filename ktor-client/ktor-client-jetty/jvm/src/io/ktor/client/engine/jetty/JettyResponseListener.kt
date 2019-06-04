@@ -1,7 +1,10 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.engine.jetty
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
@@ -54,7 +57,7 @@ internal class JettyResponseListener(
     }
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
-        val data = frame.data.copy()
+        val data = frame.data!!
         try {
             if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
                 throw IOException("backendChannel.offer() failed")
@@ -63,7 +66,7 @@ internal class JettyResponseListener(
             if (frame.isEndStream) backendChannel.close()
         } catch (cause: Throwable) {
             backendChannel.close(cause)
-            callback.succeeded()
+            callback.failed(cause)
         }
     }
 
@@ -88,30 +91,25 @@ internal class JettyResponseListener(
 
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
-        try {
-            while (!backendChannel.isClosedForReceive) {
-                val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
-                try {
-                    if (buffer.remaining() > 0) channel.writeFully(buffer)
-                    callback.succeeded()
-                } catch (cause: ClosedWriteChannelException) {
-                    callback.failed(cause)
-                    session.endPoint.close()
-                    break
-                } catch (cause: Throwable) {
-                    callback.failed(cause)
-                    session.endPoint.close()
-                    throw cause
-                }
+        while (!backendChannel.isClosedForReceive) {
+            val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
+            try {
+                if (buffer.remaining() > 0) channel.writeFully(buffer)
+                callback.succeeded()
+            } catch (cause: ClosedWriteChannelException) {
+                callback.failed(cause)
+                session.endPoint.close()
+                break
+            } catch (cause: Throwable) {
+                callback.failed(cause)
+                session.endPoint.close()
+                throw cause
             }
-        } catch (cause: Throwable) {
-            channel.close(cause)
-            this@JettyResponseListener.callContext.cancel()
-        } finally {
-            backendChannel.close()
-            backendChannel.consumeEach { it.callback.succeeded() }
-            channel.close()
         }
+    }.invokeOnCompletion { cause ->
+        channel.close(cause)
+        backendChannel.close()
+        GlobalScope.launch { backendChannel.consumeEach { it.callback.succeeded() } }
     }
 
     companion object {

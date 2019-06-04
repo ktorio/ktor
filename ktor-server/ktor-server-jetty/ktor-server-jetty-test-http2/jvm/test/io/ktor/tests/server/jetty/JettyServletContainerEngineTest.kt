@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.server.jetty
 
 import io.ktor.server.engine.*
@@ -8,10 +12,10 @@ import org.eclipse.jetty.servlet.*
 import org.junit.*
 import javax.servlet.*
 
-class JettyAsyncServletContainerEngineTest :
+class JettyHttp2AsyncServletContainerEngineTest :
     EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
 
-class JettyBlockingServletContainerEngineTest :
+class JettyHttp2BlockingServletContainerEngineTest :
     EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
     @Ignore
     override fun testUpgrade() {

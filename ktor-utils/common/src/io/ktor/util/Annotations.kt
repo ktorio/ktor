@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.util
 
 /**
@@ -22,4 +26,12 @@ annotation class InternalAPI
  * API marked with this annotation is experimental and is not guaranteed to be stable.
  */
 @Experimental(level = Experimental.Level.WARNING)
+@Target(
+    AnnotationTarget.CLASS,
+    AnnotationTarget.TYPEALIAS,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.FIELD,
+    AnnotationTarget.CONSTRUCTOR
+)
 annotation class KtorExperimentalAPI

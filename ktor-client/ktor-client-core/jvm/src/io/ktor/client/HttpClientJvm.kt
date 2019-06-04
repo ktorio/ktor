@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client
 
 import io.ktor.client.engine.*
@@ -35,8 +39,7 @@ private val engines: List<HttpClientEngineContainer> = HttpClientEngineContainer
     ServiceLoader.load(it, it.classLoader).toList()
 }
 
-private val FACTORY = engines.firstOrNull()?.factory
-    ?: error(
-        "Failed to find HTTP client engine implementation in the classpath: consider adding client engine dependency. " +
-            "See https://ktor.io/clients/http-client/engines.html"
-    )
+private val FACTORY = engines.firstOrNull()?.factory ?: error(
+    "Failed to find HTTP client engine implementation in the classpath: consider adding client engine dependency. " +
+        "See https://ktor.io/clients/http-client/engines.html"
+)

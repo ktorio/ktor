@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.benchmarks.test
 
 import io.ktor.application.*
@@ -16,10 +20,10 @@ class TestIntegrationBenchmark : IntegrationBenchmark<TestApplicationEngine>() {
 
     override fun load(url: String) {
         server.handleRequest(HttpMethod.Get, url).apply {
-                    if (response.status() != HttpStatusCode.OK) {
-                        throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
-                    }
-                    response.byteContent!!
-                }
+            if (response.status() != HttpStatusCode.OK) {
+                throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
+            }
+            response.byteContent!!
+        }
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.engine
 
 import io.ktor.application.*
@@ -33,22 +37,37 @@ class ApplicationEngineEnvironmentReloading(
         override val connectors: List<EngineConnectorConfig>,
         private val modules: List<Application.() -> Unit>,
         private val watchPaths: List<String> = emptyList(),
-        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+        override val rootPath: String = ""
 ) : ApplicationEngineEnvironment {
+
+    @Suppress("UNUSED")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(
+        classLoader: ClassLoader,
+        log: Logger,
+        config: ApplicationConfig,
+        connectors: List<EngineConnectorConfig>,
+        modules: List<Application.() -> Unit>,
+        watchPaths: List<String> = emptyList(),
+        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
+    ) : this(classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, "/")
 
     private var _applicationInstance: Application? = null
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getStringList() ?: listOf()) + watchPaths
+    private val watchPatterns: List<String> =
+        (config.propertyOrNull("ktor.deployment.watch")?.getStringList() ?: listOf()) + watchPaths
 
     private val moduleFunctionNames: List<String>? = run {
         val configModules = config.propertyOrNull("ktor.application.modules")?.getStringList()
         if (watchPatterns.isEmpty()) configModules
         else {
             val unlinkedModules = modules.map {
-                val fn = (it as? KFunction<*>)?.javaMethod ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
+                val fn = (it as? KFunction<*>)?.javaMethod
+                    ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
                 val clazz = fn.declaringClass
                 val name = fn.name
                 "${clazz.name}.$name"
@@ -107,15 +126,6 @@ class ApplicationEngineEnvironmentReloading(
         }
 
         _applicationInstance ?: throw IllegalStateException("ApplicationEngineEnvironment was not started")
-    }
-
-    private fun ClassLoader.allURLs(): Set<URL> {
-        val parentUrls = parent?.allURLs() ?: emptySet()
-        if (this is URLClassLoader) {
-            val urls = urLs.filterNotNull().toSet()
-            return urls + parentUrls
-        }
-        return parentUrls
     }
 
     private fun createApplication(): Pair<Application, ClassLoader> {
@@ -271,8 +281,12 @@ class ApplicationEngineEnvironmentReloading(
         val application = Application(this)
         safeRiseEvent(ApplicationStarting, application)
 
-        moduleFunctionNames?.forEach { fqName ->
-            executeModuleFunction(classLoader, fqName, application)
+        avoidingDoubleStartup {
+            moduleFunctionNames?.forEach { fqName ->
+                avoidingDoubleStartupFor(fqName) {
+                    executeModuleFunction(classLoader, fqName, application)
+                }
+            }
         }
 
         if (watchPatterns.isEmpty()) {
@@ -281,6 +295,32 @@ class ApplicationEngineEnvironmentReloading(
 
         safeRiseEvent(ApplicationStarted, application)
         return application
+    }
+
+    private fun avoidingDoubleStartup(block: () -> Unit) {
+        try {
+            block()
+        } finally {
+            currentStartupModules.get()?.let {
+                if (it.isEmpty()) {
+                    currentStartupModules.remove()
+                }
+            }
+        }
+    }
+
+    private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
+        val modules = currentStartupModules.getOrSet { ArrayList(1) }
+        if (modules.contains(fqName)) {
+            throw IllegalStateException("Module startup is already in progress for " +
+                "function $fqName (recursive module startup from module main?)")
+        }
+        modules.add(fqName)
+        try {
+            block()
+        } finally {
+            modules.remove(fqName)
+        }
     }
 
     private fun executeModuleFunction(classLoader: ClassLoader, fqName: String, application: Application) {
@@ -293,6 +333,7 @@ class ApplicationEngineEnvironmentReloading(
             val staticFunctions = clazz.methods
                     .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
                     .mapNotNull { it.kotlinFunction }
+                    .filter { it.isApplicableFunction() }
 
             staticFunctions.bestFunction()?.let { moduleFunction ->
                 if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
@@ -313,11 +354,13 @@ class ApplicationEngineEnvironmentReloading(
                 return
             }
 
-            val kclass = clazz.kotlin
-            val instance = createModuleContainer(kclass, application)
-            kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
-                callFunctionWithInjection(instance, moduleFunction, application)
-                return
+            clazz.takeIfNotFacade()?.let { kclass ->
+                kclass.functions.filter { it.name == functionName && it.isApplicableFunction() }
+                    .bestFunction()?.let { moduleFunction ->
+                    val instance = createModuleContainer(kclass, application)
+                    callFunctionWithInjection(instance, moduleFunction, application)
+                    return
+                }
             }
         }
 
@@ -384,11 +427,42 @@ class ApplicationEngineEnvironmentReloading(
     }
 
     companion object {
+        private val currentStartupModules = ThreadLocal<MutableList<String>>()
+
         private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
         private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, ApplicationEnvironmentClassInstance)
         private fun isApplication(p: KParameter) = isParameterOfType(p, ApplicationClassInstance)
 
         private val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
         private val ApplicationClassInstance = Application::class.java
+
+        private fun KFunction<*>.isApplicableFunction(): Boolean {
+            if (isOperator || isInfix || isInline || isAbstract) return false
+            if (isSuspend) return false // not supported yet
+
+            extensionReceiverParameter?.let {
+                if (!isApplication(it) && !isApplicationEnvironment(it)) return false
+            }
+
+            javaMethod?.let {
+                if (it.isSynthetic) return false
+
+                // static no-arg function is useless as a module function since no application instance available
+                // so nothing could be configured
+                if (Modifier.isStatic(it.modifiers) && parameters.isEmpty()) {
+                    return false
+                }
+            }
+
+            return parameters.all { isApplication(it) || isApplicationEnvironment(it)
+                || it.kind == KParameter.Kind.INSTANCE || it.isOptional }
+        }
+
+        private fun Class<*>.takeIfNotFacade(): KClass<*>? {
+            if (getAnnotation(Metadata::class.java)?.takeIf { it.kind == 1 } != null) {
+                return kotlin
+            }
+            return null
+        }
     }
 }

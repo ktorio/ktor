@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
- *
- * This is copied from kotlinx.coroutines.internals.*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.network.selector
 
@@ -99,7 +97,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
                     array[tail and mask] = element
                     // could have been frozen & copied before this item was set -- correct it by filling placeholder
                     var cur = this
-                    while(true) {
+                    while (true) {
                         if (cur._state.value and FROZEN_MASK == 0L) break // all fine -- not frozen yet
                         cur = cur.next().fillPlaceholder(tail, element) ?: break
                     }
@@ -222,7 +220,8 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
         private const val CLOSED_SHIFT = FROZEN_SHIFT + 1
         private const val CLOSED_MASK = 1L shl CLOSED_SHIFT
 
-        @JvmField internal val REMOVE_FROZEN = object {
+        @JvmField
+        internal val REMOVE_FROZEN = object {
             override fun toString() = "REMOVE_FROZEN"
         }
 

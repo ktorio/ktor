@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.sessions
 
 import io.ktor.sessions.*
@@ -26,19 +30,26 @@ class DirectorySessionStorageTest {
     }
 
     @Test(expected = NoSuchElementException::class)
-    fun testMissingSession() = runBlocking {
+    fun testMissingSession(): Unit = runBlocking {
         storage.read("id0") { it.cancel() }
         Unit
     }
 
     @Test
-    fun testSaveSimple() = runBlocking {
+    fun testSaveSimple(): Unit = runBlocking {
         storage.write("id1") { it.toOutputStream().writer().use { it.write("test1") } }
         assertEquals("test1", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
     }
 
     @Test
-    fun testInvalidate() = runBlocking {
+    fun testSaveTwice(): Unit = runBlocking {
+        storage.write("id1") { it.toOutputStream().writer().use { it.write("test1 with tail") } }
+        storage.write("id1") { it.toOutputStream().writer().use { it.write("test2") } }
+        assertEquals("test2", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
+    }
+
+    @Test
+    fun testInvalidate(): Unit = runBlocking {
         testSaveSimple()
         storage.invalidate("id1")
         assertFailsWith(NoSuchElementException::class) {

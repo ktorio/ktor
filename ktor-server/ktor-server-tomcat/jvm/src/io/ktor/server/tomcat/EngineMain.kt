@@ -1,13 +1,17 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.tomcat
 
 import io.ktor.server.engine.*
 
 /**
- * Tomcat development engine
+ * Tomcat engine
  */
 object EngineMain {
     /**
-     * Main function for starting DevelopmentEngine with Tomcat
+     * Main function for starting EngineMain with Tomcat
      * Creates an embedded Tomcat application with an environment built from command line arguments.
      */
     @JvmStatic

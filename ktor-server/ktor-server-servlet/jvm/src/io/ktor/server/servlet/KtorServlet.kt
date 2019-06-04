@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.server.servlet
 
 import io.ktor.application.*
@@ -7,6 +11,7 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
+import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -33,7 +38,16 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
-    override val coroutineContext: CoroutineContext  = Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
+    override val coroutineContext: CoroutineContext =
+        Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
+
+    /**
+     * Called by the servlet container when loading the servlet (on load)
+     */
+    override fun init() {
+        super.init()
+        application.attributes.put(ServletContextAttribute, servletContext!!)
+    }
 
     /**
      * Called by servlet container when the application is going to be undeployed or stopped.
@@ -72,7 +86,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         val asyncDispatchers = asyncDispatchers.value
 
         launch(asyncDispatchers.dispatcher) {
-            val call = AsyncServletApplicationCall(application, request, response,
+            val call = AsyncServletApplicationCall(
+                application, request, response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,
                 upgrade = upgrade,
@@ -85,8 +100,10 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
                 try {
                     asyncContext.complete()
                 } catch (alreadyCompleted: IllegalStateException) {
-                    application.log.debug("AsyncContext is already completed due to previous I/O error",
-                            alreadyCompleted)
+                    application.log.debug(
+                        "AsyncContext is already completed due to previous I/O error",
+                        alreadyCompleted
+                    )
                 }
             }
         }
@@ -99,6 +116,12 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         }
     }
 }
+
+/**
+ * Attribute that is added by ktor servlet to application attributes to hold [ServletContext] instance.
+ */
+@InternalAPI
+val ServletContextAttribute: AttributeKey<ServletContext> = AttributeKey("servlet-context")
 
 private class AsyncDispatchers {
     val engineExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())

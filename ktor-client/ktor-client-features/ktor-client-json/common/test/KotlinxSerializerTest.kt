@@ -1,16 +1,17 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.client.features.json
 
-import io.ktor.client.call.*
 import io.ktor.client.features.json.serializer.*
-import io.ktor.client.response.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.date.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
 import kotlinx.serialization.*
-import kotlin.coroutines.*
-import kotlin.jvm.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 @Serializable
@@ -19,23 +20,27 @@ internal data class User(val id: Long, val login: String)
 @Serializable
 internal data class Photo(val id: Long, val path: String)
 
-class KotlinxSerializerTest {
+@Serializable
+data class GithubProfile(
+    val login: String,
+    val id: Int,
+    val name: String
+)
 
+class KotlinxSerializerTest : ClientLoader() {
     @Test
-    fun registerCustomTest() {
+    fun testRegisterCustom() {
         val serializer = KotlinxSerializer().apply {
-            @UseExperimental(ImplicitReflectionSerializer::class)
             register(User.serializer())
         }
 
         val user = User(1, "vasya")
         val actual = serializer.testWrite(user)
         assertEquals("{\"id\":1,\"login\":\"vasya\"}", actual)
-//        assertEquals(user, serializer.testRead(actual))
     }
 
     @Test
-    fun registerCustomListTest() {
+    fun testRegisterCustomList() {
         val serializer = KotlinxSerializer().apply {
             registerList(User.serializer())
             registerList(Photo.serializer())
@@ -48,24 +53,82 @@ class KotlinxSerializerTest {
         assertEquals("[{\"id\":3,\"path\":\"petya.jpg\"}]", serializer.testWrite(listOf(photo)))
     }
 
-    private fun JsonSerializer.testWrite(data: Any): String =
-        (write(data) as? TextContent)?.text ?: error("Failed to get serialized $data")
-
-    private suspend inline fun <reified T : Any> JsonSerializer.testRead(data: String): T {
-        val info = typeInfo<T>()
-
-        val response = object : HttpResponse {
-            override val call: HttpClientCall get() = TODO()
-            override val status: HttpStatusCode get() = TODO()
-            override val version: HttpProtocolVersion get() = TODO()
-            override val requestTime: GMTDate get() = TODO()
-            override val responseTime: GMTDate get() = TODO()
-            override val headers: Headers get() = TODO()
-            override val coroutineContext: CoroutineContext get() = TODO()
-
-            override val content: ByteReadChannel = ByteReadChannel(data)
+    @Test
+    fun testReceiveFromGithub() = clientTests {
+        config {
+            install(JsonFeature) {
+                serializer = KotlinxSerializer(Json.nonstrict).apply {
+                    register(GithubProfile.serializer())
+                }
+            }
         }
 
-        return read(info, response) as T
+        test { client ->
+            val e5l = GithubProfile("e5l", 4290035, "Leonid Stashevsky")
+            assertEquals(e5l, client.get("https://api.github.com/users/e5l"))
+        }
     }
+
+    @Test
+    fun testCustomFormBody() = clientTests {
+        config {
+            install(JsonFeature)
+        }
+
+        val data = {
+            formData {
+                append("name", "hello")
+                append("content") {
+                    writeStringUtf8("123456789")
+                }
+                append("file", "urlencoded_name.jpg") {
+                    for (i in 1..4096) {
+                        writeByte(i.toByte())
+                    }
+                }
+                append("hello", 5)
+            }
+        }
+
+        test { client ->
+            var throwed = false
+            try {
+                client.submitFormWithBinaryData<String>(url = "upload", formData = data())
+            } catch (cause: Throwable) {
+                throwed = true
+            }
+
+            assertTrue(throwed, "Connection exception expected.")
+        }
+
+    }
+
+    /**
+     * Waiting for typeOf compiler implementation
+     */
+    @Test
+    @Ignore
+    fun testMultipleListSerializersWithClient() = clientTests {
+        val testSerializer = KotlinxSerializer().apply {
+            registerList(User.serializer())
+            registerList(Photo.serializer())
+        }
+
+        config {
+            install(JsonFeature) {
+                serializer = testSerializer
+            }
+        }
+
+        test { client ->
+            val users = client.get<List<User>>("$TEST_SERVER/json/users")
+            val photos = client.get<List<Photo>>("$TEST_SERVER/json/photos")
+
+            assertEquals(listOf(User(42, "TestLogin")), users)
+            assertEquals(listOf(Photo(4242, "cat.jpg")), photos)
+        }
+    }
+
+    private fun JsonSerializer.testWrite(data: Any): String =
+        (write(data, ContentType.Application.Json) as? TextContent)?.text ?: error("Failed to get serialized $data")
 }

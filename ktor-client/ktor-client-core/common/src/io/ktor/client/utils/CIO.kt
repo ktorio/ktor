@@ -1,6 +1,8 @@
-package io.ktor.client.utils
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-import kotlinx.coroutines.*
+package io.ktor.client.utils
 
 /**
  * Maximum number of buffers to be allocated in the [HttpClientDefaultPool].

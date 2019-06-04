@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.tests.auth
 
 import io.ktor.application.*
@@ -445,13 +449,11 @@ class AuthBuildersTest {
     fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
         application.apply {
             authentication {
-                register(object : AuthenticationProvider("custom") {
-                    init {
-                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                            context.authentication.error(this, AuthenticationFailedCause.Error("test"))
-                        }
+                provider("custom") {
+                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                        context.authentication.error(this, AuthenticationFailedCause.Error("test"))
                     }
-                })
+                }
             }
             routing {
                 authenticate("custom") {
@@ -481,16 +483,14 @@ class AuthBuildersTest {
     fun testAuthProviderFailureWithChallenge(): Unit = withTestApplication<Unit> {
         application.apply {
             authentication {
-                register(object : AuthenticationProvider("custom") {
-                    init {
-                        pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
-                            context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
-                                call.respondText("Challenge")
-                                it.complete()
-                            }
+                provider("custom") {
+                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                        context.authentication.challenge(this, AuthenticationFailedCause.Error("test")) {
+                            call.respondText("Challenge")
+                            it.complete()
                         }
                     }
-                })
+                }
             }
             routing {
                 authenticate("custom") {
