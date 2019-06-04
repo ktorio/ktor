@@ -15,6 +15,7 @@ import io.ktor.auth.*
 import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.security.interfaces.*
 import java.util.*
@@ -52,6 +53,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
     internal val authHeader: (ApplicationCall) -> HttpAuthHeader? = config.authHeader
     internal val verifier: ((HttpAuthHeader) -> JWTVerifier?) = config.verifier
     internal val authenticationFunction = config.authenticationFunction
+    internal val challengeFunction: JWTAuthChallengeFunction = config.challenge
 
     /**
      * JWT auth provider configuration
@@ -65,6 +67,17 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
             { call -> call.request.parseAuthorizationHeaderOrNull() }
 
         internal var verifier: ((HttpAuthHeader) -> JWTVerifier?) = { null }
+
+        internal var challenge: JWTAuthChallengeFunction = { scheme, realm ->
+            call.respond(
+                UnauthorizedResponse(
+                    HttpAuthHeader.Parameterized(
+                        scheme,
+                        mapOf(HttpAuthHeader.Parameters.Realm to realm)
+                    )
+                )
+            )
+        }
 
         /**
          * JWT realm name that will be used during auth challenge
@@ -125,6 +138,13 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
             authenticationFunction = validate
         }
 
+        /**
+         * Specifies what to send back if jwt authentication fails.
+         */
+        fun challenge(block: JWTAuthChallengeFunction) {
+            challenge = block
+        }
+
         internal fun build() = JWTAuthenticationProvider(this)
     }
 }
@@ -151,7 +171,7 @@ fun Authentication.Configuration.jwt(
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = provider.authHeader(call)
         if (token == null) {
-            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes)
+            context.bearerChallenge(AuthenticationFailedCause.NoCredentials, realm, schemes, provider.challengeFunction)
             return@intercept
         }
 
@@ -160,7 +180,12 @@ fun Authentication.Configuration.jwt(
             if (principal != null) {
                 context.principal(principal)
             } else {
-                context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes)
+                context.bearerChallenge(
+                    AuthenticationFailedCause.InvalidCredentials,
+                    realm,
+                    schemes,
+                    provider.challengeFunction
+                )
             }
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
@@ -171,13 +196,22 @@ fun Authentication.Configuration.jwt(
     register(provider)
 }
 
+/**
+ * Specifies what to send back if session authentication fails.
+ */
+typealias JWTAuthChallengeFunction =
+    suspend PipelineContext<*, ApplicationCall>.(defaultScheme: String, realm: String) -> Unit
+
 private fun AuthenticationContext.bearerChallenge(
     cause: AuthenticationFailedCause,
     realm: String,
-    schemes: JWTAuthSchemes
+    schemes: JWTAuthSchemes,
+    challengeFunction: JWTAuthChallengeFunction
 ) = challenge(JWTAuthKey, cause) {
-    call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, schemes)))
-    it.complete()
+    challengeFunction(this, schemes.defaultScheme, realm)
+    if (!it.completed && call.response.status() != null) {
+        it.complete()
+    }
 }
 
 private fun getVerifier(
@@ -241,7 +275,7 @@ private suspend fun verifyAndValidate(
 }
 
 private fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
-    this is HttpAuthHeader.Single && authScheme.toLowerCase() in schemes -> blob
+    this is HttpAuthHeader.Single && authScheme in schemes -> blob
     else -> null
 }
 
@@ -251,9 +285,6 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
     JWTLogger.trace("Illegal HTTP auth header", ex)
     null
 }
-
-private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, schemes: JWTAuthSchemes): HttpAuthHeader =
-    HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
 internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)

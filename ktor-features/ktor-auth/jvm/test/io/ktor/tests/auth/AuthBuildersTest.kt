@@ -210,11 +210,11 @@ class AuthBuildersTest {
             }
             application.install(Authentication) {
                 session<TestSession>("S") {
-                    challenge = SessionAuthChallenge.Ignore // a root session provider doesn't send any challenge
+                    challenge {} // a root session provider doesn't send any challenge
                     validate { UserIdPrincipal(it.name) } // but optionally provides an authenticated user
                 }
                 session<TestSession>("S_web") {
-                    challenge = SessionAuthChallenge.Redirect { "/login" } // for web roots it does redirect to login
+                    challenge("/login") // for web roots it does redirect to login
                     validate { UserIdPrincipal(it.name) } // unfortunately it does check twice
                 }
                 basic("B") {
