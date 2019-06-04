@@ -75,14 +75,14 @@ open class HttpClientCall internal constructor(
      * @throws DoubleReceiveException If already called [receive].
      */
     suspend fun receive(info: TypeInfo): Any {
-        if (info.type.isInstance(response)) return response
+        if (response.instanceOf(info.type)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
         val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
         val subject = HttpResponseContainer(info, responseData)
         val result = client.responsePipeline.execute(this, subject).response
-        if (!info.type.isInstance(result)) {
+        if (!result.instanceOf(info.type)) {
             throw NoTransformationFoundException(result::class, info.type)
         }
 

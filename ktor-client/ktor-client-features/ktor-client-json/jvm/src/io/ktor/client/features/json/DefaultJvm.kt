@@ -9,7 +9,6 @@ import java.util.*
 actual fun defaultSerializer(): JsonSerializer {
     val serializers = ServiceLoader.load(JsonSerializer::class.java)
         .toList()
-        .sortedBy { it.javaClass.name }
 
     if (serializers.isEmpty()) error(
         "Fail to find serializer. Consider to add one of the following dependencies: \n" +
@@ -18,5 +17,5 @@ actual fun defaultSerializer(): JsonSerializer {
             " - ktor-client-serialization"
     )
 
-    return serializers.maxBy { it::class.simpleName!! }!!
+    return serializers.maxBy { it::javaClass.name }!!
 }

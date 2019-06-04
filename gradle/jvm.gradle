@@ -43,7 +43,6 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            api group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
             api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
             if (jdk > 6) {
                 api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version

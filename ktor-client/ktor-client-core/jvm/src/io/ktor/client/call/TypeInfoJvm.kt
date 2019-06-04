@@ -5,6 +5,7 @@
 package io.ktor.client.call
 
 import java.lang.reflect.*
+import kotlin.reflect.*
 
 actual typealias Type = java.lang.reflect.Type
 
@@ -18,3 +19,8 @@ actual inline fun <reified T> typeInfo(): TypeInfo {
     val reifiedType = (superType as ParameterizedType).actualTypeArguments.first()!!
     return TypeInfo(T::class, reifiedType)
 }
+
+/**
+ * Check [this] is instance of [type].
+ */
+internal actual fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
