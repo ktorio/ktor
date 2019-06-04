@@ -15,7 +15,11 @@ import kotlin.coroutines.*
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val clientContext = SupervisorJob()
     private val _dispatcher by lazy {
-        Executors.newFixedThreadPool(config.threadsCount).asCoroutineDispatcher()
+        Executors.newFixedThreadPool(config.threadsCount) {
+            Thread(it).apply {
+                isDaemon = true
+            }
+        }.asCoroutineDispatcher()
     }
 
     @UseExperimental(InternalCoroutinesApi::class)
