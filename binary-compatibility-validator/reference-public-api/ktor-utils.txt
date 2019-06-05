@@ -595,6 +595,7 @@ public class io/ktor/util/internal/LockFreeLinkedListHead : io/ktor/util/interna
 	public fun <init> ()V
 	public synthetic fun describeRemove ()Lio/ktor/util/internal/AtomicDesc;
 	public final fun describeRemove ()Ljava/lang/Void;
+	public final synthetic fun forEach (Lkotlin/jvm/functions/Function1;)V
 	public final fun isEmpty ()Z
 	public final fun remove ()Z
 }
@@ -623,6 +624,8 @@ public class io/ktor/util/internal/LockFreeLinkedListNode {
 	public final fun isRemoved ()Z
 	public final fun makeCondAddOp (Lio/ktor/util/internal/LockFreeLinkedListNode;Lkotlin/jvm/functions/Function0;)Lio/ktor/util/internal/LockFreeLinkedListNode$CondAddOp;
 	public fun remove ()Z
+	public final synthetic fun removeFirstIfIsInstanceOf ()Ljava/lang/Object;
+	public final synthetic fun removeFirstIfIsInstanceOfOrPeekIf (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public final fun removeFirstOrNull ()Lio/ktor/util/internal/LockFreeLinkedListNode;
 	public fun toString ()Ljava/lang/String;
 	public final fun tryCondAddNext (Lio/ktor/util/internal/LockFreeLinkedListNode;Lio/ktor/util/internal/LockFreeLinkedListNode;Lio/ktor/util/internal/LockFreeLinkedListNode$CondAddOp;)I
@@ -723,6 +726,7 @@ public abstract interface class io/ktor/util/pipeline/PipelineExecutor {
 
 public final class io/ktor/util/pipeline/PipelineKt {
 	public static final fun execute (Lio/ktor/util/pipeline/Pipeline;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun intercept (Lio/ktor/util/pipeline/Pipeline;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/util/pipeline/PipelinePhase {
