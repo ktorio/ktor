@@ -4,6 +4,10 @@ public final class io/ktor/client/features/json/serializer/KotlinxSerializer : i
 	public fun <init> (Lkotlinx/serialization/json/Json;)V
 	public synthetic fun <init> (Lkotlinx/serialization/json/Json;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun read (Lio/ktor/client/call/TypeInfo;Lkotlinx/io/core/Input;)Ljava/lang/Object;
+	public final synthetic fun register ()V
+	public final synthetic fun register (Lkotlinx/serialization/KSerializer;)V
+	public final synthetic fun registerList ()V
+	public final synthetic fun registerList (Lkotlinx/serialization/KSerializer;)V
 	public final fun setListMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
 	public final fun setMapper (Lkotlin/reflect/KClass;Lkotlinx/serialization/KSerializer;)V
 	public fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
