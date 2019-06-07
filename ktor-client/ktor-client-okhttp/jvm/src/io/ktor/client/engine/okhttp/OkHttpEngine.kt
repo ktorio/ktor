@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import okhttp3.*
+import okhttp3.internal.http.HttpMethod
 import kotlin.coroutines.*
 
 @InternalAPI
@@ -106,7 +107,12 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
             addHeader(key, value)
         }
 
-        method(method.value, body.convertToOkHttpBody(callContext))
+        val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
+            body.convertToOkHttpBody(callContext)
+        } else null
+
+
+        method(method.value, bodyBytes)
     }
 
     return builder.build()
@@ -118,6 +124,6 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
     is OutgoingContent.WriteChannelContent -> {
         StreamRequestBody(contentLength) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
     }
-    is OutgoingContent.NoContent -> null
+    is OutgoingContent.NoContent -> RequestBody.create(null, ByteArray(0))
     else -> throw UnsupportedContentTypeException(this)
 }
