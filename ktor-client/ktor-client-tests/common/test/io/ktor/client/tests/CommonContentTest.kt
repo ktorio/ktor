@@ -8,13 +8,14 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
 class CommonContentTest : ClientLoader() {
 
     @Test
-    fun testPostWithEmptyBody() = clientTests {
+    fun testJsonPostWithEmptyBody() = clientTests {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer()
@@ -27,6 +28,20 @@ class CommonContentTest : ClientLoader() {
             }
 
             assertEquals("{}", response)
+        }
+    }
+
+    @Test
+    fun testPostWithEmptyBody() = clientTests {
+        config {
+        }
+
+        test { client ->
+            val response = client.post<String>("$TEST_SERVER/echo") {
+                body = EmptyContent
+            }
+
+            assertEquals("", response)
         }
     }
 }

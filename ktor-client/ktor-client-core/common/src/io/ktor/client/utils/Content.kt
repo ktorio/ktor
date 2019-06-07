@@ -13,7 +13,9 @@ import kotlin.coroutines.*
 /**
  * Concrete [OutgoingContent] without a payload.
  */
-object EmptyContent : OutgoingContent.NoContent()
+object EmptyContent : OutgoingContent.NoContent() {
+    override val contentLength: Long = 0
+}
 
 /**
  * Generates a new [OutgoingContent] of the same abstract type
