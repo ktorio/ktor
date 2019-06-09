@@ -105,6 +105,23 @@ fun Frame.readBytes(): ByteArray {
     return data.copyOf()
 }
 
+/**
+ * Read close reason from close frame or null if no close reason provided
+ */
+@Suppress("CONFLICTING_OVERLOADS")
+fun Frame.Close.readReason(): CloseReason? {
+    if (data.size < 2) {
+        return null
+    }
+
+    val packet = buildPacket { writeFully(data) }
+
+    val code = packet.readShort()
+    val message = packet.readText()
+
+    return CloseReason(code, message)
+}
+
 internal object NonDisposableHandle : DisposableHandle {
     override fun dispose() {}
     override fun toString(): String = "NonDisposableHandle"
