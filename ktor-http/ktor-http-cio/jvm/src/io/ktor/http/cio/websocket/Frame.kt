@@ -128,18 +128,6 @@ actual sealed class Frame private actual constructor(
     }
 }
 
-/**
- * Read close reason from close frame or null if no close reason provided
- */
-fun Frame.Close.readReason(): CloseReason? {
-    if (data.size < 2) {
-        return null
-    }
-
-    buffer.mark()
-    val code = buffer.getShort()
-    val message = buffer.decodeString(Charsets.UTF_8)
-    buffer.reset()
-
-    return CloseReason(code, message)
-}
+@Suppress("CONFLICTING_OVERLOADS")
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+fun Frame.Close.readReason(): CloseReason? = readReason()

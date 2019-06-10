@@ -335,11 +335,12 @@ public final class io/ktor/http/cio/websocket/Frame$Text : io/ktor/http/cio/webs
 
 public final class io/ktor/http/cio/websocket/FrameCommonKt {
 	public static final fun readBytes (Lio/ktor/http/cio/websocket/Frame;)[B
+	public static final fun readReason (Lio/ktor/http/cio/websocket/Frame$Close;)Lio/ktor/http/cio/websocket/CloseReason;
 	public static final fun readText (Lio/ktor/http/cio/websocket/Frame$Text;)Ljava/lang/String;
 }
 
 public final class io/ktor/http/cio/websocket/FrameKt {
-	public static final fun readReason (Lio/ktor/http/cio/websocket/Frame$Close;)Lio/ktor/http/cio/websocket/CloseReason;
+	public static final synthetic fun readReason (Lio/ktor/http/cio/websocket/Frame$Close;)Lio/ktor/http/cio/websocket/CloseReason;
 }
 
 public final class io/ktor/http/cio/websocket/FrameParser {
