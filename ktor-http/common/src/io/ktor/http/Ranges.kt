@@ -34,7 +34,7 @@ sealed class ContentRange {
     /**
      * Represents a `Content-Range` bounded from both sides
      * @property from index from which the content should begin
-     * @property to the last index the content should end at
+     * @property to the last index the content should end at (inclusive)
      */
     data class Bounded(val from: Long, val to: Long) : ContentRange() {
         override fun toString(): String = "$from-$to"

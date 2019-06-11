@@ -472,17 +472,19 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
         }
 
+        val fileContentHead = String(file.reader().use { input -> CharArray(32).also { input.read(it) } })
+
         withUrl("/", {
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("/", readText())
+            assertEquals(fileContentHead.substring(0, 1), readText())
         }
         withUrl("/", {
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("*\n", readText())
+            assertEquals(fileContentHead.substring(1, 3), readText())
         }
     }
 
@@ -511,7 +513,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals("/", readText()) // it should be no compression if range requested
+            assertEquals(file.reader().use { it.read().toChar().toString() }, readText(),
+                "It should be no compression if range requested")
         }
     }
 
