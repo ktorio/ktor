@@ -9,6 +9,8 @@ build
 !.idea/dictionaries/*
 !.idea/copyright
 !.idea/copyright/*
+!.idea/codeStyles
+!.idea/codeStyles/*
 out
 *.iml
 .vscode
