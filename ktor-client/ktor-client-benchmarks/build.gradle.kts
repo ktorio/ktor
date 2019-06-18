@@ -1,7 +1,7 @@
-import org.jetbrains.gradle.benchmarks.*
+import kotlinx.benchmark.gradle.*
 
 plugins {
-    id("org.jetbrains.gradle.benchmarks.plugin")
+    id("kotlinx.benchmark")
     id("kotlin-allopen")
     id("kotlinx-atomicfu")
 }
@@ -18,7 +18,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":ktor-client:ktor-client-core"))
-                implementation("org.jetbrains.gradle.benchmarks:runtime:$benchmarks_version")
+                implementation("org.jetbrains.kotlinx:kotlinx.benchmark.runtime:$benchmarks_version")
             }
         }
         val jvmMain by getting {
@@ -34,15 +34,18 @@ kotlin {
 }
 
 benchmark {
-    configurations {
-        (register("jvm") as? JvmBenchmarkConfiguration)?.apply {
-            jmhVersion = "$jmh_version"
+    targets {
+        register("jvm") {
+            if (this is JvmBenchmarkTarget) {
+                jmhVersion = "$jmh_version"
+            }
         }
     }
-
-    defaults.apply {
-        iterationTime = 100
-        iterations = 3
+    configurations {
+        configureEach {
+            iterationTime = 100
+            iterations = 3
+        }
     }
 }
 

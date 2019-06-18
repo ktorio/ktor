@@ -1,6 +1,6 @@
 infra {
-    node {
-        version = nodejs_version
+//    node {
+//        version = nodejs_version
 
         mocha {
             version = mocha_version
@@ -18,9 +18,9 @@ infra {
             }
         }
 
-        install("source-map-support", source_map_support_version)
-        install("text-encoding", text_encoding_version)
-        install("node-fetch", node_fetch_version)
-        install("ws", ws_version)
-    }
+//        install("source-map-support", source_map_support_version)
+//        install("text-encoding", text_encoding_version)
+//        install("node-fetch", node_fetch_version)
+//        install("ws", ws_version)
+//    }
 }
