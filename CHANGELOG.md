@@ -1,4 +1,21 @@
 # 1.2.1
+> Published 20 June 2019
+
+* Upgraded to Kotlin 1.3.40.
+* Netty server engine uses native transports when available (#1122).
+* Upgraded to Netty 4.1.36 (#1190).
+* Added JVM shutdown hooks in server engines (#1111, #1164).
+* Introduced challenge builder functions in server auth providers (#366, #921, #1130, #798).
+* Segmentation fault is fixed in native clients (#1135).
+* Improved gracefull shutdown in ktor client engines Jetty and Apache.
+* Removed kotlin-reflect from ktor jvm clients (#1162).
+* Client threads daemonized (#1170).
+* Relaxed client cookie value restrictions (#1069).
+* Fixed empty client requests with okhttp engine (#1175).
+* API cleanup, deprecations.
+* kotlinx.coroutines 1.2.2, kotlinx.serialization 0.11.1.
+
+# 1.2.1
 >  Published 27 May 2019
 
 * Fixed module function lookup (regress, #1132)
