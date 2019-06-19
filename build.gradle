@@ -86,6 +86,8 @@ def projectNeedsPlatform(project, platform) {
     return files.any { it.name == "common" || it.name == platform }
 }
 
+project.ext.browser = getClass().classLoader.loadClass("org.jetbrains.kotlin.gradle.targets.js.subtargets.KotlinBrowserJs")
+
 apply from: rootProject.file('gradle/nodejs.gradle')
 
 def check(Object version, String libVersion, String libName) {
