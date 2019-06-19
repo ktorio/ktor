@@ -54,6 +54,9 @@ class TestApplicationEngine(
         {
             try {
                 call.application.execute(call)
+                if (call.response.status() == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                }
             } catch (cause: Throwable) {
                 handleTestFailure(cause)
             }
