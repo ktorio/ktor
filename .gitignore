@@ -19,6 +19,7 @@ out
 *.releaseBackup
 release.properties
 local.properties
+*.swp
 
 .video
 .attach_pid*
