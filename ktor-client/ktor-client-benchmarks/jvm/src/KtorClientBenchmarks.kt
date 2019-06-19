@@ -7,7 +7,7 @@ package io.ktor.client.benchmarks
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import org.jetbrains.gradle.benchmarks.*
+import kotlinx.benchmark.*
 
 internal const val TEST_BENCHMARKS_SERVER = "http://127.0.0.1:8080/benchmarks"
 

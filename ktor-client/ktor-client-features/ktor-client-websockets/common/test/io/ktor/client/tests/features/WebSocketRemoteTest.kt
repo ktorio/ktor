@@ -1,7 +1,7 @@
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-package io.ktor.client.features
+package io.ktor.client.tests.features
 
 import io.ktor.client.features.logging.*
 import io.ktor.client.features.websocket.*
@@ -14,8 +14,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private val echoWebsocket = "echo.websocket.org"
 
     @Test
-    fun testRemotePingPong() = clientTests {
-
+    fun testRemotePingPong(): Unit = clientTests {
         config {
             install(WebSockets)
         }
@@ -30,7 +29,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSecureRemotePingPong() = clientTests {
+    fun testSecureRemotePingPong(): Unit = clientTests {
         config {
             install(WebSockets)
         }
@@ -45,7 +44,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLogging() = clientTests {
+    fun testWithLogging(): Unit = clientTests {
         config {
             install(Logging) {
                 level = LogLevel.ALL

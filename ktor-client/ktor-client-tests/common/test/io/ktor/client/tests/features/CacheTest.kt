@@ -1,7 +1,7 @@
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-package io.ktor.client.features
+package io.ktor.client.tests.features
 
 import io.ktor.client.features.cache.*
 import io.ktor.client.request.*
@@ -12,7 +12,7 @@ import kotlin.test.*
 
 class CacheTest : ClientLoader() {
     @Test
-    fun testNoStore() = clientTests {
+    fun testNoStore(): Unit = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -36,7 +36,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testNoCache() = clientTests {
+    fun testNoCache(): Unit = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -60,7 +60,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testETagCache() = clientTests(listOf("js")) {
+    fun testETagCache(): Unit = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -82,7 +82,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testLastModified() = clientTests(listOf("js")) {
+    fun testLastModified(): Unit = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -104,7 +104,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testVary() = clientTests(listOf("js")) {
+    fun testVary(): Unit = clientTests(listOf("js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -150,7 +150,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxAge() = clientTests {
+    fun testMaxAge(): Unit = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -175,7 +175,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests {
+    fun testPublicAndPrivateCache(): Unit = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {

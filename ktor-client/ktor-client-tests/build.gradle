@@ -82,7 +82,7 @@ def testTasks = [
 ]
 
 if (!project.ext.ideaActive) {
-    testTasks += ['macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jsTestMochaChrome', 'jsTestMochaNode']
+    testTasks += ['macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jsNodeTest']
 }
 
 rootProject.allprojects {
