@@ -63,9 +63,9 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             js("new WebSocket(urlString)")
         }
 
-        socket.awaitConnection()
-
         val session = JsWebSocketSession(callContext, socket)
+
+        socket.awaitConnection()
 
         return HttpResponseData(
             HttpStatusCode.OK,
