@@ -48,10 +48,9 @@ internal class JsWebSocketSession(
             _outgoing.cancel()
         }
 
-        websocket.onclose = {
+        websocket.onclose = { event: dynamic ->
             launch {
-                val event = it as CloseEvent
-                _incoming.send(Frame.Close(CloseReason(event.code, event.reason)))
+                _incoming.send(Frame.Close(CloseReason(event.code as Short, event.reason as String)))
                 _incoming.close()
 
                 _outgoing.cancel()
