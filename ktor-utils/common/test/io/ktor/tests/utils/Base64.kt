@@ -29,13 +29,13 @@ class Base64 {
             "EgbW9yZSBlbGVnYW50IHNvbHV0aW9uLCBjaGVjayBvdXQgS290bGluIGlkaW9tcy4="
 
         assertEquals(encodedText, text.encodeBase64())
-        assertEquals(text, encodedText.decodeBase64())
+        assertEquals(text, encodedText.decodeBase64String())
     }
 
     @Test
     fun encodeEmptyTest() {
         assertEquals("", "".encodeBase64())
-        assertEquals("", "".decodeBase64())
+        assertEquals("", "".decodeBase64String())
     }
 
     @Test
@@ -50,7 +50,7 @@ class Base64 {
 
         cases.forEach { (text, encodedText) ->
             assertEquals(encodedText, text.encodeBase64())
-            assertEquals(text, encodedText.decodeBase64())
+            assertEquals(text, encodedText.decodeBase64String())
         }
     }
 }

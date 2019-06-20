@@ -199,7 +199,7 @@ fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = 
         else -> encodedValue
     }
     CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
-    CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64()
+    CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64String()
 }
 
 private fun String.assertCookieName() = when {

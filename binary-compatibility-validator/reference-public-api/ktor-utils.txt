@@ -39,8 +39,11 @@ public final class io/ktor/util/Base64JvmKt {
 }
 
 public final class io/ktor/util/Base64Kt {
-	public static final fun decodeBase64 (Ljava/lang/String;)Ljava/lang/String;
-	public static final fun decodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
+	public static final synthetic fun decodeBase64 (Ljava/lang/String;)Ljava/lang/String;
+	public static final synthetic fun decodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
+	public static final fun decodeBase64Bytes (Ljava/lang/String;)[B
+	public static final fun decodeBase64Bytes (Lkotlinx/io/core/ByteReadPacket;)Lkotlinx/io/core/Input;
+	public static final fun decodeBase64String (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeBase64 (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun encodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final fun encodeBase64 ([B)Ljava/lang/String;
