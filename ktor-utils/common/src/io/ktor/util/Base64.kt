@@ -4,6 +4,7 @@
 
 package io.ktor.util
 
+import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlin.experimental.*
 
@@ -16,7 +17,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
 }
 
 /**
- * Encode [String] in base64 format
+ * Encode [String] in base64 format and UTF-8 character encoding.
  */
 @InternalAPI
 fun String.encodeBase64(): String = buildPacket {
@@ -56,18 +57,24 @@ fun ByteReadPacket.encodeBase64(): String = buildString {
 }
 
 /**
+ * Decode [String] from base64 format encoded in UTF-8.
+ */
+@InternalAPI
+fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = Charsets.UTF_8)
+
+/**
  * Decode [String] from base64 format
  */
 @InternalAPI
-fun String.decodeBase64(): String = buildPacket {
+fun String.decodeBase64Bytes(): ByteArray = buildPacket {
     writeStringUtf8(dropLastWhile { it == BASE64_PAD })
-}.decodeBase64()
+}.decodeBase64Bytes().readBytes()
 
 /**
  * Decode [ByteReadPacket] from base64 format
  */
 @InternalAPI
-fun ByteReadPacket.decodeBase64(): String = buildString {
+fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)
 
     while (remaining > 0) {
@@ -79,10 +86,18 @@ fun ByteReadPacket.decodeBase64(): String = buildString {
 
         for (index in data.size - 2 downTo (data.size - read)) {
             val origin = (chunk shr (8 * index)) and 0xff
-            append(origin.toChar())
+            writeByte(origin.toByte())
         }
     }
 }
+
+@Suppress("unused", "KDocMissingDocumentation")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun String.decodeBase64(): String = decodeBase64String()
+
+@Suppress("unused", "KDocMissingDocumentation")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun ByteReadPacket.decodeBase64(): String = decodeBase64Bytes().readText()
 
 internal fun ByteArray.clearFrom(from: Int) {
     (from until size).forEach { this[it] = 0 }
