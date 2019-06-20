@@ -1,4 +1,4 @@
-# 1.2.1
+# 1.2.2
 > Published 20 June 2019
 
 * Upgraded to Kotlin 1.3.40.
