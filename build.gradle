@@ -175,6 +175,27 @@ allprojects {
     }
 }
 
+task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport) {
+    def rootAllTest = it
+    destinationDir = new File(project.buildDir, "reports/tests/rootAllTest")
+
+    allprojects {
+        it.afterEvaluate {
+            def projectTests = it.tasks.findByName("allTests")
+            if (projectTests != null) {
+                rootAllTest.addChild(projectTests)
+                rootAllTest.dependsOn(projectTests)
+            }
+        }
+    }
+
+    project.gradle.taskGraph.whenReady { graph ->
+        rootAllTest.maybeOverrideReporting(graph)
+    }
+}
+
+build.dependsOn(rootAllTest)
+
 println("Using Kotlin compiler version: $org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION")
 if (build_snapshot_train) {
     println "Hacking test tasks, removing stress and flaky tests"
