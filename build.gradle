@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.konan.target.HostManager
 
 buildscript {
-   /*
-    * These property group is used to build ktor against Kotlin compiler snapshot.
-    * How does it work:
-    * When build_snapshot_train is set to true, kotlin_version property is overridden with kotlin_snapshot_version,
-    * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
-    * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
-    * DO NOT change the name of these properties without adapting kotlinx.train build chain.
-    */
+    /*
+     * These property group is used to build ktor against Kotlin compiler snapshot.
+     * How does it work:
+     * When build_snapshot_train is set to true, kotlin_version property is overridden with kotlin_snapshot_version,
+     * atomicfu_version, coroutines_version, serialization_version and kotlinx_io_version are overwritten by TeamCity environment.
+     * Additionally, mavenLocal and Sonatype snapshots are added to repository list and stress tests are disabled.
+     * DO NOT change the name of these properties without adapting kotlinx.train build chain.
+     */
     def prop = rootProject.properties['build_snapshot_train']
     ext.build_snapshot_train = prop != null && prop != ""
     if (build_snapshot_train) {
@@ -19,6 +19,14 @@ buildscript {
         repositories {
             mavenLocal()
             maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        }
+
+        configurations.classpath {
+            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion kotlin_version
+                }
+            }
         }
     }
 
@@ -44,6 +52,7 @@ buildscript {
         classpath "kotlinx.team:kotlinx.team.infra:$infra_version"
     }
 }
+
 
 apply plugin: 'kotlinx.team.infra'
 
