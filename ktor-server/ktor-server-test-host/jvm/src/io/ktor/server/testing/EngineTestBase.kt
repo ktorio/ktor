@@ -76,7 +76,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     open val timeout = if (isUnderDebugger) {
         1000000
     } else {
-        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(1))
+        (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(2))
     }
 
     @get:Rule
