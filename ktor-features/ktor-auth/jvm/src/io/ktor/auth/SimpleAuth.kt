@@ -63,5 +63,5 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<St
 
 private fun ApplicationConfig.parseUsers(name: String = "users") =
     configList(name)
-        .map { it.property("name").getString() to decodeBase64(it.property("hash").getString()) }
+        .map { it.property("name").getString() to it.property("hash").getString().decodeBase64Bytes() }
         .toMap()

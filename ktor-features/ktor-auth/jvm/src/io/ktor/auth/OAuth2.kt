@@ -205,7 +205,7 @@ private suspend fun oauth2RequestAccessToken(
                 HttpHeaders.Authorization,
                 HttpAuthHeader.Single(
                     AuthScheme.Basic,
-                    encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))
+                    "$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1).encodeBase64()
                 ).render()
             )
         }

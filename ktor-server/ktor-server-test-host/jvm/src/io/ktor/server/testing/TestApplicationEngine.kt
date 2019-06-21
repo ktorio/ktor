@@ -149,7 +149,7 @@ class TestApplicationEngine(
             this.uri = uri
             addHeader(HttpHeaders.Connection, "Upgrade")
             addHeader(HttpHeaders.Upgrade, "websocket")
-            addHeader(HttpHeaders.SecWebSocketKey, encodeBase64("test".toByteArray()))
+            addHeader(HttpHeaders.SecWebSocketKey, "test".toByteArray().encodeBase64())
 
             processRequest(setup)
         }

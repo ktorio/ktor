@@ -502,7 +502,7 @@ private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: Stri
         uri = url
 
         val up = "$user:$pass"
-        val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
+        val encoded = up.toByteArray(Charsets.ISO_8859_1).encodeBase64()
         addHeader(HttpHeaders.Authorization, "Basic $encoded")
     }
 

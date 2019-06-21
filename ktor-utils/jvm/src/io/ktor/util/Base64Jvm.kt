@@ -5,13 +5,15 @@
 package io.ktor.util
 
 /**
- * Decode bytes from a BASE64 string [s]
+ * Decode bytes from a BASE64 string [encodedString]
  */
 @InternalAPI
-fun decodeBase64(s: String): ByteArray = s.decodeBase64Bytes()
+@Deprecated("USe decodeBase64Bytes instead", ReplaceWith("encodedString.decodeBase64Bytes()"))
+fun decodeBase64(encodedString: String): ByteArray = encodedString.decodeBase64Bytes()
 
 /**
  * Encode [bytes] as a BASE64 string
  */
 @InternalAPI
+@Deprecated("Use encodeBase64 extension instead", ReplaceWith("bytes.encodeBase64()"))
 fun encodeBase64(bytes: ByteArray): String = bytes.encodeBase64()

@@ -232,7 +232,7 @@ class BasicAuthTest {
             uri = url
 
             val up = "$user:$pass"
-            val encoded = encodeBase64(up.toByteArray(charset))
+            val encoded = up.toByteArray(charset).encodeBase64()
             addHeader(HttpHeaders.Authorization, "Basic $encoded")
         }
 

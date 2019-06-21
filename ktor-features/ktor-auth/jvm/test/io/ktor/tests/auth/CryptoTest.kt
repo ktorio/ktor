@@ -10,6 +10,7 @@ import kotlin.test.*
 
 class CryptoTest {
     @Test
+    @Suppress("DEPRECATION")
     fun testBase64() {
         assertEquals("AAAA", encodeBase64(ByteArray(3)))
         assertEquals(ByteArray(3), decodeBase64("AAAA"))

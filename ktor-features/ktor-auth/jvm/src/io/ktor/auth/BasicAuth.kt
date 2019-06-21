@@ -109,7 +109,7 @@ fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null):
             }
 
             val userPass = try {
-                decodeBase64(authHeader.blob).toString(charset ?: Charsets.ISO_8859_1)
+                authHeader.blob.decodeBase64Bytes().toString(charset ?: Charsets.ISO_8859_1)
             } catch (e: Throwable) {
                 return null
             }
