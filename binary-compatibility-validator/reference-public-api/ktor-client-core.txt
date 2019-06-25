@@ -726,6 +726,7 @@ public final class io/ktor/client/request/HttpRequestData {
 	public final fun getHeaders ()Lio/ktor/http/Headers;
 	public final fun getMethod ()Lio/ktor/http/HttpMethod;
 	public final fun getUrl ()Lio/ktor/http/Url;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/request/HttpRequestJvmKt {
@@ -769,6 +770,7 @@ public final class io/ktor/client/request/HttpResponseData {
 	public final fun getResponseTime ()Lio/ktor/util/date/GMTDate;
 	public final fun getStatusCode ()Lio/ktor/http/HttpStatusCode;
 	public final fun getVersion ()Lio/ktor/http/HttpProtocolVersion;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/request/HttpSendPipeline : io/ktor/util/pipeline/Pipeline {

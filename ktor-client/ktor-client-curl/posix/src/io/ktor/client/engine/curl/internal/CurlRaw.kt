@@ -6,6 +6,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -26,7 +27,10 @@ internal class CurlRequestData(
     val method: String,
     val headers: CPointer<curl_slist>,
     val content: ByteArray?
-)
+) {
+    override fun toString(): String =
+        "CurlRequestData(url='$url', method='$method', content: ${content?.size ?: 0} bytes)"
+}
 
 internal class CurlResponseBuilder(val request: CurlRequestData) {
     val headersBytes = BytePacketBuilder()
@@ -43,12 +47,16 @@ internal class CurlSuccess(
     val version: UInt,
     val headersBytes: ByteArray,
     val bodyBytes: ByteArray
-) : CurlResponseData(request)
+) : CurlResponseData(request) {
+    override fun toString(): String = "CurlSuccess(${HttpStatusCode.fromValue(status)})"
+}
 
 internal class CurlFail(
     request: CurlRequestData,
     val cause: Throwable
-) : CurlResponseData(request)
+) : CurlResponseData(request) {
+    override fun toString(): String = "CurlFail($cause)"
+}
 
 internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray? = when (this@toCurlByteArray) {
     is OutgoingContent.ByteArrayContent -> bytes()
