@@ -17,5 +17,13 @@ actual abstract class ClientLoader {
     actual fun clientTests(
         skipPlatforms: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): dynamic = if ("js" in skipPlatforms) GlobalScope.async { }.asPromise() else clientTest(block = block)
+    ): dynamic = if ("js" in skipPlatforms) GlobalScope.async {}.asPromise() else clientTest {
+        withTimeout(30 * 1000) {
+            block()
+        }
+    }
+
+    actual fun dumpCoroutines() {
+        error("Debug probes unsupported[js]")
+    }
 }

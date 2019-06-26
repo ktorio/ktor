@@ -4,6 +4,9 @@
 
 package io.ktor.client.tests.utils.dispatcher
 
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
+
 /**
  * Test runner for native suspend tests.
  */

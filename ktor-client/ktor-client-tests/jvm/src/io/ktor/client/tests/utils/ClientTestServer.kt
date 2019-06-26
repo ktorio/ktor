@@ -21,6 +21,8 @@ internal fun Application.tests() {
     cacheTestServer()
     loggingTestServer()
     contentTestServer()
+    fullFormTest()
+    redirectTest()
 
     routing {
         post("/echo") {

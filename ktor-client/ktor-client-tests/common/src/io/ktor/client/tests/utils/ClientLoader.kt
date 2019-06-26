@@ -17,4 +17,6 @@ expect abstract class ClientLoader() {
         skipPlatforms: List<String> = emptyList(),
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     )
+
+    fun dumpCoroutines()
 }

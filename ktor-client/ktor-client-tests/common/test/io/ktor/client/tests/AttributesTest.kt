@@ -4,30 +4,15 @@
 
 package io.ktor.client.tests
 
-import io.ktor.application.*
-import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlin.test.*
 
-@Suppress("KDocMissingDocumentation")
-abstract class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
-        routing {
-            get("/hello") {
-                call.respondText("hello")
-            }
-        }
-    }
-
+class AttributesTest : ClientLoader() {
     @Test
-    fun passAttributesTest() = clientTest(factory) {
+    fun testKeepAttributes() = clientTests {
         val attrKey = AttributeKey<String>("my-key")
 
         config {
@@ -41,7 +26,7 @@ abstract class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWit
         }
 
         test { client ->
-            val response = client.get<String>(path = "/hello", port = serverPort) {
+            val response = client.get<String>("$TEST_SERVER/content/hello") {
                 setAttributes {
                     put(attrKey, "test-data")
                 }

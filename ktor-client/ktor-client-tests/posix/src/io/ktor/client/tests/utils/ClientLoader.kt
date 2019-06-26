@@ -5,6 +5,7 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
+import kotlinx.coroutines.*
 
 /**
  * Helper interface to test client.
@@ -20,7 +21,15 @@ actual abstract class ClientLoader {
         if ("native" in skipPlatforms) return
 
         engines.forEach {
-            clientTest(it, block)
+            clientTest(it) {
+                withTimeout(3000) {
+                    block()
+                }
+            }
         }
+    }
+
+    actual fun dumpCoroutines() {
+        error("Debug probes unsupported native.")
     }
 }

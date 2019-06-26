@@ -19,7 +19,7 @@ import javax.net.ssl.*
 class ConnectionTests {
 
     @get:Rule
-    val timeout = CoroutinesTimeout.seconds(10)
+    val timeout = CoroutinesTimeout.seconds(20)
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {
