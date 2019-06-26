@@ -210,6 +210,10 @@ if (build_snapshot_train) {
             exclude '*testBigFile*'
             exclude '*numberTest*'
             exclude '*testWithPause*'
+            exclude '*WebSocketTest*'
+            exclude '*testBigFile*'
+            exclude '*hugePost*'
+            exclude '*numberTest*'
         }
     }
 
