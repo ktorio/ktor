@@ -33,7 +33,13 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
     private fun prepareClient(): CloseableHttpAsyncClient {
         val clientBuilder = HttpAsyncClients.custom()
         with(clientBuilder) {
-            setThreadFactory { Thread(it, "Ktor-client-apache").apply { isDaemon = true } }
+            setThreadFactory {
+                Thread(it, "Ktor-client-apache").apply {
+                    isDaemon = true
+                    setUncaughtExceptionHandler { _, _ -> }
+                }
+
+            }
             disableAuthCaching()
             disableConnectionState()
             disableCookieManagement()
