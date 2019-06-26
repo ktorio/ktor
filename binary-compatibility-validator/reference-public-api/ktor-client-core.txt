@@ -186,7 +186,7 @@ public final class io/ktor/client/engine/HttpClientEngineKt {
 public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client/engine/HttpClientEngine {
 	public fun <init> (Ljava/lang/String;)V
 	public fun close ()V
-	protected final fun createCallContext ()Lkotlin/coroutines/CoroutineContext;
+	protected final fun createCallContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public fun install (Lio/ktor/client/HttpClient;)V
