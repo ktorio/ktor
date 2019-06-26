@@ -6,6 +6,7 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.runner.*
@@ -33,6 +34,10 @@ actual abstract class ClientLoader {
     ) {
         if ("jvm" in skipPlatforms) return
         clientTest(engine.factory, block)
+    }
+
+    actual fun dumpCoroutines() {
+        DebugProbes.dumpCoroutines()
     }
 
     companion object {

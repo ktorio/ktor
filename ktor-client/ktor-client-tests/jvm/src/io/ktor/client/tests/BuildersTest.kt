@@ -13,7 +13,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
@@ -41,9 +40,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     fun testNotFound() = clientTest(factory) {
         test { client ->
             assertFailsWith<ResponseException> {
-                runBlocking {
-                    client.get<String>(path = "/notFound", port = serverPort)
-                }
+                client.get<String>(path = "/notFound", port = serverPort)
             }
         }
     }
