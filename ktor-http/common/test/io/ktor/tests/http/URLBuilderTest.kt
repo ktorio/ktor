@@ -69,7 +69,7 @@ internal class URLBuilderTest {
         val url = URLBuilder("https://httpstat.us/301")
         url.takeFrom("https://httpstats.us")
 
-        assertEquals("/", url.encodedPath)
+        assertEquals("", url.encodedPath)
     }
 
     @Test
@@ -135,4 +135,9 @@ internal class URLBuilderTest {
         assertEquals("/abc", url.encodedPath)
     }
 
+    @Test
+    fun retainEmptyPath() {
+        val url = URLBuilder("http://www.test.com")
+        assertEquals("", url.encodedPath)
+    }
 }
