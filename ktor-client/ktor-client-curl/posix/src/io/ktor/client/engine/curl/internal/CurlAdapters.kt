@@ -19,12 +19,14 @@ internal typealias MultiHandle = COpaquePointer
 
 internal fun CURLMcode.verify() {
     if (this != CURLM_OK) {
+        @Suppress("DEPRECATION")
         throw CurlIllegalStateException("Unexpected curl verify: ${curl_multi_strerror(this)?.toKString()}")
     }
 }
 
 internal fun CURLcode.verify() {
     if (this != CURLE_OK) {
+        @Suppress("DEPRECATION")
         throw CurlIllegalStateException("Unexpected curl verify: ${curl_easy_strerror(this)?.toKString()}")
     }
 }

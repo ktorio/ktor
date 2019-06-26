@@ -61,7 +61,9 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
 }
 
 @Suppress("KDocMissingDocumentation")
+@Deprecated("This exception will be removed in a future release in favor of a better error handling.")
 class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
 
 @Suppress("KDocMissingDocumentation")
+@Deprecated("This exception will be removed in a future release in favor of a better error handling.")
 class CurlRuntimeException(cause: String) : RuntimeException(cause)

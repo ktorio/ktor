@@ -5,7 +5,6 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
-import io.ktor.http.*
 import kotlinx.cinterop.*
 import kotlinx.io.core.*
 import libcurl.*
@@ -24,7 +23,7 @@ internal class CurlMultiApiHandler : Closeable {
     private val activeHandles: MutableMap<EasyHandle, RequestHolders> = mutableMapOf()
 
     private val multiHandle: MultiHandle = curl_multi_init()
-        ?: throw CurlRuntimeException("Could not initialize curl multi handle")
+        ?: @Suppress("DEPRECATION") throw CurlRuntimeException("Could not initialize curl multi handle")
 
     override fun close() {
         for ((handle, holders) in activeHandles) {
@@ -39,7 +38,8 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     fun scheduleRequest(request: CurlRequestData) {
-        val easyHandle = curl_easy_init() ?: throw CurlIllegalStateException("Could not initialize an easy handle")
+        val easyHandle = curl_easy_init()
+            ?: throw @Suppress("DEPRECATION")CurlIllegalStateException("Could not initialize an easy handle")
 
         val responseData = CurlResponseBuilder(request)
         val responseDataRef = responseData.asStablePointer()
@@ -116,7 +116,8 @@ internal class CurlMultiApiHandler : Closeable {
                 val message = messagePtr?.pointed ?: continue
 
                 val easyHandle = message.easy_handle
-                    ?: throw CurlIllegalStateException("Got a null easy handle from the message")
+                    ?: @Suppress("DEPRECATION")
+                    throw CurlIllegalStateException("Got a null easy handle from the message")
 
                 try {
                     responseDataList += readResponseDataFromEasyHandle(message.msg, easyHandle)
@@ -149,6 +150,7 @@ internal class CurlMultiApiHandler : Closeable {
                 if (message != CURLMSG.CURLMSG_DONE) {
                     return CurlFail(
                         responseBuilder.request,
+                        @Suppress("DEPRECATION")
                         CurlIllegalStateException("Request ${responseBuilder.request} failed: $message")
                     )
                 }
@@ -156,6 +158,7 @@ internal class CurlMultiApiHandler : Closeable {
                 if (httpStatusCode.value == 0L) {
                     return CurlFail(
                         responseBuilder.request,
+                        @Suppress("DEPRECATION")
                         CurlIllegalStateException("Connection failed for request: ${responseBuilder.request}")
                     )
                 }
