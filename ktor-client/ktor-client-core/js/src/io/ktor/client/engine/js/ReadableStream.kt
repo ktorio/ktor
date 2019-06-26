@@ -19,7 +19,7 @@ internal external interface ReadResult {
 }
 
 internal external interface ReadableStreamReader {
-    fun cancel(): Promise<dynamic>
+    fun cancel(reason: dynamic): Promise<dynamic>
     fun read(): Promise<ReadResult>
 }
 
