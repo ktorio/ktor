@@ -19,8 +19,8 @@ class KtorTestServer extends DefaultTask {
             def main = mainClass.getMethod("startServer")
             server = main.invoke(null)
         } catch (cause) {
-            println("[TestServer] ERROR: $cause")
-            cause.printStackTrace()
+//            println("[TestServer] ERROR: $cause")
+//            cause.printStackTrace()
         }
     }
 }
@@ -82,7 +82,7 @@ def testTasks = [
 ]
 
 if (!project.ext.ideaActive) {
-    testTasks += ['macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jsNodeTest']
+    testTasks += ['macosX64Test', 'linuxX64Test', 'iosTest', 'mingwX64Test', 'jsNodeTest', 'jsBrowserTest']
 }
 
 rootProject.allprojects {
