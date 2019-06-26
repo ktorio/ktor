@@ -1,6 +1,10 @@
 kotlin {
     js {
-        nodejs()
+        nodejs {
+            testTask {
+                debug = false
+            }
+        }
 
         def browserClass = project.rootProject.ext.browser
         def instance = browserClass.newInstance([it].toArray())

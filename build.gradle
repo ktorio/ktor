@@ -88,8 +88,6 @@ def projectNeedsPlatform(project, platform) {
 
 project.ext.browser = getClass().classLoader.loadClass("org.jetbrains.kotlin.gradle.targets.js.subtargets.KotlinBrowserJs")
 
-apply from: rootProject.file('gradle/nodejs.gradle')
-
 def check(Object version, String libVersion, String libName) {
     if (version != libVersion) {
         throw new IllegalStateException("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
