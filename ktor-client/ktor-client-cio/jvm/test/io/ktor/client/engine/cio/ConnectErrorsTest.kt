@@ -41,12 +41,12 @@ class ConnectErrorsTest {
     fun testConnectAfterConnectionErrors(): Unit = runBlocking<Unit> {
         HttpClient(CIO.config {
             maxConnectionsCount = 1
-            endpoint.connectTimeout = 200
+            endpoint.connectTimeout = SOCKET_CONNECT_TIMEOUT
             endpoint.connectRetryAttempts = 3
         }).use { client ->
             serverSocket.close()
 
-            repeat(10) {
+            repeat(5) {
                 try {
                     client.call("http://localhost:${serverSocket.localPort}/").close()
                     fail("Shouldn't reach here")
@@ -84,47 +84,55 @@ class ConnectErrorsTest {
             init(keyStore)
         }
 
-        val client = HttpClient(CIO.config {
+        HttpClient(CIO.config {
             maxConnectionsCount = 3
 
             endpoint {
-                connectTimeout = 200
+                connectTimeout = SOCKET_CONNECT_TIMEOUT
                 connectRetryAttempts = 1
             }
 
             https {
                 trustManager = trustManagerFactory.trustManagers.first { it is X509TrustManager } as X509TrustManager
             }
-        })
+        }).use { client ->
 
-        val serverPort = ServerSocket(0).use { it.localPort }
-        val server = embeddedServer(Netty, environment = applicationEngineEnvironment {
-            sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                port = serverPort
-                keyStorePath = keyStoreFile.absoluteFile
-            }
-            module {
-                routing {
-                    get {
-                        call.respondText("OK")
+            val serverPort = ServerSocket(0).use { it.localPort }
+            val server = embeddedServer(Netty, environment = applicationEngineEnvironment {
+                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                    port = serverPort
+                    keyStorePath = keyStoreFile.absoluteFile
+                }
+                module {
+                    routing {
+                        get {
+                            call.respondText("OK")
+                        }
                     }
                 }
+            })
+
+            try {
+                client.get<String>(scheme = "https", path = "/", port = serverPort)
+            } catch (_: java.net.ConnectException) {
             }
-        })
 
-        try {
-            client.get<String>(scheme = "https", path = "/", port = serverPort)
-        } catch (_: java.net.ConnectException) {
+            try {
+                server.start()
+
+                val message = client.get<String>(scheme = "https", path = "/", port = serverPort)
+                assertEquals("OK", message)
+            } finally {
+                server.stop(0, 0, TimeUnit.MILLISECONDS)
+            }
         }
+    }
 
-        try {
-            server.start()
-
-            val message = client.get<String>(scheme = "https", path = "/", port = serverPort)
-            assertEquals("OK", message)
-        } finally {
-            server.stop(0, 0, TimeUnit.MILLISECONDS)
-        }
-
+    companion object {
+        // It is important to have it greater than 1100 ms
+        // because Windows, in average, takes slightly more than a second to produce connection refused error
+        // even over loopback.
+        // So instead of a connection refused error it may produce a timeout exception
+        private const val SOCKET_CONNECT_TIMEOUT: Long = 2000
     }
 }
