@@ -10,13 +10,12 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
+import okio.*
 import kotlin.coroutines.*
 
 @InternalAPI
@@ -73,17 +72,10 @@ class OkHttpEngine(
         val response = engine.execute(engineRequest)
 
         val body = response.body()
-        callContext[Job]?.invokeOnCompletion { body?.close() }
+        callContext[Job]!!.invokeOnCompletion { body?.close() }
 
-        val responseContent = async(callContext) {
-            body?.byteStream()?.toByteReadChannel(
-                context = callContext,
-                pool = KtorDefaultPool
-            ) ?: ByteReadChannel.Empty
-        }.await()
-
+        val responseContent = body?.source()?.toChannel(callContext) ?: ByteReadChannel.Empty
         return buildResponseData(response, requestTime, responseContent, callContext)
-
     }
 
     private fun buildResponseData(
@@ -96,6 +88,17 @@ class OkHttpEngine(
         return HttpResponseData(status, requestTime, headers, version, body, callContext)
     }
 }
+
+private fun BufferedSource.toChannel(context: CoroutineContext): ByteReadChannel = GlobalScope.writer(context) {
+    use { source ->
+        var lastRead = 0
+        while (source.isOpen && context.isActive && lastRead >= 0) {
+            channel.write { buffer ->
+                lastRead = source.read(buffer)
+            }
+        }
+    }
+}.channel
 
 private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
     val builder = Request.Builder()
