@@ -27,15 +27,15 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
     override suspend fun execute(
         data: HttpRequestData
     ): HttpResponseData {
-        val callContext = createCallContext()
+        val callContext: CoroutineContext = createCallContext()
         return async(callContext) {
-            val requestTime = GMTDate()
+            val requestTime: GMTDate = GMTDate()
 
-            val url = URLBuilder().takeFrom(data.url).buildString()
-            val outgoingContent = data.body
-            val contentLength = data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
+            val url: String = URLBuilder().takeFrom(data.url).buildString()
+            val outgoingContent: OutgoingContent = data.body
+            val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
 
-            val connection = getProxyAwareConnection(url).apply {
+            val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
                 connectTimeout = config.connectTimeout
                 readTimeout = config.socketTimeout
 
@@ -47,7 +47,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
                 useCaches = false
                 instanceFollowRedirects = false
 
-                mergeHeaders(data.headers, outgoingContent) { key, value ->
+                mergeHeaders(data.headers, outgoingContent) { key: String, value: String ->
                     addRequestProperty(key, value)
                 }
 
@@ -72,12 +72,14 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
             connection.connect()
 
             val statusCode = HttpStatusCode(connection.responseCode, connection.responseMessage)
-            val content = connection.content(callContext)
-            val headerFields = connection.headerFields
-            val version = HttpProtocolVersion.HTTP_1_1
+            val content: ByteReadChannel = connection.content(callContext)
+            val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
+            val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
 
             val responseHeaders = HeadersBuilder().apply {
-                headerFields?.forEach { (key, values) -> key?.let { appendAll(it, values) } }
+                headerFields.forEach { (key: String?, values: MutableList<String>) ->
+                    if (key != null) appendAll(key, values)
+                }
             }.build()
 
             return@async HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
@@ -86,7 +88,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
     private fun getProxyAwareConnection(urlString: String): HttpURLConnection {
         val url = URL(urlString)
-        val connection = config.proxy?.let { url.openConnection(it) } ?: url.openConnection()
+        val connection: URLConnection = config.proxy?.let { url.openConnection(it) } ?: url.openConnection()
         return connection as HttpURLConnection
     }
 }
