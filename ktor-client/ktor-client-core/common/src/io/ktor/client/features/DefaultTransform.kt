@@ -36,16 +36,27 @@ fun HttpClient.defaultTransformers() {
         if (body !is ByteReadChannel) return@intercept
         val response = context.response
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong() ?: Long.MAX_VALUE
+
         when (info.type) {
             Unit::class -> {
                 response.close()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
             ByteReadPacket::class,
-            Input::class -> proceedWith(HttpResponseContainer(info, body.readRemaining()))
+            Input::class -> {
+                try {
+                    proceedWith(HttpResponseContainer(info, body.readRemaining()))
+                } finally {
+                    response.close()
+                }
+            }
             ByteArray::class -> {
-                val readRemaining = body.readRemaining(contentLength)
-                proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+                try {
+                    val readRemaining = body.readRemaining(contentLength)
+                    proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+                } finally {
+                    response.close()
+                }
             }
             HttpStatusCode::class -> {
                 response.close()

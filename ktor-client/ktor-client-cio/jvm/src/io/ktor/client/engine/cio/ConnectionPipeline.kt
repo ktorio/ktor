@@ -76,9 +76,6 @@ internal class ConnectionPipeline(
 
                     val callContext = task.context
                     val callJob = callContext[Job]!!
-                    callJob.invokeOnCompletion {
-                        rawResponse.headers.release()
-                    }
 
                     val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
                     val method = task.request.method
@@ -86,7 +83,12 @@ internal class ConnectionPipeline(
                     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
-                    val headers = CIOHeaders(rawResponse.headers)
+
+                    val headers = buildHeaders {
+                        appendAll(CIOHeaders(rawResponse.headers))
+                        rawResponse.headers.release()
+                    }
+
                     val version = HttpProtocolVersion.parse(rawResponse.version)
 
                     shouldClose = (connectionType == ConnectionOptions.Close)
