@@ -12,7 +12,10 @@ import okhttp3.*
  */
 class OkHttpConfig : HttpClientEngineConfig() {
 
-    internal var config: OkHttpClient.Builder.() -> Unit = {}
+    internal var config: OkHttpClient.Builder.() -> Unit = {
+        followRedirects(false)
+        followSslRedirects(false)
+    }
 
     /**
      * Preconfigured [OkHttpClient] instance instead of configuring one.
