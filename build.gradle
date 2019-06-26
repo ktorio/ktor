@@ -203,17 +203,15 @@ if (build_snapshot_train) {
     println "Hacking test tasks, removing stress and flaky tests"
     allprojects {
         tasks.withType(Test).all {
-            exclude '*ServerSocketTest*'
-            exclude '*NettyStressTest*'
-            exclude '*CIOMultithreadedTest*'
-            exclude '*testBlockingConcurrency*'
-            exclude '*testBigFile*'
-            exclude '*numberTest*'
-            exclude '*testWithPause*'
-            exclude '*WebSocketTest*'
-            exclude '*testBigFile*'
-            exclude '*hugePost*'
-            exclude '*numberTest*'
+            exclude '**/*ServerSocketTest*'
+            exclude '**/*NettyStressTest*'
+            exclude '**/*CIOMultithreadedTest*'
+            exclude '**/*testBlockingConcurrency*'
+            exclude '**/*testBigFile*'
+            exclude '**/*numberTest*'
+            exclude '**/*testWithPause*'
+            exclude '**/*WebSocketTest*'
+            exclude '**/*hugePost*'
         }
     }
 
