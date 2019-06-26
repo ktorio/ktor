@@ -68,7 +68,7 @@ abstract class HttpResponse : HttpMessage, CoroutineScope, Closeable {
         if (!closed.compareAndSet(false, true)) return
 
         launch {
-            content.discard()
+            content.cancel()
         }
         @Suppress("UNCHECKED_CAST")
         (coroutineContext[Job] as CompletableJob).complete()
@@ -85,7 +85,7 @@ abstract class HttpResponse : HttpMessage, CoroutineScope, Closeable {
  *      So it just acts as a fallback, honoring the server preference.
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
-    val packet = receive<ByteReadPacket>()
+    val packet = receive<Input>()
     val actualCharset = charset()
         ?: charset
         ?: call.client.feature(HttpPlainText)?.responseCharsetFallback

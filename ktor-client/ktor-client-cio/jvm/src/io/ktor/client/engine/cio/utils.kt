@@ -7,6 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.websocket.*
@@ -82,12 +83,13 @@ internal suspend fun readResponse(
     val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
     val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
     val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
-    val headers = CIOHeaders(rawResponse.headers)
-    val version = HttpProtocolVersion.parse(rawResponse.version)
 
-    callContext[Job]!!.invokeOnCompletion {
+    val headers = buildHeaders {
+        appendAll(CIOHeaders(rawResponse.headers))
         rawResponse.headers.release()
     }
+
+    val version = HttpProtocolVersion.parse(rawResponse.version)
 
     if (status == HttpStatusCode.SwitchingProtocols) {
         val session = RawWebSocket(input, output, masking = true, coroutineContext = callContext)

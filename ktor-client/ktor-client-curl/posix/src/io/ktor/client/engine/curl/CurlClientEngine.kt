@@ -7,6 +7,7 @@ package io.ktor.client.engine.curl
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
@@ -33,7 +34,7 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
             val headerBytes = ByteReadChannel(headersBytes).apply {
                 readUTF8Line()
             }
-            val headers = parseHeaders(headerBytes)
+            val rawHeaders = parseHeaders(headerBytes)
 
             val body = writer(coroutineContext) {
                 channel.writeFully(bodyBytes)
@@ -41,12 +42,13 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
 
             val status = HttpStatusCode.fromValue(status)
 
-            callContext[Job]!!.invokeOnCompletion {
-                headers.release()
+            val headers = buildHeaders {
+                appendAll(CIOHeaders(rawHeaders))
+                rawHeaders.release()
             }
 
             HttpResponseData(
-                status, requestTime, CIOHeaders(headers), version.fromCurl(),
+                status, requestTime, headers, version.fromCurl(),
                 body, callContext
             )
         }

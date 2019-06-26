@@ -83,7 +83,9 @@ open class HttpClientCall internal constructor(
         val subject = HttpResponseContainer(info, responseData)
         val result = client.responsePipeline.execute(this, subject).response
         if (!result.instanceOf(info.type)) {
-            throw NoTransformationFoundException(result::class, info.type)
+            val from = result::class
+            val to = info.type
+            throw NoTransformationFoundException(from, to)
         }
 
         if (result is ByteReadChannel) {

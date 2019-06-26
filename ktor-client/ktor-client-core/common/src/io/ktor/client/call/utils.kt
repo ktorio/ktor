@@ -10,6 +10,7 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
 
 
@@ -52,7 +53,12 @@ suspend fun HttpClient.call(
     block()
 }
 
-internal fun HttpResponse.channelWithCloseHandling(): ByteReadChannel = writer(Dispatchers.Unconfined) {
-    content.joinTo(channel, closeOnEnd = true)
-    this@channelWithCloseHandling.close()
+internal fun HttpResponse.channelWithCloseHandling(): ByteReadChannel = writer {
+    try {
+        content.joinTo(channel, closeOnEnd = true)
+    } catch (cause: CancellationException) {
+        this@channelWithCloseHandling.cancel(cause)
+    } finally {
+        this@channelWithCloseHandling.close()
+    }
 }.channel
