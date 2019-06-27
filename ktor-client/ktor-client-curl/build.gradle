@@ -18,12 +18,12 @@ kotlin {
                         if (platform.name == "mingwX64") {
                             includeDirs.headerFilterOnly paths.findAll { it != null }
                         } else {
-                            includeDirs.headerFilterOnly '/opt/local/include',
-                                '/usr/local/include',
-                                '/usr/include',
-                                '/usr/include/x86_64-linux-gnu',
-                                '/usr/local/Cellar/curl/7.62.0/include',
-                                '/usr/local/Cellar/curl/7.63.0/include'
+                            includeDirs.headerFilterOnly '/opt/local/include/curl',
+                                '/usr/local/include/curl',
+                                '/usr/include/curl',
+                                '/usr/include/x86_64-linux-gnu/curl',
+                                '/usr/local/Cellar/curl/7.62.0/include/curl',
+                                '/usr/local/Cellar/curl/7.63.0/include/curl'
                         }
                     }
                 }
