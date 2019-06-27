@@ -118,6 +118,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
         method = builder.method
         body = builder.body
         url.takeFrom(builder.url)
+        url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
         headers.appendAll(builder.headers)
         builder.attributes.allKeys.forEach {
             @Suppress("UNCHECKED_CAST")
