@@ -133,6 +133,14 @@ class UrlTest {
     }
 
     @Test
+    fun testRetainTrailingSlash() {
+        val url1 = Url("http://www.test.com").toString()
+        assertEquals("http://www.test.com", url1)
+        val url2 = Url("http://www.test.com/").toString()
+        assertEquals("http://www.test.com/", url2)
+    }
+
+    @Test
     fun testPortRange() {
         fun testPort(n: Int) {
             assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort)

@@ -67,7 +67,7 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     // Path
     if (startIndex >= endIndex) {
-        encodedPath = "/"
+        encodedPath = if (urlString[endIndex - 1] == '/') "/" else ""
         return this
     }
 
