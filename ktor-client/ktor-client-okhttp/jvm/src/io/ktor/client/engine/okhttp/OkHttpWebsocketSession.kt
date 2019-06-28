@@ -86,18 +86,16 @@ internal class OkHttpWebsocketSession(
         super.onClosed(webSocket, code, reason)
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
-        _incoming.close()
-        outgoing.close()
+        closeChannels()
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
 
         originResponse.completeExceptionally(t)
-        _incoming.close(t)
-        outgoing.close(t)
+        closeChannels(t)
     }
-
+    
     override suspend fun flush() {
     }
 
@@ -108,6 +106,11 @@ internal class OkHttpWebsocketSession(
     @KtorExperimentalAPI
     override suspend fun close(cause: Throwable?) {
         outgoing.close(cause)
+    }
+    
+    private fun closeChannels(t: Throwable? = null){
+        if(!_incoming.isClosedForSend) _incoming.close(t)
+        if(!outgoing.isClosedForSend) outgoing.close(t)
     }
 }
 
