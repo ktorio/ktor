@@ -33,7 +33,6 @@ kotlin.sourceSets {
         api project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization')
     }
     commonTest.dependencies {
-        api project(':ktor-client:ktor-client-features:ktor-client-auth')
         api project(':ktor-client:ktor-client-features:ktor-client-logging')
     }
     jvmMain.dependencies {

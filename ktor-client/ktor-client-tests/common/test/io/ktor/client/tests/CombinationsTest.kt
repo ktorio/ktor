@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+/**
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.json.*
@@ -13,7 +14,6 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import kotlinx.serialization.Serializable
 import kotlin.test.*
 
@@ -82,3 +82,5 @@ class CombinationsTest : ClientLoader() {
         }
     }
 }
+
+**/

@@ -11,6 +11,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
+import java.security.*
 
 internal fun Application.authTestServer() {
     install(Authentication) {
@@ -22,11 +23,31 @@ internal fun Application.authTestServer() {
                 else null
             }
         }
+
+        digest("digest") {
+            val password = "Circle Of Life"
+            algorithmName = "MD5"
+            realm = "testrealm@host.com"
+
+            digestProvider { userName, realm ->
+                digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
+            }
+        }
+
+        basic("basic") {
+            validate { credential ->
+                check("MyUser" == credential.name)
+                check("1234" == credential.password)
+                UserIdPrincipal("MyUser")
+            }
+        }
     }
 
+
+
     routing {
-        route("/auth") {
-            route("/basic") {
+        route("auth") {
+            route("basic") {
                 authenticate("test-basic") {
                     post {
                         val requestData = call.receiveText()
@@ -46,6 +67,23 @@ internal fun Application.authTestServer() {
                     }
                 }
             }
+
+            authenticate("digest") {
+                get("digest") {
+                    call.respondText("ok")
+                }
+            }
+            authenticate("basic") {
+                get("basic-fixed") {
+                    call.respondText("ok")
+                }
+            }
         }
     }
+}
+
+private fun digest(digester: MessageDigest, data: String): ByteArray {
+    digester.reset()
+    digester.update(data.toByteArray(Charsets.ISO_8859_1))
+    return digester.digest()
 }
