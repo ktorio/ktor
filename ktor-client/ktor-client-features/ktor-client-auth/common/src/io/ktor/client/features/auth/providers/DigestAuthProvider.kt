@@ -44,6 +44,8 @@ class DigestAuthProvider(
     val realm: String?,
     val algorithmName: String = "MD5"
 ) : AuthProvider {
+    override val sendWithoutRequest: Boolean = false
+
     private val serverNonce = atomic<String?>(null)
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)

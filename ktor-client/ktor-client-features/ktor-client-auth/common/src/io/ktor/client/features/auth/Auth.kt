@@ -12,21 +12,6 @@ import io.ktor.http.auth.*
 import io.ktor.util.*
 
 /**
- * Authentication provider interface.
- */
-interface AuthProvider {
-    /**
-     * Check if current provider is applicable to the request.
-     */
-    fun isApplicable(auth: HttpAuthHeader): Boolean
-
-    /**
-     * Add authentication method headers and creds.
-     */
-    suspend fun addRequestHeaders(request: HttpRequestBuilder)
-}
-
-/**
  * Client authentication feature.
  * [providers] - list of auth providers to use.
  */
@@ -34,6 +19,7 @@ interface AuthProvider {
 class Auth(
     val providers: MutableList<AuthProvider> = mutableListOf()
 ) {
+    private val alwaysSend by lazy { providers.filter { it.sendWithoutRequest } }
 
     companion object Feature : HttpClientFeature<Auth, Auth> {
         override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
@@ -43,13 +29,22 @@ class Auth(
         }
 
         override fun install(feature: Auth, scope: HttpClient) {
+            scope.requestPipeline.intercept(HttpRequestPipeline.State) {
+                for (provider in feature.alwaysSend) {
+                    provider.addRequestHeaders(context)
+                }
+            }
+
             scope.feature(HttpSend)!!.intercept { origin ->
                 var call = origin
 
+                val usedProviders = mutableSetOf<AuthProvider>()
                 while (call.response.status == HttpStatusCode.Unauthorized) {
                     val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
                     val provider = feature.providers.find { it.isApplicable(authHeader) } ?: return@intercept call
+
+                    if (provider in usedProviders || provider in feature.alwaysSend) return@intercept call
 
                     val request = HttpRequestBuilder()
                     request.takeFrom(call.request)
