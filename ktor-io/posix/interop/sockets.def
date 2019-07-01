@@ -1,0 +1,29 @@
+package = io.ktor.utils.io.internal.utils
+compilerOpts.mingw_x64 = -DMINGW
+---
+
+#ifdef MINGW
+#include <winsock2.h>
+typedef SOCKET KX_SOCKET;
+typedef int KX_SOCKADDR_LEN;
+
+static inline int strerror_r(int error, void * buf, size_t buflen) {
+    return strerror_s(buf, buflen, error);
+}
+
+static inline int kx_internal_is_non_blocking(int fd) {
+    return 0;
+}
+
+#else
+#include <fcntl.h>
+
+typedef int KX_SOCKET;
+typedef unsigned int KX_SOCKADDR_LEN;
+
+static inline int kx_internal_is_non_blocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    return flags & O_NONBLOCK;
+}
+
+#endif

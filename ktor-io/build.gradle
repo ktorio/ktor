@@ -1,0 +1,30 @@
+kotlin {
+    targets {
+        def current = []
+        if (project.ext.ideaActive) {
+            current = [posix]
+        } else {
+            current = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
+        }
+
+        configure(current) {
+            compilations.main.cinterops {
+                bits { defFile = file("posix/interop/bits.def") }
+                sockets { defFile = file("posix/interop/sockets.def") }
+            }
+
+            compilations.test.cinterops {
+                testSockets { defFile = file("posix/interop/testSockets.def") }
+            }
+        }
+    }
+
+//    infra {
+//        shared {
+//            compilations.main.cinterops {
+//                bits { defFile = file("posix/interop/bits.def") }
+//                sockets { defFile = file("posix/interop/sockets.def") }
+//            }
+//        }
+//    }
+}
