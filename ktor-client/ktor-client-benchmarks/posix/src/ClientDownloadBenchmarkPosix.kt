@@ -4,10 +4,6 @@
 
 package io.ktor.client.benchmarks
 
-import kotlinx.coroutines.*
+import io.ktor.client.engine.curl.*
 
-internal actual fun <T> runBenchmark(block: suspend CoroutineScope.() -> T): Unit = runBlocking {
-    block()
-
-    Unit
-}
+internal class CurlDownloadBenchmark : ClientDownloadBenchmark(Curl)

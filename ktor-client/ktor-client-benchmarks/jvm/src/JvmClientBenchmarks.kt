@@ -10,12 +10,12 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.engine.okhttp.*
 
-internal class ApacheClientBenchmarks : KtorClientBenchmarks(Apache)
+internal class ApacheDownloadBenchmark : ClientDownloadBenchmark(Apache)
 
-internal class OkHttpClientBenchmarks : KtorClientBenchmarks(OkHttp)
+internal class OkHttpDownloadBenchmark : ClientDownloadBenchmark(OkHttp)
 
-internal class AndroidClientBenchmarks : KtorClientBenchmarks(Android)
+internal class AndroidDownloadBenchmark : ClientDownloadBenchmark(Android)
 
-internal class CIOClientBenchmarks : KtorClientBenchmarks(CIO)
+internal class CIODownloadBenchmark : ClientDownloadBenchmark(CIO)
 
-internal class JettyClientBenchmarks : KtorClientBenchmarks(Jetty)
+internal class JettyDownloadBenchmark : ClientDownloadBenchmark(Jetty)

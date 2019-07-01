@@ -12,7 +12,7 @@ import kotlinx.benchmark.*
 internal const val TEST_BENCHMARKS_SERVER = "http://127.0.0.1:8080/benchmarks"
 
 @State(Scope.Benchmark)
-internal abstract class KtorClientBenchmarks(
+internal abstract class ClientDownloadBenchmark(
     private val factory: HttpClientEngineFactory<*>
 ) {
     lateinit var client: HttpClient
