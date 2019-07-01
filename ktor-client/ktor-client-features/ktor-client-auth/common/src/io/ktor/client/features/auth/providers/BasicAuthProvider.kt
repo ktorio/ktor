@@ -47,7 +47,7 @@ class BasicAuthConfig {
 class BasicAuthProvider(
     private val username: String,
     private val password: String,
-    private val realm: String?
+    private val realm: String? = null
 ) : AuthProvider {
     private val defaultCharset = Charsets.UTF_8
 
@@ -63,10 +63,10 @@ class BasicAuthProvider(
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
-        request.headers[HttpHeaders.Authorization] = constructBasicAuthValue(username, password)
+        request.headers[HttpHeaders.Authorization] = constructBasicAuthValue()
     }
 
-    private fun constructBasicAuthValue(username: String, password: String): String {
+    internal fun constructBasicAuthValue(): String {
         val authString = "$username:$password"
         val authBuf = authString.toByteArray(defaultCharset).encodeBase64()
 

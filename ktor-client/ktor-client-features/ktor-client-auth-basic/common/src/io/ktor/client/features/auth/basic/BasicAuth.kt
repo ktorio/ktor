@@ -18,7 +18,12 @@ import io.ktor.util.*
  * @property username: user name.
  * @property password: user password.
  */
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "DEPRECATION_ERROR")
+@Deprecated(
+    "[BasicAuth] deprecated, use [Auth] feature with [Basic] provider instead.",
+    ReplaceWith("Auth"),
+    level = DeprecationLevel.ERROR
+)
 class BasicAuth(val username: String, val password: String) {
 
     class Configuration {
