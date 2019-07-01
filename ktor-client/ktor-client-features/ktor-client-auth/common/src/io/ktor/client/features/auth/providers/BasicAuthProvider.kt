@@ -17,7 +17,7 @@ import kotlinx.io.core.*
  */
 fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
-        providers.add(BasicAuthProvider(username, password, realm))
+        providers.add(BasicAuthProvider(username, password, realm, sendWithoutRequest))
     }
 }
 
@@ -39,6 +39,11 @@ class BasicAuthConfig {
      * Optional: current provider realm
      */
     var realm: String? = null
+
+    /**
+     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
+     */
+    var sendWithoutRequest: Boolean = false
 }
 
 /**
@@ -47,7 +52,8 @@ class BasicAuthConfig {
 class BasicAuthProvider(
     private val username: String,
     private val password: String,
-    private val realm: String? = null
+    private val realm: String? = null,
+    override val sendWithoutRequest: Boolean = false
 ) : AuthProvider {
     private val defaultCharset = Charsets.UTF_8
 

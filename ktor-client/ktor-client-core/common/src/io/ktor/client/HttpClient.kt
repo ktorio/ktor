@@ -76,12 +76,12 @@ class HttpClient(
     val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
 
     /**
-     * Pipeline used for sending the request
+     * Pipeline used for sending the request.
      */
     val sendPipeline: HttpSendPipeline = HttpSendPipeline()
 
     /**
-     * Pipeline used for receiving request
+     * Pipeline used for receiving request.
      */
     val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
 

@@ -47,4 +47,21 @@ class AuthTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testBasicAuthWithoutNegotiation(): Unit = clientTests {
+        config {
+            install(Auth) {
+                basic {
+                    username = "MyUser"
+                    password = "1234"
+
+                    sendWithoutRequest = true
+                }
+            }
+        }
+
+        test { client ->
+            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+        }
+    }
 }
