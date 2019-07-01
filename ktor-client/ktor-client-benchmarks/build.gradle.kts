@@ -30,21 +30,34 @@ kotlin {
                 implementation(project(":ktor-client:ktor-client-jetty"))
             }
         }
+//        val posixMain by getting {
+//            dependencies {
+//                implementation(project(":ktor-client:ktor-client-curl"))
+//            }
+//        }
     }
 }
 
 benchmark {
+    reportsDir = "../reports"
     targets {
         register("jvm") {
             if (this is JvmBenchmarkTarget) {
                 jmhVersion = "$jmh_version"
             }
         }
+//        register("posix")
+//        register("macosX64")
+//        register("linuxX64")
+//        register("mingwX64")
     }
     configurations {
         configureEach {
-            iterationTime = 100
-            iterations = 3
+            iterationTime = 1
+            iterationTimeUnit = "SECONDS"
+
+            iterations = 10
+            warmups = 10
         }
     }
 }
