@@ -175,7 +175,8 @@ inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
                             malformedCodePoint(value)
                         } else {
                             if (!consumer(highSurrogate(value).toChar()) ||
-                                !consumer(lowSurrogate(value).toChar())) {
+                                !consumer(lowSurrogate(value).toChar())
+                            ) {
                                 discardExact(index - start - lastByteCount + 1)
                                 return -1
                             }
@@ -280,10 +281,11 @@ private fun Memory.encodeUTF8Stage1(
         val character = text[index++]
         val codepoint = when {
             character.isHighSurrogate() -> {
-                if (index == lastCharIndex) {
-                    throw MalformedInputException("Splitted surrogate character")
+                if (index == lastCharIndex || !text[index].isLowSurrogate()) {
+                    63
+                } else {
+                    codePoint(character, text[index++])
                 }
-                codePoint(character, text[index++])
             }
             else -> character.toInt()
         }
@@ -321,10 +323,11 @@ private fun Memory.encodeUTF8Stage2(
         val codepoint = when {
             !character.isHighSurrogate() -> character.toInt()
             else -> {
-                if (index == lastCharIndex) {
-                    prematureEndOfStream(1) // TODO error message
+                if (index == lastCharIndex || !text[index].isLowSurrogate()) {
+                    63
+                } else {
+                    codePoint(character, text[index++])
                 }
-                codePoint(character, text[index++])
             }
         }
         if (charactersSize(codepoint) > freeSpace) {
@@ -350,7 +353,7 @@ private inline fun charactersSize(v: Int) = when {
 // TODO optimize it, now we are simply do naive encoding here
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun Memory.putUtf8Char(offset: Int, v: Int): Int = when {
-    v in 1..0x7f -> {
+    v in 0..0x7f -> {
         storeAt(offset, v.toByte())
         1
     }
@@ -402,8 +405,8 @@ internal fun lowSurrogate(cp: Int) = (cp and 0x3ff) + MinLowSurrogate
 internal fun highSurrogate(cp: Int) = (cp ushr 10) + HighSurrogateMagic
 
 internal fun codePoint(high: Char, low: Char): Int {
-    check(high.isHighSurrogate())
-    check(low.isLowSurrogate())
+//    check(high.isHighSurrogate())
+//    check(low.isLowSurrogate())
 
     val highValue = high.toInt() - HighSurrogateMagic
     val lowValue = low.toInt() - MinLowSurrogate
