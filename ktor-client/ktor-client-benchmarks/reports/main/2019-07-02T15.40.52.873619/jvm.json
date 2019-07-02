@@ -1,0 +1,1804 @@
+[
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download1024K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 82.40116450665444,
+            "scoreError" : 6.455423472803013,
+            "scoreConfidence" : [
+                75.94574103385142,
+                88.85658797945746
+            ],
+            "scorePercentiles" : {
+                "0.0" : 76.51905326413785,
+                "50.0" : 82.35814228773052,
+                "90.0" : 88.85727010019832,
+                "95.0" : 89.05934292978627,
+                "99.0" : 89.05934292978627,
+                "99.9" : 89.05934292978627,
+                "99.99" : 89.05934292978627,
+                "99.999" : 89.05934292978627,
+                "99.9999" : 89.05934292978627,
+                "100.0" : 89.05934292978627
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    86.6368705672519,
+                    77.51894201933264,
+                    77.84473447347699,
+                    87.03861463390672,
+                    76.51905326413785,
+                    81.87993780171055,
+                    89.05934292978627,
+                    82.90541595964098,
+                    81.77238664355006,
+                    82.83634677375049
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download16K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3318.139477605072,
+            "scoreError" : 128.50191105521859,
+            "scoreConfidence" : [
+                3189.6375665498535,
+                3446.6413886602904
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3151.890547134971,
+                "50.0" : 3352.079538398865,
+                "90.0" : 3405.4777725972685,
+                "95.0" : 3407.293398902229,
+                "99.0" : 3407.293398902229,
+                "99.9" : 3407.293398902229,
+                "99.99" : 3407.293398902229,
+                "99.999" : 3407.293398902229,
+                "99.9999" : 3407.293398902229,
+                "100.0" : 3407.293398902229
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    3239.4400984128306,
+                    3339.965255384125,
+                    3407.293398902229,
+                    3151.890547134971,
+                    3249.889818138785,
+                    3364.1938214136057,
+                    3381.0003835695948,
+                    3271.2321077038055,
+                    3387.3522095381522,
+                    3389.1371358526235
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download1K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 4604.939915742159,
+            "scoreError" : 86.72068555929272,
+            "scoreConfidence" : [
+                4518.219230182866,
+                4691.6606013014525
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4507.386278791666,
+                "50.0" : 4591.846766627594,
+                "90.0" : 4692.287276827412,
+                "95.0" : 4695.095555572557,
+                "99.0" : 4695.095555572557,
+                "99.9" : 4695.095555572557,
+                "99.99" : 4695.095555572557,
+                "99.999" : 4695.095555572557,
+                "99.9999" : 4695.095555572557,
+                "100.0" : 4695.095555572557
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    4567.528343320683,
+                    4592.541505261301,
+                    4507.386278791666,
+                    4554.067094801563,
+                    4658.960972500796,
+                    4667.012768121108,
+                    4591.152027993886,
+                    4587.240086981671,
+                    4628.414524076363,
+                    4695.095555572557
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download256K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 482.4658968277364,
+            "scoreError" : 50.70304393961214,
+            "scoreConfidence" : [
+                431.76285288812426,
+                533.1689407673485
+            ],
+            "scorePercentiles" : {
+                "0.0" : 430.7768119490683,
+                "50.0" : 497.3398861408887,
+                "90.0" : 513.9789726878743,
+                "95.0" : 514.4494639639369,
+                "99.0" : 514.4494639639369,
+                "99.9" : 514.4494639639369,
+                "99.99" : 514.4494639639369,
+                "99.999" : 514.4494639639369,
+                "99.9999" : 514.4494639639369,
+                "100.0" : 514.4494639639369
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    440.6923689628447,
+                    434.409599126742,
+                    430.7768119490683,
+                    497.1100755312243,
+                    486.97503539844485,
+                    503.7853244786065,
+                    497.56969675055313,
+                    509.1460409126318,
+                    514.4494639639369,
+                    509.74455120331095
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download32K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2785.8367730446676,
+            "scoreError" : 31.314244000766877,
+            "scoreConfidence" : [
+                2754.5225290439007,
+                2817.1510170454344
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2734.2554239684773,
+                "50.0" : 2793.9051922301414,
+                "90.0" : 2802.9024639767417,
+                "95.0" : 2803.1796963973707,
+                "99.0" : 2803.1796963973707,
+                "99.9" : 2803.1796963973707,
+                "99.99" : 2803.1796963973707,
+                "99.999" : 2803.1796963973707,
+                "99.9999" : 2803.1796963973707,
+                "100.0" : 2803.1796963973707
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2780.7355381466446,
+                    2793.1840159806757,
+                    2798.3630142237985,
+                    2794.6263684796068,
+                    2734.2554239684773,
+                    2783.9036375016717,
+                    2798.411799025551,
+                    2800.4073721910822,
+                    2803.1796963973707,
+                    2771.3008645317987
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.AndroidDownloadBenchmark.download64K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1929.512302438902,
+            "scoreError" : 52.30794949988608,
+            "scoreConfidence" : [
+                1877.204352939016,
+                1981.820251938788
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1837.0533021365434,
+                "50.0" : 1939.2087673272222,
+                "90.0" : 1954.8219754455324,
+                "95.0" : 1955.100831531671,
+                "99.0" : 1955.100831531671,
+                "99.9" : 1955.100831531671,
+                "99.99" : 1955.100831531671,
+                "99.999" : 1955.100831531671,
+                "99.9999" : 1955.100831531671,
+                "100.0" : 1955.100831531671
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1937.4798428491104,
+                    1915.571011703071,
+                    1931.1240575764757,
+                    1947.753081588969,
+                    1947.5677451292395,
+                    1940.9376918053342,
+                    1930.2231893983194,
+                    1955.100831531671,
+                    1952.3122706702845,
+                    1837.0533021365434
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download1024K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 165.41069267200726,
+            "scoreError" : 4.178526539421768,
+            "scoreConfidence" : [
+                161.2321661325855,
+                169.58921921142903
+            ],
+            "scorePercentiles" : {
+                "0.0" : 159.90159511924927,
+                "50.0" : 166.65531558956843,
+                "90.0" : 168.00657539869715,
+                "95.0" : 168.04568652710105,
+                "99.0" : 168.04568652710105,
+                "99.9" : 168.04568652710105,
+                "99.99" : 168.04568652710105,
+                "99.999" : 168.04568652710105,
+                "99.9999" : 168.04568652710105,
+                "100.0" : 168.04568652710105
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    164.11654014980607,
+                    166.43686867736298,
+                    167.31557489376576,
+                    164.83446696456443,
+                    167.654575243062,
+                    167.27453302665592,
+                    159.90159511924927,
+                    161.65332361673123,
+                    166.87376250177385,
+                    168.04568652710105
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download16K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3106.6760539560855,
+            "scoreError" : 102.37189710955474,
+            "scoreConfidence" : [
+                3004.304156846531,
+                3209.04795106564
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2963.1249536436894,
+                "50.0" : 3135.5993444513033,
+                "90.0" : 3167.4766113549763,
+                "95.0" : 3169.5056490344145,
+                "99.0" : 3169.5056490344145,
+                "99.9" : 3169.5056490344145,
+                "99.99" : 3169.5056490344145,
+                "99.999" : 3169.5056490344145,
+                "99.9999" : 3169.5056490344145,
+                "100.0" : 3169.5056490344145
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    3148.4741733283126,
+                    3113.3270107800417,
+                    3149.215272240033,
+                    3109.547930812271,
+                    3004.4419609590555,
+                    3137.9248998604344,
+                    3135.6771067856057,
+                    3169.5056490344145,
+                    3135.5215821170004,
+                    2963.1249536436894
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download1K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 4621.279252475089,
+            "scoreError" : 140.88826178570145,
+            "scoreConfidence" : [
+                4480.390990689388,
+                4762.167514260791
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4392.570924886915,
+                "50.0" : 4643.250614957333,
+                "90.0" : 4721.523630630721,
+                "95.0" : 4726.103859816621,
+                "99.0" : 4726.103859816621,
+                "99.9" : 4726.103859816621,
+                "99.99" : 4726.103859816621,
+                "99.999" : 4726.103859816621,
+                "99.9999" : 4726.103859816621,
+                "100.0" : 4726.103859816621
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    4392.570924886915,
+                    4642.430294881503,
+                    4558.528082938742,
+                    4586.6440855922465,
+                    4644.070935033163,
+                    4667.881500906279,
+                    4640.827258310997,
+                    4680.3015679576165,
+                    4726.103859816621,
+                    4673.434014426814
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download256K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 591.9199265557163,
+            "scoreError" : 46.50176565629961,
+            "scoreConfidence" : [
+                545.4181608994166,
+                638.421692212016
+            ],
+            "scorePercentiles" : {
+                "0.0" : 525.3355424724922,
+                "50.0" : 604.4750260680854,
+                "90.0" : 617.2308329333086,
+                "95.0" : 617.3612638371251,
+                "99.0" : 617.3612638371251,
+                "99.9" : 617.3612638371251,
+                "99.99" : 617.3612638371251,
+                "99.999" : 617.3612638371251,
+                "99.9999" : 617.3612638371251,
+                "100.0" : 617.3612638371251
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    525.3355424724922,
+                    607.5195340636927,
+                    594.3139738709372,
+                    615.0371071306329,
+                    613.3129772292284,
+                    616.0569547989606,
+                    617.3612638371251,
+                    601.4305180724781,
+                    566.2339460580157,
+                    562.5974480236004
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download32K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2462.988854781375,
+            "scoreError" : 31.73166430546424,
+            "scoreConfidence" : [
+                2431.2571904759106,
+                2494.720519086839
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2419.221547728815,
+                "50.0" : 2463.7609241621576,
+                "90.0" : 2489.4736660840426,
+                "95.0" : 2490.291778450251,
+                "99.0" : 2490.291778450251,
+                "99.9" : 2490.291778450251,
+                "99.99" : 2490.291778450251,
+                "99.999" : 2490.291778450251,
+                "99.9999" : 2490.291778450251,
+                "100.0" : 2490.291778450251
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2490.291778450251,
+                    2419.221547728815,
+                    2450.588921060259,
+                    2480.9304237566403,
+                    2454.97870430922,
+                    2476.0989302665835,
+                    2465.3086387065955,
+                    2482.110654788168,
+                    2462.2132096177197,
+                    2448.1457391294966
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.ApacheDownloadBenchmark.download64K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1705.5108819233506,
+            "scoreError" : 89.28372823317883,
+            "scoreConfidence" : [
+                1616.2271536901717,
+                1794.7946101565294
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1542.2131212257964,
+                "50.0" : 1727.9426261762503,
+                "90.0" : 1736.7569043788355,
+                "95.0" : 1736.8309976597727,
+                "99.0" : 1736.8309976597727,
+                "99.9" : 1736.8309976597727,
+                "99.99" : 1736.8309976597727,
+                "99.999" : 1736.8309976597727,
+                "99.9999" : 1736.8309976597727,
+                "100.0" : 1736.8309976597727
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1542.2131212257964,
+                    1698.1436227747474,
+                    1700.8345717270502,
+                    1732.2515980195917,
+                    1734.3615346913186,
+                    1726.027078234622,
+                    1736.0900648504,
+                    1718.4980559323292,
+                    1736.8309976597727,
+                    1729.8581741178787
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download1024K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 221.02848589159166,
+            "scoreError" : 11.758994049472642,
+            "scoreConfidence" : [
+                209.269491842119,
+                232.7874799410643
+            ],
+            "scorePercentiles" : {
+                "0.0" : 210.42856334979575,
+                "50.0" : 220.63173302777915,
+                "90.0" : 230.8462714678652,
+                "95.0" : 230.95520577592936,
+                "99.0" : 230.95520577592936,
+                "99.9" : 230.95520577592936,
+                "99.99" : 230.95520577592936,
+                "99.999" : 230.95520577592936,
+                "99.9999" : 230.95520577592936,
+                "100.0" : 230.95520577592936
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    212.84646299107493,
+                    210.42856334979575,
+                    222.2907347297903,
+                    218.972731325768,
+                    217.36668780886748,
+                    228.392269639363,
+                    229.8658626952876,
+                    227.02896985246463,
+                    212.1373707475758,
+                    230.95520577592936
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download16K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2383.997718300987,
+            "scoreError" : 90.198739332504,
+            "scoreConfidence" : [
+                2293.798978968483,
+                2474.196457633491
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2245.533941675939,
+                "50.0" : 2404.4890438953244,
+                "90.0" : 2443.934276942829,
+                "95.0" : 2444.523782321966,
+                "99.0" : 2444.523782321966,
+                "99.9" : 2444.523782321966,
+                "99.99" : 2444.523782321966,
+                "99.999" : 2444.523782321966,
+                "99.9999" : 2444.523782321966,
+                "100.0" : 2444.523782321966
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2360.404488830704,
+                    2405.2378143309365,
+                    2328.6437710618343,
+                    2403.7402734597126,
+                    2411.987413915814,
+                    2386.2205386748215,
+                    2415.0564302075486,
+                    2245.533941675939,
+                    2444.523782321966,
+                    2438.628728530596
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download1K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2895.721921899828,
+            "scoreError" : 115.79040827123997,
+            "scoreConfidence" : [
+                2779.931513628588,
+                3011.512330171068
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2731.841047828632,
+                "50.0" : 2927.4981648065536,
+                "90.0" : 2970.571938233451,
+                "95.0" : 2971.086530532928,
+                "99.0" : 2971.086530532928,
+                "99.9" : 2971.086530532928,
+                "99.99" : 2971.086530532928,
+                "99.999" : 2971.086530532928,
+                "99.9999" : 2971.086530532928,
+                "100.0" : 2971.086530532928
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2844.260441088629,
+                    2930.1183508291824,
+                    2908.2267868359572,
+                    2731.841047828632,
+                    2924.877978783925,
+                    2930.5313494265997,
+                    2940.0905506102513,
+                    2810.2455755240226,
+                    2971.086530532928,
+                    2965.9406075381557
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download256K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 694.9958361225015,
+            "scoreError" : 53.01602569862046,
+            "scoreConfidence" : [
+                641.9798104238811,
+                748.0118618211219
+            ],
+            "scorePercentiles" : {
+                "0.0" : 615.2182550828496,
+                "50.0" : 711.3479638327256,
+                "90.0" : 725.5543576914515,
+                "95.0" : 725.669451759368,
+                "99.0" : 725.669451759368,
+                "99.9" : 725.669451759368,
+                "99.99" : 725.669451759368,
+                "99.999" : 725.669451759368,
+                "99.9999" : 725.669451759368,
+                "100.0" : 725.669451759368
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    615.2182550828496,
+                    665.3518062860944,
+                    679.4799355700338,
+                    709.5147203118955,
+                    721.2303815509205,
+                    724.5185110802025,
+                    714.0851826162096,
+                    713.1812073535555,
+                    725.669451759368,
+                    681.7089096138859
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download32K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2071.120727404534,
+            "scoreError" : 78.59647910488088,
+            "scoreConfidence" : [
+                1992.5242482996532,
+                2149.717206509415
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1941.367246290682,
+                "50.0" : 2091.9198407446193,
+                "90.0" : 2111.8917452336314,
+                "95.0" : 2112.649775483469,
+                "99.0" : 2112.649775483469,
+                "99.9" : 2112.649775483469,
+                "99.99" : 2112.649775483469,
+                "99.999" : 2112.649775483469,
+                "99.9999" : 2112.649775483469,
+                "100.0" : 2112.649775483469
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2104.358972274225,
+                    2094.5248654123807,
+                    2092.449390774862,
+                    2052.727577809071,
+                    2031.624874688263,
+                    2112.649775483469,
+                    2105.069472985092,
+                    2085.0448076129155,
+                    2091.390290714377,
+                    1941.367246290682
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.CIODownloadBenchmark.download64K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1557.2041103505048,
+            "scoreError" : 49.53254603615698,
+            "scoreConfidence" : [
+                1507.671564314348,
+                1606.7366563866617
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1507.6169175564828,
+                "50.0" : 1570.0428902977997,
+                "90.0" : 1591.380915819602,
+                "95.0" : 1591.7356859224099,
+                "99.0" : 1591.7356859224099,
+                "99.9" : 1591.7356859224099,
+                "99.99" : 1591.7356859224099,
+                "99.999" : 1591.7356859224099,
+                "99.9999" : 1591.7356859224099,
+                "100.0" : 1591.7356859224099
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1507.6169175564828,
+                    1514.7618779180293,
+                    1580.1651292349595,
+                    1567.2579973737234,
+                    1572.8277832218762,
+                    1551.8361571385294,
+                    1515.6120896949271,
+                    1591.7356859224099,
+                    1588.1879848943313,
+                    1582.039480549779
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download1024K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 197.95658752847265,
+            "scoreError" : 22.71637588154504,
+            "scoreConfidence" : [
+                175.2402116469276,
+                220.6729634100177
+            ],
+            "scorePercentiles" : {
+                "0.0" : 158.4879879138057,
+                "50.0" : 201.21277890534208,
+                "90.0" : 209.71074007466598,
+                "95.0" : 209.79758728778475,
+                "99.0" : 209.79758728778475,
+                "99.9" : 209.79758728778475,
+                "99.99" : 209.79758728778475,
+                "99.999" : 209.79758728778475,
+                "99.9999" : 209.79758728778475,
+                "100.0" : 209.79758728778475
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    196.4025121336874,
+                    158.4879879138057,
+                    205.44985131893458,
+                    197.37979282024065,
+                    196.2227460052535,
+                    209.79758728778475,
+                    208.92911515659702,
+                    207.39530125325132,
+                    194.4552164047279,
+                    205.04576499044347
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download16K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 689.6473327451291,
+            "scoreError" : 158.48783013858747,
+            "scoreConfidence" : [
+                531.1595026065417,
+                848.1351628837166
+            ],
+            "scorePercentiles" : {
+                "0.0" : 541.7812596089017,
+                "50.0" : 677.6444853120813,
+                "90.0" : 866.7597940493451,
+                "95.0" : 871.1188954686326,
+                "99.0" : 871.1188954686326,
+                "99.9" : 871.1188954686326,
+                "99.99" : 871.1188954686326,
+                "99.999" : 871.1188954686326,
+                "99.9999" : 871.1188954686326,
+                "100.0" : 871.1188954686326
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    871.1188954686326,
+                    827.5278812757582,
+                    728.65878220815,
+                    730.2415112865739,
+                    681.4583271751034,
+                    673.8306434490594,
+                    541.7812596089017,
+                    632.1582888243298,
+                    649.1367902299512,
+                    560.5609479248302
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download1K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 688.1675559802009,
+            "scoreError" : 203.55488738815382,
+            "scoreConfidence" : [
+                484.61266859204704,
+                891.7224433683547
+            ],
+            "scorePercentiles" : {
+                "0.0" : 400.3834719130755,
+                "50.0" : 698.2029504626198,
+                "90.0" : 881.2465821062216,
+                "95.0" : 885.9720819009972,
+                "99.0" : 885.9720819009972,
+                "99.9" : 885.9720819009972,
+                "99.99" : 885.9720819009972,
+                "99.999" : 885.9720819009972,
+                "99.9999" : 885.9720819009972,
+                "100.0" : 885.9720819009972
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    885.9720819009972,
+                    838.717083953241,
+                    760.6857257351554,
+                    642.3201433098353,
+                    713.7410954138263,
+                    708.8873797708632,
+                    687.5185211543763,
+                    646.8600214319422,
+                    596.5900352186951,
+                    400.3834719130755
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download256K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 447.1844989714485,
+            "scoreError" : 76.20857444248182,
+            "scoreConfidence" : [
+                370.97592452896663,
+                523.3930734139303
+            ],
+            "scorePercentiles" : {
+                "0.0" : 353.8579645977322,
+                "50.0" : 454.80809522982423,
+                "90.0" : 506.66166400099286,
+                "95.0" : 507.58671376109487,
+                "99.0" : 507.58671376109487,
+                "99.9" : 507.58671376109487,
+                "99.99" : 507.58671376109487,
+                "99.999" : 507.58671376109487,
+                "99.9999" : 507.58671376109487,
+                "100.0" : 507.58671376109487
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    507.58671376109487,
+                    498.3362161600748,
+                    459.37470328825634,
+                    444.8984892912924,
+                    448.11207264972563,
+                    477.87400135143366,
+                    464.84846079632575,
+                    450.2414871713921,
+                    366.71488064715635,
+                    353.8579645977322
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download32K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 651.580433902412,
+            "scoreError" : 124.70501295808403,
+            "scoreConfidence" : [
+                526.875420944328,
+                776.285446860496
+            ],
+            "scorePercentiles" : {
+                "0.0" : 557.0488313218343,
+                "50.0" : 646.0754691984655,
+                "90.0" : 816.86809687865,
+                "95.0" : 826.8721617332858,
+                "99.0" : 826.8721617332858,
+                "99.9" : 826.8721617332858,
+                "99.99" : 826.8721617332858,
+                "99.999" : 826.8721617332858,
+                "99.9999" : 826.8721617332858,
+                "100.0" : 826.8721617332858
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    826.8721617332858,
+                    726.8315131869282,
+                    557.0488313218343,
+                    654.3673779044307,
+                    699.0214831650492,
+                    643.6255508833815,
+                    648.5253875135494,
+                    564.5358809388831,
+                    606.07751184409,
+                    588.8986405326874
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.JettyDownloadBenchmark.download64K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 555.6755452861762,
+            "scoreError" : 128.34833640817897,
+            "scoreConfidence" : [
+                427.32720887799724,
+                684.0238816943552
+            ],
+            "scorePercentiles" : {
+                "0.0" : 454.1724850154722,
+                "50.0" : 540.1968039721397,
+                "90.0" : 685.368742252596,
+                "95.0" : 686.2092488307377,
+                "99.0" : 686.2092488307377,
+                "99.9" : 686.2092488307377,
+                "99.99" : 686.2092488307377,
+                "99.999" : 686.2092488307377,
+                "99.9999" : 686.2092488307377,
+                "100.0" : 686.2092488307377
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    686.2092488307377,
+                    677.8041830493212,
+                    628.6207920506449,
+                    475.8384947048352,
+                    454.1724850154722,
+                    475.83073130646017,
+                    514.5090020013541,
+                    571.9376635378642,
+                    565.8846059429253,
+                    505.9482464221473
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download1024K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 186.1150774794151,
+            "scoreError" : 5.8353165588187235,
+            "scoreConfidence" : [
+                180.27976092059637,
+                191.95039403823384
+            ],
+            "scorePercentiles" : {
+                "0.0" : 179.97905745689525,
+                "50.0" : 185.24287201191345,
+                "90.0" : 191.20638612469688,
+                "95.0" : 191.30289740702702,
+                "99.0" : 191.30289740702702,
+                "99.9" : 191.30289740702702,
+                "99.99" : 191.30289740702702,
+                "99.999" : 191.30289740702702,
+                "99.9999" : 191.30289740702702,
+                "100.0" : 191.30289740702702
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    186.5607295165415,
+                    189.14238887806758,
+                    182.52463903593255,
+                    183.86182563169587,
+                    183.69840872870785,
+                    179.97905745689525,
+                    190.33778458372547,
+                    183.92501450728543,
+                    189.8180290482726,
+                    191.30289740702702
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download16K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 3206.3488791782806,
+            "scoreError" : 94.79145303776387,
+            "scoreConfidence" : [
+                3111.557426140517,
+                3301.1403322160445
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3046.4851470566327,
+                "50.0" : 3232.9157912655696,
+                "90.0" : 3247.3002898815967,
+                "95.0" : 3247.337008296998,
+                "99.0" : 3247.337008296998,
+                "99.9" : 3247.337008296998,
+                "99.99" : 3247.337008296998,
+                "99.999" : 3247.337008296998,
+                "99.9999" : 3247.337008296998,
+                "100.0" : 3247.337008296998
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    3210.1824114823494,
+                    3245.6943659443364,
+                    3246.9698241429846,
+                    3234.4889248739587,
+                    3191.7983613283222,
+                    3046.4851470566327,
+                    3245.1932741587834,
+                    3247.337008296998,
+                    3231.3426576571806,
+                    3163.996816841259
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download1K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 4185.647709924461,
+            "scoreError" : 195.69570640865103,
+            "scoreConfidence" : [
+                3989.9520035158102,
+                4381.343416333112
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3847.432880698519,
+                "50.0" : 4217.529749958807,
+                "90.0" : 4292.842781468314,
+                "95.0" : 4293.697075377635,
+                "99.0" : 4293.697075377635,
+                "99.9" : 4293.697075377635,
+                "99.99" : 4293.697075377635,
+                "99.999" : 4293.697075377635,
+                "99.9999" : 4293.697075377635,
+                "100.0" : 4293.697075377635
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    4180.268695433883,
+                    4146.798075458617,
+                    4164.505796142873,
+                    4219.655005226427,
+                    4283.827970370275,
+                    4285.154136284422,
+                    4293.697075377635,
+                    4219.732969560769,
+                    4215.404494691186,
+                    3847.432880698519
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download256K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 682.0706859474494,
+            "scoreError" : 19.987762050413753,
+            "scoreConfidence" : [
+                662.0829238970357,
+                702.0584479978631
+            ],
+            "scorePercentiles" : {
+                "0.0" : 648.1595159997747,
+                "50.0" : 687.0225503600191,
+                "90.0" : 693.4101036569982,
+                "95.0" : 693.5957460425681,
+                "99.0" : 693.5957460425681,
+                "99.9" : 693.5957460425681,
+                "99.99" : 693.5957460425681,
+                "99.999" : 693.5957460425681,
+                "99.9999" : 693.5957460425681,
+                "100.0" : 693.5957460425681
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    674.0854971916365,
+                    684.2103097762378,
+                    693.5957460425681,
+                    686.514386497053,
+                    687.530714222985,
+                    687.5355422397953,
+                    688.3546393031131,
+                    648.1595159997747,
+                    691.7393221868698,
+                    678.9811860144606
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download32K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 2587.139506127964,
+            "scoreError" : 54.72452732538002,
+            "scoreConfidence" : [
+                2532.414978802584,
+                2641.8640334533443
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2494.0542920232792,
+                "50.0" : 2595.916367998741,
+                "90.0" : 2620.6793301501093,
+                "95.0" : 2620.9730870186677,
+                "99.0" : 2620.9730870186677,
+                "99.9" : 2620.9730870186677,
+                "99.99" : 2620.9730870186677,
+                "99.999" : 2620.9730870186677,
+                "99.9999" : 2620.9730870186677,
+                "100.0" : 2620.9730870186677
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    2596.4821524065596,
+                    2608.0667111516145,
+                    2595.3505835909223,
+                    2618.0355183330817,
+                    2599.2117136706897,
+                    2574.6624231363903,
+                    2494.0542920232792,
+                    2575.7033665460885,
+                    2588.855213402344,
+                    2620.9730870186677
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.21",
+        "benchmark" : "io.ktor.client.benchmarks.OkHttpDownloadBenchmark.download64K",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/usr/lib/jvm/java-12-openjdk-amd64/bin/java",
+        "jvmArgs" : [
+            "-Dfile.encoding=UTF-8",
+            "-Duser.country=US",
+            "-Duser.language=en",
+            "-Duser.variant"
+        ],
+        "jdkVersion" : "12.0.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "12.0.1+12-Ubuntu-1",
+        "warmupIterations" : 10,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 10,
+        "measurementTime" : "1 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 1866.2035285786164,
+            "scoreError" : 105.35324816925932,
+            "scoreConfidence" : [
+                1760.850280409357,
+                1971.5567767478758
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1668.3670865936626,
+                "50.0" : 1887.5417833675863,
+                "90.0" : 1894.9854043105697,
+                "95.0" : 1895.1202643269764,
+                "99.0" : 1895.1202643269764,
+                "99.9" : 1895.1202643269764,
+                "99.99" : 1895.1202643269764,
+                "99.999" : 1895.1202643269764,
+                "99.9999" : 1895.1202643269764,
+                "100.0" : 1895.1202643269764
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1668.3670865936626,
+                    1889.781973963882,
+                    1884.4321376819023,
+                    1893.7716641629086,
+                    1889.6828639733537,
+                    1895.1202643269764,
+                    1884.6094618042775,
+                    1885.4007027618188,
+                    1879.0456139422226,
+                    1891.8235165751594
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
