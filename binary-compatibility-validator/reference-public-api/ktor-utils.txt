@@ -39,24 +39,24 @@ public final class io/ktor/util/Base64JvmKt {
 }
 
 public final class io/ktor/util/Base64Kt {
+	public static final synthetic fun decodeBase64 (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final synthetic fun decodeBase64 (Ljava/lang/String;)Ljava/lang/String;
-	public static final synthetic fun decodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
+	public static final fun decodeBase64Bytes (Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/utils/io/core/Input;
 	public static final fun decodeBase64Bytes (Ljava/lang/String;)[B
-	public static final fun decodeBase64Bytes (Lkotlinx/io/core/ByteReadPacket;)Lkotlinx/io/core/Input;
 	public static final fun decodeBase64String (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun encodeBase64 (Lio/ktor/utils/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final fun encodeBase64 (Ljava/lang/String;)Ljava/lang/String;
-	public static final fun encodeBase64 (Lkotlinx/io/core/ByteReadPacket;)Ljava/lang/String;
 	public static final fun encodeBase64 ([B)Ljava/lang/String;
 }
 
 public final class io/ktor/util/BufferViewJvmKt {
-	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lkotlinx/io/core/IoBuffer;)I
-	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lkotlinx/io/core/IoBuffer;)I
+	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
+	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
 }
 
 public final class io/ktor/util/ByteChannelsKt {
-	public static final fun split (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/CoroutineScope;)Lkotlin/Pair;
-	public static final fun toByteArray (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun split (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/CoroutineScope;)Lkotlin/Pair;
+	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/BytesKt {
@@ -124,10 +124,10 @@ public final class io/ktor/util/CryptoKt {
 }
 
 public final class io/ktor/util/DeflaterKt {
-	public static final fun deflated (Lkotlinx/coroutines/io/ByteReadChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static final fun deflated (Lkotlinx/coroutines/io/ByteWriteChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteWriteChannel;
-	public static synthetic fun deflated$default (Lkotlinx/coroutines/io/ByteReadChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static synthetic fun deflated$default (Lkotlinx/coroutines/io/ByteWriteChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
+	public static final fun deflated (Lio/ktor/utils/io/ByteReadChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun deflated (Lio/ktor/utils/io/ByteWriteChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static synthetic fun deflated$default (Lio/ktor/utils/io/ByteReadChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun deflated$default (Lio/ktor/utils/io/ByteWriteChannel;ZLio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public abstract interface class io/ktor/util/Digest {
@@ -137,8 +137,8 @@ public abstract interface class io/ktor/util/Digest {
 }
 
 public abstract interface class io/ktor/util/Encoder {
-	public abstract fun decode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public abstract fun encode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public abstract fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public abstract fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/EncodersJvmKt {
@@ -159,12 +159,12 @@ public final class io/ktor/util/Hash {
 
 public final class io/ktor/util/Identity : io/ktor/util/Encoder {
 	public static final field INSTANCE Lio/ktor/util/Identity;
-	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public fun decode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
+	public fun encode (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/InputJvmKt {
-	public static final fun asStream (Lkotlinx/io/core/Input;)Ljava/io/InputStream;
+	public static final fun asStream (Lio/ktor/utils/io/core/Input;)Ljava/io/InputStream;
 }
 
 public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/annotation/Annotation {
@@ -190,9 +190,9 @@ public final class io/ktor/util/LoggingKt {
 
 public final class io/ktor/util/NIOKt {
 	public static final fun copy (Ljava/nio/ByteBuffer;I)Ljava/nio/ByteBuffer;
-	public static final fun copy (Ljava/nio/ByteBuffer;Lkotlinx/io/pool/ObjectPool;I)Ljava/nio/ByteBuffer;
+	public static final fun copy (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;I)Ljava/nio/ByteBuffer;
 	public static synthetic fun copy$default (Ljava/nio/ByteBuffer;IILjava/lang/Object;)Ljava/nio/ByteBuffer;
-	public static synthetic fun copy$default (Ljava/nio/ByteBuffer;Lkotlinx/io/pool/ObjectPool;IILjava/lang/Object;)Ljava/nio/ByteBuffer;
+	public static synthetic fun copy$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;IILjava/lang/Object;)Ljava/nio/ByteBuffer;
 	public static final fun decodeString (Ljava/nio/ByteBuffer;Ljava/nio/charset/Charset;)Ljava/lang/String;
 	public static synthetic fun decodeString$default (Ljava/nio/ByteBuffer;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun moveTo (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I)I
@@ -355,14 +355,14 @@ public final class io/ktor/util/TextKt {
 	public static final fun escapeHTML (Ljava/lang/String;)Ljava/lang/String;
 }
 
-public final class io/ktor/util/cio/ByteBufferPool : kotlinx/io/pool/DefaultPool {
+public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
 	public fun <init> ()V
 	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
 	public synthetic fun produceInstance ()Ljava/lang/Object;
 }
 
 public final class io/ktor/util/cio/ByteBufferPoolKt {
-	public static final fun getKtorDefaultPool ()Lkotlinx/io/pool/ObjectPool;
+	public static final fun getKtorDefaultPool ()Lio/ktor/utils/io/pool/ObjectPool;
 }
 
 public class io/ktor/util/cio/ChannelIOException : java/io/IOException {
@@ -380,22 +380,22 @@ public final class io/ktor/util/cio/ChannelWriteException : io/ktor/util/cio/Cha
 }
 
 public final class io/ktor/util/cio/FileChannelsAtNioPathKt {
-	public static final fun readChannel (Ljava/nio/file/Path;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static final fun readChannel (Ljava/nio/file/Path;JJ)Lkotlinx/coroutines/io/ByteReadChannel;
+	public static final fun readChannel (Ljava/nio/file/Path;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun readChannel (Ljava/nio/file/Path;JJ)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/cio/FileChannelsKt {
-	public static final fun readChannel (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static synthetic fun readChannel$default (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static final fun writeChannel (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteWriteChannel;
-	public static final fun writeChannel (Ljava/io/File;Lkotlinx/io/pool/ObjectPool;)Lkotlinx/coroutines/io/ByteWriteChannel;
-	public static synthetic fun writeChannel$default (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
-	public static final synthetic fun writeChannel$default (Ljava/io/File;Lkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
+	public static final fun readChannel (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun readChannel$default (Ljava/io/File;JJLkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun writeChannel (Ljava/io/File;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static final fun writeChannel (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static final synthetic fun writeChannel$default (Ljava/io/File;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
+	public static synthetic fun writeChannel$default (Ljava/io/File;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public final class io/ktor/util/cio/InputStreamAdaptersKt {
-	public static final fun toByteReadChannel (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlinx/coroutines/io/ByteReadChannel;
+	public static final fun toByteReadChannel (Ljava/io/InputStream;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
 public final class io/ktor/util/cio/NoopContinuation : kotlin/coroutines/Continuation {
@@ -405,19 +405,19 @@ public final class io/ktor/util/cio/NoopContinuation : kotlin/coroutines/Continu
 }
 
 public final class io/ktor/util/cio/OutputStreamAdaptersKt {
-	public static final fun bufferedWriter (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/BufferedWriter;
-	public static synthetic fun bufferedWriter$default (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/BufferedWriter;
-	public static final fun write (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun write$default (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun writer (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/Writer;
-	public static synthetic fun writer$default (Lkotlinx/coroutines/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/Writer;
+	public static final fun bufferedWriter (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/BufferedWriter;
+	public static synthetic fun bufferedWriter$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/BufferedWriter;
+	public static final fun write (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun write$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun writer (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;)Ljava/io/Writer;
+	public static synthetic fun writer$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/Writer;
 }
 
 public final class io/ktor/util/cio/ReadersKt {
-	public static final fun pass (Lkotlinx/coroutines/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun toByteArray (Lkotlinx/coroutines/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun toByteArray$default (Lkotlinx/coroutines/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun use (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
+	public static final fun pass (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun toByteArray$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun use (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/util/cio/Semaphore {

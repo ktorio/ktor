@@ -30,7 +30,7 @@ public final class io/ktor/client/features/json/JsonFeatureKt {
 }
 
 public abstract interface class io/ktor/client/features/json/JsonSerializer {
-	public abstract fun read (Lio/ktor/client/call/TypeInfo;Lkotlinx/io/core/Input;)Ljava/lang/Object;
+	public abstract fun read (Lio/ktor/client/call/TypeInfo;Lio/ktor/utils/io/core/Input;)Ljava/lang/Object;
 	public abstract fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 	public abstract fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;)Lio/ktor/http/content/OutgoingContent;
 }

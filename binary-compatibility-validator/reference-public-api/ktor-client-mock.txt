@@ -26,11 +26,11 @@ public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/
 }
 
 public final class io/ktor/client/engine/mock/MockUtilsKt {
+	public static final fun respond (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
 	public static final fun respond (Ljava/lang/String;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
-	public static final fun respond (Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
 	public static final fun respond ([BLio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respond$default (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
 	public static synthetic fun respond$default (Ljava/lang/String;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
-	public static synthetic fun respond$default (Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
 	public static synthetic fun respond$default ([BLio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
 	public static final fun respondBadRequest ()Lio/ktor/client/request/HttpResponseData;
 	public static final fun respondError (Lio/ktor/http/HttpStatusCode;Ljava/lang/String;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;

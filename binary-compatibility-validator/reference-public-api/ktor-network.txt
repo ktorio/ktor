@@ -86,7 +86,7 @@ public abstract interface class io/ktor/network/sockets/AConnectedSocket : io/kt
 }
 
 public abstract interface class io/ktor/network/sockets/AReadable {
-	public abstract fun attachForReading (Lkotlinx/coroutines/io/ByteChannel;)Lkotlinx/coroutines/io/WriterJob;
+	public abstract fun attachForReading (Lio/ktor/utils/io/ByteChannel;)Lio/ktor/utils/io/WriterJob;
 }
 
 public abstract interface class io/ktor/network/sockets/ASocket : java/io/Closeable, kotlinx/coroutines/DisposableHandle {
@@ -99,7 +99,7 @@ public final class io/ktor/network/sockets/ASocket$DefaultImpls {
 }
 
 public abstract interface class io/ktor/network/sockets/AWritable {
-	public abstract fun attachForWriting (Lkotlinx/coroutines/io/ByteChannel;)Lkotlinx/coroutines/io/ReaderJob;
+	public abstract fun attachForWriting (Lio/ktor/utils/io/ByteChannel;)Lio/ktor/utils/io/ReaderJob;
 }
 
 public abstract interface class io/ktor/network/sockets/Acceptable : io/ktor/network/sockets/ASocket {
@@ -144,9 +144,9 @@ public final class io/ktor/network/sockets/ConnectedDatagramSocket$DefaultImpls 
 }
 
 public final class io/ktor/network/sockets/Datagram {
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;Ljava/net/SocketAddress;)V
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;Ljava/net/SocketAddress;)V
 	public final fun getAddress ()Ljava/net/SocketAddress;
-	public final fun getPacket ()Lkotlinx/io/core/ByteReadPacket;
+	public final fun getPacket ()Lio/ktor/utils/io/core/ByteReadPacket;
 }
 
 public abstract interface class io/ktor/network/sockets/DatagramReadChannel {
@@ -253,9 +253,9 @@ public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/k
 public final class io/ktor/network/sockets/SocketsKt {
 	public static final fun awaitClosed (Lio/ktor/network/sockets/ASocket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun isClosed (Lio/ktor/network/sockets/ASocket;)Z
-	public static final fun openReadChannel (Lio/ktor/network/sockets/AReadable;)Lkotlinx/coroutines/io/ByteReadChannel;
-	public static final fun openWriteChannel (Lio/ktor/network/sockets/AWritable;Z)Lkotlinx/coroutines/io/ByteWriteChannel;
-	public static synthetic fun openWriteChannel$default (Lio/ktor/network/sockets/AWritable;ZILjava/lang/Object;)Lkotlinx/coroutines/io/ByteWriteChannel;
+	public static final fun openReadChannel (Lio/ktor/network/sockets/AReadable;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun openWriteChannel (Lio/ktor/network/sockets/AWritable;Z)Lio/ktor/utils/io/ByteWriteChannel;
+	public static synthetic fun openWriteChannel$default (Lio/ktor/network/sockets/AWritable;ZILjava/lang/Object;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
 public final class io/ktor/network/sockets/TcpSocketBuilder : io/ktor/network/sockets/Configurable {
@@ -318,7 +318,7 @@ public final class io/ktor/network/util/IOCoroutineDispatcher : kotlinx/coroutin
 }
 
 public final class io/ktor/network/util/PoolsKt {
-	public static final fun getDefaultDatagramByteBufferPool ()Lkotlinx/io/pool/ObjectPool;
+	public static final fun getDefaultDatagramByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public static final fun getIoCoroutineDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public static final synthetic fun getIoThreadGroup ()Ljava/lang/ThreadGroup;
 }

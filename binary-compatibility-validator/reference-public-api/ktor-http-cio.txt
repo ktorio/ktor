@@ -12,17 +12,17 @@ public final class io/ktor/http/cio/CIOHeaders : io/ktor/http/Headers {
 }
 
 public final class io/ktor/http/cio/CIOMultipartDataBase : io/ktor/http/content/MultiPartData, kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;II)V
-	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;II)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun readPart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/ChunkedTransferEncodingKt {
-	public static final fun decodeChunked (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;)Lkotlinx/coroutines/io/WriterJob;
-	public static final fun decodeChunked (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun encodeChunked (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun encodeChunked (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun decodeChunked (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun decodeChunked (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/WriterJob;
+	public static final fun encodeChunked (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun encodeChunked (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/ConnectionOptions {
@@ -51,8 +51,8 @@ public final class io/ktor/http/cio/HttpBodyKt {
 	public static final fun expectHttpBody (Lio/ktor/http/cio/Request;)Z
 	public static final fun expectHttpUpgrade (Lio/ktor/http/HttpMethod;Ljava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;)Z
 	public static final fun expectHttpUpgrade (Lio/ktor/http/cio/Request;)Z
-	public static final fun parseHttpBody (JLjava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun parseHttpBody (Lio/ktor/http/cio/HttpHeadersMap;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseHttpBody (JLjava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseHttpBody (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/HttpHeadersMap {
@@ -79,9 +79,9 @@ public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
 }
 
 public final class io/ktor/http/cio/HttpParserKt {
-	public static final fun parseHeaders (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun parseRequest (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun parseResponse (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseHeaders (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseRequest (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseResponse (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/http/cio/MultipartEvent {
@@ -89,42 +89,42 @@ public abstract class io/ktor/http/cio/MultipartEvent {
 }
 
 public final class io/ktor/http/cio/MultipartEvent$Epilogue : io/ktor/http/cio/MultipartEvent {
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;)V
-	public final fun getBody ()Lkotlinx/io/core/ByteReadPacket;
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun getBody ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public fun release ()V
 }
 
 public final class io/ktor/http/cio/MultipartEvent$MultipartPart : io/ktor/http/cio/MultipartEvent {
-	public fun <init> (Lkotlinx/coroutines/Deferred;Lkotlinx/coroutines/io/ByteReadChannel;)V
-	public final fun getBody ()Lkotlinx/coroutines/io/ByteReadChannel;
+	public fun <init> (Lkotlinx/coroutines/Deferred;Lio/ktor/utils/io/ByteReadChannel;)V
+	public final fun getBody ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getHeaders ()Lkotlinx/coroutines/Deferred;
 	public fun release ()V
 }
 
 public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/MultipartEvent {
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;)V
-	public final fun getBody ()Lkotlinx/io/core/ByteReadPacket;
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun getBody ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public fun release ()V
 }
 
 public final class io/ktor/http/cio/MultipartKt {
-	public static final fun boundary (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final synthetic fun copyMultipart (Lio/ktor/http/cio/HttpHeadersMap;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun boundary (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun copyMultipart (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun expectMultipart (Lio/ktor/http/cio/HttpHeadersMap;)Z
 	public static final fun parseBoundary (Ljava/lang/CharSequence;)Ljava/nio/ByteBuffer;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
-	public static final fun parsePart (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun parsePart$default (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun parsePartBody (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun parsePartBody$default (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static final fun parsePartHeaders (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun parsePreamble (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun parsePreamble$default (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final synthetic fun parseMultipart (Lkotlin/coroutines/CoroutineContext;Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parsePart (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePart$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun parsePartBody (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePartBody$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun parsePartHeaders (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parsePreamble (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePreamble$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/ParserException : java/lang/Exception {
@@ -136,7 +136,7 @@ public final class io/ktor/http/cio/PipelineKt {
 	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final synthetic fun lastHttpRequest (ZLio/ktor/http/cio/ConnectionOptions;)Z
-	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function6;)Lkotlinx/coroutines/Job;
+	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function6;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/http/cio/Request : io/ktor/http/cio/HttpMessage {
@@ -147,7 +147,7 @@ public final class io/ktor/http/cio/Request : io/ktor/http/cio/HttpMessage {
 
 public final class io/ktor/http/cio/RequestResponseBuilder {
 	public fun <init> ()V
-	public final fun build ()Lkotlinx/io/core/ByteReadPacket;
+	public final fun build ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public final fun bytes (Ljava/nio/ByteBuffer;)V
 	public final fun bytes ([BII)V
 	public static synthetic fun bytes$default (Lio/ktor/http/cio/RequestResponseBuilder;[BIIILjava/lang/Object;)V
@@ -166,7 +166,7 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 }
 
 public final class io/ktor/http/cio/internals/HttpByteBufferPoolKt {
-	public static final fun getDefaultByteBufferPool ()Lkotlinx/io/pool/ObjectPool;
+	public static final fun getDefaultByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
 }
 
 public final class io/ktor/http/cio/internals/MutableRange {
@@ -247,8 +247,8 @@ public final class io/ktor/http/cio/websocket/DefaultWebSocketSession$DefaultImp
 
 public final class io/ktor/http/cio/websocket/DefaultWebSocketSessionImpl : io/ktor/http/cio/websocket/DefaultWebSocketSession, io/ktor/http/cio/websocket/WebSocketSession {
 	public static final field Companion Lio/ktor/http/cio/websocket/DefaultWebSocketSessionImpl$Companion;
-	public fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLkotlinx/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
@@ -293,16 +293,16 @@ public abstract class io/ktor/http/cio/websocket/Frame {
 }
 
 public final class io/ktor/http/cio/websocket/Frame$Binary : io/ktor/http/cio/websocket/Frame {
+	public fun <init> (ZLio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (ZLjava/nio/ByteBuffer;)V
-	public fun <init> (ZLkotlinx/io/core/ByteReadPacket;)V
 	public fun <init> (Z[B)V
 }
 
 public final class io/ktor/http/cio/websocket/Frame$Close : io/ktor/http/cio/websocket/Frame {
 	public fun <init> ()V
 	public fun <init> (Lio/ktor/http/cio/websocket/CloseReason;)V
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;)V
 	public fun <init> ([B)V
 }
 
@@ -312,24 +312,24 @@ public final class io/ktor/http/cio/websocket/Frame$Companion {
 }
 
 public final class io/ktor/http/cio/websocket/Frame$Ping : io/ktor/http/cio/websocket/Frame {
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;)V
 	public fun <init> ([B)V
 }
 
 public final class io/ktor/http/cio/websocket/Frame$Pong : io/ktor/http/cio/websocket/Frame {
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (Ljava/nio/ByteBuffer;)V
 	public fun <init> (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/DisposableHandle;)V
 	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lkotlinx/coroutines/DisposableHandle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Lkotlinx/io/core/ByteReadPacket;)V
 	public fun <init> ([BLkotlinx/coroutines/DisposableHandle;)V
 	public synthetic fun <init> ([BLkotlinx/coroutines/DisposableHandle;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/http/cio/websocket/Frame$Text : io/ktor/http/cio/websocket/Frame {
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (ZLio/ktor/utils/io/core/ByteReadPacket;)V
 	public fun <init> (ZLjava/nio/ByteBuffer;)V
-	public fun <init> (ZLkotlinx/io/core/ByteReadPacket;)V
 	public fun <init> (Z[B)V
 }
 
@@ -382,17 +382,17 @@ public final class io/ktor/http/cio/websocket/FrameType$Companion {
 }
 
 public final class io/ktor/http/cio/websocket/PingPongKt {
-	public static final fun pinger (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLkotlinx/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
-	public static synthetic fun pinger$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
-	public static final synthetic fun ponger (Lio/ktor/http/cio/websocket/WebSocketSession;Lkotlinx/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
-	public static final fun ponger (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Lkotlinx/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
-	public static synthetic fun ponger$default (Lio/ktor/http/cio/websocket/WebSocketSession;Lkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
-	public static synthetic fun ponger$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Lkotlinx/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+	public static final fun pinger (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun pinger$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;JJLio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+	public static final synthetic fun ponger (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static final fun ponger (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Lio/ktor/utils/io/pool/ObjectPool;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun ponger$default (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
+	public static synthetic fun ponger$default (Lkotlinx/coroutines/CoroutineScope;Lkotlinx/coroutines/channels/SendChannel;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lkotlinx/coroutines/channels/SendChannel;
 }
 
 public final class io/ktor/http/cio/websocket/RawWebSocket : io/ktor/http/cio/websocket/WebSocketSession {
-	public fun <init> (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lkotlinx/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlinx/coroutines/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -432,8 +432,8 @@ public abstract interface annotation class io/ktor/http/cio/websocket/WebSocketI
 }
 
 public final class io/ktor/http/cio/websocket/WebSocketReader : kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLkotlinx/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lkotlinx/coroutines/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/CoroutineContext;JLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
 	public final fun getMaxFrameSize ()J
@@ -471,14 +471,14 @@ public final class io/ktor/http/cio/websocket/WebSocketSessionKt {
 }
 
 public final class io/ktor/http/cio/websocket/WebSocketWriter : kotlinx/coroutines/CoroutineScope {
-	public fun <init> (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLkotlinx/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lkotlinx/coroutines/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLkotlinx/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ZLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun close ()V
 	public final fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getMasking ()Z
 	public final fun getOutgoing ()Lkotlinx/coroutines/channels/SendChannel;
-	public final fun getPool ()Lkotlinx/io/pool/ObjectPool;
+	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun send (Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setMasking (Z)V
 }
