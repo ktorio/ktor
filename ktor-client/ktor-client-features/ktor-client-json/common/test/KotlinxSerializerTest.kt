@@ -103,6 +103,21 @@ class KotlinxSerializerTest : ClientLoader() {
 
     }
 
+    @Test
+    fun testStringWithJsonFeature() = clientTests {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            val response = client.post<String>("$TEST_SERVER/echo") {
+                body = "Hello"
+            }
+
+            assertEquals("Hello", response)
+        }
+    }
+
     /**
      * Waiting for typeOf compiler implementation
      */
