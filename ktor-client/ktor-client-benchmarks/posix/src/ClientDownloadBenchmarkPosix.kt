@@ -4,6 +4,6 @@
 
 package io.ktor.client.benchmarks
 
-import io.ktor.client.engine.curl.*
-
-internal class CurlDownloadBenchmark : ClientDownloadBenchmark(Curl)
+//import io.ktor.client.engine.curl.*
+//
+//internal class CurlDownloadBenchmark : ClientDownloadBenchmark(Curl)
