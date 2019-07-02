@@ -5,7 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.http.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): Int {
     var hashCode = 0

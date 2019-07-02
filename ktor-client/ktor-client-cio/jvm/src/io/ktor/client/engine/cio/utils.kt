@@ -14,8 +14,8 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.errors.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(

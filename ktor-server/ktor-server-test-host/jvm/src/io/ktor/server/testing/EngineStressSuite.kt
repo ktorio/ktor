@@ -13,8 +13,8 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.streams.*
 import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*

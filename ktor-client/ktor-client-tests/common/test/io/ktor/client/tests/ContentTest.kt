@@ -16,9 +16,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
-import kotlinx.io.core.toByteArray
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.toByteArray
 import kotlin.test.*
 
 class ContentTest : ClientLoader() {

@@ -5,8 +5,8 @@
 package io.ktor.util
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 private const val CHUNK_BUFFER_SIZE = 4096L
 

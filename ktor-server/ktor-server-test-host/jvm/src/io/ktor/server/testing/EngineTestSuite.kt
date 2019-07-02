@@ -19,10 +19,10 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
-import kotlinx.io.core.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.streams.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*

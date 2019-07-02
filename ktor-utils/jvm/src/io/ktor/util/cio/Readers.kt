@@ -5,8 +5,8 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import java.nio.*
 import kotlin.contracts.*
 

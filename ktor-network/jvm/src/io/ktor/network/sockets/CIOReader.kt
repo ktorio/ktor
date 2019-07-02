@@ -6,11 +6,11 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.ByteChannel
-import kotlinx.io.core.*
-import kotlinx.io.nio.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.nio.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.channels.*
 

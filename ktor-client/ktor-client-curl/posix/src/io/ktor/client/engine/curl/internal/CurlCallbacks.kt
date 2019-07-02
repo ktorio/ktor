@@ -5,7 +5,7 @@
 package io.ktor.client.engine.curl.internal
 
 import kotlinx.cinterop.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import platform.posix.*
 
 internal fun onHeadersReceived(

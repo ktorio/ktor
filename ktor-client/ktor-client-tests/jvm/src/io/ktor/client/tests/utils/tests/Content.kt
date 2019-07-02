@@ -12,7 +12,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 internal fun Application.contentTestServer() {

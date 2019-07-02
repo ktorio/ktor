@@ -5,8 +5,8 @@
 package io.ktor.network.tls.cipher
 
 import io.ktor.http.cio.internals.*
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import javax.crypto.*
 

@@ -8,7 +8,7 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.CancellationException

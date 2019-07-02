@@ -9,7 +9,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.tests.utils.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Local test server url.

@@ -5,7 +5,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 /**
  * Parse URL query parameters. Shouldn't be used for urlencoded forms because of `+` character.

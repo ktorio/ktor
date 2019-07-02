@@ -216,7 +216,7 @@ fun Input.readBytesOf(min: Int = 0, max: Int = Int.MAX_VALUE): ByteArray = if (m
  */
 @Deprecated(
     "Use CharsetDecoder.decode instead",
-    ReplaceWith("decoder.decode(this, out, max)", "kotlinx.io.charsets.decode"),
+    ReplaceWith("decoder.decode(this, out, max)", "io.ktor.utils.io.charsets.decode"),
     level = DeprecationLevel.ERROR
 )
 fun Input.readText(out: Appendable, decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): Int {
@@ -237,7 +237,7 @@ fun Input.readText(out: Appendable, charset: Charset = Charsets.UTF_8, max: Int 
  */
 @Deprecated(
     "Use CharsetDecoder.decode instead",
-    ReplaceWith("decoder.decode(this, max)", "kotlinx.io.charsets.decode")
+    ReplaceWith("decoder.decode(this, max)", "io.ktor.utils.io.charsets.decode")
 )
 fun Input.readText(decoder: CharsetDecoder, max: Int = Int.MAX_VALUE): String {
     return decoder.decode(this, max)
@@ -298,7 +298,7 @@ fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets.UTF_8)
  */
 @Deprecated(
     "Use the implementation with Charset instead",
-    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "kotlinx.io.charsets.charset"),
+    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "io.ktor.utils.io.charsets.charset"),
     level = DeprecationLevel.ERROR
 )
 fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {

@@ -11,7 +11,7 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.websocket.*
 import io.ktor.request.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 /**

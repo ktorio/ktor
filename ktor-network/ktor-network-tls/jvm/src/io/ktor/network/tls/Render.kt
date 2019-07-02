@@ -5,8 +5,8 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import java.security.*
 import java.security.cert.*
 import java.security.interfaces.*

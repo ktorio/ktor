@@ -7,7 +7,7 @@ package io.ktor.tests.websocket
 import io.ktor.util.cio.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.Test
 import java.nio.ByteBuffer
 import kotlin.test.*

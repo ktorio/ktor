@@ -4,8 +4,8 @@
 
 package io.ktor.util
 
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.experimental.*
 
 private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"

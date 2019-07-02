@@ -6,7 +6,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import kotlinx.cinterop.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import libcurl.*
 
 private class RequestHolders(

@@ -7,7 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and

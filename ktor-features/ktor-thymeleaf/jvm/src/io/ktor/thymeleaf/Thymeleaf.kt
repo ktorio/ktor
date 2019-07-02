@@ -15,7 +15,7 @@ import io.ktor.http.withCharset
 import io.ktor.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
 import io.ktor.util.cio.bufferedWriter
-import kotlinx.coroutines.io.ByteWriteChannel
+import io.ktor.utils.io.ByteWriteChannel
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 

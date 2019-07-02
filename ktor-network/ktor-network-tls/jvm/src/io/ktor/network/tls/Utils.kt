@@ -5,7 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.security.*
 
 internal fun Digest(): Digest = Digest(BytePacketBuilder())

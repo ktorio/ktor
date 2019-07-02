@@ -6,7 +6,7 @@ package io.ktor.request
 
 import io.ktor.application.*
 import io.ktor.http.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * Represents client's request

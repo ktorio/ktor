@@ -85,9 +85,9 @@ dependencies {
         exclude(module: 'kotlin-stdlib-jvm')
     }
 
-    jvmMainApi(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-jvm')
-    }
+//    jvmMainApi(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version) {
+//        exclude(module: 'kotlin-stdlib-jvm')
+//    }
 
     jvmMainApi(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-jvm', version: kotlinx_io_version) {
         exclude(module: 'kotlin-stdlib-jvm')

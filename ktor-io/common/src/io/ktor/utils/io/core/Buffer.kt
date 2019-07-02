@@ -354,7 +354,7 @@ open class Buffer(val memory: Memory) {
     companion object {
         /**
          * Number of bytes usually reserved in the end of chunk
-         * when several instances of [kotlinx.io.core.internal.ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
+         * when several instances of [io.ktor.utils.io.core.internal.ChunkBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi

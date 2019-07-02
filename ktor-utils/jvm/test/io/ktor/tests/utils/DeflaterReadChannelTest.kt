@@ -7,8 +7,8 @@ package io.ktor.tests.utils
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 import java.nio.*
 import java.util.zip.*

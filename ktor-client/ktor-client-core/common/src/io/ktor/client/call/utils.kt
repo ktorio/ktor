@@ -11,7 +11,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 
 @Suppress("KDocMissingDocumentation")

@@ -6,9 +6,9 @@ package io.ktor.util
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.bits.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.pool.*
 import java.nio.ByteBuffer
 import java.util.zip.*
 import kotlin.coroutines.*

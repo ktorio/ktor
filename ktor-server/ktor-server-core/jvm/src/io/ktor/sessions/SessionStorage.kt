@@ -4,7 +4,7 @@
 
 package io.ktor.sessions
 
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * Represents a way to [write], [read] and [invalidate] session bits.

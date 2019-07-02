@@ -7,8 +7,8 @@
 
 package io.ktor.util
 
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 
 private val digits = "0123456789abcdef".toCharArray()
 

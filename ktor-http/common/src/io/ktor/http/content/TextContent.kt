@@ -5,8 +5,8 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 
 /**
  * Represents a text content that could be sent

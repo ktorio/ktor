@@ -13,7 +13,7 @@ import io.ktor.http.content.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.apache.http.*
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpRequest

@@ -15,10 +15,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.sync.*
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.sync.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 

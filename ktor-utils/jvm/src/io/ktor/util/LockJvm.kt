@@ -6,7 +6,7 @@
 
 package io.ktor.util
 
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.util.concurrent.locks.*
 import java.util.concurrent.locks.Lock
 

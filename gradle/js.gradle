@@ -44,7 +44,7 @@ kotlin {
             api "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
 
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-js', version: kotlinx_io_version
+//            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-js', version: kotlinx_io_version
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-js', version: kotlinx_io_version
             api group: 'org.jetbrains.kotlinx', name: 'atomicfu-js', version: atomicfu_version
 

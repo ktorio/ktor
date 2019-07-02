@@ -5,7 +5,7 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.junit.*
 import java.io.*
 import kotlin.test.*

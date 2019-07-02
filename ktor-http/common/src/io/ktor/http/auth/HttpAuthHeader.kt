@@ -6,7 +6,7 @@ package io.ktor.http.auth
 
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 private const val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
 

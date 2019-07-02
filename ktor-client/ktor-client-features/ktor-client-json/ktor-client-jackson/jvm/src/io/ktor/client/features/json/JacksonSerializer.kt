@@ -9,7 +9,7 @@ import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
 

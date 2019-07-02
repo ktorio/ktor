@@ -7,7 +7,7 @@ package io.ktor.network.util
 import io.ktor.network.sockets.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")

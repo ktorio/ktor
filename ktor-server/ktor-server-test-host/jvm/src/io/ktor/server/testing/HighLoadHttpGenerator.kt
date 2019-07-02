@@ -6,13 +6,17 @@ package io.ktor.server.testing
 
 import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
+import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
+import java.nio.ByteOrder
 import java.nio.channels.*
 import java.nio.channels.spi.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
+import kotlin.io.use
+import kotlin.text.toByteArray
 
 /**
  * This HTTP generator produces huge amount of requests however it doesn't validate responses and doesn't measure

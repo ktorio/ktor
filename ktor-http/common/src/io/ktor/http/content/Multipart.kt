@@ -5,7 +5,7 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem]

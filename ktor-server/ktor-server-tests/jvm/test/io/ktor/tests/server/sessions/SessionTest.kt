@@ -15,7 +15,7 @@ import io.ktor.sessions.*
 import io.ktor.util.date.*
 import io.ktor.util.hex
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.time.Duration
 import java.util.*
 import kotlin.test.*

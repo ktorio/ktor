@@ -10,8 +10,8 @@ import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import java.security.*
 import java.security.cert.*
 import java.security.cert.Certificate

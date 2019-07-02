@@ -6,7 +6,7 @@
 
 package io.ktor.http
 
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 /**
  * Set `Content-Type` header.

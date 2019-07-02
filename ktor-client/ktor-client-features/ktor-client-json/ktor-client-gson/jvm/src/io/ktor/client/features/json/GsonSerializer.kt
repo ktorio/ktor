@@ -8,7 +8,7 @@ import com.google.gson.*
 import io.ktor.client.call.*
 import io.ktor.http.content.*
 import io.ktor.http.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * [JsonSerializer] using [Gson] as backend.

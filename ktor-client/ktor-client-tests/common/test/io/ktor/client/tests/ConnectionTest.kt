@@ -9,7 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class ConnectionTest : ClientLoader() {

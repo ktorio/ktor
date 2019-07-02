@@ -16,7 +16,7 @@ import kotlin.contracts.*
  * A read-write facade to actual buffer of fixed size. Multiple views could share the same actual buffer.
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
-@Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "kotlinx.io.core.Buffer"))
+@Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
 actual class IoBuffer actual constructor(
     memory: Memory,
     origin: ChunkBuffer?

@@ -9,7 +9,7 @@ import io.ktor.utils.io.pool.*
 @DangerousInternalIoApi
 @Deprecated(
     "Will be removed in the future releases. Use Input or AbstractInput instead.",
-    ReplaceWith("AbstractInput", "kotlinx.io.core.AbstractInput")
+    ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
 )
 abstract class ByteReadPacketBase(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
     AbstractInput(head, remaining, pool) {

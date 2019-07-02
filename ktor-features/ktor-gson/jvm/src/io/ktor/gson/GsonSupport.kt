@@ -12,8 +12,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 

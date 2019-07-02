@@ -4,8 +4,8 @@
 
 package io.ktor.client.engine.okhttp
 
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import okhttp3.*
 import okio.*
 

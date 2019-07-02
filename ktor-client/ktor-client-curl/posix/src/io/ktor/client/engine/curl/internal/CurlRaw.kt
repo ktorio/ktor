@@ -11,8 +11,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 

@@ -11,7 +11,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.Test
 import java.lang.IllegalStateException
 import kotlin.test.*

@@ -4,7 +4,7 @@
 
 package io.ktor.util
 
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 

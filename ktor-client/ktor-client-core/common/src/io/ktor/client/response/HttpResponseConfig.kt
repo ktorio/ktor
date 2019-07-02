@@ -4,7 +4,7 @@
 
 package io.ktor.client.response
 
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 open class HttpResponseConfig {
     /**

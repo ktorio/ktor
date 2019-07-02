@@ -56,7 +56,7 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
 @Deprecated(
     "Will be removed in future releases.",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("AbstractInput", "kotlinx.io.core.AbstractInput")
+    replaceWith = ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
 )
 abstract class ByteReadPacketPlatformBase protected constructor(
     head: ChunkBuffer,

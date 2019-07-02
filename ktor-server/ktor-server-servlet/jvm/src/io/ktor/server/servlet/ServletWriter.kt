@@ -7,8 +7,8 @@ package io.ktor.server.servlet
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*

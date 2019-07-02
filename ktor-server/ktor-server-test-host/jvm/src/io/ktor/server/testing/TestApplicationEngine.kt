@@ -15,7 +15,7 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 

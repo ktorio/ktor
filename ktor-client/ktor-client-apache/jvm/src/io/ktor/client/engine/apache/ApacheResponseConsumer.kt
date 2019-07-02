@@ -6,7 +6,7 @@ package io.ktor.client.engine.apache
 
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.apache.http.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*

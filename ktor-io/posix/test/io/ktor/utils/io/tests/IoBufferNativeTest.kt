@@ -1,4 +1,4 @@
-package kotlinx.coroutines.io
+package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*

@@ -12,7 +12,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlinx.io.core.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod

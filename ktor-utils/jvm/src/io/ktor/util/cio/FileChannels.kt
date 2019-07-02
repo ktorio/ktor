@@ -6,10 +6,10 @@ package io.ktor.util.cio
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.nio.*
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.nio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*

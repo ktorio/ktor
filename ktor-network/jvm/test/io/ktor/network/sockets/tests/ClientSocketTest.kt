@@ -9,7 +9,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*

@@ -25,7 +25,7 @@ expect val CharsetEncoder.charset: Charset
 
 @Deprecated(
     "Use writeText on Output instead.",
-    ReplaceWith("dst.writeText(input, fromIndex, toIndex, charset)", "kotlinx.io.core.writeText")
+    ReplaceWith("dst.writeText(input, fromIndex, toIndex, charset)", "io.ktor.utils.io.core.writeText")
 )
 fun CharsetEncoder.encode(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Output) {
     encodeToImpl(dst, input, fromIndex, toIndex)

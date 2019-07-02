@@ -12,7 +12,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 internal fun Application.benchmarks() {
     routing {

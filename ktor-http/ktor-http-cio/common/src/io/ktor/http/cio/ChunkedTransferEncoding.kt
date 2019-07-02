@@ -6,10 +6,10 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.pool.*
 import kotlin.coroutines.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
@@ -98,8 +98,6 @@ suspend fun encodeChunked(
  */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val view = IoBuffer.Pool.borrow()
-    @Suppress("DEPRECATION") // here we have a valid reason to set it so suppress here
-    view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {
         input.readSuspendableSession {

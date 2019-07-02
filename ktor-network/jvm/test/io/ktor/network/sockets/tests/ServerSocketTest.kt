@@ -8,7 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.*
 import org.junit.Test
 import java.io.*

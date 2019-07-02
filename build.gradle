@@ -110,7 +110,7 @@ allprojects {
             check(version, atomicfu_version, "atomicfu")
             check(version, coroutines_version, "coroutines")
             check(version, serialization_version, "serialization")
-            check(version, kotlinx_io_version, "kotlinx-io")
+//            check(version, kotlinx_io_version, "kotlinx-io")
         }
         kotlin_version = rootProject.properties['kotlin_snapshot_version']
         repositories {

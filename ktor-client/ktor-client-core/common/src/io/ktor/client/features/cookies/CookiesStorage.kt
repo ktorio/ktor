@@ -5,7 +5,7 @@
 package io.ktor.client.features.cookies
 
 import io.ktor.http.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Storage for [Cookie].

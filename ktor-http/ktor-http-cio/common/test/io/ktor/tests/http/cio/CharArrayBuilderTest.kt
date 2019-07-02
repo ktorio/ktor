@@ -5,7 +5,7 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.internals.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import kotlin.test.*
 
 class CharArrayBuilderTest {

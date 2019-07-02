@@ -7,7 +7,7 @@ package io.ktor.client.features.logging
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 

@@ -14,7 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")

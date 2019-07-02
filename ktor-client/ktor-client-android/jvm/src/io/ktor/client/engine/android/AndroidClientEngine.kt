@@ -12,8 +12,8 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 import java.net.*
 import javax.net.ssl.*

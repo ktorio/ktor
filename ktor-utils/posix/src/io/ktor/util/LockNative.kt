@@ -5,7 +5,7 @@
 package io.ktor.util
 
 import kotlinx.cinterop.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import platform.posix.*
 import utils.*
 import kotlin.native.concurrent.*
