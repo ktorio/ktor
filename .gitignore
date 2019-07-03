@@ -32,3 +32,5 @@ bin/
 .classpath
 .konan
 
+.DS_Store
+
