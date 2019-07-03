@@ -4,8 +4,13 @@
 
 package io.ktor.client.benchmarks
 
+import io.ktor.client.engine.*
 import kotlinx.coroutines.*
 
 internal actual fun <T> runBenchmark(block: suspend CoroutineScope.() -> T): dynamic = GlobalScope.async<Unit> {
     block()
 }.asPromise()
+
+actual fun findEngine(name: String): HttpClientEngineFactory<HttpClientEngineConfig> {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+}
