@@ -5,17 +5,12 @@ kotlin {
                 debug = false
             }
         }
-
-        def browserClass = project.rootProject.ext.browser
-        def instance = browserClass.newInstance([it].toArray())
-        def configureTestsMethod = browserClass.superclass.getDeclaredMethod("configureTests")
-        configureTestsMethod.setAccessible(true)
-        configureTestsMethod.invoke(instance)
-
-        instance.testTask {
-            useKarma {
-                useChromeHeadless()
-                useConfigDirectory(new File(project.rootProject.projectDir, "karma"))
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useConfigDirectory(new File(project.rootProject.projectDir, "karma"))
+                }
             }
         }
 
