@@ -27,7 +27,7 @@ class Routing(val application: Application) :
         tracers.add(block)
     }
 
-    private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
+    suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
