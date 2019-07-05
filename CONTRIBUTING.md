@@ -38,4 +38,6 @@ A questionable and new API should be marked with `@KtorExperimentalAPI` annotati
 Public API that is not intended to be used by end-users that couldn't be made private/internal due to technical reasons,
 should be marked with `@InternalAPI` annotation. 
 
+# Code of conduct
 
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
