@@ -75,4 +75,6 @@ Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
 
 If you find a security vulnerability in Ktor, we kindly request that instead of using our public issue tracker, you instead reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
 
+## Contributing
 
+Please see [the contribution guide](CONTRIBUTING.md) before contirbuting and [Code of conduct](CODE_OF_CONDUCT.md).
