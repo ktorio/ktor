@@ -22,7 +22,7 @@ internal fun CoroutineScope.attachForReadingImpl(
     pool: ObjectPool<ByteBuffer>
 ): WriterJob {
     val buffer = pool.borrow()
-    return writer(Dispatchers.Unconfined, channel) {
+    return writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
         try {
             while (true) {
                 val rc = nioChannel.read(buffer)
@@ -58,7 +58,7 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
     selector: SelectorManager
-): WriterJob = writer(Dispatchers.Unconfined, channel) {
+): WriterJob = writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
     try {
         selectable.interestOp(SelectInterest.READ, false)
 

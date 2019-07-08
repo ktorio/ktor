@@ -22,7 +22,7 @@ internal fun CoroutineScope.attachForWritingImpl(
 ): ReaderJob {
     val buffer = pool.borrow()
 
-    return reader(Dispatchers.Unconfined, channel) {
+    return reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
         try {
             while (true) {
                 buffer.clear()
@@ -59,7 +59,7 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
     nioChannel: WritableByteChannel,
     selectable: Selectable,
     selector: SelectorManager
-): ReaderJob = reader(Dispatchers.Unconfined, channel) {
+): ReaderJob = reader(Dispatchers.Unconfined + CoroutineName("cio-to-nio-writer"), channel) {
     selectable.interestOp(SelectInterest.WRITE, false)
     try {
         channel.lookAheadSuspend {
