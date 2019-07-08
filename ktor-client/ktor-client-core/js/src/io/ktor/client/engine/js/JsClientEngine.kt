@@ -15,6 +15,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.w3c.dom.*
+import org.w3c.dom.events.*
 import org.w3c.fetch.Headers
 import kotlin.coroutines.*
 
@@ -63,9 +64,9 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             js("new WebSocket(urlString)")
         }
 
-        val session = JsWebSocketSession(callContext, socket)
-
         socket.awaitConnection()
+
+        val session = JsWebSocketSession(callContext, socket)
 
         return HttpResponseData(
             HttpStatusCode.OK,
@@ -81,8 +82,26 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 }
 
 private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
-    onopen = { continuation.resume(this) }
-    onerror = { continuation.resumeWithException(WebSocketException("$it")) }
+    if (continuation.isCancelled) return@suspendCancellableCoroutine
+
+    val eventListener = { event: Event ->
+        when (event.type) {
+            "open" -> continuation.resume(this)
+            "error" -> continuation.resumeWithException(WebSocketException("$event"))
+        }
+    }
+
+    addEventListener("open", callback = eventListener)
+    addEventListener("error", callback = eventListener)
+
+    continuation.invokeOnCancellation {
+        removeEventListener("open", callback = eventListener)
+        removeEventListener("error", callback = eventListener)
+
+        if (it != null) {
+            this@awaitConnection.close()
+        }
+    }
 }
 
 private fun Headers.mapToKtor(): io.ktor.http.Headers = buildHeaders {

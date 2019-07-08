@@ -29,33 +29,35 @@ internal class JsWebSocketSession(
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
 
-        websocket.onmessage = { event ->
+        websocket.addEventListener("message", callback = {
+            val event = it.unsafeCast<MessageEvent>()
+
             launch {
                 val data = event.data
 
                 val frame: Frame = when (data) {
-                    is ArrayBuffer -> Frame.Binary(false, Int8Array(data) as ByteArray)
-                    is String -> Frame.Text(event.data as String)
+                    is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
+                    is String -> Frame.Text(data)
                     else -> error("Unknown frame type: ${event.type}")
                 }
 
                 _incoming.offer(frame)
             }
-        }
+        })
 
-        websocket.onerror = {
+        websocket.addEventListener("error", callback = {
             _incoming.close(WebSocketException("$it"))
             _outgoing.cancel()
-        }
+        })
 
-        websocket.onclose = { event: dynamic ->
+        websocket.addEventListener("close", callback = { event: dynamic ->
             launch {
                 _incoming.send(Frame.Close(CloseReason(event.code as Short, event.reason as String)))
                 _incoming.close()
 
                 _outgoing.cancel()
             }
-        }
+        })
 
         launch {
             _outgoing.consumeEach {
@@ -77,6 +79,14 @@ internal class JsWebSocketSession(
                         websocket.close(data.readShort(), data.readText())
                     }
                 }
+            }
+        }
+
+        coroutineContext[Job]?.invokeOnCompletion { cause ->
+            if (cause == null) {
+                websocket.close()
+            } else {
+                websocket.close(CloseReason.Codes.UNEXPECTED_CONDITION.code, "Client failed")
             }
         }
     }
