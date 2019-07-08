@@ -73,7 +73,7 @@ internal class JsWebSocketSession(
                         websocket.send(frameData)
                     }
                     FrameType.CLOSE -> {
-                        val data = buildPacket { it.data }
+                        val data = buildPacket { writeFully(it.data) }
                         websocket.close(data.readShort(), data.readText())
                     }
                 }
