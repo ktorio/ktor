@@ -65,13 +65,17 @@ private class TLSSocket(
     private suspend fun appDataOutputLoop(
         pipe: ByteReadChannel
     ): Unit = DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
-        while (true) {
-            buffer.clear()
-            val rc = pipe.readAvailable(buffer)
-            if (rc == -1) break
+        try {
+            while (true) {
+                buffer.clear()
+                val rc = pipe.readAvailable(buffer)
+                if (rc == -1) break
 
-            buffer.flip()
-            output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
+                buffer.flip()
+                output.send(TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(buffer) }))
+            }
+        } finally {
+            output.close()
         }
     }
 }
