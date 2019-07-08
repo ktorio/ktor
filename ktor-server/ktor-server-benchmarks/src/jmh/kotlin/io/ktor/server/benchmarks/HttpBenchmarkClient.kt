@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("KDocMissingDocumentation")
+
 package io.ktor.server.benchmarks
 
 import okhttp3.*
@@ -66,7 +68,7 @@ class OkHttpBenchmarkClient : HttpBenchmarkClient {
     override fun load(url: String) {
         val request = Request.Builder().url(url).build()
         val response = httpClient!!.newCall(request).execute()
-        response.body().byteStream().use { stream ->
+        response.body()?.byteStream()?.use { stream ->
             val buf = ByteArray(8192)
             while (stream.read(buf) != -1);
         }
