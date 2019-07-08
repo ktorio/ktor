@@ -22,6 +22,7 @@ kotlin.sourceSets {
     jvmTest {
         dependencies {
             api(project(":ktor-client:ktor-client-cio"))
+            api(project(":ktor-client:ktor-client-okhttp"))
         }
     }
 }
