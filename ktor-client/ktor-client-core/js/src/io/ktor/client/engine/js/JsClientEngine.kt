@@ -64,7 +64,12 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             js("new WebSocket(urlString)")
         }
 
-        socket.awaitConnection()
+        try {
+            socket.awaitConnection()
+        } catch (cause: Throwable) {
+            callContext.cancel(CancellationException("Failed to connect to $urlString", cause))
+            throw cause
+        }
 
         val session = JsWebSocketSession(callContext, socket)
 
