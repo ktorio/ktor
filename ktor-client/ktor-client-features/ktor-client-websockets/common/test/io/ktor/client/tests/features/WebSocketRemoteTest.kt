@@ -6,6 +6,7 @@ package io.ktor.client.tests.features
 import io.ktor.client.features.logging.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.io.core.*
 import kotlin.test.*
@@ -57,6 +58,38 @@ class WebSocketRemoteTest : ClientLoader() {
             client.wss(host = echoWebsocket) {
                 ping("hello, world")
             }
+        }
+    }
+
+    @Test
+    fun testSessionClose(): Unit = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession(host = echoWebsocket) {
+                url.protocol = URLProtocol.WSS
+                url.port = DEFAULT_PORT
+            }
+
+            session.close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
+        }
+    }
+
+    @Test
+    fun testSessionTermination(): Unit = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val session = client.webSocketSession(host = echoWebsocket) {
+                url.protocol = URLProtocol.WSS
+                url.port = DEFAULT_PORT
+            }
+
+            session.terminate()
         }
     }
 
