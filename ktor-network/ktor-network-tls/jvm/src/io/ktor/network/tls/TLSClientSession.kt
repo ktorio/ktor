@@ -32,13 +32,15 @@ private class TLSSocket(
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope, Socket by socket {
 
-    override fun attachForReading(channel: ByteChannel): WriterJob = writer(coroutineContext, channel) {
-        appDataInputLoop(this.channel)
-    }
+    override fun attachForReading(channel: ByteChannel): WriterJob =
+        writer(coroutineContext + CoroutineName("cio-tls-input-loop"), channel) {
+            appDataInputLoop(this.channel)
+        }
 
-    override fun attachForWriting(channel: ByteChannel): ReaderJob = reader(coroutineContext, channel) {
-        appDataOutputLoop(this.channel)
-    }
+    override fun attachForWriting(channel: ByteChannel): ReaderJob =
+        reader(coroutineContext + CoroutineName("cio-tls-output-loop"), channel) {
+            appDataOutputLoop(this.channel)
+        }
 
     @UseExperimental(ObsoleteCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
