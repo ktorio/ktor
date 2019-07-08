@@ -97,18 +97,25 @@ internal class TLSClientHandshake(
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
         var useCipher = false
 
-        for (rawRecord in channel) {
-            try {
-                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
+        try {
+            for (rawRecord in channel) {
+                try {
+                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
 
-                rawOutput.writeRecord(record)
-            } catch (cause: Throwable) {
-                channel.close(cause)
+                    rawOutput.writeRecord(record)
+                } catch (cause: Throwable) {
+                    channel.close(cause)
+                }
             }
-        }
+        } finally {
+            rawOutput.writeRecord(TLSRecord(TLSRecordType.Alert, packet = buildPacket {
+                writeByte(TLSAlertLevel.WARNING.code.toByte())
+                writeByte(TLSAlertType.CloseNotify.code.toByte())
+            }))
 
-        rawOutput.close()
+            rawOutput.close()
+        }
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
