@@ -131,6 +131,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val GZip = ContentType("application", "gzip")
         val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
         val Pdf = ContentType("application", "pdf")
+        val Wasm = ContentType("application", "wasm")
     }
 
     /**

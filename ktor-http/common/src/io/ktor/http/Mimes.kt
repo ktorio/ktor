@@ -1056,6 +1056,7 @@ N/A,application/andrew-inset
 .w6w,application/msword
 .wad,application/x-doom
 .war,application/zip
+.wasm,application/wasm
 .wav,audio/wav
 .wax,audio/x-ms-wax
 .wb1,application/x-qpro
