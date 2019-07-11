@@ -19,7 +19,10 @@ config.set({
         }
     },
     "client": {
-        captureConsole: true
+        captureConsole: true,
+        "mocha": {
+            timeout: 10000
+        }
     }
 });
 
