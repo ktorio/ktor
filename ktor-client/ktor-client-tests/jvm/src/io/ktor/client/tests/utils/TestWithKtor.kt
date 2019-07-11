@@ -28,7 +28,19 @@ abstract class TestWithKtor {
 
     @Before
     fun startServer() {
-        server.start()
+        var attempt = 0
+
+        do {
+            attempt++
+            try {
+                server.start()
+                break
+            } catch (cause: Throwable) {
+                if (attempt >= 10) throw cause
+                Thread.sleep(250L * attempt)
+            }
+        } while (true)
+
         ensureServerRunning()
     }
 
