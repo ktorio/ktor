@@ -122,6 +122,11 @@ internal class TLSClientHandshake(
     private val handshakes = produce<TLSHandshake>(CoroutineName("cio-tls-handshake")) {
         while (true) {
             val record = input.receive()
+            if (record.type != TLSRecordType.Handshake) {
+                record.packet.release()
+                error("TLS handshake expected, got ${record.type}")
+            }
+
             val packet = record.packet
 
             while (packet.isNotEmpty) {
