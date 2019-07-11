@@ -122,6 +122,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 closeThread.start()
             }
             closeThread.join(TimeUnit.SECONDS.toMillis(timeout))
+
+            FreePorts.recycle(port)
+            FreePorts.recycle(sslPort)
         }
     }
 
@@ -187,7 +190,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             val failures = startServer(server)
             when {
                 failures.isEmpty() -> return server
-                failures.any { it is BindException } -> {
+                failures.any { it.hasBindException() || it is TimeoutCancellationException } -> {
+                    FreePorts.recycle(port)
+                    FreePorts.recycle(sslPort)
+
                     port = findFreePort()
                     sslPort = findFreePort()
                     server.stop(1L, 1L, TimeUnit.SECONDS)
@@ -230,7 +236,26 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    protected fun findFreePort() = ServerSocket(0).use { it.localPort }
+    private fun Throwable.hasBindException(): Boolean {
+        if (this is BindException) return true
+        val cause = cause
+        if (cause is BindException) return true
+        if (cause == null) return false
+
+        val all = HashSet<Throwable>()
+        all.add(this)
+
+        var current: Throwable = cause
+        do {
+            if (!all.add(current)) break
+            current = current.cause ?: break
+            if (current is BindException) return true
+        } while (true)
+
+        return false
+    }
+
+    protected fun findFreePort(): Int = FreePorts.select()
 
     protected fun withUrl(
         path: String,
