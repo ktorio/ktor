@@ -75,7 +75,18 @@ internal class ApacheResponseConsumer(
                 coroutineContext[Job]!!.ensureActive()
             }
         }
-    }.channel
+    }.let { job ->
+        @UseExperimental(InternalCoroutinesApi::class)
+        job.invokeOnCompletion(true) { cause ->
+            if (cause is Exception) {
+                // note: this is important since inDecoderThread suspension is non-cancellable
+                exception = cause
+                releaseContinuation(Result.failure(cause))
+            }
+        }
+
+        job.channel
+    }
 
 
     override fun isDone(): Boolean = !isActive
