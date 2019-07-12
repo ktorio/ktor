@@ -1,3 +1,20 @@
+# 1.2.3
+> Unpublished yet
+
+* JS websocket bugs fixes and improvements
+* Eliminated Java9's Base64 implementation (useful for older JDK and Android)
+* Fixed bug of adding unexpected trailing slash (#1201) (#1206)
+* Improved apache and okhttp client engines performance
+* Fixed client response body cancellation
+* Added client response streaming on nodejs
+* Deprecated old client `BasicAuth`
+* Introduced a flag to send auth without negotiation
+* Added server kotlinx.serialization initial support (`SerializationConverter`)
+* Client TLS implementation fixes: cancellation and error handling
+* Added web assembly content type
+* Fixed client memory leak (#1223) 
+* Kotlin 1.3.41
+
 # 1.2.2
 > Published 20 June 2019
 
