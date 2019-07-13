@@ -41,8 +41,8 @@ open class JettyApplicationEngineBase(
      * Jetty server instance being configuring and starting
      */
     protected val server: Server = Server().apply {
-        configuration.configureServer(this)
         initializeServer(environment)
+        configuration.configureServer(this)
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
