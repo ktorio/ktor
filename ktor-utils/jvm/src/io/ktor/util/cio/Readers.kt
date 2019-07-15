@@ -8,6 +8,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import java.nio.*
+import kotlin.contracts.*
 
 /**
  * Convert [ByteReadChannel] to [ByteArray]
@@ -33,6 +34,10 @@ suspend inline fun ByteReadChannel.pass(buffer: ByteBuffer, block: (ByteBuffer) 
  * Executes [block] on [ByteWriteChannel] and close it down correctly whether an exception
  */
 inline fun ByteWriteChannel.use(block: ByteWriteChannel.() -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     try {
         block()
     } catch (cause: Throwable) {
