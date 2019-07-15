@@ -160,7 +160,6 @@ allprojects {
             kotlin.srcDirs = ["$platform/$srcDir"]
             resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
 
-            if (rootProject.ext.skipPublish.contains(project.name)) return
             languageSettings {
                 progressiveMode = true
                 experimentalAnnotations.each { useExperimentalAnnotation(it) }
