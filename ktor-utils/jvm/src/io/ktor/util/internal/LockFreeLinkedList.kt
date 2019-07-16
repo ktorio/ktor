@@ -751,6 +751,7 @@ internal fun Any.unwrap(): Node = (this as? Removed)?.ref ?: this as Node
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
+@InternalAPI
 public open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
     public val isEmpty: Boolean get() = next === this
 
