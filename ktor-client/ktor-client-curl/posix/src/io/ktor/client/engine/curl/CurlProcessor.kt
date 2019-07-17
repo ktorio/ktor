@@ -15,7 +15,7 @@ import kotlin.native.concurrent.*
  * Only set in curl worker thread
  */
 @ThreadLocal
-private lateinit var curlApi: CurlMultiApiHandler
+private var curlApi: CurlMultiApiHandler? = null
 
 internal class CurlProcessor(
     override val coroutineContext: CoroutineContext
@@ -53,7 +53,7 @@ internal class CurlProcessor(
     }
 
     fun close() {
-        worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
+        worker.execute(TransferMode.SAFE, { Unit }) { curlApi!!.close() }
     }
 
     private fun poll(): Future<List<CurlResponseData>> =
@@ -74,7 +74,7 @@ internal class CurlProcessor(
 }
 
 internal fun curlSchedule(request: CurlRequestData) {
-    curlApi.scheduleRequest(request)
+    curlApi!!.scheduleRequest(request)
 }
 
-internal fun pollCompleted(): List<CurlResponseData> = curlApi.pollCompleted(100).freeze()
+internal fun pollCompleted(): List<CurlResponseData> = curlApi!!.pollCompleted(100).freeze()
