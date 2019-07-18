@@ -9,7 +9,7 @@ kotlin {
             current = [macosX64, linuxX64, mingwX64]
         }
 
-        def paths = ["C:/msys64/mingw64/include", "C:/Tools/msys64/mingw64/include"]
+        def paths = ["C:/msys64/mingw64/include/curl", "C:/Tools/msys64/mingw64/include/curl"]
         configure(current) { platform ->
             compilations.main {
                 cinterops {
@@ -25,6 +25,16 @@ kotlin {
                                 '/usr/local/Cellar/curl/7.62.0/include/curl',
                                 '/usr/local/Cellar/curl/7.63.0/include/curl'
                         }
+                    }
+                }
+            }
+
+            binaries.getTest("DEBUG").linkerOpts("-LC:/msys64/mingw64/lib -LC:/Tools/msys64/mingw64/lib -lcurl")
+
+            afterEvaluate {
+                if (platform.name == "mingwX64") {
+                    configure([mingwX64Test]) {
+                        environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
                     }
                 }
             }
