@@ -446,4 +446,29 @@ class ContentNegotiationTest {
             assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
         }
     }
+
+    @Test
+    fun testDoubleReceive(): Unit = withTestApplication {
+        with(application) {
+            install(DoubleReceive)
+            install(ContentNegotiation) {
+                register(ContentType.Text.Plain, textContentConverter)
+            }
+        }
+
+        application.routing {
+            get("/") {
+                call.respondText(call.receive<Wrapper>().value + "-" + call.receive<Wrapper>().value)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/?format=text") {
+            addHeader(HttpHeaders.Accept, "text/plain")
+            addHeader(HttpHeaders.ContentType, "text/plain")
+            setBody("[content]")
+        }.let { call ->
+            assertEquals("[content]-[content]", call.response.content)
+            assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+        }
+    }
 }

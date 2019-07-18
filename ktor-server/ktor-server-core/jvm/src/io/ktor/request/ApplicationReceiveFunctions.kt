@@ -6,8 +6,9 @@ package io.ktor.request
 
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.io.*
 import java.io.*
@@ -17,8 +18,14 @@ import kotlin.reflect.*
  * Represents a subject for [ApplicationReceivePipeline]
  * @param type specifies the desired type for a receiving operation
  * @param value specifies current value being processed by the pipeline
+ * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-class ApplicationReceiveRequest(val type: KClass<*>, val value: Any)
+class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
+    val type: KClass<*>,
+    val value: Any, @KtorExperimentalAPI val reusableValue: Boolean
+) {
+    constructor(type: KClass<*>, value: Any) : this(type, value, false)
+}
 
 /**
  * Pipeline for processing incoming content
@@ -68,12 +75,23 @@ suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(T::c
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
-    val incomingContent = request.receiveChannel()
-    val receiveRequest = ApplicationReceiveRequest(type, incomingContent)
-    val transformed = request.pipeline.execute(this, receiveRequest).value
+    require(type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
 
-    if (!type.isInstance(transformed))
-        throw CannotTransformContentToTypeException(type)
+    val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
+
+    if (token == null) {
+        attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
+    }
+
+    val incomingContent = token ?: request.receiveChannel()
+    val receiveRequest = ApplicationReceiveRequest(type, incomingContent)
+    val finishedRequest = request.pipeline.execute(this, receiveRequest)
+    val transformed = finishedRequest.value
+
+    when {
+        transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
+        !type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
+    }
 
     @Suppress("UNCHECKED_CAST")
     return transformed as T
@@ -137,3 +155,19 @@ suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
  * Thrown when content cannot be transformed to the desired type.
  */
 typealias ContentTransformationException = io.ktor.features.ContentTransformationException
+
+/**
+ * This object is attached to an [ApplicationCall] with [DoubleReceivePreventionTokenKey] when
+ * the receive function is invoked. It is used to detect double receive invocation
+ * that causes [RequestAlreadyConsumedException] to be thrown unless [DoubleReceive] feature installed.
+ */
+private object DoubleReceivePreventionToken
+
+private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
+
+/**
+ * Thrown when a request body has been already received.
+ * Usually it is caused by double [ApplicationCall.receive] invocation.
+ */
+@KtorExperimentalAPI
+class RequestAlreadyConsumedException : IllegalStateException("Request body has been already consumed (received).")

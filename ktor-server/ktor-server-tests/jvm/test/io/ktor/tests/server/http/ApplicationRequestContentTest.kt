@@ -12,7 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.io.*
-import org.junit.Test
+import java.lang.IllegalArgumentException
 import kotlin.test.*
 
 class ApplicationRequestContentTest {
@@ -149,6 +149,116 @@ class ApplicationRequestContentTest {
             assertEquals(200, call.response.status()?.value)
         }
     }
+
+    @Test
+    fun testDoubleReceiveWithNoFeature(): Unit = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertEquals("bodyContent", call.receiveText())
+            assertFailsWith<RequestAlreadyConsumedException> {
+                call.receiveText()
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+
+    @Test
+    fun testDoubleReceive(): Unit = withTestApplication {
+        application.install(DoubleReceive)
+
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertEquals("bodyContent", call.receiveText())
+            assertEquals("bodyContent", call.receiveText())
+            assertFailsWith<RequestAlreadyConsumedException> {
+                // we can't receive a stream because we have a string cached
+                call.receiveStream()
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+
+    @Test
+    fun testDoubleReceiveDifferentTypes(): Unit = withTestApplication {
+        application.install(DoubleReceive)
+
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertEquals("bodyContent".toByteArray().toList(), call.receive<ByteArray>().toList())
+            assertEquals("bodyContent", call.receiveText())
+
+            // this also works because we already have a byte array cached
+            assertEquals("bodyContent", call.receiveStream().reader().readText())
+            assertEquals("bodyContent", call.receiveChannel().readUTF8Line())
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+
+    @Test
+    fun testDoubleReceiveStreams(): Unit = withTestApplication {
+        application.install(DoubleReceive)
+
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertEquals(11, call.receiveStream().readBytes().size)
+            assertFailsWith<RequestAlreadyConsumedException> {
+                // a stream can't be received twice
+                call.receiveStream()
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+
+    @Test
+    fun testDoubleReceiveChannels(): Unit = withTestApplication {
+        application.install(DoubleReceive)
+
+        application.intercept(ApplicationCallPipeline.Call) {
+            call.receiveChannel().readRemaining().use { packet ->
+                assertEquals(11, packet.remaining)
+            }
+            assertFailsWith<RequestAlreadyConsumedException> {
+                // a channel can't be received twice
+                call.receiveChannel()
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
+
+    @Test
+    fun testDoubleReceiveAfterTransformationFailed(): Unit = withTestApplication {
+        application.install(DoubleReceive)
+
+        application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
+            if (it.type == IntList::class) {
+                throw MySpecialException()
+            }
+        }
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertFailsWith<MySpecialException> {
+                call.receive<IntList>()
+            }
+            val cause = assertFailsWith<RequestReceiveAlreadyFailedException> {
+                call.receive<IntList>()
+            }
+            assertTrue { cause.cause is MySpecialException }
+        }
+
+        handleRequest(HttpMethod.Get, "") {
+            setBody("bodyContent")
+        }
+    }
 }
 
 data class IntList(val values: List<Int>) {
@@ -158,3 +268,5 @@ data class IntList(val values: List<Int>) {
         fun parse(text: String) = IntList(text.removeSurrounding("[", "]").split(",").map { it.trim().toInt() })
     }
 }
+
+private class MySpecialException : Exception("Expected exception")
