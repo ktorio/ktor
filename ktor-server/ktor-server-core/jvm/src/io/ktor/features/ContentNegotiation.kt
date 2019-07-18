@@ -153,7 +153,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
                 val converted = suitableConverter.converter.convertForReceive(this)
                     ?: throw UnsupportedMediaTypeException(requestContentType)
 
-                proceedWith(ApplicationReceiveRequest(receive.type, converted))
+                proceedWith(ApplicationReceiveRequest(receive.type, converted, reusableValue = true))
             }
             return feature
         }

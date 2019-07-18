@@ -5,19 +5,21 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
-import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.streams.*
 import java.io.*
 import java.nio.charset.*
+
+private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
 
 /**
  * Default send transformation
@@ -38,6 +40,7 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
 fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
+
         val transformed: Any? = when (query.type) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
@@ -70,13 +73,13 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> null
         }
         if (transformed != null)
-            proceedWith(ApplicationReceiveRequest(query.type, transformed))
+            proceedWith(ApplicationReceiveRequest(query.type, transformed, query.type in ReusableTypes))
     }
 }
 
 private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
     val contentType = call.request.header(HttpHeaders.ContentType)
-            ?: throw IllegalStateException("Content-Type header is required for multipart processing")
+        ?: throw IllegalStateException("Content-Type header is required for multipart processing")
 
     val contentLength = call.request.header(HttpHeaders.ContentLength)?.toLong()
     return CIOMultipartDataBase(
@@ -88,7 +91,7 @@ private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChanne
 }
 
 private suspend fun ByteReadChannel.readText(
-        charset: Charset
+    charset: Charset
 ): String {
     if (isClosedForRead) return ""
 
