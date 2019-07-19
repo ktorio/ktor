@@ -73,6 +73,16 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
                 continuation.resume(response)
             }
+
+            override fun URLSession(
+                session: NSURLSession,
+                task: NSURLSessionTask,
+                willPerformHTTPRedirection: NSHTTPURLResponse,
+                newRequest: NSURLRequest,
+                completionHandler: (NSURLRequest?) -> Unit
+            ) {
+                completionHandler(null)
+            }
         }
 
         val session = NSURLSession.sessionWithConfiguration(
