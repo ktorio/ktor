@@ -135,24 +135,42 @@ data class Url(
 
     override fun toString(): String = buildString {
         append(protocol.name)
-        append("://")
-        if (user != null) {
-            append(user)
-            if (password != null) {
-                append(':')
-                append(password)
-            }
-            append('@')
-        }
-        if (specifiedPort == DEFAULT_PORT) {
+        if(protocol.name == "file"){
+            append(":///")
             append(host)
-        } else {
-            append(hostWithPort)
         }
-        append(fullPath)
-        if (fragment.isNotEmpty()) {
-            append('#')
-            append(fragment)
+        else if(protocol.name == "mailto"){
+            append(":")
+            if (user != null) {
+                append(user)
+                if (password != null) {
+                    append(':')
+                    append(password)
+                }
+                append('@')
+            }
+            append(host)
+        }
+        else{
+            append("://")
+            if (user != null) {
+                append(user)
+                if (password != null) {
+                    append(':')
+                    append(password)
+                }
+                append('@')
+            }
+            if (specifiedPort == DEFAULT_PORT) {
+                append(host)
+            } else {
+                append(hostWithPort)
+            }
+            append(fullPath)
+            if (fragment.isNotEmpty()) {
+                append('#')
+                append(fragment)
+            }
         }
     }
 
