@@ -29,17 +29,6 @@ internal class CurlProcessor(
         worker.execute(TransferMode.SAFE, { Unit }) {
             curlApi = CurlMultiApiHandler()
         }
-
-        launch {
-            while (!closed.value) {
-                val futureResult = poll()
-
-                while (futureResult.state == FutureState.SCHEDULED) delay(100)
-
-                val result = futureResult.result
-                processPoll(result)
-            }
-        }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
@@ -48,6 +37,12 @@ internal class CurlProcessor(
 
         worker.execute(TransferMode.SAFE, { request.freeze() }, ::curlSchedule)
         activeRequests.incrementAndGet()
+
+        while (deferred.isActive) {
+            val completedResponses = poll()
+            while (completedResponses.state == FutureState.SCHEDULED) delay(100)
+            processPoll(completedResponses.result)
+        }
 
         return deferred.await()
     }

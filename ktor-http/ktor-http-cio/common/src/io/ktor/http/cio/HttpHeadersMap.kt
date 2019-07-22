@@ -7,6 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
 import kotlinx.io.pool.*
+import kotlin.native.concurrent.*
 
 
 private const val EXPECTED_HEADERS_QTY = 32
@@ -24,6 +25,7 @@ private const val EXPECTED_HEADERS_QTY = 32
 private const val HEADER_SIZE = 8
 private const val HEADER_ARRAY_POOL_SIZE = 1000
 
+@ThreadLocal
 private val EMPTY_INT_ARRAY = IntArray(0)
 
 /**
@@ -147,6 +149,7 @@ fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     }
 }
 
+@ThreadLocal
 private val IntArrayPool: DefaultPool<IntArray> = object : DefaultPool<IntArray>(HEADER_ARRAY_POOL_SIZE) {
     override fun produceInstance(): IntArray = IntArray(EXPECTED_HEADERS_QTY * HEADER_SIZE)
 }

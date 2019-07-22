@@ -74,7 +74,7 @@ internal class CurlMultiApiHandler : Closeable {
             var repeats = 0
             do {
                 curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                curl_multi_wait(multiHandle, null, 0, millis, activeTasks.ptr).verify()
+                curl_multi_wait(multiHandle, null, 0.toUInt(), millis, activeTasks.ptr).verify()
 
                 repeats = if (activeTasks.value == 0) repeats + 1 else 0
             } while (repeats <= 1 && transfersRunning.value != 0)
