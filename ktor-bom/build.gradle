@@ -1,0 +1,27 @@
+plugins {
+    id 'io.spring.dependency-management'
+}
+
+apply from: rootProject.file('gradle/publish.gradle')
+
+def name = project.name
+
+dependencyManagement {
+    dependencies {
+        rootProject.subprojects.each {
+            if (it.plugins.hasPlugin("maven-publish") && it.name != name) {
+                it.publishing.publications.all {
+                    if (it.artifactId.endsWith("-metadata")) return
+                    if (it.artifactId.endsWith("-kotlinMultiplatform")) return
+                    dependency(group: it.groupId, name: it.artifactId, version: it.version)
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication)
+    }
+}

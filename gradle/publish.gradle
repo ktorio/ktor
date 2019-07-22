@@ -10,6 +10,9 @@ task emptyJar(type: Jar) {
 
 def selectArtifactId(project, type, defaultName) {
     def name = project.name
+
+    if (rootProject.ext.nonDefaultProjectStructure.contains(name)) return defaultName
+
     def isCommon = project.ext.has("commonStructure")
     def commonIsRoot = project.ext.has("commonStructure") && project.ext.commonStructure
     def hasNative = project.ext.has("hasNative") && project.ext.hasNative
@@ -56,6 +59,8 @@ publishing {
             it.artifact emptyJar
         }
     }
+
+    if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
 
     kotlin.targets.all { target ->
         def publication = publishing.publications.findByName(target.name)
