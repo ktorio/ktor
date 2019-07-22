@@ -70,7 +70,7 @@ apply from: 'gradle/verifier.gradle'
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
 ext.skipPublish = ["binary-compatibility-validator", "ktor-server-benchmarks", "ktor-client-benchmarks"]
-ext.skipDefault = ["ktor-bom"]
+ext.nonDefaultProjectStructure = ["ktor-bom"]
 
 def projectNeedsPlatform(project, platform) {
     if (rootProject.ext.skipPublish.contains(project.name)) return platform == "jvm"
@@ -135,7 +135,7 @@ allprojects {
 
     }
 
-    if (rootProject.ext.skipDefault.contains(project.name)) return
+    if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
 
     apply plugin: "kotlin-multiplatform"
 

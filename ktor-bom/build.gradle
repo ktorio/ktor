@@ -22,8 +22,6 @@ dependencyManagement {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-
-        }
+        maven(MavenPublication)
     }
 }
