@@ -4,9 +4,10 @@
 
 package io.ktor.client.engine.curl
 
-import kotlin.native.concurrent.*
 import io.ktor.client.engine.*
+import kotlinx.cinterop.*
 import libcurl.*
+import kotlin.native.SharedImmutable
 
 // This function is thread unsafe!
 // The man page asks to run it once per program,
@@ -14,7 +15,7 @@ import libcurl.*
 // it should not called while any other thread is running.
 // See the curl_global_init(3) man page for details.
 @SharedImmutable
-private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL)
+private val curlGlobalInitReturnCode = curl_global_init(CURL_GLOBAL_ALL.convert())
 
 private val initHook = Curl
 
@@ -25,12 +26,15 @@ private val initHook = Curl
 object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
 
     init {
-        engines.add(this)
+        engines.append(this)
     }
 
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine {
         @Suppress("DEPRECATION")
-        if (curlGlobalInitReturnCode != 0U) throw CurlRuntimeException("curl_global_init() returned non-zero verify: $curlGlobalInitReturnCode")
+        if (curlGlobalInitReturnCode != 0U) {
+            throw CurlRuntimeException("curl_global_init() returned non-zero verify: $curlGlobalInitReturnCode")
+        }
+
         return CurlClientEngine(CurlClientEngineConfig().apply(block))
     }
 }
