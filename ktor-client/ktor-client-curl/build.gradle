@@ -30,7 +30,9 @@ kotlin {
                 }
             }
 
-            binaries.getTest("DEBUG").linkerOpts("-LC:/msys64/mingw64/lib -LC:/Tools/msys64/mingw64/lib -lcurl")
+            if (platform.name == "mingwX64") {
+                binaries.getTest("DEBUG").linkerOpts("-LC:/msys64/mingw64/lib -LC:/Tools/msys64/mingw64/lib -lcurl")
+            }
 
             afterEvaluate {
                 if (platform.name == "mingwX64") {
