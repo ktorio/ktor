@@ -10,9 +10,15 @@
 * Deprecated old client `BasicAuth`
 * Introduced a flag to send auth without negotiation
 * Added server kotlinx.serialization initial support (`SerializationConverter`)
-* Client TLS implementation fixes: cancellation and error handling
-* Added web assembly content type
-* Fixed client memory leak (#1223) 
+* Client TLS implementation fixes: cancellation and error handling.
+* Added web assembly content type.
+* Prohibited server double request content `call.receive`.
+    * Introduce `DoubleReceive` feature that makes it work.
+* Added initial kotlinx.serialization support for server including receiving generic collections.
+* Introduced `ktor-bom` for better dependency management.
+* Improved jetty server engine configuration to enable manual connectors setup. 
+* Fixed client memory leak (#1223).
+* Upgraded Jetty, Netty and utility libraries.
 * Kotlin 1.3.41
 
 # 1.2.2
