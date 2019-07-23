@@ -24,8 +24,13 @@ class OkHttpEngine(
     override val config: OkHttpConfig
 ) : HttpClientJvmEngine("ktor-okhttp") {
 
-    private val engine: OkHttpClient = config.preconfigured
-        ?: OkHttpClient.Builder().apply(config.config).build()
+    private val engine: OkHttpClient = config.preconfigured ?: run {
+        val builder = OkHttpClient.Builder()
+        builder.apply(config.config)
+
+        config.proxy?.let { builder.proxy(it) }
+        builder.build()
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = createCallContext()

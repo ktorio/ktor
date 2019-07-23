@@ -6,6 +6,7 @@ package io.ktor.client.engine
 
 import io.ktor.client.*
 import io.ktor.client.response.*
+import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 
@@ -43,4 +44,12 @@ open class HttpClientEngineConfig {
      * Configuration for http response.
      */
     val response: HttpResponseConfig = HttpResponseConfig()
+
+    /**
+     * Proxy address to use. Use system proxy by default.
+     *
+     * See [ProxyBuilder] to create proxy.
+     */
+    @KtorExperimentalAPI
+    var proxy: ProxyConfig? = null
 }
