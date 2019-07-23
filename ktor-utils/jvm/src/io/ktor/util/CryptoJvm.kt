@@ -10,17 +10,22 @@ package io.ktor.util
 
 import kotlinx.coroutines.*
 import java.security.*
-import java.util.*
 
 /**
  * Create a digest function with the specified [algorithm] and [salt]
+ *
+ * CAUTION: salt must be different in each principal because of security reason
+ *
+ * @param algorithm digest algorithm name
+ * @param salt a function computing a salt for a particular hash input value
  */
-@Suppress("DeprecatedCallableAddReplaceWith")
-@Deprecated("Use getDigestFunction with non-constant salt.", level = DeprecationLevel.ERROR)
 fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = getDigestFunction(algorithm) { salt }
 
 /**
  * Create a digest function with the specified [algorithm] and [salt] provider.
+ *
+ * CAUTION: salt must be different in each principal because of security reason
+ *
  * @param algorithm digest algorithm name
  * @param salt a function computing a salt for a particular hash input value
  */
