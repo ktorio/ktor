@@ -16,6 +16,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -40,7 +41,7 @@ class SerializationConverter(private val json: Json = Json(DefaultJsonConfigurat
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(value::class.serializer() as KSerializer<Any>, value)
+        val content = json.stringify(serializerForSending(value) as KSerializer<Any>, value)
         return TextContent(content, contentType.withCharset(context.call.suitableCharset()))
     }
 
@@ -99,52 +100,43 @@ private fun serializerByTypeInfo(type: KType): KSerializer<*> {
             val elementSerializer = serializerByTypeInfo(elementType)
 
             @Suppress("UNCHECKED_CAST")
-            return ReferenceArraySerializer(elementType.jvmErasure as KClass<Any>, elementSerializer as KSerializer<Any>)
+            return ReferenceArraySerializer(
+                elementType.jvmErasure as KClass<Any>,
+                elementSerializer as KSerializer<Any>
+            )
         }
 
         return when (classifierClass) {
             List::class, ArrayList::class -> {
-                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
-                val elementSerializer = serializerByTypeInfo(elementType)
+                val elementSerializer = type.argumentSerializer(0, "List<*> is not supported")
 
                 ArrayListSerializer(elementSerializer)
             }
             Set::class, HashSet::class -> {
-                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
-                val elementSerializer = serializerByTypeInfo(elementType)
+                val elementSerializer = type.argumentSerializer(0, "Set<*> is not supported")
 
                 HashSetSerializer(elementSerializer)
             }
             LinkedHashSet::class -> {
-                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
-                val elementSerializer = serializerByTypeInfo(elementType)
+                val elementSerializer = type.argumentSerializer(0, "Set<*> is not supported")
 
                 LinkedHashSetSerializer(elementSerializer)
             }
             Map::class, HashMap::class -> {
-                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
-                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
-
-                val keySerializer = serializerByTypeInfo(keyType)
-                val valueSerializer = serializerByTypeInfo(valueType)
+                val keySerializer = type.argumentSerializer(0, "Map<*, V> is not supported")
+                val valueSerializer = type.argumentSerializer(1, "Map<K, *> is not supported")
 
                 HashMapSerializer(keySerializer, valueSerializer)
             }
             LinkedHashMap::class -> {
-                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
-                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
-
-                val keySerializer = serializerByTypeInfo(keyType)
-                val valueSerializer = serializerByTypeInfo(valueType)
+                val keySerializer = type.argumentSerializer(0, "Map<*, V> is not supported")
+                val valueSerializer = type.argumentSerializer(1, "Map<K, *> is not supported")
 
                 LinkedHashMapSerializer(keySerializer, valueSerializer)
             }
             Map.Entry::class -> {
-                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
-                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
-
-                val keySerializer = serializerByTypeInfo(keyType)
-                val valueSerializer = serializerByTypeInfo(valueType)
+                val keySerializer = type.argumentSerializer(0, "Map.Entry<*, V> is not supported")
+                val valueSerializer = type.argumentSerializer(1, "Map.Entry<K, *> is not supported")
 
                 MapEntrySerializer(keySerializer, valueSerializer)
             }
@@ -154,3 +146,43 @@ private fun serializerByTypeInfo(type: KType): KSerializer<*> {
 
     error("Unsupported type $type")
 }
+
+private fun KType.argumentSerializer(position: Int, message: String): KSerializer<*> {
+    val type = arguments[position].type ?: error(message)
+    return serializerByTypeInfo(type)
+}
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun serializerForSending(value: Any): KSerializer<*> {
+    if (value is List<*>) {
+        return ArrayListSerializer(value.elementSerializer())
+    }
+    if (value is Set<*>) {
+        return HashSetSerializer(value.elementSerializer())
+    }
+    if (value is Map<*, *>) {
+        return HashMapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
+    }
+    if (value is Map.Entry<*, *>) {
+        return MapEntrySerializer(
+            serializerForSending(value.key ?: error("Map.Entry(null, ...) is not supported")),
+            serializerForSending(value.value ?: error("Map.Entry(..., null) is not supported)"))
+        )
+    }
+    if (value is Array<*>) {
+        val componentType = value.javaClass.componentType.kotlin.starProjectedType
+        val componentClass =
+            componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
+        @Suppress("UNCHECKED_CAST")
+        return ReferenceArraySerializer(
+            componentClass as KClass<Any>,
+            serializerByTypeInfo(componentType) as KSerializer<Any>
+        )
+    }
+    return value::class.serializer()
+}
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun Collection<*>.elementSerializer() = firstOrNull { it != null }?.let { first ->
+    serializerByTypeInfo(first.javaClass.kotlin.starProjectedType)
+} ?: String::class.serializer()
