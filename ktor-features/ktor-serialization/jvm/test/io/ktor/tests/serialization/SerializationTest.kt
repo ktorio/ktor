@@ -120,7 +120,7 @@ class SerializationTest {
     private data class TextPlainData(val x: Int)
 
     @Test
-    fun testGsonOnTextAny(): Unit = withTestApplication {
+    fun testOnTextAny(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
             serialization()
             register(contentType = ContentType.Text.Any, converter = SerializationConverter())

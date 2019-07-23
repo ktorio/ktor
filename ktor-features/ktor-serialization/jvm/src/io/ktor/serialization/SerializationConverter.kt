@@ -30,13 +30,13 @@ import kotlinx.serialization.json.*
  * ```
  */
 @UseExperimental(ImplicitReflectionSerializer::class)
-class SerializationConverter(private val json: Json = Json.plain) : ContentConverter {
-
+class SerializationConverter(private val json: Json = Json(DefaultJsonConfiguration)) : ContentConverter {
     override suspend fun convertForSend(
         context: PipelineContext<Any, ApplicationCall>,
         contentType: ContentType,
         value: Any
     ): Any? {
+        @Suppress("UNCHECKED_CAST")
         val content = json.stringify(value::class.serializer() as KSerializer<Any>, value)
         return TextContent(content, contentType.withCharset(context.call.suitableCharset()))
     }
@@ -59,8 +59,26 @@ class SerializationConverter(private val json: Json = Json.plain) : ContentConve
  */
 fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType = ContentType.Application.Json,
-    json: Json = Json.plain
+    json: Json = Json(DefaultJsonConfiguration)
 ) {
     val converter = SerializationConverter(json)
     register(contentType, converter)
 }
+
+/**
+ * The default json configuration used in [SerializationConverter]. The settings are:
+ * - defaults are serialized
+ * - mode is not strict so extra json fields are ignored
+ * - pretty printing is disabled
+ * - array polymorphism is enabled
+ * - keys and values are quoted, non-quoted are not allowed
+ *
+ * See [JsonConfiguration] for more details.
+ */
+val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
+    encodeDefaults = true,
+    strictMode = false,
+    unquoted = false,
+    prettyPrint = false,
+    useArrayPolymorphism = true
+)
