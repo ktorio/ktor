@@ -62,6 +62,81 @@ class SerializationTest {
     }
 
     @Test
+    fun testEntityListReceive(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            post("/") {
+                val receivedList = call.receive<List<MyEntity>>()
+                call.respond(receivedList.toString())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json")
+            setBody("""[{"id":1,"name":"Hello, World!","children":[]}]""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[MyEntity(id=1, name=Hello, World!, children=[])]"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testEntityArrayReceive(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            post("/") {
+                val receivedList = call.receive<Array<MyEntity>>()
+                call.respond(receivedList.toList().toString())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json")
+            setBody("""[{"id":1,"name":"Hello, World!","children":[]}]""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[MyEntity(id=1, name=Hello, World!, children=[])]"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testEntitySetReceive(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            post("/") {
+                val receivedList = call.receive<Set<MyEntity>>()
+                call.respond(receivedList.toString())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json")
+            setBody("""[{"id":1,"name":"Hello, World!","children":[]}]""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[MyEntity(id=1, name=Hello, World!, children=[])]"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
     fun testEntity() = withTestApplication {
         val uc = "\u0422"
         application.install(ContentNegotiation) {

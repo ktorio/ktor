@@ -13,7 +13,10 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
+import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 /**
  * Json [ContentConverter] with kotlinx.serialization.
@@ -47,9 +50,9 @@ class SerializationConverter(private val json: Json = Json(DefaultJsonConfigurat
         val charset = context.call.request.contentCharset() ?: Charsets.UTF_8
 
         val content = channel.readRemaining().readText(charset)
-        val type = request.type
+        val serializer = serializerByTypeInfo(request.typeInfo)
 
-        return json.parse(type.serializer(), content)
+        return json.parse(serializer, content)
     }
 
 }
@@ -82,3 +85,72 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
     prettyPrint = false,
     useArrayPolymorphism = true
 )
+
+// NOTE: this should be removed once kotlinx.serialization get proper typeOf support
+@UseExperimental(ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class)
+private fun serializerByTypeInfo(type: KType): KSerializer<*> {
+    if (type.arguments.isEmpty()) {
+        return type.jvmErasure.serializer()
+    }
+    val classifierClass = type.classifier as? KClass<*>
+    if (classifierClass != null) {
+        if (classifierClass.java.isArray) {
+            val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
+            val elementSerializer = serializerByTypeInfo(elementType)
+
+            @Suppress("UNCHECKED_CAST")
+            return ReferenceArraySerializer(elementType.jvmErasure as KClass<Any>, elementSerializer as KSerializer<Any>)
+        }
+
+        return when (classifierClass) {
+            List::class, ArrayList::class -> {
+                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
+                val elementSerializer = serializerByTypeInfo(elementType)
+
+                ArrayListSerializer(elementSerializer)
+            }
+            Set::class, HashSet::class -> {
+                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
+                val elementSerializer = serializerByTypeInfo(elementType)
+
+                HashSetSerializer(elementSerializer)
+            }
+            LinkedHashSet::class -> {
+                val elementType = type.arguments[0].type ?: error("List<*> is not supported")
+                val elementSerializer = serializerByTypeInfo(elementType)
+
+                LinkedHashSetSerializer(elementSerializer)
+            }
+            Map::class, HashMap::class -> {
+                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
+                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
+
+                val keySerializer = serializerByTypeInfo(keyType)
+                val valueSerializer = serializerByTypeInfo(valueType)
+
+                HashMapSerializer(keySerializer, valueSerializer)
+            }
+            LinkedHashMap::class -> {
+                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
+                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
+
+                val keySerializer = serializerByTypeInfo(keyType)
+                val valueSerializer = serializerByTypeInfo(valueType)
+
+                LinkedHashMapSerializer(keySerializer, valueSerializer)
+            }
+            Map.Entry::class -> {
+                val keyType = type.arguments[0].type ?: error("Map<*, V> is not supported")
+                val valueType = type.arguments[1].type ?: error("Map<K, *> is not supported")
+
+                val keySerializer = serializerByTypeInfo(keyType)
+                val valueSerializer = serializerByTypeInfo(valueType)
+
+                MapEntrySerializer(keySerializer, valueSerializer)
+            }
+            else -> error("Unsupported classifier $classifierClass of type $type")
+        }
+    }
+
+    error("Unsupported type $type")
+}
