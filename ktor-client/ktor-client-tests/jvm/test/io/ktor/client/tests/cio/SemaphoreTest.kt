@@ -40,23 +40,17 @@ class SemaphoreTest {
     @Test
     fun emptyTest() = runBlocking {
         val semaphore = Semaphore(1)
-        val completed = AtomicInteger()
 
         semaphore.enter()
+
         val jobs = List(TEST_SIZE) {
-            launch {
+            GlobalScope.launch {
                 semaphore.enter()
-                completed.incrementAndGet()
+                semaphore.leave()
             }
         }
 
-        repeat(TEST_SIZE) {
-            val prev = completed.get()
-            semaphore.leave()
-            while (true) {
-                if (completed.get() == prev + 1) break
-            }
-        }
+        semaphore.leave()
 
         jobs.forEach {
             it.join()
@@ -70,7 +64,7 @@ class SemaphoreTest {
             semaphore.enter()
         }
 
-        val job = launch {
+        val job = GlobalScope.launch {
             semaphore.enter()
         }
 

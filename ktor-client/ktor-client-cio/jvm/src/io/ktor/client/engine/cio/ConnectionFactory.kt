@@ -8,6 +8,7 @@ import io.ktor.util.cio.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
+import kotlinx.coroutines.sync.*
 import java.net.*
 
 internal class ConnectionFactory(
@@ -17,17 +18,17 @@ internal class ConnectionFactory(
     private val semaphore = Semaphore(maxConnectionsCount)
 
     suspend fun connect(address: InetSocketAddress): Socket {
-        semaphore.enter()
+        semaphore.acquire()
         return try {
             aSocket(selector).tcpNoDelay().tcp().connect(address)
         } catch (cause: Throwable) {
             // a failure or cancellation
-            semaphore.leave()
+            semaphore.release()
             throw cause
         }
     }
 
     fun release() {
-        semaphore.leave()
+        semaphore.release()
     }
 }

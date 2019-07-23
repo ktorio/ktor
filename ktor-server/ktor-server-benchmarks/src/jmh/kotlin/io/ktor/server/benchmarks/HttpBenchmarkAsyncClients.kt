@@ -11,6 +11,7 @@ import io.ktor.client.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.*
 import org.openjdk.jmh.infra.*
 import java.nio.*
 import java.util.concurrent.atomic.*
@@ -47,7 +48,7 @@ class KtorBenchmarkClient(val engineFactory: HttpClientEngineFactory<*>) : Async
 
     override fun submitTask(url: String) {
         runBlocking {
-            loadLimit.enter()
+            loadLimit.acquire()
         }
 
         GlobalScope.launch(Dispatchers.IO + parent) {
@@ -65,7 +66,7 @@ class KtorBenchmarkClient(val engineFactory: HttpClientEngineFactory<*>) : Async
                 done.incrementAndGet()
             } catch (cause: Throwable) {
             } finally {
-                loadLimit.leave()
+                loadLimit.release()
             }
         }
     }
