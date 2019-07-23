@@ -39,7 +39,7 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun scheduleRequest(request: CurlRequestData) {
         val easyHandle = curl_easy_init()
-            ?: throw @Suppress("DEPRECATION")CurlIllegalStateException("Could not initialize an easy handle")
+            ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
         val responseData = CurlResponseBuilder(request)
         val responseDataRef = responseData.asStablePointer()
@@ -58,6 +58,10 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_WRITEDATA, responseDataRef)
             option(CURLOPT_PRIVATE, responseDataRef)
             option(CURLOPT_ACCEPT_ENCODING, "")
+
+            request.proxy?.let { proxy ->
+                option(CURLOPT_PROXY, proxy.toString())
+            }
         }
 
         curl_multi_add_handle(multiHandle, easyHandle).verify()
