@@ -7,7 +7,9 @@ import io.ktor.http.*
  *
  * See [ProxyBuilder] to create proxy.
  */
-actual class ProxyConfig
+actual class ProxyConfig(val url: Url) {
+    override fun toString(): String = url.toString()
+}
 
 /**
  * [ProxyConfig] factory.
@@ -16,7 +18,5 @@ actual object ProxyBuilder {
     /**
      * Create http proxy from url.
      */
-    actual fun http(url: Url): ProxyConfig {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    actual fun http(url: Url): ProxyConfig = ProxyConfig(url)
 }
