@@ -7,7 +7,7 @@ apply plugin: "kotlinx-serialization"
 class KtorTestServer extends DefaultTask {
     public FileCollection classpath
     public String main
-    public Object server
+    public Closeable server
 
     @TaskAction
     public void exec() {
@@ -92,7 +92,7 @@ rootProject.allprojects {
 
 gradle.buildFinished {
     if (startTestServer.server != null) {
-        startTestServer.server.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        startTestServer.server.close()
         println("[TestServer] stop")
     }
 }
