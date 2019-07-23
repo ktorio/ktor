@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import java.lang.Exception
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 
 /**
  * Base exception to indicate that the request is not correct due to
@@ -51,8 +52,11 @@ class ParameterConversionException(val parameterName: String, val type: String, 
 @KtorExperimentalAPI
 abstract class ContentTransformationException(message: String) : Exception(message)
 
-internal class CannotTransformContentToTypeException(type: KClass<*>) :
-    ContentTransformationException("Cannot transform this request's content to $type")
+internal class CannotTransformContentToTypeException(type: KType) :
+    ContentTransformationException("Cannot transform this request's content to $type") {
+    @Deprecated("Use KType instead", level = DeprecationLevel.ERROR)
+    constructor(type: KClass<*>) : this(type.starProjectedType)
+}
 
 /**
  * Thrown when there is no conversion for a content type configured.

@@ -44,6 +44,7 @@ class DoubleReceive internal constructor(private val config: Configuration) {
     /**
      * [DoubleReceive] feature's installation object.
      */
+    @UseExperimental(ExperimentalStdlibApi::class)
     companion object Feature : ApplicationFeature<Application, Configuration, DoubleReceive> {
         override val key: AttributeKey<DoubleReceive> = AttributeKey("DoubleReceive")
 
@@ -51,18 +52,18 @@ class DoubleReceive internal constructor(private val config: Configuration) {
             val feature = DoubleReceive(Configuration().apply(configure))
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
-                val type = request.type
-                require(type != CachedTransformationResult::class) { "CachedTransformationResult can't be received" }
+                val type = request.typeInfo
+                require(request.type != CachedTransformationResult::class) { "CachedTransformationResult can't be received" }
 
                 val cachedResult = call.attributes.getOrNull(LastReceiveCachedResult)
                 when {
                     cachedResult == null -> call.attributes.put(LastReceiveCachedResult, RequestAlreadyConsumedResult)
                     cachedResult === RequestAlreadyConsumedResult -> throw RequestAlreadyConsumedException()
-                    cachedResult is CachedTransformationResult.Failure<*> -> throw RequestReceiveAlreadyFailedException(
+                    cachedResult is CachedTransformationResult.Failure -> throw RequestReceiveAlreadyFailedException(
                         cachedResult.cause
                     )
                     cachedResult is CachedTransformationResult.Success<*> && cachedResult.type == type -> {
-                        proceedWith(ApplicationReceiveRequest(request.type, cachedResult.value))
+                        proceedWith(ApplicationReceiveRequest(request.typeInfo, cachedResult.value))
                         return@intercept
                     }
                 }
@@ -74,7 +75,7 @@ class DoubleReceive internal constructor(private val config: Configuration) {
                     byteArray = requestValue.toByteArray()
                     call.attributes.put(
                         LastReceiveCachedResult,
-                        CachedTransformationResult.Success(ByteArray::class, byteArray)
+                        CachedTransformationResult.Success(typeOf<ByteArray>(), byteArray)
                     )
                 }
 
@@ -90,14 +91,14 @@ class DoubleReceive internal constructor(private val config: Configuration) {
 
                 when {
                     transformed is CachedTransformationResult.Success<*> -> throw RequestAlreadyConsumedException()
-                    !type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
+                    !request.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
                 }
 
                 if (finishedRequest.reusableValue && (cachedResult == null || cachedResult !is CachedTransformationResult.Success)) {
                     @Suppress("UNCHECKED_CAST")
                     call.attributes.put(
                         LastReceiveCachedResult,
-                        CachedTransformationResult.Success(type as KClass<Any>, finishedRequest.value)
+                        CachedTransformationResult.Success(type, finishedRequest.value)
                     )
                 }
             }
@@ -112,18 +113,18 @@ class DoubleReceive internal constructor(private val config: Configuration) {
  * @property type requested by the corresponding [ApplicationCall.receive] invocation
  */
 @KtorExperimentalAPI
-sealed class CachedTransformationResult<T : Any>(val type: KClass<T>) {
+sealed class CachedTransformationResult<T : Any>(val type: KType) {
     /**
      * Holds a transformation result [value] after a successful transformation.
      * @property value
      */
-    class Success<T : Any>(type: KClass<T>, val value: T) : CachedTransformationResult<T>(type)
+    class Success<T : Any>(type: KType, val value: T) : CachedTransformationResult<T>(type)
 
     /**
      * Holds a transformation failure [cause]
      * @property cause describes transformation failure
      */
-    open class Failure<T : Any>(type: KClass<T>, val cause: Throwable) : CachedTransformationResult<T>(type)
+    open class Failure(type: KType, val cause: Throwable) : CachedTransformationResult<Nothing>(type)
 }
 
 /**
@@ -141,5 +142,6 @@ private val LastReceiveCachedResult = AttributeKey<CachedTransformationResult<*>
  * For example, if a stream is received, one is unable to receive any values after that. However, when received
  * a text, this instance will be replaced with the corresponding cached receive request.
  */
+@UseExperimental(ExperimentalStdlibApi::class)
 private val RequestAlreadyConsumedResult =
-    CachedTransformationResult.Failure(Any::class, RequestAlreadyConsumedException())
+    CachedTransformationResult.Failure(typeOf<Any>(), RequestAlreadyConsumedException())

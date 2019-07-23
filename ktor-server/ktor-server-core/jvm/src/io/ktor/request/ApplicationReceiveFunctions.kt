@@ -13,18 +13,28 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.*
 
 /**
  * Represents a subject for [ApplicationReceivePipeline]
- * @param type specifies the desired type for a receiving operation
+ * @param typeInfo specifies the desired type for a receiving operation
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
 class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
-    val type: KClass<*>,
-    val value: Any, @KtorExperimentalAPI val reusableValue: Boolean
+    @KtorExperimentalAPI val typeInfo: KType,
+    val value: Any,
+    @KtorExperimentalAPI val reusableValue: Boolean = false
 ) {
-    constructor(type: KClass<*>, value: Any) : this(type, value, false)
+    @Deprecated("Use typeOf to pass KType instead")
+    constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
+
+    /**
+     * Star projected class computed from [typeInfo]
+     */
+    val type: KClass<*>
+        get() = typeInfo.jvmErasure
 }
 
 /**
@@ -59,14 +69,16 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
  * Receives content for this request.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
-suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(T::class)
+@UseExperimental(ExperimentalStdlibApi::class)
+suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeOf<T>())
 
 /**
  * Receives content for this request.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(T::class)
+@UseExperimental(ExperimentalStdlibApi::class)
+suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeOf<T>())
 
 /**
  * Receives content for this request.
@@ -75,6 +87,16 @@ suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(T::c
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
+    return receive(type.starProjectedType)
+}
+
+/**
+ * Receives content for this request.
+ * @param type instance of `KClass` specifying type to be received.
+ * @return instance of [T] received from this call.
+ * @throws ContentTransformationException when content cannot be transformed to the requested type.
+ */
+suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
     require(type != ApplicationReceiveRequest::class) { "ApplicationReceiveRequest can't be received" }
 
     val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
@@ -90,11 +112,25 @@ suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
 
     when {
         transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-        !type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
+        !type.jvmErasure.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
     }
 
     @Suppress("UNCHECKED_CAST")
     return transformed as T
+}
+
+/**
+ * Receives content for this request.
+ * @param type instance of `KClass` specifying type to be received.
+ * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type..
+ */
+suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
+    return try {
+        receive(type)
+    } catch (cause: ContentTransformationException) {
+        application.log.debug("Conversion failed, null returned", cause)
+        null
+    }
 }
 
 /**
