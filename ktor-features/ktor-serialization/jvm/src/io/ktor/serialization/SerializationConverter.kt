@@ -16,6 +16,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -40,7 +41,7 @@ class SerializationConverter(private val json: Json = Json(DefaultJsonConfigurat
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(value::class.serializer() as KSerializer<Any>, value)
+        val content = json.stringify(serializerForSending(value) as KSerializer<Any>, value)
         return TextContent(content, contentType.withCharset(context.call.suitableCharset()))
     }
 
@@ -154,3 +155,28 @@ private fun serializerByTypeInfo(type: KType): KSerializer<*> {
 
     error("Unsupported type $type")
 }
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun serializerForSending(value: Any): KSerializer<*> {
+    if (value is List<*>) {
+        return ArrayListSerializer(value.elementSerializer())
+    }
+    if (value is Set<*>) {
+        return HashSetSerializer(value.elementSerializer())
+    }
+    if (value is Map<*, *>) {
+        return HashMapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
+    }
+    if (value is Array<*>) {
+        val componentType = value.javaClass.componentType.kotlin.starProjectedType
+        val componentClass = componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
+        @Suppress("UNCHECKED_CAST")
+        return ReferenceArraySerializer(componentClass as KClass<Any>, serializerByTypeInfo(componentType) as KSerializer<Any>)
+    }
+    return value::class.serializer()
+}
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun Collection<*>.elementSerializer() = firstOrNull { it != null }?.let { first ->
+    serializerByTypeInfo(first.javaClass.kotlin.starProjectedType)
+} ?: String::class.serializer()

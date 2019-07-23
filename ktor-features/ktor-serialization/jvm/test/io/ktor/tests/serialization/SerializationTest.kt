@@ -87,6 +87,26 @@ class SerializationTest {
     }
 
     @Test
+    fun testEntityListSend(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            get("/") {
+                call.respond(listOf(MyEntity(3, "third", emptyList())))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[{"id":3,"name":"third","children":[]}]"""), response.content!!.lines())
+        }
+    }
+
+    @Test
     fun testEntityArrayReceive(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, SerializationConverter())
@@ -112,6 +132,26 @@ class SerializationTest {
     }
 
     @Test
+    fun testEntityArraySend(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            get("/") {
+                call.respond(arrayOf(MyEntity(1, "first", emptyList())))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[{"id":1,"name":"first","children":[]}]"""), response.content!!.lines())
+        }
+    }
+
+    @Test
     fun testEntitySetReceive(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, SerializationConverter())
@@ -133,6 +173,71 @@ class SerializationTest {
             assertEquals(listOf("""[MyEntity(id=1, name=Hello, World!, children=[])]"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testEntitySetSend(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            get("/") {
+                call.respond(setOf(MyEntity(2, "second", emptyList())))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""[{"id":2,"name":"second","children":[]}]"""), response.content!!.lines())
+        }
+    }
+
+    @Test
+    fun testEntityMapReceive(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            post("/") {
+                val receivedList = call.receive<Map<Int, MyEntity>>()
+                call.respond(receivedList.toString())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json")
+            setBody("""{"1":{"id":1,"name":"Hello, World!","children":[]}}""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""{1=MyEntity(id=1, name=Hello, World!, children=[])}"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testEntityMapSend(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter())
+        }
+        application.routing {
+            get("/") {
+                call.respond(mapOf(3 to MyEntity(3, "third", emptyList())))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""{"3":{"id":3,"name":"third","children":[]}}"""), response.content!!.lines())
         }
     }
 
