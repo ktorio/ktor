@@ -164,10 +164,12 @@ public class io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
 	public final synthetic fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getPipelining ()Z
+	public final fun getProxy ()Ljava/net/Proxy;
 	public final fun getResponse ()Lio/ktor/client/response/HttpResponseConfig;
 	public final fun getThreadsCount ()I
 	public final synthetic fun setDispatcher (Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public final fun setPipelining (Z)V
+	public final fun setProxy (Ljava/net/Proxy;)V
 	public final fun setThreadsCount (I)V
 }
 
@@ -190,6 +192,16 @@ public abstract class io/ktor/client/engine/HttpClientJvmEngine : io/ktor/client
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public fun install (Lio/ktor/client/HttpClient;)V
+}
+
+public final class io/ktor/client/engine/ProxyBuilder {
+	public static final field INSTANCE Lio/ktor/client/engine/ProxyBuilder;
+	public final fun http (Lio/ktor/http/Url;)Ljava/net/Proxy;
+	public final fun socks (Ljava/lang/String;I)Ljava/net/Proxy;
+}
+
+public final class io/ktor/client/engine/ProxyConfigKt {
+	public static final fun http (Lio/ktor/client/engine/ProxyBuilder;Ljava/lang/String;)Ljava/net/Proxy;
 }
 
 public final class io/ktor/client/engine/UtilsKt {
