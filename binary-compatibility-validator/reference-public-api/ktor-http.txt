@@ -911,6 +911,7 @@ public final class io/ktor/http/URLProtocol$Companion {
 	public final fun getByName ()Ljava/util/Map;
 	public final fun getHTTP ()Lio/ktor/http/URLProtocol;
 	public final fun getHTTPS ()Lio/ktor/http/URLProtocol;
+	public final fun getSOCKS ()Lio/ktor/http/URLProtocol;
 	public final fun getWS ()Lio/ktor/http/URLProtocol;
 	public final fun getWSS ()Lio/ktor/http/URLProtocol;
 }
