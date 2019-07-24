@@ -29,6 +29,7 @@ suspend fun proxyHandler(socket: Socket) {
 
 private fun buildResponse(status: HttpStatusCode) = buildString {
     append("HTTP/1.1 ${status.value} ${status.description}\r\n")
+    append("Connection: close\r\n")
     append("\r\n")
     append("proxy")
 }
