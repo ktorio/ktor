@@ -14,9 +14,16 @@ actual class ProxyConfig
  */
 actual object ProxyBuilder {
     /**
-     * Create http proxy from url.
+     * Create http proxy from [url].
      */
     actual fun http(url: Url): ProxyConfig {
+        error("Proxy unsupported in js client engine.")
+    }
+
+    /**
+     * Create socks proxy from [host] and [port].
+     */
+    actual fun socks(host: String, port: Int): ProxyConfig {
         error("Proxy unsupported in js client engine.")
     }
 }
