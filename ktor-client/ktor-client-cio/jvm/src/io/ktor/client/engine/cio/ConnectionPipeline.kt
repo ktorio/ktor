@@ -38,9 +38,9 @@ internal class ConnectionPipeline(
     val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
-                val task = withTimeout(keepAliveTime) {
+                val task = withTimeoutOrNull(keepAliveTime) {
                     tasks.receive()
-                }
+                } ?: break
 
                 try {
                     requestLimit.enter()
