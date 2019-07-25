@@ -81,6 +81,11 @@ class CORS(configuration: Configuration) {
      */
     suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val call = context.call
+
+        if (!allowsAnyHost || allowCredentials) {
+            call.corsVary()
+        }
+
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
             ?.takeIf(this::isValidOrigin)
             ?: return
@@ -137,7 +142,6 @@ class CORS(configuration: Configuration) {
             response.header(HttpHeaders.AccessControlAllowOrigin, "*")
         } else {
             response.header(HttpHeaders.AccessControlAllowOrigin, origin)
-            corsVary()
         }
     }
 

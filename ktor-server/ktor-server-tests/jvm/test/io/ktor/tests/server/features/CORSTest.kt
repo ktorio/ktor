@@ -136,6 +136,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("http://my-host:80", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
+                assertEquals(HttpHeaders.Origin, call.response.headers[HttpHeaders.Vary])
             }
 
             handleRequest(HttpMethod.Get, "/") {
@@ -487,6 +488,7 @@ class CORSTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals(null, call.response.headers[HttpHeaders.Vary])
             }
 
             handleRequest(HttpMethod.Options, "/") {
@@ -516,7 +518,7 @@ class CORSTest {
                 assertEquals(HttpStatusCode.Forbidden, call.response.status())
             }
 
-            // custom header that is not alloed
+            // custom header that is not allowed
             handleRequest(HttpMethod.Options, "/") {
                 addHeader(HttpHeaders.Origin, "http://my-host")
                 addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
@@ -615,6 +617,32 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("Content-Type", call.response.headers[HttpHeaders.AccessControlAllowHeaders])
+            }
+        }
+    }
+
+    @Test
+    fun testPreflightCustomHost() {
+        withTestApplication {
+            application.install(CORS) {
+                host("my-host")
+                allowNonSimpleContentTypes = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("Content-Type", call.response.headers[HttpHeaders.AccessControlAllowHeaders])
+                assertEquals(HttpHeaders.Origin, call.response.headers[HttpHeaders.Vary])
             }
         }
     }
