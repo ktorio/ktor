@@ -5,6 +5,7 @@ kotlin.sourceSets {
         api project(':ktor-utils')
         api project(':ktor-http')
 
+        api group: 'com.typesafe', name: 'config', version: typesafe_config_version
         api group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
     }
     jvmTest.dependencies {

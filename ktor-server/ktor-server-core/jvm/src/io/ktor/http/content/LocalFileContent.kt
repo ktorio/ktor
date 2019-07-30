@@ -40,7 +40,8 @@ class LocalFileContent(
 fun LocalFileContent(
     baseDir: File, relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
-): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+): LocalFileContent =
+    LocalFileContent(baseDir.combineSafe(relativePath), contentType)
 
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
@@ -48,4 +49,5 @@ fun LocalFileContent(
 fun LocalFileContent(
     baseDir: Path, relativePath: Path,
     contentType: ContentType = ContentType.defaultForFile(relativePath)
-): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+): LocalFileContent =
+    LocalFileContent(baseDir.combineSafe(relativePath), contentType)
