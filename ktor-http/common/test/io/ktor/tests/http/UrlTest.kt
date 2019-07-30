@@ -156,4 +156,24 @@ class UrlTest {
 
         assertFails { testPort(-2) }
     }
+
+    @Test
+    fun testForFileProtocol(){
+        val expectedUrl = "file:///var/www"
+        val result = Url(expectedUrl);
+        assertEquals(result.toString(), expectedUrl);
+        assertEquals(result.protocol.name, "file");
+    }
+
+    @Test
+    fun testForMailProtocol(){
+        val expectedUrl = "mailto:abc@xyz.io"
+        val resultUrl = Url(expectedUrl)
+
+        assertEquals(resultUrl.toString(), expectedUrl)
+        assertEquals(resultUrl.user, "abc")
+        assertEquals(resultUrl.host, "xyz.io")
+        assertEquals(resultUrl.protocol.name, "mailto");
+
+    }
 }
