@@ -49,7 +49,7 @@ class CertificateBuilder internal constructor() {
     var keySizeInBits: Int = 1024
 
     internal fun build(): CertificateInfo {
-        val algorithm = HashAndSign(hash, sign)
+        val algorithm = HashAndSign.byCode(hash.code, sign.code)
         val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name))!!.apply {
             initialize(keySizeInBits)
         }.genKeyPair()!!

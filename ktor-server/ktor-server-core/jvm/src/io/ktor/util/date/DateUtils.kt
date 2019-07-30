@@ -10,7 +10,8 @@ import java.util.concurrent.*
 /**
  * Convert [Instant] to [GMTDate]
  */
-fun Instant.toGMTDate(): GMTDate = GMTDate(TimeUnit.SECONDS.toMillis(atZone(ZoneOffset.UTC).toEpochSecond()))
+fun Instant.toGMTDate(): GMTDate =
+    GMTDate(TimeUnit.SECONDS.toMillis(atZone(ZoneOffset.UTC).toEpochSecond()))
 
 /**
  * Convert [ZonedDateTime] to [GMTDate]

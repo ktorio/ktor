@@ -1,4 +1,10 @@
-kotlin.sourceSets.jvmMain.dependencies {
-    api project(':ktor-network')
-    api project(':ktor-http:ktor-http-cio')
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-network')
+        api project(':ktor-http:ktor-http-cio')
+    }
+
+    jvmTest.dependencies {
+        api project(':ktor-network:ktor-network-tls:ktor-network-tls-certificates')
+    }
 }

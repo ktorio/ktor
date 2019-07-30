@@ -5,6 +5,7 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
+import io.ktor.util.*
 import kotlinx.io.core.*
 
 /**
@@ -55,29 +56,35 @@ enum class SignatureAlgorithm(val code: Byte) {
 
 /**
  * Hash and signature algorithm pair
- * @property hash algorithm
- * @property sign algorithm
+ *
+ * @property hash algorithm.
+ * @property sign algorithm.
+ * @property oid [object identifier](https://en.wikipedia.org/wiki/Object_identifier).
  */
-data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm) {
-    constructor(hash: Byte, sign: Byte) : this(HashAlgorithm.byCode(hash), SignatureAlgorithm.byCode(sign))
+data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm, val oid: OID? = null) {
+    constructor(hash: Byte, sign: Byte, oid: String? = null) : this(
+        HashAlgorithm.byCode(hash), SignatureAlgorithm.byCode(sign), oid?.let{ OID(it) }
+    )
 
     /**
      * String representation of this algorithms pair
      */
     val name: String = "${hash.name}with${sign.name}"
+
+    companion object
 }
 
 /**
  * List of supported combinations of hash and signature algorithms
  */
 val SupportedSignatureAlgorithms: List<HashAndSign> = listOf(
-    HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA),
-    HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA),
+    HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA384Encryption),
+    HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA, OID.ECDSAwithSHA256Encryption),
 
-    HashAndSign(HashAlgorithm.SHA512, SignatureAlgorithm.RSA),
-    HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.RSA),
-    HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.RSA),
-    HashAndSign(HashAlgorithm.SHA1, SignatureAlgorithm.RSA)
+    HashAndSign(HashAlgorithm.SHA512, SignatureAlgorithm.RSA, OID.RSAwithSHA512Encryption),
+    HashAndSign(HashAlgorithm.SHA384, SignatureAlgorithm.RSA, OID.RSAwithSHA384Encryption),
+    HashAndSign(HashAlgorithm.SHA256, SignatureAlgorithm.RSA, OID.RSAwithSHA256Encryption),
+    HashAndSign(HashAlgorithm.SHA1, SignatureAlgorithm.RSA, OID.RSAwithSHA1Encryption)
 )
 
 internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
@@ -97,8 +104,12 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
 internal fun ByteReadPacket.readHashAndSign(): HashAndSign {
     val hash = readByte()
     val sign = readByte()
+    return HashAndSign.byCode(hash, sign)
+}
 
-    check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not al" }
+@InternalAPI
+fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign {
+    check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }
 
-    return HashAndSign(hash, sign)
+    return SupportedSignatureAlgorithms.find { it.hash.code == hash && it.sign.code == sign } ?: HashAndSign(hash, sign)
 }
