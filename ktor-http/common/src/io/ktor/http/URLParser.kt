@@ -42,7 +42,14 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     val slashCount = count(urlString, startIndex, endIndex, '/')
     startIndex += slashCount
 
-    if (slashCount >= 2) {
+    if(slashCount >= 2 && protocol.name == "file"){
+        host = urlString.substring(startIndex, endIndex)
+
+        startIndex = endIndex;
+
+    }
+
+    else if (slashCount >= 2) {
         loop@ while (true) {
             val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
 
@@ -64,6 +71,24 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
         }
     }
+
+    else if (slashCount == 0 && protocol.name == "mailto"){
+
+
+        val delimiter = urlString.indexOf("@", startIndex);
+        val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
+        if(delimiter < endIndex){
+            if (passwordIndex != -1) {
+                user = urlString.substring(startIndex, passwordIndex)
+                password = urlString.substring(passwordIndex + 1, delimiter)
+            } else {
+                user = urlString.substring(startIndex, delimiter)
+            }
+            host = urlString.substring(delimiter+1, endIndex);
+        }
+        startIndex = endIndex;
+    }
+
 
     // Path
     if (startIndex >= endIndex) {
