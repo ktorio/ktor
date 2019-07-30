@@ -13,6 +13,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
 import okio.*
@@ -49,12 +50,17 @@ class OkHttpEngine(
     }
 
     override fun close() {
-        super.close()
+        val clientTask = coroutineContext[Job] as CompletableJob
+        clientTask.complete()
 
-        coroutineContext[Job]?.invokeOnCompletion {
-            engine.dispatcher().executorService().shutdown()
-            engine.connectionPool().evictAll()
-            engine.cache()?.close()
+        clientTask.invokeOnCompletion {
+            launch(dispatcher) {
+                engine.dispatcher().executorService().shutdown()
+                engine.connectionPool().evictAll()
+                engine.cache()?.close()
+            }.invokeOnCompletion {
+                (dispatcher as Closeable).close()
+            }
         }
     }
 
