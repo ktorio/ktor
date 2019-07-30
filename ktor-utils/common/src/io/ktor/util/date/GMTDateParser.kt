@@ -67,7 +67,7 @@ class GMTDateParser(private val pattern: String) {
 
     private fun GMTDateBuilder.handleToken(
         type: Char, chunk: String
-    ) = when (type) {
+    ): Unit = when (type) {
         SECONDS -> {
             seconds = chunk.toInt()
         }
