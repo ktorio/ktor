@@ -523,6 +523,27 @@ public final class io/ktor/util/date/GMTDate$Companion {
 	public final fun getSTART ()Lio/ktor/util/date/GMTDate;
 }
 
+public final class io/ktor/util/date/GMTDateParser {
+	public static final field ANY C
+	public static final field Companion Lio/ktor/util/date/GMTDateParser$Companion;
+	public static final field DAY_OF_MONTH C
+	public static final field HOURS C
+	public static final field MINUTES C
+	public static final field MONTH C
+	public static final field SECONDS C
+	public static final field YEAR C
+	public static final field ZONE C
+	public fun <init> (Ljava/lang/String;)V
+	public final fun parse (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
+}
+
+public final class io/ktor/util/date/GMTDateParser$Companion {
+}
+
+public final class io/ktor/util/date/InvalidDateStringException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;)V
+}
+
 public final class io/ktor/util/date/Month : java/lang/Enum {
 	public static final field APRIL Lio/ktor/util/date/Month;
 	public static final field AUGUST Lio/ktor/util/date/Month;
