@@ -67,6 +67,41 @@ public final class io/ktor/network/tls/NoPrivateKeyException : java/lang/Illegal
 	public fun <init> (Ljava/lang/String;Ljava/security/KeyStore;)V
 }
 
+public final class io/ktor/network/tls/OID {
+	public static final field Companion Lio/ktor/network/tls/OID$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lio/ktor/network/tls/OID;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/OID;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/network/tls/OID;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAsArray ()[I
+	public final fun getIdentifier ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/network/tls/OID$Companion {
+	public final fun fromAlgorithm (Ljava/lang/String;)Lio/ktor/network/tls/OID;
+	public final fun getCommonName ()Lio/ktor/network/tls/OID;
+	public final fun getCountryName ()Lio/ktor/network/tls/OID;
+	public final fun getECDSAwithSHA256Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getECDSAwithSHA384Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getECEncryption ()Lio/ktor/network/tls/OID;
+	public final fun getOrganizationName ()Lio/ktor/network/tls/OID;
+	public final fun getOrganizationalUnitName ()Lio/ktor/network/tls/OID;
+	public final fun getRSAEncryption ()Lio/ktor/network/tls/OID;
+	public final fun getRSAwithSHA1Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getRSAwithSHA256Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getRSAwithSHA384Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getRSAwithSHA512Encryption ()Lio/ktor/network/tls/OID;
+	public final fun getSecp256r1 ()Lio/ktor/network/tls/OID;
+	public final fun getSubjectAltName ()Lio/ktor/network/tls/OID;
+}
+
+public final class io/ktor/network/tls/OIDKt {
+	public static final fun keysGenerationAlgorithm (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class io/ktor/network/tls/SecretExchangeType : java/lang/Enum {
 	public static final field ECDHE Lio/ktor/network/tls/SecretExchangeType;
 	public static final field RSA Lio/ktor/network/tls/SecretExchangeType;
@@ -225,36 +260,6 @@ public final class io/ktor/network/tls/TLSVersion$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSVersion;
 }
 
-public final class io/ktor/network/tls/certificates/BuildersKt {
-	public static final fun buildKeyStore (Lkotlin/jvm/functions/Function1;)Ljava/security/KeyStore;
-	public static final fun saveToFile (Ljava/security/KeyStore;Ljava/io/File;Ljava/lang/String;)V
-}
-
-public final class io/ktor/network/tls/certificates/CertificateBuilder {
-	public field hash Lio/ktor/network/tls/extensions/HashAlgorithm;
-	public field password Ljava/lang/String;
-	public field sign Lio/ktor/network/tls/extensions/SignatureAlgorithm;
-	public final fun getDaysValid ()J
-	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
-	public final fun getKeySizeInBits ()I
-	public final fun getPassword ()Ljava/lang/String;
-	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
-	public final fun setDaysValid (J)V
-	public final fun setHash (Lio/ktor/network/tls/extensions/HashAlgorithm;)V
-	public final fun setKeySizeInBits (I)V
-	public final fun setPassword (Ljava/lang/String;)V
-	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
-}
-
-public final class io/ktor/network/tls/certificates/CertificatesKt {
-	public static final fun generateCertificate (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Ljava/security/KeyStore;
-	public static synthetic fun generateCertificate$default (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/Object;)Ljava/security/KeyStore;
-}
-
-public final class io/ktor/network/tls/certificates/KeyStoreBuilder {
-	public final fun certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-}
-
 public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum {
 	public static final field Companion Lio/ktor/network/tls/extensions/HashAlgorithm$Companion;
 	public static final field MD5 Lio/ktor/network/tls/extensions/HashAlgorithm;
@@ -276,18 +281,26 @@ public final class io/ktor/network/tls/extensions/HashAlgorithm$Companion {
 }
 
 public final class io/ktor/network/tls/extensions/HashAndSign {
-	public fun <init> (BB)V
-	public fun <init> (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
+	public static final field Companion Lio/ktor/network/tls/extensions/HashAndSign$Companion;
+	public fun <init> (BBLjava/lang/String;)V
+	public synthetic fun <init> (BBLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;)V
+	public synthetic fun <init> (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun component2 ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
-	public final fun copy (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;)Lio/ktor/network/tls/extensions/HashAndSign;
-	public static synthetic fun copy$default (Lio/ktor/network/tls/extensions/HashAndSign;Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;ILjava/lang/Object;)Lio/ktor/network/tls/extensions/HashAndSign;
+	public final fun component3 ()Lio/ktor/network/tls/OID;
+	public final fun copy (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;)Lio/ktor/network/tls/extensions/HashAndSign;
+	public static synthetic fun copy$default (Lio/ktor/network/tls/extensions/HashAndSign;Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;ILjava/lang/Object;)Lio/ktor/network/tls/extensions/HashAndSign;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getOid ()Lio/ktor/network/tls/OID;
 	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/network/tls/extensions/HashAndSign$Companion {
 }
 
 public final class io/ktor/network/tls/extensions/NamedCurve : java/lang/Enum {
@@ -360,6 +373,27 @@ public final class io/ktor/network/tls/extensions/SignatureAlgorithm$Companion {
 }
 
 public final class io/ktor/network/tls/extensions/SignatureAlgorithmKt {
+	public static final fun byCode (Lio/ktor/network/tls/extensions/HashAndSign$Companion;BB)Lio/ktor/network/tls/extensions/HashAndSign;
 	public static final fun getSupportedSignatureAlgorithms ()Ljava/util/List;
+}
+
+public final class io/ktor/network/tls/extensions/TLSExtensionType : java/lang/Enum {
+	public static final field CLIENT_CERTIFICATE_URL Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field Companion Lio/ktor/network/tls/extensions/TLSExtensionType$Companion;
+	public static final field EC_POINT_FORMAT Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field ELLIPTIC_CURVES Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field MAX_FRAGMENT_LENGTH Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field SERVER_NAME Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field SIGNATURE_ALGORITHMS Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field STATUS_REQUEST Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field TRUNCATED_HMAC Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static final field TRUSTED_CA_KEYS Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public final fun getCode ()S
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public static fun values ()[Lio/ktor/network/tls/extensions/TLSExtensionType;
+}
+
+public final class io/ktor/network/tls/extensions/TLSExtensionType$Companion {
+	public final fun byCode (I)Lio/ktor/network/tls/extensions/TLSExtensionType;
 }
 
