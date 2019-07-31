@@ -1,8 +1,3 @@
-public final class io/ktor/http/ApplicationResponsePropertiesJvmKt {
-	public static final fun expires (Lio/ktor/http/HeadersBuilder;Ljava/time/LocalDateTime;)V
-	public static final fun lastModified (Lio/ktor/http/HeadersBuilder;Ljava/time/ZonedDateTime;)V
-}
-
 public final class io/ktor/http/ApplicationResponsePropertiesKt {
 	public static final fun etag (Lio/ktor/http/HeadersBuilder;Ljava/lang/String;)V
 }
@@ -420,13 +415,6 @@ public final class io/ktor/http/HeadersKt {
 public final class io/ktor/http/HeadersSingleImpl : io/ktor/util/StringValuesSingleImpl, io/ktor/http/Headers {
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/http/HttpDateKt {
-	public static final fun fromHttpDateString (Ljava/lang/String;)Ljava/time/ZonedDateTime;
-	public static final fun getHttpDateFormat ()Ljava/time/format/DateTimeFormatter;
-	public static final fun toHttpDateString (J)Ljava/lang/String;
-	public static final fun toHttpDateString (Ljava/time/temporal/Temporal;)Ljava/lang/String;
 }
 
 public final class io/ktor/http/HttpHeaderValueParserKt {
@@ -1079,11 +1067,6 @@ public final class io/ktor/http/content/CachingOptions {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/http/content/CachingOptionsJvmKt {
-	public static final fun CachingOptions (Lio/ktor/http/CacheControl;Ljava/time/ZonedDateTime;)Lio/ktor/http/content/CachingOptions;
-	public static synthetic fun CachingOptions$default (Lio/ktor/http/CacheControl;Ljava/time/ZonedDateTime;ILjava/lang/Object;)Lio/ktor/http/content/CachingOptions;
-}
-
 public final class io/ktor/http/content/CachingOptionsKt {
 	public static final fun getCaching (Lio/ktor/http/content/OutgoingContent;)Lio/ktor/http/content/CachingOptions;
 	public static final fun getCachingProperty ()Lio/ktor/util/AttributeKey;
@@ -1103,21 +1086,6 @@ public final class io/ktor/http/content/EntityTagVersion : io/ktor/http/content/
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/http/content/JarFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
-	public fun <init> (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;)V
-	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Lio/ktor/http/ContentType;)V
-	public fun getContentLength ()Ljava/lang/Long;
-	public fun getContentType ()Lio/ktor/http/ContentType;
-	public final fun getJarFile ()Ljava/io/File;
-	public final fun getResourcePath ()Ljava/lang/String;
-	public fun readFrom ()Lkotlinx/coroutines/io/ByteReadChannel;
-}
-
-public final class io/ktor/http/content/LastModifiedJavaTimeKt {
-	public static final fun LastModifiedVersion (Ljava/nio/file/attribute/FileTime;)Lio/ktor/http/content/LastModifiedVersion;
-	public static final fun LastModifiedVersion (Ljava/time/ZonedDateTime;)Lio/ktor/http/content/LastModifiedVersion;
-}
-
 public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/content/Version {
 	public fun <init> (Lio/ktor/util/date/GMTDate;)V
 	public fun <init> (Ljava/util/Date;)V
@@ -1130,23 +1098,6 @@ public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/conte
 	public final fun getLastModified ()Lio/ktor/util/date/GMTDate;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/http/content/LocalFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
-	public fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;)V
-	public synthetic fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getContentLength ()Ljava/lang/Long;
-	public fun getContentType ()Lio/ktor/http/ContentType;
-	public final fun getFile ()Ljava/io/File;
-	public fun readFrom ()Lkotlinx/coroutines/io/ByteReadChannel;
-	public fun readFrom (Lkotlin/ranges/LongRange;)Lkotlinx/coroutines/io/ByteReadChannel;
-}
-
-public final class io/ktor/http/content/LocalFileContentKt {
-	public static final fun LocalFileContent (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;)Lio/ktor/http/content/LocalFileContent;
-	public static final fun LocalFileContent (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;)Lio/ktor/http/content/LocalFileContent;
-	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/http/content/LocalFileContent;
-	public static synthetic fun LocalFileContent$default (Ljava/nio/file/Path;Ljava/nio/file/Path;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/http/content/LocalFileContent;
 }
 
 public abstract interface class io/ktor/http/content/MultiPartData {

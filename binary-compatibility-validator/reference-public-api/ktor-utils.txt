@@ -123,12 +123,6 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun sha1 ([B)[B
 }
 
-public final class io/ktor/util/DatesJvmKt {
-	public static final fun getGreenwichMeanTime ()Ljava/time/ZoneId;
-	public static final fun toLocalDateTime (Ljava/util/Date;)Ljava/time/LocalDateTime;
-	public static final fun toZonedDateTime (Ljava/util/Date;)Ljava/time/ZonedDateTime;
-}
-
 public final class io/ktor/util/DeflaterKt {
 	public static final fun deflated (Lkotlinx/coroutines/io/ByteReadChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteReadChannel;
 	public static final fun deflated (Lkotlinx/coroutines/io/ByteWriteChannel;ZLkotlinx/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;)Lkotlinx/coroutines/io/ByteWriteChannel;
@@ -433,8 +427,28 @@ public final class io/ktor/util/cio/Semaphore {
 	public final fun leave ()V
 }
 
+public class io/ktor/util/collections/ConcurrentCollection : java/util/Collection, kotlin/jvm/internal/markers/KMutableCollection {
+	public fun <init> (Ljava/util/Collection;Lio/ktor/util/Lock;)V
+	public fun add (Ljava/lang/Object;)Z
+	public fun addAll (Ljava/util/Collection;)Z
+	public fun clear ()V
+	public fun contains (Ljava/lang/Object;)Z
+	public fun containsAll (Ljava/util/Collection;)Z
+	public fun getSize ()I
+	public fun isEmpty ()Z
+	public fun iterator ()Ljava/util/Iterator;
+	public fun remove (Ljava/lang/Object;)Z
+	public fun removeAll (Ljava/util/Collection;)Z
+	public fun retainAll (Ljava/util/Collection;)Z
+	public final fun size ()I
+	public fun toArray ()[Ljava/lang/Object;
+	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+}
+
 public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
 	public fun <init> ()V
+	public fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;)V
+	public synthetic fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
 	public fun containsKey (Ljava/lang/Object;)Z
 	public fun containsValue (Ljava/lang/Object;)Z
@@ -454,22 +468,10 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public final fun values ()Ljava/util/Collection;
 }
 
-public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
+public final class io/ktor/util/collections/ConcurrentSet : io/ktor/util/collections/ConcurrentCollection, java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
 	public fun <init> ()V
-	public fun add (Ljava/lang/Object;)Z
-	public fun addAll (Ljava/util/Collection;)Z
-	public fun clear ()V
-	public fun contains (Ljava/lang/Object;)Z
-	public fun containsAll (Ljava/util/Collection;)Z
-	public fun getSize ()I
-	public fun isEmpty ()Z
-	public fun iterator ()Ljava/util/Iterator;
-	public fun remove (Ljava/lang/Object;)Z
-	public fun removeAll (Ljava/util/Collection;)Z
-	public fun retainAll (Ljava/util/Collection;)Z
-	public final fun size ()I
-	public fun toArray ()[Ljava/lang/Object;
-	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+	public fun <init> (Ljava/util/Set;Lio/ktor/util/Lock;)V
+	public synthetic fun <init> (Ljava/util/Set;Lio/ktor/util/Lock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/util/date/DateJvmKt {
@@ -483,11 +485,6 @@ public final class io/ktor/util/date/DateKt {
 	public static final fun minus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
-}
-
-public final class io/ktor/util/date/DateUtilsKt {
-	public static final fun toGMTDate (Ljava/time/Instant;)Lio/ktor/util/date/GMTDate;
-	public static final fun toGMTDate (Ljava/time/ZonedDateTime;)Lio/ktor/util/date/GMTDate;
 }
 
 public final class io/ktor/util/date/GMTDate : java/lang/Comparable {

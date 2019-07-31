@@ -1,0 +1,30 @@
+public final class io/ktor/network/tls/certificates/BuildersKt {
+	public static final fun buildKeyStore (Lkotlin/jvm/functions/Function1;)Ljava/security/KeyStore;
+	public static final fun saveToFile (Ljava/security/KeyStore;Ljava/io/File;Ljava/lang/String;)V
+}
+
+public final class io/ktor/network/tls/certificates/CertificateBuilder {
+	public field hash Lio/ktor/network/tls/extensions/HashAlgorithm;
+	public field password Ljava/lang/String;
+	public field sign Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public final fun getDaysValid ()J
+	public final fun getHash ()Lio/ktor/network/tls/extensions/HashAlgorithm;
+	public final fun getKeySizeInBits ()I
+	public final fun getPassword ()Ljava/lang/String;
+	public final fun getSign ()Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public final fun setDaysValid (J)V
+	public final fun setHash (Lio/ktor/network/tls/extensions/HashAlgorithm;)V
+	public final fun setKeySizeInBits (I)V
+	public final fun setPassword (Ljava/lang/String;)V
+	public final fun setSign (Lio/ktor/network/tls/extensions/SignatureAlgorithm;)V
+}
+
+public final class io/ktor/network/tls/certificates/CertificatesKt {
+	public static final fun generateCertificate (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Ljava/security/KeyStore;
+	public static synthetic fun generateCertificate$default (Ljava/io/File;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/Object;)Ljava/security/KeyStore;
+}
+
+public final class io/ktor/network/tls/certificates/KeyStoreBuilder {
+	public final fun certificate (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
