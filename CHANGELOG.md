@@ -1,5 +1,5 @@
 # 1.2.3
-> Unpublished yet
+> Published 1 Aug 2019
 
 * JS websocket bugs fixes and improvements
 * Eliminated Java9's Base64 implementation (useful for older JDK and Android)
