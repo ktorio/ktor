@@ -14,12 +14,19 @@
 * Added web assembly content type.
 * Prohibited server double request content `call.receive`.
     * Introduce `DoubleReceive` feature that makes it work.
+* Server CORS support fixed and improved
 * Added initial kotlinx.serialization support for server including receiving generic collections.
 * Introduced `ktor-bom` for better dependency management.
 * Improved jetty server engine configuration to enable manual connectors setup. 
 * Fixed client memory leak (#1223).
 * Upgraded Jetty, Netty and utility libraries.
 * Kotlin 1.3.41
+
+
+Breaking changes/Migration steps:
+* CORS doesn't allow non-simple request body content types anymore by default
+  * to allow extra content types such as json, enable `allowNonSimpleContentTypes`
+* At least Kotlin 1.3.41 IS REQUIRED
 
 # 1.2.2
 > Published 20 June 2019
