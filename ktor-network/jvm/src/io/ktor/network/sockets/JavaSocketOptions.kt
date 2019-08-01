@@ -9,6 +9,7 @@ import java.lang.reflect.*
 import java.nio.channels.*
 
 private const val SO_REUSEPORT = "SO_REUSEPORT"
+private const val SO_BROADCAST = "SO_BROADCAST"
 
 // we invoke JDK7 specific api using reflection
 // all used API is public so it still works on JDK9+
@@ -149,6 +150,10 @@ internal fun SelectableChannel.assignOptions(options: SocketOptions) {
 
         if (options.reusePort) {
             SocketOptionsPlatformCapabilities.setReusePort(this)
+        }
+
+        if (options is SocketOptions.UDPSocketOptions) {
+            socket.broadcast = options.broadcast
         }
 
         if (options is SocketOptions.PeerSocketOptions) {
