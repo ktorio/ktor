@@ -9,7 +9,6 @@ import java.lang.reflect.*
 import java.nio.channels.*
 
 private const val SO_REUSEPORT = "SO_REUSEPORT"
-private const val SO_BROADCAST = "SO_BROADCAST"
 
 // we invoke JDK7 specific api using reflection
 // all used API is public so it still works on JDK9+
