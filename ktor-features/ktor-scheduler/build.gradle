@@ -1,0 +1,8 @@
+description = ''
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        // scheduler uses jdk 1.8 features (LocalDateTime), so we need to use that version here
+        jvmTarget = "1.8"
+    }
+}
