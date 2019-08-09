@@ -27,7 +27,7 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 
     values.forEach { (key, value, headers) ->
         val partHeaders = HeadersBuilder().apply {
-            append(HttpHeaders.ContentDisposition, "form-data;name=$key")
+            append(HttpHeaders.ContentDisposition, "form-data; name=$key")
             appendAll(headers)
         }
         val part = when (value) {
