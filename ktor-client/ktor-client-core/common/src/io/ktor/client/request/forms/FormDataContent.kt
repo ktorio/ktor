@@ -48,7 +48,7 @@ class MultiPartFormDataContent(
     private val rawParts: List<PreparedPart> = parts.map { part ->
         val headersBuilder = BytePacketBuilder()
         for ((key, values) in part.headers.entries()) {
-            headersBuilder.writeStringUtf8("$key: ${values.joinToString(";")}")
+            headersBuilder.writeStringUtf8("$key: ${values.joinToString("; ")}")
             headersBuilder.writeFully(RN_BYTES)
         }
 
