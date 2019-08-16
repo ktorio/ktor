@@ -111,6 +111,7 @@ object HttpHeaders {
 
     val XRequestId = "X-Request-ID"
     val XCorrelationId = "X-Correlation-ID"
+    val XTotalCount = "X-Total-Count"
 
     /**
      * Check if [header] is unsafe. Header is unsafe if listed in [UnsafeHeaders]
