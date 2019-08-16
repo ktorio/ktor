@@ -524,6 +524,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getXForwardedServer ()Ljava/lang/String;
 	public final fun getXHttpMethodOverride ()Ljava/lang/String;
 	public final fun getXRequestId ()Ljava/lang/String;
+	public final fun getXTotalCount ()Ljava/lang/String;
 	public final fun isUnsafe (Ljava/lang/String;)Z
 }
 
