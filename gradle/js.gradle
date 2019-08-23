@@ -1,3 +1,12 @@
+def skipModules = [
+    "ktor-network",
+    "ktor-network-tls",
+    "ktor-client-cio"
+]
+
+if (skipModules.contains(project.name)) return
+
+
 kotlin {
     js {
         nodejs {

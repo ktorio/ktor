@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.io.core.*
+import kotlin.jvm.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
@@ -48,7 +49,7 @@ fun HttpClientConfig<*>.addDefaultResponseValidation() {
  * @param response: origin response
  */
 open class ResponseException(
-    val response: HttpResponse
+    @Transient val response: HttpResponse
 ) : IllegalStateException("Bad response: $response")
 
 /**

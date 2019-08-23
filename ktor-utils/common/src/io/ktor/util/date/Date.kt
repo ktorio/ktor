@@ -62,11 +62,11 @@ enum class Month(val value: String) {
         /**
          * Lookup an instance by [ordinal]
          */
-        fun from(ordinal: Int): Month = Month.values()[ordinal]
+        fun from(ordinal: Int): Month = values()[ordinal]
         /**
          * Lookup an instance by short month name [Month.value]
          */
-        fun from(value: String): Month = Month.values().find { it.value == value }
+        fun from(value: String): Month = values().find { it.value == value }
             ?: error("Invalid month: $value")
     }
 }

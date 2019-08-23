@@ -10,7 +10,7 @@ import kotlin.test.*
 class GMTDateTest {
 
     @Test
-    fun constructionTest() {
+    fun testConstruction() {
         val first = GMTDate()
         val second = GMTDate(timestamp = first.timestamp)
 

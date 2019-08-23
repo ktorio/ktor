@@ -4,7 +4,10 @@
 
 package io.ktor.network.tls
 
-internal data class OID(val identifier: String) {
+import io.ktor.util.*
+
+@InternalAPI
+data class OID(val identifier: String) {
     val asArray: IntArray = identifier.split(".", " ").map { it.trim().toInt() }.toIntArray()
 
     companion object {
@@ -23,12 +26,13 @@ internal data class OID(val identifier: String) {
         /**
          * Algorithm OID
          */
-        val Sha1withRSAEncryption = OID("1.2.840.113549.1.1.5")
         val ECDSAwithSHA384Encryption = OID("1.2.840.10045.4.3.3")
         val ECDSAwithSHA256Encryption = OID("1.2.840.10045.4.3.2")
 
+        val RSAwithSHA512Encryption = OID("1.2.840.113549.1.1.13")
         val RSAwithSHA384Encryption = OID("1.2.840.113549.1.1.12")
         val RSAwithSHA256Encryption = OID("1.2.840.113549.1.1.11")
+        val RSAwithSHA1Encryption = OID("1.2.840.113549.1.1.5")
 
         /**
          * EC curves
@@ -36,7 +40,7 @@ internal data class OID(val identifier: String) {
         val secp256r1 = OID("1.2.840.10045.3.1.7")
 
         fun fromAlgorithm(algorithm: String): OID = when (algorithm) {
-            "SHA1withRSA" -> Sha1withRSAEncryption
+            "SHA1withRSA" -> RSAwithSHA1Encryption
             "SHA384withECDSA" -> ECDSAwithSHA384Encryption
             "SHA256withECDSA" -> ECDSAwithSHA256Encryption
             "SHA384withRSA" -> RSAwithSHA384Encryption
@@ -46,7 +50,8 @@ internal data class OID(val identifier: String) {
     }
 }
 
-internal fun keysGenerationAlgorithm(algorithm: String): String = when {
+@InternalAPI
+fun keysGenerationAlgorithm(algorithm: String): String = when {
     algorithm.endsWith("ecdsa", ignoreCase = true) -> "EC"
     algorithm.endsWith("dsa", ignoreCase = true) -> "DSA"
     algorithm.endsWith("rsa", ignoreCase = true) -> "RSA"
