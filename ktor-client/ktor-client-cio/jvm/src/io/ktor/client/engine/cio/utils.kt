@@ -28,7 +28,7 @@ internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext
 
     try {
         builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
-        builder.headerLine("Host", url.hostWithPort)
+        builder.headerLine("Host", url.host)
 
         mergeHeaders(headers, body) { key, value ->
             builder.headerLine(key, value)
