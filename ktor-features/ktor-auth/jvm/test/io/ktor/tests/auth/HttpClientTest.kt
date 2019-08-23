@@ -83,7 +83,7 @@ class HttpClientTest {
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
             assertEquals("POST /url HTTP/1.1", receivedHeaders[""])
-            assertEquals("127.0.0.1:$port", receivedHeaders[HttpHeaders.Host])
+            assertEquals("127.0.0.1", receivedHeaders[HttpHeaders.Host])
 
             assertEquals("request-body", receivedContentSync.take())
         } finally {
