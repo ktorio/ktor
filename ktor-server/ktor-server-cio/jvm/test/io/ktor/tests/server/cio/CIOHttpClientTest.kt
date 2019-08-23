@@ -81,7 +81,7 @@ class CIOHttpClientTest {
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
             assertEquals("POST /url HTTP/1.1", receivedHeaders[""])
-            assertEquals("127.0.0.1:$port", receivedHeaders[HttpHeaders.Host])
+            assertEquals("127.0.0.1", receivedHeaders[HttpHeaders.Host])
 
             assertEquals("request-body", receivedContentSync.take())
         } finally {
@@ -173,7 +173,7 @@ class CIOHttpClientTest {
             val receivedHeaders = headersSync.await()
             assertEquals("value", receivedHeaders["header"])
             assertEquals("POST /url HTTP/1.1", receivedHeaders[""])
-            assertEquals("127.0.0.1:$port", receivedHeaders[HttpHeaders.Host])
+            assertEquals("127.0.0.1", receivedHeaders[HttpHeaders.Host])
 
             assertEquals("request-body", receivedContentSync.await())
         } finally {
