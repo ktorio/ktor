@@ -1870,8 +1870,10 @@ internal class ByteBufferChannel(
             try {
                 result = visitor(this)
             } finally {
-                if (!state.idle && state !== ReadWriteBufferState.Terminated) {
-                    if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
+                val stateSnapshot = state
+
+                if (!stateSnapshot.idle && stateSnapshot !== ReadWriteBufferState.Terminated) {
+                    if (stateSnapshot is ReadWriteBufferState.Reading || stateSnapshot is ReadWriteBufferState.ReadingWriting) {
                         restoreStateAfterRead()
                     }
                     tryTerminate()
