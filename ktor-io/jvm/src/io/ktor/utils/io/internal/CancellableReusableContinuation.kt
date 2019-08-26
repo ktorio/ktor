@@ -15,6 +15,16 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
     private val state = atomic<Any?>(null)
     private val jobCancellationHandler = atomic<JobRelation?>(null)
 
+    fun close(value: T) {
+        resume(value)
+        jobCancellationHandler.getAndSet(null)?.dispose()
+    }
+
+    fun close(cause: Throwable) {
+        resumeWithException(cause)
+        jobCancellationHandler.getAndSet(null)?.dispose()
+    }
+
     /**
      * Remember [actual] continuation or return resumed value
      * @return `COROUTINE_SUSPENDED` when remembered or return value if already resumed

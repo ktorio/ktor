@@ -130,9 +130,21 @@ internal class ByteBufferChannel(
             joining?.let { ensureClosedJoined(it) }
         }
 
-        if (cause != null) attachedJob?.cancel()
-//        readSuspendContinuationCache.close()
-//        writeSuspendContinuationCache.close()
+        if (cause != null) {
+            attachedJob?.cancel()
+
+            readSuspendContinuationCache.close(cause)
+            writeSuspendContinuationCache.close(cause)
+        } else {
+            // don't cancel job
+
+            // any further attempt to suspend should be resumed immediately
+            // with exception for write
+            writeSuspendContinuationCache.close(ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE))
+
+            // and with computed result for read
+            readSuspendContinuationCache.close(state.capacity.flush())
+        }
 
         return true
     }
