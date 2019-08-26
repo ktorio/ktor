@@ -382,14 +382,11 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
             }
         }
 
-        return fromCharArray(chars, 0, charsCopied)
+        return String(chars, 0, charsCopied)
     } finally {
         iconv_close(cd)
     }
 }
-
-@SymbolName("Kotlin_String_fromCharArray")
-private external fun fromCharArray(array: CharArray, start: Int, size: Int): String
 
 // -----------------------------------------------------------
 
