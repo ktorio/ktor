@@ -13,10 +13,10 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import kotlinx.io.core.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
 import okio.*
+import java.io.*
 import kotlin.coroutines.*
 
 @InternalAPI

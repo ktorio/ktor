@@ -16,9 +16,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import io.ktor.utils.io.*
-import io.ktor.utils.io.sync.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.sync.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 

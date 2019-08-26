@@ -6,7 +6,7 @@ package io.ktor.client.tests.utils.tests
 
 import io.ktor.http.*
 import io.ktor.network.sockets.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 suspend fun proxyHandler(socket: Socket) {
     val input = socket.openReadChannel()
