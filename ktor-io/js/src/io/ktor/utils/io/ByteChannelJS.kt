@@ -69,7 +69,7 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
  * @return a number of copied bytes
  */
 actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
-    return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), Long.MAX_VALUE)
+    return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), limit)
 }
 
 internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
