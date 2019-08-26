@@ -69,10 +69,15 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     val length = toIndex - fromIndex
     if (length == 0) return 0
 
-    val chars = CharArray(length) { input[fromIndex + it] }
+    val chars = CharArray(length)
     val charset = iconvCharsetName(_charset._name)
     val cd: COpaquePointer? = iconv_open(charset, platformUtf16)
     checkErrors(cd, charset)
+
+    @Suppress("ReplaceRangeToWithUntil")
+    for (index in 0 .. length - 1) {
+        chars[index] = input[fromIndex + index]
+    }
 
     var charsConsumed = 0
 
