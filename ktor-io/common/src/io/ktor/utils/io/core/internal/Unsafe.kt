@@ -2,6 +2,7 @@ package io.ktor.utils.io.core.internal
 
 import io.ktor.utils.io.core.*
 import kotlin.jvm.*
+import kotlin.native.concurrent.*
 
 /**
  * API marked with this annotation is internal and extremely fragile and not intended to be used by library users.
@@ -170,6 +171,7 @@ fun Output.afterHeadWrite(current: ChunkBuffer) {
 }
 
 @JvmField
+@SharedImmutable
 internal val EmptyByteArray = ByteArray(0)
 
 private fun Output.afterWriteHeadFallback(current: ChunkBuffer) {

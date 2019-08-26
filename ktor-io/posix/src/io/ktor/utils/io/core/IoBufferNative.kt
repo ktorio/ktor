@@ -10,6 +10,7 @@ import kotlin.contracts.*
 import kotlin.native.concurrent.*
 
 @PublishedApi
+@SharedImmutable
 internal val MAX_SIZE: size_t = size_t.MAX_VALUE
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
