@@ -33,7 +33,8 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
             val url: String = URLBuilder().takeFrom(data.url).buildString()
             val outgoingContent: OutgoingContent = data.body
-            val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
+            val contentLength: Long? =
+                data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
 
             val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
                 connectTimeout = config.connectTimeout
@@ -93,14 +94,20 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
     }
 }
 
-internal fun OutgoingContent.writeTo(
+internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream, callContext: CoroutineContext
-): Unit = stream.use {
+): Unit = stream.use { blockingOutput ->
     when (this) {
-        is OutgoingContent.ByteArrayContent -> it.write(bytes())
-        is OutgoingContent.ReadChannelContent -> readFrom().toInputStream(callContext[Job]).copyTo(it)
+        is OutgoingContent.ByteArrayContent -> blockingOutput.write(bytes())
+        is OutgoingContent.ReadChannelContent -> run {
+            readFrom().copyTo(blockingOutput)
+        }
         is OutgoingContent.WriteChannelContent -> {
-            GlobalScope.writer(callContext) { writeTo(channel) }.channel.toInputStream(callContext[Job]).copyTo(it)
+            val channel = GlobalScope.writer(callContext) {
+                writeTo(channel)
+            }.channel
+
+            channel.copyTo(blockingOutput)
         }
         else -> throw UnsupportedContentTypeException(this)
     }
