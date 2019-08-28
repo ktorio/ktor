@@ -30,7 +30,6 @@ internal suspend fun HttpRequestData.write(
     val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
 
     try {
-
         val urlString = if (overProxy) {
             url.toString()
         } else {
