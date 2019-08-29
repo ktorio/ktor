@@ -8,6 +8,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-tests"))
             api(project(":ktor-network:ktor-network-tls"))
+            api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
         }
     }
 }

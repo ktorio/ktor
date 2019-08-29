@@ -16,6 +16,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.io.*
+import kotlinx.coroutines.sync.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.channels.*
@@ -25,6 +26,7 @@ internal class ConnectionPipeline(
     keepAliveTime: Long,
     pipelineMaxSize: Int,
     socket: Socket,
+    overProxy: Boolean,
     tasks: Channel<RequestTask>,
     parentContext: CoroutineContext
 ) : CoroutineScope {
@@ -43,14 +45,14 @@ internal class ConnectionPipeline(
                 } ?: break
 
                 try {
-                    requestLimit.enter()
+                    requestLimit.acquire()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task))
                 } catch (cause: Throwable) {
                     task.response.resumeWithException(cause)
                     throw cause
                 }
 
-                task.request.write(networkOutput, task.context)
+                task.request.write(networkOutput, task.context, overProxy)
                 networkOutput.flush()
             }
         } catch (_: ClosedChannelException) {
@@ -69,7 +71,7 @@ internal class ConnectionPipeline(
         try {
             var shouldClose = false
             for ((requestTime, task) in responseChannel) {
-                requestLimit.leave()
+                requestLimit.release()
                 try {
                     val rawResponse = parseResponse(networkInput)
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")

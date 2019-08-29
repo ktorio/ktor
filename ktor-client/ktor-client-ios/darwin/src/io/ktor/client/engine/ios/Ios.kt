@@ -16,7 +16,7 @@ private val initHook = Ios
  */
 object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
     init {
-        engines.add(this)
+        engines.append(this)
     }
 
     override fun create(block: IosClientEngineConfig.() -> Unit): HttpClientEngine =

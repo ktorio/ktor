@@ -39,9 +39,14 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
         val WSS = URLProtocol("wss", 443)
 
         /**
+         * Socks proxy url protocol.
+         */
+        val SOCKS = URLProtocol("socks", 1080)
+        /**
          * Protocols by names map
          */
-        val byName: Map<String, URLProtocol> = listOf(HTTP, HTTPS, WS, WSS).associateBy { it.name }
+        val byName: Map<String, URLProtocol> = listOf(HTTP, HTTPS, WS, WSS, SOCKS).associateBy { it.name }
+
 
         /**
          * Create an instance by [name] or use already existing instance

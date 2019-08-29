@@ -7,8 +7,10 @@ package io.ktor.client.engine.apache
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
+import org.apache.http.*
 import org.apache.http.impl.nio.client.*
 import org.apache.http.impl.nio.reactor.*
+import java.net.*
 
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
@@ -48,6 +50,8 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
                 setMaxConnTotal(MAX_CONNECTIONS_COUNT)
                 setIoThreadCount(IO_THREAD_COUNT_DEFAULT)
             }.build())
+
+            setupProxy()
         }
 
         with(config) {
@@ -56,5 +60,20 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
 
         config.sslContext?.let { clientBuilder.setSSLContext(it) }
         return clientBuilder.build()!!
+    }
+
+    private fun HttpAsyncClientBuilder.setupProxy() {
+        val proxy = config.proxy ?: return
+
+        if (proxy.type() == Proxy.Type.DIRECT) {
+            return
+        }
+
+        val address = proxy.address()
+        check(proxy.type() == Proxy.Type.HTTP && address is InetSocketAddress) {
+            "Only http proxy is supported for Apache engine."
+        }
+
+        setProxy(HttpHost.create("http://${address.hostName}:${address.port}"))
     }
 }

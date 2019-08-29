@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -15,10 +16,11 @@ import kotlinx.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequestData.toCurlRequest(): CurlRequestData = CurlRequestData(
+internal suspend fun HttpRequestData.toCurlRequest(config: HttpClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
+    proxy = config.proxy,
     content = body.toCurlByteArray()
 )
 
@@ -26,6 +28,7 @@ internal class CurlRequestData(
     val url: String,
     val method: String,
     val headers: CPointer<curl_slist>,
+    val proxy: ProxyConfig?,
     val content: ByteArray?
 ) {
     override fun toString(): String =

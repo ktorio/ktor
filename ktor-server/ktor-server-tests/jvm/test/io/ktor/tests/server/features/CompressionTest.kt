@@ -351,8 +351,8 @@ class CompressionTest {
                         init {
                             versions += LastModifiedVersion(dateTime)
                             caching = CachingOptions(
-                                    cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
-                                    expires = dateTime
+                                cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
+                                expires = dateTime
                             )
                         }
 

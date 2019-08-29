@@ -218,10 +218,8 @@ internal class TLSClientHandshake(
 
                     serverCertificate = x509s.firstOrNull { certificate ->
                         SupportedSignatureAlgorithms.any {
-                            it.name.equals(
-                                certificate.sigAlgName,
-                                ignoreCase = true
-                            )
+                            val oid = it.oid?.identifier ?: return@any false
+                            oid.equals(certificate.sigAlgOID, ignoreCase = true)
                         }
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
@@ -235,7 +233,7 @@ internal class TLSClientHandshake(
                     repeat(hashAndSignCount / 2) {
                         val hash = packet.readByte()
                         val sign = packet.readByte()
-                        hashAndSign += HashAndSign(hash, sign)
+                        hashAndSign += HashAndSign.byCode(hash, sign)
                     }
 
                     val authoritiesSize = packet.readShort().toInt() and 0xFFFF
@@ -282,7 +280,7 @@ internal class TLSClientHandshake(
 
                             encryptionInfo = generateECKeys(curve, point)
                         }
-                        SecretExchangeType.RSA -> {
+                        RSA -> {
                             packet.release()
                             error("Server key exchange handshake doesn't expected in RCA exchange type")
                         }
@@ -333,7 +331,7 @@ internal class TLSClientHandshake(
 
     private fun generatePreSecret(encryptionInfo: EncryptionInfo?): ByteArray =
         when (serverHello.cipherSuite.exchangeType) {
-            SecretExchangeType.RSA -> ByteArray(48).also {
+            RSA -> ByteArray(48).also {
                 config.random.nextBytes(it)
                 it[0] = 0x03
                 it[1] = 0x03

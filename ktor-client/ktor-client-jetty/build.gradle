@@ -1,9 +1,0 @@
-description = ''
-
-kotlin.sourceSets.jvmMain.dependencies {
-    api project(':ktor-client:ktor-client-core')
-
-    api group: 'org.eclipse.jetty.http2', name: 'http2-client', version: jetty_version
-    api group: 'org.eclipse.jetty', name: 'jetty-alpn-openjdk8-client', version: jetty_version
-    api group: 'org.eclipse.jetty', name: 'jetty-alpn-java-client', version: jetty_version
-}
