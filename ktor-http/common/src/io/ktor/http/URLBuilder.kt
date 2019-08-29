@@ -149,7 +149,9 @@ data class Url(
         } else {
             append(hostWithPort)
         }
+
         append(fullPath)
+
         if (fragment.isNotEmpty()) {
             append('#')
             append(fragment)

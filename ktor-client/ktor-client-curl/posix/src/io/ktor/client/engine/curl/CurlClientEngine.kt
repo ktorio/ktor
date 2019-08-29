@@ -27,7 +27,7 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
         val callContext = coroutineContext + Job()
         val requestTime = GMTDate()
 
-        val curlRequest = data.toCurlRequest()
+        val curlRequest = data.toCurlRequest(config)
         val responseData = curlProcessor.executeRequest(curlRequest)
 
         return with(responseData) {

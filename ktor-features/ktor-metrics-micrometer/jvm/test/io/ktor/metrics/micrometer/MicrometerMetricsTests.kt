@@ -100,8 +100,7 @@ class MicrometerMetricsTests {
             }
         }
         testRegistry.assertActive(0.0)
-        assertSame(illegalAccessException, throwableCaughtInEngine)
-
+        assertTrue(throwableCaughtInEngine is IllegalAccessException)
     }
 
     @Test

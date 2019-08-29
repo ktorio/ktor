@@ -41,16 +41,21 @@ kotlin {
     targets {
         if (project.ext.ideaActive) {
             fromPreset(project.ext.ideaPreset, 'posix')
+            project.ext.nativeTargets = [posix]
         } else {
             fromPreset(presets.linuxX64, 'linuxX64')
             fromPreset(presets.macosX64, 'macosX64')
             fromPreset(presets.mingwX64, 'mingwX64')
+            project.ext.nativeTargets = [macosX64, linuxX64, mingwX64]
 
             if (project.name != 'ktor-client-curl') {
                 fromPreset(presets.iosArm64, 'iosArm64')
                 fromPreset(presets.iosArm32, 'iosArm32')
                 fromPreset(presets.iosX64, 'iosX64')
+
+                project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
             }
+
 
             def crossCompileTargets = [linuxX64, macosX64, mingwX64]
             def host = getHostName()
@@ -70,6 +75,8 @@ kotlin {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
         }
+
+        project.ext.nativeCompilations = project.ext.nativeTargets.collect { it.compilations.main }
     }
     sourceSets {
         posixMain.dependencies {

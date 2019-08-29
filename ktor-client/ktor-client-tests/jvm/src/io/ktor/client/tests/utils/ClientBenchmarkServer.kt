@@ -63,7 +63,21 @@ internal fun Application.benchmarks() {
             /**
              * Upload file
              */
-            post("/bytes") {}
+            post("/bytes") {
+                val content = call.receive<ByteArray>()
+                call.respond("${content.size}")
+            }
+
+            /**
+             * Upload file
+             */
+            post("/echo") {
+
+                val channel = call.request.receiveChannel()
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override fun readFrom(): ByteReadChannel = channel
+                })
+            }
 
             route("/websockets") {
                 webSocket("/get/{count}") {

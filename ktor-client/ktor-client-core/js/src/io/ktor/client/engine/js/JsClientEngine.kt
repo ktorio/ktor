@@ -24,6 +24,10 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
     override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
+    init {
+        check(config.proxy == null) { "Proxy unsupported in Js engine." }
+    }
+
     override suspend fun execute(
         data: HttpRequestData
     ): HttpResponseData {

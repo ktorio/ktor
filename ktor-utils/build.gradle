@@ -1,17 +1,8 @@
 kotlin {
-    targets {
-        def current = []
-        if (project.ext.ideaActive) {
-            current = [posix]
-        } else {
-            current = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
-        }
-
-        configure(current) {
-            compilations.main.cinterops {
-                utils {
-                    defFile 'posix/interop/utils.def'
-                }
+    configure(project.ext.nativeCompilations) {
+        cinterops {
+            utils {
+                defFile 'posix/interop/utils.def'
             }
         }
     }

@@ -12,6 +12,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
+import java.net.*
 import java.util.concurrent.*
 
 internal class CIOEngine(
@@ -25,11 +26,18 @@ internal class CIOEngine(
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = atomic(false)
 
+    private val proxy = when (val type = config.proxy?.type()) {
+        Proxy.Type.DIRECT,
+        null -> null
+        Proxy.Type.HTTP -> config.proxy
+        else -> throw IllegalStateException("Proxy of type $type is unsupported by CIO engine.")
+    }
+
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         while (true) {
             if (closed.value) throw ClientClosedException()
 
-            val endpoint = data.url.selectEndpoint()
+            val endpoint = selectEndpoint(data.url, proxy)
             val callContext = createCallContext()
             try {
                 return endpoint.execute(data, callContext)
@@ -60,16 +68,29 @@ internal class CIOEngine(
         super.close()
     }
 
-    private fun Url.selectEndpoint(): Endpoint {
-        val address = "$host:$port:$protocol"
+    private fun selectEndpoint(url: Url, proxy: ProxyConfig?): Endpoint {
+        val host: String
+        val port: Int
+        val protocol: URLProtocol = url.protocol
 
-        return endpoints.computeIfAbsentWeak(address) {
+        if (proxy != null) {
+            val proxyAddress = proxy.address() as InetSocketAddress
+            host = proxyAddress.hostName
+            port = proxyAddress.port
+        } else {
+            host = url.host
+            port = url.port
+        }
+
+        val endpointId = "$host:$port:$protocol"
+
+        return endpoints.computeIfAbsentWeak(endpointId) {
             val secure = (protocol.isSecure())
             Endpoint(
-                host, port, secure,
+                host, port, proxy != null, secure,
                 config,
                 connectionFactory, coroutineContext,
-                onDone = { endpoints.remove(address) }
+                onDone = { endpoints.remove(endpointId) }
             )
         }
     }

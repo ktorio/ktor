@@ -158,7 +158,12 @@ class StaticContentTest {
     @Test
     fun testSendLocalFile() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
-            call.respond(LocalFileContent(basedir, "/features/StaticContentTest.kt".replaceSeparators()))
+            call.respond(
+                LocalFileContent(
+                    basedir,
+                    "/features/StaticContentTest.kt".replaceSeparators()
+                )
+            )
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
@@ -193,10 +198,20 @@ class StaticContentTest {
     fun testSendLocalFileBadRelative() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
+                call.respond(
+                    LocalFileContent(
+                        basedir,
+                        "/../../../../../../../../../../../../../etc/passwd"
+                    )
+                )
             }
             assertFailsWithSuspended<Exception> {
-                call.respond(LocalFileContent(basedir, "../../../../../../../../../../../../../etc/passwd"))
+                call.respond(
+                    LocalFileContent(
+                        basedir,
+                        "../../../../../../../../../../../../../etc/passwd"
+                    )
+                )
             }
             assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("../build.gradle")))

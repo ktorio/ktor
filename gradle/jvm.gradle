@@ -53,7 +53,6 @@ kotlin {
             api("org.jetbrains.kotlinx:atomicfu:$atomicfu_version")
 
             api group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
-            api group: 'com.typesafe', name: 'config', version: typesafe_config_version
         }
 
         jvmTest.dependencies {

@@ -25,10 +25,6 @@ class AndroidEngineConfig : HttpClientEngineConfig() {
      */
     var socketTimeout: Int = 100_000
 
-    /**
-     * Proxy address to use - default <code>{@link #openConnection java.net.URL:URL.openConnection}</code>
-     */
-    var proxy: Proxy? = null
 
     /**
      * Https connection manipulator. inherited methods are not permitted.

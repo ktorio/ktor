@@ -15,9 +15,14 @@ import kotlin.coroutines.*
  * @property limit is the semaphores permits count limit
  */
 @InternalAPI
+@Deprecated(
+    "Ktor Semaphore is deprecated. Consider using kotlinx.coroutines.sync.Semaphore instead.",
+    ReplaceWith("kotlinx.coroutines.sync.Semaphore", ""),
+    DeprecationLevel.WARNING
+)
 class Semaphore(val limit: Int) {
     private val permits = atomic(limit)
-    private val waiters = ConcurrentHashMap<CancellableContinuation<Unit>, Unit>()
+    private val waiters = ConcurrentLinkedQueue<CancellableContinuation<Unit>>()
 
     init {
         check(limit > 0) { "Semaphore limit should be > 0" }
@@ -33,12 +38,15 @@ class Semaphore(val limit: Int) {
         while (true) {
             val current = permits.value
             if (current > 0 && permits.compareAndSet(current, current - 1)) return
+            if (permits.value > 0) continue
 
             suspendCancellableCoroutine<Unit> {
-                waiters[it] = Unit
+                waiters.add(it)
 
                 val newValue = permits.value
-                if (newValue > 0 && waiters.remove(it) != null) it.resume(Unit)
+                if (newValue > 0) {
+                    waiters.poll()?.resume(Unit)
+                }
             }
         }
     }
@@ -51,12 +59,10 @@ class Semaphore(val limit: Int) {
      */
     fun leave() {
         var value = permits.incrementAndGet()
+        check(value <= limit)
 
         while (value > 0 && waiters.isNotEmpty()) {
-            val key = waiters.keys().nextElement() ?: continue
-            waiters.remove(key) ?: continue
-
-            key.resume(Unit)
+            waiters.poll()?.resume(Unit)
             value = permits.value
         }
     }

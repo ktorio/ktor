@@ -18,7 +18,10 @@ import kotlinx.coroutines.io.*
 import kotlinx.io.errors.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext: CoroutineContext) {
+internal suspend fun HttpRequestData.write(
+    output: ByteWriteChannel, callContext: CoroutineContext,
+    overProxy: Boolean
+) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
@@ -27,7 +30,13 @@ internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext
     val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
 
     try {
-        builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
+        val urlString = if (overProxy) {
+            url.toString()
+        } else {
+            url.fullPath
+        }
+
+        builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
         builder.headerLine("Host", url.hostWithPort)
 
         mergeHeaders(headers, body) { key, value ->
