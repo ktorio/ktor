@@ -25,6 +25,15 @@ fun HttpClient.defaultTransformers() {
         }
 
         when (body) {
+            is String -> {
+                val contentType = context.headers[HttpHeaders.ContentType]?.let {
+                    context.headers.remove(HttpHeaders.ContentType)
+                    ContentType.parse(it)
+                }
+                    ?: ContentType.Text.Plain
+
+                proceedWith(TextContent(body, contentType))
+            }
             is ByteArray -> proceedWith(object : OutgoingContent.ByteArrayContent() {
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
