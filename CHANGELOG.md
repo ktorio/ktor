@@ -1,3 +1,9 @@
+# 1.2.4
+> Published 2 Sep 2019
+
+* Kotlin 1.3.50
+* kotlinx.coroutines 1.3.0
+
 # 1.2.3
 > Published 1 Aug 2019
 
