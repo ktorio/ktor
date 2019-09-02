@@ -16,6 +16,9 @@ import io.ktor.utils.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 
+@SharedImmutable
+private val EMPTY_BYTE_ARRAY = ByteArray(0)
+
 internal suspend fun HttpRequestData.toCurlRequest(config: HttpClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
@@ -29,10 +32,10 @@ internal class CurlRequestData(
     val method: String,
     val headers: CPointer<curl_slist>,
     val proxy: ProxyConfig?,
-    val content: ByteArray?
+    val content: ByteArray
 ) {
     override fun toString(): String =
-        "CurlRequestData(url='$url', method='$method', content: ${content?.size ?: 0} bytes)"
+        "CurlRequestData(url='$url', method='$method', content: ${content.size} bytes)"
 }
 
 internal class CurlResponseBuilder(val request: CurlRequestData) {
@@ -61,12 +64,12 @@ internal class CurlFail(
     override fun toString(): String = "CurlFail($cause)"
 }
 
-internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray? = when (this@toCurlByteArray) {
+internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray = when (this@toCurlByteArray) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
         writeTo(channel)
     }.channel.readRemaining().readBytes()
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readBytes()
-    is OutgoingContent.NoContent -> null
+    is OutgoingContent.NoContent -> EMPTY_BYTE_ARRAY
     else -> throw UnsupportedContentTypeException(this@toCurlByteArray)
 }
