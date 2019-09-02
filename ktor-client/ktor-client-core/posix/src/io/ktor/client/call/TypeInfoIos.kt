@@ -11,12 +11,13 @@ actual interface Type
 
 object IosType : Type
 
-@PublishedApi()
+@PublishedApi
 internal open class TypeBase<T>
 
+@UseExperimental(ExperimentalStdlibApi::class)
 actual inline fun <reified T> typeInfo(): TypeInfo {
     val kClass = T::class
-    return TypeInfo(kClass, IosType)
+    return TypeInfo(kClass, IosType, typeOf<T>())
 }
 
 /**

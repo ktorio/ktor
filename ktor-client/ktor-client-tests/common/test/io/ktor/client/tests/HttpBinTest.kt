@@ -80,9 +80,7 @@ class HttpBinTest : ClientLoader() {
 
     private fun HttpClientConfig<*>.testConfiguration() {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(Json.nonstrict).apply {
-                register(HttpBinResponse.serializer())
-            }
+            serializer = KotlinxSerializer(Json.nonstrict)
         }
     }
 }
