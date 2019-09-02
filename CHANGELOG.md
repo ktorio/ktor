@@ -1,6 +1,11 @@
 # 1.2.4
 > Published 2 Sep 2019
 
+* Fixed multipart form header entity separator
+* Fixed crypto in IE11 (#1283)
+* Marked response transient in the client exception (#1256)
+* Fixed network on main thread in okhttp engine close
+* Fixed follow redirect iOS (#1000)
 * Kotlin 1.3.50
 * kotlinx.coroutines 1.3.0
 
