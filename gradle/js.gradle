@@ -47,12 +47,13 @@ kotlin {
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-js', version: kotlinx_io_version
             api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-js', version: kotlinx_io_version
             api group: 'org.jetbrains.kotlinx', name: 'atomicfu-js', version: atomicfu_version
+
+            api(npm("text-encoding", text_encoding_version))
         }
         jsTest.dependencies {
             api "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
             api(npm("puppeteer", "*"))
             api(npm("source-map-support", source_map_support_version))
-            api(npm("text-encoding", text_encoding_version))
             api(npm("node-fetch", node_fetch_version))
             api(npm("ws", ws_version))
         }
