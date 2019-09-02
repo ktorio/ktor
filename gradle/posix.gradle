@@ -56,7 +56,6 @@ kotlin {
                 project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
             }
 
-
             def crossCompileTargets = [linuxX64, macosX64, mingwX64]
             def host = getHostName()
             switch (host) {
@@ -74,6 +73,10 @@ kotlin {
             configure([mingwX64Test]) {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
+        }
+
+        configure(project.ext.nativeTargets) {
+            binaries.getTest("DEBUG").freeCompilerArgs = [ "-opt" ]
         }
 
         project.ext.nativeCompilations = project.ext.nativeTargets.collect { it.compilations.main }

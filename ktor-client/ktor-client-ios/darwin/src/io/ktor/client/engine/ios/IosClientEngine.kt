@@ -88,6 +88,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
         val configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
         configuration.setupProxy()
+        config.sessionConfig(configuration)
 
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
@@ -118,7 +119,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
             body?.let { nativeRequest.setHTTPBody(it) }
 
-            config.requestConfig.let { nativeRequest.it() }
+            config.requestConfig(nativeRequest)
             session.dataTaskWithRequest(nativeRequest).resume()
         }
     }
@@ -127,7 +128,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
         val proxy = config.proxy ?: return
         val url = proxy.url
 
-        val type = when(url.protocol) {
+        val type = when (url.protocol) {
             URLProtocol.HTTP -> kCFProxyTypeHTTP
             URLProtocol.HTTPS -> kCFProxyTypeHTTPS
             URLProtocol.SOCKS -> kCFProxyTypeSOCKS
