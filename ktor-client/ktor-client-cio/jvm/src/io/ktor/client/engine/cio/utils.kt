@@ -28,7 +28,8 @@ internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext
 
     try {
         builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
-        builder.headerLine("Host", url.hostWithPort)
+        // this will only add the port to the host header if the port is non-standard for the protocol
+        builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
 
         mergeHeaders(headers, body) { key, value ->
             builder.headerLine(key, value)
