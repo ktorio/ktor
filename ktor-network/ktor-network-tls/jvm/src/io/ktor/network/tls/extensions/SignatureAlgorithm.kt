@@ -8,6 +8,10 @@ import io.ktor.network.tls.*
 import kotlinx.io.core.*
 
 /**
+ * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
+ */
+
+/**
  * Hash algorithms
  * @property code numeric hash algorithm code
  * @property openSSLName is a name used in openssl for this algorithm
@@ -20,7 +24,9 @@ enum class HashAlgorithm(val code: Byte, val openSSLName: String, val macName: S
     SHA224(3, "SHA-224", "HmacSHA224"),
     SHA256(4, "SHA-256", "HmacSHA256"),
     SHA384(5, "SHA-384", "HmacSHA384"),
-    SHA512(6, "SHA-512", "HmacSHA512");
+    SHA512(6, "SHA-512", "HmacSHA512"),
+
+    INTRINSIC(8, "INTRINSIC", "Intrinsic");
 
     companion object {
         /**
