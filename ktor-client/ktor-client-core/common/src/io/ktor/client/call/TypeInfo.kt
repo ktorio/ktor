@@ -15,8 +15,13 @@ expect interface Type
  * Ktor type information.
  * @param type: source KClass<*>
  * @param reifiedType: type with substituted generics
+ * @param kotlinType: kotlin reified type with all generic type parameters.
  */
-data class TypeInfo(val type: KClass<*>, val reifiedType: Type)
+data class TypeInfo(
+    val type: KClass<*>,
+    val reifiedType: Type,
+    val kotlinType: KType? = null
+)
 
 /**
  * Returns [TypeInfo] for the specified type [T]
