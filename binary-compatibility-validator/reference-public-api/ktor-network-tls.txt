@@ -262,6 +262,7 @@ public final class io/ktor/network/tls/TLSVersion$Companion {
 
 public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum {
 	public static final field Companion Lio/ktor/network/tls/extensions/HashAlgorithm$Companion;
+	public static final field INTRINSIC Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public static final field MD5 Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public static final field NONE Lio/ktor/network/tls/extensions/HashAlgorithm;
 	public static final field SHA1 Lio/ktor/network/tls/extensions/HashAlgorithm;
