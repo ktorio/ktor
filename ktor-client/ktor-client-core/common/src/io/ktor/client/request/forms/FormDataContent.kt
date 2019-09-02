@@ -151,6 +151,8 @@ private suspend fun Input.copyTo(channel: ByteWriteChannel) {
             tryAwait(1)
             val buffer = request(1)!!
             val size = this@copyTo.readAvailable(buffer)
+
+            if (size < 0) continue
             written(size)
         }
     }
