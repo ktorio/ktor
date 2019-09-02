@@ -95,9 +95,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray?): COpaquePointer? {
-        if (content == null) return null
-
+    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray): COpaquePointer? {
         val stream = buildPacket { writeFully(content) }
         val requestPointer = stream.asStablePointer()
 
