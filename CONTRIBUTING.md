@@ -21,7 +21,7 @@ Create a documentation PR and link both pull requests.
 
 Your code should conform to 
 the official [Kotlin code style guide](https://kotlinlang.org/docs/reference/coding-conventions.html) 
-except that start imports should be always enabled 
+except that star imports should be always enabled 
 (ensure Preferences | Editor | Code Style | Kotlin, tab **Imports**, both `Use import with '*'` should be checked).
 
 Every new source file should have a copyright header.

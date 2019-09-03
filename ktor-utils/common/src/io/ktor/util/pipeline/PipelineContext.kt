@@ -103,7 +103,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         @Suppress("UNCHECKED_CAST")
         override val context: CoroutineContext
-            get () {
+            get() {
                 val cont = rootContinuation
                 return when (cont) {
                     null -> throw IllegalStateException("Not started")
@@ -212,7 +212,12 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
             else -> unexpectedRootContinuationValue(rootContinuation)
         } as Continuation<TSubject>
 
-        next.resumeWith(result)
+        if (!result.isFailure) {
+            next.resumeWith(result)
+        } else {
+            val exception = recoverStackTraceBridge(result.exceptionOrNull()!!, next)
+            next.resumeWithException(exception)
+        }
     }
 
     private fun discardLastRootContinuation() {

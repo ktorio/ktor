@@ -15,6 +15,7 @@ internal class JettyHttp2Engine(
 ) : HttpClientJvmEngine("ktor-jetty") {
     private val jettyClient = HTTP2Client().apply {
         addBean(config.sslContextFactory)
+        check(config.proxy == null) { "Proxy unsupported in Jetty engine." }
 
         executor = QueuedThreadPool().apply {
             name = "ktor-jetty-client-qtp"

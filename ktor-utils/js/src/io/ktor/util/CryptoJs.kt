@@ -46,7 +46,7 @@ actual fun Digest(name: String): Digest = object : Digest {
     }
 }
 
-private val crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("crypto")
+private val crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("(crypto ? crypto : msCrypto)")
 
 private external class Crypto {
     val subtle: SubtleCrypto

@@ -13,6 +13,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlinx.io.core.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
 import okio.*
@@ -24,8 +25,13 @@ class OkHttpEngine(
     override val config: OkHttpConfig
 ) : HttpClientJvmEngine("ktor-okhttp") {
 
-    private val engine: OkHttpClient = config.preconfigured
-        ?: OkHttpClient.Builder().apply(config.config).build()
+    private val engine: OkHttpClient = config.preconfigured ?: run {
+        val builder = OkHttpClient.Builder()
+        builder.apply(config.config)
+
+        config.proxy?.let { builder.proxy(it) }
+        builder.build()
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = createCallContext()
@@ -44,12 +50,17 @@ class OkHttpEngine(
     }
 
     override fun close() {
-        super.close()
+        val clientTask = coroutineContext[Job] as CompletableJob
+        clientTask.complete()
 
-        coroutineContext[Job]?.invokeOnCompletion {
-            engine.dispatcher().executorService().shutdown()
-            engine.connectionPool().evictAll()
-            engine.cache()?.close()
+        clientTask.invokeOnCompletion {
+            launch(dispatcher) {
+                engine.dispatcher().executorService().shutdown()
+                engine.connectionPool().evictAll()
+                engine.cache()?.close()
+            }.invokeOnCompletion {
+                (dispatcher as Closeable).close()
+            }
         }
     }
 
