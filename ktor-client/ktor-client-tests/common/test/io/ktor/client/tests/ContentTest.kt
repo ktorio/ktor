@@ -25,7 +25,7 @@ class ContentTest : ClientLoader() {
     private val testSize = listOf(
         0, 1, // small edge cases
         4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
-        16 * 1024 * 1024 // big
+        8 * 1024 * 1024 // big
     )
 
     @Test
