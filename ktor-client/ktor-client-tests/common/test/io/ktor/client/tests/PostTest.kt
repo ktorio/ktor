@@ -30,7 +30,7 @@ class PostTest : ClientLoader() {
     @Test
     fun testWithPause() = clientTests(listOf("js")) {
         test { client ->
-            val content = makeString(32 * 1024 * 1024)
+            val content = makeString(16 * 1024 * 1024)
 
             val response = client.post<String>("$TEST_SERVER/content/echo") {
                 body = object : OutgoingContent.WriteChannelContent() {
