@@ -148,7 +148,7 @@ class HeadersTest {
         val request = parseRequest(ch)!!
 
         try {
-            assertFalse { expectHttpBody(request) }
+            assertTrue { expectHttpBody(request) }
         } finally {
             request.release()
         }
