@@ -1827,6 +1827,24 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
     }
 
+    @Test
+    fun testGetWithBody() {
+        createAndStartServer {
+            application.install(Compression)
+
+            get("/") {
+                call.respondText(call.receive())
+            }
+        }
+
+        val text = "text body"
+
+        withUrl("/", { body = text; }) {
+            val actual = readText()
+            assertEquals(text, actual)
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 

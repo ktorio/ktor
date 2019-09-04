@@ -43,11 +43,12 @@ fun expectHttpBody(
     connectionOptions: ConnectionOptions?,
     contentType: CharSequence?
 ): Boolean {
-    if (method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options) return false
-
-    if (transferEncoding != null || connectionOptions?.close == true) return true
+    if (transferEncoding != null) return true
     if (contentLength != -1L) return contentLength > 0L
     if (contentType != null) return true
+
+    if (method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options) return false
+    if (connectionOptions?.close == true) return true
 
     return false
 }
