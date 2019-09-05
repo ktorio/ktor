@@ -457,6 +457,23 @@ class CompressionTest {
     }
 
     @Test
+    fun testIdentityRequested(): Unit = withTestApplication {
+        application.install(Compression)
+
+        application.routing {
+            get("/text") {
+                call.respondText("123")
+            }
+            get("/bytes") {
+                call.respondBytes("1234".toByteArray(), ContentType.Application.OctetStream)
+            }
+        }
+
+        handleAndAssert("/text", "identity", "identity", "123")
+        handleAndAssert("/bytes", "identity", "identity", "1234")
+    }
+
+    @Test
     fun testCompressionRespondObjectWithIdentity(): Unit = withTestApplication {
         application.install(Compression)
 
@@ -470,6 +487,9 @@ class CompressionTest {
                         }
 
                     override fun bytes(): ByteArray = "Hello!".toByteArray()
+
+                    override val contentLength: Long?
+                        get() = 6
                 })
             }
         }
@@ -553,14 +573,24 @@ class CompressionTest {
         if (expectedEncoding != null) {
             assertEquals(expectedEncoding, result.response.headers[HttpHeaders.ContentEncoding])
             when (expectedEncoding) {
-                "gzip" -> assertEquals(expectedContent, result.response.readGzip())
-                "deflate" -> assertEquals(expectedContent, result.response.readDeflate())
-                "identity" -> assertEquals(expectedContent, result.response.readIdentity())
+                "gzip" -> {
+                    assertEquals(expectedContent, result.response.readGzip())
+                    assertNull(result.response.headers[HttpHeaders.ContentLength])
+                }
+                "deflate" -> {
+                    assertEquals(expectedContent, result.response.readDeflate())
+                    assertNull(result.response.headers[HttpHeaders.ContentLength])
+                }
+                "identity" -> {
+                    assertEquals(expectedContent, result.response.readIdentity())
+                    assertNotNull(result.response.headers[HttpHeaders.ContentLength])
+                }
                 else -> fail("unknown encoding $expectedEncoding")
             }
         } else {
             assertNull(result.response.headers[HttpHeaders.ContentEncoding], "content shouldn't be compressed")
             assertEquals(expectedContent, result.response.content)
+            assertNotNull(result.response.headers[HttpHeaders.ContentLength])
         }
 
         assertTrue(result.requestHandled)
