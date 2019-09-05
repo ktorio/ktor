@@ -33,6 +33,8 @@ def selectArtifactId(project, type, defaultName) {
 
 def isAvailableForPublication(publication) {
     def name = publication.name
+    if (name in ['maven']) return true
+
     def result = false
     result = result | (name in ['jvm', 'js', 'metadata', 'kotlinMultiplatform'])
     result = result | (project.ext.isLinuxHost && name == 'linuxX64')
