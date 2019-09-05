@@ -22,7 +22,7 @@ class NeedRetryTest {
 
         config {
             NeedRetryHandler {
-                needRetryHandler {
+                needRetryHandler { requestBuilder, response ->
                     needRetryHandlerCalled = true
                     false
                 }

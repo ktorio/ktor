@@ -12,7 +12,7 @@ import io.ktor.client.response.HttpReceivePipeline
 import io.ktor.client.response.HttpResponse
 import io.ktor.util.AttributeKey
 
-typealias NeedRetryHandler = suspend (response: HttpResponse) -> Boolean
+typealias NeedRetryHandler = suspend (requestBuilder: HttpRequestBuilder, response: HttpResponse) -> Boolean
 
 class NeedRetry(
     private val retryHandlers: List<NeedRetryHandler>
@@ -39,10 +39,13 @@ class NeedRetry(
         override fun install(feature: NeedRetry, scope: HttpClient) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) {
                 try {
-                    val isRetryNeeded = feature.retryHandlers.map { it(context.response) }.contains(true)
+                    val requestBuilder = HttpRequestBuilder().takeFrom(context.request)
+                    val isRetryNeeded = feature.retryHandlers
+                        .map { it(requestBuilder, context.response) }
+                        .contains(true)
 
                     if (isRetryNeeded) {
-                        context.client.execute(HttpRequestBuilder().takeFrom(context.request))
+                        context.client.execute(requestBuilder)
                     }
 
                     proceedWith(it)
