@@ -128,6 +128,9 @@ class Compression(compression: Configuration) {
 
         override val contentType: ContentType? get() = original.contentType
         override val status: HttpStatusCode? get() = original.status
+        override val contentLength: Long?
+            get() = original.contentLength?.let { encoder.predictCompressedLength(it) }?.takeIf { it >= 0 }
+
         override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
     }
@@ -146,6 +149,9 @@ class Compression(compression: Configuration) {
 
         override val contentType: ContentType? get() = original.contentType
         override val status: HttpStatusCode? get() = original.status
+        override val contentLength: Long?
+            get() = original.contentLength?.let { encoder.predictCompressedLength(it) }?.takeIf { it >= 0 }
+
         override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
@@ -241,6 +247,11 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
 @UseExperimental(ExperimentalCoroutinesApi::class)
 interface CompressionEncoder {
     /**
+     * May predict compressed length based on the [originalLength] or return `null` if it is impossible.
+     */
+    fun predictCompressedLength(originalLength: Long): Long? = null
+
+    /**
      * Wraps [readChannel] into a compressing [ByteReadChannel]
      */
     fun compress(
@@ -283,6 +294,8 @@ object DeflateEncoder : CompressionEncoder {
  *  Implementation of the identity encoder
  */
 object IdentityEncoder : CompressionEncoder {
+    override fun predictCompressedLength(originalLength: Long): Long? = originalLength
+
     override fun compress(
         readChannel: ByteReadChannel,
         coroutineContext: CoroutineContext
