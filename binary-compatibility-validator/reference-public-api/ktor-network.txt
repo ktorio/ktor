@@ -319,7 +319,7 @@ public final class io/ktor/network/util/IOCoroutineDispatcher : kotlinx/coroutin
 
 public final class io/ktor/network/util/PoolsKt {
 	public static final fun getDefaultDatagramByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public static final fun getIoCoroutineDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public static final synthetic fun getIoCoroutineDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public static final synthetic fun getIoThreadGroup ()Ljava/lang/ThreadGroup;
 }
 

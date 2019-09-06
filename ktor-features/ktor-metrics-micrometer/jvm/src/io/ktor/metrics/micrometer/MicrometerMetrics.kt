@@ -103,14 +103,6 @@ class MicrometerMetrics(
         fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
             timerBuilder = block
         }
-
-        /**
-         * Configure micrometer timers
-         */
-        @Deprecated("Use timers instead.", ReplaceWith("timers(block)"), level = DeprecationLevel.ERROR)
-        fun timerBuilder(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
-            timers(block)
-        }
     }
 
     private fun CallMeasure.recordDuration(call: ApplicationCall) {

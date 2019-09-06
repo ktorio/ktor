@@ -60,21 +60,10 @@ class DigestAuthenticationProvider internal constructor(
         var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
-         * Message digest algorithm to be used
-         */
-        @Suppress("unused")
-        @Deprecated("Specify algorithm name instead", level = DeprecationLevel.ERROR)
-        var digester: MessageDigest
-            get() = MessageDigest.getInstance(algorithmName)
-            set(newValue) {
-                algorithmName = newValue.algorithm
-            }
-
-        /**
          * username and password digest function
          */
         @Suppress("unused")
-        @Deprecated("Use digestProvider { } function instead.")
+        @Deprecated("Use digestProvider { } function instead.", level = DeprecationLevel.ERROR)
         var userNameRealmPasswordDigestProvider: DigestProviderFunction
             get() = digestProvider
             set(newProvider) {

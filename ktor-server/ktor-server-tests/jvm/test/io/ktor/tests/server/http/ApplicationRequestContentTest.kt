@@ -12,7 +12,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import java.lang.IllegalArgumentException
 import kotlin.test.*
 
 class ApplicationRequestContentTest {
@@ -87,7 +86,7 @@ class ApplicationRequestContentTest {
 
                 val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
-                proceedWith(ApplicationReceiveRequest(query.type, transformed))
+                proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed))
             }
 
             application.intercept(ApplicationCallPipeline.Call) {

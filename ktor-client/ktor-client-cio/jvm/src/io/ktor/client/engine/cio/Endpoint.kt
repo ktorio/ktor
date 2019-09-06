@@ -190,14 +190,13 @@ internal class Endpoint(
     }
 }
 
-@KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
-    "Use [FailToConnectException] instead",
-    level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("FailToConnectException")
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN, replaceWith = ReplaceWith("FailToConnectException")
 )
 open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 
+@Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-@Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
-class FailToConnectException : ConnectException()
+class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")

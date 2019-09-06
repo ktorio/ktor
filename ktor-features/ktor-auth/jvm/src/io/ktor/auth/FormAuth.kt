@@ -33,7 +33,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
             call.respond(UnauthorizedResponse())
         }
 
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         private var _challenge: FormAuthChallenge? = FormAuthChallenge.Unauthorized
 
         /**
@@ -49,8 +49,8 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
         /**
          * A response to send back if authentication failed
          */
-        @Deprecated("Use challenge {} instead.")
-        @Suppress("DEPRECATION")
+        @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
+        @Suppress("DEPRECATION_ERROR")
         var challenge: FormAuthChallenge
             get() = _challenge ?: error("Challenge is already configured via challenge() function")
             set(value) {
@@ -140,26 +140,26 @@ typealias FormAuthChallengeFunction = suspend PipelineContext<*, ApplicationCall
 /**
  * Specifies what to send back if form authentication fails.
  */
-@Suppress("DEPRECATION")
-@Deprecated("Use challenge {} instead.")
+@Suppress("DEPRECATION_ERROR")
+@Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
 sealed class FormAuthChallenge {
     /**
      * Redirect to an URL provided by the given function.
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
-    @Deprecated("Use challenge {} instead.")
+    @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
     class Redirect(val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge()
 
     /**
      * Respond with [HttpStatusCode.Unauthorized].
      */
-    @Deprecated("Use challenge {} instead.")
+    @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
     object Unauthorized : FormAuthChallenge()
 }
 
 private val formAuthenticationChallengeKey: Any = "FormAuth"
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION_ERROR")
 private suspend fun PipelineContext<*, ApplicationCall>.challengeCompatibility(
     challenge: FormAuthChallenge,
     credentials: UserPasswordCredential?

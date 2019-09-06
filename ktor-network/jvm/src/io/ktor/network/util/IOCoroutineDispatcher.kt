@@ -18,7 +18,7 @@ import kotlin.coroutines.intrinsics.*
  */
 @Deprecated(
     "This is going to be deprecated. Use kotlinx.coroutines dispatchers",
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.HIDDEN
 )
 @KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {

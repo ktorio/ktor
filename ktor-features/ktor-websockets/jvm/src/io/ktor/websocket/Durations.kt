@@ -17,7 +17,7 @@ import java.time.*
  */
 inline var DefaultWebSocketServerSession.pingInterval: Duration?
     get() = pingIntervalMillis.takeIf { it >= 0L }?.let { Duration.ofMillis(it) }
-    set(newDuration: Duration?) {
+    set(newDuration) {
         pingIntervalMillis = newDuration?.toMillis() ?: -1L
     }
 
@@ -30,19 +30,6 @@ inline var DefaultWebSocketServerSession.timeout: Duration
     set(newDuration) {
         timeoutMillis = newDuration.toMillis()
     }
-
-@Deprecated(
-    "Binary compatibility.",
-    level = DeprecationLevel.HIDDEN
-)
-@Suppress("UNUSED_PARAMETER", "unused", "KDocMissingDocumentation")
-fun pinger(
-    session: WebSocketSession,
-    period: Duration,
-    timeout: Duration,
-    out: SendChannel<Frame>,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = session.pinger(session.outgoing, period, timeout, pool)
 
 /**
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [period] to [outgoing] channel,

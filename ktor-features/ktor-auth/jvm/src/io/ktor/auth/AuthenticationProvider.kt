@@ -21,7 +21,10 @@ typealias AuthenticationFunction<C> = suspend ApplicationCall.(credentials: C) -
  */
 open class AuthenticationProvider(config: Configuration) {
 
-    @Deprecated("Provider should be built using configuration that need to be passed via constructor instead.")
+    @Deprecated(
+        "Provider should be built using configuration that need to be passed via constructor instead.",
+        level = DeprecationLevel.ERROR
+    )
     constructor(name: String? = null) : this(NamedConfiguration(name))
 
     private var filterPredicates: MutableList<ApplicationCallPredicate>? = config.filterPredicates
@@ -48,7 +51,10 @@ open class AuthenticationProvider(config: Configuration) {
     /**
      * Adds an authentication filter to the list
      */
-    @Deprecated("List of predicates should be built in configuration and then be passed via constructor instead.")
+    @Deprecated(
+        "List of predicates should be built in configuration and then be passed via constructor instead.",
+        level = DeprecationLevel.ERROR
+    )
     fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
         val list = filterPredicates ?: mutableListOf()
         list.add(predicate)

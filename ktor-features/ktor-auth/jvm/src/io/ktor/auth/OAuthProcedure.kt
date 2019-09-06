@@ -91,7 +91,7 @@ internal fun OAuthAuthenticationProvider.oauth2() {
                 context.challenge(OAuthKey, cause) {
                     call.redirectAuthenticateOAuth2(
                         provider, callbackRedirectUrl,
-                        state = @Suppress("DEPRECATION_ERROR") provider.stateProvider.getState(call),
+                        state = provider.nonceManager.newNonce(),
                         scopes = provider.defaultScopes,
                         interceptor = provider.authorizeUrlInterceptor
                     )

@@ -34,12 +34,9 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val token = call.oauth2HandleCallback()
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
-            @Suppress("DEPRECATION_ERROR")
-            val stateProvider = provider.stateProvider
-
             call.redirectAuthenticateOAuth2(
                 provider, callbackRedirectUrl,
-                state = stateProvider.getState(call),
+                state = provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor
             )
@@ -50,10 +47,9 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
                     Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
-                    val stateProvider = @Suppress("DEPRECATION_ERROR") provider.stateProvider
                     call.redirectAuthenticateOAuth2(
                         provider, callbackRedirectUrl,
-                        state = stateProvider.getState(call),
+                        state = provider.nonceManager.newNonce(),
                         scopes = provider.defaultScopes,
                         interceptor = provider.authorizeUrlInterceptor
                     )
@@ -112,7 +108,7 @@ internal suspend fun oauth2RequestAccessToken(
         extraParameters,
         configure,
         settings.accessTokenRequiresBasicAuth,
-        @Suppress("DEPRECATION_ERROR") settings.stateProvider
+        settings.nonceManager
     )
 }
 
@@ -157,13 +153,12 @@ private suspend fun oauth2RequestAccessToken(
     extraParameters: Map<String, String> = emptyMap(),
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
-    @Suppress("DEPRECATION_ERROR")
-    stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
+    nonceManager: NonceManager,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
 
     if (state != null) {
-        stateProvider.verifyState(state)
+        nonceManager.verifyNonce(state)
     }
 
     val request = HttpRequestBuilder()
@@ -308,7 +303,7 @@ suspend fun verifyWithOAuth2(
             OAuth2RequestParameters.Password to credential.password
         ),
         useBasicAuth = true,
-        stateProvider = @Suppress("DEPRECATION_ERROR") settings.stateProvider,
+        nonceManager = settings.nonceManager,
         grantType = OAuthGrantTypes.Password
     )
 }

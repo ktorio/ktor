@@ -96,7 +96,7 @@ class SessionAuthTest {
     }
 
     @Test
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     fun testSessionOnlyDeprecated() {
         withTestApplication {
             application.install(Sessions) {

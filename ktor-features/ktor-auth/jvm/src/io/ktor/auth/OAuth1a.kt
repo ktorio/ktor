@@ -194,20 +194,6 @@ private suspend fun requestOAuth1aAccessToken(
     }
 }
 
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated(
-    "Use createObtainRequestTokenHeader instead",
-    ReplaceWith("createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)"),
-    level = DeprecationLevel.HIDDEN
-)
-@KtorExperimentalAPI
-fun obtainRequestTokenHeader(
-    callback: String,
-    consumerKey: String,
-    nonce: String,
-    timestamp: LocalDateTime = LocalDateTime.now()
-): HttpAuthHeader.Parameterized = createObtainRequestTokenHeader(callback, consumerKey, nonce, timestamp)
-
 /**
  * Create an HTTP auth header for OAuth1a obtain token request
  */
@@ -228,23 +214,6 @@ fun createObtainRequestTokenHeader(
         HttpAuthHeader.Parameters.OAuthVersion to "1.0"
     )
 )
-
-/**
- * Create an HTTP auth header for OAuth1a upgrade token request
- */
-@Suppress("unused")
-@Deprecated(
-    "Use createUpgradeRequestTokenHeader instead",
-    ReplaceWith("createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)"),
-    level = DeprecationLevel.HIDDEN
-)
-@KtorExperimentalAPI
-fun upgradeRequestTokenHeader(
-    consumerKey: String,
-    token: String,
-    nonce: String,
-    timestamp: LocalDateTime = LocalDateTime.now()
-): HttpAuthHeader.Parameterized = createUpgradeRequestTokenHeader(consumerKey, token, nonce, timestamp)
 
 /**
  * Create an HTTP auth header for OAuth1a upgrade token request
