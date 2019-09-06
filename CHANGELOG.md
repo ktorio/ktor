@@ -1,3 +1,18 @@
+# 1.3.0
+> Unpublished yet
+
+* ktor client proxy support
+* Eliminated kotlinx.io dependency 
+* Fixed server identity compression handling: keep original content length
+* Fixed handling GET requests with body (#1302)
+* Fixed curl request with empty body
+* Added iOS url session configuration
+* Fixed CIO engine no longer sends port in "Host" header (#1295)
+* Add INTRINSIC value to TLS signature algorithms
+* Introduced ability to send string in request body
+* Improved client and server typeOf support with kotlinx.serialization
+* Gradle 5.4.1+ with newer metadata
+
 # 1.2.4
 > Published 2 Sep 2019
 
