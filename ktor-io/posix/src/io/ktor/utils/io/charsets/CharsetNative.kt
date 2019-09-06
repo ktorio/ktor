@@ -1,10 +1,10 @@
 package io.ktor.utils.io.charsets
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
 import platform.iconv.*
 import platform.posix.*
-import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.*
 
 actual abstract class Charset(internal val _name: String) {
     actual abstract fun newEncoder(): CharsetEncoder
@@ -77,7 +77,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     checkErrors(cd, charset)
 
     @Suppress("ReplaceRangeToWithUntil")
-    for (index in 0 .. length - 1) {
+    for (index in 0..length - 1) {
         chars[index] = input[fromIndex + index]
     }
 

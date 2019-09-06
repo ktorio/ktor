@@ -32,7 +32,10 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
         start += size
 
         if (start == end) break
+
+        val current = tail
         tail = IoBuffer.Pool.borrow()
+        current.next = tail
     }
 
     return ByteChannelNative(head, false).apply { close() }
