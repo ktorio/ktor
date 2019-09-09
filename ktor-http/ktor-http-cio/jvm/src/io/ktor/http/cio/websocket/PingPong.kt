@@ -27,13 +27,16 @@ fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
-    consumeEach { frame ->
-        val buffer = frame.buffer.copy(pool)
-        outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
-            override fun dispose() {
-                pool.recycle(buffer)
-            }
-        }))
+    try {
+        consumeEach { frame ->
+            val buffer = frame.buffer.copy(pool)
+            outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
+                override fun dispose() {
+                    pool.recycle(buffer)
+                }
+            }))
+        }
+    } catch (_: ClosedSendChannelException) {
     }
 }
 
