@@ -283,8 +283,6 @@ public final class io/ktor/network/tls/extensions/HashAlgorithm$Companion {
 
 public final class io/ktor/network/tls/extensions/HashAndSign {
 	public static final field Companion Lio/ktor/network/tls/extensions/HashAndSign$Companion;
-	public fun <init> (BBLjava/lang/String;)V
-	public synthetic fun <init> (BBLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;)V
 	public synthetic fun <init> (Lio/ktor/network/tls/extensions/HashAlgorithm;Lio/ktor/network/tls/extensions/SignatureAlgorithm;Lio/ktor/network/tls/OID;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/ktor/network/tls/extensions/HashAlgorithm;
@@ -363,6 +361,8 @@ public final class io/ktor/network/tls/extensions/SignatureAlgorithm : java/lang
 	public static final field Companion Lio/ktor/network/tls/extensions/SignatureAlgorithm$Companion;
 	public static final field DSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public static final field ECDSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public static final field ED25519 Lio/ktor/network/tls/extensions/SignatureAlgorithm;
+	public static final field ED448 Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public static final field RSA Lio/ktor/network/tls/extensions/SignatureAlgorithm;
 	public final fun getCode ()B
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/extensions/SignatureAlgorithm;
