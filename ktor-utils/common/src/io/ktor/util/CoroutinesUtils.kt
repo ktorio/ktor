@@ -29,3 +29,10 @@ internal expect inline fun <R, A>
     arg: A,
     continuation: Continuation<Unit>
 ): Any?
+
+/**
+ * Supervisor with empty coroutine exception handler ignoring all exceptions.
+ */
+@InternalAPI
+fun SilentSupervisor(parent: Job? = null): CoroutineContext = SupervisorJob() + CoroutineExceptionHandler { _, _ ->
+}

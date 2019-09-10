@@ -22,7 +22,7 @@ import kotlin.coroutines.*
 internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
+    override val coroutineContext: CoroutineContext = dispatcher + SilentSupervisor()
 
     override suspend fun execute(
         data: HttpRequestData
