@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -13,7 +14,7 @@ import kotlin.coroutines.*
  */
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
-    private val clientContext = SupervisorJob()
+    private val clientContext = SilentSupervisor()
     private val _dispatcher by lazy {
         Executors.newFixedThreadPool(config.threadsCount) {
             Thread(it).apply {
@@ -36,7 +37,7 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
      */
     @UseExperimental(InternalCoroutinesApi::class)
     protected suspend fun createCallContext(): CoroutineContext {
-        val callJob = Job(clientContext)
+        val callJob = Job(clientContext[Job])
         val callContext = coroutineContext + callJob
 
         val parentCoroutineJob = currentContext()[Job]
@@ -54,9 +55,10 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     }
 
     override fun close() {
-        clientContext.complete()
+        val job = clientContext[Job] as CompletableJob
 
-        clientContext.invokeOnCompletion {
+        job.complete()
+        job.invokeOnCompletion {
             _dispatcher.close()
         }
     }
