@@ -73,7 +73,6 @@ class FullFormTest : ClientLoader() {
     fun testCustomUrls() = clientTests {
         val urls = listOf(
             "https://google.com",
-            "http://kotlinlang.org/",
             "https://kotlinlang.org/"
         )
 
