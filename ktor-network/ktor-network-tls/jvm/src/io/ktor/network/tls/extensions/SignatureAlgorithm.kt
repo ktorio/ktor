@@ -8,6 +8,7 @@ import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
+
 /**
  * See also: [https://www.iana.org/assignments/tls-parameters/tls-parameters.txt]
  */
@@ -48,15 +49,18 @@ enum class SignatureAlgorithm(val code: Byte) {
     ANON(0),
     RSA(1),
     DSA(2),
-    ECDSA(3);
+    ECDSA(3),
+
+    ED25519(7),
+    ED448(8);
+
 
     companion object {
         /**
          * Find signature algorithm instance by it's numeric [code]
          * @throws TLSExtension if no hash algorithm found by code
          */
-        fun byCode(code: Byte): SignatureAlgorithm = values().find { it.code == code }
-            ?: throw TLSException("Unknown signature algorithm: $code")
+        fun byCode(code: Byte): SignatureAlgorithm? = values().find { it.code == code }
     }
 }
 
@@ -67,17 +71,23 @@ enum class SignatureAlgorithm(val code: Byte) {
  * @property sign algorithm.
  * @property oid [object identifier](https://en.wikipedia.org/wiki/Object_identifier).
  */
-data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm, val oid: OID? = null) {
-    constructor(hash: Byte, sign: Byte, oid: String? = null) : this(
-        HashAlgorithm.byCode(hash), SignatureAlgorithm.byCode(sign), oid?.let{ OID(it) }
-    )
 
+data class HashAndSign(val hash: HashAlgorithm, val sign: SignatureAlgorithm, val oid: OID? = null) {
     /**
      * String representation of this algorithms pair
      */
     val name: String = "${hash.name}with${sign.name}"
 
     companion object
+}
+
+@Suppress("CONFLICTING_OVERLOADS")
+internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = null): HashAndSign? {
+    val hash = HashAlgorithm.byCode(hashValue)
+    val sign = SignatureAlgorithm.byCode(signValue) ?: return null
+    val oid = oidValue?.let{ OID(it) }
+
+    return HashAndSign(hash, sign)
 }
 
 /**
@@ -98,7 +108,7 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
 
     val result = mutableListOf<HashAndSign>()
     while (remaining > 0) {
-        result += readHashAndSign()
+        result += readHashAndSign() ?: continue
     }
 
     if (remaining.toInt() != length)
@@ -107,14 +117,14 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
     return result
 }
 
-internal fun ByteReadPacket.readHashAndSign(): HashAndSign {
+internal fun ByteReadPacket.readHashAndSign(): HashAndSign? {
     val hash = readByte()
     val sign = readByte()
     return HashAndSign.byCode(hash, sign)
 }
 
 @InternalAPI
-fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign {
+fun HashAndSign.Companion.byCode(hash: Byte, sign: Byte): HashAndSign? {
     check(sign != SignatureAlgorithm.ANON.code) { "Anonymous signature not allowed." }
 
     return SupportedSignatureAlgorithms.find { it.hash.code == hash && it.sign.code == sign } ?: HashAndSign(hash, sign)

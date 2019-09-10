@@ -8,10 +8,10 @@ import io.ktor.network.tls.SecretExchangeType.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.cipher.*
 import io.ktor.network.tls.extensions.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.security.*
 import java.security.cert.*
 import java.security.cert.Certificate
@@ -233,7 +233,7 @@ internal class TLSClientHandshake(
                     repeat(hashAndSignCount / 2) {
                         val hash = packet.readByte()
                         val sign = packet.readByte()
-                        hashAndSign += HashAndSign.byCode(hash, sign)
+                        hashAndSign += HashAndSign.byCode(hash, sign) ?: return@repeat
                     }
 
                     val authoritiesSize = packet.readShort().toInt() and 0xFFFF
@@ -257,6 +257,7 @@ internal class TLSClientHandshake(
                             val curve = packet.readCurveParams()
                             val point = packet.readECPoint(curve.fieldSize)
                             val hashAndSign = packet.readHashAndSign()
+                                ?: error("Unknown hash and sign type.")
 
                             val params = buildPacket {
                                 // TODO: support other curve types
