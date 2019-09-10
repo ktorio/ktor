@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
@@ -17,7 +18,7 @@ import kotlin.coroutines.*
 
 internal class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
-    override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
+    override val coroutineContext: CoroutineContext = dispatcher + SilentSupervisor()
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
