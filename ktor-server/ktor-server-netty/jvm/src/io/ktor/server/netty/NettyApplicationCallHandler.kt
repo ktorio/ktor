@@ -9,11 +9,15 @@ import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
 import kotlinx.coroutines.*
+import org.slf4j.*
 import kotlin.coroutines.*
 
 internal class NettyApplicationCallHandler(userCoroutineContext: CoroutineContext,
-                                           private val enginePipeline: EnginePipeline) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    override val coroutineContext: CoroutineContext = userCoroutineContext
+                                           private val enginePipeline: EnginePipeline,
+                                           private val logger: Logger) : ChannelInboundHandlerAdapter(), CoroutineScope {
+    override val coroutineContext: CoroutineContext = userCoroutineContext +
+        CallHandlerCoroutineName +
+        DefaultUncaughtExceptionHandler(logger)
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {

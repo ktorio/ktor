@@ -90,7 +90,7 @@ internal class NettyHttp1Handler(
 
             ctx.pipeline().apply {
                 addLast(requestBodyHandler)
-                addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
+                addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline, environment.log))
             }
 
             responseWriter.ensureRunning()
