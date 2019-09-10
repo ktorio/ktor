@@ -103,6 +103,8 @@ public final class io/ktor/util/CollectionsKt {
 }
 
 public final class io/ktor/util/CoroutinesUtilsKt {
+	public static final fun SilentSupervisor (Lkotlinx/coroutines/Job;)Lkotlin/coroutines/CoroutineContext;
+	public static synthetic fun SilentSupervisor$default (Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlin/coroutines/CoroutineContext;
 	public static final fun printDebugTree (Lkotlinx/coroutines/Job;I)V
 	public static synthetic fun printDebugTree$default (Lkotlinx/coroutines/Job;IILjava/lang/Object;)V
 }
