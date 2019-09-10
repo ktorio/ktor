@@ -6,9 +6,9 @@ package io.ktor.server.netty.cio
 
 import io.ktor.server.netty.*
 import io.ktor.util.internal.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.util.concurrent.atomic.*
 
 internal class NettyRequestQueue(internal val readLimit: Int, internal val runningLimit: Int) {
     init {
@@ -45,30 +45,29 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
-        @kotlin.jvm.Volatile
-        private var scheduled: Int = 0
+        private val scheduled = atomic(0)
 
         private val message: Job = call.response.responseMessage
 
         val isCompleted: Boolean get() = message.isCompleted
 
         fun ensureRunning(): Boolean {
-            if (Scheduled.compareAndSet(this, 0, 1)) {
-                call.context.fireChannelRead(call)
-                return true
+            scheduled.update { value ->
+                when (value) {
+                    0 -> 1
+                    1 -> return true
+                    else -> return false
+                }
             }
 
-            return scheduled == 1
+            call.context.fireChannelRead(call)
+            return true
         }
 
         fun tryDispose() {
-            if (Scheduled.compareAndSet(this, 0, 2)) {
+            if (scheduled.compareAndSet(0, 2)) {
                 call.dispose()
             }
-        }
-
-        companion object {
-            private val Scheduled = AtomicIntegerFieldUpdater.newUpdater(CallElement::class.java, CallElement::scheduled.name)!!
         }
     }
 }
