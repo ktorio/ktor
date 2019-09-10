@@ -13,7 +13,6 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
-import java.io.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.*
@@ -24,6 +23,8 @@ import kotlin.coroutines.*
 private val JettyCallHandlerCoroutineName = CoroutineName("jetty-call-handler")
 
 private val JettyKtorCounter = AtomicLong()
+
+private const val THREAD_KEEP_ALIVE_TIME = 1L
 
 internal class JettyKtorHandler(
     val environment: ApplicationEngineEnvironment,
@@ -36,7 +37,7 @@ internal class JettyKtorHandler(
     private val executor = ThreadPoolExecutor(
         configuration.callGroupSize,
         configuration.callGroupSize * 8,
-        1L,
+        THREAD_KEEP_ALIVE_TIME,
         TimeUnit.MINUTES,
         queue
     ) { r ->
