@@ -10,13 +10,13 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
-import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 /**
@@ -88,6 +88,8 @@ fun CoroutineScope.httpServer(
         TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds)
     )
 
+    val logger = LoggerFactory.getLogger(HttpServer::class.java)
+
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
             socket.complete(server)
@@ -95,7 +97,7 @@ fun CoroutineScope.httpServer(
             val connectionScope = CoroutineScope(
                 coroutineContext +
                     SupervisorJob(serverJob) +
-                    KtorUncaughtExceptionHandler() +
+                    DefaultUncaughtExceptionHandler(logger) +
                     CoroutineName("request")
             )
 
@@ -139,17 +141,4 @@ fun CoroutineScope.httpServer(
     }
 
     return HttpServer(serverJob, acceptJob, socket)
-}
-
-private class KtorUncaughtExceptionHandler : CoroutineExceptionHandler {
-    private val logger = LoggerFactory.getLogger(KtorUncaughtExceptionHandler::class.java)
-
-    override val key: CoroutineContext.Key<*>
-        get() = CoroutineExceptionHandler.Key
-
-    override fun handleException(context: CoroutineContext, exception: Throwable) {
-        if (exception is CancellationException) return
-
-        logger.error(exception)
-    }
 }
