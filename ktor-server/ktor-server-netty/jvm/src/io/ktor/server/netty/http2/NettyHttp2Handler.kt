@@ -59,7 +59,7 @@ internal class NettyHttp2Handler(
         super.channelRegistered(ctx)
 
         ctx?.pipeline()?.apply {
-            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline))
+            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, enginePipeline, application.log))
         }
     }
 

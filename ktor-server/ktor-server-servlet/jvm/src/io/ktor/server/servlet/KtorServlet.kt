@@ -10,6 +10,8 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
+import org.slf4j.*
+import org.slf4j.event.*
 import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -34,12 +36,19 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
     protected abstract val enginePipeline: EnginePipeline
 
     /**
+     * Application logger
+     */
+    protected open val logger: Logger get() = LoggerFactory.getLogger(servletName)
+
+    /**
      * Servlet upgrade implementation
      */
     protected abstract val upgrade: ServletUpgrade
 
     override val coroutineContext: CoroutineContext =
-        Dispatchers.Unconfined + SupervisorJob() + CoroutineName("servlet")
+        Dispatchers.Unconfined + SupervisorJob() +
+            CoroutineName("servlet") +
+            DefaultUncaughtExceptionHandler { logger }
 
     /**
      * Called by the servlet container when loading the servlet (on load)

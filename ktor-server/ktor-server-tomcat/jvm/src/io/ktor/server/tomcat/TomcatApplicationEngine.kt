@@ -16,6 +16,7 @@ import org.apache.tomcat.jni.*
 import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
+import org.slf4j.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
@@ -49,6 +50,8 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
             get() = this@TomcatApplicationEngine.application
         override val upgrade: ServletUpgrade
             get() = DefaultServletUpgrade
+        override val logger: Logger
+            get() = this@TomcatApplicationEngine.environment.log
     }
 
     private val server = Tomcat().apply {

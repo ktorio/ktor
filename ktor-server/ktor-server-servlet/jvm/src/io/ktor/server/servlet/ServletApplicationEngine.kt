@@ -60,6 +60,8 @@ open class ServletApplicationEngine : KtorServlet() {
 
     override val application: Application get() = environment.application
 
+    override val logger: Logger get() = environment.log
+
     override val enginePipeline: EnginePipeline by lazy {
         defaultEnginePipeline(environment).also {
             BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
