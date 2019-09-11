@@ -1,5 +1,6 @@
 package io.ktor.utils.io.bits
 
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -11,6 +12,7 @@ import kotlin.contracts.contract
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
+@ExperimentalIoApi
 expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
 
 /**
@@ -18,6 +20,7 @@ expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory)
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
  * may occur including crash and/or data corruption.
  */
+@ExperimentalIoApi
 inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -31,6 +34,7 @@ inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
  * The provided instance shouldn't be captured and used outside of the [block] otherwise an undefined behaviour
  * may occur including crash and/or data corruption.
  */
+@ExperimentalIoApi
 inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

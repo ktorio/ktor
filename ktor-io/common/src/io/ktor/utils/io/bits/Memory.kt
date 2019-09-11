@@ -2,6 +2,8 @@
 
 package io.ktor.utils.io.bits
 
+import io.ktor.utils.io.core.*
+
 /**
  * Represents a linear range of bytes.
  * All operations are guarded by range-checks by default however at some platforms they could be disabled
@@ -9,6 +11,7 @@ package io.ktor.utils.io.bits
  *
  * Instance of this class has no additional state except the bytes themselves.
  */
+@ExperimentalIoApi
 expect class Memory {
     /**
      * Size of memory range in bytes.
