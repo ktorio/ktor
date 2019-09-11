@@ -12,6 +12,8 @@
 * Introduced ability to send string in request body
 * Improved client and server typeOf support with kotlinx.serialization
 * Gradle 5.4.1+ with newer metadata
+* Improved exceptions handling in client and server on Android
+* Added missing TLS parameters and relaxed TLS parsing to ignore unsupported features
 
 # 1.2.4
 > Published 2 Sep 2019
