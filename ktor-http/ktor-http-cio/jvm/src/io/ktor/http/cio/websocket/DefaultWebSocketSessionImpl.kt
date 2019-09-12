@@ -158,10 +158,10 @@ class DefaultWebSocketSessionImpl(
         } catch (ignore: CancellationException) {
         } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
-            outgoingToBeProcessed.close()
+            outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
             raw.close(cause)
         } finally {
-            outgoingToBeProcessed.close()
+            outgoingToBeProcessed.cancel()
             raw.close()
         }
     }

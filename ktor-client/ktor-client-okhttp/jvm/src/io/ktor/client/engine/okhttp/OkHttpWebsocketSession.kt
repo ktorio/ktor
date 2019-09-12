@@ -87,7 +87,8 @@ internal class OkHttpWebsocketSession(
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
         _incoming.close()
-        outgoing.close()
+        outgoing.close(CancellationException("WebSocket session closed with code " +
+            "${CloseReason.Codes.byCode(code.toShort())?.toString() ?: code}."))
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {

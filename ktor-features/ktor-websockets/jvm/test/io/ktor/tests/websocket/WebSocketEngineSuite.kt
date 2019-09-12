@@ -61,30 +61,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             outputStream.apply {
                 // text message with content "Hello"
@@ -120,28 +97,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, inputStream.parseStatus().value)
-
-            val headers = inputStream.parseHeaders()
-            assertTrue { headers.contains(HttpHeaders.Upgrade) }
+            negotiateHttpWebSocket()
 
             for (i in 1..5) {
                 val frame = inputStream.readFrame()
@@ -197,30 +153,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             outputStream.apply {
                 for (i in 1..count) {
@@ -260,30 +193,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             getInputStream().apply {
                 for (i in 1..count) {
@@ -329,30 +239,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             getOutputStream().apply {
                 write(sendBuffer.array(), 0, sendBuffer.remaining())
@@ -413,30 +300,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             val sendBuffer = ByteBuffer.allocate(64)
             outputStream.apply {
@@ -478,30 +342,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         socket {
-            // send upgrade request
-            outputStream.apply {
-                write(
-                    """
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: websocket
-                Connection: Upgrade
-                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-                Origin: http://localhost:$port
-                Sec-WebSocket-Protocol: chat
-                Sec-WebSocket-Version: 13
-                """.trimIndent().replace("\n", "\r\n").toByteArray()
-                )
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+            negotiateHttpWebSocket()
 
             // it should be close frame immediately
             assertCloseFrame(CloseReason.Codes.TRY_AGAIN_LATER.code, replyCloseFrame = false)
@@ -521,6 +362,77 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 flush()
             }
         }
+    }
+
+    @Test
+    fun testClientClosingFirst() {
+        val deferred = CompletableDeferred<Unit>()
+
+        createAndStartServer {
+            webSocket("/") {
+                try {
+                    assertNull(incoming.receiveOrNull(), "Incoming channel should be closed")
+                    assertFailsWith<CancellationException>("Outgoing channel should be closed properly") {
+                        repeat(10) {
+                            // we need this loop because the outgoing is not closed immediately
+                            outgoing.send(Frame.Text("Should not be sent."))
+                            delay(100)
+                        }
+                    }
+                } catch (failed: Throwable) {
+                    deferred.completeExceptionally(failed)
+                } finally {
+                    deferred.complete(Unit)
+                }
+            }
+        }
+
+        socket {
+            negotiateHttpWebSocket()
+
+            val serializer = Serializer()
+            val buffer = ByteBuffer.allocate(8192)
+            serializer.enqueue(Frame.Close(CloseReason(CloseReason.Codes.GOING_AWAY, "Completed.")))
+            serializer.serialize(buffer)
+
+            getOutputStream().write(buffer.array(), buffer.arrayOffset(), buffer.position())
+            getOutputStream().flush()
+
+            val reply = getInputStream().readFrame() as Frame.Close
+            val reason = reply.readReason()
+            assertNotNull(reason)
+
+            runBlocking {
+                deferred.await()
+            }
+        }
+    }
+
+    private fun Socket.negotiateHttpWebSocket() {
+        // send upgrade request
+        outputStream.apply {
+            write(
+                """
+                    GET / HTTP/1.1
+                    Host: localhost:$port
+                    Upgrade: websocket
+                    Connection: Upgrade
+                    Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+                    Origin: http://localhost:$port
+                    Sec-WebSocket-Protocol: chat
+                    Sec-WebSocket-Version: 13
+                    """.trimIndent().replace("\n", "\r\n").toByteArray()
+            )
+            write("\r\n\r\n".toByteArray())
+            flush()
+        }
+
+        val status = inputStream.parseStatus()
+        assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
+
+        val headers = inputStream.parseHeaders()
+        assertEquals("Upgrade", headers[HttpHeaders.Connection])
+        assertEquals("websocket", headers[HttpHeaders.Upgrade])
     }
 
     private fun Socket.assertCloseFrame(
