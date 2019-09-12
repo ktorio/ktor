@@ -226,6 +226,20 @@ open class Locations(private val application: Application, private val routeServ
             ""
     }
 
+    /**
+     * Constructs the url for [location] with additional query parameters.
+     *
+     * The class of [location] instance **must** be annotated with [Location].
+     */
+    fun href(location: Any, queryParameters: List<Pair<String, String>>): String {
+        val info = pathAndQuery(location)
+        val query = info.query + queryParameters
+        return info.path + if (query.any())
+            "?" + query.formUrlEncode()
+        else
+            ""
+    }
+
     internal fun href(location: Any, builder: URLBuilder) {
         val info = pathAndQuery(location)
         builder.encodedPath = info.path

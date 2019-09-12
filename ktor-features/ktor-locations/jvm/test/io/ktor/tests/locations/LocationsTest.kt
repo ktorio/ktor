@@ -500,5 +500,17 @@ class LocationsTest {
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
+
+    @Location("/query") class query(val q: String)
+
+
+    @Test fun `href with extra query parameters`() = withLocationsApplication {
+
+        var href = application.locations.href(query(q = "testQuery"), listOf(Pair("q2", "abc"), Pair("q3", "123")))
+        assertEquals("/query?q=testQuery&q2=abc&q3=123", href)
+
+        href = application.locations.href(query(q = "testQuery"), listOf(Pair("q", "abc"), Pair("q3", "123")))
+        assertEquals("/query?q=testQuery&q=abc&q3=123", href) // parameter q gets added twice
+    }
 }
 
