@@ -1,5 +1,10 @@
-package io.ktor.utils.io
+/*
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
+package io.ktor.utils.io.tests
+
+import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import kotlin.test.*
 
@@ -27,7 +32,7 @@ class ByteChannelNativeTests : ByteChannelTestBase(true) {
 
     @Test
     fun testCPointersReadWriteFullyWithShift() = runTest {
-        for (shift in 0 .. 3) {
+        for (shift in 0..3) {
             val array = ByteArray(4)
             for (i in 0..3) {
                 array[i] = i.toByte()
@@ -44,7 +49,7 @@ class ByteChannelNativeTests : ByteChannelTestBase(true) {
                 ch.readFully(ptr, shift, 4 - shift)
             }
 
-            for (i in shift .. 3) {
+            for (i in shift..3) {
                 assertEquals(array[i], result[i])
             }
         }
