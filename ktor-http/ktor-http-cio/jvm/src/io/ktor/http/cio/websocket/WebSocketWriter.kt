@@ -49,11 +49,13 @@ class WebSocketWriter(
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
+        } catch (t: Throwable) {
+            queue.close(t)
         } finally {
             (coroutineContext[Job] as? CompletableJob)?.apply {
                 complete()
             }
-            close()
+            queue.close(CancellationException("WebSocket closed.", null))
             writeChannel.close()
         }
 
@@ -83,7 +85,7 @@ class WebSocketWriter(
                     is FlushRequest -> flush = message
                     is Frame.Close -> {
                         serializer.enqueue(message)
-                        close()
+                        queue.close()
                         closeSent = true
                         break@poll
                     }
@@ -143,6 +145,7 @@ class WebSocketWriter(
     /**
      * Closes the message queue
      */
+    @Deprecated("Will be removed")
     fun close() {
         queue.close()
     }

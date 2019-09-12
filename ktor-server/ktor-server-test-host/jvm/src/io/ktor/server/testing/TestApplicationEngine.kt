@@ -232,7 +232,7 @@ class TestApplicationEngine(
                 call.callback(reader.incoming, writer.outgoing)
             } finally {
                 writer.flush()
-                writer.close()
+                writer.outgoing.close()
                 job.cancelAndJoin()
             }
         }
