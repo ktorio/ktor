@@ -49,7 +49,6 @@ buildscript {
         classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "kotlinx.team:kotlinx.team.infra:$infra_version"
-        classpath "io.spring.gradle:dependency-management-plugin:$spring_dependency_management_version"
     }
 }
 
