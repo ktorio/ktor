@@ -1,10 +1,10 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.internal.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.ObjectPool
+import io.ktor.utils.io.internal.*
+import io.ktor.utils.io.pool.*
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
 suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
@@ -12,7 +12,10 @@ suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, clo
 }
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = kotlin.Long.MAX_VALUE): Long {
+suspend fun ByteChannelSequentialBase.copyTo(
+    dst: ByteChannelSequentialBase,
+    limit: Long = Long.MAX_VALUE
+): Long {
     return copyToSequentialImpl(dst, limit)
 }
 
@@ -334,8 +337,9 @@ abstract class ByteChannelSequentialBase(
         return if (remaining == 0L || (readable.isEmpty && closed)) {
             afterRead()
             builder.build()
+        } else {
+            readRemainingSuspend(builder, limit)
         }
-        else readRemainingSuspend(builder, remaining)
     }
 
     private suspend fun readRemainingSuspend(builder: BytePacketBuilder, limit: Long): ByteReadPacket {
@@ -495,7 +499,7 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun await(atLeast: Int): Boolean {
-        require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast"}
+        require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast" }
         require(atLeast <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $atLeast" }
 
         completeReading()
