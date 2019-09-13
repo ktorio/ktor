@@ -12,14 +12,32 @@ import io.ktor.client.response.HttpReceivePipeline
 import io.ktor.client.response.HttpResponse
 import io.ktor.util.AttributeKey
 
+/**
+ * Need retry condition checker
+ *
+ * You could return true to make [HttpClient] retry the request
+ */
 typealias RetryCondition = suspend (requestBuilder: HttpRequestBuilder, response: HttpResponse) -> Boolean
 
+/**
+ * Need retry feature for [HttpClient]
+ *
+ * @property retryHandlers: list of retry conditions to check before deciding to retry a request
+ */
 class NeedRetry(
     private val retryHandlers: List<RetryCondition>
 ) {
+
+    /**
+     * [NeedRetry] configuration.
+     */
     class Config {
         internal val retryHandlers: MutableList<RetryCondition> = mutableListOf()
 
+        /**
+         * Add [RetryCondition].
+         * Last added handler executes first.
+         */
         fun retryCondition(block: RetryCondition) {
             retryHandlers += block
         }
@@ -57,6 +75,9 @@ class NeedRetry(
     }
 }
 
+/**
+ * Install [NeedRetry] with [block] configuration.
+ */
 fun HttpClientConfig<*>.RetryCondition(block: NeedRetry.Config.() -> Unit) {
     install(NeedRetry, block)
 }
