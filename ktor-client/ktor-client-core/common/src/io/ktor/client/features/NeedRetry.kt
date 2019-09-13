@@ -12,15 +12,15 @@ import io.ktor.client.response.HttpReceivePipeline
 import io.ktor.client.response.HttpResponse
 import io.ktor.util.AttributeKey
 
-typealias NeedRetryHandler = suspend (requestBuilder: HttpRequestBuilder, response: HttpResponse) -> Boolean
+typealias RetryCondition = suspend (requestBuilder: HttpRequestBuilder, response: HttpResponse) -> Boolean
 
 class NeedRetry(
-    private val retryHandlers: List<NeedRetryHandler>
+    private val retryHandlers: List<RetryCondition>
 ) {
     class Config {
-        internal val retryHandlers: MutableList<NeedRetryHandler> = mutableListOf()
+        internal val retryHandlers: MutableList<RetryCondition> = mutableListOf()
 
-        fun needRetryHandler(block: NeedRetryHandler) {
+        fun retryCondition(block: RetryCondition) {
             retryHandlers += block
         }
     }
@@ -57,6 +57,6 @@ class NeedRetry(
     }
 }
 
-fun HttpClientConfig<*>.NeedRetryHandler(block: NeedRetry.Config.() -> Unit) {
+fun HttpClientConfig<*>.RetryCondition(block: NeedRetry.Config.() -> Unit) {
     install(NeedRetry, block)
 }

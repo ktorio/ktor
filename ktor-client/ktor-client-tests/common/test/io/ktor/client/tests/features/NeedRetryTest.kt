@@ -18,12 +18,12 @@ class NeedRetryTest {
         respondOk("Hello")
     }) {
 
-        var needRetryHandlerCalled = false
+        var retryConditionBlockCalled = false
 
         config {
-            NeedRetryHandler {
-                needRetryHandler { requestBuilder, response ->
-                    needRetryHandlerCalled = true
+            RetryCondition {
+                retryCondition { requestBuilder, response ->
+                    retryConditionBlockCalled = true
                     false
                 }
             }
@@ -31,7 +31,7 @@ class NeedRetryTest {
 
         test { client ->
             client.get<HttpResponse>()
-            assertTrue(needRetryHandlerCalled, "Need retry handle never called")
+            assertTrue(retryConditionBlockCalled, "Need retry condition block never called")
         }
     }
 }
