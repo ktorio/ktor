@@ -130,10 +130,7 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     session.run {
         try {
             toServerSession(call).handler()
-            try {
-                session.close()
-            } catch (_: ClosedSendChannelException) {
-            }
+            session.close()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (io: ChannelIOException) {
