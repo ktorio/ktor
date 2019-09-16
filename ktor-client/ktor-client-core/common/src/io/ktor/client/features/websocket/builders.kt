@@ -38,16 +38,15 @@ suspend fun HttpClient.webSocketSession(
  */
 suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
+) {
     val session = webSocketSession(request)
 
     try {
         session.block()
+        session.close()
     } catch (cause: Throwable) {
-        session.close(cause)
+        session.closeExceptionally(cause)
         throw cause
-    } finally {
-        session.close(null)
     }
 }
 
@@ -57,7 +56,7 @@ suspend fun HttpClient.webSocket(
 suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
+) {
     val session = webSocketSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
         url.port = port
@@ -66,11 +65,10 @@ suspend fun HttpClient.webSocket(
 
     try {
         session.block()
+        session.close()
     } catch (cause: Throwable) {
-        session.close(cause)
+        session.closeExceptionally(cause)
         throw cause
-    } finally {
-        session.close(null)
     }
 }
 
@@ -80,7 +78,7 @@ suspend fun HttpClient.webSocket(
 suspend fun HttpClient.webSocket(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
+) {
     val session = webSocketSession(HttpMethod.Get) {
         url.protocol = URLProtocol.WS
         url.port = port
@@ -91,11 +89,10 @@ suspend fun HttpClient.webSocket(
 
     try {
         session.block()
+        session.close()
     } catch (cause: Throwable) {
-        session.close(cause)
+        session.closeExceptionally(cause)
         throw cause
-    } finally {
-        session.close(null)
     }
 }
 

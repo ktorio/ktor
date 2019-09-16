@@ -250,7 +250,6 @@ public final class io/ktor/http/cio/websocket/DefaultWebSocketSessionImpl : io/k
 	public static final field Companion Lio/ktor/http/cio/websocket/DefaultWebSocketSessionImpl$Companion;
 	public fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLio/ktor/utils/io/pool/ObjectPool;)V
 	public synthetic fun <init> (Lio/ktor/http/cio/websocket/WebSocketSession;JJLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -392,7 +391,6 @@ public final class io/ktor/http/cio/websocket/PingPongKt {
 public final class io/ktor/http/cio/websocket/RawWebSocket : io/ktor/http/cio/websocket/WebSocketSession {
 	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JZLkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
@@ -446,7 +444,6 @@ public final class io/ktor/http/cio/websocket/WebSocketReader$FrameTooBigExcepti
 }
 
 public abstract interface class io/ktor/http/cio/websocket/WebSocketSession : kotlinx/coroutines/CoroutineScope {
-	public abstract fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
 	public abstract fun getMasking ()Z
@@ -459,12 +456,14 @@ public abstract interface class io/ktor/http/cio/websocket/WebSocketSession : ko
 }
 
 public final class io/ktor/http/cio/websocket/WebSocketSession$DefaultImpls {
-	public static synthetic fun close$default (Lio/ktor/http/cio/websocket/WebSocketSession;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static fun send (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/http/cio/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/http/cio/websocket/WebSocketSessionKt {
 	public static final fun close (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/http/cio/websocket/CloseReason;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun close (Lio/ktor/http/cio/websocket/WebSocketSession;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun close$default (Lio/ktor/http/cio/websocket/WebSocketSession;Lio/ktor/http/cio/websocket/CloseReason;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun closeExceptionally (Lio/ktor/http/cio/websocket/WebSocketSession;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun send (Lio/ktor/http/cio/websocket/WebSocketSession;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun send (Lio/ktor/http/cio/websocket/WebSocketSession;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

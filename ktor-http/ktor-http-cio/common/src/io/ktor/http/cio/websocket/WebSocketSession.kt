@@ -43,12 +43,6 @@ expect interface WebSocketSession : CoroutineScope {
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
     fun terminate()
-
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    @KtorExperimentalAPI
-    suspend fun close(cause: Throwable? = null)
 }
 
 /**
@@ -77,4 +71,30 @@ suspend fun WebSocketSession.close(reason: CloseReason = CloseReason(CloseReason
         flush()
     } catch (_: Throwable) {
     }
+}
+
+/**
+ * Closes with reason depending on [cause] or normally if [cause] is `null`.
+ * This is going to be removed. Close with a particular reason or terminate instead.
+ */
+@Deprecated("Close with reason or terminate instead.")
+suspend fun WebSocketSession.close(cause: Throwable?) {
+    if (cause == null) {
+        close()
+    } else {
+        closeExceptionally(cause)
+    }
+}
+
+/**
+ * Closes session with normal or error close reason, depending on whether [cause] is cancellation or not.
+ */
+@InternalAPI
+suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
+    val reason = when (cause) {
+        is CancellationException -> CloseReason(CloseReason.Codes.NORMAL, "")
+        else -> CloseReason(CloseReason.Codes.INTERNAL_ERROR, cause.toString())
+    }
+
+    close(reason)
 }

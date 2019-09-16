@@ -45,9 +45,4 @@ actual interface WebSocketSession : CoroutineScope {
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
     actual fun terminate()
-
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    actual suspend fun close(cause: Throwable?)
 }
