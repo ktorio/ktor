@@ -63,7 +63,7 @@ internal class OkHttpWebsocketSession(
                 }
             }
         } finally {
-            websocket.close(CloseReason.Codes.UNEXPECTED_CONDITION.code.toInt(), "Client failure")
+            websocket.close(CloseReason.Codes.INTERNAL_ERROR.code.toInt(), "Client failure")
         }
     }
 

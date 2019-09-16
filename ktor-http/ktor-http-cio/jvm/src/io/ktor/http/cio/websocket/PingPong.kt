@@ -89,7 +89,7 @@ fun CoroutineScope.pinger(
                     // we were unable to send ping or hadn't get valid pong message in time
                     // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
-                    val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
+                    val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Ping timeout"))
                     outgoing.send(closeFrame)
                     break
                 }

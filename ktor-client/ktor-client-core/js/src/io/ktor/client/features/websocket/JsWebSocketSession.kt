@@ -86,7 +86,7 @@ internal class JsWebSocketSession(
             if (cause == null) {
                 websocket.close()
             } else {
-                websocket.close(CloseReason.Codes.UNEXPECTED_CONDITION.code, "Client failed")
+                websocket.close(CloseReason.Codes.INTERNAL_ERROR.code, "Client failed")
             }
         }
     }
