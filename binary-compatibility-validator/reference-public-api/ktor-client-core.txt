@@ -561,7 +561,6 @@ public final class io/ktor/client/features/websocket/ClientWebSocketSession$Defa
 
 public final class io/ktor/client/features/websocket/DefaultClientWebSocketSession : io/ktor/client/features/websocket/ClientWebSocketSession, io/ktor/http/cio/websocket/DefaultWebSocketSession {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/http/cio/websocket/DefaultWebSocketSession;)V
-	public fun close (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;

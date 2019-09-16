@@ -5,7 +5,6 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.http.cio.websocket.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.core.*
@@ -78,6 +77,9 @@ internal class JsWebSocketSession(
                         val data = buildPacket { writeFully(it.data) }
                         websocket.close(data.readShort(), data.readText())
                     }
+                    FrameType.PING, FrameType.PONG -> {
+                        // ignore
+                    }
                 }
             }
         }
@@ -98,16 +100,5 @@ internal class JsWebSocketSession(
         _incoming.cancel()
         _outgoing.cancel()
         websocket.close()
-    }
-
-    @KtorExperimentalAPI
-    override suspend fun close(cause: Throwable?) {
-        val reason = cause?.let {
-            CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: "")
-        } ?: CloseReason(CloseReason.Codes.NORMAL, "OK")
-
-        websocket.close(reason.code, reason.message)
-        _outgoing.close(cause)
-        _incoming.close(cause)
     }
 }

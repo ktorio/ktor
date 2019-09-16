@@ -54,13 +54,6 @@ class RawWebSocket(
         outgoing.close()
         socketJob.complete()
     }
-
-    override suspend fun close(cause: Throwable?) {
-        if (cause != null) {
-            socketJob.completeExceptionally(cause)
-            outgoing.close(cause)
-        } else terminate()
-    }
 }
 
 @Suppress("KDocMissingDocumentation")

@@ -83,21 +83,6 @@ class DefaultWebSocketSessionImpl(
         raw.terminate()
     }
 
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    @KtorExperimentalAPI
-    override suspend fun close(cause: Throwable?) {
-        if (closed.value) return
-        val reason = when (cause) {
-            null -> NORMAL_CLOSE
-            is ClosedReceiveChannelException, is ClosedSendChannelException -> null
-            else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: cause.javaClass.name)
-        }
-
-        reason?.let { send(Frame.Close(it)) }
-    }
-
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
@@ -159,7 +144,7 @@ class DefaultWebSocketSessionImpl(
         } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
             outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
-            raw.close(cause)
+            raw.closeExceptionally(cause)
         } finally {
             outgoingToBeProcessed.cancel()
             raw.close()
@@ -208,13 +193,11 @@ class DefaultWebSocketSessionImpl(
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
-    val failure = try {
+    try {
         val me: DefaultWebSocketSession = this@run
         me.handler()
-        null
+        close()
     } catch (failure: Throwable) {
-        failure
+        closeExceptionally(failure)
     }
-
-    close(failure)
 }
