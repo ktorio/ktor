@@ -4,6 +4,8 @@
 
 package io.ktor.http.cio.websocket
 
+import kotlin.jvm.*
+
 /**
  * Websocket close reason
  * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
@@ -37,12 +39,20 @@ data class CloseReason(val code: Short, val message: String) {
         VIOLATED_POLICY(1008),
         TOO_BIG(1009),
         NO_EXTENSION(1010),
-        UNEXPECTED_CONDITION(1011),
+        INTERNAL_ERROR(1011),
         SERVICE_RESTART(1012),
         TRY_AGAIN_LATER(1013);
 
         companion object {
             private val byCodeMap = values().associateBy { it.code }
+
+            @Deprecated("Use INTERNAL_ERROR instead.",
+                ReplaceWith("INTERNAL_ERROR",
+                    "io.ktor.http.cio.websocket.CloseReason.Codes.INTERNAL_ERROR")
+            )
+            @JvmField
+            @Suppress("UNUSED")
+            val UNEXPECTED_CONDITION: Codes = INTERNAL_ERROR
 
             /**
              * Get enum value by close reason code
