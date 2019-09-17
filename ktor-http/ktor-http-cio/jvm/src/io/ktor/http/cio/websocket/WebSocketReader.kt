@@ -33,7 +33,7 @@ class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.LAZY) {
+    private val readerJob = launch(CoroutineName("ws-reader")) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
