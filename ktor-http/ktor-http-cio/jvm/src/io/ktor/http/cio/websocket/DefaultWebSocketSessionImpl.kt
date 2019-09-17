@@ -130,14 +130,7 @@ class DefaultWebSocketSessionImpl(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            for (frame in outgoingToBeProcessed) {
-                if (frame is Frame.Close) {
-                    sendCloseSequence(frame.readReason())
-                    break
-                }
-
-                raw.outgoing.send(frame)
-            }
+            outgoingProcessorLoop()
         } catch (ignore: ClosedSendChannelException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: CancellationException) {
@@ -151,8 +144,19 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
+    private suspend fun outgoingProcessorLoop() {
+        for (frame in outgoingToBeProcessed) {
+            if (frame is Frame.Close) {
+                sendCloseSequence(frame.readReason())
+                break
+            }
+
+            raw.outgoing.send(frame)
+        }
+    }
+
     private suspend fun sendCloseSequence(reason: CloseReason?) {
-        if (!closed.compareAndSet(false, true)) return
+        if (!tryClose()) return
         context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
@@ -163,6 +167,8 @@ class DefaultWebSocketSessionImpl(
             closeReasonRef.complete(reasonToSend)
         }
     }
+
+    private fun tryClose(): Boolean = closed.compareAndSet(false, true)
 
     private fun runOrCancelPinger() {
         val interval = pingIntervalMillis
