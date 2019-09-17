@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.CompletionHandler
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.CancellationException
@@ -39,7 +40,6 @@ class WebSocketReader(
             readLoop(buffer)
         } catch (expected: ClosedChannelException) {
         } catch (expected: CancellationException) {
-            queue.cancel()
         } catch (io: ChannelIOException) {
             queue.cancel()
         } catch (cause: Throwable) {
@@ -54,7 +54,7 @@ class WebSocketReader(
     /**
      * Channel receiving Websocket's [Frame] objects read from [byteChannel].
      */
-    val incoming: ReceiveChannel<Frame> get() = queue.also { readerJob.start() }
+    val incoming: ReceiveChannel<Frame> get() = queue
 
     private suspend fun readLoop(buffer: ByteBuffer) {
         buffer.clear()

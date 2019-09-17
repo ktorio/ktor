@@ -46,6 +46,11 @@ class RawWebSocket(
         coroutineContext[Job]?.invokeOnCompletion {
             reader.cancel()
         }
+
+        // this was extracted from WebSocketReader (was broken).
+        writer.outgoing.invokeOnClose {
+            socketJob.complete()
+        }
     }
 
     override suspend fun flush(): Unit = writer.flush()

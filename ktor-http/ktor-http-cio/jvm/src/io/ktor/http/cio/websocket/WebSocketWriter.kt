@@ -28,7 +28,7 @@ class WebSocketWriter(
 ) : CoroutineScope {
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
-    private val queue = actor<Any>(capacity = 8) {
+    private val queue = actor<Any>(context = CoroutineName("ws-writer"), capacity = 8) {
         pool.useInstance { writeLoop(it) }
     }
 
@@ -52,9 +52,6 @@ class WebSocketWriter(
         } catch (t: Throwable) {
             queue.close(t)
         } finally {
-            (coroutineContext[Job] as? CompletableJob)?.apply {
-                complete()
-            }
             queue.close(CancellationException("WebSocket closed.", null))
             writeChannel.close()
         }
