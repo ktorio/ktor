@@ -28,7 +28,7 @@ class WebSocketWriter(
 ) : CoroutineScope {
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
-    private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
+    private val queue = actor<Any>(capacity = 8) {
         pool.useInstance { writeLoop(it) }
     }
 
