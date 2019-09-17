@@ -79,19 +79,21 @@ class WebSocketWriter(
 
         // initially serializer has at least one message queued
         while (true) {
-            poll@ while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
+            while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
                 val message = poll() ?: break
                 when (message) {
                     is FlushRequest -> flush = message
                     is Frame.Close -> {
                         serializer.enqueue(message)
-                        queue.close()
                         closeSent = true
-                        break@poll
                     }
                     is Frame -> serializer.enqueue(message)
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
+            }
+
+            if (closeSent) {
+                queue.close()
             }
 
             if (!serializer.hasOutstandingBytes && buffer.position() == 0) break
