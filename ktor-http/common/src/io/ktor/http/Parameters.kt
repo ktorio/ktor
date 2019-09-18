@@ -10,6 +10,12 @@ import io.ktor.util.*
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
  */
 public interface Parameters : StringValues {
+    /**
+     * Returns a [UrlEncodingOption] instance
+     */
+    @KtorExperimentalAPI
+    public fun urlEncodingOption(): UrlEncodingOption = UrlEncodingOption.DEFAULT
+
     public companion object {
         /**
          * Empty [Parameters] instance
@@ -27,7 +33,10 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+public class ParametersBuilder(
+    size: Int = 8,
+    private val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : StringValuesBuilder(true, size) {
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
@@ -74,8 +83,11 @@ public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = 
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters,
-    StringValuesImpl(true, values) {
+public class ParametersImpl(
+    values: Map<String, List<String>> = emptyMap(),
+    private val encodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : Parameters, StringValuesImpl(true, values) {
+    override fun urlEncodingOption() = encodingOption
     override fun toString(): String = "Parameters ${entries()}"
 }
 
