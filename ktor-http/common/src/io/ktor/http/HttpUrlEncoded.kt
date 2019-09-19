@@ -41,12 +41,30 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
 }
 
 /**
+ * Encode form parameters from a list of pairs
+ */
+@Deprecated(
+    "Use formUrlEncode(option)",
+    ReplaceWith("formUrlEncode(UrlEncodingOption.DEFAULT)", "io.ktor.http.UrlEncodingOption"),
+    DeprecationLevel.HIDDEN
+)
+public fun List<Pair<String, String?>>.formUrlEncode(): String = formUrlEncode(UrlEncodingOption.DEFAULT)
+
+/**
  * Encode form parameters from a list of pairs by using [option]
  */
 public fun List<Pair<String, String?>>.formUrlEncode(option: UrlEncodingOption = UrlEncodingOption.DEFAULT): String =
-    StringBuilder().apply {
-        formUrlEncodeTo(this, option)
-    }.toString()
+    buildString { formUrlEncodeTo(this, option) }
+
+/**
+ * Encode form parameters from a list of pairs to the specified [out] appendable
+ */
+@Deprecated(
+    "Use formUrlEncodeTo(out, option)",
+    ReplaceWith("formUrlEncodeTo(out, UrlEncodingOption.DEFAULT)", "io.ktor.http.UrlEncodingOption"),
+    DeprecationLevel.HIDDEN
+)
+public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) = formUrlEncodeTo(out, UrlEncodingOption.DEFAULT)
 
 /**
  * Encode form parameters from a list of pairs to the specified [out] appendable by using [option]

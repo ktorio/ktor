@@ -12,12 +12,17 @@ class ParametersBuilderTest {
     private val original = "abc=def&efg=hij;klm=nop/qrs=tuv"
     private val encoded = original.encodeURLParameter(false)
 
-    private fun assertEncodedQuery(option: UrlEncodingOption, expectedKey: String, expectedValue: String) {
-        val builder = ParametersBuilder(urlEncodingOption = option)
+    private fun assertEncodedQuery(option: UrlEncodingOption?, expectedKey: String, expectedValue: String) {
+        val builder = option?.let { ParametersBuilder(urlEncodingOption = it) } ?: ParametersBuilder()
         builder.append(original, original)
         val encoded = builder.build().formUrlEncode()
 
         assertEquals("$expectedKey=$expectedValue", encoded)
+    }
+
+    @Test
+    fun encodeKeyValueDefaultConstructorTest() {
+        assertEncodedQuery(null, encoded, encoded)
     }
 
     @Test

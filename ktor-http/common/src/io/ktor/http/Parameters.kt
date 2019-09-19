@@ -33,14 +33,17 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilder(
-    size: Int = 8,
-    private val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
-) : StringValuesBuilder(true, size) {
+public class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+    private var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+
+    constructor(size: Int = 8, urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT) : this(size) {
+        this.urlEncodingOption = urlEncodingOption
+    }
+
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
-        return ParametersImpl(values)
+        return ParametersImpl(values, urlEncodingOption)
     }
 }
 
@@ -83,11 +86,17 @@ public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = 
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersImpl(
-    values: Map<String, List<String>> = emptyMap(),
-    private val encodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
-) : Parameters, StringValuesImpl(true, values) {
-    override fun urlEncodingOption() = encodingOption
+public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
+    private var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+
+    constructor(
+        values: Map<String, List<String>> = emptyMap(),
+        urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+    ) : this(values) {
+        this.urlEncodingOption = urlEncodingOption
+    }
+
+    override fun urlEncodingOption() = urlEncodingOption
     override fun toString(): String = "Parameters ${entries()}"
 }
 
