@@ -794,7 +794,7 @@ public final class io/ktor/http/Parameters$DefaultImpls {
 
 public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBuilder {
 	public fun <init> ()V
-	public fun <init> (I)V
+	public synthetic fun <init> (I)V
 	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (ILio/ktor/http/UrlEncodingOption;)V
 	public synthetic fun <init> (ILio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -804,7 +804,7 @@ public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBui
 
 public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, io/ktor/http/Parameters {
 	public fun <init> ()V
-	public fun <init> (Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/util/Map;)V
 	public synthetic fun <init> (Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;)V
 	public synthetic fun <init> (Ljava/util/Map;Lio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

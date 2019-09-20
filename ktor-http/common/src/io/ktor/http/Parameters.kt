@@ -34,12 +34,13 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-public class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
-    private var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+class ParametersBuilder(
+    size: Int = 8,
+    private val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : StringValuesBuilder(true, size) {
 
-    constructor(size: Int = 8, urlEncodingOption: UrlEncodingOption) : this(size) {
-        this.urlEncodingOption = urlEncodingOption
-    }
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    constructor(size: Int = 8) : this(size)
 
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
@@ -87,16 +88,14 @@ public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = 
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
-    private var option: UrlEncodingOption = super.urlEncodingOption
-    override val urlEncodingOption: UrlEncodingOption
-        get() = option
+public class ParametersImpl(
+    values: Map<String, List<String>> = emptyMap(),
+    override val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+) : Parameters, StringValuesImpl(true, values) {
 
-    constructor(values: Map<String, List<String>> = emptyMap(), urlEncodingOption: UrlEncodingOption) : this(values) {
-        this.option = urlEncodingOption
-    }
+    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+    constructor(values: Map<String, List<String>> = emptyMap()) : this(values)
 
-    override fun urlEncodingOption() = urlEncodingOption
     override fun toString(): String = "Parameters ${entries()}"
 }
 
