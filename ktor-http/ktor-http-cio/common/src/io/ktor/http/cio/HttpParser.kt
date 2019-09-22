@@ -6,7 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * An HTTP parser exception

@@ -12,8 +12,8 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 
 /**

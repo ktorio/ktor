@@ -7,7 +7,7 @@ package io.ktor.network.util
 import io.ktor.network.sockets.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")
@@ -21,7 +21,7 @@ val ioThreadGroup = ThreadGroup("io-pool-group")
 @Deprecated(
     "Use Dispatchers.IO instead for both blocking and non-blocking I/O",
     replaceWith = ReplaceWith("Dispatchers.IO", "kotlinx.coroutines.Dispatchers"),
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.HIDDEN
 )
 val ioCoroutineDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO

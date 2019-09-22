@@ -8,7 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
 import java.nio.channels.*

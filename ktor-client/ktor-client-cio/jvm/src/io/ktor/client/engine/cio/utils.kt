@@ -14,8 +14,8 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.errors.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(
@@ -37,7 +37,8 @@ internal suspend fun HttpRequestData.write(
         }
 
         builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
-        builder.headerLine("Host", url.hostWithPort)
+        // this will only add the port to the host header if the port is non-standard for the protocol
+        builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
 
         mergeHeaders(headers, body) { key, value ->
             builder.headerLine(key, value)

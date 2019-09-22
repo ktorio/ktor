@@ -4,7 +4,7 @@
 
 package io.ktor.http
 
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 /**
  * Represents a value for a `Content-Type` header.

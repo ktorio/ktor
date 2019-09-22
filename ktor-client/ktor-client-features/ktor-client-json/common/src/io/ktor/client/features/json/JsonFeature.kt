@@ -11,7 +11,7 @@ import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 
 /**

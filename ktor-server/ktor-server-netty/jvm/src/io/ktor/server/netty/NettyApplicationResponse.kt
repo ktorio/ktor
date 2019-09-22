@@ -12,7 +12,7 @@ import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")

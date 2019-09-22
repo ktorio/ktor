@@ -8,8 +8,8 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import org.khronos.webgl.*
 import org.w3c.fetch.*
 import kotlin.coroutines.*

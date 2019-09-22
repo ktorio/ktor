@@ -11,7 +11,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class FullFormTest : ClientLoader() {
@@ -73,7 +73,6 @@ class FullFormTest : ClientLoader() {
     fun testCustomUrls() = clientTests {
         val urls = listOf(
             "https://google.com",
-            "http://kotlinlang.org/",
             "https://kotlinlang.org/"
         )
 

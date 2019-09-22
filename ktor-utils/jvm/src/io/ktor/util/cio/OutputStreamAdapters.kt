@@ -5,8 +5,8 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 import java.nio.charset.*
 

@@ -13,7 +13,7 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.test.*
 
 class StatusPageTest {

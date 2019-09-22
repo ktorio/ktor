@@ -6,7 +6,7 @@
 
 package io.ktor.util
 
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 @InternalAPI
 expect class Lock() : Closeable {

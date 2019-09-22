@@ -9,8 +9,8 @@ import io.ktor.util.cio.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.coroutines.*
 

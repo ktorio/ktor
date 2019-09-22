@@ -7,8 +7,8 @@ package io.ktor.client.tests.utils
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 
 
 @InternalAPI

@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 internal class RequestBodyHandler(val context: ChannelHandlerContext,

@@ -11,15 +11,35 @@ import platform.Foundation.*
  * Custom [IosClientEngine] config.
  */
 class IosClientEngineConfig : HttpClientEngineConfig() {
-    internal var requestConfig: NSMutableURLRequest.() -> Unit = {}
+    /**
+     * Request configuration.
+     */
+    var requestConfig: NSMutableURLRequest.() -> Unit = {}
 
     /**
-     * Provide [NSMutableURLRequest] requestConfig.
+     * Session configuration.
+     */
+    var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
+
+    /**
+     * Append block with [NSMutableURLRequest] configuration to [requestConfig].
      */
     fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
         val old = requestConfig
 
         requestConfig = {
+            old()
+            block()
+        }
+    }
+
+    /**
+     * Append block with [NSURLSessionConfiguration] configuration to [sessionConfig].
+     */
+    fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
+        val old = sessionConfig
+
+        sessionConfig = {
             old()
             block()
         }

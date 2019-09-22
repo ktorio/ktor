@@ -12,8 +12,8 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.webjars.*
 import java.io.*
 import java.nio.file.*

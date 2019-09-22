@@ -6,8 +6,8 @@ package io.ktor.tests.sessions
 
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.junit.*
 import org.junit.Test
 import java.io.*

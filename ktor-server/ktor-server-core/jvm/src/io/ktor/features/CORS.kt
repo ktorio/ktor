@@ -251,7 +251,10 @@ class CORS(configuration: Configuration) {
             /**
              * Default HTTP headers that are always allowed by CORS
              */
-            @Deprecated("Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead")
+            @Deprecated(
+                "Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead",
+                level = DeprecationLevel.ERROR
+            )
             val CorsDefaultHeaders: Set<String> = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
                 addAll(
                     listOf(
@@ -395,7 +398,11 @@ class CORS(configuration: Configuration) {
         /**
          * Allow to expose `X-Http-Method-Override` header
          */
-        @Deprecated("Allow it in request headers instead", ReplaceWith("allowXHttpMethodOverride()"))
+        @Deprecated(
+            "Allow it in request headers instead",
+            ReplaceWith("allowXHttpMethodOverride()"),
+            level = DeprecationLevel.ERROR
+        )
         fun exposeXHttpMethodOverride() {
             exposedHeaders.add(HttpHeaders.XHttpMethodOverride)
         }

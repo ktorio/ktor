@@ -6,7 +6,7 @@ package io.ktor.client.utils
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 
 /**

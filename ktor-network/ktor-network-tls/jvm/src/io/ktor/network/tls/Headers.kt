@@ -5,7 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI

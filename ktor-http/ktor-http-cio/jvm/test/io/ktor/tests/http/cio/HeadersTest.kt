@@ -7,7 +7,7 @@ package io.ktor.tests.http.cio
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.*
 import org.junit.Test
 import kotlin.test.*
@@ -148,7 +148,7 @@ class HeadersTest {
         val request = parseRequest(ch)!!
 
         try {
-            assertFalse { expectHttpBody(request) }
+            assertTrue { expectHttpBody(request) }
         } finally {
             request.release()
         }

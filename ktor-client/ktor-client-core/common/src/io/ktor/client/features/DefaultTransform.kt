@@ -9,8 +9,8 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 /**
  * Install default transformers.
@@ -25,6 +25,15 @@ fun HttpClient.defaultTransformers() {
         }
 
         when (body) {
+            is String -> {
+                val contentType = context.headers[HttpHeaders.ContentType]?.let {
+                    context.headers.remove(HttpHeaders.ContentType)
+                    ContentType.parse(it)
+                }
+                    ?: ContentType.Text.Plain
+
+                proceedWith(TextContent(body, contentType))
+            }
             is ByteArray -> proceedWith(object : OutgoingContent.ByteArrayContent() {
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body

@@ -4,7 +4,7 @@
 
 package io.ktor.util
 
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.nio.channels.*
 
 /**

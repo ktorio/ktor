@@ -5,7 +5,7 @@
 package io.ktor.util.collections
 
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 @InternalAPI
 open class ConcurrentCollection<E>(

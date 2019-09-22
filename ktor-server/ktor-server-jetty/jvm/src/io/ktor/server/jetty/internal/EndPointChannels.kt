@@ -6,8 +6,8 @@ package io.ktor.server.jetty.internal
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*

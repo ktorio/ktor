@@ -4,8 +4,8 @@
 
 package io.ktor.client.response
 
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 /**
  * Exactly reads [count] bytes of the [HttpResponse.content].

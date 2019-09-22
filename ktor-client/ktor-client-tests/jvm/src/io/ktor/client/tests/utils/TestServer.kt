@@ -8,12 +8,12 @@ import ch.qos.logback.classic.*
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
-import kotlinx.io.core.*
 import org.slf4j.*
+import java.io.*
 import java.util.concurrent.*
 
-private val DEFAULT_PORT: Int = 8080
-private val HTTP_PROXY_PORT: Int = 8082
+private const val DEFAULT_PORT: Int = 8080
+private const val HTTP_PROXY_PORT: Int = 8082
 
 internal fun startServer(): Closeable {
     val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
@@ -26,11 +26,9 @@ internal fun startServer(): Closeable {
 
     val proxyServer = TestTcpServer(HTTP_PROXY_PORT, ::proxyHandler)
 
-    return object : Closeable {
-        override fun close() {
-            proxyServer.close()
-            server.stop(0L, 0L, TimeUnit.MILLISECONDS)
-        }
+    return Closeable {
+        proxyServer.close()
+        server.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
 }
 

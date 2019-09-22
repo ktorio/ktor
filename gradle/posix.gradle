@@ -56,7 +56,6 @@ kotlin {
                 project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
             }
 
-
             def crossCompileTargets = [linuxX64, macosX64, mingwX64]
             def host = getHostName()
             switch (host) {
@@ -76,14 +75,15 @@ kotlin {
             }
         }
 
+        configure(project.ext.nativeTargets) {
+            binaries.getTest("DEBUG").freeCompilerArgs = [ "-opt" ]
+        }
+
         project.ext.nativeCompilations = project.ext.nativeTargets.collect { it.compilations.main }
     }
     sourceSets {
         posixMain.dependencies {
             implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
-
             implementation "org.jetbrains.kotlinx:atomicfu:$atomicfu_version"
         }
 

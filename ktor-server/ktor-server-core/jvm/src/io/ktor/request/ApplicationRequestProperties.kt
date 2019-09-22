@@ -9,7 +9,7 @@ package io.ktor.request
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 /**
  * First header value for header with [name] or `null` if missing

@@ -7,8 +7,8 @@ package io.ktor.client.benchmarks
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.utils.io.*
 import kotlinx.benchmark.*
-import kotlinx.coroutines.io.*
 
 private val testData = mutableMapOf(
     0 to ByteArray(0),

@@ -10,8 +10,8 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 
 /**
  * Install client [DigestAuthProvider].

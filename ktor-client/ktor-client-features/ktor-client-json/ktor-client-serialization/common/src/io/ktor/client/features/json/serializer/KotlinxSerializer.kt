@@ -8,104 +8,83 @@ import io.ktor.client.call.*
 import io.ktor.client.features.json.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
 
 /**
- * A [JsonSerializer] implemented for kotlinx [Serializable] classes. Since serializers are determined statically, you
- * must set the mapping for each Serializable class to it's [KSerializer] manually, using [setMapper] or [register].
- *
- * ```
- * KotlinxSerializer().apply {
- *     register<MySerializable>()
- * }
- * ```
+ * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
 @UseExperimental(ImplicitReflectionSerializer::class, UnstableDefault::class)
 class KotlinxSerializer(
     private val json: Json = Json.plain
 ) : JsonSerializer {
-    @Suppress("UNCHECKED_CAST")
-    private val mappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
-    private val listMappers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
 
     /**
      * Set mapping from [type] to generated [KSerializer].
      */
+    @Deprecated("[setMapper] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     fun <T : Any> setMapper(type: KClass<T>, serializer: KSerializer<T>) {
-        @Suppress("UNCHECKED_CAST")
-        mappers[type as KClass<Any>] = serializer as KSerializer<Any>
     }
 
     /**
      * Set mapping from [type] to generated [KSerializer].
      */
+    @Deprecated("[setListMapper] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     fun <T : Any> setListMapper(type: KClass<T>, serializer: KSerializer<T>) {
-        @Suppress("UNCHECKED_CAST")
-        listMappers[type] = serializer.list as KSerializer<List<Any>>
     }
 
     /** Set the mapping from [T] to [mapper]. */
+    @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> register(mapper: KSerializer<T>) {
-        setMapper(T::class, mapper)
     }
 
     /** Set the mapping from [List<T>] to [mapper]. */
+    @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> registerList(mapper: KSerializer<T>) {
-        setListMapper(T::class, mapper)
     }
 
     /**
      * Set the mapping from [T] to it's [KSerializer]. This method only works for non-parameterized types.
      */
+    @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> register() {
-        register(T::class.serializer())
     }
 
     /**
      * Set the mapping from [List<T>] to it's [KSerializer]. This method only works for non-parameterized types.
      */
+    @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> registerList() {
-        registerList(T::class.serializer())
     }
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent {
-        val serializer = lookupSerializerByData(data)
-
-        @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(serializer as KSerializer<Any>, data)
-
+        val content = json.stringify(buildSerializer(data) as KSerializer<Any>, data)
         return TextContent(content, contentType)
     }
 
     override fun read(type: TypeInfo, body: Input): Any {
-        val mapper = lookupSerializerByType(type.type)
         val text = body.readText()
-
-        @Suppress("UNCHECKED_CAST")
-        return json.parse(mapper as KSerializer<Any>, text)
-    }
-
-    private fun lookupSerializerByData(data: Any): KSerializer<*> {
-        if (data is List<*>) {
-            val item = data.find { it != null }
-            return item?.let { listMappers[item::class] } ?: EMPTY_LIST_SERIALIZER
-        }
-
-        val type = data::class
-        mappers[type]?.let { return it }
-        return (type.defaultSerializer() ?: type.serializer())
-    }
-
-    private fun lookupSerializerByType(type: KClass<*>): KSerializer<*> {
-        mappers[type]?.let { return it }
-        return (type.defaultSerializer() ?: type.serializer())
-    }
-
-    companion object {
-        private val EMPTY_LIST_SERIALIZER = String.serializer().list
+        val mapper = type.kotlinType?.let { serializer(it) } ?: type.type.serializer()
+        return json.parse(mapper, text)!!
     }
 }
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
+    is List<*> -> value.elementSerializer().list
+    is Array<*> -> value.firstOrNull()?.let { buildSerializer(it) } ?: String.serializer().list
+    is Set<*> -> value.elementSerializer().set
+    is Map<*, *> -> {
+        val keySerializer = value.keys.elementSerializer() as KSerializer<Any>
+        val valueSerializer = value.values.elementSerializer() as KSerializer<Any>
+
+        (keySerializer to valueSerializer).map
+    }
+    else -> value::class.serializer()
+}
+
+@UseExperimental(ImplicitReflectionSerializer::class)
+private fun Collection<*>.elementSerializer(): KSerializer<*> =
+    firstOrNull()?.let { buildSerializer(it) } ?: String.serializer()

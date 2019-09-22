@@ -10,8 +10,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
@@ -87,69 +87,29 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
     useArrayPolymorphism = true
 )
 
-// NOTE: this should be removed once kotlinx.serialization get proper typeOf support
 @UseExperimental(ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class)
 private fun serializerByTypeInfo(type: KType): KSerializer<*> {
     if (type.arguments.isEmpty()) {
         return type.jvmErasure.serializer()
     }
     val classifierClass = type.classifier as? KClass<*>
-    if (classifierClass != null) {
-        if (classifierClass.java.isArray) {
-            val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
-            val elementSerializer = serializerByTypeInfo(elementType)
-
-            @Suppress("UNCHECKED_CAST")
-            return ReferenceArraySerializer(
-                elementType.jvmErasure as KClass<Any>,
-                elementSerializer as KSerializer<Any>
-            )
-        }
-
-        return when (classifierClass) {
-            List::class, ArrayList::class -> {
-                val elementSerializer = type.argumentSerializer(0, "List<*> is not supported")
-
-                ArrayListSerializer(elementSerializer)
-            }
-            Set::class, HashSet::class -> {
-                val elementSerializer = type.argumentSerializer(0, "Set<*> is not supported")
-
-                HashSetSerializer(elementSerializer)
-            }
-            LinkedHashSet::class -> {
-                val elementSerializer = type.argumentSerializer(0, "Set<*> is not supported")
-
-                LinkedHashSetSerializer(elementSerializer)
-            }
-            Map::class, HashMap::class -> {
-                val keySerializer = type.argumentSerializer(0, "Map<*, V> is not supported")
-                val valueSerializer = type.argumentSerializer(1, "Map<K, *> is not supported")
-
-                HashMapSerializer(keySerializer, valueSerializer)
-            }
-            LinkedHashMap::class -> {
-                val keySerializer = type.argumentSerializer(0, "Map<*, V> is not supported")
-                val valueSerializer = type.argumentSerializer(1, "Map<K, *> is not supported")
-
-                LinkedHashMapSerializer(keySerializer, valueSerializer)
-            }
-            Map.Entry::class -> {
-                val keySerializer = type.argumentSerializer(0, "Map.Entry<*, V> is not supported")
-                val valueSerializer = type.argumentSerializer(1, "Map.Entry<K, *> is not supported")
-
-                MapEntrySerializer(keySerializer, valueSerializer)
-            }
-            else -> error("Unsupported classifier $classifierClass of type $type")
-        }
+    if (classifierClass != null && classifierClass.java.isArray) {
+        return arraySerializer(type)
     }
 
-    error("Unsupported type $type")
+    return serializer(type)
 }
 
-private fun KType.argumentSerializer(position: Int, message: String): KSerializer<*> {
-    val type = arguments[position].type ?: error(message)
-    return serializerByTypeInfo(type)
+// NOTE: this should be removed once kotlinx.serialization serializer get support of arrays that is blocked by KT-32839
+private fun arraySerializer(type: KType): KSerializer<*> {
+    val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
+    val elementSerializer = serializerByTypeInfo(elementType)
+
+    @Suppress("UNCHECKED_CAST")
+    return ReferenceArraySerializer(
+        elementType.jvmErasure as KClass<Any>,
+        elementSerializer as KSerializer<Any>
+    )
 }
 
 @UseExperimental(ImplicitReflectionSerializer::class)

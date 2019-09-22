@@ -10,7 +10,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 internal class CIOApplicationResponse(call: CIOApplicationCall,

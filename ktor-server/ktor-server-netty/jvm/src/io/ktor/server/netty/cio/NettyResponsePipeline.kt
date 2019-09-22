@@ -15,8 +15,8 @@ import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import java.io.*
 import java.util.*
 import kotlin.coroutines.*

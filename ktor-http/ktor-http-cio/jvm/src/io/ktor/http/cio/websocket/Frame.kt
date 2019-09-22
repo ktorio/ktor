@@ -6,7 +6,7 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.nio.*
 
 /**

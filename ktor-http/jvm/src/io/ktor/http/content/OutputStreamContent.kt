@@ -5,8 +5,8 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
 
 /**

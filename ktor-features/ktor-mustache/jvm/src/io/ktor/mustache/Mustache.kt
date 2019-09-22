@@ -11,7 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * Response content which could be used to respond [ApplicationCalls] like `call.respond(MustacheContent(...))

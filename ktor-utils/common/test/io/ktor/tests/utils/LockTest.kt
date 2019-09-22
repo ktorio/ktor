@@ -5,7 +5,7 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class LockTest {

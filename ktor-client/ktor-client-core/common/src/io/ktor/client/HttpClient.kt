@@ -12,7 +12,7 @@ import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 
 /**

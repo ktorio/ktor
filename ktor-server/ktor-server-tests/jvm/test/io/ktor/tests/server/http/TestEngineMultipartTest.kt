@@ -10,8 +10,8 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import kotlinx.io.core.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.streams.*
 import org.junit.Test
 import kotlin.test.*
 

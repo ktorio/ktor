@@ -13,6 +13,7 @@ import io.ktor.metrics.dropwizard.*
 @Deprecated(message = "Use DropwizardMetrics or MicrometerMetrics instead.",
     replaceWith = ReplaceWith(
         expression = "DropwizardMetrics",
-        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")))
+        imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")),
+    level = DeprecationLevel.ERROR)
 typealias Metrics = DropwizardMetrics
 

@@ -6,11 +6,13 @@ package io.ktor.client.request.forms
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
+import kotlin.native.concurrent.*
 import kotlin.random.*
 
+@ThreadLocal
 private val RN_BYTES = "\r\n".toByteArray()
 
 /**
@@ -48,7 +50,7 @@ class MultiPartFormDataContent(
     private val rawParts: List<PreparedPart> = parts.map { part ->
         val headersBuilder = BytePacketBuilder()
         for ((key, values) in part.headers.entries()) {
-            headersBuilder.writeStringUtf8("$key: ${values.joinToString(";")}")
+            headersBuilder.writeStringUtf8("$key: ${values.joinToString("; ")}")
             headersBuilder.writeFully(RN_BYTES)
         }
 
@@ -151,6 +153,8 @@ private suspend fun Input.copyTo(channel: ByteWriteChannel) {
             tryAwait(1)
             val buffer = request(1)!!
             val size = this@copyTo.readAvailable(buffer)
+
+            if (size < 0) continue
             written(size)
         }
     }

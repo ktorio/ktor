@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.test.*
 
 class PostTest : ClientLoader() {
@@ -30,7 +30,7 @@ class PostTest : ClientLoader() {
     @Test
     fun testWithPause() = clientTests(listOf("js")) {
         test { client ->
-            val content = makeString(32 * 1024 * 1024)
+            val content = makeString(16 * 1024 * 1024)
 
             val response = client.post<String>("$TEST_SERVER/content/echo") {
                 body = object : OutgoingContent.WriteChannelContent() {

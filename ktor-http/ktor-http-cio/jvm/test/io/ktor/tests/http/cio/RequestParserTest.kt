@@ -7,7 +7,7 @@ package io.ktor.tests.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.Test
 import kotlin.test.*
 

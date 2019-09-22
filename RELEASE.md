@@ -19,9 +19,11 @@
     - Check `ktor-generator/src/commonMain/kotlin/io/ktor/start/features/server/`
     - Once added any new features, add it here: `ktor-generator/src/commonMain/kotlin/io/ktor/start/features/all.kt`
     - Edit `gradle.properties` `version`
-    - Edit `ktor-intellij-plugin/resources/META-INF/plugin.xml`
-        * update `version` attribute
-        * update changelog section
+    - Run `./synchronize_versions.kt` (optional)
+        - Otherwise edit `ktor-intellij-plugin/resources/META-INF/plugin.xml`
+            * update `version` attribute
+            * update changelog section
+        - and update `ktor-generator-website/resources/index.html` as well
     - Run `git status` and review your changes, revert `docs` removals if appeared
     - Run `./gradlew :ktor-generator-website:buildAndCopy`
     - Run `./gradlew :ktor-intellij-plugin:build`

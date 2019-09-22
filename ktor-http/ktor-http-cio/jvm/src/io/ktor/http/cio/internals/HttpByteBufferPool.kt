@@ -5,7 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation")

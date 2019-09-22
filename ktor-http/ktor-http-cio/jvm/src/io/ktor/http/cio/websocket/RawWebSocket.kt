@@ -8,8 +8,8 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.coroutines.*
 import kotlin.properties.*

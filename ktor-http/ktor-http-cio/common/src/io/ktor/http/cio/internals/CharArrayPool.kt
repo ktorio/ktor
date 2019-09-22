@@ -5,7 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.util.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
 private const val CHAR_ARRAY_POOL_SIZE = 4096

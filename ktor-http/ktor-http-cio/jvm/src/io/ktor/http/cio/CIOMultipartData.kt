@@ -9,8 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.streams.*
 import java.io.*
 import java.nio.*
 import kotlin.coroutines.*

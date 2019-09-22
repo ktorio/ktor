@@ -13,17 +13,19 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.io.*
 import kotlin.coroutines.*
 
 @ChannelHandler.Sharable
-internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
-                                 private val environment: ApplicationEngineEnvironment,
-                                 private val callEventGroup: EventExecutorGroup,
-                                 private val engineContext: CoroutineContext,
-                                 private val userContext: CoroutineContext,
-                                 private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter(), CoroutineScope {
+internal class NettyHttp1Handler(
+    private val enginePipeline: EnginePipeline,
+    private val environment: ApplicationEngineEnvironment,
+    private val callEventGroup: EventExecutorGroup,
+    private val engineContext: CoroutineContext,
+    private val userContext: CoroutineContext,
+    private val requestQueue: NettyRequestQueue
+) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
 
     private var configured = false
@@ -47,14 +49,23 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
 
         val requestBodyChannel = when {
             message is LastHttpContent && !message.content().isReadable -> ByteReadChannel.Empty
-            message.method() === HttpMethod.GET -> {
+            message.method() === HttpMethod.GET &&
+                !HttpUtil.isContentLengthSet(message) && !HttpUtil.isTransferEncodingChunked(message) -> {
                 skipEmpty = true
                 ByteReadChannel.Empty
             }
             else -> content(context, message)
         }
 
-        val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, engineContext, userContext)
+        val call = NettyHttp1ApplicationCall(
+            environment.application,
+            context,
+            message,
+            requestBodyChannel,
+            engineContext,
+            userContext
+        )
+
         requestQueue.schedule(call)
     }
 
@@ -79,7 +90,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
 
             ctx.pipeline().apply {
                 addLast(requestBodyHandler)
-                addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline))
+                addLast(callEventGroup, NettyApplicationCallHandler(userContext, enginePipeline, environment.log))
             }
 
             responseWriter.ensureRunning()

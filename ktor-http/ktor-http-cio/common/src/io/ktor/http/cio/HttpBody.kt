@@ -7,7 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
@@ -43,11 +43,12 @@ fun expectHttpBody(
     connectionOptions: ConnectionOptions?,
     contentType: CharSequence?
 ): Boolean {
-    if (method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options) return false
-
-    if (transferEncoding != null || connectionOptions?.close == true) return true
+    if (transferEncoding != null) return true
     if (contentLength != -1L) return contentLength > 0L
     if (contentType != null) return true
+
+    if (method == HttpMethod.Get || method == HttpMethod.Head || method == HttpMethod.Options) return false
+    if (connectionOptions?.close == true) return true
 
     return false
 }

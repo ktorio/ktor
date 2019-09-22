@@ -11,9 +11,9 @@ import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.streams.*
 import java.util.*
 
 internal class NettyMultiPartData(

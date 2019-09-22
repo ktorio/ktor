@@ -7,7 +7,7 @@ package io.ktor.client.features.json
 import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Client json serializer.

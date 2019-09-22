@@ -5,8 +5,8 @@
 package io.ktor.sessions
 
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI

@@ -47,27 +47,14 @@ interface OAuth2StateProvider {
  * The default state provider that does generate random nonce and don't keep them
  */
 @Suppress("DEPRECATION_ERROR")
-@Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
+@Deprecated("Use NonceManager instead", level = DeprecationLevel.HIDDEN)
 object DefaultOAuth2StateProvider : OAuth2StateProvider {
     override suspend fun getState(call: ApplicationCall): String {
-        return generateNonce()
+        TODO("This is no longer supported")
     }
 
     override suspend fun verifyState(state: String) {
-    }
-}
-
-@Suppress("DEPRECATION_ERROR")
-@Deprecated("This need to be removed with OAuth2StateProvider")
-private fun NonceManager.asOauthStateProvider(): OAuth2StateProvider = object : OAuth2StateProvider {
-    override suspend fun getState(call: ApplicationCall): String {
-        return newNonce()
-    }
-
-    override suspend fun verifyState(state: String) {
-        if (!verifyNonce(state)) {
-            throw IllegalStateException("OAuth2 state value is not valid")
-        }
+        TODO("This is no longer supported")
     }
 }
 
@@ -106,10 +93,9 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
      * @property accessTokenRequiresBasicAuth to send BASIC auth header when an access token is requested
      *
      * @property nonceManager to be used to produce and verify nonce values
-     * @property stateProvider for backward compatibility, use [nonceManager] instead
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      */
-    class OAuth2ServerSettings private constructor(
+    class OAuth2ServerSettings(
         name: String,
         val authorizeUrl: String,
         val accessTokenUrl: String,
@@ -122,69 +108,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
 
         val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        @Suppress("DEPRECATION_ERROR")
-        @Deprecated("Use nonceManager instead", level = DeprecationLevel.ERROR)
-        val stateProvider: OAuth2StateProvider = nonceManager.asOauthStateProvider(),
-
         val authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
-    ) : OAuthServerSettings(name, OAuthVersion.V20) {
-        // TODO make this primary when OAuth2StateProvider will be removed
-        constructor(
-            name: String,
-            authorizeUrl: String,
-            accessTokenUrl: String,
-            requestMethod: HttpMethod = HttpMethod.Get,
-
-            clientId: String,
-            clientSecret: String,
-            defaultScopes: List<String> = emptyList(),
-            accessTokenRequiresBasicAuth: Boolean = false,
-
-            nonceManager: NonceManager = GenerateOnlyNonceManager,
-            authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
-        ) : this(
-            name,
-            authorizeUrl,
-            accessTokenUrl,
-            requestMethod,
-            clientId,
-            clientSecret,
-            defaultScopes,
-            accessTokenRequiresBasicAuth,
-            nonceManager,
-            @Suppress("DEPRECATION") nonceManager.asOauthStateProvider(),
-            authorizeUrlInterceptor
-        )
-
-        @Suppress("DEPRECATION_ERROR", "unused")
-        @Deprecated("Use NonceManager instead", level = DeprecationLevel.ERROR)
-        constructor(
-            name: String,
-            authorizeUrl: String,
-            accessTokenUrl: String,
-            requestMethod: HttpMethod = HttpMethod.Get,
-
-            clientId: String,
-            clientSecret: String,
-            defaultScopes: List<String> = emptyList(),
-            accessTokenRequiresBasicAuth: Boolean = false,
-
-            stateProvider: OAuth2StateProvider,
-            authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
-        ) : this(
-            name,
-            authorizeUrl,
-            accessTokenUrl,
-            requestMethod,
-            clientId,
-            clientSecret,
-            defaultScopes,
-            accessTokenRequiresBasicAuth,
-            AlwaysFailNonceManager,
-            stateProvider,
-            authorizeUrlInterceptor
-        )
-    }
+    ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
 /**
@@ -282,7 +207,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(
                 provider, callbackUrl,
-                @Suppress("DEPRECATION_ERROR") provider.stateProvider.getState(call),
+                provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor
             )

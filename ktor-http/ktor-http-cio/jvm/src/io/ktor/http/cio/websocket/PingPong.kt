@@ -8,7 +8,7 @@ import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.CancellationException
@@ -17,16 +17,6 @@ import kotlin.random.*
 private val PongerCoroutineName = CoroutineName("ws-ponger")
 
 private val PingerCoroutineName = CoroutineName("ws-pinger")
-
-@Deprecated(
-    "Binary compatibility.",
-    level = DeprecationLevel.HIDDEN
-)
-@Suppress("KDocMissingDocumentation", "unused")
-fun ponger(
-    session: WebSocketSession,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Ping> = session.ponger(session.outgoing, pool)
 
 /**
  * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
@@ -37,13 +27,16 @@ fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
-    consumeEach { frame ->
-        val buffer = frame.buffer.copy(pool)
-        outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
-            override fun dispose() {
-                pool.recycle(buffer)
-            }
-        }))
+    try {
+        consumeEach { frame ->
+            val buffer = frame.buffer.copy(pool)
+            outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
+                override fun dispose() {
+                    pool.recycle(buffer)
+                }
+            }))
+        }
+    } catch (_: ClosedSendChannelException) {
     }
 }
 

@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.time.*
 
 private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")

@@ -9,7 +9,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")

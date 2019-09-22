@@ -1,3 +1,31 @@
+# 1.3.0
+> Unpublished yet
+
+* ktor client proxy support
+* Eliminated kotlinx.io dependency 
+* Fixed server identity compression handling: keep original content length
+* Fixed handling GET requests with body (#1302)
+* Fixed curl request with empty body
+* Added iOS url session configuration
+* Fixed CIO engine no longer sends port in "Host" header (#1295)
+* Add INTRINSIC value to TLS signature algorithms
+* Introduced ability to send string in request body
+* Improved client and server typeOf support with kotlinx.serialization
+* Gradle 5.4.1+ with newer metadata
+* Improved exceptions handling in client and server on Android
+* Added missing TLS parameters and relaxed TLS parsing to ignore unsupported features
+
+# 1.2.4
+> Published 2 Sep 2019
+
+* Fixed multipart form header entity separator
+* Fixed crypto in IE11 (#1283)
+* Marked response transient in the client exception (#1256)
+* Fixed network on main thread in okhttp engine close
+* Fixed follow redirect iOS (#1000)
+* Kotlin 1.3.50
+* kotlinx.coroutines 1.3.0
+
 # 1.2.3
 > Published 1 Aug 2019
 

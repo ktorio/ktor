@@ -7,7 +7,7 @@ package io.ktor.client.request.forms
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.contracts.*
 
 /**
@@ -27,7 +27,7 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 
     values.forEach { (key, value, headers) ->
         val partHeaders = HeadersBuilder().apply {
-            append(HttpHeaders.ContentDisposition, "form-data;name=$key")
+            append(HttpHeaders.ContentDisposition, "form-data; name=$key")
             appendAll(headers)
         }
         val part = when (value) {

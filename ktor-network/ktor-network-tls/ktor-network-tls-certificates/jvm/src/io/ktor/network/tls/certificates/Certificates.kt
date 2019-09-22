@@ -5,7 +5,7 @@
 package io.ktor.network.tls.certificates
 
 import io.ktor.network.tls.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.io.*
 import java.math.*
 import java.net.*

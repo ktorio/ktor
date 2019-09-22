@@ -8,7 +8,7 @@ import io.ktor.client.engine.js.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.khronos.webgl.*
 import org.w3c.fetch.*
 import kotlin.browser.*

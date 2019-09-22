@@ -54,7 +54,7 @@ abstract class ContentTransformationException(message: String) : Exception(messa
 
 internal class CannotTransformContentToTypeException(type: KType) :
     ContentTransformationException("Cannot transform this request's content to $type") {
-    @Deprecated("Use KType instead", level = DeprecationLevel.ERROR)
+    @Deprecated("Use KType instead", level = DeprecationLevel.HIDDEN)
     constructor(type: KClass<*>) : this(type.starProjectedType)
 }
 

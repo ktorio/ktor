@@ -19,10 +19,10 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.javaio.*
-import kotlinx.io.core.*
-import kotlinx.io.streams.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.streams.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -1824,6 +1824,24 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
                 assertEquals(expected, text)
             }
+        }
+    }
+
+    @Test
+    fun testGetWithBody() {
+        createAndStartServer {
+            application.install(Compression)
+
+            get("/") {
+                call.respondText(call.receive())
+            }
+        }
+
+        val text = "text body"
+
+        withUrl("/", { body = text; }) {
+            val actual = readText()
+            assertEquals(text, actual)
         }
     }
 

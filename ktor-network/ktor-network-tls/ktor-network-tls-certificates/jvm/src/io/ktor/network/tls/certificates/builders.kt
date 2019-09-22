@@ -7,7 +7,7 @@ package io.ktor.network.tls.certificates
 import io.ktor.network.tls.*
 import io.ktor.network.tls.extensions.*
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import java.io.*
 import java.net.*
 import java.security.*
@@ -49,7 +49,7 @@ class CertificateBuilder internal constructor() {
     var keySizeInBits: Int = 1024
 
     internal fun build(): CertificateInfo {
-        val algorithm = HashAndSign.byCode(hash.code, sign.code)
+        val algorithm = HashAndSign(hash, sign)
         val keys = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm.name))!!.apply {
             initialize(keySizeInBits)
         }.genKeyPair()!!

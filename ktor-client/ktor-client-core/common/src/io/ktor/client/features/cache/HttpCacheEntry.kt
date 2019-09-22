@@ -9,8 +9,8 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry = response.use {
     val body = it.content.readRemaining().readBytes()

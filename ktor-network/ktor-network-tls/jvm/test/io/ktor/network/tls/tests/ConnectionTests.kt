@@ -10,7 +10,7 @@ import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import org.junit.*
 import java.io.*
 import java.net.*

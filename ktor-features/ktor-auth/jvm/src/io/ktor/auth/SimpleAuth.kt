@@ -29,11 +29,14 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
 @KtorExperimentalAPI
 class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
     @Suppress("unused")
-    @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.ERROR)
+    @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.HIDDEN)
     constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
 
     @Suppress("DEPRECATION_ERROR")
-    @Deprecated("Configuring from an application config is no longer supported.", level = DeprecationLevel.ERROR)
+    @Deprecated(
+        "Configuring from an application config is no longer supported.",
+        level = DeprecationLevel.HIDDEN
+    )
     constructor(config: ApplicationConfig) : this(
         getDigestFunction(
             config.property("hashAlgorithm").getString(),

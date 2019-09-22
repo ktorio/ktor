@@ -10,6 +10,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -30,9 +31,7 @@ data class GithubProfile(
 class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testRegisterCustom() {
-        val serializer = KotlinxSerializer().apply {
-            register(User.serializer())
-        }
+        val serializer = KotlinxSerializer()
 
         val user = User(1, "vasya")
         val actual = serializer.testWrite(user)
@@ -41,10 +40,7 @@ class KotlinxSerializerTest : ClientLoader() {
 
     @Test
     fun testRegisterCustomList() {
-        val serializer = KotlinxSerializer().apply {
-            registerList(User.serializer())
-            registerList(Photo.serializer())
-        }
+        val serializer = KotlinxSerializer()
 
         val user = User(2, "petya")
         val photo = Photo(3, "petya.jpg")
@@ -57,9 +53,7 @@ class KotlinxSerializerTest : ClientLoader() {
     fun testReceiveFromGithub() = clientTests {
         config {
             install(JsonFeature) {
-                serializer = KotlinxSerializer(Json.nonstrict).apply {
-                    register(GithubProfile.serializer())
-                }
+                serializer = KotlinxSerializer(Json.nonstrict)
             }
         }
 
@@ -79,7 +73,7 @@ class KotlinxSerializerTest : ClientLoader() {
             formData {
                 append("name", "hello")
                 append("content") {
-                    writeStringUtf8("123456789")
+                    writeText("123456789")
                 }
                 append("file", "urlencoded_name.jpg") {
                     for (i in 1..4096) {
@@ -124,10 +118,7 @@ class KotlinxSerializerTest : ClientLoader() {
     @Test
     @Ignore
     fun testMultipleListSerializersWithClient() = clientTests {
-        val testSerializer = KotlinxSerializer().apply {
-            registerList(User.serializer())
-            registerList(Photo.serializer())
-        }
+        val testSerializer = KotlinxSerializer()
 
         config {
             install(JsonFeature) {

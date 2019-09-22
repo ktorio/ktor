@@ -6,7 +6,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import kotlinx.cinterop.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import libcurl.*
 
 private class RequestHolders(
@@ -95,9 +95,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray?): COpaquePointer? {
-        if (content == null) return null
-
+    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray): COpaquePointer? {
         val stream = buildPacket { writeFully(content) }
         val requestPointer = stream.asStablePointer()
 

@@ -11,7 +11,7 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.time.*
 import kotlin.coroutines.*
 
@@ -20,7 +20,7 @@ import kotlin.coroutines.*
  * @property readResponse if response channel need to be consumed into byteContent
  */
 class TestApplicationResponse(
-    call: TestApplicationCall, readResponse: Boolean = false
+    call: TestApplicationCall, private val readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
     /**
@@ -31,10 +31,6 @@ class TestApplicationResponse(
             val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
             return byteContent?.toString(charset)
         }
-
-    @Suppress("CanBePrimaryConstructorProperty")
-    @Deprecated("Will be removed from public API", level = DeprecationLevel.ERROR)
-    val readResponse: Boolean = readResponse
 
     /**
      * Response body byte content. Could be blocking. Remains `null` until response appears.
@@ -121,9 +117,8 @@ class TestApplicationResponse(
     /**
      * Await for response job completion
      */
-    @InternalAPI
-    @Suppress("DeprecatedCallableAddReplaceWith")
-    @Deprecated("Will be removed", level = DeprecationLevel.ERROR)
+    @Suppress("DeprecatedCallableAddReplaceWith", "unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     suspend fun flush() {
         awaitForResponseCompletion()
     }

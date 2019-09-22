@@ -13,7 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 

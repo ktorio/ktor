@@ -6,7 +6,7 @@ package io.ktor.application
 
 import io.ktor.util.pipeline.*
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Defines an installable Application Feature

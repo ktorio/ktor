@@ -6,15 +6,17 @@ package io.ktor.client.engine.ios
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.engine.ios.toByteArray
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import platform.CFNetwork.*
 import platform.Foundation.*
 import platform.darwin.*
@@ -24,7 +26,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
     // TODO: replace with UI dispatcher
     override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
 
-    override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
+    override val coroutineContext: CoroutineContext = dispatcher + SilentSupervisor()
 
     override suspend fun execute(
         data: HttpRequestData
@@ -88,6 +90,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
         val configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
         configuration.setupProxy()
+        config.sessionConfig(configuration)
 
         val session = NSURLSession.sessionWithConfiguration(
             configuration,
@@ -118,7 +121,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
             body?.let { nativeRequest.setHTTPBody(it) }
 
-            config.requestConfig.let { nativeRequest.it() }
+            config.requestConfig(nativeRequest)
             session.dataTaskWithRequest(nativeRequest).resume()
         }
     }
@@ -127,7 +130,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
         val proxy = config.proxy ?: return
         val url = proxy.url
 
-        val type = when(url.protocol) {
+        val type = when (url.protocol) {
             URLProtocol.HTTP -> kCFProxyTypeHTTP
             URLProtocol.HTTPS -> kCFProxyTypeHTTPS
             URLProtocol.SOCKS -> kCFProxyTypeSOCKS

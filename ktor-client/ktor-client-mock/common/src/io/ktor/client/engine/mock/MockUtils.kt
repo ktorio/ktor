@@ -10,9 +10,9 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.charsets.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")

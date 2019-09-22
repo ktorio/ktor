@@ -7,7 +7,7 @@ package io.ktor.network.util
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.Closeable
+import io.ktor.utils.io.core.Closeable
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
@@ -18,7 +18,7 @@ import kotlin.coroutines.intrinsics.*
  */
 @Deprecated(
     "This is going to be deprecated. Use kotlinx.coroutines dispatchers",
-    level = DeprecationLevel.ERROR
+    level = DeprecationLevel.HIDDEN
 )
 @KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {

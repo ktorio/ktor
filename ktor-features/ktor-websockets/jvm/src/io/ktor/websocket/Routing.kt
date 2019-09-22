@@ -11,6 +11,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.util.concurrent.CancellationException
 
 /**
@@ -129,7 +130,10 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     session.run {
         try {
             toServerSession(call).handler()
-            session.close()
+            try {
+                session.close()
+            } catch (_: ClosedSendChannelException) {
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (io: ChannelIOException) {

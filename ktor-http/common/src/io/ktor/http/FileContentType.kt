@@ -5,7 +5,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlinx.io.charsets.*
+import io.ktor.utils.io.charsets.*
 
 /**
  * Default [ContentType] for [extension]

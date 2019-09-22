@@ -6,7 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
 

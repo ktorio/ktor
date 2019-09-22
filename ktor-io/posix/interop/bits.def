@@ -1,0 +1,31 @@
+package = io.ktor.utils.io.bits.internal.utils
+compilerOpts.mingw_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DMINGW
+compilerOpts.linux_x64 = -DM_ALLOW_UNALIGNED_ACCESS
+compilerOpts.macos_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
+compilerOpts.ios_arm32 = -DM_DARWIN
+compilerOpts.ios_arm64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
+compilerOpts.ios_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
+compilerOpts.android_arm64 = -DM_ALLOW_UNALIGNED_ACCESS
+---
+
+#ifdef M_ALLOW_UNALIGNED_ACCESS
+#define UNALIGNED_ACCESS_ALLOWED 1
+#else
+#define UNALIGNED_ACCESS_ALLOWED 0
+#endif
+
+#if defined(M_DARWIN)
+#include <machine/endian.h>
+#elif defined(MINGW)
+// nothing
+#else
+#include <endian.h>
+#endif
+
+#ifdef MINGW
+#define PLATFORM_BIG_ENDIAN 0
+#elif (BYTE_ORDER == BIG_ENDIAN)
+#define PLATFORM_BIG_ENDIAN 1
+#else
+#define PLATFORM_BIG_ENDIAN 0
+#endif

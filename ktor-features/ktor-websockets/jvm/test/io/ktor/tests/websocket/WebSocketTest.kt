@@ -15,7 +15,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import org.junit.*
 import org.junit.Test
 import java.nio.*

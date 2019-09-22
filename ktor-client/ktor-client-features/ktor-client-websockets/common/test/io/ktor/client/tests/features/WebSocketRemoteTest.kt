@@ -8,7 +8,7 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {

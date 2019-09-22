@@ -10,7 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * [HttpClient] feature that handles sent `Cookie`, and received `Set-Cookie` headers,

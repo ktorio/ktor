@@ -10,7 +10,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.io.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)

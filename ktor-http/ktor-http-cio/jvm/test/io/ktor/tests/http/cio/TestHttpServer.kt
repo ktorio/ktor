@@ -8,7 +8,7 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.http.cio.internals.WeakTimeoutQueue
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*

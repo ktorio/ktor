@@ -6,10 +6,10 @@ package io.ktor.util.cio
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.coroutines.io.jvm.nio.*
-import kotlinx.io.core.*
-import kotlinx.io.pool.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.nio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
@@ -87,22 +87,11 @@ fun File.readChannel(
  */
 @Deprecated(
     "Pool is not required here anymore so use writeChannel without specifying a pool.",
-    ReplaceWith("writeChannel()")
+    ReplaceWith("writeChannel()"),
+    level = DeprecationLevel.ERROR
 )
 fun File.writeChannel(
     @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
-): ByteWriteChannel = writeChannel()
-
-@Deprecated(
-    "Binary compatibility.",
-    level = DeprecationLevel.HIDDEN
-)
-@JvmName("writeChannel\$default") // this suffix also adds ACC_SYNTHETIC
-@Suppress("UNUSED_PARAMETER", "KDocMissingDocumentation")
-fun File.writeChannel(
-    pool: ObjectPool<ByteBuffer>,
-    mask: Int,
-    something: Any?
 ): ByteWriteChannel = writeChannel()
 
 /**

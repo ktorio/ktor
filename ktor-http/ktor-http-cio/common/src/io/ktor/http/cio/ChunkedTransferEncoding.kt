@@ -5,18 +5,19 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
-import kotlinx.io.core.ByteOrder
-import kotlinx.io.pool.*
 import kotlin.coroutines.*
+import kotlin.native.concurrent.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
 
 private const val DEFAULT_BYTE_BUFFER_SIZE = 4088
 
+@ThreadLocal
 private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
     object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
         override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
@@ -98,8 +99,6 @@ suspend fun encodeChunked(
  */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val view = IoBuffer.Pool.borrow()
-    @Suppress("DEPRECATION") // here we have a valid reason to set it so suppress here
-    view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {
         input.readSuspendableSession {
@@ -122,9 +121,13 @@ suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     }
 }
 
+@SharedImmutable
 private const val CrLfShort: Short = 0x0d0a
 
+@ThreadLocal
 private val CrLf = "\r\n".toByteArray()
+
+@ThreadLocal
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
 private suspend inline fun ByteWriteChannel.writeChunk(chunk: IoBuffer, tempBuffer: IoBuffer) {

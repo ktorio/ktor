@@ -6,7 +6,7 @@ package io.ktor.sessions
 
 import io.ktor.application.*
 import io.ktor.util.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 import kotlin.reflect.*
 
 /**

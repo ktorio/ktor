@@ -8,7 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.util.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")

@@ -10,7 +10,7 @@ import io.ktor.server.benchmarks.*
 import io.ktor.server.cio.*
 import io.netty.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 class CIOPlatformBenchmark : PlatformBenchmark() {
     private var server: HttpServer? = null
