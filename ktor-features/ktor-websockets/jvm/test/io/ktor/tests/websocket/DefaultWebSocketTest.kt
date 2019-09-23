@@ -39,8 +39,8 @@ class DefaultWebSocketTest {
 
     @AfterTest
     fun cleanup() {
-        server.terminate()
-        client.terminate()
+        server.cancel()
+        client.cancel()
         client2server.cancel()
         server2client.cancel()
         parent.cancel()
@@ -74,6 +74,16 @@ class DefaultWebSocketTest {
         }
 
         client.close()
+        ensureCompletion()
+    }
+
+    @Test
+    fun testCancellation(): Unit = runBlocking {
+        server.cancel()
+
+        client.incoming.receiveOrNull()
+        client.close()
+
         ensureCompletion()
     }
 

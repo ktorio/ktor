@@ -101,6 +101,10 @@ internal class OkHttpWebsocketSession(
     override suspend fun flush() {
     }
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         coroutineContext.cancel()
     }

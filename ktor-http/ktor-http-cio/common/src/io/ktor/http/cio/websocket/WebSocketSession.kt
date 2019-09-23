@@ -42,6 +42,10 @@ expect interface WebSocketSession : CoroutineScope {
     /**
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     fun terminate()
 }
 
