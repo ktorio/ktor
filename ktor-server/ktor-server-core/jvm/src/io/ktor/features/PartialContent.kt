@@ -174,6 +174,10 @@ class PartialContent(private val maxRangeCount: Int) {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
         class Bypass(original: ReadChannelContent) : PartialOutgoingContent(original) {
+
+            override val contentLength: Long?
+                get() = original.contentLength
+
             override fun readFrom() = original.readFrom()
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {

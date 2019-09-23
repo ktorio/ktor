@@ -216,6 +216,14 @@ class PartialContentTest {
     }
 
     @Test
+    fun testBypassContentLength(): Unit = withRangeApplication { file ->
+        handleRequest(HttpMethod.Get, localPath) {
+        }.let { result ->
+            assertEquals(file.length(), result.response.headers[HttpHeaders.ContentLength]!!.toLong())
+        }
+    }
+
+    @Test
     fun testMultipleMergedRanges(): Unit = withRangeApplication { file ->
         // multiple ranges should be merged into one
         handleRequest(HttpMethod.Get, localPath) {
