@@ -9,6 +9,7 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {
@@ -89,7 +90,7 @@ class WebSocketRemoteTest : ClientLoader() {
                 url.port = DEFAULT_PORT
             }
 
-            session.terminate()
+            session.cancel()
         }
     }
 

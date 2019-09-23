@@ -52,8 +52,8 @@ class RawWebSocketTest {
 
     @AfterTest
     fun cleanup() {
-        server.terminate()
-        client.terminate()
+        server.cancel()
+        client.cancel()
         client2server.cancel()
         server2client.cancel()
         parent.cancel()
@@ -73,8 +73,8 @@ class RawWebSocketTest {
         assertEquals(FrameType.PONG, receivedPong.frameType)
         assertEquals(text, receivedPong.readBytes().toString(Charsets.ISO_8859_1))
 
-        client.terminate()
-        server.terminate()
+        client.cancel()
+        server.cancel()
 
         ensureCompletion()
     }
@@ -147,7 +147,7 @@ class RawWebSocketTest {
     @Test
     fun testServerTerminate(): Unit = runTest {
         cancelAtIncomingEnd(client)
-        server.terminate()
+        server.cancel()
         ensureCompletion()
     }
 

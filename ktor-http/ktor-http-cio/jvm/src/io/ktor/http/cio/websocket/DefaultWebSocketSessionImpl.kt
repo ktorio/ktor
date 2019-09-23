@@ -78,9 +78,13 @@ class DefaultWebSocketSessionImpl(
         raw.flush()
     }
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         context.cancel()
-        raw.terminate()
+        raw.cancel()
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)

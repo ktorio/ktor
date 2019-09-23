@@ -96,6 +96,10 @@ internal class JsWebSocketSession(
     override suspend fun flush() {
     }
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         _incoming.cancel()
         _outgoing.cancel()

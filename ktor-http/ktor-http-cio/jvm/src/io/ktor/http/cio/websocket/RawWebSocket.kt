@@ -55,6 +55,10 @@ class RawWebSocket(
 
     override suspend fun flush(): Unit = writer.flush()
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         outgoing.close()
         socketJob.complete()
@@ -69,6 +73,6 @@ suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
         handler()
         writer.flush()
     } finally {
-        terminate()
+        cancel()
     }
 }
