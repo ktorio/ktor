@@ -1,0 +1,27 @@
+# see https://github.com/probot/stale for all options
+
+daysUntilStale: 60
+daysUntilClose: 14
+
+staleLabel: stale
+
+exemptLabels:
+  - design
+
+# Comment to post when marking as stale. Set to `false` to disable
+markComment: >
+  This pull request has been automatically marked as stale because it has not had
+  recent activity. It will be closed if no further activity occurs. Thank you
+  for your contributions.
+
+# Comment to post when closing a stale issue. Set to `false` to disable
+closeComment: false
+
+issues:
+  exemptAssignees: true # apply only to unassigned issues
+  daysUntilStale: 90
+  daysUntilClose: 9999 # disable closing issues, only mark
+  markComment: >
+    This issue has been automatically marked as stale because it has not had
+    recent activity. 
+
