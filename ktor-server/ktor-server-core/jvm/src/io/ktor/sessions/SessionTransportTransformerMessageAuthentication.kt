@@ -20,6 +20,12 @@ import javax.crypto.spec.*
 class SessionTransportTransformerMessageAuthentication(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA256") :
     SessionTransportTransformer {
     constructor(key: ByteArray, algorithm: String = "HmacSHA256") : this(SecretKeySpec(key, algorithm), algorithm)
+    
+    init {
+        if (key.contentEquals(hex("6819b57a326945c1968f45236581")) || key.contentEquals(hex("6819b57a326945c1968f45236589"))) {
+            throw IllegalArgumentException("The use of the key used in our sample documentation is forbidden.")
+        }
+    }
 
     override fun transformRead(transportValue: String): String? {
         val expectedSignature = transportValue.substringAfterLast('/', "")
