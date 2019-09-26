@@ -11,9 +11,27 @@
 * Add INTRINSIC value to TLS signature algorithms
 * Introduced ability to send string in request body
 * Improved client and server typeOf support with kotlinx.serialization
-* Gradle 5.4.1+ with newer metadata
+* Gradle 5.4.1+ with newer metadata (metadata 1.0)
 * Improved exceptions handling in client and server on Android
 * Added missing TLS parameters and relaxed TLS parsing to ignore unsupported features
+
+# 1.2.5
+> Unpublished yet
+
+* Fixed `ClosedSendChannel` exceptions in client and server
+* Fixed Android crash on client and server exceptions
+* Fixed server identity compression handling: keep original content length
+* Fixed partial content without the passed range doesn't have content length
+* Fixed curl request with empty body
+* Fixed empty client form data (#1297)
+* Fixed CIO engine no longer sends port in "Host" header (#1295)
+* Fixed potential deadlock in Android engine
+
+* Gradle Metadata 1.0 (Gradle 5.6.2)
+* kotlinx.coroutines 1.3.2
+* kotlinx.serialization 0.13.0
+* Dropwizard 4.1.0
+* jackson 2.9.9.3
 
 # 1.2.4
 > Published 2 Sep 2019
