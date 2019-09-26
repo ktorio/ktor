@@ -56,19 +56,13 @@ class NeedRetry(
 
         override fun install(feature: NeedRetry, scope: HttpClient) {
             scope.receivePipeline.intercept(HttpReceivePipeline.After) {
-                try {
-                    val requestBuilder = HttpRequestBuilder().takeFrom(context.request)
-                    val isRetryNeeded = feature.retryHandlers
-                        .map { it(requestBuilder, context.response) }
-                        .contains(true)
+                val requestBuilder = HttpRequestBuilder().takeFrom(context.request)
+                val isRetryNeeded = feature.retryHandlers.any { it(requestBuilder, context.response) }
 
-                    if (isRetryNeeded) {
-                        context.client.execute(requestBuilder)
-                    }
-
+                if (isRetryNeeded) {
+                    proceedWith(context.client.execute(requestBuilder).response)
+                } else {
                     proceedWith(it)
-                } catch (cause: Throwable) {
-                    throw cause
                 }
             }
         }

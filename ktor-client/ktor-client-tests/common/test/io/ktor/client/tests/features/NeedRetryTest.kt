@@ -9,29 +9,40 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class NeedRetryTest {
 
+    var mustRespondBadRequest = true
+
     @Test
     fun testNeedRetryCalled() = clientTest(MockEngine {
-        respondOk("Hello")
+        if (mustRespondBadRequest) {
+            mustRespondBadRequest = false
+            respondBadRequest()
+        } else {
+            respondOk("Hello")
+        }
     }) {
 
-        var retryConditionBlockCalled = false
+        var retryBlockCallsCount = 0
 
         config {
             RetryCondition {
-                retryCondition { requestBuilder, response ->
-                    retryConditionBlockCalled = true
-                    false
+                retryCondition { _, response ->
+                    retryBlockCallsCount += 1
+                    response.status != HttpStatusCode.OK
                 }
             }
         }
 
         test { client ->
-            client.get<HttpResponse>()
-            assertTrue(retryConditionBlockCalled, "Need retry condition block never called")
+            client.get<HttpResponse>().use {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals(2, retryBlockCallsCount)
+            }
         }
     }
 }
