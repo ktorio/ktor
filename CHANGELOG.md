@@ -16,7 +16,7 @@
 * Added missing TLS parameters and relaxed TLS parsing to ignore unsupported features
 
 # 1.2.5
-> Unpublished yet
+> 27 Sep 2019
 
 * Fixed `ClosedSendChannel` exceptions in client and server
 * Fixed Android crash on client and server exceptions
@@ -26,7 +26,6 @@
 * Fixed empty client form data (#1297)
 * Fixed CIO engine no longer sends port in "Host" header (#1295)
 * Fixed potential deadlock in Android engine
-
 * Gradle Metadata 1.0 (Gradle 5.6.2)
 * kotlinx.coroutines 1.3.2
 * kotlinx.serialization 0.13.0
