@@ -24,6 +24,11 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     private val app: TestApplicationEngine = config.app
 
+    private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
+
+    override val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    override val coroutineContext: CoroutineContext = dispatcher + clientJob
+
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
 
@@ -63,11 +68,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
     }
 
     override fun close() {
-        super.close()
-
-        coroutineContext[Job]!!.invokeOnCompletion {
-            app.stop(0L, 0L)
-        }
+        clientJob.complete()
     }
 
     companion object : HttpClientEngineFactory<TestHttpClientConfig> {

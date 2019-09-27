@@ -24,7 +24,7 @@ class OAuthLocationsTest {
         application.install(Locations)
         application.install(Authentication) {
             oauth {
-                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                client = this@withTestApplication.client
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
                             "http://oauth-server/token",
@@ -55,7 +55,7 @@ class OAuthLocationsTest {
         application.install(Locations)
         application.install(Authentication) {
             oauth {
-                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                client = this@withTestApplication.client
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
                             "http://oauth-server/token",
