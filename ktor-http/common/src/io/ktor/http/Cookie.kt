@@ -8,11 +8,12 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 
 /**
- * Represents a cooke value
+ * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
+ * A cookie with neither [expires] nor [maxAge] is a session cookie.
  *
  * @property name
  * @property value
- * @property encoding - cookie encoding type
+ * @property encoding - cookie encoding type [CookieEncoding]
  * @property maxAge number of seconds to keep cookie
  * @property expires date when it expires
  * @property domain for which it is set
