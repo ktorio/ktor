@@ -724,6 +724,43 @@ class SessionTest {
         }
     }
 
+    @Test
+    fun testMissingSessionsFeature(): Unit = withTestApplication {
+        application.routing {
+            get("/") {
+                val cause = assertFailsWith<MissingApplicationFeatureException> {
+                    call.sessions.get<EmptySession>()
+                }
+                call.respondText(cause.key.name)
+            }
+        }
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(Sessions.key.name, call.response.content)
+        }
+    }
+
+    @Test
+    fun testMissingSession(): Unit = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Monitoring) {
+            assertFailsWith<SessionNotYetConfiguredException> {
+                call.sessions.get<EmptySession>()
+            }
+            call.respondText("OK")
+            finish()
+        }
+        application.routing {
+            get("/") {
+            }
+        }
+        application.install(Sessions) {
+            cookie<TestUserSession>("name1")
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals("OK", call.response.content)
+        }
+    }
+
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
         when {
             index != sessionId.lastIndex -> letter

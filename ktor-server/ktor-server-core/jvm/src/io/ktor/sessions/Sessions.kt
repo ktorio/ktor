@@ -103,7 +103,12 @@ class Sessions(val providers: List<SessionProvider>) {
  * @throws MissingApplicationFeatureException
  */
 val ApplicationCall.sessions: CurrentSession
-    get() = attributes.getOrNull(SessionKey) ?: throw MissingApplicationFeatureException(Sessions.key)
+    get() = attributes.getOrNull(SessionKey) ?: reportMissingSession()
+
+private fun ApplicationCall.reportMissingSession(): Nothing {
+    application.feature(Sessions) // ensure the feature is installed
+    throw SessionNotYetConfiguredException()
+}
 
 /**
  * Represents a container for all session instances
@@ -214,3 +219,12 @@ private val SessionKey = AttributeKey<SessionData>("SessionKey")
 @InternalAPI
 class TooLateSessionSetException :
     IllegalStateException("It's too late to set session: response most likely already has been sent")
+
+/**
+ * This exception is thrown when a session is asked too early before the [Sessions] feature had chance to configure it.
+ * For example, in a phase before [ApplicationCallPipeline.Features] or in a feature installed before [Sessions] into
+ * the same phase.
+ */
+@InternalAPI
+class SessionNotYetConfiguredException :
+    IllegalStateException("Sessions are not yet ready: you are asking it to early before the Sessions feature.")
