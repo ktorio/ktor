@@ -224,6 +224,16 @@ class PartialContentTest {
     }
 
     @Test
+    fun testDontCrashWithEmptyIfRange(): Unit = withRangeApplication { file ->
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader("Range", "bytes=573-")
+            addHeader("If-Range", "")
+        }.let { result ->
+            assertNull(result.response.headers[HttpHeaders.ContentLength])
+        }
+    }
+
+    @Test
     fun testMultipleMergedRanges(): Unit = withRangeApplication { file ->
         // multiple ranges should be merged into one
         handleRequest(HttpMethod.Get, localPath) {

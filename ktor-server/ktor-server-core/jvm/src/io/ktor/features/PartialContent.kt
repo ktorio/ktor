@@ -109,7 +109,7 @@ class PartialContent(private val maxRangeCount: Int) {
         val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
-        return ifRange == null || versions.all { version ->
+        return ifRange.isNullOrBlank() || versions.all { version ->
             when (version) {
                 is EntityTagVersion -> version.etag in ifRange.parseMatchTag()
                 is LastModifiedVersion -> version.lastModified <= ifRange.fromHttpToGmtDate()
