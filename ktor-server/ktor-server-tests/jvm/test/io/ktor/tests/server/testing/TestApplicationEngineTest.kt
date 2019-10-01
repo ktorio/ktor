@@ -13,6 +13,7 @@ import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.*
 import kotlin.system.*
 import kotlin.test.*
@@ -113,6 +114,45 @@ class TestApplicationEngineTest {
 
             assertFailsWith<IllegalStateException> {
                 handleRequest(HttpMethod.Get, "/fail")
+            }
+        }
+    }
+
+    @Test
+    fun testHookRequests() {
+        val numberOfRequestsProcessed = AtomicInteger(0)
+        val numberOfResponsesProcessed = AtomicInteger(0)
+
+        val dummyApplication: Application.() -> Unit = {
+            routing {
+                get("/") {
+                    call.respond(HttpStatusCode.NoContent)
+                }
+            }
+        }
+
+        val expectedNumberOfCalls = 1
+
+        withTestApplication(dummyApplication) {
+            // Injecting the hooks and checking they are invoked only once
+            hookRequests(
+                processRequest = { setup ->
+                    numberOfRequestsProcessed.incrementAndGet()
+                    setup()
+                },
+                processResponse = { numberOfResponsesProcessed.incrementAndGet() }
+            ) {
+                handleRequest(HttpMethod.Get, "/").apply {
+                    assertEquals(expectedNumberOfCalls, numberOfRequestsProcessed.get())
+                    assertEquals(expectedNumberOfCalls, numberOfResponsesProcessed.get())
+                }
+            }
+
+            // Outside hookRequests scope original processors are restored
+            // so further requests should not increment the counters
+            handleRequest(HttpMethod.Get, "/").apply {
+                assertEquals(expectedNumberOfCalls, numberOfRequestsProcessed.get())
+                assertEquals(expectedNumberOfCalls, numberOfResponsesProcessed.get())
             }
         }
     }
