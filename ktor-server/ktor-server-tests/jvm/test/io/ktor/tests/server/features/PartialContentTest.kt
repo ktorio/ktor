@@ -237,6 +237,16 @@ class PartialContentTest {
         }
     }
 
+    @Test
+    fun testDontCrashWithEmptyIfRange(): Unit = withRangeApplication { file ->
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader("Range", "bytes=573-")
+            addHeader("If-Range", "")
+        }.let { result ->
+            assertNull(result.response.headers[HttpHeaders.ContentLength])
+        }
+    }
+
     private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PartialContent, result.response.status())

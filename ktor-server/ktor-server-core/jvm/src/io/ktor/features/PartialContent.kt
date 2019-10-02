@@ -101,18 +101,49 @@ class PartialContent(private val maxRangeCount: Int) {
         }
     }
 
+    // RFC7233 sec 3.2
     private suspend fun checkIfRangeHeader(
         content: OutgoingContent.ReadChannelContent,
         call: ApplicationCall
     ): Boolean {
         val conditionalHeadersFeature = call.application.featureOrNull(ConditionalHeaders)
         val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
-        val ifRange = call.request.header(HttpHeaders.IfRange)
+        val ifRange = call.request.header(HttpHeaders.IfRange)?.trim() ?: return true
 
-        return ifRange == null || versions.all { version ->
+        if (ifRange.endsWith(" GMT")) { // E-Tag If-Range spec can't have GMT suffix
+            return checkIfRangeDateHeader(ifRange, versions)
+        }
+
+        return checkIfRangeETagHeader(versions, ifRange)
+    }
+
+    private fun checkIfRangeETagHeader(
+        versions: List<Version>,
+        ifRange: String
+    ): Boolean {
+        val parsed = ifRange.parseMatchTag()
+
+        return versions.all { version ->
             when (version) {
-                is EntityTagVersion -> version.etag in ifRange.parseMatchTag()
-                is LastModifiedVersion -> version.lastModified <= ifRange.fromHttpToGmtDate()
+                is EntityTagVersion -> version.etag in parsed
+                else -> true
+            }
+        }
+    }
+
+    private fun checkIfRangeDateHeader(
+        ifRange: String,
+        versions: List<Version>
+    ): Boolean {
+        val ifRangeDate = try {
+            ifRange.fromHttpToGmtDate()
+        } catch (_: Throwable) {
+            return false
+        }
+
+        return versions.all { version ->
+            when (version) {
+                is LastModifiedVersion -> version.lastModified <= ifRangeDate
                 else -> true
             }
         }
