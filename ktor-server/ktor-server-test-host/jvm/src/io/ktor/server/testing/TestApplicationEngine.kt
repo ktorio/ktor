@@ -82,7 +82,7 @@ class TestApplicationEngine(
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
             environment.monitor.raise(ApplicationStopPreparing, environment)
             environment.stop()
