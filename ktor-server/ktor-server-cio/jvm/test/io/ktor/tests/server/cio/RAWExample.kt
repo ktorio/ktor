@@ -7,14 +7,12 @@ package io.ktor.tests.server.cio
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import java.time.*
-
-private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
 
 @Volatile
-private var cachedDateText: String = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
+private var cachedDateText: String = GMTDate().toHttpDate()
 
 private val HelloWorld = "Hello, World!".toByteArray()
 private val HelloWorldLength = HelloWorld.size.toString()
@@ -33,7 +31,7 @@ fun main(args: Array<String>) {
 
     GlobalScope.launch {
         while (isActive) {
-            cachedDateText = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
+            cachedDateText = GMTDate().toHttpDate()
             delay(1000)
         }
     }
