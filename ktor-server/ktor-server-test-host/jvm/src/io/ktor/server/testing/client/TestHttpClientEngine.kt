@@ -14,7 +14,6 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
@@ -65,7 +64,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
     }
 
     override fun close() {
-        app.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        app.stop(0L, 0L)
     }
 
     companion object : HttpClientEngineFactory<TestHttpClientConfig> {

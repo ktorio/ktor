@@ -16,7 +16,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
 import io.ktor.utils.io.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -74,9 +73,9 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (!testEngineJob.isActive) throw IllegalStateException("Test engine is already completed")
+        check(testEngineJob.isActive) { "Test engine is already completed" }
         testEngineJob.invokeOnCompletion {
-            stop(0, 0, TimeUnit.SECONDS)
+            stop(0, 0)
         }
         environment.start()
         return this
