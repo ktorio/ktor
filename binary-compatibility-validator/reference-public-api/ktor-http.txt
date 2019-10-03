@@ -249,7 +249,8 @@ public final class io/ktor/http/Cookie {
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
-	public final fun getMaxAge ()I
+	public final synthetic fun getMaxAge ()I
+	public final fun getMaxAgeInt ()I
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getSecure ()Z

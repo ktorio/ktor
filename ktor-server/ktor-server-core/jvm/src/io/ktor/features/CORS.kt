@@ -12,7 +12,6 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.time.*
 
 /**
  * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
@@ -66,7 +65,7 @@ class CORS(configuration: Configuration) {
             .sorted()
             .joinToString(", ")
 
-    private val maxAgeHeaderValue = (configuration.maxAge.toMillis() / 1000).let { if (it > 0) it.toString() else null }
+    private val maxAgeHeaderValue = configuration.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
     private val exposedHeaders = when {
         configuration.exposedHeaders.isNotEmpty() -> configuration.exposedHeaders.sorted().joinToString(", ")
         else -> null
@@ -350,7 +349,22 @@ class CORS(configuration: Configuration) {
         /**
          * Max-Age for cached CORS options
          */
-        var maxAge: Duration = Duration.ofDays(1)
+        @Suppress("unused", "DEPRECATION")
+        @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.HIDDEN)
+        var maxAge: java.time.Duration
+            get() = maxAge
+            set(newMaxAge) {
+                maxAge = newMaxAge
+            }
+
+        /**
+         * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
+         */
+        var maxAgeInSeconds: Long = CORS_DEFAULT_MAX_AGE
+            set(newMaxAge) {
+                check(newMaxAge >= 0L) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+                field = newMaxAge
+            }
 
         /**
          * Allow requests from the same origin
@@ -451,6 +465,8 @@ class CORS(configuration: Configuration) {
      * Feature object for installation
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
+        const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
+
         override val key: AttributeKey<CORS> = AttributeKey("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
             val cors = CORS(Configuration().apply(configure))

@@ -5,6 +5,7 @@
 package io.ktor.tests.server.sessions
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -16,13 +17,14 @@ import io.ktor.util.date.*
 import io.ktor.util.hex
 import kotlinx.coroutines.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.time.Duration
-import java.util.*
+import kotlin.random.*
 import kotlin.test.*
+import kotlin.time.*
 
 @Suppress("ReplaceSingleLineLet")
+@UseExperimental(ExperimentalTime::class)
 class SessionTest {
-    private val cookieName = "_S" + Random().nextInt(100)
+    private val cookieName = "_S" + Random.nextInt(100)
 
     @Test
     fun testSessionCreateDelete() {
@@ -50,7 +52,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     cookie.domain = "foo.bar"
-                    cookie.duration = Duration.ofHours(1)
+                    cookie.maxAge = 1.hours
                 }
             }
 
@@ -449,7 +451,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
-                    cookie.duration = Duration.ofSeconds(durationSeconds)
+                    cookie.maxAge = durationSeconds.seconds
                     identity { (id++).toString() }
                 }
             }
@@ -469,7 +471,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 val after = GMTDate()
 
-                assertEquals(durationSeconds.toInt(), sessionCookie.maxAge)
+                assertEquals(durationSeconds, sessionCookie.maxAge.toLong())
                 assertEquals("777", sessionCookie.value)
                 assertNotNull(sessionCookie.expires, "Expires cookie value is not set")
                 assertTrue("Expires cookie parameter value should be in the specified dates range") {
@@ -632,7 +634,7 @@ class SessionTest {
 
         application.install(Sessions) {
             cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
-                cookie.duration = null
+                cookie.maxAge = null
             }
         }
 
@@ -676,7 +678,7 @@ class SessionTest {
     @Test
     fun testSessionLongDuration(): Unit = withTestApplication {
         val transport = SessionTransportCookie("test", CookieConfiguration().apply {
-            duration = Duration.ofDays(365 * 100)
+            maxAge = (365 * 100).days
         }, emptyList())
 
         val call = createCall {}
@@ -690,7 +692,7 @@ class SessionTest {
     @Test
     fun testSessionOverflowDuration(): Unit = withTestApplication {
         val transport = SessionTransportCookie("test", CookieConfiguration().apply {
-            duration = Duration.ofSeconds(Long.MAX_VALUE)
+            maxAge = Long.MAX_VALUE.seconds
         }, emptyList())
 
         val call = createCall {}
