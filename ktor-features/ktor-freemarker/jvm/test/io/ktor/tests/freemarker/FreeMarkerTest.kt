@@ -38,7 +38,7 @@ class FreeMarkerTest {
                 }
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals("e", response.headers[HttpHeaders.ETag])
+                assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
             }
         }
     }
@@ -91,7 +91,7 @@ class FreeMarkerTest {
                 }
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
-                assertEquals("e", response.headers[HttpHeaders.ETag])
+                assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
             }
         }
     }
