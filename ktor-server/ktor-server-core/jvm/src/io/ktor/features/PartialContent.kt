@@ -11,6 +11,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
@@ -107,43 +108,43 @@ class PartialContent(private val maxRangeCount: Int) {
         call: ApplicationCall
     ): Boolean {
         val conditionalHeadersFeature = call.application.featureOrNull(ConditionalHeaders)
-        val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
-        val ifRange = call.request.header(HttpHeaders.IfRange)?.trim() ?: return true
-
-        if (ifRange.endsWith(" GMT")) { // E-Tag If-Range spec can't have GMT suffix
-            return checkIfRangeDateHeader(ifRange, versions)
+        val ifRange = try {
+            call.request.headers.getAll(HttpHeaders.IfRange)
+                ?.map { parseIfRangeHeader(it) }
+                ?.takeIf { it.isNotEmpty() }
+                ?.reduce { acc, list -> acc + list }
+                ?.parseVersions()
+                ?: return true
+        } catch (_: Throwable) {
+            return false
         }
 
-        return checkIfRangeETagHeader(versions, ifRange)
-    }
-
-    private fun checkIfRangeETagHeader(
-        versions: List<Version>,
-        ifRange: String
-    ): Boolean {
-        val parsed = ifRange.parseMatchTag()
+        val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
 
         return versions.all { version ->
             when (version) {
-                is EntityTagVersion -> version.etag in parsed
+                is LastModifiedVersion -> checkLastModified(version, ifRange)
+                is EntityTagVersion -> checkEntityTags(version, ifRange)
                 else -> true
             }
         }
     }
 
-    private fun checkIfRangeDateHeader(
-        ifRange: String,
-        versions: List<Version>
-    ): Boolean {
-        val ifRangeDate = try {
-            ifRange.fromHttpToGmtDate()
-        } catch (_: Throwable) {
-            return false
-        }
+    private fun checkLastModified(actual: LastModifiedVersion, ifRange: List<Version>): Boolean {
+        val actualDate = actual.lastModified.truncateToSeconds()
 
-        return versions.all { version ->
-            when (version) {
-                is LastModifiedVersion -> version.lastModified <= ifRangeDate
+        return ifRange.all { condition ->
+            when (condition) {
+                is LastModifiedVersion -> actualDate <= condition.lastModified
+                else -> true
+            }
+        }
+    }
+
+    private fun checkEntityTags(actual: EntityTagVersion, ifRange: List<Version>): Boolean {
+        return ifRange.all { condition ->
+            when (condition) {
+                is EntityTagVersion -> actual.etag == condition.etag
                 else -> true
             }
         }
@@ -221,7 +222,7 @@ class PartialContent(private val maxRangeCount: Int) {
 
         class Single(
             val get: Boolean,
-            original: OutgoingContent.ReadChannelContent,
+            original: ReadChannelContent,
             val range: LongRange,
             val fullLength: Long
         ) : PartialOutgoingContent(original) {
@@ -243,7 +244,7 @@ class PartialContent(private val maxRangeCount: Int) {
         class Multiple(
             override val coroutineContext: CoroutineContext,
             val get: Boolean,
-            original: OutgoingContent.ReadChannelContent,
+            original: ReadChannelContent,
             val ranges: List<LongRange>,
             val length: Long,
             val boundary: String
@@ -280,9 +281,33 @@ class PartialContent(private val maxRangeCount: Int) {
 
     private fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
     private fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
-    private fun String.parseMatchTag() =
-        split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
 }
 
 private fun List<LongRange>.isAscending(): Boolean =
     fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first
+
+private fun parseIfRangeHeader(header: String): List<HeaderValue> {
+    if (header.endsWith(" GMT")) {
+        return listOf(HeaderValue(header))
+    }
+
+    return parseHeaderValue(header)
+}
+
+private fun List<HeaderValue>.parseVersions(): List<Version> = mapNotNull { field ->
+    check(field.quality == 1.0) { "If-Range doesn't support quality" }
+    check(field.params.isEmpty()) { "If-Range doesn't support parameters" }
+
+    parseVersion(field.value)
+}
+
+private fun parseVersion(value: String): Version? {
+    if (value.isBlank()) return null
+    check(!value.startsWith("W/"))
+
+    if (value.startsWith("\"")) {
+        return EntityTagVersion.parseSingle(value)
+    }
+
+    return LastModifiedVersion(value.fromHttpToGmtDate())
+}
