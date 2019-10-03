@@ -54,9 +54,22 @@ class ConcurrentMap<Key, Value>(
     }
 
     /**
-     * Perform concurrent insert.
+     * Perform concurrent get and compute [block] if no associated value found in the map.
+     * @return an existing value or the result of [block]
      */
     fun getOrDefault(key: Key, block: () -> Value): Value = lock.use {
+        get(key)?.let { return it }
+
+        val result = block()
+        put(key, result)
+        return result
+    }
+
+    /**
+     * Perform concurrent get and compute [block] if no associated value found in the map and insert the new value.
+     * @return an existing value or the result of [block]
+     */
+    fun computeIfAbsent(key: Key, block: () -> Value): Value = lock.use {
         get(key)?.let { return it }
 
         val result = block()
