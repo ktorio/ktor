@@ -4,15 +4,15 @@
 
 package io.ktor.application
 
+import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
 
 /**
  * Provides events for [Application] lifecycle
  */
 class ApplicationEvents {
-    private val handlers = ConcurrentHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
+    private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
      * Subscribe [handler] to an event specified by [definition]

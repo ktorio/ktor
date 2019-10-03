@@ -54,15 +54,14 @@ class ConcurrentMap<Key, Value>(
     }
 
     /**
-     * Perform concurrent get and compute [block] if no associated value found in the map.
-     * @return an existing value or the result of [block]
+     * Perform concurrent insert.
      */
+    @Deprecated(
+        "This is accidentally does insert instead of get. Use computeIfAbsent or getOrElse instead.",
+        level = DeprecationLevel.ERROR
+    )
     fun getOrDefault(key: Key, block: () -> Value): Value = lock.use {
-        get(key)?.let { return it }
-
-        val result = block()
-        put(key, result)
-        return result
+        return computeIfAbsent(key, block)
     }
 
     /**

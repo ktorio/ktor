@@ -451,6 +451,7 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;)V
 	public synthetic fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
+	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun containsKey (Ljava/lang/Object;)Z
 	public fun containsValue (Ljava/lang/Object;)Z
 	public final fun entrySet ()Ljava/util/Set;
