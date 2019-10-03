@@ -103,8 +103,8 @@ class TestApplicationEngine(
         processResponse: TestApplicationCall.() -> Unit,
         block: () -> Unit
     ) {
-        val oldProcessRequest = processRequest
-        val oldProcessResponse = processResponse
+        val oldProcessRequest = this.processRequest
+        val oldProcessResponse = this.processResponse
         this.processRequest = {
             oldProcessRequest {
                 processRequest(it)
