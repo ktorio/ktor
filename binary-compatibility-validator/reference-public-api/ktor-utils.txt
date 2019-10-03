@@ -89,6 +89,28 @@ public final class io/ktor/util/CaseInsensitiveMap : java/util/Map, kotlin/jvm/i
 	public final fun values ()Ljava/util/Collection;
 }
 
+public final class io/ktor/util/CaseInsensitiveSet : java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Iterable;)V
+	public synthetic fun add (Ljava/lang/Object;)Z
+	public fun add (Ljava/lang/String;)Z
+	public fun addAll (Ljava/util/Collection;)Z
+	public fun clear ()V
+	public final fun contains (Ljava/lang/Object;)Z
+	public fun contains (Ljava/lang/String;)Z
+	public fun containsAll (Ljava/util/Collection;)Z
+	public fun getSize ()I
+	public fun isEmpty ()Z
+	public fun iterator ()Ljava/util/Iterator;
+	public final fun remove (Ljava/lang/Object;)Z
+	public fun remove (Ljava/lang/String;)Z
+	public fun removeAll (Ljava/util/Collection;)Z
+	public fun retainAll (Ljava/util/Collection;)Z
+	public final fun size ()I
+	public fun toArray ()[Ljava/lang/Object;
+	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+}
+
 public final class io/ktor/util/CharsetKt {
 	public static final fun isLowerCase (C)Z
 	public static final fun toCharArray (Ljava/lang/String;)[C

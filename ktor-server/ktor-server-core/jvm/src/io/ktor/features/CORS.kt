@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package io.ktor.features
 
 import io.ktor.application.*
@@ -11,7 +13,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.time.*
-import java.util.TreeSet
 
 /**
  * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
@@ -188,7 +189,7 @@ class CORS(configuration: Configuration) {
 
     private fun ApplicationCall.corsCheckRequestMethod(): Boolean {
         val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
-        return requestMethod != null && !(requestMethod !in methods)
+        return requestMethod != null && requestMethod in methods
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.respondCorsFailed() {
@@ -243,8 +244,7 @@ class CORS(configuration: Configuration) {
             append(origin)
 
             if (!origin.substringAfterLast(":", "").matches(numberRegex)) {
-                val schema = origin.substringBefore(':')
-                val port = when (schema) {
+                val port = when (origin.substringBefore(':')) {
                     "http" -> "80"
                     "https" -> "443"
                     else -> null
@@ -276,53 +276,39 @@ class CORS(configuration: Configuration) {
                 "Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead",
                 level = DeprecationLevel.ERROR
             )
-            val CorsDefaultHeaders: Set<String> = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
-                addAll(
-                    listOf(
-                        HttpHeaders.CacheControl,
-                        HttpHeaders.ContentLanguage,
-                        HttpHeaders.ContentType,
-                        HttpHeaders.Expires,
-                        HttpHeaders.LastModified,
-                        HttpHeaders.Pragma
-                    )
-                )
-            }
+            val CorsDefaultHeaders: Set<String> = caseInsensitiveSet(
+                HttpHeaders.CacheControl,
+                HttpHeaders.ContentLanguage,
+                HttpHeaders.ContentType,
+                HttpHeaders.Expires,
+                HttpHeaders.LastModified,
+                HttpHeaders.Pragma
+            )
 
             /**
              * Default HTTP headers that are always allowed by CORS
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              * Please note that `Content-Type` header simplicity depends on it's value.
              */
-            val CorsSimpleRequestHeaders: Set<String> =
-                TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
-                    addAll(
-                        listOf(
-                            HttpHeaders.Accept,
-                            HttpHeaders.AcceptLanguage,
-                            HttpHeaders.ContentLanguage,
-                            HttpHeaders.ContentType
-                        )
-                    )
-                }.unmodifiable()
+            val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
+                    HttpHeaders.Accept,
+                    HttpHeaders.AcceptLanguage,
+                    HttpHeaders.ContentLanguage,
+                    HttpHeaders.ContentType
+                )
 
             /**
              * Default HTTP headers that are always allowed by CORS to be used in response
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              */
-            val CorsSimpleResponseHeaders: Set<String> =
-                TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
-                    addAll(
-                        listOf(
-                            HttpHeaders.CacheControl,
-                            HttpHeaders.ContentLanguage,
-                            HttpHeaders.ContentType,
-                            HttpHeaders.Expires,
-                            HttpHeaders.LastModified,
-                            HttpHeaders.Pragma
-                        )
-                    )
-                }.unmodifiable()
+            val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
+                    HttpHeaders.CacheControl,
+                    HttpHeaders.ContentLanguage,
+                    HttpHeaders.ContentType,
+                    HttpHeaders.Expires,
+                    HttpHeaders.LastModified,
+                    HttpHeaders.Pragma
+                )
 
             /**
              * The allowed set of content types that are allowed by CORS without preflight check
@@ -339,27 +325,27 @@ class CORS(configuration: Configuration) {
         /**
          * Allowed CORS hosts
          */
-        val hosts = HashSet<String>()
+        val hosts: MutableSet<String> = HashSet()
 
         /**
          * Allowed CORS headers
          */
-        val headers = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
+        val headers: MutableSet<String> = CaseInsensitiveSet()
 
         /**
          * Allowed HTTP methods
          */
-        val methods = HashSet<HttpMethod>()
+        val methods: MutableSet<HttpMethod> = HashSet()
 
         /**
          * Exposed HTTP headers that could be accessed by a client
          */
-        val exposedHeaders = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
+        val exposedHeaders: MutableSet<String> = CaseInsensitiveSet()
 
         /**
          * Allow sending credentials
          */
-        var allowCredentials = false
+        var allowCredentials: Boolean = false
 
         /**
          * Max-Age for cached CORS options
@@ -393,9 +379,7 @@ class CORS(configuration: Configuration) {
             if (host == "*") {
                 return anyHost()
             }
-            if ("://" in host) {
-                throw IllegalArgumentException("scheme should be specified as a separate parameter schemes")
-            }
+            require("://" !in host) { "scheme should be specified as a separate parameter schemes" }
 
             for (schema in schemes) {
                 hosts.add("$schema://$host")
@@ -467,16 +451,14 @@ class CORS(configuration: Configuration) {
      * Feature object for installation
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
-        override val key = AttributeKey<CORS>("CORS")
+        override val key: AttributeKey<CORS> = AttributeKey("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
             val cors = CORS(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Features) { cors.intercept(this) }
             return cors
         }
+
+        private fun caseInsensitiveSet(vararg elements: String): Set<String> =
+            CaseInsensitiveSet(elements.asList())
     }
 }
-
-
-
-
-
