@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.time.*
-import java.util.*
 
 /**
  * HSTS feature that appends `Strict-Transport-Security` HTTP header to every response.

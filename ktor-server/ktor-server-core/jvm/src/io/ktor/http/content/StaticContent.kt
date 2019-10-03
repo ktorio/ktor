@@ -10,7 +10,7 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import java.io.*
 
-private val pathParameterName = "static-content-path-parameter"
+private const val pathParameterName = "static-content-path-parameter"
 
 private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
 

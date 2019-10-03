@@ -6,7 +6,6 @@ package io.ktor.features
 
 import io.ktor.http.*
 import io.ktor.util.*
-import java.lang.Exception
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
@@ -54,6 +53,7 @@ abstract class ContentTransformationException(message: String) : Exception(messa
 
 internal class CannotTransformContentToTypeException(type: KType) :
     ContentTransformationException("Cannot transform this request's content to $type") {
+    @Suppress("unused")
     @Deprecated("Use KType instead", level = DeprecationLevel.HIDDEN)
     constructor(type: KClass<*>) : this(type.starProjectedType)
 }

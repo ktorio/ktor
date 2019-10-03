@@ -5,6 +5,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.util.date.*
 import java.time.*
 import java.time.format.*
 import java.time.temporal.*
@@ -14,7 +15,7 @@ import java.util.*
  * Format epoch milliseconds as HTTP date (GMT)
  */
 @KtorExperimentalAPI
-fun Long.toHttpDateString(): String = Instant.ofEpochMilli(this).toHttpDateString()
+fun Long.toHttpDateString(): String = GMTDate(this).toHttpDate()
 
 /**
  * Format as HTTP date (GMT)

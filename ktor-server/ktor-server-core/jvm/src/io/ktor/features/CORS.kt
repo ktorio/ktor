@@ -10,10 +10,8 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.net.*
 import java.time.*
-import java.util.*
-import kotlin.collections.HashSet
+import java.util.TreeSet
 
 /**
  * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
@@ -24,29 +22,29 @@ class CORS(configuration: Configuration) {
     /**
      * Allow requests from the same origin
      */
-    val allowSameOrigin = configuration.allowSameOrigin
+    val allowSameOrigin: Boolean = configuration.allowSameOrigin
 
     /**
      * Allow requests from any origin
      */
-    val allowsAnyHost = "*" in configuration.hosts
+    val allowsAnyHost: Boolean = "*" in configuration.hosts
 
     /**
      * Allow to pass credentials
      */
-    val allowCredentials = configuration.allowCredentials
+    val allowCredentials: Boolean = configuration.allowCredentials
 
     /**
      * All allowed headers to be sent including simple
      */
-    val allHeaders = (configuration.headers + Configuration.CorsSimpleRequestHeaders).let { headers ->
+    val allHeaders: Set<String> = (configuration.headers + Configuration.CorsSimpleRequestHeaders).let { headers ->
         if (configuration.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
     }
 
     /**
      * All allowed HTTP methods
      */
-    val methods = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
+    val methods: Set<HttpMethod> = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
 
     /**
      * Set of all allowed headers
@@ -209,13 +207,35 @@ class CORS(configuration: Configuration) {
             return false
         }
 
-        return try {
-            val url = URI(origin)
-
-            !url.scheme.isNullOrEmpty()
-        } catch (e: URISyntaxException) {
-            false
+        val protoDelimiter = origin.indexOf("://")
+        if (protoDelimiter <= 0) {
+            return false
         }
+
+        // check proto
+        for (index in 0 until protoDelimiter) {
+            if (!origin[index].isLetter()) {
+                return false
+            }
+        }
+
+        var portIndex = origin.length
+        for (index in protoDelimiter + 3 until origin.length) {
+            val ch = origin[index]
+            if (ch == ':' || ch == '/') {
+                portIndex = index + 1
+                break
+            }
+            if (ch == '?') return false
+        }
+
+        for (index in portIndex until origin.length) {
+            if (!origin[index].isDigit()) {
+                return false
+            }
+        }
+
+        return true
     }
 
     private fun normalizeOrigin(origin: String) =
@@ -251,6 +271,7 @@ class CORS(configuration: Configuration) {
             /**
              * Default HTTP headers that are always allowed by CORS
              */
+            @Suppress("unused")
             @Deprecated(
                 "Use CorsSimpleRequestHeaders or CorsSimpleResponseHeaders instead",
                 level = DeprecationLevel.ERROR
@@ -274,7 +295,7 @@ class CORS(configuration: Configuration) {
              * Please note that `Content-Type` header simplicity depends on it's value.
              */
             val CorsSimpleRequestHeaders: Set<String> =
-                Collections.unmodifiableSet(TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
+                TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
                     addAll(
                         listOf(
                             HttpHeaders.Accept,
@@ -283,14 +304,14 @@ class CORS(configuration: Configuration) {
                             HttpHeaders.ContentType
                         )
                     )
-                })
+                }.unmodifiable()
 
             /**
              * Default HTTP headers that are always allowed by CORS to be used in response
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              */
             val CorsSimpleResponseHeaders: Set<String> =
-                Collections.unmodifiableSet(TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
+                TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
                     addAll(
                         listOf(
                             HttpHeaders.CacheControl,
@@ -301,18 +322,18 @@ class CORS(configuration: Configuration) {
                             HttpHeaders.Pragma
                         )
                     )
-                })
+                }.unmodifiable()
 
             /**
              * The allowed set of content types that are allowed by CORS without preflight check
              */
-            val CorsSimpleContentTypes: Set<ContentType> = Collections.unmodifiableSet(
+            @Suppress("unused")
+            val CorsSimpleContentTypes: Set<ContentType> =
                 setOf(
                     ContentType.Application.FormUrlEncoded,
                     ContentType.MultiPart.FormData,
                     ContentType.Text.Plain
-                )
-            )
+                ).unmodifiable()
         }
 
         /**
@@ -410,6 +431,7 @@ class CORS(configuration: Configuration) {
         /**
          * Allow to send `X-Http-Method-Override` header
          */
+        @Suppress("unused")
         fun allowXHttpMethodOverride() {
             header(HttpHeaders.XHttpMethodOverride)
         }

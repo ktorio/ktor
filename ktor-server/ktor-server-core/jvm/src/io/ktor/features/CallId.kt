@@ -10,8 +10,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import org.slf4j.*
-import java.lang.IllegalArgumentException
-import java.util.*
+import kotlin.random.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -172,7 +171,7 @@ class CallId private constructor(
     /**
      * Installable feature for [CallId]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, CallId.Configuration, CallId> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CallId> {
         /**
          * [ApplicationCallPipeline]'s phase which this feature will be installed to
          */
@@ -258,7 +257,7 @@ fun CallId.Configuration.generate(length: Int = 64, dictionary: String = CALL_ID
         "Dictionary should not contain duplicates, found: ${dictionary.duplicates()}"
     }
 
-    generate { Random().nextString(length, dictionaryCharacters) }
+    generate { Random.nextString(length, dictionaryCharacters) }
 }
 
 /**

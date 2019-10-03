@@ -6,7 +6,6 @@ package io.ktor.request
 
 import io.ktor.http.*
 import io.ktor.util.*
-import java.util.*
 import java.util.concurrent.*
 
 /**
