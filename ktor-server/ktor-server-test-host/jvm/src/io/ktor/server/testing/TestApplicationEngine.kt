@@ -263,7 +263,7 @@ fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {
-            trackedCookies = response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
+            trackedCookies += response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
         }
     ) {
         callback()
