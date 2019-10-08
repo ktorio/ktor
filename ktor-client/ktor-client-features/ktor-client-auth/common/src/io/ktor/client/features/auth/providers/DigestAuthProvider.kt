@@ -94,6 +94,8 @@ class DigestAuthProvider(
             this["cnonce"] = clientNonce
             this["response"] = hex(token)
             this["uri"] = url.encodedPath
+            actualQop?.let { this["qop"] }
+            this["nc"] = nonceCount.toString()
         })
 
         request.headers {
