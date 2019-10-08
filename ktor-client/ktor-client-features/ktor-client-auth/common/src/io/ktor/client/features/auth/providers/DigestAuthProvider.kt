@@ -83,7 +83,7 @@ class DigestAuthProvider(
 
         val start = hex(credential)
         val end = hex(makeDigest("$methodName:${url.encodedPath}"))
-        val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, clientNonce)
+        val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
         val token = makeDigest(tokenSequence.joinToString(":"))
 
         val auth = HttpAuthHeader.Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
