@@ -133,6 +133,9 @@ internal inline fun String.tryParseTime(success: (Int, Int, Int) -> Unit) {
         accept { it.isDigit() }
     }.toInt()
 
+    if (lexer.accept { it.isNonDigit() })
+        lexer.acceptWhile { it.isOctet() }
+
     success(hour, minute, second)
 }
 
