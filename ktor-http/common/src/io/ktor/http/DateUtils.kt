@@ -46,7 +46,7 @@ fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
     try {
         val parser = CookieDateParser()
         return parser.parse(this@with)
-    } catch (_: InvalidDateStringException) {
+    } catch (_: InvalidCookieDateException) {
     }
 
     return fromHttpToGmtDate()

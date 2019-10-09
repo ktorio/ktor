@@ -89,7 +89,7 @@ class CookieDateParserTest {
 
         for (date in incorrect) {
             val parser = CookieDateParser()
-            assertFailsWith(InvalidDateStringException::class) {
+            assertFailsWith(InvalidCookieDateException::class) {
                 parser.parse(date)
             }
         }
