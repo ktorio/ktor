@@ -31,9 +31,8 @@ class CookieDateParserTest {
         )
 
         for (index in dates.indices) {
-            val parser = CookieDateParser()
             val (dateString, expected) = dates[index]
-            val date = parser.parse(dateString)
+            val date = dateString.fromHttpToGmtDate()
 
             assertEquals(expected, date)
         }
@@ -104,7 +103,7 @@ class CookieDateParserTest {
             "Wed, 11 Apr 99 12:45:01 GMT" to GMTDate(1, 45, 12, 11, Month.APRIL, 1999),
 
             // 0 <= year <= 69, increment by 2000
-            "Wed, 11 Apr 0 12:45:01 GMT" to GMTDate(1, 45, 12, 11, Month.APRIL, 2000),
+            "Wed, 11 Apr 00 12:45:01 GMT" to GMTDate(1, 45, 12, 11, Month.APRIL, 2000),
             "Wed, 11 Apr 69 12:45:01 GMT" to GMTDate(1, 45, 12, 11, Month.APRIL, 2069)
         )
 
