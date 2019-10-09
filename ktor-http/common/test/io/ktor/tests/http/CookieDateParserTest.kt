@@ -41,6 +41,7 @@ class CookieDateParserTest {
 
     @Test
     fun testRfc6265Format() {
+        val one = GMTDate(1, 1, 1, 1, Month.APRIL, 2018)
         val eleventh = GMTDate(1, 45, 12, 11, Month.APRIL, 2018)
 
         val dates = listOf(
@@ -63,7 +64,11 @@ class CookieDateParserTest {
 
             // Year is placement-independent after day-of-month
             "Apr 11 2018 12:45:01" to eleventh,
-            "Apr 11 12:45:01 2018" to eleventh
+            "Apr 11 12:45:01 2018" to eleventh,
+
+            // Day-of-month, hours, minutes and seconds can be 1 digit long,
+            // Year can be 2 digits long
+            "1 Apr 18 1:1:1" to one
         )
 
         for ((date, expected) in dates) {
