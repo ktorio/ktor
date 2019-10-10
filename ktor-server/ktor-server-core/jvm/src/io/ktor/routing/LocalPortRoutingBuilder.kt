@@ -19,11 +19,11 @@ import io.ktor.util.*
  *
  * @param port the port to match against
  *
- * @throws IllegalArgumentException if the port is outside the range of acceptable, non-ephemeral ports
+ * @throws IllegalArgumentException if the port is outside the range of TCP/UDP ports
  */
 @KtorExperimentalAPI
 fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
-    require(port in 1..49151) { "Port $port must be a positive number within the range of non-ephemeral ports" }
+    require(port in 1..65535) { "Port $port must be a positive number between 1 and 65,535" }
 
     val selector = LocalPortRouteSelector(port)
     return createChild(selector).apply(build)
