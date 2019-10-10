@@ -348,8 +348,20 @@ public final class io/ktor/client/features/HttpRedirect {
 	public fun <init> ()V
 	public final fun getAllowHttpsDowngrade ()Z
 	public final fun getCheckHttpMethod ()Z
+	public final fun getMaximumRedirects ()I
+	public final fun getRewritePostAsGet ()Z
 	public final fun setAllowHttpsDowngrade (Z)V
 	public final fun setCheckHttpMethod (Z)V
+	public final fun setMaximumRedirects (I)V
+	public final fun setRewritePostAsGet (Z)V
+}
+
+public final class io/ktor/client/features/HttpRedirect$Config {
+	public fun <init> ()V
+	public final fun getMaximumRedirects ()I
+	public final fun getRewritePostAsGet ()Z
+	public final fun setMaximumRedirects (I)V
+	public final fun setRewritePostAsGet (Z)V
 }
 
 public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client/features/HttpClientFeature {
