@@ -15,10 +15,15 @@ import io.ktor.util.*
  */
 class HttpRedirect(config: Config) {
     val maximumRedirects: Int = config.maximumRedirects
+    val rewritePostAsGet: Boolean = config.rewritePostAsGet
 
     class Config {
-        /* RFC2068 recommends a maximum of five redirection */
+        /** RFC2068 recommends a maximum of five redirection */
         var maximumRedirects: Int = 5
+
+        /** RFC7231 6.4.2. 301 Moved Permanently & 6.4.3. 302 Found:
+        * _a user agent **MAY** change the request method from POST to GET for the subsequent request_ */
+        var rewritePostAsGet: Boolean = false
     }
 
     companion object Feature : HttpClientFeature<Config, HttpRedirect> {
@@ -47,6 +52,15 @@ class HttpRedirect(config: Config) {
                     url.parameters.clear()
 
                     location?.let { url.takeFrom(it) }
+
+                    when (call.response.status.value) {
+                        HttpStatusCode.MovedPermanently.value,
+                        HttpStatusCode.Found.value -> {
+                            if (feature.rewritePostAsGet && call.request.method == HttpMethod.Post) {
+                                method = HttpMethod.Get
+                            }
+                        }
+                    }
                 })
                 redirects++
 
