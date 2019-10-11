@@ -217,10 +217,11 @@ open class Locations(private val application: Application, private val routeServ
      * Constructs the url for [location].
      *
      * The class of [location] instance **must** be annotated with [Location].
+     * @param shouldIncludeQuery Include or exclude query parameters in the constructed url.
      */
-    fun href(location: Any): String {
+    fun href(location: Any, shouldIncludeQuery: Boolean = true): String {
         val info = pathAndQuery(location)
-        return info.path + if (info.query.any())
+        return info.path + if (shouldIncludeQuery && info.query.any())
             "?" + info.query.formUrlEncode()
         else
             ""

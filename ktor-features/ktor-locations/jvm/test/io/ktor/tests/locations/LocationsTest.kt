@@ -500,5 +500,10 @@ class LocationsTest {
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
-}
 
+    @Location("/street") class someQuery(val streetNumber: Int, val optional: String? = null)
+    @Test fun `location construction with href can ignore query params`() = withLocationsApplication {
+        val href = application.locations.href(someQuery(4, "something"), shouldIncludeQuery = false)
+        assertEquals("/street", href, message = "check that query is ignored.")
+    }
+}
