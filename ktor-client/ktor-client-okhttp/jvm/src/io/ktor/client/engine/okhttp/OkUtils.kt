@@ -34,7 +34,7 @@ internal suspend fun OkHttpClient.execute(request: Request): Response = suspendC
 internal fun Headers.fromOkHttp(): io.ktor.http.Headers = object : io.ktor.http.Headers {
     override val caseInsensitiveName: Boolean = false
 
-    override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name)
+    override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name).takeIf { it.isNotEmpty() }
 
     override fun names(): Set<String> = this@fromOkHttp.names()
 
