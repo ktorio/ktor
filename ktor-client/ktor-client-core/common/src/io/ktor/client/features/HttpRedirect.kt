@@ -13,9 +13,7 @@ import io.ktor.util.*
 /**
  * [HttpClient] feature that handles http redirect
  */
-class HttpRedirect(config: Config) {
-    val maximumRedirects: Int = config.maximumRedirects
-    val rewritePostAsGet: Boolean = config.rewritePostAsGet
+class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
 
     class Config {
         /** RFC2068 recommends a maximum of five redirection */
@@ -29,7 +27,10 @@ class HttpRedirect(config: Config) {
     companion object Feature : HttpClientFeature<Config, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
-        override fun prepare(block: Config.() -> Unit): HttpRedirect = HttpRedirect(Config().apply(block))
+        override fun prepare(block: Config.() -> Unit): HttpRedirect {
+            val config = Config().apply(block)
+            return HttpRedirect(config.maximumRedirects, config.rewritePostAsGet)
+        }
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
             scope.feature(HttpSend)!!.intercept { origin ->
