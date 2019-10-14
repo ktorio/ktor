@@ -21,10 +21,12 @@ class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
     class Config {
         /**
          * Maximum number of times this feature will follow a http redirect before failing.
+         * Must be less than or equal to the configured value of [HttpSend.maxSendCount] for any effect.
          *
          * RFC2068 recommends a maximum of five redirection.
          *
          * @see [HttpRedirect.maximumRedirects]
+         * @see [HttpSend.maxSendCount]
          */
         var maximumRedirects: Int = 5
 
@@ -82,7 +84,7 @@ class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
 
                 if (!call.response.status.isRedirect()) return call
 
-                if (redirects > feature.maximumRedirects) throw RedirectCountExceedException("Max redirect count ${feature.maximumRedirects} exceeded")
+                if (redirects >= feature.maximumRedirects) throw RedirectCountExceedException("Max redirect count ${feature.maximumRedirects} exceeded")
             }
         }
     }
