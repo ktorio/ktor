@@ -71,20 +71,17 @@ class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
 
                     location?.let { url.takeFrom(it) }
 
-                    when (call.response.status.value) {
-                        HttpStatusCode.MovedPermanently.value,
-                        HttpStatusCode.Found.value -> {
-                            if (feature.rewritePostAsGet && call.request.method == HttpMethod.Post) {
-                                method = HttpMethod.Get
-                            }
-                        }
+                    if (call.response.status.isRewritable()) {
+                        if (feature.rewritePostAsGet && call.request.method == HttpMethod.Post)
+                            method = HttpMethod.Get
                     }
                 })
                 redirects++
 
                 if (!call.response.status.isRedirect()) return call
 
-                if (redirects >= feature.maximumRedirects) throw RedirectCountExceedException("Max redirect count ${feature.maximumRedirects} exceeded")
+                if (redirects >= feature.maximumRedirects)
+                    throw RedirectCountExceedException("Max redirect count ${feature.maximumRedirects} exceeded")
             }
         }
     }
@@ -95,6 +92,12 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     HttpStatusCode.Found.value,
     HttpStatusCode.TemporaryRedirect.value,
     HttpStatusCode.PermanentRedirect.value -> true
+    else -> false
+}
+
+private fun HttpStatusCode.isRewritable(): Boolean = when (value) {
+    HttpStatusCode.MovedPermanently.value,
+    HttpStatusCode.Found.value -> true
     else -> false
 }
 
