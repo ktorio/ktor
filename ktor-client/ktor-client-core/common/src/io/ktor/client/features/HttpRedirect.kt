@@ -12,15 +12,30 @@ import io.ktor.util.*
 
 /**
  * [HttpClient] feature that handles http redirect
+ *
+ * @property maximumRedirects Maximum number of times this feature will follow a http redirect before failing
+ * @property rewritePostAsGet When true, will use GET when a POST request is redirected
  */
 class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
 
     class Config {
-        /** RFC2068 recommends a maximum of five redirection */
+        /**
+         * Maximum number of times this feature will follow a http redirect before failing.
+         *
+         * RFC2068 recommends a maximum of five redirection.
+         *
+         * @see [HttpRedirect.maximumRedirects]
+         */
         var maximumRedirects: Int = 5
 
-        /** RFC7231 6.4.2. 301 Moved Permanently & 6.4.3. 302 Found:
-        * _a user agent **MAY** change the request method from POST to GET for the subsequent request_ */
+        /**
+         * When true, will use GET when a POST request is redirected
+         *
+         * RFC7231 6.4.2. 301 Moved Permanently & 6.4.3. 302 Found:
+         * _a user agent **MAY** change the request method from POST to GET for the subsequent request_
+         *
+         * @see [HttpRedirect.rewritePostAsGet]
+         */
         var rewritePostAsGet: Boolean = false
     }
 
@@ -67,8 +82,7 @@ class HttpRedirect(val maximumRedirects: Int, val rewritePostAsGet: Boolean) {
 
                 if (!call.response.status.isRedirect()) return call
 
-                // TODO: Just return last call, return original (closed) call, or throw an exception?
-                if (redirects > feature.maximumRedirects) return call
+                if (redirects > feature.maximumRedirects) throw RedirectCountExceedException("Max redirect count ${feature.maximumRedirects} exceeded")
             }
         }
     }
@@ -81,3 +95,10 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     HttpStatusCode.PermanentRedirect.value -> true
     else -> false
 }
+
+/**
+ * Thrown when too many redirects are followed.
+ * It could be caused by infinite or too long redirect sequence.
+ * Maximum number of requests is limited by [HttpRedirect.maximumRedirects]
+ */
+class RedirectCountExceedException(message: String) : IllegalStateException(message)
