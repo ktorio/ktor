@@ -14,9 +14,9 @@ import javax.servlet.http.*
 class ServletApplicationRequestHeaders(
     private val servletRequest: HttpServletRequest
 ) : Headers {
-    override fun getAll(name: String): List<String> {
-        val headersEnumeration = servletRequest.getHeaders(name) ?: return emptyList()
-        if (!headersEnumeration.hasMoreElements()) return emptyList()
+    override fun getAll(name: String): List<String>? {
+        val headersEnumeration = servletRequest.getHeaders(name) ?: return null
+        if (!headersEnumeration.hasMoreElements()) return null
 
         val first = headersEnumeration.nextElement()
         if (!headersEnumeration.hasMoreElements()) return Collections.singletonList(first)
@@ -52,7 +52,7 @@ class ServletApplicationRequestHeaders(
             val name = names.nextElement()
             val entry = object : Map.Entry<String, List<String>> {
                 override val key: String get() = name
-                override val value: List<String> get() = getAll(name)
+                override val value: List<String> get() = getAll(name) ?: emptyList()
             }
             set.add(entry)
         }
