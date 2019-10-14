@@ -1848,6 +1848,33 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
     }
 
+    @Test
+    fun testHeadersReturnCorrectly() {
+        createAndStartServer {
+
+            get("/") {
+                assertEquals("foo", call.request.headers["X-Single-Value"])
+                assertEquals("foo;bar", call.request.headers["X-Double-Value"])
+
+                assertNull(call.request.headers["X-Nonexistent-Header"])
+                assertNull(call.request.headers.getAll("X-Nonexistent-Header"))
+
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+        }
+
+        withUrl("/", {
+            headers {
+                append("X-Single-Value", "foo")
+                append("X-Double-Value", "foo")
+                append("X-Double-Value", "bar")
+            }
+        }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("OK", readText())
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 
