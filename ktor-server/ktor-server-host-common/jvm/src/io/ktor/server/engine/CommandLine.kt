@@ -24,7 +24,8 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
             else -> File(it).toURI().toURL()
         }
     }
-    val configFile = argsMap["-config"]?.let { File(it) }
+    val profile = argsMap["-profile"]
+    val configFile = argsMap["-config"]?.let { File(it) } ?: profile?.let { File("application-${profile}.conf") }
     val commandLineMap = argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }
 
     val environmentConfig = ConfigFactory.systemProperties().withOnlyPath("ktor")
