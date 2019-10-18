@@ -11,6 +11,9 @@ plugins {
 
 kotlin {
     targets {
+        // Workaround: 1.3.60. Possible because of the new inference.
+        (this as NamedDomainObjectCollection<KotlinTarget>)
+
         val current = mutableListOf<KotlinTarget>()
         if (ideaActive) {
             current.add(getByName("posix"))

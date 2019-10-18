@@ -181,16 +181,18 @@ task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestRe
 
     allprojects {
         it.afterEvaluate {
-            def projectTests = it.tasks.findByName("allTests")
-            if (projectTests != null) {
+            if (it.tasks.findByName("allTests") != null) {
+                def projectTests = it.tasks.named("allTests")
                 rootAllTest.addChild(projectTests)
                 rootAllTest.dependsOn(projectTests)
             }
         }
     }
 
-    project.gradle.taskGraph.whenReady { graph ->
-        rootAllTest.maybeOverrideReporting(graph)
+    beforeEvaluate {
+        project.gradle.taskGraph.whenReady { graph ->
+            rootAllTest.maybeOverrideReporting(graph)
+        }
     }
 }
 
