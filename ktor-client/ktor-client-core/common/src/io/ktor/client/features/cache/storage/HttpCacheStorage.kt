@@ -4,8 +4,8 @@
 
 package io.ktor.client.features.cache.storage
 
-import io.ktor.client.features.cache.HttpCacheEntry
-import io.ktor.client.response.*
+import io.ktor.client.features.cache.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 

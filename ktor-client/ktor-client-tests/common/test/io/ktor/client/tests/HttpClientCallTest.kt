@@ -4,12 +4,10 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.response.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.http.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
 class HttpClientCallTest {
@@ -25,15 +23,9 @@ class HttpClientCallTest {
 
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Receive) { error("TestException") }
-            val call = client.call("http://localhost") { method = HttpMethod.Get }
+            val call = client.get<HttpStatement>("http://localhost")
             val cause = assertFails { call.receive<String>() }
             assertTrue { cause.message!!.contains("TestException") }
-
-            withTimeout(1000) {
-                call.coroutineContext[Job]!!.join()
-            }
-
-            assertTrue { call.coroutineContext[Job]!!.isCompleted }
         }
     }
 }

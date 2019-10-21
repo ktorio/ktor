@@ -9,6 +9,8 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
@@ -208,7 +210,7 @@ private suspend fun oauth2RequestAccessToken(
         configure()
     }
 
-    val response = client.call(request).response
+    val response = client.request<HttpResponse>(request)
 
     val body = response.readText()
 
@@ -223,8 +225,6 @@ private suspend fun oauth2RequestAccessToken(
         throw ioe
     } catch (t: Throwable) {
         throw IOException("Failed to acquire request token due to wrong content: $body", t)
-    } finally {
-        response.close()
     }
 
     val contentDecodeResult = Result.runCatching { decodeContent(content, contentType) }

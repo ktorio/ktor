@@ -9,6 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
@@ -103,8 +104,9 @@ class AndroidHttpsTest : TestWithKtor() {
     fun external(): Unit = runBlocking {
         val client = HttpClient(Android)
 
-        val response = client.get<HttpResponse>("https://kotlinlang.org")
-        assertEquals(HttpStatusCode.OK, response.status)
+        client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
     }
 
     @Test

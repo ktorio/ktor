@@ -6,12 +6,11 @@ package io.ktor.client.call
 
 import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
@@ -36,7 +35,7 @@ internal fun HttpClientCall(
  */
 open class HttpClientCall internal constructor(
     val client: HttpClient
-) : CoroutineScope, Closeable {
+) : CoroutineScope {
     private val received = atomic(false)
 
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
@@ -57,15 +56,6 @@ open class HttpClientCall internal constructor(
      */
     lateinit var response: HttpResponse
         internal set
-
-    /**
-     * Configuration for the [response].
-     */
-    @Deprecated(
-        message = "responseConfig is deprecated. Consider using [Charsets] config instead",
-        level = DeprecationLevel.ERROR
-    )
-    val responseConfig: HttpResponseConfig = client.engineConfig.response
 
     /**
      * Tries to receive the payload of the [response] as an specific [expectedType].
@@ -89,28 +79,14 @@ open class HttpClientCall internal constructor(
                 throw NoTransformationFoundException(from, to)
             }
 
-            if (result is ByteReadChannel) {
-                return response.channelWithCloseHandling()
-            }
-
-            if (result !is Closeable && result !is HttpRequest) {
-                close()
-            }
-
             return result
-        }
-        catch (cause: Throwable) {
-            close()
+        } catch (cause: Throwable) {
+            response.cancel("Receive failed", cause)
             throw cause
         }
     }
 
-    /**
-     * Closes the underlying [response].
-     */
-    override fun close() {
-        response.close()
-    }
+    override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
 
     companion object {
         /**
@@ -142,8 +118,17 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
  * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
  * configured inside the [block].
  */
+@Deprecated(
+    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith(
+        "this.request<HttpResponse>(block)",
+        "io.ktor.client.request.request",
+        "io.ktor.client.statement.*"
+    )
+)
 suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-    execute(HttpRequestBuilder().apply { block() })
+    error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].

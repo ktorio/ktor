@@ -12,6 +12,10 @@ import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.native.concurrent.*
+
+@SharedImmutable
+private val CALL_COROUTINE = CoroutineName("call-context")
 
 /**
  * Base interface use to define engines for [HttpClient].
@@ -84,7 +88,7 @@ interface HttpClientEngine : CoroutineScope, Closeable {
      */
     private suspend fun createCallContext(parentJob: Job): CoroutineContext {
         val callJob = Job(parentJob)
-        val callContext = this@HttpClientEngine.coroutineContext + callJob + CoroutineName("call-context")
+        val callContext = this@HttpClientEngine.coroutineContext + callJob + CALL_COROUTINE
 
         attachToUserJob(callJob)
 

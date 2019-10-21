@@ -5,16 +5,17 @@
 package io.ktor.client.features.cache
 
 import io.ktor.client.call.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
-internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry = response.use {
-    val body = it.content.readRemaining().readBytes()
-    return HttpCacheEntry(it.cacheExpires(), it.varyKeys(), it, body)
+internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
+    val body = response.content.readRemaining().readBytes()
+    response.complete()
+    return HttpCacheEntry(response.cacheExpires(), response.varyKeys(), response, body)
 }
 
 /**

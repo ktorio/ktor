@@ -8,11 +8,11 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 
 /**
@@ -137,6 +137,16 @@ class HttpClient(
     /**
      * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
+
+    @Deprecated(
+        "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith(
+            "this.request<HttpResponse>(builder)",
+            "io.ktor.client.statement.*"
+        )
+    )
+    @InternalAPI
     suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
         requestPipeline.execute(builder, builder.body) as HttpClientCall
 

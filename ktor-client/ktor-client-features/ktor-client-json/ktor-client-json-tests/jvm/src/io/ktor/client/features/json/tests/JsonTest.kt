@@ -9,7 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.features.*
 import io.ktor.gson.*
@@ -20,6 +20,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.serialization.*
+import kotlin.io.use
 import kotlin.test.*
 
 /** Base class for JSON tests. */
@@ -125,7 +126,7 @@ abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
                 val result = response.receive<Response<List<User>>>()
 
                 assertTrue(result.ok)
@@ -173,7 +174,7 @@ abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
                 val result = response.receive<Response<List<User>>>()
 
                 assertTrue(result.ok)

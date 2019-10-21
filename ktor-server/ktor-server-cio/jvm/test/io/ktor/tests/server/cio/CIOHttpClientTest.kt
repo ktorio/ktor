@@ -9,6 +9,9 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.response.readText
+import io.ktor.client.statement.*
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -66,12 +69,12 @@ class CIOHttpClientTest {
 
         val port = portSync.take()
         val client = HttpClient(CIO)
-        val response = client.call(URL("http://127.0.0.1:$port/")) {
+        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
             body = "request-body"
-        }.response
+        }
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
@@ -85,7 +88,6 @@ class CIOHttpClientTest {
 
             assertEquals("request-body", receivedContentSync.take())
         } finally {
-            response.close()
             client.close()
             th.join()
         }
@@ -153,7 +155,7 @@ class CIOHttpClientTest {
         val port = portSync.await()
 
         val client = HttpClient(CIO)
-        val response = client.call(URL("http://127.0.0.1:$port/")) {
+        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
@@ -163,7 +165,7 @@ class CIOHttpClientTest {
                     append(HttpHeaders.TransferEncoding, "chunked")
                 }.build()
             }
-        }.response
+        }
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
@@ -177,7 +179,6 @@ class CIOHttpClientTest {
 
             assertEquals("request-body", receivedContentSync.await())
         } finally {
-            response.close()
             client.close()
             th.join()
         }

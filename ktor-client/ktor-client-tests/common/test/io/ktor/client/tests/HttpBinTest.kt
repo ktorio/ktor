@@ -9,6 +9,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
@@ -71,7 +72,7 @@ class HttpBinTest : ClientLoader() {
     fun testBytes() = clientTests {
         test { client ->
             val size = 100 * 1024
-            val response = client.get<HttpResponse>("https://httpbin.org/bytes/$size").use {
+            val response = client.get<HttpStatement>("https://httpbin.org/bytes/$size").execute {
                 it.readBytes()
             }
             assertEquals(size, response.size)

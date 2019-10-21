@@ -14,6 +14,4 @@ class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
 
 class OkHttpBuildersTest : BuildersTest(OkHttp)
 
-class OkHttpFeaturesTest : FeaturesTest(OkHttp)
-
 class OkHttpHttpClientTest : HttpClientTest(OkHttp)
