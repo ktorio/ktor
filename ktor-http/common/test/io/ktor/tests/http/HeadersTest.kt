@@ -191,4 +191,23 @@ class HeadersTest {
         assertEquals(value, headersOf("hello", listOf(value))["HELLO"])
         assertEquals(value, headersOf("hello" to listOf(value))["HELLO"])
     }
+
+    @Test
+    fun headerNamesValidation() {
+        val illegalCharacters = "\u0000\u0009\r\n\"(),/:;<=>?@[\\]{}"
+        HeadersBuilder().apply {
+            append("valid", "ok")
+
+            illegalCharacters.forEach { ch ->
+                val key = "not${ch}valid"
+                assertFails {
+                    append(key, "ok")
+                }
+                assertFails {
+                    set(key, "ok2")
+                }
+                assertNull(get(key))
+            }
+        }
+    }
 }

@@ -168,15 +168,16 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
 
     operator fun contains(name: String): Boolean = name in values
 
-    fun contains(name: String, value: String) = values[name]?.contains(value) ?: false
+    fun contains(name: String, value: String): Boolean = values[name]?.contains(value) ?: false
 
-    fun names() = values.keys
+    fun names(): Set<String> = values.keys
 
-    fun isEmpty() = values.isEmpty()
+    fun isEmpty(): Boolean = values.isEmpty()
 
     fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
 
     operator fun set(name: String, value: String) {
+        validateValue(value)
         val list = ensureListForKey(name, 1)
         list.clear()
         list.add(value)
@@ -185,6 +186,7 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
     operator fun get(name: String): String? = getAll(name)?.firstOrNull()
 
     fun append(name: String, value: String) {
+        validateValue(value)
         ensureListForKey(name, 1).add(value)
     }
 
@@ -201,7 +203,12 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
     }
 
     fun appendAll(name: String, values: Iterable<String>) {
-        ensureListForKey(name, (values as? Collection)?.size ?: 2).addAll(values)
+        ensureListForKey(name, (values as? Collection)?.size ?: 2).let { list ->
+            values.forEach { value ->
+                validateValue(value)
+                list.add(value)
+            }
+        }
     }
 
     fun appendMissing(name: String, values: Iterable<String>) {
@@ -232,10 +239,18 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
         return StringValuesImpl(caseInsensitiveName, values)
     }
 
+    @KtorExperimentalAPI
+    protected open fun validateName(name: String) {
+    }
+
+    @KtorExperimentalAPI
+    protected open fun validateValue(value: String) {
+    }
+
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
         if (built)
             throw IllegalStateException("Cannot modify a builder when final structure has already been built")
-        return values[name] ?: ArrayList<String>(size).also { values[name] = it }
+        return values[name] ?: ArrayList<String>(size).also {  validateName(name); values[name] = it }
     }
 }
 

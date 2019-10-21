@@ -439,6 +439,8 @@ public final class io/ktor/http/HttpHeaderValueParserKt {
 
 public final class io/ktor/http/HttpHeaders {
 	public static final field INSTANCE Lio/ktor/http/HttpHeaders;
+	public final fun checkHeaderName (Ljava/lang/String;)V
+	public final fun checkHeaderValue (Ljava/lang/String;)V
 	public final fun getALPN ()Ljava/lang/String;
 	public final fun getAccept ()Ljava/lang/String;
 	public final fun getAcceptCharset ()Ljava/lang/String;
@@ -523,6 +525,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getTrailer ()Ljava/lang/String;
 	public final fun getTransferEncoding ()Ljava/lang/String;
 	public final fun getUnsafeHeaders ()[Ljava/lang/String;
+	public final fun getUnsafeHeadersList ()Ljava/util/List;
 	public final fun getUpgrade ()Ljava/lang/String;
 	public final fun getUserAgent ()Ljava/lang/String;
 	public final fun getVary ()Ljava/lang/String;
@@ -712,6 +715,18 @@ public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
 	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
 	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
+}
+
+public final class io/ktor/http/IllegalHeaderNameException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun getPosition ()I
+}
+
+public final class io/ktor/http/IllegalHeaderValueException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun getHeaderValue ()Ljava/lang/String;
+	public final fun getPosition ()I
 }
 
 public final class io/ktor/http/IpParserKt {

@@ -299,6 +299,8 @@ public class io/ktor/util/StringValuesBuilder {
 	public final fun removeKeysWithNoEntries ()V
 	public final fun set (Ljava/lang/String;Ljava/lang/String;)V
 	protected final fun setBuilt (Z)V
+	protected fun validateName (Ljava/lang/String;)V
+	protected fun validateValue (Ljava/lang/String;)V
 }
 
 public class io/ktor/util/StringValuesImpl : io/ktor/util/StringValues {
