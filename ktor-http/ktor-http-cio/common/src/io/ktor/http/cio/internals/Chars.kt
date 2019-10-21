@@ -7,6 +7,8 @@ package io.ktor.http.cio.internals
 import io.ktor.http.*
 import kotlinx.io.core.*
 
+internal const val HTAB: Char = '\u0009'
+
 internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): Int {
     var hashCode = 0
     for (pos in start until end) {

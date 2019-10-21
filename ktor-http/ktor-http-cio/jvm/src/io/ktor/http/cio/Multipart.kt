@@ -122,7 +122,7 @@ suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()
 
     try {
-        return parseHeaders(input, builder, MutableRange(0, 0))
+        return parseHeaders(input, builder)
             ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
     } catch (t: Throwable) {
         builder.release()

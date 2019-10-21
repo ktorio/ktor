@@ -4,13 +4,25 @@
 
 package io.ktor.http.cio.internals
 
-import io.ktor.http.cio.*
-
 internal fun nextToken(text: CharSequence, range: MutableRange): CharSequence {
     val spaceOrEnd = findSpaceOrEnd(text, range)
     val s = text.subSequence(range.start, spaceOrEnd)
     range.start = spaceOrEnd
     return s
+}
+
+internal fun skipSpHTab(
+    text: CharArrayBuilder,
+    start: Int,
+    end: Int
+): Int {
+    var index = start
+    while (index < end) {
+        val ch = text[index]
+        if (ch != ' ' && ch != HTAB) break
+        index++
+    }
+    return index
 }
 
 internal fun skipSpaces(text: CharSequence, range: MutableRange) {
@@ -22,27 +34,6 @@ internal fun skipSpaces(text: CharSequence, range: MutableRange) {
 
     while (idx < end) {
         if (text[idx] != ' ') break
-        idx++
-    }
-
-    range.start = idx
-}
-
-internal fun skipSpacesAndColon(text: CharSequence, range: MutableRange) {
-    var idx = range.start
-    val end = range.end
-    var colons = 0
-
-    while (idx < end) {
-        val ch = text[idx]
-        if (ch == ':') {
-            if (++colons > 1) {
-                throw ParserException("Multiple colons in header")
-            }
-        } else if (ch != ' ') {
-            break
-        }
-
         idx++
     }
 
@@ -62,19 +53,4 @@ internal fun findSpaceOrEnd(text: CharSequence, range: MutableRange): Int {
     }
 
     return idx
-}
-
-internal fun findLetterBeforeColon(text: CharSequence, range: MutableRange): Int {
-    var index = range.start
-    var lastCharIndex = index
-    val end = range.end
-
-    while (index < end) {
-        val ch = text[index]
-        if (ch == ':') return lastCharIndex
-        if (ch != ' ') lastCharIndex = index
-        index++
-    }
-
-    return -1
 }
