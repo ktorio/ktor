@@ -44,7 +44,9 @@ internal class Endpoint(
 
                 try {
                     if (!config.pipelining || task.requiresDedicatedConnection()) {
-                        makeDedicatedRequest(task)
+                        makeDedicatedRequest(task).invokeOnCompletion {
+                            it?.let { task.response.resumeWithException(it) }
+                        }
                     } else {
                         makePipelineRequest(task)
                     }

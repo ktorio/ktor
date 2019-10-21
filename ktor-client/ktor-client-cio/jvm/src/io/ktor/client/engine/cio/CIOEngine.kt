@@ -39,6 +39,9 @@ internal class CIOEngine(
 
             val endpoint = selectEndpoint(data.url, proxy)
             val callContext = createCallContext()
+
+            launch(callContext) { throw java.lang.IllegalStateException("42") }
+
             try {
                 return endpoint.execute(data, callContext)
             } catch (cause: ClosedSendChannelException) {
