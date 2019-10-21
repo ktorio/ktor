@@ -91,7 +91,7 @@ fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() 
  */
 private fun validateHeaders(request: HttpRequestData) {
     val requestHeaders = request.headers
-    for (header in HttpHeaders.UnsafeHeaders) {
+    for (header in HttpHeaders.UnsafeHeadersList) {
         if (header in requestHeaders) {
             throw UnsafeHeaderException(header)
         }
