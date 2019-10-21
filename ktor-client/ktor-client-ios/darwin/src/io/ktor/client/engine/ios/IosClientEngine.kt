@@ -121,10 +121,6 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                 session.dataTaskWithRequest(nativeRequest).resume()
             }
         }
-
-        callContext[Job]?.invokeOnCompletion {
-            session.finishTasksAndInvalidate()
-        }
     }
 
     private fun NSURLSessionConfiguration.setupProxy() {

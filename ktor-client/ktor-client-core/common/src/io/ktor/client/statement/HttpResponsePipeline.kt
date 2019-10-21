@@ -2,7 +2,7 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.response
+package io.ktor.client.statement
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -11,7 +11,13 @@ import io.ktor.util.pipeline.*
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
  */
-class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Receive, Parse, Transform, State, After) {
+class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(
+    Receive,
+    Parse,
+    Transform,
+    State,
+    After
+) {
     companion object Phases {
         /**
          * The earliest phase that happens before any other
@@ -43,7 +49,11 @@ class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Rec
 /**
  * [HttpClient] Pipeline used for receiving [HttpResponse] without any processing.
  */
-class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State, After) {
+class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(
+    Before,
+    State,
+    After
+) {
     companion object Phases {
         /**
          * The earliest phase that happens before any other

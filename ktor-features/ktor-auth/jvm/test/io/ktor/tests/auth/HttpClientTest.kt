@@ -5,13 +5,11 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import java.net.*
 import java.time.*
 import java.util.concurrent.*
@@ -33,13 +31,13 @@ class HttpClientTest {
                     val reader = client.inputStream.bufferedReader()
 
                     val headers = reader.lineSequence().takeWhile { it.isNotBlank() }.associateBy(
-                            { it.substringBefore(":", "") },
-                            { it.substringAfter(":").trimStart() }
+                        { it.substringBefore(":", "") },
+                        { it.substringAfter(":").trimStart() }
                     )
                     headersSync.add(headers)
 
                     val bodyLength = headers[HttpHeaders.ContentLength]?.toInt()
-                            ?: error("Header Content-Length is missing or invalid")
+                        ?: error("Header Content-Length is missing or invalid")
                     val requestContentBuffer = CharArray(bodyLength)
 
                     var read = 0
@@ -54,12 +52,14 @@ class HttpClientTest {
                     receivedContentSync.add(requestContent)
 
                     client.outputStream.writer().apply {
-                        write("""
+                        write(
+                            """
                     HTTP/1.1 200 OK
                     Server: test
                     Date: ${LocalDateTime.now().toHttpDateString()}
                     Connection: close
-                    """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\nok"))
+                    """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\nok")
+                        )
                         flush()
                     }
                 }
@@ -68,12 +68,12 @@ class HttpClientTest {
 
         val port = portSync.take()
         val client = HttpClient(CIO)
-        val response = client.call("http://127.0.0.1:$port/") {
+        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
             body = "request-body"
-        }.response
+        }
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
@@ -87,7 +87,6 @@ class HttpClientTest {
 
             assertEquals("request-body", receivedContentSync.take())
         } finally {
-            response.close()
             client.close()
             th.join()
         }

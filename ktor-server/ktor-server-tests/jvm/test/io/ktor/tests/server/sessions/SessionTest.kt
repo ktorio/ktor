@@ -669,7 +669,7 @@ class SessionTest {
         assertFailsWith<TooLateSessionSetException> {
             runBlocking {
                 handleRequest(HttpMethod.Get, "/after-response").let { call ->
-                    println(call.response.content)
+                    call.response.content
                 }
             }
         }

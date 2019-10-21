@@ -9,16 +9,14 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class ContentTest : ClientLoader() {
@@ -61,10 +59,8 @@ class ContentTest : ClientLoader() {
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
-                client.echo<HttpResponse>(content).use { response ->
-                    val responseData = response.content.toByteArray()
-                    assertArrayEquals("Test fail with size: $size", content, responseData)
-                }
+                val responseData = client.echo<ByteArray>(content)
+                assertArrayEquals("Test fail with size: $size", content, responseData)
             }
         }
     }
@@ -125,7 +121,7 @@ class ContentTest : ClientLoader() {
             formData {
                 append("name", "hello")
                 append("content") {
-                    writeStringUtf8("123456789")
+                    writeText("123456789")
                 }
                 append("file", "urlencoded_name.jpg") {
                     for (i in 1..4096) {
@@ -215,23 +211,24 @@ class ContentTest : ClientLoader() {
     @Test
     fun testDownloadStreamResponseWithClose() = clientTests(listOf("js")) {
         test { client ->
-            val response = client.get<HttpResponse>("$TEST_SERVER/content/stream")
-            response.close()
+            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+            }
         }
     }
 
     @Test
     fun testDownloadStreamResponseWithCancel() = clientTests(listOf("js")) {
         test { client ->
-            val response = client.get<HttpResponse>("$TEST_SERVER/content/stream")
-            response.cancel()
+            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+                it.cancel()
+            }
         }
     }
 
     @Test
     fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("js")) {
         test { client ->
-            val result = withTimeoutOrNull(100) {
+            val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")
             }
 

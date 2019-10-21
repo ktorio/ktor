@@ -11,8 +11,9 @@ actual interface Type
 
 object JsType : Type
 
+@UseExperimental(ExperimentalStdlibApi::class)
 actual inline fun <reified T> typeInfo(): TypeInfo {
-    return TypeInfo(T::class, JsType)
+    return TypeInfo(T::class, JsType, typeOf<T>())
 }
 
 /**

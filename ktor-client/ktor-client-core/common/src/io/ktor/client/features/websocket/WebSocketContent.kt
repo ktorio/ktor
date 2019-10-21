@@ -35,4 +35,6 @@ internal class WebSocketContent : ClientUpgradeContent() {
             "Failed to verify server accept header. Expected: $expectedAccept, received: $serverAccept"
         }
     }
+
+    override fun toString(): String = "WebSocketContent"
 }

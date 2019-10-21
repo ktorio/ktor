@@ -7,7 +7,7 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -18,11 +18,11 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -117,7 +117,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(Arrays.equals(byteArrayOf(25, 37, 42), readBytes()))
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
         }
     }
 
@@ -513,8 +513,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals(file.reader().use { it.read().toChar().toString() }, readText(),
-                "It should be no compression if range requested")
+            assertEquals(
+                file.reader().use { it.read().toChar().toString() }, readText(),
+                "It should be no compression if range requested"
+            )
         }
     }
 
@@ -1818,12 +1820,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             val expected = buildString {
                 produceText()
             }
-            call.receive<HttpResponse>().use { response ->
-                assertTrue { HttpHeaders.ContentEncoding in response.headers }
-                val array = response.receive<ByteArray>()
-                val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
-                assertEquals(expected, text)
-            }
+            assertTrue { HttpHeaders.ContentEncoding in headers }
+            val array = receive<ByteArray>()
+            val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
+            assertEquals(expected, text)
         }
     }
 

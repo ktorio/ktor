@@ -7,6 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -14,6 +15,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlin.io.use
 import kotlin.test.*
 
 class CIORequestTest : TestWithKtor() {
@@ -38,9 +40,9 @@ class CIORequestTest : TestWithKtor() {
         test { client ->
             val headerValue = "x".repeat(testSize)
 
-            client.get<HttpResponse>(port = serverPort) {
+            client.get<HttpStatement>(port = serverPort) {
                 header("LongHeader", headerValue)
-            }.use { response ->
+            }.execute { response ->
                 assertEquals(headerValue, response.headers["LongHeader"])
             }
         }

@@ -6,11 +6,14 @@ package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * Install default transformers.
@@ -29,8 +32,7 @@ fun HttpClient.defaultTransformers() {
                 val contentType = context.headers[HttpHeaders.ContentType]?.let {
                     context.headers.remove(HttpHeaders.ContentType)
                     ContentType.parse(it)
-                }
-                    ?: ContentType.Text.Plain
+                } ?: ContentType.Text.Plain
 
                 proceedWith(TextContent(body, contentType))
             }
@@ -48,27 +50,37 @@ fun HttpClient.defaultTransformers() {
 
         when (info.type) {
             Unit::class -> {
-                response.close()
+                body.cancel()
                 proceedWith(HttpResponseContainer(info, Unit))
+            }
+            Int::class -> {
+                proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
             }
             ByteReadPacket::class,
             Input::class -> {
-                try {
-                    proceedWith(HttpResponseContainer(info, body.readRemaining()))
-                } finally {
-                    response.close()
-                }
+                proceedWith(HttpResponseContainer(info, body.readRemaining()))
             }
             ByteArray::class -> {
-                try {
-                    val readRemaining = body.readRemaining(contentLength)
-                    proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
-                } finally {
-                    response.close()
-                }
+                val readRemaining = body.readRemaining(contentLength)
+                proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+            }
+            ByteReadChannel::class -> {
+                val channel: ByteReadChannel = writer {
+                    try {
+                        body.copyTo(channel, limit = Long.MAX_VALUE)
+                    } catch (cause: CancellationException) {
+                        response.cancel(cause)
+                    } catch (cause: Throwable) {
+                        response.cancel("Receive failed", cause)
+                    } finally {
+                        response.complete()
+                    }
+                }.channel
+
+                proceedWith(HttpResponseContainer(info, channel))
             }
             HttpStatusCode::class -> {
-                response.close()
+                body.cancel()
                 proceedWith(HttpResponseContainer(info, response.status))
             }
         }

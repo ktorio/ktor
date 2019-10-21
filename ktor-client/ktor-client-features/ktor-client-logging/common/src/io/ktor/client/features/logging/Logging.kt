@@ -9,14 +9,14 @@ import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.observer.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * [HttpClient] logging feature.
@@ -50,7 +50,7 @@ class Logging(
         if (level.body) logRequestBody(content)
     }
 
-    private suspend fun logResponse(response: HttpResponse): Unit = response.use {
+    private suspend fun logResponse(response: HttpResponse) {
         if (level.info) {
             logger.log("RESPONSE: ${response.status}")
             logger.log("METHOD: ${response.call.request.method}")
@@ -58,11 +58,6 @@ class Logging(
         }
 
         if (level.headers) logHeaders(response.headers.entries())
-        if (level.body) {
-            logResponseBody(response.contentType(), response.content)
-        } else {
-            response.content.discard()
-        }
     }
 
     private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
@@ -164,9 +159,13 @@ class Logging(
                 }
             }
 
+            if (!feature.level.body) {
+                return
+            }
+
             val observer: ResponseHandler = {
                 try {
-                    feature.logResponse(it)
+                    feature.logResponseBody(it.contentType(), it.content)
                 } catch (_: Throwable) {
                 }
             }

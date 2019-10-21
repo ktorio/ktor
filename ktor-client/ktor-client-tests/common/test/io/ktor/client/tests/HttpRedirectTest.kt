@@ -7,23 +7,22 @@ package io.ktor.client.tests
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class HttpRedirectTest : ClientLoader() {
     private val TEST_URL_BASE = "$TEST_SERVER/redirect"
 
     @Test
-    fun redirectTest(): Unit = clientTests {
+    fun redirectTest() = clientTests {
         config {
             install(HttpRedirect)
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.readText())
             }
@@ -51,7 +50,7 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/cookie").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/cookie").execute {
                 assertEquals("OK", it.readText())
                 val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
@@ -73,8 +72,8 @@ class HttpRedirectTest : ClientLoader() {
 
         test { client ->
             urls.forEach { url ->
-                client.get<HttpResponse>(url).use {
-                    if (it.status.value >= 500) return@use
+                client.get<HttpStatement>(url).execute {
+                    if (it.status.value >= 500) return@execute
                     assertTrue(it.status.isSuccess(), url)
                 }
             }
@@ -84,7 +83,7 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun httpStatsTest() = clientTests {
         test { client ->
-            client.get<HttpResponse>("https://httpstat.us/301").use { response ->
+            client.get<HttpStatement>("https://httpstat.us/301").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
             }
         }
@@ -93,7 +92,7 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun redirectRelative() = clientTests {
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/redirectFile").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/redirectFile").execute {
                 assertEquals("targetFile", it.readText())
             }
         }
@@ -102,7 +101,7 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun redirectAbsolute() = clientTests {
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/absoluteRedirectFile").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
                 assertEquals("absoluteTargetFile", it.readText())
             }
         }
@@ -111,7 +110,7 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun redirectHostAbsolute() = clientTests(listOf("js")) {
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
                 assertEquals("200 OK", it.readText())
                 assertEquals("https://httpstat.us/200", it.call.request.url.toString())
             }
