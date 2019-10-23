@@ -11,7 +11,7 @@ internal fun nextToken(text: CharSequence, range: MutableRange): CharSequence {
     return s
 }
 
-internal fun skipSpHTab(
+internal fun skipSpacesAndHorizontalTabs(
     text: CharArrayBuilder,
     start: Int,
     end: Int

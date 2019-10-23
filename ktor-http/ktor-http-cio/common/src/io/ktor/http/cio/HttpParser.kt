@@ -239,7 +239,7 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
     val end = range.end
     var index = start
 
-    index = skipSpHTab(text, index, end)
+    index = skipSpacesAndHorizontalTabs(text, index, end)
 
     if (index >= end) {
         range.start = end
