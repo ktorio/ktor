@@ -10,7 +10,7 @@ import kotlin.reflect.*
 /**
  * Creates new logger with the specified [name] (appended to parent's logger name).
  */
-fun Logger.subLogger(name: String): Logger = fork {
+fun Logger.subLogger(name: String): Logger = configure {
     name(name)
 }
 
@@ -22,7 +22,7 @@ fun LoggingConfigBuilder.name(loggerName: String) {
     var added = false
 
     @Suppress("UNCHECKED_CAST")
-    val key = keys.filterIsInstance<LoggerNameKey>().lastOrNull() ?: LoggerNameKey().also {
+    val key = findNameKey() ?: LoggerNameKey().also {
         registerKey(it)
         added = true
     }
@@ -44,26 +44,34 @@ fun LoggingConfigBuilder.name(loggerName: String) {
 }
 
 /**
+ * A name produced by the logger name feature or `null` if no name specified or the feature is not installed.
+ */
+val LogRecord.name: String? get() = findNameKey()?.let { key -> this[key] }
+
+/**
  * Creates new logger with name constructed of the [clazz] name
  */
 fun Logger.forClass(clazz: KClass<*>): Logger {
     val name = clazz.getName() ?: return this
 
-    return fork {
+    return configure {
         name(name)
     }
 }
 
 /**
- * Creates new logger with name constructed of the [clazz] name
+ * Creates new logger with name constructed of the [C] class name.
  */
-inline fun <reified C : Any> Logger.forClass(): Logger = forClass(C::class)
+@UseExperimental(ExperimentalStdlibApi::class)
+inline fun <reified C : Any> Logger.forClass(): Logger = configure {
+    name(typeOf<C>().toString())
+}
 
 /**
  * Creates new logger with name constructed of the class name
  */
 inline fun <reified C : Any> (@Suppress("unused") C).loggerForClass(parent: Logger): Logger {
-    return (parent ?: logger()).forClass<C>()
+    return parent.forClass<C>()
 }
 
 /**
@@ -76,3 +84,17 @@ inline fun <reified C : Any> (@Suppress("unused") C).loggerForClass(config: Conf
 private class LoggerNameKey : LogAttributeKey<String>("logger-name", "")
 
 internal expect fun KClass<*>.getName(): String?
+
+private fun LogRecord.findNameKey(): LoggerNameKey? = config.keys.findNameKey()
+private fun LoggingConfigBuilder.findNameKey(): LoggerNameKey? = keys.findNameKey()
+
+private fun List<LogAttributeKey<*>>.findNameKey(): LoggerNameKey? {
+    for (index in lastIndex downTo 0) {
+        val key = this[index]
+        if (key is LoggerNameKey) {
+            return key
+        }
+    }
+
+    return null
+}

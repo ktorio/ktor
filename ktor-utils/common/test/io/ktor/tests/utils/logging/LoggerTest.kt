@@ -2,12 +2,11 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.tests.utils
+package io.ktor.tests.utils.logging
 
 import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.util.logging.labels.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
 class LoggerTest {
@@ -37,7 +36,7 @@ class LoggerTest {
 
     @Test
     fun configCustomLabel() {
-        val child = logger.fork {
+        val child = logger.configure {
             label {
                 append("custom-label")
             }
@@ -53,7 +52,7 @@ class LoggerTest {
         val key = TestKey(-1)
         val key2 = TestKey(-2)
 
-        val child = logger.fork {
+        val child = logger.configure {
             registerKey(key)
             registerKey(key2)
 
@@ -81,8 +80,8 @@ class LoggerTest {
     fun testDiscard() {
         var state = 0
 
-        val child = logger.fork {
-            enrich {
+        val child = logger.configure {
+            filter {
                 if (state == 2) discard()
             }
         }
@@ -111,7 +110,7 @@ class LoggerTest {
     @Test
     fun testDates() {
         var date = GMTDate(7)
-        val child = logger.fork {
+        val child = logger.configure {
             logTime(clock = { date })
         }
 
@@ -139,7 +138,7 @@ class LoggerTest {
     fun testReusableLogBuilder() {
         var instance: LogRecord? = null
 
-        val logger = logger.fork {
+        val logger = logger.configure {
             enrich {
                 if (instance == null) {
                     instance = this

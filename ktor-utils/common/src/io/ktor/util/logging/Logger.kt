@@ -48,6 +48,16 @@ fun logger(configure: LoggingConfigBuilder.() -> Unit): Logger {
 }
 
 /**
+ * Creates an instance of logger with additional [appender] and then applying configuration block.
+ */
+fun logger(appender: Appender, configure: LoggingConfigBuilder.() -> Unit): Logger {
+    val builder = Config.Default.copy()
+    builder.addAppender(appender)
+    configure(builder)
+    return DefaultLogger(builder.build())
+}
+
+/**
  * Creates an instance of logger with the specified [config].
  */
 fun logger(config: Config): Logger = DefaultLogger(config)
@@ -55,7 +65,7 @@ fun logger(config: Config): Logger = DefaultLogger(config)
 /**
  * Creates an instance of logger with modified config amended in the [block].
  */
-fun Logger.fork(block: LoggingConfigBuilder.() -> Unit): Logger {
+fun Logger.configure(block: LoggingConfigBuilder.() -> Unit): Logger {
     return DefaultLogger(config.copy().apply(block).build())
 }
 

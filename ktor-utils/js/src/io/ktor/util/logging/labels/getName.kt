@@ -6,4 +6,5 @@ package io.ktor.util.logging.labels
 
 import kotlin.reflect.*
 
-internal actual fun KClass<*>.getName(): String? = simpleName
+@UseExperimental(ExperimentalStdlibApi::class)
+internal actual fun KClass<*>.getName(): String? = typeOf<String>().toString()

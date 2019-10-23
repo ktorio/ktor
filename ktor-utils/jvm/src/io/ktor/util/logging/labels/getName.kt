@@ -7,5 +7,5 @@ package io.ktor.util.logging.labels
 import kotlin.reflect.*
 
 internal actual fun KClass<*>.getName(): String? {
-    return java.simpleName
+    return java.name
 }
