@@ -14,11 +14,14 @@ import kotlin.native.concurrent.*
  */
 class Config(
     val keys: List<LogAttributeKey<*>>,
-    internal val interceptors: List<LogRecord.(Config) -> Unit>,
+    internal val enhancers: List<LogRecord.(Config) -> Unit>,
+    internal val filters: List<LogRecord.(Config) -> Unit>,
     internal val labels: List<Appendable.(LogRecord) -> Unit>,
     val appender: Appender?
 ) {
     private val pool: ObjectPool<LogRecord> = pool(this)
+
+    internal val interceptors: List<LogRecord.(Config) -> Unit> = enhancers + filters
 
     /**
      * Creates [LoggingConfigBuilder] with all parameters copied.

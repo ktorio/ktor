@@ -10,14 +10,16 @@ package io.ktor.util.logging
 class LoggingConfigBuilder() {
     private val slots = ArrayList<LogAttributeKey<*>>()
 
-    private val interceptors = ArrayList<LogRecord.(Config) -> Unit>()
+    private val enhancers = ArrayList<LogRecord.(Config) -> Unit>()
+    private val filters = ArrayList<LogRecord.(Config) -> Unit>()
     private val labels = ArrayList<Appendable.(LogRecord) -> Unit>()
 
     private val appenderList = ArrayList<Appender>()
 
     constructor(config: Config) : this() {
         slots.addAll(config.keys)
-        interceptors.addAll(config.interceptors)
+        enhancers.addAll(config.enhancers)
+        filters.addAll(config.filters)
         labels.addAll(config.labels)
         config.appender?.let { appenderList.add(it) }
     }
@@ -40,7 +42,14 @@ class LoggingConfigBuilder() {
      * Add an [interceptor] that may enrich or filter log record.
      */
     fun enrich(interceptor: LogRecord.(Config) -> Unit) {
-        interceptors.add(interceptor)
+        enhancers.add(interceptor)
+    }
+
+    /**
+     * Add a [predicate] that may enrich or filter log record. Filters are always invoked after all enrich blocks.
+     */
+    fun filter(predicate: LogRecord.(Config) -> Unit) {
+        filters.add(predicate)
     }
 
     /**
@@ -62,7 +71,8 @@ class LoggingConfigBuilder() {
      */
     fun build(): Config = Config(
         ArrayList(slots),
-        ArrayList(interceptors),
+        ArrayList(enhancers),
+        ArrayList(filters),
         ArrayList(labels),
         appenderList.combine()
     )
