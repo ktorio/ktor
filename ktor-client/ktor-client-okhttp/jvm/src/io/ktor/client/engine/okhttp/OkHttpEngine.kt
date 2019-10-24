@@ -54,7 +54,7 @@ class OkHttpEngine(
         clientTask.complete()
 
         clientTask.invokeOnCompletion {
-            launch(dispatcher) {
+            GlobalScope.launch(dispatcher) {
                 engine.dispatcher().executorService().shutdown()
                 engine.connectionPool().evictAll()
                 engine.cache()?.close()
