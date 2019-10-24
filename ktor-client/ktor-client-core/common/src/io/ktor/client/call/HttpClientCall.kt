@@ -75,28 +75,34 @@ open class HttpClientCall internal constructor(
      * @throws DoubleReceiveException If already called [receive].
      */
     suspend fun receive(info: TypeInfo): Any {
-        if (response.instanceOf(info.type)) return response
-        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
+        try {
+            if (response.instanceOf(info.type)) return response
+            if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val responseData = attributes.getOrNull(CustomResponse) ?: response.content
+            val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
-        val subject = HttpResponseContainer(info, responseData)
-        val result = client.responsePipeline.execute(this, subject).response
-        if (!result.instanceOf(info.type)) {
-            val from = result::class
-            val to = info.type
-            throw NoTransformationFoundException(from, to)
+            val subject = HttpResponseContainer(info, responseData)
+            val result = client.responsePipeline.execute(this, subject).response
+            if (!result.instanceOf(info.type)) {
+                val from = result::class
+                val to = info.type
+                throw NoTransformationFoundException(from, to)
+            }
+
+            if (result is ByteReadChannel) {
+                return response.channelWithCloseHandling()
+            }
+
+            if (result !is Closeable && result !is HttpRequest) {
+                close()
+            }
+
+            return result
         }
-
-        if (result is ByteReadChannel) {
-            return response.channelWithCloseHandling()
-        }
-
-        if (result !is Closeable && result !is HttpRequest) {
+        catch (cause: Throwable) {
             close()
+            throw cause
         }
-
-        return result
     }
 
     /**
