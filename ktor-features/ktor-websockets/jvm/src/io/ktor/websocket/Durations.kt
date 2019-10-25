@@ -37,7 +37,6 @@ inline var DefaultWebSocketServerSession.timeout: Duration
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [period] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
  */
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     period: Duration,
