@@ -107,7 +107,7 @@ class WebSockets(
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
-                val webSockets = WebSockets(pingPeriod, timeout, maxFrameSize, masking)
+                val webSockets = WebSockets(pingPeriodMillis, timeoutMillis, maxFrameSize, masking)
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
                     webSockets.shutdown()
