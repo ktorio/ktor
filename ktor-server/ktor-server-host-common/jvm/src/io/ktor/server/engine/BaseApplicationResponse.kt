@@ -215,6 +215,10 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * ByteBuffer pool
      */
+    @Deprecated("Avoid specifying pools or use KtorDefaultPool instead.",
+        ReplaceWith("KtorDefaultPool", "io.ktor.util.cio.KtorDefaultPool"),
+        level = DeprecationLevel.ERROR
+    )
     protected open val bufferPool: ObjectPool<ByteBuffer> get() = KtorDefaultPool
 
     /**
