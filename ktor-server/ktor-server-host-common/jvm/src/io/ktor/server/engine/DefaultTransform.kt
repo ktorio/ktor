@@ -14,10 +14,11 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import java.io.*
-import java.nio.charset.*
+import kotlin.text.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
 

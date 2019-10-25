@@ -4,7 +4,7 @@
 
 package io.ktor.util.cio
 
-import java.io.*
+import io.ktor.utils.io.errors.*
 
 /**
  * An exception thrown when an IO error occurred during reading or writing to/from the underlying channel.
