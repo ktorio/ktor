@@ -4,12 +4,16 @@
 
 package io.ktor.util.logging
 
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
-
 fun Logger.trace(message: String, cause: Throwable? = null) {
     log(Level.TRACE) {
         this.text = message
+        this.exception = cause
+    }
+}
+
+inline fun Logger.trace(cause: Throwable? = null, message: () -> String) {
+    log(Level.TRACE) {
+        this.text = message()
         this.exception = cause
     }
 }
@@ -21,9 +25,23 @@ fun Logger.debug(message: String, cause: Throwable? = null) {
     }
 }
 
+inline fun Logger.debug(cause: Throwable? = null, message: () -> String) {
+    log(Level.DEBUG) {
+        this.text = message()
+        this.exception = cause
+    }
+}
+
 fun Logger.info(message: String, cause: Throwable? = null) {
     log {
         this.text = message
+        this.exception = cause
+    }
+}
+
+inline fun Logger.info(cause: Throwable? = null, message: () -> String) {
+    log(Level.INFO) {
+        this.text = message()
         this.exception = cause
     }
 }
@@ -35,9 +53,23 @@ fun Logger.error(message: String, cause: Throwable? = null) {
     }
 }
 
+inline fun Logger.error(cause: Throwable? = null, message: () -> String) {
+    log(Level.ERROR) {
+        this.text = message()
+        this.exception = cause
+    }
+}
+
 fun Logger.warning(message: String, cause: Throwable? = null) {
     log(Level.WARNING) {
         this.text = message
+        this.exception = cause
+    }
+}
+
+inline fun Logger.warning(cause: Throwable? = null, message: () -> String) {
+    log(Level.WARNING) {
+        this.text = message()
         this.exception = cause
     }
 }
