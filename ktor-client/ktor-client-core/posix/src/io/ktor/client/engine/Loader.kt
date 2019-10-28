@@ -15,7 +15,7 @@ private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
  * Shared engines collection for.
  * Use [append] to enable engine auto discover in [HttpClient()].
  */
-object engines : Iterable<HttpClientEngineFactory<HttpClientEngineConfig>> {
+object engines : Iterable<T> {
     private val head = AtomicReference<Node?>(null)
 
     /**
@@ -46,7 +46,7 @@ object engines : Iterable<HttpClientEngineFactory<HttpClientEngineConfig>> {
     }
 
     private class Node(
-        val item: HttpClientEngineFactory<HttpClientEngineConfig>, val next: Node?
+        val item: T, val next: Node?
     ) {
         init {
             freeze()

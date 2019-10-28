@@ -6,6 +6,7 @@ package io.ktor.client.engine.ios
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -22,6 +23,8 @@ import kotlin.coroutines.*
 internal class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngineBase("ktor-ios") {
     // TODO: replace with UI dispatcher
     override val dispatcher = Dispatchers.Unconfined
+
+    override val supportedCapabilities = setOf(HttpTimeout)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -41,7 +44,12 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                     chunks.close()
 
                     if (didCompleteWithError != null) {
-                        continuation.resumeWithException(IosHttpRequestException(didCompleteWithError))
+                        val mappedException = when (didCompleteWithError.code) {
+                            NSURLErrorTimedOut -> HttpSocketTimeoutException(data)
+                            else -> IosHttpRequestException(didCompleteWithError)
+                        }
+
+                        continuation.resumeWithException(mappedException)
                         return
                     }
 
@@ -94,6 +102,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
             val url = URLBuilder().takeFrom(data.url).buildString()
             val nativeRequest = NSMutableURLRequest.requestWithURL(NSURL(string = url))
+            nativeRequest.setupSocketTimeout(data)
 
             mergeHeaders(data.headers, data.body) { key, value ->
                 nativeRequest.setValue(value, key)
@@ -117,7 +126,13 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                 body?.let { nativeRequest.setHTTPBody(it) }
 
                 config.requestConfig(nativeRequest)
-                session.dataTaskWithRequest(nativeRequest).resume()
+                val task = session.dataTaskWithRequest(nativeRequest)
+                continuation.invokeOnCancellation { cause ->
+                    if (cause != null && task.state == NSURLSessionTaskStateRunning) {
+                        task.cancel()
+                    }
+                }
+                task.resume()
             }.invokeOnCompletion {
                 session.finishTasksAndInvalidate()
             }
@@ -125,4 +140,18 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
     }
 }
 
+/**
+ * Update [NSMutableURLRequest] and setup timeout interval that equal to socket interval specified by [HttpTimeout].
+ */
+private fun NSMutableURLRequest.setupSocketTimeout(requestData: HttpRequestData) {
+    // iOS timeout works like a socket timeout.
+    requestData.getCapabilityOrNull(HttpTimeout)?.socketTimeoutMillis?.let {
+        if (it != HttpTimeout.INFINITE_TIMEOUT_MS) {
+            // Timeout should be specified in seconds.
+            setTimeoutInterval(it / 1000.0)
+        } else {
+            setTimeoutInterval(Double.MAX_VALUE)
+        }
+    }
+}
 

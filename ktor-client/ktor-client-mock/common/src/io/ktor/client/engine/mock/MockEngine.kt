@@ -5,6 +5,7 @@
 package io.ktor.client.engine.mock
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import kotlinx.atomicfu.locks.*
@@ -15,6 +16,7 @@ import kotlinx.coroutines.*
  */
 class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val dispatcher = Dispatchers.Unconfined
+    override val supportedCapabilities = setOf(HttpTimeout)
     private var invocationCount = 0
     private val mutex = Lock()
     private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()

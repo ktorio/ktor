@@ -21,7 +21,7 @@ import kotlin.jvm.*
 internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
 
 // implementation for ByteChannel
-internal class ByteBufferChannel(
+internal open class ByteBufferChannel(
     override val autoFlush: Boolean,
     private val pool: ObjectPool<ReadWriteBufferState.Initial> = BufferObjectPool,
     internal val reservedSize: Int = RESERVED_SIZE
@@ -108,11 +108,11 @@ internal class ByteBufferChannel(
 
     @Volatile
     override var totalBytesRead: Long = 0L
-        private set
+        internal set
 
     @Volatile
     override var totalBytesWritten: Long = 0L
-        private set
+        internal set
 
     override val closedCause: Throwable?
         get() = closed?.cause
@@ -2025,7 +2025,14 @@ internal class ByteBufferChannel(
     }
 
     private suspend fun readUTF8LineToAscii(out: Appendable, limit: Int): Boolean {
-        if (state === ReadWriteBufferState.Terminated) return false
+        if (state === ReadWriteBufferState.Terminated) {
+            val cause = closedCause
+            if (cause != null) {
+                throw cause
+            }
+
+            return false
+        }
 
         var consumed = 0
 

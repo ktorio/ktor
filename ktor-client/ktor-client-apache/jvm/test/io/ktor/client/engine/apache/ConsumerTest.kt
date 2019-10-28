@@ -56,7 +56,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun testCreating() {
-        ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }.responseCompleted(BasicHttpContext())
@@ -64,7 +64,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun smokeTest() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -87,7 +87,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun emptyContent() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -110,7 +110,7 @@ class ConsumerTest : CoroutineScope {
         // for some response kinds (HEAD, status NoContent as so on) consumeContent is not called
         // so we have completed immediately after response received
 
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -126,7 +126,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun consumeBeforeResponseReceived() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -153,7 +153,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun suspendSmokeTest() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -198,7 +198,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun integrationTest() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }
@@ -258,7 +258,7 @@ class ConsumerTest : CoroutineScope {
                 consumerCrc.cancel()
                 consumer.consumeContent(decoder, ioControl)
             } else {
-                check(decoder.isCompleted) { "Decoder expected to be completed."}
+                check(decoder.isCompleted) { "Decoder expected to be completed." }
             }
 
             assertEquals(producerCrc.await(), consumerCrc.await())
@@ -267,7 +267,7 @@ class ConsumerTest : CoroutineScope {
 
     @Test
     fun lastChunkReadTest() {
-        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
         }

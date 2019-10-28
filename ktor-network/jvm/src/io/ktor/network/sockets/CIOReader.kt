@@ -5,6 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
+import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
@@ -19,20 +20,29 @@ internal fun CoroutineScope.attachForReadingImpl(
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
     selector: SelectorManager,
-    pool: ObjectPool<ByteBuffer>
+    pool: ObjectPool<ByteBuffer>,
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null
 ): WriterJob {
     val buffer = pool.borrow()
     return writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
         try {
             while (true) {
-                val rc = nioChannel.read(buffer)
+                var rc = 0
+
+                withSocketTimeout(socketOptions?.socketTimeout ?: INFINITE_TIMEOUT_MS) {
+                    do {
+                        rc = nioChannel.read(buffer)
+                        if (rc == 0) {
+                            channel.flush()
+                            selectable.interestOp(SelectInterest.READ, true)
+                            selector.select(selectable, SelectInterest.READ)
+                        }
+                    } while (rc == 0)
+                }
+
                 if (rc == -1) {
                     channel.close()
                     break
-                } else if (rc == 0) {
-                    channel.flush()
-                    selectable.interestOp(SelectInterest.READ, true)
-                    selector.select(selectable, SelectInterest.READ)
                 } else {
                     selectable.interestOp(SelectInterest.READ, false)
                     buffer.flip()
@@ -57,28 +67,37 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
-    selector: SelectorManager
+    selector: SelectorManager,
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null
 ): WriterJob = writer(Dispatchers.Unconfined + CoroutineName("cio-from-nio-reader"), channel) {
     try {
         selectable.interestOp(SelectInterest.READ, false)
 
         channel.writeSuspendSession {
             while (true) {
-                val buffer = request(1)
-                if (buffer == null) {
-                    if (channel.isClosedForWrite) break
-                    channel.flush()
-                    tryAwait(1)
-                    continue
+                var rc = 0
+
+                withSocketTimeout(socketOptions?.socketTimeout ?: INFINITE_TIMEOUT_MS) {
+                    do {
+                        val buffer = request(1)
+                        if (buffer == null) {
+                            if (channel.isClosedForWrite) break
+                            channel.flush()
+                            tryAwait(1)
+                            continue
+                        }
+
+                        rc = nioChannel.read(buffer)
+                        if (rc == 0) {
+                            channel.flush()
+                            selectable.interestOp(SelectInterest.READ, true)
+                            selector.select(selectable, SelectInterest.READ)
+                        }
+                    } while (rc == 0)
                 }
 
-                val rc = nioChannel.read(buffer)
                 if (rc == -1) {
                     break
-                } else if (rc == 0) {
-                    channel.flush()
-                    selectable.interestOp(SelectInterest.READ, true)
-                    selector.select(selectable, SelectInterest.READ)
                 } else {
                     written(rc)
                 }

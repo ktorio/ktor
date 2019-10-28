@@ -125,6 +125,8 @@ class HttpClient(
         }
 
         with(userConfig) {
+            config.install(HttpRequestLifecycle)
+
             if (useDefaultTransformers) {
                 config.install(HttpPlainText)
                 config.install("DefaultTransformers") { defaultTransformers() }
@@ -160,6 +162,13 @@ class HttpClient(
     @InternalAPI
     suspend fun execute(builder: HttpRequestBuilder): HttpClientCall =
         requestPipeline.execute(builder, builder.body) as HttpClientCall
+
+    /**
+     * Check if the specified [capability] is supported by this client.
+     */
+    fun isSupported(capability: HttpClientEngineCapability<*>): Boolean {
+        return engine.supportedCapabilities.contains(capability)
+    }
 
     /**
      * Returns a new [HttpClient] copying this client configuration,

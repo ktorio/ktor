@@ -14,7 +14,12 @@ import kotlinx.coroutines.*
 /**
  * HttpSend pipeline interceptor function
  */
-typealias HttpSendInterceptor = suspend Sender.(HttpClientCall) -> HttpClientCall
+typealias HttpSendInterceptor = suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall
+
+/**
+ * HttpSend pipeline interceptor function backward compatible with previous implementation.
+ */
+typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpClientCall) -> HttpClientCall
 
 /**
  * This interface represents a request send pipeline interceptor chain
@@ -45,6 +50,16 @@ class HttpSend(
     }
 
     /**
+     * Install send pipeline starter interceptor (backward compatible function).
+     */
+    @Deprecated("Intercept with one parameter is deprecated, use both call and request builder as parameters.")
+    fun intercept(block: HttpSendInterceptorBackwardCompatible) {
+        interceptors += { call, _ ->
+            block(call)
+        }
+    }
+
+    /**
      * Feature installation object
      */
     companion object Feature : HttpClientFeature<HttpSend, HttpSend> {
@@ -68,7 +83,7 @@ class HttpSend(
                     callChanged = false
 
                     passInterceptors@ for (interceptor in feature.interceptors) {
-                        val transformed = interceptor(sender, currentCall)
+                        val transformed = interceptor(sender, currentCall, context)
                         if (transformed === currentCall) continue@passInterceptors
 
                         currentCall = transformed

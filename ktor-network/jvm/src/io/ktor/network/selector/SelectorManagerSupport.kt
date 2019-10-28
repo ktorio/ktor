@@ -38,7 +38,8 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
 //            val c = base.tracked()  // useful for debugging
 
             c.invokeOnCancellation {
-                selectable.dispose()
+                // TODO: We've got a race here (and exception erasure)!
+//                selectable.dispose()
             }
             selectable.suspensions.addSuspension(interest, c)
 

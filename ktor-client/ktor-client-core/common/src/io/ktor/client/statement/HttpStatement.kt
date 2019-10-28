@@ -6,6 +6,8 @@ package io.ktor.client.statement
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -24,6 +26,10 @@ class HttpStatement(
     private val builder: HttpRequestBuilder,
     private val client: HttpClient
 ) {
+    init {
+        checkCapabilities()
+    }
+
     /**
      * Executes this statement and call the [block] with the streaming [response].
      *
@@ -115,6 +121,19 @@ class HttpStatement(
             }
             join()
         }
+    }
+
+    /**
+     * Check that all request configuration related to client capabilities have correspondent features installed.
+     */
+    private fun checkCapabilities() {
+        builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys
+            ?.filterIsInstance<HttpClientFeature<*, *>>()
+            ?.forEach {
+                requireNotNull(client.feature(it as HttpClientFeature<*, *>)) {
+                    "Consider installing $it feature because the request requires it to be installed"
+                }
+            }
     }
 
     override fun toString(): String = "HttpStatement[${builder.url.buildString()}]"

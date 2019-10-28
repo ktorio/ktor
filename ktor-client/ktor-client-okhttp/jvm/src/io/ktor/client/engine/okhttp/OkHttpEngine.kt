@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -18,6 +19,8 @@ import okhttp3.*
 import okhttp3.internal.http.HttpMethod
 import okio.*
 import java.io.*
+import java.net.*
+import java.util.concurrent.*
 import kotlin.coroutines.*
 
 @InternalAPI
@@ -31,22 +34,24 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         )
     }
 
-    private val engine: OkHttpClient = config.preconfigured ?: run {
-        val builder = okHttpClientPrototype.newBuilder()
-        builder.apply(config.config)
+    override val supportedCapabilities = setOf(HttpTimeout)
 
-        config.proxy?.let { builder.proxy(it) }
-        builder.build()
-    }
+    /**
+     * Cache that keeps least recently used [OkHttpClient] instances.
+     */
+    private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
+        val requestEngine = clientCache[data.getCapabilityOrNull(HttpTimeout)]
+            ?: error("OkHttpClient can't be constructed because HttpTimeout feature is not installed")
+
         return if (data.isUpgradeRequest()) {
-            executeWebSocketRequest(engineRequest, callContext)
+            executeWebSocketRequest(requestEngine, engineRequest, callContext)
         } else {
-            executeHttpRequest(engineRequest, callContext)
+            executeHttpRequest(requestEngine, engineRequest, callContext, data)
         }
     }
 
@@ -58,7 +63,9 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
                 // The engine dispatcher and the cache are not closed because:
                 // 1. If the engine was created by Ktor it shares common dispatcher and cache.
                 // 2. If the engine was created by a user the user is responsible for lifecycle management.
-                engine.connectionPool().evictAll()
+                clientCache.forEach { (_, client) ->
+                    client.connectionPool().evictAll()
+                }
             }.invokeOnCompletion {
                 (dispatcher as Closeable).close()
             }
@@ -66,6 +73,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     private suspend fun executeWebSocketRequest(
+        engine: OkHttpClient,
         engineRequest: Request,
         callContext: CoroutineContext
     ): HttpResponseData {
@@ -77,16 +85,18 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     private suspend fun executeHttpRequest(
+        engine: OkHttpClient,
         engineRequest: Request,
-        callContext: CoroutineContext
+        callContext: CoroutineContext,
+        requestData: HttpRequestData
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val response = engine.execute(engineRequest)
+        val response = engine.execute(engineRequest, requestData)
 
         val body = response.body()
         callContext[Job]!!.invokeOnCompletion { body?.close() }
 
-        val responseContent = body?.source()?.toChannel(callContext) ?: ByteReadChannel.Empty
+        val responseContent = body?.source()?.toChannel(callContext, requestData) ?: ByteReadChannel.Empty
         return buildResponseData(response, requestTime, responseContent, callContext)
     }
 
@@ -109,18 +119,40 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
             OkHttpClient.Builder().build()
         }
     }
+
+    private fun createOkHttpClient(timeoutExtension: HttpTimeout.HttpTimeoutCapabilityConfiguration?): OkHttpClient {
+        val builder = okHttpClientPrototype.newBuilder()
+
+        builder.apply(config.config)
+        config.proxy?.let { builder.proxy(it) }
+        timeoutExtension?.let {
+            builder.setupTimeoutAttributes(it)
+        }
+
+        return builder.build()
+    }
 }
 
-private fun BufferedSource.toChannel(context: CoroutineContext): ByteReadChannel = GlobalScope.writer(context) {
-    use { source ->
-        var lastRead = 0
-        while (source.isOpen && context.isActive && lastRead >= 0) {
-            channel.write { buffer ->
-                lastRead = source.read(buffer)
+private fun BufferedSource.toChannel(context: CoroutineContext, requestData: HttpRequestData): ByteReadChannel =
+    GlobalScope.writer(context) {
+        use { source ->
+            var lastRead = 0
+            while (source.isOpen && context.isActive && lastRead >= 0) {
+                channel.write { buffer ->
+                    lastRead = try {
+                        source.read(buffer)
+                    } catch (cause: Throwable) {
+                        throw mapExceptions(cause, requestData)
+                    }
+                }
             }
         }
-    }
-}.channel
+    }.channel
+
+private fun mapExceptions(cause: Throwable, request: HttpRequestData) = when (cause) {
+    is SocketTimeoutException -> HttpSocketTimeoutException(request)
+    else -> cause
+}
 
 private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext): Request {
     val builder = Request.Builder()
@@ -151,4 +183,21 @@ internal fun OutgoingContent.convertToOkHttpBody(callContext: CoroutineContext):
     }
     is OutgoingContent.NoContent -> RequestBody.create(null, ByteArray(0))
     else -> throw UnsupportedContentTypeException(this)
+}
+
+/**
+ * Update [OkHttpClient.Builder] setting timeout configuration taken from
+ * [HttpTimeout.HttpTimeoutCapabilityConfiguration].
+ */
+private fun OkHttpClient.Builder.setupTimeoutAttributes(
+    timeoutAttributes: HttpTimeout.HttpTimeoutCapabilityConfiguration
+): OkHttpClient.Builder {
+    timeoutAttributes.connectTimeoutMillis?.let {
+        connectTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+    }
+    timeoutAttributes.socketTimeoutMillis?.let {
+        readTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+        writeTimeout(convertLongTimeoutToLongWithInfiniteAsZero(it), TimeUnit.MILLISECONDS)
+    }
+    return this
 }
