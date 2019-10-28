@@ -28,38 +28,20 @@ class Config(
      */
     fun copy(): LoggingConfigBuilder = LoggingConfigBuilder(this)
 
-    internal fun createBuilder(): LogRecord {
+    internal fun createRecord(): LogRecord {
         return pool.borrow()
     }
 
-    internal fun recycleBuilder(record: LogRecord) {
+    internal fun recycleRecord(record: LogRecord) {
         record.discard()
         pool.recycle(record)
     }
 
-    internal fun resetBuilder(record: LogRecord) {
+    internal fun resetRecord(record: LogRecord) {
         record.reset()
         for (index in keys.indices) {
             record.reset(keys[index])
         }
-    }
-
-    internal fun pass(message: LogRecord) {
-        val appender = appender
-
-        if (appender == null) {
-            message.discard()
-            return
-        }
-
-        if (interceptors.isNotEmpty()) {
-            for (interceptor in interceptors) {
-                interceptor(message, this)
-                if (message.discarded) return
-            }
-        }
-
-        appender.append(message)
     }
 
     companion object {
@@ -82,7 +64,7 @@ internal class LogRecordPool(private val config: Config) : DefaultPool<LogRecord
         LogRecord(config)
 
     override fun clearInstance(instance: LogRecord): LogRecord {
-        config.resetBuilder(instance)
+        config.resetRecord(instance)
         return instance
     }
 }

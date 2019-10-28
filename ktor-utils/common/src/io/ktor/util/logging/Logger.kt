@@ -7,28 +7,64 @@ package io.ktor.util.logging
 /**
  * Entity that provides logging facilities, configured and connected to appender(s).
  */
-interface Logger {
+class Logger(
     /**
      * Logger configuration: the default config ([Config.Default]) or the config provided at logger construction.
      */
-    val config: Config get() = Config.Default
-
+    val config: Config = Config.Default
+) {
     /**
      * Start log record preparation
      */
-    fun begin(level: Level): LogRecord?
+    @PublishedApi
+    internal fun begin(level: Level): LogRecord? {
+        if (config.appender == null || config.appender.muted) return null
+
+        return config.createRecord().also {
+            it.level = level
+        }
+    }
 
     /**
      * Commit log record and send it to appender.
      */
-    fun commit(record: LogRecord)
+    @PublishedApi
+    internal fun commit(record: LogRecord) {
+        if (config.appender == null || config.appender.muted) return
+
+        processRecord(record)
+
+        if (!record.discarded) {
+            config.appender.flush()
+        }
+    }
+
+    private fun processRecord(message: LogRecord) {
+        val appender = config.appender
+
+        if (appender == null) {
+            message.discard()
+            return
+        }
+
+        val interceptors = config.interceptors
+        if (interceptors.isNotEmpty()) {
+            for (interceptor in interceptors) {
+                interceptor(message, config)
+                if (message.discarded) return
+            }
+        }
+
+        appender.append(message)
+    }
+
 }
 
 /**
  * Creates an instance of logger with the default config.
  * @see Config.Default
  */
-fun logger(): Logger = DefaultLogger()
+fun logger(): Logger = Logger()
 
 /**
  * Creates an instance of logger with additional [appender].
@@ -36,7 +72,7 @@ fun logger(): Logger = DefaultLogger()
 fun logger(appender: Appender): Logger {
     val builder = Config.Default.copy()
     builder.addAppender(appender)
-    return DefaultLogger(builder.build())
+    return Logger(builder.build())
 }
 
 /**
@@ -44,7 +80,7 @@ fun logger(appender: Appender): Logger {
  */
 fun logger(configure: LoggingConfigBuilder.() -> Unit): Logger {
     val config = LoggingConfigBuilder().apply(configure).build()
-    return DefaultLogger(config)
+    return Logger(config)
 }
 
 /**
@@ -54,36 +90,17 @@ fun logger(appender: Appender, configure: LoggingConfigBuilder.() -> Unit): Logg
     val builder = Config.Default.copy()
     builder.addAppender(appender)
     configure(builder)
-    return DefaultLogger(builder.build())
+    return Logger(builder.build())
 }
 
 /**
  * Creates an instance of logger with the specified [config].
  */
-fun logger(config: Config): Logger = DefaultLogger(config)
+fun logger(config: Config): Logger = Logger(config)
 
 /**
  * Creates an instance of logger with modified config amended in the [block].
  */
 fun Logger.configure(block: LoggingConfigBuilder.() -> Unit): Logger {
-    return DefaultLogger(config.copy().apply(block).build())
-}
-
-private class DefaultLogger(override val config: Config = Config.Default) : Logger {
-    override fun begin(level: Level): LogRecord? {
-        if (config.appender == null || config.appender.muted) return null
-
-        return config.createBuilder().also {
-            it.level = level
-        }
-    }
-
-    override fun commit(record: LogRecord) {
-        if (config.appender == null || config.appender.muted) return
-
-        config.pass(record)
-        if (!record.discarded) {
-            config.appender.flush()
-        }
-    }
+    return Logger(config.copy().apply(block).build())
 }

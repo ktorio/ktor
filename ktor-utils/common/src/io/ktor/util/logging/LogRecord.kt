@@ -26,7 +26,7 @@ enum class Level {
 class LogRecord internal constructor(val config: Config) {
     private val refCount = atomic(1)
 
-    private val slots: Array<Any?> = config.keys.let { keys ->
+    private val keys: Array<Any?> = config.keys.let { keys ->
         when (keys.size) {
             0 -> EmptySlotArray
             else -> Array(keys.size) { index -> keys[index].initial }
@@ -81,7 +81,7 @@ class LogRecord internal constructor(val config: Config) {
      */
     operator fun <T> get(key: LogAttributeKey<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return slots[key.index] as T
+        return keys[key.index] as T
     }
 
     /**
@@ -89,7 +89,7 @@ class LogRecord internal constructor(val config: Config) {
      * @throws IllegalStateException if the [key] wasn't registered before using.
      */
     operator fun <T> set(key: LogAttributeKey<T>, value: T) {
-        slots[key.index] = value
+        keys[key.index] = value
     }
 
     @PublishedApi
@@ -107,11 +107,11 @@ class LogRecord internal constructor(val config: Config) {
     }
 
     private fun recycle() {
-        config.recycleBuilder(this)
+        config.recycleRecord(this)
     }
 
     internal fun reset(key: LogAttributeKey<*>) {
-        slots[key.index] = key.initial
+        keys[key.index] = key.initial
     }
 
     internal fun reset() {
@@ -120,7 +120,7 @@ class LogRecord internal constructor(val config: Config) {
         level = Level.INFO
         text = ""
         exception = null
-        slots.fill(null)
+        keys.fill(null)
     }
 
     /**
