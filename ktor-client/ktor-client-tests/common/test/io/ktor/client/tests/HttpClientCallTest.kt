@@ -12,7 +12,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
-class HttpClientCallTest : ClientLoader() {
+class HttpClientCallTest {
     @Test
     fun receiveWithExceptionTest() = clientTest(MockEngine) {
         config {
