@@ -612,7 +612,14 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean {
-        if (isClosedForRead) return false
+        if (isClosedForRead) {
+            val cause = closedCause
+            if (cause != null) {
+                throw cause
+            }
+
+            return false
+        }
         @UseExperimental(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead()

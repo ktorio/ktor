@@ -29,6 +29,7 @@ internal fun Application.tests() {
     webSockets()
     multiPartFormDataTest()
     headersTestServer()
+    timeoutTest()
 
     routing {
         post("/echo") {

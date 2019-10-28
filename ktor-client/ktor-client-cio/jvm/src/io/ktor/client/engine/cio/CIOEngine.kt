@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -18,6 +19,8 @@ import java.util.concurrent.*
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngineBase("ktor-cio") {
 
     override val dispatcher by lazy { Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher") }
+
+    override val supportedCapabilities = setOf(HttpTimeout)
 
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 

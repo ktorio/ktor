@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -31,6 +32,13 @@ interface HttpClientEngine : CoroutineScope, Closeable {
      */
     val config: HttpClientEngineConfig
 
+    /**
+     * Set of supported engine extensions.
+     */
+    @KtorExperimentalAPI
+    val supportedCapabilities: Set<HttpClientEngineCapability<*>>
+        get() = emptySet()
+
     private val closed: Boolean
         get() = !(coroutineContext[Job]?.isActive ?: false)
 
@@ -52,15 +60,10 @@ interface HttpClientEngine : CoroutineScope, Closeable {
             }.build()
 
             validateHeaders(requestData)
+            checkExtensions(requestData)
 
             val responseData = executeWithinCallContext(requestData)
             val call = HttpClientCall(client, requestData, responseData)
-
-            responseData.callContext[Job]!!.invokeOnCompletion { cause ->
-                @Suppress("UNCHECKED_CAST")
-                val childContext = requestData.executionContext as CompletableJob
-                if (cause == null) childContext.complete() else childContext.completeExceptionally(cause)
-            }
 
             proceedWith(call)
         }
@@ -81,6 +84,12 @@ interface HttpClientEngine : CoroutineScope, Closeable {
         }.await()
     }
 
+    private fun checkExtensions(requestData: HttpRequestData) {
+        for (requestedExtension in requestData.requiredCapabilities) {
+            require(supportedCapabilities.contains(requestedExtension)) { "Engine doesn't support $requestedExtension" }
+        }
+    }
+
     /**
      * Create call context with the specified [parentJob] to be used during call execution in the engine. Call context
      * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
@@ -95,7 +104,6 @@ interface HttpClientEngine : CoroutineScope, Closeable {
         return callContext
     }
 }
-
 
 /**
  * Factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].

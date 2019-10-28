@@ -24,7 +24,6 @@ private val initHook = Curl
  * with the the associated configuration [HttpClientEngineConfig].
  */
 object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
-
     init {
         engines.append(this)
     }

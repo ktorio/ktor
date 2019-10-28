@@ -6,6 +6,7 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -148,6 +149,7 @@ internal class ApacheRequestProducer(
                 .setConnectTimeout(connectTimeout)
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .customRequest()
+                .setupTimeoutAttributes(requestData)
                 .build()
         }
 
@@ -183,9 +185,16 @@ internal class ApacheRequestProducer(
     }
 
     private fun ByteBuffer.recycle() {
-        if (requestData.body is OutgoingContent.WriteChannelContent || requestData.body is OutgoingContent.ReadChannelContent) {
+        if (requestData.body is OutgoingContent.WriteChannelContent ||
+            requestData.body is OutgoingContent.ReadChannelContent) {
             HttpClientDefaultPool.recycle(this)
         }
     }
+}
 
+private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
+    requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+        timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
+        timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
+    }
 }

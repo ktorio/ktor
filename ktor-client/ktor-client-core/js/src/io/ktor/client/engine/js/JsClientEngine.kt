@@ -5,6 +5,7 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
@@ -20,6 +21,8 @@ import kotlin.coroutines.*
 internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngineBase("ktor-js") {
 
     override val dispatcher = Dispatchers.Default
+
+    override val supportedCapabilities = setOf(HttpTimeout)
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }

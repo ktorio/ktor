@@ -4,6 +4,8 @@
 
 package io.ktor.network.sockets
 
+import io.ktor.network.util.*
+
 /**
  * Socket options builder
  */
@@ -144,6 +146,11 @@ sealed class SocketOptions(
          * SO_KEEPALIVE option is to enable/disable TCP keep-alive
          */
         var keepAlive: Boolean? = null
+
+        /**
+         * Socket timeout (read and write).
+         */
+        var socketTimeout: Long = INFINITE_TIMEOUT_MS
 
         @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {

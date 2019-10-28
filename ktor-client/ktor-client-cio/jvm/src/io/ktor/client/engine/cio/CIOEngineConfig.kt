@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.network.tls.*
 
 /**
@@ -68,9 +69,14 @@ class EndpointConfig {
     var connectTimeout: Long = 5000
 
     /**
+     * Socket timeout in millis.
+     */
+    val socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+
+    /**
      * Maximum number of connection attempts.
      */
-    var connectRetryAttempts: Int = 5
+    var connectRetryAttempts: Int = 1
 
     /**
      * Allow socket to close output channel immediately on writing completion (TCP connection half close).

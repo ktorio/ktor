@@ -6,6 +6,7 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -19,6 +20,8 @@ internal class CurlClientEngine(
 ) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
+    override val supportedCapabilities = setOf(HttpTimeout)
+
     private val curlProcessor = CurlProcessor(coroutineContext)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
@@ -27,7 +30,7 @@ internal class CurlClientEngine(
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest(config)
-        val responseData = curlProcessor.executeRequest(curlRequest)
+        val responseData = curlProcessor.executeRequest(curlRequest, callContext)
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {

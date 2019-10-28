@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.apache
 
+import io.ktor.client.features.*
+import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -11,11 +13,13 @@ import org.apache.http.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
+import java.net.*
 import java.nio.*
 import kotlin.coroutines.*
 
 internal class ApacheResponseConsumerDispatching(
     callContext: CoroutineContext,
+    private val requestData: HttpRequestData?,
     private val block: (HttpResponse, ByteReadChannel) -> Unit
 ) : HttpAsyncResponseConsumer<Unit>, CoroutineScope {
     private val interestController = InterestControllerHolder()
@@ -66,7 +70,9 @@ internal class ApacheResponseConsumerDispatching(
         // So we start its execution here, and it should suspend at [waitForDecoder] invocation.
         processLoop(Result.failure(IllegalStateException("The coroutine shouldn't be suspended at this point yet.")))
 
-        check(decoderWaiter != null) { "Writer coroutine should suspend until decoder available." }
+        check(!coroutineContext.isActive || decoderWaiter != null) {
+            "Writer coroutine should suspend until decoder available."
+        }
 
         job.invokeOnCompletion { cause ->
             jobCompletionCause.value = cause
@@ -114,9 +120,15 @@ internal class ApacheResponseConsumerDispatching(
         } while (dispatcher.hasTasks())
     }
 
-    override fun failed(ex: Exception) {
-        job.cancel(CancellationException("Failed to execute request", ex))
-        processLoop(Result.failure(ex))
+    override fun failed(cause: Exception) {
+        val mappedCause = when {
+            cause is ConnectException && cause.isTimeoutException() -> HttpConnectTimeoutException(requestData!!)
+            cause is SocketTimeoutException -> HttpSocketTimeoutException(requestData!!)
+            else -> cause
+        }
+
+        job.cancel(CancellationException("Failed to execute request", mappedCause))
+        processLoop(Result.failure(cause))
     }
 
     override fun cancel(): Boolean {

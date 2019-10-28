@@ -35,7 +35,7 @@ class Auth(
                 }
             }
 
-            scope.feature(HttpSend)!!.intercept { origin ->
+            scope.feature(HttpSend)!!.intercept { origin, context ->
                 var call = origin
 
                 val usedProviders = mutableSetOf<AuthProvider>()
@@ -47,7 +47,7 @@ class Auth(
                     if (provider in usedProviders || provider in feature.alwaysSend) return@intercept call
 
                     val request = HttpRequestBuilder()
-                    request.takeFrom(call.request)
+                    request.takeFrom(context)
                     provider.addRequestHeaders(request)
 
                     call = execute(request)

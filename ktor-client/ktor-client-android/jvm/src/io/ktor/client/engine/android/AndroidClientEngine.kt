@@ -6,15 +6,15 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
 import javax.net.ssl.*
@@ -32,6 +32,8 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         )
     }
 
+    override val supportedCapabilities = setOf(HttpTimeout)
+
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
@@ -45,6 +47,8 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
             connectTimeout = config.connectTimeout
             readTimeout = config.socketTimeout
+
+            setupTimeoutAttributes(data)
 
             if (this is HttpsURLConnection) {
                 config.sslManager(this)
@@ -76,10 +80,10 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
             }
         }
 
-        connection.connect()
+        connection.timeoutAwareConnect(data)
 
         val statusCode = HttpStatusCode(connection.responseCode, connection.responseMessage)
-        val content: ByteReadChannel = connection.content(callContext)
+        val content: ByteReadChannel = connection.content(callContext, data)
         val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
         val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
 
@@ -117,9 +121,3 @@ internal suspend fun OutgoingContent.writeTo(
         else -> throw UnsupportedContentTypeException(this)
     }
 }
-
-internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadChannel = try {
-    inputStream?.buffered()
-} catch (_: IOException) {
-    errorStream?.buffered()
-}?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
