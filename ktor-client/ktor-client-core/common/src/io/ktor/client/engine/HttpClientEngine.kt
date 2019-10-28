@@ -9,14 +9,14 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * Base interface use to define engines for [HttpClient].
  */
 interface HttpClientEngine : CoroutineScope, Closeable {
-
     /**
      * [CoroutineDispatcher] specified for io operations.
      */
@@ -26,6 +26,9 @@ interface HttpClientEngine : CoroutineScope, Closeable {
      * Engine configuration
      */
     val config: HttpClientEngineConfig
+
+    private val closed: Boolean
+        get() = !(coroutineContext[Job]?.isActive ?: false)
 
     /**
      * Creates a new [HttpClientCall] specific for this engine, using a request [data].
@@ -46,7 +49,7 @@ interface HttpClientEngine : CoroutineScope, Closeable {
 
             validateHeaders(requestData)
 
-            val responseData = execute(requestData)
+            val responseData = executeWithinCallContext(requestData)
             val call = HttpClientCall(client, requestData, responseData)
 
             responseData.callContext[Job]!!.invokeOnCompletion { cause ->
@@ -57,6 +60,35 @@ interface HttpClientEngine : CoroutineScope, Closeable {
 
             proceedWith(call)
         }
+    }
+
+    /**
+     * Create call context and use it as a coroutine context to [execute] request.
+     */
+    private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
+        val callContext = createCallContext(requestData.executionContext)
+
+        return async(callContext + KtorCallContextElement(callContext)) {
+            if (closed) {
+                throw ClientEngineClosedException()
+            }
+
+            execute(requestData)
+        }.await()
+    }
+
+    /**
+     * Create call context with the specified [parentJob] to be used during call execution in the engine. Call context
+     * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
+     * call coroutine's name is "call-context".
+     */
+    private suspend fun createCallContext(parentJob: Job): CoroutineContext {
+        val callJob = Job(parentJob)
+        val callContext = this@HttpClientEngine.coroutineContext + callJob + CoroutineName("call-context")
+
+        attachToUserJob(callJob)
+
+        return callContext
     }
 }
 
