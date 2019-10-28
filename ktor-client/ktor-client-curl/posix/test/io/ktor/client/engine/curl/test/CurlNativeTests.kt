@@ -16,6 +16,7 @@ val backgroundWorker = Worker.start()
 class CurlNativeTests {
 
     @Test
+    @Ignore
     fun testDownloadInBackground() {
         backgroundWorker.execute(TransferMode.SAFE, { Unit }) {
             runBlocking {

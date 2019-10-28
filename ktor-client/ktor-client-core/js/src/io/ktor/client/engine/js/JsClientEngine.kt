@@ -19,19 +19,16 @@ import org.w3c.dom.events.*
 import org.w3c.fetch.Headers
 import kotlin.coroutines.*
 
-internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngine {
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Default
+internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngineBase("ktor-js") {
 
-    override val coroutineContext: CoroutineContext = dispatcher + SilentSupervisor()
+    override val dispatcher = Dispatchers.Default
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
     }
 
-    override suspend fun execute(
-        data: HttpRequestData
-    ): HttpResponseData {
-        val callContext: CoroutineContext = Job(this@JsClientEngine.coroutineContext[Job]) + dispatcher
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val callContext = callContext()!!
 
         if (data.isUpgradeRequest()) {
             return executeWebSocketRequest(data, callContext)
@@ -86,8 +83,6 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             callContext
         )
     }
-
-    override fun close() {}
 }
 
 private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->

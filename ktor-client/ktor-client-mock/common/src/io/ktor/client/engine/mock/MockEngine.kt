@@ -12,9 +12,8 @@ import kotlin.coroutines.*
 /**
  * [HttpClientEngine] for writing tests without network.
  */
-class MockEngine(
-    override val config: MockEngineConfig
-) : HttpClientEngine {
+class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    override val dispatcher = Dispatchers.Unconfined
     private var invocationCount = 0
     private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
@@ -36,10 +35,6 @@ class MockEngine(
      */
     val responseHistory: List<HttpResponseData> get() = _responseHistory
 
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
-
-    override val coroutineContext: CoroutineContext = dispatcher + contextState
-
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
         val handler = config.requestHandlers[invocationCount]
@@ -60,7 +55,11 @@ class MockEngine(
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
-        contextState.complete()
+        super.close()
+
+        coroutineContext[Job]!!.invokeOnCompletion {
+            contextState.complete()
+        }
     }
 
     companion object : HttpClientEngineFactory<MockEngineConfig> {

@@ -152,6 +152,13 @@ public final class io/ktor/client/call/UtilsKt {
 	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/engine/ClientEngineClosedException : java/lang/IllegalStateException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+}
+
 public abstract interface class io/ktor/client/engine/HttpClientEngine : java/io/Closeable, kotlinx/coroutines/CoroutineScope {
 	public abstract fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
@@ -161,6 +168,13 @@ public abstract interface class io/ktor/client/engine/HttpClientEngine : java/io
 
 public final class io/ktor/client/engine/HttpClientEngine$DefaultImpls {
 	public static fun install (Lio/ktor/client/engine/HttpClientEngine;Lio/ktor/client/HttpClient;)V
+}
+
+public abstract class io/ktor/client/engine/HttpClientEngineBase : io/ktor/client/engine/HttpClientEngine {
+	public fun <init> (Ljava/lang/String;)V
+	public fun close ()V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun install (Lio/ktor/client/HttpClient;)V
 }
 
 public class io/ktor/client/engine/HttpClientEngineConfig {
@@ -208,6 +222,7 @@ public final class io/ktor/client/engine/ProxyConfigKt {
 }
 
 public final class io/ktor/client/engine/UtilsKt {
+	public static final fun callContext (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getKTOR_DEFAULT_USER_AGENT ()Ljava/lang/String;
 	public static final fun mergeHeaders (Lio/ktor/http/Headers;Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function2;)V
 }
@@ -1014,6 +1029,11 @@ public final class io/ktor/client/utils/CacheControl {
 
 public final class io/ktor/client/utils/ContentKt {
 	public static final fun wrapHeaders (Lio/ktor/http/content/OutgoingContent;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent;
+}
+
+public final class io/ktor/client/utils/CoroutineDispatcherUtilsKt {
+	public static final fun fixedThreadPoolDispatcher (Lkotlinx/coroutines/Dispatchers;ILjava/lang/String;)Lkotlinx/coroutines/CoroutineDispatcher;
+	public static synthetic fun fixedThreadPoolDispatcher$default (Lkotlinx/coroutines/Dispatchers;ILjava/lang/String;ILjava/lang/Object;)Lkotlinx/coroutines/CoroutineDispatcher;
 }
 
 public final class io/ktor/client/utils/EmptyContent : io/ktor/http/content/OutgoingContent$NoContent {

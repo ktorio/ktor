@@ -1,15 +1,13 @@
-public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine/HttpClientEngine {
+public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine/HttpClientEngineBase {
 	public static final field Companion Lio/ktor/client/engine/mock/MockEngine$Companion;
 	public fun <init> (Lio/ktor/client/engine/mock/MockEngineConfig;)V
 	public fun close ()V
 	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/mock/MockEngineConfig;
-	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getRequestHistory ()Ljava/util/List;
 	public final fun getResponseHistory ()Ljava/util/List;
-	public fun install (Lio/ktor/client/HttpClient;)V
 }
 
 public final class io/ktor/client/engine/mock/MockEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {

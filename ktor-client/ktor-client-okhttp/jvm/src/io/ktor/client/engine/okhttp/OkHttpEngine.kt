@@ -7,6 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -21,10 +22,8 @@ import kotlin.coroutines.*
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class OkHttpEngine(
-    override val config: OkHttpConfig
-) : HttpClientJvmEngine("ktor-okhttp") {
-
+class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
+    override val dispatcher = Dispatchers.fixedThreadPoolDispatcher(config.threadsCount)
     private val engine: OkHttpClient = config.preconfigured ?: run {
         val builder = OkHttpClient.Builder()
         builder.apply(config.config)
@@ -34,26 +33,20 @@ class OkHttpEngine(
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = createCallContext()
+        val callContext = callContext()!!
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
-        return try {
-            if (data.isUpgradeRequest()) {
-                executeWebSocketRequest(engineRequest, callContext)
-            } else {
-                executeHttpRequest(engineRequest, callContext)
-            }
-        } catch (cause: Throwable) {
-            (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
-            throw cause
+        return if (data.isUpgradeRequest()) {
+            executeWebSocketRequest(engineRequest, callContext)
+        } else {
+            executeHttpRequest(engineRequest, callContext)
         }
     }
 
     override fun close() {
-        val clientTask = coroutineContext[Job] as CompletableJob
-        clientTask.complete()
+        super.close()
 
-        clientTask.invokeOnCompletion {
+        coroutineContext[Job]!!.invokeOnCompletion {
             GlobalScope.launch(dispatcher) {
                 engine.dispatcher().executorService().shutdown()
                 engine.connectionPool().evictAll()
