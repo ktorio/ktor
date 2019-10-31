@@ -7,6 +7,6 @@ package io.ktor.util.logging
 /**
  * The default platform appender. Usually it prints to stdout.
  */
-actual val Appender.Default: Appender
+actual val Appender.Companion.Default: Appender
     get() = TextAppender.systemStreamsAppender
 
