@@ -64,7 +64,8 @@ fun Logger.forClass(clazz: KClass<*>): Logger {
  */
 @UseExperimental(ExperimentalStdlibApi::class)
 inline fun <reified C : Any> Logger.forClass(): Logger = configure {
-    name(typeOf<C>().toString())
+    val type = typeOf<C>()
+    name((type.classifier as? KClass<*>)?.toLoggerName() ?: type.toString())
 }
 
 /**
@@ -82,6 +83,9 @@ inline fun <reified C : Any> (@Suppress("unused") C).loggerForClass(config: Conf
 }
 
 private class LoggerNameKey : LogAttributeKey<String>("logger-name", "")
+
+@PublishedApi
+internal fun KClass<*>.toLoggerName(): String = getName() ?: toString()
 
 internal expect fun KClass<*>.getName(): String?
 

@@ -180,7 +180,7 @@ class LoggerTest {
 
         logger.info("msg1")
 
-        assertEquals("[INFO] [TestAppender] msg1\n", appender.log())
+        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.TestAppender] msg1\n", appender.log())
     }
 
     @Test
@@ -189,7 +189,7 @@ class LoggerTest {
 
         logger.info("msg1")
 
-        assertEquals("[INFO] [LoggerTest] msg1\n", appender.log())
+        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg1\n", appender.log())
     }
 
     @Test
@@ -198,7 +198,7 @@ class LoggerTest {
 
         logger.info("msg7")
 
-        assertEquals("[INFO] [LoggerTest] msg7\n", appender.log())
+        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg7\n", appender.log())
     }
 
     @Test
@@ -212,7 +212,7 @@ class LoggerTest {
 
         Test().f()
 
-        assertEquals("[INFO] [Test] msg3\n", appender.log())
+        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.loggerCreationForThisClass2.Test] msg3\n", appender.log())
     }
 
     private class TestAppender : Appender {
