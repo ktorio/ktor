@@ -11,6 +11,14 @@ fun Logger.trace(message: String, cause: Throwable? = null) {
     }
 }
 
+fun Logger.trace(format: String, vararg args: Any?) {
+    trace(message = legacyFormat(format, args))
+}
+
+fun Logger.trace(exception: Throwable) {
+    trace(exception.messageOrName(), exception)
+}
+
 inline fun Logger.trace(cause: Throwable? = null, message: () -> String) {
     log(Level.TRACE) {
         this.text = message()
@@ -32,6 +40,14 @@ inline fun Logger.debug(cause: Throwable? = null, message: () -> String) {
     }
 }
 
+fun Logger.debug(format: String, vararg args: Any?) {
+    debug(message = legacyFormat(format, args))
+}
+
+fun Logger.debug(exception: Throwable) {
+    debug(exception.messageOrName(), exception)
+}
+
 fun Logger.info(message: String, cause: Throwable? = null) {
     log {
         this.text = message
@@ -44,6 +60,14 @@ inline fun Logger.info(cause: Throwable? = null, message: () -> String) {
         this.text = message()
         this.exception = cause
     }
+}
+
+fun Logger.info(format: String, vararg args: Any?) {
+    info(message = legacyFormat(format, args))
+}
+
+fun Logger.info(exception: Throwable) {
+    info(exception.messageOrName(), exception)
 }
 
 fun Logger.error(message: String, cause: Throwable? = null) {
@@ -60,6 +84,14 @@ inline fun Logger.error(cause: Throwable? = null, message: () -> String) {
     }
 }
 
+fun Logger.error(format: String, vararg args: Any?) {
+    error(message = legacyFormat(format, args))
+}
+
+fun Logger.error(exception: Throwable) {
+    error(exception.messageOrName(), exception)
+}
+
 fun Logger.warning(message: String, cause: Throwable? = null) {
     log(Level.WARNING) {
         this.text = message
@@ -74,6 +106,14 @@ inline fun Logger.warning(cause: Throwable? = null, message: () -> String) {
     }
 }
 
+fun Logger.warning(format: String, vararg args: Any?) {
+    warning(message = legacyFormat(format, args))
+}
+
+fun Logger.warning(exception: Throwable) {
+    warning(exception.messageOrName(), exception)
+}
+
 inline fun Logger.log(level: Level = Level.INFO, block: LogRecord.() -> Unit) {
     val event = begin(level) ?: return
     try {
@@ -83,3 +123,11 @@ inline fun Logger.log(level: Level = Level.INFO, block: LogRecord.() -> Unit) {
         event.release()
     }
 }
+
+@Deprecated("Use info instead.", ReplaceWith("info(message)"))
+fun Logger.log(message: String) {
+    info(message)
+}
+
+private fun Throwable.messageOrName(): String = message ?: toString()
+
