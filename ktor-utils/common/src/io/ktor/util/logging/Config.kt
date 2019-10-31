@@ -63,6 +63,19 @@ class Config(
     }
 }
 
+/**
+ * Creates an empty config with the single [appender].
+ */
+@Suppress("FunctionName")
+fun Config(appender: Appender): Config = Config.Empty.withAppender(appender)
+
+/**
+ * Creates a new logger config with additional [appender].
+ */
+fun Config.withAppender(appender: Appender): Config = LoggingConfigBuilder(this).apply {
+    addAppender(appender)
+}.build()
+
 internal expect fun pool(config: Config): ObjectPool<LogRecord>
 
 internal class LogRecordPool(private val config: Config) : DefaultPool<LogRecord>(100) {
