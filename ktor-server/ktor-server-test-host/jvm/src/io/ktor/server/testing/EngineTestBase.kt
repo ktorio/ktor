@@ -17,6 +17,8 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
@@ -24,7 +26,6 @@ import org.eclipse.jetty.util.ssl.*
 import org.junit.*
 import org.junit.rules.*
 import org.junit.runners.model.*
-import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
@@ -60,7 +61,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    val testLog: Logger = logger().addName("EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -139,18 +140,15 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val _port = this.port
         val environment = applicationEngineEnvironment {
             this.parentCoroutineContext = parent
-            val delegate = LoggerFactory.getLogger("ktor.test")
-            this.log = log ?: object : Logger by delegate {
-                override fun error(msg: String?, t: Throwable?) {
-                    t?.let {
-                        exceptions.add(it)
-                        println("Critical test exception: $it")
-                        it.printStackTrace()
-                        println("From origin:")
-                        Exception().printStackTrace()
-                    }
-                    delegate.error(msg, t)
-                }
+            this.log = log ?: run {
+                logger(ErrorsCollectorAppender {
+                    val exception = it.exception ?: return@ErrorsCollectorAppender
+                    exceptions.add(exception)
+                    println("Critical test exception: $exception")
+                    exception.printStackTrace()
+                    println("From origin:")
+                    Exception().printStackTrace()
+                }).addName("ktor.test")
             }
 
             connector { port = _port }
@@ -357,6 +355,17 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 } catch (expected: IOException) {
                 }
             } while (true)
+        }
+    }
+
+    class ErrorsCollectorAppender(private val collect: (LogRecord) -> Unit) : Appender {
+        override fun append(record: LogRecord) {
+            if (record.level >= Level.ERROR) {
+                collect(record)
+            }
+        }
+
+        override fun flush() {
         }
     }
 }

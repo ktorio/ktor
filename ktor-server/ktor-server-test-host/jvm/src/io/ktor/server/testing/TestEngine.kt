@@ -8,7 +8,8 @@ import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.server.engine.*
-import org.slf4j.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 
 /**
  * Creates test application engine environment
@@ -18,7 +19,7 @@ fun createTestEnvironment(
 ): ApplicationEngineEnvironment =
     applicationEngineEnvironment {
         config = MapApplicationConfig("ktor.deployment.environment" to "test")
-        log = LoggerFactory.getLogger("ktor.test")
+        log = logger().addName("ktor.test")
         configure()
     }
 

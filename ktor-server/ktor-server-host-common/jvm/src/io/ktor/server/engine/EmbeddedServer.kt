@@ -5,8 +5,9 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.coroutines.*
 
 /**
@@ -54,7 +55,7 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
 ): TEngine {
     val environment = applicationEngineEnvironment {
         this.parentCoroutineContext = coroutineContext + parentCoroutineContext
-        this.log = LoggerFactory.getLogger("ktor.application")
+        this.log = logger().addName("ktor.application")
         this.watchPaths = watchPaths
         this.module(module)
 

@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlin.system.*
 
@@ -23,7 +24,7 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
      * Does application shutdown using the specified [call]
      */
     suspend fun doShutdown(call: ApplicationCall) {
-        call.application.log.warn("Shutdown URL was called: server is going down")
+        call.application.log.warning("Shutdown URL was called: server is going down")
         val application = call.application
         val environment = application.environment
         val exitCode = exitCode(call)
@@ -74,7 +75,7 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
      * A feature to install into application call pipeline
      */
     object ApplicationCallFeature : ApplicationFeature<ApplicationCallPipeline, Configuration, ShutDownUrl> {
-        override val key = AttributeKey<ShutDownUrl>("shutdown.url")
+        override val key: AttributeKey<ShutDownUrl> = AttributeKey("shutdown.url")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ShutDownUrl {
             val config = Configuration()

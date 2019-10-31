@@ -6,6 +6,7 @@ package io.ktor.sessions
 
 import io.ktor.application.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlin.reflect.*
 
