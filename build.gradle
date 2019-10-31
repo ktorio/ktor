@@ -211,7 +211,7 @@ if (build_snapshot_train) {
             exclude '**/*numberTest*'
             exclude '**/*testWithPause*'
             exclude '**/*WebSocketTest*'
-            exclude '**/*hugePost*'
+            exclude '**/*HugePost*'
         }
     }
 
