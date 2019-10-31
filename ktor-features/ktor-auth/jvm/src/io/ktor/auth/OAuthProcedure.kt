@@ -6,10 +6,8 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
-import org.slf4j.*
+import io.ktor.util.logging.*
 import java.io.*
-
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 /**
  * OAuth provider key
@@ -75,10 +73,10 @@ internal fun OAuthAuthenticationProvider.oauth2() {
                     context.principal(accessToken)
                     null
                 } catch (cause: OAuth2Exception.InvalidGrant) {
-                    Logger.trace("OAuth invalid grant reported: {}", cause.message)
+                    call.application.log.trace("OAuth invalid grant reported: {}", cause.message)
                     AuthenticationFailedCause.InvalidCredentials
                 } catch (cause: Throwable) {
-                    Logger.trace("OAuth2 request access token failed", cause)
+                    call.application.log.trace("OAuth2 request access token failed", cause)
                     context.error(
                         OAuthKey,
                         AuthenticationFailedCause.Error("Failed to request OAuth2 access token due to $cause")

@@ -9,29 +9,44 @@ import io.ktor.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
-import org.slf4j.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 
 /**
  * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
  *
  * @param config initial authentication configuration
  */
-class Authentication(config: Configuration) {
+class Authentication private constructor(config: Configuration, parentLogger: Logger) {
     /**
      * @param providers list of registered instances of [AuthenticationProvider]
      */
-    constructor(providers: List<AuthenticationProvider>) : this(Configuration(providers))
+    @Deprecated("Use feature installation instead.")
+    constructor(providers: List<AuthenticationProvider>) : this(Configuration(providers), logger())
 
-    constructor() : this(Configuration())
+    @Deprecated("Use feature installation instead.")
+    constructor(config: Configuration) : this(config, logger())
+
+    @Deprecated("Use feature installation instead.")
+    constructor() : this(Configuration(), logger())
+
+    private constructor(logger: Logger) : this(Configuration(emptyList(), logger = logger), logger)
 
     private var config = config.copy()
 
-    private val logger = LoggerFactory.getLogger(Authentication::class.java)
+    /**
+     * Authentication logger derived from the application's logger.
+     */
+    @KtorExperimentalAPI
+    val logger: Logger = parentLogger.forClass<Authentication>()
 
     /**
      * Authentication configuration
+     * @property logger for authentication configuration and processing
      */
-    class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
+    class Configuration(providers: List<AuthenticationProvider>, val logger: Logger) {
+        constructor(providers: List<AuthenticationProvider> = emptyList()) : this(providers, logger())
+
         internal val providers = ArrayList(providers)
 
         /**
@@ -163,7 +178,7 @@ class Authentication(config: Configuration) {
         override val key: AttributeKey<Authentication> = AttributeKey("Authentication")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
-            return Authentication().apply {
+            return Authentication(pipeline.log).apply {
                 configure(configure)
             }
         }

@@ -16,14 +16,12 @@ import io.ktor.auth.*
 import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
-import org.slf4j.*
 import java.security.interfaces.*
 import java.util.*
 
 private val JWTAuthKey: Any = "JWTAuth"
-
-private val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
 
 /**
  * Represents a JWT credential consist of the specified [payload]
@@ -59,7 +57,10 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
     /**
      * JWT auth provider configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    class Configuration internal constructor(
+        name: String?,
+        internal val logger: Logger
+    ) : AuthenticationProvider.Configuration(name) {
         internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
             throw NotImplementedError(
                 "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
@@ -124,7 +125,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * * @param configure function will be applied during [JWTVerifier] construction
          */
         fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
-            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
+            this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, logger, configure) }
         }
 
         /**
@@ -132,7 +133,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * @param configure function will be applied during [JWTVerifier] construction
          */
         fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
-            this.verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
+            this.verifier = { token -> getVerifier(jwkProvider, token, schemes, logger, configure) }
         }
 
         /**
@@ -168,7 +169,7 @@ fun Authentication.Configuration.jwt(
     name: String? = null,
     configure: JWTAuthenticationProvider.Configuration.() -> Unit
 ) {
-    val provider = JWTAuthenticationProvider.Configuration(name).apply(configure).build()
+    val provider = JWTAuthenticationProvider.Configuration(name, logger).apply(configure).build()
     val realm = provider.realm
     val authenticate = provider.authenticationFunction
     val verifier = provider.verifier
@@ -181,7 +182,7 @@ fun Authentication.Configuration.jwt(
         }
 
         try {
-            val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
+            val principal = verifyAndValidate(call, verifier(token), token, schemes, logger, authenticate)
             if (principal != null) {
                 context.principal(principal)
             } else {
@@ -194,7 +195,7 @@ fun Authentication.Configuration.jwt(
             }
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
-            JWTLogger.trace("JWT verification failed: {}", message)
+            call.application.log.trace { "JWT verification failed: $message" }
             context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
         }
     }
@@ -224,16 +225,17 @@ private fun getVerifier(
     issuer: String?,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
+    logger: Logger,
     jwtConfigure: Verification.() -> Unit
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
             jwkProvider.get(JWT.decode(blob).keyId)
         } catch (ex: JwkException) {
-            JWTLogger.trace("Failed to get JWK: {}", ex.message)
+            logger.trace("Failed to get JWK: {}", ex.message)
             null
         } catch (ex: JWTDecodeException) {
-            JWTLogger.trace("Illegal JWT: {}", ex.message)
+            logger.trace("Illegal JWT: {}", ex.message)
             null
         }
     } ?: return null
@@ -241,7 +243,7 @@ private fun getVerifier(
     val algorithm = try {
         jwk.makeAlgorithm()
     } catch (cause: Throwable) {
-        JWTLogger.trace("Failed to create algorithm {}: {}", jwk.algorithm, cause.message ?: cause.javaClass.simpleName)
+        logger.trace("Failed to create algorithm {}: {}", jwk.algorithm, cause.message ?: cause.javaClass.simpleName)
         return null
     }
 
@@ -255,9 +257,10 @@ private fun getVerifier(
     jwkProvider: JwkProvider,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
+    logger: Logger,
     configure: JWTConfigureFunction
 ): JWTVerifier? {
-    return getVerifier(jwkProvider, null, token, schemes, configure)
+    return getVerifier(jwkProvider, null, token, schemes, logger, configure)
 }
 
 private suspend fun verifyAndValidate(
@@ -265,12 +268,13 @@ private suspend fun verifyAndValidate(
     jwtVerifier: JWTVerifier?,
     token: HttpAuthHeader,
     schemes: JWTAuthSchemes,
+    logger: Logger,
     validate: suspend ApplicationCall.(JWTCredential) -> Principal?
 ): Principal? {
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
-        JWTLogger.trace("Token verification failed: {}", ex.message)
+        logger.trace("Token verification failed: {}", ex.message)
         null
     } ?: return null
 
@@ -287,7 +291,7 @@ private fun HttpAuthHeader.getBlob(schemes: JWTAuthSchemes) = when {
 private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
     parseAuthorizationHeader()
 } catch (ex: IllegalArgumentException) {
-    JWTLogger.trace("Illegal HTTP auth header", ex)
+    call.application.log.trace("Illegal HTTP auth header", ex)
     null
 }
 

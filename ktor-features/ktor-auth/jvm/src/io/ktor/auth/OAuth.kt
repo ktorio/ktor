@@ -11,11 +11,9 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import java.io.*
-
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth2")
 
 /**
  * OAuth versions used in configuration
@@ -262,10 +260,10 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
 
                         block(accessToken)
                     } catch (cause: OAuth2Exception.InvalidGrant) {
-                        Logger.trace("Redirected to the login page due to invalid_grant error: {}", cause.message)
+                        call.application.log.trace("Redirected to the login page due to invalid_grant error: {}", cause.message)
                         call.oauthHandleFail(loginPageUrl)
                     } catch (ioe: IOException) {
-                        Logger.trace("Redirected to the login page due to IO error", ioe)
+                        call.application.log.trace("Redirected to the login page due to IO error", ioe)
                         call.oauthHandleFail(loginPageUrl)
                     }
                 }

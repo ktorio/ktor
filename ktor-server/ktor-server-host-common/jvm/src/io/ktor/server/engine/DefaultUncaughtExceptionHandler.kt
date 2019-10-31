@@ -4,10 +4,9 @@
 
 package io.ktor.server.engine
 
-import io.ktor.util.*
+import io.ktor.util.logging.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import java.io.*
 import kotlin.coroutines.*
 
 /**

@@ -6,7 +6,7 @@ package io.ktor.application
 
 import io.ktor.config.*
 import io.ktor.util.*
-import org.slf4j.*
+import io.ktor.util.logging.*
 import kotlin.coroutines.*
 
 /**

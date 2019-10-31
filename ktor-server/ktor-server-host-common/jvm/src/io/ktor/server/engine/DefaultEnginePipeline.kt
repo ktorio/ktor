@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
@@ -107,7 +108,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
         }
     } catch (oom: OutOfMemoryError) {
         try {
-            log.error(cause)
+            log.error("Request handling failed due to OutOfMemoryError", cause)
         } catch (oomAttempt2: OutOfMemoryError) {
             System.err.print("OutOfMemoryError: ")
             System.err.println(cause.message)

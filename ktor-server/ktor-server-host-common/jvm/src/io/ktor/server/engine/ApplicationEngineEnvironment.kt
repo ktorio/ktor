@@ -7,7 +7,8 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.util.*
-import org.slf4j.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import kotlin.coroutines.*
 
 /**
@@ -67,7 +68,7 @@ class ApplicationEngineEnvironmentBuilder {
     /**
      * Application logger
      */
-    var log: Logger = LoggerFactory.getLogger("Application")
+    var log: Logger = logger().addName("Application")
 
     /**
      * Application config

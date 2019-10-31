@@ -9,9 +9,8 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import org.slf4j.event.*
 import kotlin.coroutines.*
 
 /**
@@ -157,7 +156,7 @@ class CallLogging private constructor(
 
     private fun log(message: String) = when (level) {
         Level.ERROR -> log.error(message)
-        Level.WARN -> log.warn(message)
+        Level.WARNING -> log.warning(message)
         Level.INFO -> log.info(message)
         Level.DEBUG -> log.debug(message)
         Level.TRACE -> log.trace(message)
@@ -221,4 +220,17 @@ private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElemen
 private fun defaultFormat(call: ApplicationCall): String = when (val status = call.response.status() ?: "Unhandled") {
     HttpStatusCode.Found -> "$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}"
     else -> "$status: ${call.request.toLogString()}"
+}
+
+private object MDC {
+    fun getCopyOfContextMap(): Map<String, String> = TODO()
+    fun clear() {
+        TODO()
+    }
+    fun put(key: String, value: String) {
+        TODO()
+    }
+    fun remove(key: String) {
+        TODO()
+    }
 }

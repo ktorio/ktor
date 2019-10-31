@@ -7,10 +7,10 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
 import java.net.*

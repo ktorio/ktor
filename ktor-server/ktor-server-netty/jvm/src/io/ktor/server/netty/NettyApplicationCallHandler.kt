@@ -7,14 +7,15 @@ package io.ktor.server.netty
 import io.ktor.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
+import io.ktor.util.logging.*
 import io.netty.channel.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.coroutines.*
 
 internal class NettyApplicationCallHandler(userCoroutineContext: CoroutineContext,
                                            private val enginePipeline: EnginePipeline,
-                                           private val logger: Logger) : ChannelInboundHandlerAdapter(), CoroutineScope {
+                                           private val logger: Logger
+) : ChannelInboundHandlerAdapter(), CoroutineScope {
     override val coroutineContext: CoroutineContext = userCoroutineContext +
         CallHandlerCoroutineName +
         DefaultUncaughtExceptionHandler(logger)

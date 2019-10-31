@@ -4,9 +4,10 @@
 
 package io.ktor.util
 
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import org.slf4j.*
 import java.security.*
 
 private const val SHA1PRNG = "SHA1PRNG"
@@ -96,8 +97,8 @@ private fun lookupSecureRandom(): SecureRandom {
     val secure = getInstanceOrNull(SECURE_RANDOM_PROVIDER_NAME)
     if (secure != null) return secure
 
-    LoggerFactory.getLogger("io.ktor.util.random")
-        .warn("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to $SHA1PRNG")
+    logger().addName("io.ktor.util.random")
+        .warning("$SECURE_RANDOM_PROVIDER_NAME is not found, fallback to $SHA1PRNG")
 
     return getInstanceOrNull(SHA1PRNG) ?: error("No SecureRandom implementation found")
 }

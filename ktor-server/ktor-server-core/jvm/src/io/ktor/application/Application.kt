@@ -4,6 +4,7 @@
 
 package io.ktor.application
 
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 
 /**
@@ -31,4 +32,4 @@ class Application(val environment: ApplicationEnvironment) : ApplicationCallPipe
 /**
  * Convenience property to access log from application
  */
-val Application.log get() = environment.log
+val Application.log: Logger get() = environment.log

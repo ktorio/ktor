@@ -14,13 +14,11 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import org.json.simple.*
-import org.slf4j.*
 import java.io.*
 import java.net.*
-
-private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
     client: HttpClient, dispatcher: CoroutineDispatcher,
@@ -44,7 +42,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
                     val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
                     call.authentication.principal(accessToken)
                 } catch (cause: OAuth2Exception.InvalidGrant) {
-                    Logger.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
+                    call.application.log.trace("Redirected to OAuth2 server due to error invalid_grant: {}", cause.message)
                     call.redirectAuthenticateOAuth2(
                         provider, callbackRedirectUrl,
                         state = provider.nonceManager.newNonce(),
@@ -307,7 +305,7 @@ suspend fun verifyWithOAuth2(
 /**
  * List of OAuth2 request parameters for both peers
  */
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
 object OAuth2RequestParameters {
     const val ClientId = "client_id"
     const val Scope = "scope"
@@ -324,7 +322,7 @@ object OAuth2RequestParameters {
 /**
  * List of OAuth2 server response parameters
  */
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
 object OAuth2ResponseParameters {
     const val AccessToken = "access_token"
     const val TokenType = "token_type"

@@ -7,6 +7,7 @@ package io.ktor.server.tomcat
 import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.servlet.*
+import io.ktor.util.logging.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.catalina.connector.*
@@ -16,7 +17,6 @@ import org.apache.tomcat.jni.*
 import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
-import org.slf4j.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*

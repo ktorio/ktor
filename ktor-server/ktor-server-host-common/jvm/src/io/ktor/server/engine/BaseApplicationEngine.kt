@@ -5,6 +5,7 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.util.logging.*
 
 /**
  * Base class for implementing [ApplicationEngine]

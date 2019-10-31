@@ -8,10 +8,10 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import org.slf4j.event.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import javax.servlet.*
@@ -39,7 +39,7 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
     /**
      * Application logger
      */
-    protected open val logger: Logger get() = LoggerFactory.getLogger(servletName)
+    protected open val logger: Logger get() = logger().addName(servletName)
 
     /**
      * Servlet upgrade implementation

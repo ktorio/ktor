@@ -8,11 +8,10 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
-import org.slf4j.*
 import kotlin.random.*
-import kotlin.reflect.jvm.*
 
 /**
  * A function that retrieves or generates call id using provided call
@@ -187,7 +186,6 @@ class CallId private constructor(
         internal val callIdKey = AttributeKey<String>("ExtractedCallId")
 
         override val key: AttributeKey<CallId> = AttributeKey("CallId")
-        private val logger by lazy { LoggerFactory.getLogger(CallId::class.jvmName) }
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CallId {
             val configuration = Configuration().apply(configure)
@@ -201,8 +199,8 @@ class CallId private constructor(
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
 
             if (instance.providers.isEmpty()) {
-                logger.warn("CallId feature is not configured: neither retrievers nor generators were configured")
-                return instance // don't install interceptor
+                pipeline.afterIntercepted()
+                error("CallId feature is not configured: neither retrievers nor generators were configured")
             }
 
             pipeline.intercept(phase) {
@@ -223,7 +221,7 @@ class CallId private constructor(
                         break
                     }
                 } catch (rejection: RejectedCallIdException) {
-                    logger.warn(
+                    call.application.log.warning(
                         "Illegal call id retrieved or generated that is rejected by call id verifier:" +
                             " (url-encoded) " +
                             rejection.illegalCallId.encodeURLParameter()
