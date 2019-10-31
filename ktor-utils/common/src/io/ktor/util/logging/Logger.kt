@@ -58,6 +58,20 @@ class Logger(
         appender.append(message)
     }
 
+    /**
+     * Logger's companion for extensions
+     */
+    companion object {
+        /**
+         * Logger with the default configuration.
+         */
+        val Default: Logger by lazy { logger() }
+
+        /**
+         * Logger that never logs anything.
+         */
+        val Muted: Logger = logger {}
+    }
 }
 
 /**
