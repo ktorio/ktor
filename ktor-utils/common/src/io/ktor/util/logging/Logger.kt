@@ -7,7 +7,7 @@ package io.ktor.util.logging
 /**
  * Entity that provides logging facilities, configured and connected to appender(s).
  */
-class Logger(
+open class Logger(
     /**
      * Logger configuration: the default config ([Config.Default]) or the config provided at logger construction.
      */
@@ -37,6 +37,17 @@ class Logger(
         if (!record.discarded) {
             config.appender.flush()
         }
+    }
+
+    /**
+     * Log [message] with INFO level
+     */
+    @Deprecated(
+        "Use info instead.",
+        ReplaceWith("info(message)", "io.ktor.util.logging.info")
+    )
+    fun log(message: String) {
+        info(message)
     }
 
     private fun processRecord(message: LogRecord) {
