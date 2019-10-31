@@ -33,10 +33,12 @@ interface Appender {
      * Trigger propagation for records appended before. It may or may not wait for processing completion.
      */
     fun flush()
+
+    companion object
 }
 
 /**
  * The default platform appender. Usually it prints to stdout.
  */
-expect val Appender.Default: Appender
+expect val Appender.Companion.Default: Appender
 
