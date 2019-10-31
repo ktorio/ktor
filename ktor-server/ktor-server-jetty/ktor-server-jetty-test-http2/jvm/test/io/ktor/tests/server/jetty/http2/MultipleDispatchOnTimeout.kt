@@ -9,8 +9,9 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import org.junit.Test
-import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -33,7 +34,7 @@ class MultipleDispatchOnTimeout {
         val port = findFreePort()
         val environment = applicationEngineEnvironment {
             connector { this.port = port }
-            log = LoggerFactory.getLogger("ktor.test")
+            log = logger().addName("ktor.test")
             module {
                 intercept(ApplicationCallPipeline.Call) {
                     callCount.incrementAndGet()

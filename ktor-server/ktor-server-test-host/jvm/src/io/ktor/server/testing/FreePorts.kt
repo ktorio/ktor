@@ -4,7 +4,8 @@
 
 package io.ktor.server.testing
 
-import org.slf4j.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import java.net.*
 import java.util.*
 import kotlin.collections.*
@@ -87,6 +88,6 @@ internal object FreePorts {
     }
 
     private fun log(message: String) {
-        LoggerFactory.getLogger(FreePorts::class.java).info(message)
+        logger().forClass<FreePorts>().info(message)
     }
 }

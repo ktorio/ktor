@@ -11,24 +11,30 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.logging.*
+import io.ktor.util.logging.Level
+import io.ktor.util.logging.labels.*
 import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Test
 import org.slf4j.*
-import org.slf4j.event.*
 import kotlin.test.*
 
 @OptIn(ObsoleteCoroutinesApi::class)
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>
-    private val logger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test") {
-        override fun trace(message: String?) = add("TRACE: $message")
-        override fun debug(message: String?) = add("DEBUG: $message")
-        override fun info(message: String?) = add("INFO: $message")
 
-        private fun add(message: String?) {
-            if (message != null) {
+    private val logger = logger {
+        addAppender(object : Appender {
+            override fun append(record: LogRecord) {
+                add("${record.level}: ${record.text}")
+            }
+
+            override fun flush() {
+            }
+
+            private fun add(message: String) {
                 val mdcText = MDC.getCopyOfContextMap()?.let { mdc ->
                     if (mdc.isNotEmpty()) {
                         mdc.entries.sortedBy { it.key }
@@ -40,8 +46,9 @@ class CallLoggingTest {
 
                 messages.add(message + mdcText)
             }
-        }
+        })
     }
+
     private val environment = createTestEnvironment {
         module {
             install(CallLogging)
@@ -249,13 +256,18 @@ class CallLoggingTest {
     @Test
     fun `can configure custom logger`() {
         val customMessages = ArrayList<String>()
-        val customLogger: Logger = object : Logger by LoggerFactory.getLogger("ktor.test.custom") {
-            override fun trace(message: String?) {
-                if (message != null) {
-                    customMessages.add("CUSTOM TRACE: $message")
+        val customLogger = logger {
+            name("ktor.test.custom")
+            addAppender(object : Appender {
+                override fun append(record: LogRecord) {
+                    customMessages.add("CUSTOM TRACE: ${record.text}")
                 }
-            }
+
+                override fun flush() {
+                }
+            })
         }
+
         val environment = createTestEnvironment {
             module {
                 install(CallLogging) {
