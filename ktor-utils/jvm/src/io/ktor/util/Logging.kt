@@ -9,4 +9,6 @@ import org.slf4j.*
 /**
  * Logs an error from an [exception] using its message
  */
-fun Logger.error(exception: Throwable) = error(exception.message ?: "Exception of type ${exception.javaClass}", exception)
+@Deprecated("Will be removed in future releases.")
+fun Logger.error(exception: Throwable): Unit =
+    error(exception.message ?: "Exception of type ${exception.javaClass}", exception)
