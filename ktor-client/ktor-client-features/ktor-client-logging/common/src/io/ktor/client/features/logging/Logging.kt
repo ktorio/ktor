@@ -13,23 +13,27 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
+import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
+import kotlin.jvm.*
 
 /**
  * [HttpClient] logging feature.
+ *
+ * @property logger to log call info to
+ * @property level what should be logged
  */
 class Logging(
-    val logger: Logger,
+    val logger: io.ktor.util.logging.Logger,
     var level: LogLevel,
     var filters: List<(HttpRequestBuilder) -> Boolean>
 ) {
-    /**
-     * Constructor
-     */
-    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+    @Suppress("DEPRECATION")
+    @Deprecated("Use ktor utils logger instead.")
+    constructor(logger: Logger, level: LogLevel) : this(AdapterLogger(logger), level, emptyList())
 
     /**
      * [Logging] feature configuration
@@ -42,7 +46,19 @@ class Logging(
         /**
          * [Logger] instance to use
          */
-        var logger: Logger = Logger.DEFAULT
+        @get:JvmName("getNewLogger")
+        @set:JvmName("setNewLogger")
+        var logger: io.ktor.util.logging.Logger = io.ktor.util.logging.Logger.Default
+
+        @Suppress("KDocMissingDocumentation", "unused", "DEPRECATION")
+        @get:JvmName("getLogger")
+        @set:JvmName("setLogger")
+        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+        var deprecatedLogger: Logger
+            get() = AdapterLogger(logger)
+            set(newLogger) {
+                logger = AdapterLogger(newLogger)
+            }
 
         /**
          * log [LogLevel]
@@ -59,8 +75,8 @@ class Logging(
 
     private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
         if (level.info) {
-            logger.log("REQUEST: ${Url(request.url)}")
-            logger.log("METHOD: ${request.method}")
+            logger.info("REQUEST: ${Url(request.url)}")
+            logger.info("METHOD: ${request.method}")
         }
         val content = request.body as OutgoingContent
         if (level.headers) logHeaders(request.headers.entries(), content.headers)
@@ -71,9 +87,9 @@ class Logging(
 
     private fun logResponse(response: HttpResponse) {
         if (level.info) {
-            logger.log("RESPONSE: ${response.status}")
-            logger.log("METHOD: ${response.call.request.method}")
-            logger.log("FROM: ${response.call.request.url}")
+            logger.info("RESPONSE: ${response.status}")
+            logger.info("METHOD: ${response.call.request.method}")
+            logger.info("FROM: ${response.call.request.url}")
         }
 
         if (level.headers) {
@@ -83,14 +99,13 @@ class Logging(
 
     private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
         if (level.info) {
-            logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+            logger.info("REQUEST ${Url(context.url)} failed with exception: $cause")
         }
-
     }
 
     private fun logResponseException(context: HttpClientCall, cause: Throwable) {
         if (level.info) {
-            logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
+            logger.info("RESPONSE ${context.request.url} failed with exception: $cause")
         }
     }
 
@@ -99,42 +114,42 @@ class Logging(
         contentHeaders: Headers? = null
     ) {
         with(logger) {
-            log("COMMON HEADERS")
+            info("COMMON HEADERS")
             requestHeaders.forEach { (key, values) ->
-                log("-> $key: ${values.joinToString("; ")}")
+                info("-> $key: ${values.joinToString("; ")}")
             }
 
             contentHeaders ?: return@with
 
-            log("CONTENT HEADERS")
+            info("CONTENT HEADERS")
             contentHeaders.forEach { key, values ->
-                log("-> $key: ${values.joinToString("; ")}")
+                info("-> $key: ${values.joinToString("; ")}")
             }
         }
     }
 
     private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel) {
         with(logger) {
-            log("BODY Content-Type: $contentType")
-            log("BODY START")
+            info("BODY Content-Type: $contentType")
+            info("BODY START")
             val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
-            log(message)
-            log("BODY END")
+            info(message)
+            info("BODY END")
         }
     }
 
     private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
         with(logger) {
-            log("BODY Content-Type: ${content.contentType}")
+            info("BODY Content-Type: ${content.contentType}")
 
             val charset = content.contentType?.charset() ?: Charsets.UTF_8
 
             val channel = ByteChannel()
             GlobalScope.launch(Dispatchers.Unconfined) {
                 val text = channel.readText(charset)
-                log("BODY START")
-                log(text)
-                log("BODY END")
+                info("BODY START")
+                info(text)
+                info("BODY END")
             }
 
             return content.observe(channel)
@@ -198,6 +213,7 @@ class Logging(
 /**
  * Configure and install [Logging] in [HttpClient].
  */
+@Suppress("FunctionName")
 fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }

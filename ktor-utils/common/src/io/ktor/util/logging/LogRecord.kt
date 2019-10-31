@@ -4,6 +4,7 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlin.native.concurrent.*
 
@@ -156,6 +157,14 @@ class LogRecord internal constructor(val config: Config) {
                 end(event)
             }
         }
+    }
+
+    companion object {
+        /**
+         * Creates an empty log record with the empty config
+         */
+        @InternalAPI
+        fun createSimple(): LogRecord = LogRecord(Config.Empty)
     }
 }
 

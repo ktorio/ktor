@@ -4,12 +4,9 @@
 
 package io.ktor.client.features.logging
 
-internal class TestLogger : Logger {
-    private val state = StringBuilder()
+import io.ktor.util.logging.*
+import io.ktor.util.logging.Logger
 
-    override fun log(message: String) {
-        state.append("$message\n")
-    }
-
-    fun dump(): String = state.toString()
+internal class TestLogger : Logger(Config(StringBuilderAppender())) {
+    fun dump(): String = (config.appender as StringBuilderAppender).build()
 }

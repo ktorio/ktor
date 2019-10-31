@@ -7,9 +7,9 @@ package io.ktor.client.features.logging
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.tests.utils.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
-
 
 class JvmLoggingTest {
     @Test
@@ -34,7 +34,7 @@ class JvmLoggingTest {
 
             install(Logging) {
                 level = LogLevel.BODY
-                logger = packetLogger
+                logger = logger(packetLogger)
             }
         }
 
@@ -42,18 +42,21 @@ class JvmLoggingTest {
             client.submitFormWithBinaryData<Unit>(formData = formData {
                 append("name", "sunny day")
                 append("image", "image.jpg") {
-                    writeStringUtf8("image-content")
+                    writeText("image-content")
                 }
             })
         }
     }
 }
 
-private class PacketLogger : Logger {
+private class PacketLogger : Appender {
     private val packet = BytePacketBuilder()
 
-    override fun log(message: String) {
-        packet.writeStringUtf8("$message\n")
+    override fun append(record: LogRecord) {
+        packet.writeText("${record.text}\n")
+    }
+
+    override fun flush() {
     }
 
     fun buildLog(): ByteReadPacket = packet.build()

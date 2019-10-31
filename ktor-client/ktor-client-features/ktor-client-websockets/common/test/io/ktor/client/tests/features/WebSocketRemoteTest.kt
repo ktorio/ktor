@@ -8,6 +8,7 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.logging.Logger
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -50,7 +51,7 @@ class WebSocketRemoteTest : ClientLoader() {
         config {
             install(Logging) {
                 level = LogLevel.ALL
-                logger = Logger.EMPTY
+                logger = Logger.Muted
             }
             install(WebSockets)
         }

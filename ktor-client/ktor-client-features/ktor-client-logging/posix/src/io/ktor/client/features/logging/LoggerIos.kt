@@ -4,4 +4,9 @@
 
 package io.ktor.client.features.logging
 
+@Suppress("KDocMissingDocumentation", "DEPRECATION")
+@Deprecated(
+    "Use ktor utils Logger.Default instead.",
+    ReplaceWith("Logger.Default", "io.ktor.util.logging.Logger.Default")
+)
 actual val Logger.Companion.DEFAULT: Logger get() = Logger.SIMPLE

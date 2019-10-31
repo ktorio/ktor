@@ -10,6 +10,7 @@ import io.ktor.client.response.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.logging.Logger
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.close
@@ -22,7 +23,7 @@ class NetworkLoggingTest : ClientLoader() {
 
     @Ignore("Log structure is engine dependent")
     @Test
-    fun testLoggingLevel() = clientTests {
+    fun testLoggingLevel(): Unit = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -98,7 +99,7 @@ FROM: http://localhost:$serverPort/
 
     @Test
     @Ignore("Log structure is engine dependent")
-    fun testLogPostBody() = clientTests {
+    fun testLogPostBody(): Unit = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/
@@ -127,7 +128,7 @@ BODY END
 
     @Ignore("Log structure is engine dependent")
     @Test
-    fun logRedirectTest() = clientTests {
+    fun logRedirectTest(): Unit = clientTests {
         checkLog(
             """
 REQUEST: http://localhost:$serverPort/301
@@ -188,11 +189,11 @@ BODY END
     }
 
     @Test
-    fun customServerTest() = clientTests {
+    fun customServerTest(): Unit = clientTests {
         config {
             Logging {
                 level = LogLevel.ALL
-                logger = Logger.EMPTY
+                logger = Logger.Muted
             }
         }
 
