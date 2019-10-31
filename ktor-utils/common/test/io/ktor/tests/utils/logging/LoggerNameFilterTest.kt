@@ -48,7 +48,7 @@ class LoggerNameFilterTest {
         val logger = child.configure {
             level("*.child", Level.WARNING)
         }
-        val sub = logger.subLogger("sub")
+        val sub = logger.addName("sub")
 
         logger.info("should-not-pass")
         logger.error("error-should-pass")
@@ -76,7 +76,7 @@ class LoggerNameFilterTest {
             level("root.*child", Level.WARNING)
         }
 
-        val sub = logger.subLogger("sub")
+        val sub = logger.addName("sub")
 
         logger.info("info-should-not-pass")
         logger.warning("warning-should-pass")

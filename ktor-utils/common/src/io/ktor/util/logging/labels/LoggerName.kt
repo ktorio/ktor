@@ -10,7 +10,7 @@ import kotlin.reflect.*
 /**
  * Creates new logger with the specified [name] (appended to parent's logger name).
  */
-fun Logger.subLogger(name: String): Logger = configure {
+fun Logger.addName(name: String): Logger = configure {
     name(name)
 }
 

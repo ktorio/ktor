@@ -98,8 +98,8 @@ class LoggerTest {
 
     @Test
     fun loggerNameTest() {
-        val child = logger.subLogger("root")
-        val subChild = child.subLogger("child")
+        val child = logger.addName("root")
+        val subChild = child.addName("child")
 
         child.info("msg1")
         subChild.info("msg2")
