@@ -4,6 +4,9 @@
 
 package io.ktor.util.logging
 
+/**
+ * Appender that duplicates all records to the [first] and the [second] appender.
+ */
 internal class TeeAppender(val first: Appender, val second: Appender) :
     Appender {
     override val muted: Boolean
