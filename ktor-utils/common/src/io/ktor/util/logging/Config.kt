@@ -54,6 +54,12 @@ class Config(
                 append(message.level.name)
             }
         }.build()
+
+        /**
+         * Empty logger config with no labels, no appenders.
+         */
+        @SharedImmutable
+        val Empty: Config = LoggingConfigBuilder().build()
     }
 }
 
