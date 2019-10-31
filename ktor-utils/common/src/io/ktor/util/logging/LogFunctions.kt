@@ -92,6 +92,11 @@ fun Logger.error(exception: Throwable) {
     error(exception.messageOrName(), exception)
 }
 
+@Deprecated("Use warning instead.", ReplaceWith("warning(message, cause)"))
+fun Logger.warn(message: String, cause: Throwable? = null) {
+    warning(message, cause)
+}
+
 fun Logger.warning(message: String, cause: Throwable? = null) {
     log(Level.WARNING) {
         this.text = message
@@ -104,6 +109,11 @@ inline fun Logger.warning(cause: Throwable? = null, message: () -> String) {
         this.text = message()
         this.exception = cause
     }
+}
+
+@Deprecated("Use warning instead.", ReplaceWith("warning(format, *args)"))
+fun Logger.warn(format: String, vararg args: Any?) {
+    warning(format, *args)
 }
 
 fun Logger.warning(format: String, vararg args: Any?) {
