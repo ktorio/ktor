@@ -35,6 +35,7 @@ kotlin {
                                 "/opt/local/include/curl",
                                 "/usr/local/include/curl",
                                 "/usr/include/curl",
+                                "/usr/local/opt/curl/include/curl",
                                 "/usr/include/x86_64-linux-gnu/curl",
                                 "/usr/local/Cellar/curl/7.62.0/include/curl",
                                 "/usr/local/Cellar/curl/7.63.0/include/curl",
