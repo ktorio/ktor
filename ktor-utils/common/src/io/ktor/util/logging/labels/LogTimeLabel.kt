@@ -28,6 +28,24 @@ fun LoggingConfigBuilder.logTime(
     }
 }
 
+/**
+ * Adds event time with no formatted label
+ */
+internal fun LoggingConfigBuilder.ensureLogTime(clock: () -> GMTDate = { GMTDate() }) {
+    val key = CurrentDateKey()
+    registerKey(key)
+
+    enrich {
+        this[key] = clock()
+    }
+}
+
+/**
+ * Returns log record's log time or `null` if [logTime] feature is not installed.
+ */
+val LogRecord.logTime: GMTDate?
+    get() = config.keys.lastOrNull { it is CurrentDateKey }?.let { get(it as CurrentDateKey) }
+
 private class CurrentDateKey : LogAttributeKey<GMTDate>("time", GMTDate())
 
 /**

@@ -45,6 +45,13 @@ class Config(
     }
 
     companion object {
+        // NOTE: Empty should be before Default because the initialization order matters.
+        /**
+         * Empty logger config with no labels, no appenders.
+         */
+        @SharedImmutable
+        val Empty: Config = LoggingConfigBuilder().build()
+
         /**
          * The default logging configuration.
          */
@@ -53,13 +60,8 @@ class Config(
             label { message ->
                 append(message.level.name)
             }
+            defaultPlatformConfig()
         }.build()
-
-        /**
-         * Empty logger config with no labels, no appenders.
-         */
-        @SharedImmutable
-        val Empty: Config = LoggingConfigBuilder().build()
     }
 }
 
@@ -76,6 +78,20 @@ fun Config.withAppender(appender: Appender): Config = LoggingConfigBuilder(this)
     addAppender(appender)
 }.build()
 
+/**
+ * Search for the last log key of type [K] or `null` if not registered.
+ */
+inline fun <reified K : LogAttributeKey<*>> Config.findKey(): K? {
+    val keys = keys
+    for (index in keys.lastIndex downTo 0) {
+        if (keys[index] is K) {
+            return keys[index] as K
+        }
+    }
+
+    return null
+}
+
 internal expect fun pool(config: Config): ObjectPool<LogRecord>
 
 internal class LogRecordPool(private val config: Config) : DefaultPool<LogRecord>(100) {
@@ -87,4 +103,6 @@ internal class LogRecordPool(private val config: Config) : DefaultPool<LogRecord
         return instance
     }
 }
+
+internal expect fun LoggingConfigBuilder.defaultPlatformConfig()
 

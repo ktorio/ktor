@@ -23,4 +23,21 @@ fun LoggingConfigBuilder.threadName() {
     }
 }
 
+internal fun LoggingConfigBuilder.ensureThreadName() {
+    // TODO
+    val threadNameKey = ThreadNameKey()
+
+    registerKey(threadNameKey)
+
+    enrich {
+        this[threadNameKey] = Thread.currentThread().name
+    }
+}
+
+/**
+ * Returns record's thread name or `null` of [threadName] wasn't installed.
+ */
+val LogRecord.threadName: String?
+    get() = config.findKey<ThreadNameKey>()?.let { get(it) }
+
 private class ThreadNameKey : LogAttributeKey<String>("thread-name", "")
