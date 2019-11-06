@@ -51,14 +51,12 @@ fun mergeHeaders(
  * Returns current call context if exists, otherwise null.
  */
 @InternalAPI
-suspend fun callContext(): CoroutineContext? = coroutineContext[KtorCallContextElement]?.let {
-    coroutineContext + it.callJob
-}
+suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
 
 /**
  * Coroutine context element containing call job.
  */
-internal class KtorCallContextElement(val callJob: CompletableJob) : CoroutineContext.Element {
+internal class KtorCallContextElement(val callContext: CoroutineContext) : CoroutineContext.Element {
     override val key: CoroutineContext.Key<*>
         get() = KtorCallContextElement
 

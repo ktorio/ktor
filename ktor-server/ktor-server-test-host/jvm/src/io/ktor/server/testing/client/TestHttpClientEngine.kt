@@ -32,7 +32,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
             testServerCall.headers.allValues(),
             HttpProtocolVersion.HTTP_1_1,
             ByteReadChannel(testServerCall.byteContent ?: byteArrayOf()),
-            callContext()!!
+            callContext()
         )
     }
 

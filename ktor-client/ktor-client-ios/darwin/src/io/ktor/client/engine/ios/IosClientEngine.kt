@@ -25,7 +25,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
     override val dispatcher = Dispatchers.Unconfined
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
 
         return suspendCancellableCoroutine { continuation ->
             val requestTime = GMTDate()

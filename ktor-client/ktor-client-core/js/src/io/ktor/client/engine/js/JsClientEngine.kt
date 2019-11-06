@@ -28,7 +28,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
 
         if (data.isUpgradeRequest()) {
             return executeWebSocketRequest(data, callContext)
