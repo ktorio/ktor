@@ -13,7 +13,12 @@ import org.eclipse.jetty.util.thread.*
 
 internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpClientEngineBase("ktor-jetty") {
 
-    override val dispatcher: CoroutineDispatcher by lazy { Dispatchers.fixedThreadPoolDispatcher(config.threadsCount) }
+    override val dispatcher: CoroutineDispatcher by lazy {
+        Dispatchers.fixedThreadPoolDispatcher(
+            config.threadsCount,
+            "ktor-jetty-thread-%d"
+        )
+    }
 
     private val jettyClient = HTTP2Client().apply {
         addBean(config.sslContextFactory)
@@ -27,7 +32,7 @@ internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpCl
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
 
         return data.executeRequest(jettyClient, config, callContext)
     }
