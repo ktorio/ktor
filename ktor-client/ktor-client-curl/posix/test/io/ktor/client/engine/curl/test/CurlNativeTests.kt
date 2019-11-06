@@ -25,4 +25,13 @@ class CurlNativeTests {
             }
         }.consume { assert(it.isNotEmpty()) }
     }
+
+    @Test
+    fun testDownload() {
+        runBlocking {
+            val client = HttpClient()
+            val res = client.get<String>("http://google.com")
+            assert(res.isNotEmpty())
+        }
+    }
 }
