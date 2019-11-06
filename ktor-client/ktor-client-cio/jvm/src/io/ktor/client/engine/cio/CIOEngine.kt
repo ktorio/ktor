@@ -17,7 +17,7 @@ import java.util.concurrent.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngineBase("ktor-cio") {
 
-    override val dispatcher by lazy { Dispatchers.fixedThreadPoolDispatcher(config.threadsCount) }
+    override val dispatcher by lazy { Dispatchers.fixedThreadPoolDispatcher(config.threadsCount, "ktor-cio-thread-%d") }
 
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
@@ -34,7 +34,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
 
         while (true) {
             val endpoint = selectEndpoint(data.url, proxy)

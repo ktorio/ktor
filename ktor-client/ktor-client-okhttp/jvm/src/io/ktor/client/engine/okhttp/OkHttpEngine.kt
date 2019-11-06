@@ -23,7 +23,14 @@ import kotlin.coroutines.*
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
-    override val dispatcher = Dispatchers.fixedThreadPoolDispatcher(config.threadsCount)
+
+    override val dispatcher by lazy {
+        Dispatchers.fixedThreadPoolDispatcher(
+            config.threadsCount,
+            "ktor-okhttp-thread-%d"
+        )
+    }
+
     private val engine: OkHttpClient = config.preconfigured ?: run {
         val builder = OkHttpClient.Builder()
         builder.apply(config.config)
@@ -33,7 +40,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
         val engineRequest = data.convertToOkHttpRequest(callContext)
 
         return if (data.isUpgradeRequest()) {

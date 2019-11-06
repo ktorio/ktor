@@ -18,12 +18,17 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 
 internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientEngineBase("ktor-apache") {
 
-    override val dispatcher by lazy { Dispatchers.fixedThreadPoolDispatcher(config.threadsCount) }
+    override val dispatcher by lazy {
+        Dispatchers.fixedThreadPoolDispatcher(
+            config.threadsCount,
+            "ktor-apache-thread-%d"
+        )
+    }
 
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val callContext = callContext()!!
+        val callContext = callContext()
 
         val apacheRequest = ApacheRequestProducer(data, config, callContext)
         return engine.sendRequest(apacheRequest, callContext)
