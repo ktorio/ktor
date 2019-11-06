@@ -21,22 +21,7 @@ abstract class HttpClientEngineBase(private val engineName: String) : HttpClient
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
 
-    /**
-     * Flag that identifies that client is closed. For internal usage.
-     */
-    private val _closed = AtomicBoolean(false)
-
-    /**
-     * Flag that identifies that client is closed.
-     */
-    internal val closed: Boolean
-        get() = _closed.value
-
     override fun close() {
-        if (!_closed.compareAndSet(false, true)) {
-            throw ClientEngineClosedException()
-        }
-
         (coroutineContext[Job] as CompletableJob).apply {
             complete()
             invokeOnCompletion {
