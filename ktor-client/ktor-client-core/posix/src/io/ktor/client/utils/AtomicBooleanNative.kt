@@ -14,6 +14,10 @@ internal actual class AtomicBoolean actual constructor(value: Boolean) {
     actual val value: Boolean
         get() = _value.value
 
+    init {
+        freeze()
+    }
+
     actual fun compareAndSet(expect: Boolean, update: Boolean): Boolean {
         return _value.compareAndSet(expect, update)
     }
