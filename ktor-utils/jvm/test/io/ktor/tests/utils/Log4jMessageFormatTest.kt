@@ -100,6 +100,27 @@ class Log4jMessageFormatTest {
     }
 
     @Test
+    fun testLogLevelConfigured() {
+        loggerForPattern("%level{length=1}").apply {
+            info("")
+            warning("")
+        }
+        loggerForPattern("%level{length=1,lowerCase=true}").apply {
+            info("")
+            warning("")
+        }
+        loggerForPattern("%level{INFO=z}").apply {
+            info("")
+            warning("")
+        }
+        loggerForPattern("%p{}").apply {
+            info("")
+        }
+
+        assertEquals(listOf("I", "W", "i", "w", "z", "WARNING", "INFO"), results)
+    }
+
+    @Test
     fun testLoggerName() {
         val logger = loggerForPattern("%logger")
         logger.info("")

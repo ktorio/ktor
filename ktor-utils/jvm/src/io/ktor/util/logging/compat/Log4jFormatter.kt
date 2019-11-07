@@ -134,9 +134,8 @@ private fun parsePattern(
             return patternEnd
         }
         "p", "level" -> {
-            // TODO level parameters
-            chain.add(Chain.Level)
-            return patternEnd
+            chain.add(Chain.Level())
+            return parseLogLevelSettings(pattern, patternEnd, chain)
         }
         "m", "msg", "message" -> {
             // TODO parameters
@@ -226,6 +225,53 @@ private fun createPrecisionChain(pattern: String, chain: Chain): Chain {
         length == 0 -> chain
         else -> error("Unsupported precision $length")
     }
+}
+
+private fun parseLogLevelSettings(pattern: String, start: Int, chain: MutableList<Chain>): Int {
+    if (start < pattern.length && pattern[start] == '{') {
+        val end = pattern.indexOf('}', start)
+        if (end == -1) {
+            error("Unclosed log level settings block: ${pattern.substring(start)}")
+        }
+
+        var lowerCase = false
+        var maxLength = Int.MAX_VALUE
+        val levelMapping: Array<String?> = arrayOfNulls(Level.values().size)
+        var count = 0
+
+        pattern.substring(start + 1, end).split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .forEach { e ->
+                val pair = e.split('=', limit = 2)
+                check(pair.size > 1) { "No pair value provided for $e" }
+
+                val name = pair[0]
+                val value = pair[1]
+
+                when (name) {
+                    "WARN" -> levelMapping[Level.WARNING.ordinal] = value
+                    "DEBUG" -> levelMapping[Level.DEBUG.ordinal] = value
+                    "ERROR" -> levelMapping[Level.ERROR.ordinal] = value
+                    "TRACE" -> levelMapping[Level.TRACE.ordinal] = value
+                    "INFO" -> levelMapping[Level.INFO.ordinal] = value
+                    "length" -> maxLength = value.trim().toInt()
+                    "lowerCase" -> lowerCase = value == "true"
+                    else -> error("Unsupported log level option $name")
+                }
+
+                count++
+            }
+
+        if (count > 0) {
+            chain.last() as Chain.Level
+            chain[chain.lastIndex] = Chain.Level(lowerCase, maxLength, levelMapping)
+        }
+
+        return end + 1
+    }
+
+    return start
 }
 
 private fun parseToken(pattern: String, tokens: List<String>, start: Int): Int {
@@ -430,9 +476,18 @@ private sealed class Chain {
         }
     }
 
-    object Level : Chain() {
+    class Level(
+        private val lowerCase: Boolean = false,
+        private val maxLenth: Int = Int.MAX_VALUE,
+        private val mapping: Array<String?> = arrayOfNulls(io.ktor.util.logging.Level.values().size)
+    ) : Chain() {
         override fun append(destination: Appendable, record: LogRecord) {
-            destination.append(record.level.name)
+            val level = record.level
+            val text = mapping[level.ordinal] ?: record.level.name
+            val limited = text.take(maxLenth)
+            val result = if (lowerCase) limited.toLowerCase() else limited
+
+            destination.append(result)
         }
     }
 
