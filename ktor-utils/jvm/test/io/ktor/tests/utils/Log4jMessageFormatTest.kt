@@ -190,6 +190,60 @@ class Log4jMessageFormatTest {
         assertEquals(listOf("INFO\nmsg1", "WARNING\nmsg2"), results)
     }
 
+    @Test
+    fun testClassNameFull() {
+        loggerForPattern("%C").info("")
+
+        assertEquals(listOf(Log4jMessageFormatTest::class.java.name), results)
+    }
+
+    @Test
+    fun testClassNamePrecision() {
+        loggerForPattern("%C{1}").info("")
+
+        assertEquals(listOf(Log4jMessageFormatTest::class.java.simpleName), results)
+    }
+
+    @Test
+    fun testFileName() {
+        loggerForPattern("%F").info("")
+
+        assertEquals(listOf(Log4jMessageFormatTest::class.java.simpleName + ".kt"), results)
+    }
+
+    @Test
+    fun testLineNumber() {
+        loggerForPattern("%L").info("")
+
+        assertTrue { results.single().toInt() in 100 .. 1000 }
+    }
+
+    @Test
+    fun testLocations() {
+        loggerForPattern("%l").info("")
+
+        val text = results.single()
+
+        assertTrue { Log4jMessageFormatTest::class.java.simpleName in text }
+        assertTrue { "testLocations" in text }
+    }
+
+    @Test
+    fun testMethod() {
+        loggerForPattern("%M").info("")
+
+        assertEquals(listOf("testMethod"), results)
+    }
+
+    @Test
+    fun testNanoseconds() {
+        loggerForPattern("%N").info("")
+        val nanoseconds = date.timestamp * 1000_000
+
+        val actualNanosLogged = results.single().toLong()
+        assertTrue { actualNanosLogged  == nanoseconds }
+    }
+
     private fun loggerForPattern(pattern: String): Logger {
         val builder = LoggingConfigBuilder()
         val formatter = parseLog4jFormat(

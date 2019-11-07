@@ -5,11 +5,13 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.logging.*
+import io.ktor.util.logging.labels.*
 import kotlinx.coroutines.*
 import java.lang.StringBuilder
 import java.util.concurrent.*
 import kotlin.test.*
 
+@Suppress("RemoveExplicitTypeArguments")
 class LoggingTestJvm {
     @Test
     fun testAsyncAppender(): Unit = runBlocking<Unit> {
@@ -41,7 +43,7 @@ class LoggingTestJvm {
         var counter = 0
         val out = StringBuilder()
         val textAppender = TextAppender {
-            counter ++
+            counter++
             out.appendln(it)
         }
         val asyncAppender = AsyncAppender(textAppender, parent = job)
@@ -73,5 +75,24 @@ class LoggingTestJvm {
         }
 
         logger.info("to")
+    }
+
+    @Test
+    fun testLocations(): Unit = runBlocking<Unit> {
+        val log = StringBuffer()
+        val appender = TextAppender {
+            log.appendln(it)
+        }
+        val logger = logger {
+            addAppender(appender)
+            locations()
+        }
+
+        logger.info("msg")
+
+        assertEquals(
+            "[io.ktor.tests.utils.LoggingTestJvm\$testLocations\$1.invokeSuspend (LoggingTestJvm.kt:90)] msg\n",
+            log.toString()
+        )
     }
 }

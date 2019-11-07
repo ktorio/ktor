@@ -133,7 +133,7 @@ private fun parsePattern(
             chain.add(Chain.LoggerName)
             return patternEnd
         }
-        "level" -> {
+        "p", "level" -> {
             // TODO level parameters
             chain.add(Chain.Level)
             return patternEnd
@@ -150,6 +150,36 @@ private fun parsePattern(
         "ex", "exception", "throwable" -> {
             // TODO exception options
             chain.add(Chain.Exception)
+            return patternEnd
+        }
+        "C", "class" -> {
+            config.ensureLocations()
+            chain.add(Chain.ClassName)
+            return checkParseMaxLengthSuffix(pattern, patternEnd, chain)
+        }
+        "F", "file" -> {
+            config.ensureLocations()
+            chain.add(Chain.File)
+            return patternEnd
+        }
+        "L", "line" -> {
+            config.ensureLocations()
+            chain.add(Chain.Line)
+            return patternEnd
+        }
+        "l", "location" -> {
+            config.ensureLocations()
+            chain.add(Chain.Location)
+            return patternEnd
+        }
+        "M", "method" -> {
+            config.ensureLocations()
+            chain.add(Chain.Method)
+            return patternEnd
+        }
+        "N", "nano" -> {
+            config.ensureLogTime(clock)
+            chain.add(Chain.Nanoseconds)
             return patternEnd
         }
         else -> error("Pattern $patternPart is not supported.")
@@ -421,6 +451,55 @@ private sealed class Chain {
     object Exception : Chain() {
         override fun append(destination: Appendable, record: LogRecord) {
             destination.append(record.exception?.toString() ?: "")
+        }
+    }
+
+    object ClassName : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            defaultLocationPredicate(record.locations)?.let { location ->
+                destination.append(location.location.substringBeforeLast('.'))
+            }
+        }
+    }
+
+    object File : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            defaultLocationPredicate(record.locations)?.file?.let {
+                destination.append(it)
+            }
+        }
+    }
+
+    object Line : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            defaultLocationPredicate(record.locations)?.line?.let {
+                destination.append(it.toString())
+            }
+        }
+    }
+
+    object Location : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            defaultLocationPredicate(record.locations)?.location?.let {
+                destination.append(it)
+            }
+        }
+    }
+
+    object Method : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            defaultLocationPredicate(record.locations)?.location?.let {
+                destination.append(it.substringAfterLast('.'))
+            }
+        }
+    }
+
+    object Nanoseconds : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            record.logTime?.timestamp?.let { milliseconds ->
+                val nanoseconds = milliseconds * 1000_000
+                destination.append(nanoseconds.toString())
+            }
         }
     }
 }
