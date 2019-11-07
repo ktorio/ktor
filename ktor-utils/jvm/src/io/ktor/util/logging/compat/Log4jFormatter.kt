@@ -64,6 +64,17 @@ private fun parse(pattern: String, config: LoggingConfigBuilder, clock: () -> GM
     return chain.dropLastWhile { it is Chain.LineFeed }
 }
 
+private val PATTERN_TOKENS = listOf(
+    "d", "date", "c", "C", "logger", "enc",
+    "encode", "equals", "equalsIgnoreCase",
+    "ex", "exception", "throwable", "F", "file", "highlight", "K", "map", "MAP",
+    "l", "location", "L", "line", "m", "msg", "message", "level", "p",
+    "M", "method", "marker", "markerSimpleName", "maxLen", "maxLength",
+    "n", "N", "nano", "pid", "processId",
+    "r", "relative", "sn", "sequenceNumber", "T", "tid", "thread", "t", "tn", "threadName", "thread",
+    "tp", "threadPriority", "fqcn", "X", "MDC", "mdc", "u", "uuid", "%", "-"
+).sortedByDescending { it.length }
+
 private fun parsePattern(
     pattern: String,
     patternStart: Int,
@@ -76,17 +87,20 @@ private fun parsePattern(
     require(patternStart + 1 < pattern.length)
     require(start > patternStart)
 
-    when (val startChar = pattern[start]) {
-        'd' -> {
+    val patternEnd = parseToken(pattern, PATTERN_TOKENS, start)
+    val patternPart = pattern.substring(start, patternEnd)
+
+    when (patternPart) {
+        "d", "date" -> {
             config.ensureLogTime(clock)
-            return parseDateFormat(pattern, start + 1, chain)
+            return parseDateFormat(pattern, patternEnd, chain)
         }
-        't' -> {
+        "t", "tn", "thread", "threadName" -> {
             config.ensureThreadName()
             chain.add(Chain.ThreadName)
-            return start + 1
+            return patternEnd
         }
-        '-' -> {
+        "-" -> {
             var end = pattern.length
             for (index in start + 1..pattern.lastIndex) {
                 if (!pattern[index].isDigit()) {
@@ -107,31 +121,38 @@ private fun parsePattern(
 
             return subEnd
         }
-        'l' -> {
-            if (pattern.startsWith("logger", start)) {
-                chain.add(Chain.LoggerName)
-                return checkParseMaxLengthSuffix(pattern, start + 6, chain)
-            } else if (pattern.startsWith("level", start)) {
-                chain.add(Chain.Level)
-                return start + 5
-            }
-
-            error("Pattern $startChar is not supported: ${pattern.substring(patternStart)}")
+        "%" -> {
+            chain.add(Chain.Constant("%"))
+            return patternEnd
         }
-        'm' -> {
-            if (pattern.startsWith("msg", start)) {
-                chain.add(Chain.Message)
-                return start + 3
-            }
-            error("Pattern $startChar is not supported: ${pattern.substring(patternStart)}")
+        "c", "logger" -> {
+            chain.add(Chain.LoggerName)
+            return checkParseMaxLengthSuffix(pattern, patternEnd, chain)
         }
-        'n' -> {
+        "fqcn" -> {
+            chain.add(Chain.LoggerName)
+            return patternEnd
+        }
+        "level" -> {
+            // TODO level parameters
+            chain.add(Chain.Level)
+            return patternEnd
+        }
+        "m", "msg", "message" -> {
+            // TODO parameters
+            chain.add(Chain.Message)
+            return patternEnd
+        }
+        "n" -> {
             chain.add(Chain.LineFeed)
             return start + 1
         }
-        else -> {
-            error("Pattern $startChar is not supported: ${pattern.substring(patternStart)}")
+        "ex", "exception", "throwable" -> {
+            // TODO exception options
+            chain.add(Chain.Exception)
+            return patternEnd
         }
+        else -> error("Pattern $patternPart is not supported.")
     }
 }
 
@@ -157,15 +178,17 @@ private fun createPrecisionChain(pattern: String, chain: Chain): Chain {
             if (parts.size == 2 && parts[1] == "" && parts[0].toIntOrNull() != null) {
                 Chain.PrecisionTruncatedDelegate.PackageComponentsShortened(parts[0].toInt(), chain)
             } else {
-                val pattern = parts.map {
+                val patternNode = parts.map {
                     val size = it.toIntOrNull()
                     when {
-                        size != null -> Chain.PrecisionTruncatedDelegate.ComplexPattern.PrecisionPatternNode.Truncated(size)
+                        size != null -> Chain.PrecisionTruncatedDelegate.ComplexPattern.PrecisionPatternNode.Truncated(
+                            size
+                        )
                         else -> Chain.PrecisionTruncatedDelegate.ComplexPattern.PrecisionPatternNode.Replacement(it)
                     }
                 }
 
-                Chain.PrecisionTruncatedDelegate.ComplexPattern(pattern, chain)
+                Chain.PrecisionTruncatedDelegate.ComplexPattern(patternNode, chain)
             }
         }
         length > 0 -> Chain.PrecisionTruncatedDelegate.Simple(length, chain)
@@ -173,6 +196,25 @@ private fun createPrecisionChain(pattern: String, chain: Chain): Chain {
         length == 0 -> chain
         else -> error("Unsupported precision $length")
     }
+}
+
+private fun parseToken(pattern: String, tokens: List<String>, start: Int): Int {
+    if (start < pattern.length) {
+        tokens.forEach {
+            if (pattern.startsWith(it, start)) {
+                return start + it.length
+            }
+        }
+    }
+
+    error("Unsupported token ${guessToken(pattern, start)}")
+}
+
+/**
+ * NOTE: This is for debug and logging only!
+ */
+private fun guessToken(pattern: String, start: Int): String {
+    return pattern.substring(start).substringBefore('{').substringBefore(' ')
 }
 
 private fun parseDateFormat(pattern: String, start: Int, chain: MutableList<Chain>): Int {
@@ -343,13 +385,6 @@ private sealed class Chain {
             destination.append(text)
         }
 
-        class Begin(minSize: Int, maxSize: Int, delegate: Chain) :
-            TruncatedDelegate(minSize, maxSize, delegate) {
-            override fun truncate(builder: StringBuilder, size: Int) {
-                builder.delete(0, size)
-            }
-        }
-
         class End(minSize: Int, maxSize: Int, delegate: Chain) :
             TruncatedDelegate(minSize, maxSize, delegate) {
 
@@ -380,6 +415,12 @@ private sealed class Chain {
     object LineFeed : Chain() {
         override fun append(destination: Appendable, record: LogRecord) {
             destination.append("\n")
+        }
+    }
+
+    object Exception : Chain() {
+        override fun append(destination: Appendable, record: LogRecord) {
+            destination.append(record.exception?.toString() ?: "")
         }
     }
 }

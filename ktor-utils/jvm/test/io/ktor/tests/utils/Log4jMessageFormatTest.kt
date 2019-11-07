@@ -47,14 +47,34 @@ class Log4jMessageFormatTest {
     }
 
     @Test
-    fun testThreadName() {
-        val expectedThreadName = Thread.currentThread().name
-
-        val logger = loggerForPattern("%t")
+    fun testDateDefaultLong() {
+        val logger = loggerForPattern("%date")
         logger.info("")
 
         assertEquals(1, results.size)
-        assertEquals(expectedThreadName, results[0])
+        assertEquals("2019-11-01 11:22:33,000", results[0])
+    }
+
+    @Test
+    fun testDateWithFormatLong() {
+        val logger = loggerForPattern("%date{HH}")
+        logger.info("")
+
+        assertEquals(1, results.size)
+        assertEquals("11", results[0])
+    }
+
+    @Test
+    fun testThreadName() {
+        val expectedThreadName = Thread.currentThread().name
+
+        loggerForPattern("%t").info("")
+        loggerForPattern("%tn").info("")
+        loggerForPattern("%thread").info("")
+        loggerForPattern("%threadName").info("")
+
+        assertEquals(
+        listOf(expectedThreadName, expectedThreadName, expectedThreadName, expectedThreadName), results)
     }
 
     @Test
@@ -87,6 +107,17 @@ class Log4jMessageFormatTest {
         logger.addName("logger").addName("name").info("")
 
         assertEquals(listOf("logger", "logger.name"), results)
+    }
+
+    @Test
+    fun testLoggerNameShort() {
+        val logger = loggerForPattern("%c")
+        logger.info("")
+        logger.addName("logger").info("")
+        logger.addName("logger").addName("name").info("")
+        logger.addName("logger").addName("name").addName("extra").info("")
+
+        assertEquals(listOf("logger", "logger.name", "logger.name.extra"), results)
     }
 
     @Test
