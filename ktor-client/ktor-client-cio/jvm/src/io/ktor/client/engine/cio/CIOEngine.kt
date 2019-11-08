@@ -36,22 +36,28 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        while (true) {
+        while (coroutineContext.isActive) {
             val endpoint = selectEndpoint(data.url, proxy)
 
             try {
                 return endpoint.execute(data, callContext)
             } catch (cause: ClosedSendChannelException) {
                 continue
+            } finally {
+                if (!coroutineContext.isActive) {
+                    endpoint.close()
+                }
             }
         }
+
+        throw ClientEngineClosedException()
     }
 
     override fun close() {
         super.close()
+        endpoints.forEach { (_, endpoint) -> endpoint.close() }
 
         coroutineContext[Job]!!.invokeOnCompletion {
-            endpoints.forEach { (_, endpoint) -> endpoint.close() }
             selectorManager.close()
         }
     }
