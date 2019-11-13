@@ -14,6 +14,7 @@ import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class HttpRedirectTest : ClientLoader() {
+    @Suppress("PrivatePropertyName")
     private val TEST_URL_BASE = "$TEST_SERVER/redirect"
 
     @Test
@@ -31,6 +32,33 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
+    fun rewrittenRedirectTest(): Unit = clientTests {
+        config {
+            install(HttpRedirect) {
+                rewritePostAsGet = true
+            }
+        }
+
+        test { client ->
+            client.post<HttpResponse>("$TEST_URL_BASE/post-expecting-get-301").use {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("OK", it.readText())
+                assertEquals(HttpMethod.Get, it.call.request.method)
+            }
+            client.post<HttpResponse>("$TEST_URL_BASE/post-expecting-get-302").use {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("OK", it.readText())
+                assertEquals(HttpMethod.Get, it.call.request.method)
+            }
+            client.post<HttpResponse>("$TEST_URL_BASE/post-expecting-post").use {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("OK", it.readText())
+                assertEquals(HttpMethod.Post, it.call.request.method)
+            }
+        }
+    }
+
+    @Test
     fun infinityRedirectTest() = clientTests {
         config {
             install(HttpRedirect)
@@ -39,6 +67,26 @@ class HttpRedirectTest : ClientLoader() {
         test { client ->
             assertFails {
                 client.get<HttpResponse>("$TEST_URL_BASE/infinity")
+            }
+        }
+    }
+
+    @Test
+    fun limitedCountRedirectTest() = clientTests {
+        config {
+            install(HttpRedirect) {
+                maximumRedirects = 9
+            }
+        }
+
+        test { client ->
+            assertFails {
+                client.get<HttpResponse>("$TEST_URL_BASE/count/10")
+            }
+
+            client.get<HttpResponse>("$TEST_URL_BASE/count/9").use {
+                assertEquals(HttpStatusCode.OK, it.status)
+                assertEquals("OK", it.readText())
             }
         }
     }
