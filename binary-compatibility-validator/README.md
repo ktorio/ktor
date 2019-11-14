@@ -6,5 +6,5 @@ This tool is slightly adapted copy of [original Kotlin compatibility validator](
 To update public API dumps use:
 
 ```bash
-./gradlew :binary-compatibility-validator:test -Poverwrite.output=true 
+./gradlew :binary-compatibility-validator:check -Poverwrite.output=true 
 ```
