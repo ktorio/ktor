@@ -81,7 +81,7 @@ class GMTDateParser(private val pattern: String) {
             dayOfMonth = chunk.toInt()
         }
         MONTH -> {
-            month = Month.from(chunk)
+            month = Month.fromShortName(chunk)
         }
         YEAR -> {
             year = chunk.toInt()

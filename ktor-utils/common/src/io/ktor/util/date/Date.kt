@@ -13,10 +13,11 @@ import io.ktor.util.*
 
 /**
  * Day of week
- * [value] is 3 letter shortcut
+ * @property shortName is 3 letter shortcut
+ * @property fullName is a full capitalized name
  */
 @Suppress("KDocMissingDocumentation")
-enum class WeekDay(val value: String) {
+enum class WeekDay(val shortName: String) {
     MONDAY("Mon"),
     TUESDAY("Tue"),
     WEDNESDAY("Wed"),
@@ -25,26 +26,46 @@ enum class WeekDay(val value: String) {
     SATURDAY("Sat"),
     SUNDAY("Sun");
 
+    @Deprecated("Use shortName instead.", ReplaceWith("shortName"))
+    val value: String
+        get() = shortName
+
+    val fullName: String = name.toLowerCase().capitalize()
+
     companion object {
         /**
          * Lookup an instance by [ordinal]
          */
-        fun from(ordinal: Int): WeekDay = WeekDay.values()[ordinal]
+        fun from(ordinal: Int): WeekDay = values()[ordinal]
 
         /**
-         * Lookup an instance by short week day name [WeekDay.value]
+         * Lookup an instance by short week day name [WeekDay.shortName]
          */
-        fun from(value: String): WeekDay = WeekDay.values().find { it.value == value }
-            ?: error("Invalid day of week: $value")
+        @Deprecated(
+            "Use fromShortName instead.",
+            ReplaceWith("WeekDay.fromShortName(value)", "io.ktor.util.date.WeekDay")
+        )
+        fun from(value: String): WeekDay = fromShortName(value)
+
+        /**
+         * Lookup an instance by short week day name [WeekDay.shortName]
+         */
+        fun fromShortName(shortName: String): WeekDay = values().find { it.shortName == shortName }
+            ?: error("Invalid day of week: $shortName")
+
+        internal val MinNameLength: Int = values().minBy { it.name.length }!!.name.length
+
+        internal val MaxNameLength: Int = values().maxBy { it.name.length }!!.name.length
     }
 }
 
 /**
  * Month
- * [value] is 3 letter shortcut
+ * @property shortName is 3 letter shortcut
+ * @property fullName is a full capitalized name
  */
 @Suppress("KDocMissingDocumentation")
-enum class Month(val value: String) {
+enum class Month(val shortName: String) {
     JANUARY("Jan"),
     FEBRUARY("Feb"),
     MARCH("Mar"),
@@ -58,16 +79,35 @@ enum class Month(val value: String) {
     NOVEMBER("Nov"),
     DECEMBER("Dec");
 
+    @Deprecated("Use shortName instead.", ReplaceWith("shortName"))
+    val value: String
+        get() = shortName
+
+    val fullName: String = name.toLowerCase().capitalize()
+
     companion object {
         /**
          * Lookup an instance by [ordinal]
          */
         fun from(ordinal: Int): Month = values()[ordinal]
+
         /**
-         * Lookup an instance by short month name [Month.value]
+         * Lookup an instance by short month name [Month.shortName]
          */
-        fun from(value: String): Month = values().find { it.value == value }
-            ?: error("Invalid month: $value")
+        @Deprecated(
+            "Use fromShortName instead.",
+            ReplaceWith("Month.fromShortName(value)", "io.ktor.util.date.Month")
+        )
+        fun from(value: String): Month = fromShortName(value)
+
+        /**
+         * Lookup an instance by short month name [Month.shortName]
+         */
+        fun fromShortName(value: String): Month = values().find { it.shortName == value }
+            ?: error("Invalid month short name: $value")
+
+        internal val MinNameLength: Int = values().minBy { it.name.length }!!.name.length
+        internal val MaxNameLength: Int = values().maxBy { it.name.length }!!.name.length
     }
 }
 

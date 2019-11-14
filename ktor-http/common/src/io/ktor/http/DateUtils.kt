@@ -60,9 +60,9 @@ fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
  * Convert [GMTDate] to valid http date [String]
  */
 fun GMTDate.toHttpDate(): String = buildString {
-    append("${dayOfWeek.value}, ")
+    append("${dayOfWeek.shortName}, ")
     append("${dayOfMonth.padZero(2)} ")
-    append("${month.value} ")
+    append("${month.shortName} ")
     append(year.padZero(4))
     append(" ${hours.padZero(2)}:${minutes.padZero(2)}:${seconds.padZero(2)} ")
     append("GMT")
