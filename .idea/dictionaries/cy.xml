@@ -5,6 +5,7 @@
       <w>agentlib</w>
       <w>algo</w>
       <w>api</w>
+      <w>appenders</w>
       <w>attrs</w>
       <w>audiograph</w>
       <w>autoreload</w>
