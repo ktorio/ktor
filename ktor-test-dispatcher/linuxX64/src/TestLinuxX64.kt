@@ -1,4 +1,4 @@
-package io.ktor.client.tests.utils.dispatcher
+package io.ktor.test.dispatcher
 
 import kotlinx.coroutines.*
 import kotlin.coroutines.*

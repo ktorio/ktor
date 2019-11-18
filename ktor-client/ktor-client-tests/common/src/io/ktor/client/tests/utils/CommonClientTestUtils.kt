@@ -6,7 +6,7 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.tests.utils.dispatcher.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*

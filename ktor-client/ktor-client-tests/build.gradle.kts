@@ -41,7 +41,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-client:ktor-client-mock"))
-            api(project(":ktor-client:ktor-client-tests:ktor-client-tests-dispatcher"))
+            api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
     }
