@@ -675,7 +675,9 @@ abstract class ByteChannelSequentialBase(
 
     protected suspend fun awaitFreeSpace() {
         afterWrite()
-        return notFull.await { flush() }
+        notFull.await {
+            flush()
+        }
     }
 
     final override suspend fun peekTo(
