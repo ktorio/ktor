@@ -28,7 +28,7 @@ actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
 
         GMTDate(
             tm_sec, tm_min, tm_hour,
-            WeekDay.fromShortName(weekDay), tm_mday, tm_yday,
+            WeekDay.from(weekDay), tm_mday, tm_yday,
             Month.from(tm_mon), year, current
         )
     }
