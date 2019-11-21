@@ -52,11 +52,11 @@ private class CurrentDateKey : LogAttributeKey<GMTDate>("time", GMTDate())
  * Default logging date format
  */
 fun Appendable.appendLogEventTime(date: GMTDate) {
-    append(date.dayOfWeek.value)
+    append(date.dayOfWeek.shortName)
     append(", ")
     append2(date.dayOfMonth)
     append(' ')
-    append(date.month.value)
+    append(date.month.shortName)
     append(' ')
     append4(date.year)
     append(' ')
