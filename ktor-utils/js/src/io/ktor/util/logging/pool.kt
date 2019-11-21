@@ -9,3 +9,6 @@ import io.ktor.utils.io.pool.*
 internal actual fun pool(config: Config): ObjectPool<LogRecord> {
     return LogRecordPool(config)
 }
+
+internal actual fun LoggingConfigBuilder.defaultPlatformConfig() {
+}

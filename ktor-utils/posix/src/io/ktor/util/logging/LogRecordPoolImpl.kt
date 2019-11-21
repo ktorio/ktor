@@ -13,3 +13,6 @@ private class NoPoolRecordPool(private val config: Config) : NoPoolImpl<LogRecor
         return LogRecord(config)
     }
 }
+
+internal actual fun LoggingConfigBuilder.defaultPlatformConfig() {
+}
