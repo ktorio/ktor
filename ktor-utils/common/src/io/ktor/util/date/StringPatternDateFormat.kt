@@ -185,8 +185,8 @@ fun GMTDate.format(format: StringPatternDateFormat): String = buildString(format
                     else -> error("Unsupported month length ${component.length}")
                 }
             )
-            is StringPatternDateFormat.Component.Year -> when {
-                component.length == 2 -> append((year % 100).toString().padStart(2, '0'))
+            is StringPatternDateFormat.Component.Year -> when (component.length) {
+                2 -> append((year % 100).toString().padStart(2, '0'))
                 else -> append(year.toString().padStart(component.length, '0'))
             }
             is StringPatternDateFormat.Component.Constant -> append(component.text)
