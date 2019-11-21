@@ -6,8 +6,8 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.io.*
 import kotlinx.coroutines.intrinsics.*
 import kotlin.coroutines.*
 import kotlin.test.*
