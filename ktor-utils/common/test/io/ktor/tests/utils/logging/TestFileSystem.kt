@@ -15,7 +15,7 @@ internal class TestFileSystem : FileSystem() {
 
     val allFiles: Set<Entry> get() = _allFiles
 
-    fun addFile(filePath: String) {
+    fun addFile(filePath: String, content: ByteArray = byteArrayOf()) {
         var path = ""
         filePath.split("/").dropLast(1).forEach {
             path += it
@@ -23,7 +23,7 @@ internal class TestFileSystem : FileSystem() {
             path += "/"
         }
 
-        addEntry(Entry.File(filePath))
+        addEntry(Entry.File(filePath, content))
     }
 
     override fun openImpl(filePath: String): Output {
@@ -93,8 +93,7 @@ internal class TestFileSystem : FileSystem() {
     sealed class Entry(val path: String) {
         class Directory(path: String) : Entry(path)
 
-        class File(path: String) : Entry(path) {
-            var content: ByteArray = byteArrayOf()
+        class File(path: String, var content: ByteArray = byteArrayOf()) : Entry(path) {
             var closed = true
             var lastModified = GMTDate()
             val size: Long get() = content.size.toLong()

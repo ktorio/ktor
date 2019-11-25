@@ -24,7 +24,7 @@ class CachedFilesViewTest {
         underlyingFileSystem.addFile("dir/log-file-3")
 
         fs.close()
-        assertEquals(listOf("log-file-1", "log-file-3"), view.list().sorted())
+        assertEquals(listOf("log-file-1", "log-file-3"), view.listPaths().sorted())
     }
 
     @Test
@@ -38,15 +38,16 @@ class CachedFilesViewTest {
         underlyingFileSystem.addFile("dir-9/log-file-9")
 
         fs.close()
-        assertEquals(listOf("dir-4/log-file-4", "dir-9/log-file-9"), view.list().sorted())
+        assertEquals(listOf("dir-4/log-file-4", "dir-9/log-file-9"), view.listPaths().sorted())
 
         underlyingFileSystem.delete("dir-4/log-file-4")
-        assertEquals(listOf("dir-9/log-file-9"), view.list().sorted())
+        assertEquals(listOf("dir-9/log-file-9"), view.listPaths().sorted())
     }
 
-    private fun viewFor(pattern: String): CachedFilesView = CachedFilesView(fs, FilePathPattern(pattern)).apply {
-        fs.addListener(this)
-    }
+    private fun viewFor(pattern: String): CachedFilesView =
+        CachedFilesView(fs, FilePathPattern(pattern), listener = null).apply {
+            fs.addListener(this)
+        }
 
     private class CloseableFileSystem(val delegate: FileSystem) : FileSystem(), FileSystemListener {
         private var closed = false
