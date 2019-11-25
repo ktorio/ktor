@@ -9,6 +9,7 @@ import io.ktor.util.logging.*
 import io.ktor.util.logging.labels.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
 import kotlin.time.*
 
@@ -19,7 +20,8 @@ internal abstract class AbstractRollingFileAppender constructor(
     private val logFileName: String,
     private val rolledFilePathPattern: FilePathPattern,
     private val recordEncoder: RecordEncoder = RecordEncoder.Default,
-    private val policy: RollingPolicy = RollingPolicy()
+    private val policy: RollingPolicy = RollingPolicy(),
+    private val clock: Clock = MonoClock
 ) : Appender, CoroutineScope {
     private var current: LogFile? = null
     private var deferredFiles = HashMap<String, LogFile>()
@@ -30,6 +32,27 @@ internal abstract class AbstractRollingFileAppender constructor(
     final override val coroutineContext: CoroutineContext
         get() = backgroundTasksScope
 
+    private val checkSignal = Channel<Unit>(Channel.CONFLATED)
+
+    init {
+        launch {
+            while (isActive) {
+                val delayMark = clock.markNow() + 10.seconds
+                checkSignal.receive()
+
+                if (delayMark.hasNotPassedNow()) {
+                    val delayInMillis = delayMark.elapsedNow().toLongMilliseconds()
+                    if (delayInMillis < 0L) {
+                        delay(-delayInMillis) // it is negative since end mark is in the future
+                        checkSignal.poll() // clear signal flag
+                    }
+                }
+
+                checkFile()
+            }
+        }
+    }
+
     final override fun append(record: LogRecord) {
         writeRecord(record, dispatch(record).output)
     }
@@ -37,7 +60,10 @@ internal abstract class AbstractRollingFileAppender constructor(
     final override fun flush() {
         current?.apply {
             flush()
-            checkFile()
+            checkSignal.offer(Unit)
+        }
+        deferredFiles.values.forEach {
+            it.flush()
         }
     }
 
@@ -47,7 +73,17 @@ internal abstract class AbstractRollingFileAppender constructor(
             rollCurrent()
             return
         }
-        // TODO triggers?
+
+        deferredFiles.values.takeUnless { it.isEmpty() }?.toList()?.forEach { file ->
+            file.deferredMark?.let { mark ->
+                if (mark.elapsedNow() > 1.minutes) {
+                    file.close()
+                    deferredFiles.remove(file.mask)
+                }
+            }
+        }
+
+        // TODO triggers
     }
 
     private fun writeRecord(record: LogRecord, output: Output) {
@@ -124,12 +160,12 @@ internal abstract class AbstractRollingFileAppender constructor(
         val number: Int,
         val date: GMTDate
     ) {
-        var deferredTime: GMTDate? = null
+        var deferredMark: ClockMark? = null
             private set
 
         fun defer() {
-            check(deferredTime == null)
-            deferredTime = GMTDate()
+            check(deferredMark == null)
+            deferredMark = clock.markNow()
         }
 
         fun close() {

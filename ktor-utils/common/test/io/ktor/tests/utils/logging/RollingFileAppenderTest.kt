@@ -37,6 +37,48 @@ class RollingFileAppenderTest {
         )
     }
 
+    @Test
+    fun testTwoFiles(): Unit = test("file-%d{dd}-%i.log") { logger ->
+        logger.info("first")
+        time += 3600L * 25 * 1000
+        logger.info("second")
+
+        expectedList("file.log", "file-01-1.log")
+
+        fileSystem.assertFileContent(
+            "file.log",
+            "[INFO] [1970.2] second\n"
+        )
+
+        fileSystem.assertFileContent(
+            "file-01-1.log",
+            "[INFO] [1970.1] first\n"
+        )
+    }
+
+    @Test
+    fun testTwoFilesDeferred(): Unit = test("file-%d{dd}-%i.log") { logger ->
+        logger.info("first")
+        time += 3600L * 25 * 1000
+        logger.info("second")
+        time = 0
+        logger.info("flashback")
+
+        expectedList("file.log", "file-01-1.log")
+
+        fileSystem.assertFileContent(
+            "file.log",
+            "[INFO] [1970.2] second\n"
+        )
+
+        fileSystem.assertFileContent(
+            "file-01-1.log",
+            "[INFO] [1970.1] first\n[INFO] [1970.1] flashback\n"
+        )
+    }
+
+    @Test
+
     private fun test(pattern: String, block: (Logger) -> Unit) {
         val appender = Appender(pattern)
         val config = LoggingConfigBuilder().apply {
@@ -63,6 +105,13 @@ class RollingFileAppenderTest {
 
     private inner class Appender(pattern: String) : AbstractRollingFileAppender(
         fileSystem, job, "file.log",
-        FilePathPattern(pattern)
+        FilePathPattern(pattern),
+        clock = Clock()
     )
+
+    private inner class Clock : AbstractLongClock(DurationUnit.MILLISECONDS) {
+        override fun read(): Long {
+            return time
+        }
+    }
 }
