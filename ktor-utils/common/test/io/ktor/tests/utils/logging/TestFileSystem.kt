@@ -8,6 +8,7 @@ import io.ktor.util.date.*
 import io.ktor.util.logging.rolling.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import kotlin.test.*
 
 internal class TestFileSystem : FileSystem() {
     override val listeners = ArrayList<FileSystemListener>()
@@ -15,7 +16,7 @@ internal class TestFileSystem : FileSystem() {
 
     val allFiles: Set<Entry> get() = _allFiles
 
-    fun addFile(filePath: String, content: ByteArray = byteArrayOf()) {
+    fun addFile(filePath: String, content: ByteArray = byteArrayOf()): Entry.File {
         var path = ""
         filePath.split("/").dropLast(1).forEach {
             path += it
@@ -23,11 +24,23 @@ internal class TestFileSystem : FileSystem() {
             path += "/"
         }
 
-        addEntry(Entry.File(filePath, content))
+        val entry = Entry.File(filePath, content)
+        addEntry(entry)
+        return entry
+    }
+
+    @UseExperimental(ExperimentalStdlibApi::class)
+    fun assertFileContent(filePath: String, expectedContent: String) {
+        val entry: Entry.File? = allFiles.firstOrNull { it.path == filePath } as Entry.File?
+        assertNotNull(entry, "File not found")
+        assertEquals(expectedContent, entry.content.decodeToString())
     }
 
     override fun openImpl(filePath: String): Output {
-        return (allFiles.single { it.path == filePath } as Entry.File).open()
+        val entry: Entry.File? = allFiles.firstOrNull { it.path == filePath } as Entry.File?
+        if (entry != null) return entry.open()
+
+        return addFile(filePath).open()
     }
 
     override fun renameImpl(fromPath: String, toPath: String): Boolean {
@@ -110,6 +123,7 @@ internal class TestFileSystem : FileSystem() {
                 override fun flush(source: Memory, offset: Int, length: Int) {
                     check(!closed)
                     val newContent = ByteArray(content.size + length)
+                    content.copyInto(newContent)
                     source.copyTo(newContent, offset, length, content.size)
                     content = newContent
                 }
