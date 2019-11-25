@@ -49,6 +49,12 @@ internal abstract class FileSystem {
     fun removeListener(listener: FileSystemListener) {
         listeners.remove(listener)
     }
+
+    fun notify(block: (FileSystemListener) -> Unit) {
+        listeners.forEach {
+            block(it)
+        }
+    }
 }
 
 internal interface FileSystemListener {
