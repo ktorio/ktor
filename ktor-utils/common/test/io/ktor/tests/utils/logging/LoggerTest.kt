@@ -174,46 +174,46 @@ class LoggerTest {
         assertEquals("[INFO] msg2\n", appender.log())
     }
 
-    @Test
-    fun loggerCreationForClass() {
-        val logger = logger.forClass<TestAppender>()
-
-        logger.info("msg1")
-
-        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.TestAppender] msg1\n", appender.log())
-    }
-
-    @Test
-    fun loggerCreationForThisClass() {
-        val logger = loggerForClass(logger)
-
-        logger.info("msg1")
-
-        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg1\n", appender.log())
-    }
-
-    @Test
-    fun loggerCreationForThisClassWithConfig() {
-        val logger = loggerForClass(logger.config)
-
-        logger.info("msg7")
-
-        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg7\n", appender.log())
-    }
-
-    @Test
-    fun loggerCreationForThisClass2() {
-        class Test {
-            val logger = loggerForClass(this@LoggerTest.logger)
-            fun f() {
-                logger.info("msg3")
-            }
-        }
-
-        Test().f()
-
-        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.loggerCreationForThisClass2.Test] msg3\n", appender.log())
-    }
+//    @Test
+//    fun loggerCreationForClass() {
+//        val logger = logger.forClass<TestAppender>()
+//
+//        logger.info("msg1")
+//
+//        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.TestAppender] msg1\n", appender.log())
+//    }
+//
+//    @Test
+//    fun loggerCreationForThisClass() {
+//        val logger = loggerForClass(logger)
+//
+//        logger.info("msg1")
+//
+//        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg1\n", appender.log())
+//    }
+//
+//    @Test
+//    fun loggerCreationForThisClassWithConfig() {
+//        val logger = loggerForClass(logger.config)
+//
+//        logger.info("msg7")
+//
+//        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest] msg7\n", appender.log())
+//    }
+//
+//    @Test
+//    fun loggerCreationForThisClass2() {
+//        class Test {
+//            val logger = loggerForClass(this@LoggerTest.logger)
+//            fun f() {
+//                logger.info("msg3")
+//            }
+//        }
+//
+//        Test().f()
+//
+//        assertEquals("[INFO] [io.ktor.tests.utils.logging.LoggerTest.loggerCreationForThisClass2.Test] msg3\n", appender.log())
+//    }
 
     private class TestAppender : Appender {
         private val writer = StringBuilder(8192)
