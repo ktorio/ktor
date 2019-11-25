@@ -77,8 +77,6 @@ class RollingFileAppenderTest {
         )
     }
 
-    @Test
-
     private fun test(pattern: String, block: (Logger) -> Unit) {
         val appender = Appender(pattern)
         val config = LoggingConfigBuilder().apply {
