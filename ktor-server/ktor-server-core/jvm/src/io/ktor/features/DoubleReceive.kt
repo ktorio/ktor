@@ -132,8 +132,9 @@ sealed class CachedTransformationResult<T : Any>(val type: KType) {
  * receive attempt is simply replaying the previous exception cause.
  */
 @KtorExperimentalAPI
-class RequestReceiveAlreadyFailedException internal constructor(cause: Throwable) :
-    Exception("Request body consumption was failed", cause, false, true)
+class RequestReceiveAlreadyFailedException internal constructor(
+    cause: Throwable
+) : Exception("Request body consumption was failed", cause, false, true)
 
 private val LastReceiveCachedResult = AttributeKey<CachedTransformationResult<*>>("LastReceiveRequest")
 

@@ -4,6 +4,7 @@
 
 package io.ktor.network.tls
 
+import kotlinx.coroutines.*
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
@@ -99,8 +100,14 @@ fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
  * Throws if failed to find [PrivateKey] for any alias in [KeyStore].
  */
 class NoPrivateKeyException(
-    alias: String, store: KeyStore
-) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store")
+    private val alias: String, private val store: KeyStore
+) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
+    CopyableThrowable<NoPrivateKeyException> {
+
+    override fun createCopy(): NoPrivateKeyException? = NoPrivateKeyException(alias, store).also {
+        it.initCause(this)
+    }
+}
 
 private fun findTrustManager(): X509TrustManager {
     val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())!!

@@ -6,22 +6,18 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.client.statement.*
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.json.simple.*
 import org.slf4j.*
 import java.io.*
-import java.lang.Exception
 import java.net.*
 
 private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
@@ -364,22 +360,33 @@ sealed class OAuth2Exception(message: String, val errorCode: String?) : Exceptio
      * decoded but the response doesn't contain error code nor access token
      */
     @KtorExperimentalAPI
-    class MissingAccessToken :
-        OAuth2Exception("OAuth2 server response is OK neither error nor access token provided", null)
+    class MissingAccessToken : OAuth2Exception(
+        "OAuth2 server response is OK neither error nor access token provided", null
+    )
 
     /**
      * Throw when an OAuth2 server replied with error "unsupported_grant_type"
      * @param grantType that was passed to the server
      */
     @KtorExperimentalAPI
-    class UnsupportedGrantType(val grantType: String) :
-        OAuth2Exception("OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type")
+    class UnsupportedGrantType(val grantType: String) : OAuth2Exception(
+        "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
+    ), CopyableThrowable<UnsupportedGrantType> {
+        override fun createCopy(): UnsupportedGrantType = UnsupportedGrantType(grantType).also {
+            it.initCause(this)
+        }
+    }
 
     /**
      * OAuth2 server responded with an error code [errorCode]
      * @param errorCode the OAuth2 server replied with
      */
     @KtorExperimentalAPI
-    class UnknownException(message: String, errorCode: String) :
-        OAuth2Exception("$message (error code = $errorCode)", errorCode)
+    class UnknownException(
+        private val details: String, errorCode: String
+    ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {
+        override fun createCopy(): UnknownException = UnknownException(details, errorCode!!).also {
+            it.initCause(this)
+        }
+    }
 }
