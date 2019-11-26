@@ -61,7 +61,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
             config.requestConfig(this)
 
             if (outgoingContent !is OutgoingContent.NoContent) {
-                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) throw RequestInvalidException(
+                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) error(
                     "Request of type ${data.method} couldn't send a body with the [Android] engine."
                 )
 
@@ -123,6 +123,3 @@ internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadCha
 } catch (_: IOException) {
     errorStream?.buffered()
 }?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
-
-@Suppress("KDocMissingDocumentation")
-internal class RequestInvalidException(override val message: String) : IllegalStateException()

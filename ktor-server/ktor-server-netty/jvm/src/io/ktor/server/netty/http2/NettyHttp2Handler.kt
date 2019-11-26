@@ -157,9 +157,15 @@ internal class NettyHttp2Handler(
         return superclass.findIdField()
     }
 
-    private class Http2ClosedChannelException(val errorCode: Long) : ClosedChannelException() {
+    private class Http2ClosedChannelException(
+        val errorCode: Long
+    ) : ClosedChannelException(), CopyableThrowable<Http2ClosedChannelException> {
         override val message: String
             get() = "Got close frame with code $errorCode"
+
+        override fun createCopy(): Http2ClosedChannelException? = Http2ClosedChannelException(errorCode).also {
+            it.initCause(this)
+        }
     }
 
     companion object {
