@@ -28,6 +28,12 @@
 * Fixed server's conditional headers processing
 * Reduced required JDK version for `DefaultHeaders` server feature
 
+# 1.2.6
+> 25 Nov 2019
+
+* Kotlin 1.3.60
+* Restricted CIO HTTP headers parser
+* Introduced header name and value validation
 
 # 1.2.5
 > 27 Sep 2019
