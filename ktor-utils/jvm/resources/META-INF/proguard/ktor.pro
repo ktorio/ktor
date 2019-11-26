@@ -8,5 +8,5 @@
 }
 
 # client engines are loaded using ServiceLoader so we need to keep them
--keep io.ktor.client.engine.** implements io.ktor.client.HttpClientEngineContainer
+-keep class io.ktor.client.engine.** implements io.ktor.client.HttpClientEngineContainer
 
