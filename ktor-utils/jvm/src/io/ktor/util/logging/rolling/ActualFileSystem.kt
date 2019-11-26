@@ -31,7 +31,7 @@ internal actual class ActualFileSystem : FileSystem() {
     }
 
     override fun list(directoryPath: String): List<String> {
-        return File(directoryPath).list()?.asList() ?: emptyList()
+        return File(directoryPath).listFiles()?.map { it.path } ?: emptyList()
     }
 
     override fun size(file: String): Long {

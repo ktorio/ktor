@@ -7,6 +7,7 @@ package io.ktor.util.date
 import kotlinx.cinterop.*
 import platform.posix.*
 import utils.*
+import kotlin.system.*
 
 actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()

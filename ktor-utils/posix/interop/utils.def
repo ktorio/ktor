@@ -9,6 +9,7 @@ compilerOpts.linux_x64 = -DLINUX
 #include <pthread.h>
 #include <time.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 /* Mutex */
 typedef struct ktor_mutex {
@@ -71,3 +72,14 @@ static inline time_t ktor_time(struct tm* tm) {
     return _mkgmtime(tm);
 #endif
 }
+
+static inline long long ktor_epoch_millis(struct stat64* stat) {
+    struct timespec* spec;
+#ifdef MACOS
+    spec = &stat->st_mtimespec;
+#else
+    spec = &stat->st_mtime;
+#endif
+
+    return (long long) spec->tv_sec * 1000L + (long long) spec->tv_nsec / 1000000L;
+};

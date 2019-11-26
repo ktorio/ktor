@@ -4,4 +4,4 @@
 
 package io.ktor.util.logging.rolling
 
-internal expect class ActualFileSystem : FileSystem
+internal expect class ActualFileSystem() : FileSystem
