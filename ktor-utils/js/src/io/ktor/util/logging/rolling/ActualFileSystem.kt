@@ -13,7 +13,6 @@ import kotlin.math.*
 
 internal actual class ActualFileSystem : FileSystem() {
     private val nodeFileSystem: NodeFileSystem = require("fs")
-//    private val nodePath: NodePath = require("path")
     private val cwd: String = require<NodeProcess>("process").cwd()
 
     override val listeners: MutableCollection<FileSystemListener> = ArrayList()
@@ -100,7 +99,7 @@ internal actual class ActualFileSystem : FileSystem() {
 
     private fun mkdirP(path: String) {
         val components = path.split("/")
-        for (index in 1 .. components.lastIndex) {
+        for (index in 1..components.lastIndex) {
             val subPath = components.subList(0, index).joinToString("/")
             try {
                 nodeFileSystem.mkdirSync(subPath)
