@@ -28,7 +28,6 @@ public final class io/ktor/client/engine/cio/ClientClosedException : java/lang/I
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun getCause ()Ljava/lang/Throwable;
 }
 
 public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {

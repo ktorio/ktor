@@ -437,8 +437,10 @@ public final class io/ktor/http/cio/websocket/WebSocketReader : kotlinx/coroutin
 	public final fun setMaxFrameSize (J)V
 }
 
-public final class io/ktor/http/cio/websocket/WebSocketReader$FrameTooBigException : java/lang/Exception {
+public final class io/ktor/http/cio/websocket/WebSocketReader$FrameTooBigException : java/lang/Exception, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (J)V
+	public fun createCopy ()Lio/ktor/http/cio/websocket/WebSocketReader$FrameTooBigException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getFrameSize ()J
 	public fun getMessage ()Ljava/lang/String;
 }
