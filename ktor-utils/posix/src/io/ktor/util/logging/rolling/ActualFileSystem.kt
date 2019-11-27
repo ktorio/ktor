@@ -87,7 +87,7 @@ internal actual class ActualFileSystem : FileSystem() {
     }
 
     private fun mkdirP(path: String) {
-        val components = path.split("/").dropLast(1)
+        val components = path.split("/")
         for (index in 1 .. components.lastIndex) {
             val subPath = components.subList(0, index).joinToString("/")
             mkdir(subPath, 511)
