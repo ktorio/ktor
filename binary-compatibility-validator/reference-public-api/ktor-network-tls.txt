@@ -63,8 +63,10 @@ public final class io/ktor/network/tls/CipherType : java/lang/Enum {
 	public static fun values ()[Lio/ktor/network/tls/CipherType;
 }
 
-public final class io/ktor/network/tls/NoPrivateKeyException : java/lang/IllegalStateException {
+public final class io/ktor/network/tls/NoPrivateKeyException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Ljava/lang/String;Ljava/security/KeyStore;)V
+	public fun createCopy ()Lio/ktor/network/tls/NoPrivateKeyException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
 public final class io/ktor/network/tls/OID {

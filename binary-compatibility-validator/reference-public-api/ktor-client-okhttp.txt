@@ -27,7 +27,9 @@ public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException {
+public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/http/cio/websocket/Frame;)V
+	public fun createCopy ()Lio/ktor/client/engine/okhttp/UnsupportedFrameTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 
