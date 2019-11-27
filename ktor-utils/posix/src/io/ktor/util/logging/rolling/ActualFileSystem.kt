@@ -37,7 +37,7 @@ internal actual class ActualFileSystem : FileSystem() {
         if (dir == null) {
             throw PosixException.forErrno(posixFunctionName = "opendir")
         }
-        
+
         try {
             val entry = alloc<dirent>()
             val result = allocPointerTo<dirent>()
@@ -88,7 +88,7 @@ internal actual class ActualFileSystem : FileSystem() {
 
     private fun mkdirP(path: String) {
         val components = path.split("/")
-        for (index in 1 .. components.lastIndex) {
+        for (index in 1..components.lastIndex) {
             val subPath = components.subList(0, index).joinToString("/")
             mkdir(subPath, 511)
         }
