@@ -88,10 +88,10 @@ class LoggingTestJvm {
             locations()
         }
 
-        logger.info("msg")
+        logger.info("msg") // should be at line 91!
 
         assertEquals(
-            "[io.ktor.tests.utils.LoggingTestJvm\$testLocations\$1.invokeSuspend (LoggingTestJvm.kt:90)] msg\n",
+            "[io.ktor.tests.utils.LoggingTestJvm\$testLocations\$1.invokeSuspend (LoggingTestJvm.kt:91)] msg\n",
             log.toString()
         )
     }
