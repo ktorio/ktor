@@ -4,20 +4,15 @@
 
 package io.ktor.util.date
 
+import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import platform.posix.*
 import utils.*
-import kotlin.system.*
 
 actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
-    val current: Long = if (timestamp == null) {
-        time(timeHolder.ptr)
-        timeHolder.value * 1000L
-    } else {
-        timeHolder.value = (timestamp / 1000).convert()
-        timestamp
-    }
+    val current = timestamp ?: now()
+    timeHolder.value = (current / 1000).convert()
 
     val dateInfo = alloc<tm>()
     gmtime_r(timeHolder.ptr, dateInfo.ptr)
@@ -56,4 +51,13 @@ actual fun GMTDate(
     val timestamp = ktor_time(dateInfo.ptr)
 
     return GMTDate(timestamp * 1000L)
+}
+
+private fun MemScope.now(): Long {
+    val time = alloc<timeval>()
+    if (gettimeofday(time.ptr, null) == -1) {
+        throw PosixException.forErrno()
+    }
+    return time.tv_sec.convert<Long>() * 1000L +
+        time.tv_usec.convert<Long>() / 1000L
 }
