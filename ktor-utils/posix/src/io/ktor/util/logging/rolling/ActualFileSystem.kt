@@ -59,22 +59,22 @@ internal actual class ActualFileSystem : FileSystem() {
     }
 
     override fun size(file: String): Long = memScoped {
-        val result = alloc<stat64>()
-        if (stat64(file, result.ptr) != 0) {
+        val result = alloc<stat>()
+        if (stat(file, result.ptr) != 0) {
             val errnoResult = errno
             if (errnoResult == ENOENT) {
                 return 0L
             }
-            throw PosixException.forErrno(errnoResult, posixFunctionName = "stat64")
+            throw PosixException.forErrno(errnoResult, posixFunctionName = "stat")
         }
 
         result.st_size.convert<Long>()
     }
 
     override fun lastModified(name: String): GMTDate = memScoped {
-        val result = alloc<stat64>()
-        if (stat64(name, result.ptr) != 0) {
-            throw PosixException.forErrno(posixFunctionName = "stat64")
+        val result = alloc<stat>()
+        if (stat(name, result.ptr) != 0) {
+            throw PosixException.forErrno(posixFunctionName = "stat")
         }
         val epochMilliseconds = ktor_epoch_millis(result.ptr).convert<Long>()
 
@@ -82,8 +82,8 @@ internal actual class ActualFileSystem : FileSystem() {
     }
 
     override fun contains(path: String): Boolean = memScoped {
-        val result = alloc<stat64>()
-        return stat64(path, result.ptr) == 0
+        val result = alloc<stat>()
+        return stat(path, result.ptr) == 0
     }
 
     private fun mkdirP(path: String) {

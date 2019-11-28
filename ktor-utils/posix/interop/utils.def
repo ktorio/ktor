@@ -73,7 +73,7 @@ static inline time_t ktor_time(struct tm* tm) {
 #endif
 }
 
-static inline long long ktor_epoch_millis(struct stat64* stat) {
+static inline long long ktor_epoch_millis(struct stat* stat) {
     struct timespec* spec;
 #ifdef MACOS
     spec = &stat->st_mtimespec;
