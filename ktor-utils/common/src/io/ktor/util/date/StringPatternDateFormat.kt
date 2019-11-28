@@ -19,8 +19,7 @@ import io.ktor.util.*
  *
  * @property pattern to be used to convert dates to text
  */
-@InternalAPI
-data class StringPatternDateFormat(val pattern: String) {
+internal data class StringPatternDateFormat(val pattern: String) {
     /**
      * Date format pattern components
      */
@@ -162,8 +161,7 @@ data class StringPatternDateFormat(val pattern: String) {
 /**
  * Format an instance of [GMTDate] to a text in the specified [format].
  */
-@InternalAPI
-fun GMTDate.format(format: StringPatternDateFormat): String = buildString(format.estimate) {
+internal fun GMTDate.format(format: StringPatternDateFormat): String = buildString(format.estimate) {
     format.components.forEach { component ->
         when (component) {
             is StringPatternDateFormat.Component.Zone -> append("GMT")
