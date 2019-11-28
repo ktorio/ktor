@@ -29,6 +29,7 @@ class LoggingConfigBuilder() {
     /**
      * Registered record fields keys.
      */
+    @KtorExperimentalAPI
     val keys: List<LogAttributeKey<*>> get() = slots
 
     /**

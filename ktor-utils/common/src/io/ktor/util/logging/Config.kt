@@ -14,6 +14,7 @@ import kotlin.native.concurrent.*
  * @property appender to send records after processing.
  */
 class Config internal constructor(
+    @KtorExperimentalAPI
     val keys: List<LogAttributeKey<*>>,
     internal val enhancers: List<LogRecord.(Config) -> Unit>,
     internal val filters: List<LogRecord.(Config) -> Unit>,
