@@ -8,7 +8,6 @@ import io.ktor.util.date.*
 import io.ktor.util.logging.rolling.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
-import kotlin.time.*
 
 class ActualFileSystemTest {
     private val fs = ActualFileSystem()
