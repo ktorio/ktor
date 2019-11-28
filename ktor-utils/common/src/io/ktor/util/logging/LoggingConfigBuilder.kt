@@ -4,6 +4,8 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
+
 /**
  * Configuration builder producing [Config].
  */
@@ -32,6 +34,7 @@ class LoggingConfigBuilder() {
     /**
      * Register a new field identified by the [key].
      */
+    @KtorExperimentalAPI
     fun registerKey(key: LogAttributeKey<*>) {
         check(!key.registered) { "The key is already registered." }
         slots += key

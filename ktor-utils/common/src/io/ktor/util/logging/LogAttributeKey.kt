@@ -4,11 +4,14 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
+
 /**
  * Log event custom field descriptor
  * @property name of the key, useful for debugging. Could be unique but it is not required.
  * @property initial value assigned to the field
  */
+@KtorExperimentalAPI
 abstract class LogAttributeKey<T>(val name: String, val initial: T) {
     private var indexField: Int = -1
 

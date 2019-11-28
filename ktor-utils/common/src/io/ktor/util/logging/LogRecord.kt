@@ -66,6 +66,7 @@ class LogRecord internal constructor(val config: Config) {
     /**
      * Capture an instance of [LogRecord] to use outside of the logging pipeline.
      */
+    @KtorExperimentalAPI
     fun defer(): ManuallyManagedReference {
         refCount.update { old ->
             when (old) {
@@ -80,6 +81,7 @@ class LogRecord internal constructor(val config: Config) {
      * Returns a value of custom field registered via [LoggingConfigBuilder.registerKey].
      * @throws IllegalStateException if the [key] wasn't registered before using.
      */
+    @KtorExperimentalAPI
     operator fun <T> get(key: LogAttributeKey<T>): T {
         @Suppress("UNCHECKED_CAST")
         return keys[key.index] as T
@@ -89,6 +91,7 @@ class LogRecord internal constructor(val config: Config) {
      * Assign a [value] to a custom field identified by the [key] registered via [LoggingConfigBuilder.registerKey].
      * @throws IllegalStateException if the [key] wasn't registered before using.
      */
+    @KtorExperimentalAPI
     operator fun <T> set(key: LogAttributeKey<T>, value: T) {
         keys[key.index] = value
     }
@@ -128,6 +131,7 @@ class LogRecord internal constructor(val config: Config) {
      * A box containing a reference to [LogRecord] that could be extracted only once by invoking [consume] function.
      * Useful to capture an instance of [LogRecord] outside of the main logging pipeline.
      */
+    @KtorExperimentalAPI
     inner class ManuallyManagedReference internal constructor() {
         // 0 - initial, 1 - started, 2 - finished
         private val state = atomic(0)

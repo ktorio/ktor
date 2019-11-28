@@ -4,9 +4,12 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
+
 /**
  * The default log record format.
  */
+@KtorExperimentalAPI
 fun Appendable.formatLogRecordDefault(message: LogRecord) {
     appendMarkers(message)
 

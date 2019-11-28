@@ -134,6 +134,7 @@ inline fun Logger.log(level: Level = Level.INFO, block: LogRecord.() -> Unit) {
     }
 }
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Use info instead.", ReplaceWith("info(message)"))
 fun Logger.log(message: String) {
     info(message)

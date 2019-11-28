@@ -4,11 +4,14 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
+
 /**
  * Appender that buffer all logged messages that could be found later by invoking [build] function.
  */
+@KtorExperimentalAPI
 class StringBuilderAppender(private val buffer: StringBuilder) : Appender by TextAppender({ buffer.append(it) }) {
-    constructor() : this(StringBuilder(4096))
+    constructor(estimate: Int = 4096) : this(StringBuilder(estimate))
 
     /**
      * Creates a text from previously appended log messages

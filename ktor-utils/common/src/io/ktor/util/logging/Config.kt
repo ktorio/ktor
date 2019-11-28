@@ -4,6 +4,7 @@
 
 package io.ktor.util.logging
 
+import io.ktor.util.*
 import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
@@ -12,7 +13,7 @@ import kotlin.native.concurrent.*
  * @property keys for registered custom record fields
  * @property appender to send records after processing.
  */
-class Config(
+class Config internal constructor(
     val keys: List<LogAttributeKey<*>>,
     internal val enhancers: List<LogRecord.(Config) -> Unit>,
     internal val filters: List<LogRecord.(Config) -> Unit>,
@@ -81,6 +82,7 @@ fun Config.withAppender(appender: Appender): Config = LoggingConfigBuilder(this)
 /**
  * Search for the last log key of type [K] or `null` if not registered.
  */
+@KtorExperimentalAPI
 inline fun <reified K : LogAttributeKey<*>> Config.findKey(): K? {
     val keys = keys
     for (index in keys.lastIndex downTo 0) {
