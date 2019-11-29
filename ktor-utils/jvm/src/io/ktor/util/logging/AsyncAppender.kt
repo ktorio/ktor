@@ -14,12 +14,12 @@ import kotlin.coroutines.*
  * If the downstream is unable to handle messages in time, the queue overflows and extra events are discarded.
  *
  * @property capacity for the internal record queue
- * @property parent coroutines parent job for the asynchronous appender job.
+ * @property context coroutines context for the asynchronous appender job.
  */
-class AsyncAppender(private val delegate: Appender, val capacity: Int = 1000, val parent: Job? = null) : Appender {
+class AsyncAppender(private val delegate: Appender, val capacity: Int = 1000, val context: CoroutineContext? = null) : Appender {
     @UseExperimental(ObsoleteCoroutinesApi::class)
     private val task = GlobalScope.actor<LogRecord.ManuallyManagedReference>(
-        context = parent ?: EmptyCoroutineContext,
+        context = context ?: EmptyCoroutineContext,
         start = CoroutineStart.LAZY,
         capacity = capacity
     ) {

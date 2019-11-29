@@ -22,7 +22,7 @@ class LoggingTestJvm {
             lock.await()
             out.appendln(it)
         }
-        val asyncAppender = AsyncAppender(textAppender, 3, job)
+        val asyncAppender = AsyncAppender(textAppender, capacity = 3, context = coroutineContext + job)
         val logger = logger(asyncAppender)
 
         repeat(11) {
@@ -46,7 +46,7 @@ class LoggingTestJvm {
             counter++
             out.appendln(it)
         }
-        val asyncAppender = AsyncAppender(textAppender, parent = job)
+        val asyncAppender = AsyncAppender(textAppender, context = job)
         val logger = logger(asyncAppender)
 
         repeat(3) {
