@@ -33,7 +33,7 @@ kotlin {
                 dependsOn darwinMain
             }
 
-            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, tvosArm64Test, tvosX64Test, watchosArm32Test, watchosArm64Test, watchosX86Test]]]) {
+            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, tvosArm64Test, tvosX64Test, watchosArm32Test, watchosArm64Test, watchosX86Test]) {
                 dependsOn darwinTest
             }
         }
