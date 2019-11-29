@@ -15,7 +15,7 @@ class MaxAgeTriggerTest : CoroutineScope {
     private var triggered = 0
 
     private val job = Job()
-    private val dispatcher = TestDispatcher(0L)
+    private val dispatcher = TestDelayDispatcher(0L)
     private val fileSystem = TestFileSystem()
     private val trigger = Trigger.MaxAge(maxAge, fileSystem, FilePathPattern("file-%i"), {
         triggered++
@@ -24,9 +24,9 @@ class MaxAgeTriggerTest : CoroutineScope {
     override val coroutineContext: CoroutineContext get() = job + dispatcher
 
     private var now: GMTDate
-        get() = GMTDate(dispatcher.currentTime)
+        get() = GMTDate(dispatcher.currentTimeMillis)
         set(value) {
-            dispatcher.currentTime = value.timestamp
+            dispatcher.currentTimeMillis = value.timestamp
         }
 
     @BeforeTest
@@ -70,92 +70,5 @@ class MaxAgeTriggerTest : CoroutineScope {
         assertEquals(0, triggered)
 
         assertEquals(1, dispatcher.delayedCount)
-    }
-
-    @UseExperimental(InternalCoroutinesApi::class)
-    private class TestDispatcher(initialTime: Long) : CoroutineDispatcher(), Delay {
-        private val scheduled = ArrayList<Task>()
-
-        val scheduledCount: Int
-            get() {
-                play()
-                return scheduled.size
-            }
-
-        val delayedCount: Int
-            get() {
-                play()
-                return scheduled.count { it.time > 0L }
-            }
-
-        var currentTime: Long = initialTime
-            set(newTime) {
-                field = newTime
-                play(newTime)
-            }
-
-        fun play() {
-            play(currentTime)
-        }
-
-        private fun play(edge: Long) {
-            val scheduled = scheduled
-            while (scheduled.isNotEmpty()) {
-                val task = scheduled.last()
-                val time = task.time
-                if (time > edge) {
-                    break
-                }
-
-                scheduled.removeAt(scheduled.lastIndex)
-
-                when (task) {
-                    is Task.Resume -> task.continuation.resume(Unit)
-                    is Task.Run -> task.runnable.run()
-                }
-            }
-        }
-
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            val task = Task.Run(0, block)
-            scheduled.add(task)
-        }
-
-        override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
-            if (timeMillis <= 0) {
-                continuation.resume(Unit)
-                return
-            }
-
-            val resumeAt = currentTime + timeMillis
-            val task = Task.Resume(resumeAt, continuation)
-            continuation.invokeOnCancellation { scheduled.remove(task) }
-
-            addTask(task)
-        }
-
-        override fun invokeOnTimeout(timeMillis: Long, block: Runnable): DisposableHandle {
-            if (timeMillis <= 0) {
-                block.run()
-                return DisposableHandle {}
-            }
-
-            val task = Task.Run(currentTime + timeMillis, block)
-            addTask(task)
-
-            return DisposableHandle {
-                scheduled.remove(task)
-            }
-        }
-
-        private fun addTask(task: Task) {
-            scheduled.add(task)
-            scheduled.sortByDescending { it.time }
-        }
-
-        private sealed class Task(val time: Long) {
-            class Resume(time: Long, val continuation: CancellableContinuation<Unit>) : Task(time)
-            class Run(time: Long, val runnable: Runnable) : Task(time)
-        }
     }
 }

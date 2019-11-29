@@ -12,7 +12,7 @@ import kotlin.time.*
 @KtorExperimentalAPI
 class RollingPolicy(
     val maxFileSize: FileSize = 100.MiB,
-    val maxTotlalCount: Int = 50,
+    val maxTotalCount: Int = 50,
     val maxTotalSize: FileSize = 1.GiB,
     val keepUntil: Duration = 30.days
 )

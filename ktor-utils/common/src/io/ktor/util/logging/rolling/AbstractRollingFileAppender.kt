@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
+import kotlin.jvm.*
 import kotlin.time.*
 
 @UseExperimental(ExperimentalTime::class)
@@ -18,16 +19,25 @@ internal abstract class AbstractRollingFileAppender constructor(
     private val fileSystem: FileSystem,
     private val backgroundTasksScope: CoroutineContext,
     private val logFileName: String,
-    private val rolledFilePathPattern: FilePathPattern,
+    internal val rolledFilePathPattern: FilePathPattern,
     private val recordEncoder: RecordEncoder = RecordEncoder.Default,
-    private val policy: RollingPolicy = RollingPolicy(),
-    private val clock: Clock = MonoClock
+    internal val policy: RollingPolicy = RollingPolicy(),
+    private val clock: () -> GMTDate = { GMTDate() }
 ) : Appender, CoroutineScope {
+    @Volatile
     private var current: LogFile? = null
     private var deferredFiles = HashMap<String, LogFile>()
     private val mask = FilePathPattern(rolledFilePathPattern.parts
         .filter { it is FilePathPattern.Component.Date || it is FilePathPattern.Component.Number })
-    private val cached = CachedFilesView(fileSystem, rolledFilePathPattern, null) // TODO pass triggers
+    private var triggers: List<Trigger> = emptyList()
+    private val cached = CachedFilesView(fileSystem, rolledFilePathPattern, object : CachedFilesView.Listener {
+        override fun changed(file: CachedFilesView.CachedFile) {
+            triggers.forEach {
+                it.changed(file)
+            }
+        }
+    })
+    private val kClock = Clock()
 
     final override val coroutineContext: CoroutineContext
         get() = backgroundTasksScope
@@ -37,19 +47,43 @@ internal abstract class AbstractRollingFileAppender constructor(
     init {
         launch {
             while (isActive) {
-                val delayMark = clock.markNow() + 10.seconds
+                val delayMark = kClock.markNow() + 10.seconds
+                println("waiting for signal...")
                 checkSignal.receive()
 
                 if (delayMark.hasNotPassedNow()) {
                     val delayInMillis = delayMark.elapsedNow().toLongMilliseconds()
                     if (delayInMillis < 0L) {
+                        println("delaying ${-delayInMillis} ms")
                         delay(-delayInMillis) // it is negative since end mark is in the future
                         checkSignal.poll() // clear signal flag
                     }
                 }
 
+                println("checking file...")
                 checkFile()
             }
+        }
+
+        fileSystem.addListener(cached)
+        coroutineContext[Job]?.let {
+            it.invokeOnCompletion {
+                fileSystem.removeListener(cached)
+            }
+        }
+
+        triggers += Trigger.TotalCount(
+            policy.maxTotalCount, fileSystem, rolledFilePathPattern, { checkSignal.offer(Unit) }, clock
+        )
+        triggers += Trigger.TotalSize(
+            policy.maxTotalSize.bytesCount, fileSystem, rolledFilePathPattern, { checkSignal.offer(Unit) }, clock
+        )
+        triggers += Trigger.MaxAge(
+            policy.keepUntil, fileSystem, rolledFilePathPattern, { checkSignal.offer(Unit) }, clock
+        )
+
+        triggers.forEach {
+            it.setup(this)
         }
     }
 
@@ -60,6 +94,7 @@ internal abstract class AbstractRollingFileAppender constructor(
     final override fun flush() {
         current?.apply {
             flush()
+            println("sending signal")
             checkSignal.offer(Unit)
         }
         deferredFiles.values.forEach {
@@ -69,9 +104,8 @@ internal abstract class AbstractRollingFileAppender constructor(
 
     private fun checkFile() {
         val fileSize = fileSystem.size(logFileName)
-        if (fileSize >= policy.maxFileSize.bytesCount) {
+        if (fileSize >= policy.maxFileSize.bytesCount && current != null) {
             rollCurrent()
-            return
         }
 
         deferredFiles.values.takeUnless { it.isEmpty() }?.toList()?.forEach { file ->
@@ -83,7 +117,9 @@ internal abstract class AbstractRollingFileAppender constructor(
             }
         }
 
-        // TODO triggers
+        if (triggers.any { it.check() }) {
+            removeOld()
+        }
     }
 
     private fun writeRecord(record: LogRecord, output: Output) {
@@ -91,7 +127,7 @@ internal abstract class AbstractRollingFileAppender constructor(
     }
 
     private fun dispatch(record: LogRecord): LogFile {
-        val recordDate = record.logTime ?: GMTDate()
+        val recordDate = record.logTime ?: clock()
         val mask = mask(recordDate)
 
         current?.let {
@@ -100,7 +136,9 @@ internal abstract class AbstractRollingFileAppender constructor(
 
         deferredFiles[mask]?.let { found ->
             check(found.mask == mask)
-            return found
+            if (current != null) {
+                return found
+            }
         }
 
         current?.let {
@@ -124,6 +162,15 @@ internal abstract class AbstractRollingFileAppender constructor(
         rollFiles(fileSystem, logFileName, cached, rolledFilePathPattern, current.date)
         deferredFiles[current.mask] = reopen(current).also { it.defer() }
         this.current = null
+    }
+
+    private fun removeOld() {
+        cached.list().sortedBy { it.lastModified }.forEach { file ->
+            fileSystem.delete(file.path)
+            if (triggers.none { it.check() }) {
+                return
+            }
+        }
     }
 
     private fun dispatchToOld(recordDate: GMTDate, newRecordMask: String): LogFile {
@@ -165,7 +212,7 @@ internal abstract class AbstractRollingFileAppender constructor(
 
         fun defer() {
             check(deferredMark == null)
-            deferredMark = clock.markNow()
+            deferredMark = kClock.markNow()
         }
 
         fun close() {
@@ -175,5 +222,9 @@ internal abstract class AbstractRollingFileAppender constructor(
         fun flush() {
             output.flush()
         }
+    }
+
+    private inner class Clock : AbstractLongClock(DurationUnit.MILLISECONDS) {
+        override fun read(): Long = clock().timestamp
     }
 }

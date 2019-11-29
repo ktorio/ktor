@@ -104,12 +104,8 @@ class RollingFileAppenderTest {
     private inner class Appender(pattern: String) : AbstractRollingFileAppender(
         fileSystem, job, "file.log",
         FilePathPattern(pattern),
-        clock = Clock()
-    )
-
-    private inner class Clock : AbstractLongClock(DurationUnit.MILLISECONDS) {
-        override fun read(): Long {
-            return time
+        clock = {
+            GMTDate(time)
         }
-    }
+    )
 }
