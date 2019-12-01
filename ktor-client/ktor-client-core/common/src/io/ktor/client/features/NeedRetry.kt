@@ -48,9 +48,6 @@ class NeedRetry(
 
         override fun prepare(block: Config.() -> Unit): NeedRetry {
             val config = Config().apply(block)
-
-            config.retryHandlers.reversed()
-
             return NeedRetry(config.retryHandlers)
         }
 
