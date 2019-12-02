@@ -16,7 +16,7 @@ class HttpRedirectTest : ClientLoader() {
     private val TEST_URL_BASE = "$TEST_SERVER/redirect"
 
     @Test
-    fun redirectTest() = clientTests {
+    fun testRedirect() = clientTests {
         config {
             install(HttpRedirect)
         }
@@ -30,7 +30,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun infinityRedirectTest() = clientTests {
+    fun testInfinityRedirect() = clientTests {
         config {
             install(HttpRedirect)
         }
@@ -43,7 +43,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun redirectWithCookiesTest() = clientTests(listOf("js")) {
+    fun testRedirectWithCookies() = clientTests(listOf("js")) {
         config {
             install(HttpCookies)
             install(HttpRedirect)
@@ -59,7 +59,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun customUrlsTest() = clientTests {
+    fun testCustomUrls() = clientTests {
         val urls = listOf(
             "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
             "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
@@ -81,16 +81,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun httpStatsTest() = clientTests {
-        test { client ->
-            client.get<HttpStatement>("https://httpstat.us/301").execute { response ->
-                assertEquals(HttpStatusCode.OK, response.status)
-            }
-        }
-    }
-
-    @Test
-    fun redirectRelative() = clientTests {
+    fun testRedirectRelative() = clientTests {
         test { client ->
             client.get<HttpStatement>("$TEST_URL_BASE/directory/redirectFile").execute {
                 assertEquals("targetFile", it.readText())
@@ -99,7 +90,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun redirectAbsolute() = clientTests {
+    fun testRedirectAbsolute() = clientTests {
         test { client ->
             client.get<HttpStatement>("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
                 assertEquals("absoluteTargetFile", it.readText())
@@ -108,7 +99,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun redirectHostAbsolute() = clientTests(listOf("js")) {
+    fun testRedirectHostAbsolute() = clientTests(listOf("js")) {
         test { client ->
             client.get<HttpStatement>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
                 assertEquals("200 OK", it.readText())

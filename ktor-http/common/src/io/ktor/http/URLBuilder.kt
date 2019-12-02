@@ -160,3 +160,47 @@ data class Url(
 
     companion object
 }
+
+/**
+ * [Url] authority.
+ */
+val Url.authority: String
+    get() = buildString {
+        user?.let {
+            append(it)
+        }
+        password?.let {
+            append(':')
+            append(it)
+        }
+
+        if (isNotEmpty()) {
+            append('@')
+        }
+
+        append(host)
+        append(':')
+        append(port)
+    }
+
+/**
+ * [URLBuilder] authority.
+ */
+val URLBuilder.authority: String
+    get() = buildString {
+        user?.let {
+            append(it)
+        }
+        password?.let {
+            append(':')
+            append(it)
+        }
+
+        if (isNotEmpty()) {
+            append('@')
+        }
+
+        append(host)
+        append(':')
+        append(port)
+    }
