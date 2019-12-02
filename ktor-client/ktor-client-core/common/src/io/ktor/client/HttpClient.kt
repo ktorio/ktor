@@ -123,11 +123,15 @@ class HttpClient(
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) config.addDefaultResponseValidation()
+            if (expectSuccess) {
+                config.addDefaultResponseValidation()
+            }
 
             config.install(HttpSend)
 
-            if (followRedirects) config.install(HttpRedirect)
+            if (followRedirects) {
+                config.install(HttpRedirect)
+            }
 
             config += this
             config.install(this@HttpClient)
