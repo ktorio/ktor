@@ -19,7 +19,7 @@ import kotlin.reflect.jvm.*
  * Creates the the default [SessionSerializer] for type [T]
  */
 @Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
-inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = defaultSessionSerializer()
+inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
@@ -32,7 +32,7 @@ fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> 
  */
 @KtorExperimentalAPI
 @Suppress("DEPRECATION")
-inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
 
 /**
  * Default reflection-based session serializer that does it via reflection.
@@ -41,7 +41,7 @@ inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializerReflec
  * @property type is a session instance class handled by this serializer
  */
 @KtorExperimentalAPI
-class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer {
+class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
     private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {
@@ -65,7 +65,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         return instance
     }
 
-    override fun serialize(session: Any): String {
+    override fun serialize(session: T): String {
         if (type == Parameters::class)
             return (session as Parameters).formUrlEncode()
         val typed = session.cast(type)
