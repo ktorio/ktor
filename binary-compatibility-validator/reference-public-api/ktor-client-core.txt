@@ -337,6 +337,8 @@ public final class io/ktor/client/features/HttpPlainTextKt {
 public final class io/ktor/client/features/HttpRedirect {
 	public static final field Feature Lio/ktor/client/features/HttpRedirect$Feature;
 	public fun <init> ()V
+	public final fun getCheckHttpMethod ()Z
+	public final fun setCheckHttpMethod (Z)V
 }
 
 public final class io/ktor/client/features/HttpRedirect$Feature : io/ktor/client/features/HttpClientFeature {
