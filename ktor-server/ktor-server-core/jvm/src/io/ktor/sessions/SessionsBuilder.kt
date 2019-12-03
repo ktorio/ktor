@@ -281,7 +281,7 @@ open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functions inst
     /**
      * Session instance serializer
      */
-    var serializer: SessionSerializer = autoSerializerOf(type)
+    var serializer: SessionSerializer = SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -311,7 +311,7 @@ open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functions inst
     /**
      * Session instance serializer
      */
-    var serializer: SessionSerializer = autoSerializerOf(type)
+    var serializer: SessionSerializer = SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 

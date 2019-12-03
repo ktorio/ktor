@@ -18,14 +18,21 @@ import kotlin.reflect.jvm.*
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
-@KtorExperimentalAPI
-inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+@Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
+inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = defaultSessionSerializer()
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
-@KtorExperimentalAPI
+@Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
 fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
+
+/**
+ * Creates the the default [SessionSerializer] for type [T]
+ */
+@KtorExperimentalAPI
+@Suppress("DEPRECATION")
+inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
 
 /**
  * Default reflection-based session serializer that does it via reflection.

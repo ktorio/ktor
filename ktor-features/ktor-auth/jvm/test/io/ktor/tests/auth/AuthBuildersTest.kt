@@ -261,7 +261,7 @@ class AuthBuildersTest {
                 }
             }
 
-            val serializedSession = autoSerializerOf<TestSession>().serialize(TestSession("tester"))
+            val serializedSession = defaultSessionSerializer<TestSession>().serialize(TestSession("tester"))
             val sessionCookieContent = "S=$serializedSession"
             fun TestApplicationRequest.addCookie() {
                 addHeader(HttpHeaders.Cookie, sessionCookieContent)

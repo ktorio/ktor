@@ -95,7 +95,7 @@ class SessionTest {
                 assertEquals(3600, sessionCookie.maxAge)
                 assertNotNull(sessionCookie.expires)
 
-                assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(TestUserSession("id1", emptyList()), defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
             }
 
             handleRequest(HttpMethod.Get, "/2") {
@@ -306,7 +306,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(TestUserSession("id1", emptyList()), defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/2") {
@@ -359,7 +359,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(sessionA, autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(sessionA, defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/a/2") {
@@ -373,7 +373,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(sessionB, autoSerializerOf<TestUserSessionB>().deserialize(sessionParam))
+                assertEquals(sessionB, defaultSessionSerializer<TestUserSessionB>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/b/2") {
@@ -428,7 +428,7 @@ class SessionTest {
                 sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
             }
             assertNotNull(serializedSession)
-            assertEquals("id2", autoSerializerOf<TestUserSession>().deserialize(serializedSession).userId)
+            assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
 
             handleRequest(HttpMethod.Get, "/2") {
                 addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
