@@ -114,7 +114,7 @@ class CIOHttpsTest : TestWithKtor() {
 //            Mandatory
 //            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
 
-            clientTest(CIO) {
+            testWithEngine(CIO) {
                 config {
                     engine {
                         https {
@@ -140,7 +140,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun external(): Unit = clientTest(CIO) {
+    fun external() = testWithEngine(CIO) {
         test { client ->
             client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -149,7 +149,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun customDomainsTest(): Unit = clientTest(CIO) {
+    fun customDomainsTest() = testWithEngine(CIO) {
         val domains = listOf(
             "https://google.com",
             "https://facebook.com",
@@ -169,7 +169,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun repeatRequestTest(): Unit = clientTest(CIO) {
+    fun repeatRequestTest() = testWithEngine(CIO) {
         config {
             followRedirects = false
 

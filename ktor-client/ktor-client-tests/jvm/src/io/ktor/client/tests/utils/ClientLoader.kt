@@ -33,7 +33,7 @@ actual abstract class ClientLoader {
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
         if ("jvm" in skipPlatforms) return
-        clientTest(engine.factory, block)
+        testWithEngine(engine.factory, block)
     }
 
     actual fun dumpCoroutines() {

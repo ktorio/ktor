@@ -6,7 +6,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.application.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -15,7 +14,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlin.io.use
 import kotlin.test.*
 
 class CIORequestTest : TestWithKtor() {
@@ -36,7 +34,7 @@ class CIORequestTest : TestWithKtor() {
     }
 
     @Test
-    fun longHeadersTest() = clientTest(CIO) {
+    fun longHeadersTest() = testWithEngine(CIO) {
         test { client ->
             val headerValue = "x".repeat(testSize)
 

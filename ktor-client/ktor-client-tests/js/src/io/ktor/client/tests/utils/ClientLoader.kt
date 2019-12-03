@@ -5,6 +5,7 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.js.*
 import kotlinx.coroutines.*
 
 /**
@@ -17,7 +18,7 @@ actual abstract class ClientLoader {
     actual fun clientTests(
         skipPlatforms: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): dynamic = if ("js" in skipPlatforms) GlobalScope.async {}.asPromise() else clientTest {
+    ): dynamic = if ("js" in skipPlatforms) GlobalScope.async {}.asPromise() else testWithEngine(Js) {
         withTimeout(30 * 1000) {
             block()
         }

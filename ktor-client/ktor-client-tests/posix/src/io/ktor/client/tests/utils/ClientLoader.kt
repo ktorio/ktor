@@ -21,7 +21,7 @@ actual abstract class ClientLoader {
         if ("native" in skipPlatforms) return
 
         engines.forEach {
-            clientTest(it) {
+            testWithEngine(it) {
                 withTimeout(3000) {
                     block()
                 }

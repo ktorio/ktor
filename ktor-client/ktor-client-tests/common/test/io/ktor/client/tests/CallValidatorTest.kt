@@ -4,7 +4,6 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -15,7 +14,7 @@ import kotlin.test.*
 
 class CallValidatorTest {
     @Test
-    fun testAllExceptionHandlers() = clientTest(MockEngine) {
+    fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
         var firstHandler = 0
         var secondHandler = 0
 
@@ -53,7 +52,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testExceptionFromEngine() = clientTest(MockEngine) {
+    fun testExceptionFromEngine() = testWithEngine(MockEngine) {
         var handleTriggered = 0
         config {
             engine {
@@ -77,7 +76,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testExceptionFromReceivePipeline() = clientTest(MockEngine) {
+    fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
         var handleTriggered = false
         config {
             engine {
@@ -102,7 +101,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testMergeMultipleConfigs() = clientTest(MockEngine) {
+    fun testMergeMultipleConfigs() = testWithEngine(MockEngine) {
         var firstHandler = 0
         var secondHandler = 0
 
@@ -142,7 +141,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testResponseValidation() = clientTest(MockEngine) {
+    fun testResponseValidation() = testWithEngine(MockEngine) {
         var validator = 0
         config {
             engine {

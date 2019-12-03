@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -110,7 +109,7 @@ class AndroidHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun customDomainsTest() = clientTest(Android) {
+    fun customDomainsTest() = testWithEngine(Android) {
         val domains = listOf(
             "https://www.google.com",
             "https://github.com",

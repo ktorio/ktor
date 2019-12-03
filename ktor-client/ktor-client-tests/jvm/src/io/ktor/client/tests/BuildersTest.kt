@@ -29,7 +29,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     }
 
     @Test
-    fun getEmptyResponseTest() = clientTest(factory) {
+    fun getEmptyResponseTest() = testWithEngine(factory) {
         test { client ->
             val response = client.get<String>(path = "/empty", port = serverPort)
             assertEquals("", response)
@@ -37,7 +37,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     }
 
     @Test
-    fun testNotFound() = clientTest(factory) {
+    fun testNotFound() = testWithEngine(factory) {
         test { client ->
             assertFailsWith<ResponseException> {
                 client.get<String>(path = "/notFound", port = serverPort)
@@ -46,7 +46,7 @@ abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithK
     }
 
     @Test
-    fun testDefaultRequest() = clientTest(factory) {
+    fun testDefaultRequest() = testWithEngine(factory) {
         test { rawClient ->
 
             val client = rawClient.config {

@@ -25,7 +25,7 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
-    fun testIgnoreBodyWithoutPipelining() = clientTest {
+    fun testIgnoreBodyWithoutPipelining() = clientTests {
         config {
             engine {
                 pipelining = false
@@ -40,30 +40,28 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
-    fun bodyObserverTest() {
+    fun bodyObserverTest() = clientTests {
+        val body = "Hello, world"
         var observerExecuted = false
-        clientTests {
-            val body = "Hello, world"
-            config {
-                ResponseObserver { response ->
-                    val text = response.receive<String>()
-                    assertEquals(body, text)
-                    observerExecuted = true
-                }
-            }
-
-            test { client ->
-                client.get<HttpStatement>("$TEST_SERVER/features/echo").execute {
-                    val text = it.receive<String>()
-                    assertEquals(body, text)
-                }
+        config {
+            ResponseObserver { response ->
+                val text = response.receive<String>()
+                assertEquals(body, text)
+                observerExecuted = true
             }
         }
 
-        assertTrue(observerExecuted)
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/features/echo").execute {
+                val text = it.receive<String>()
+                assertEquals(body, text)
+            }
+
+            assertTrue(observerExecuted)
+        }
     }
 
-    suspend fun HttpClient.getIgnoringBody(size: Int) {
+    private suspend fun HttpClient.getIgnoringBody(size: Int) {
         get<Unit>("$TEST_SERVER/features/body") {
             parameter("size", size.toString())
         }
