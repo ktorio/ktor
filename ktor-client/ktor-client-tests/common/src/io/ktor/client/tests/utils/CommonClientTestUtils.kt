@@ -20,16 +20,16 @@ const val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
 /**
  * Perform test with selected client [engine].
  */
-fun clientTest(
+fun testWithEngine(
     engine: HttpClientEngine,
     block: suspend TestClientBuilder<*>.() -> Unit
-) = clientTest(HttpClient(engine), block)
+) = testWithClient(HttpClient(engine), block)
 
 /**
- * Perform test with selected [client] or client loaded by service loader.
+ * Perform test with selected [client].
  */
-fun clientTest(
-    client: HttpClient = HttpClient(),
+private fun testWithClient(
+    client: HttpClient,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 ) = testSuspend {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
@@ -42,7 +42,7 @@ fun clientTest(
 /**
  * Perform test with selected client engine [factory].
  */
-fun <T : HttpClientEngineConfig> clientTest(
+fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = testSuspend {

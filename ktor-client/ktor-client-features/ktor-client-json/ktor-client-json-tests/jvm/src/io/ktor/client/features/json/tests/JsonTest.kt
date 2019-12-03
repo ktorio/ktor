@@ -20,7 +20,6 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.serialization.*
-import kotlin.io.use
 import kotlin.test.*
 
 /** Base class for JSON tests. */
@@ -86,7 +85,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeSimple() = clientTest(CIO) {
+    fun testSerializeSimple() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -99,7 +98,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeNested() = clientTest(CIO) {
+    fun testSerializeNested() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -112,7 +111,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypes() = clientTest(CIO) {
+    fun testCustomContentTypes() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(customContentType)
         }
@@ -150,7 +149,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesMultiple() = clientTest(CIO) {
+    fun testCustomContentTypesMultiple() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Json, customContentType)
         }
@@ -168,7 +167,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesWildcard() = clientTest(CIO) {
+    fun testCustomContentTypesWildcard() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Any)
         }

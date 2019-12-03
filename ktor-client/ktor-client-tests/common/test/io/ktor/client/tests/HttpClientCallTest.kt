@@ -12,7 +12,7 @@ import kotlin.test.*
 
 class HttpClientCallTest {
     @Test
-    fun receiveWithExceptionTest() = clientTest(MockEngine) {
+    fun receiveWithExceptionTest() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler {

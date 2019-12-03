@@ -16,7 +16,7 @@ import kotlin.test.*
 class CookiesTest {
 
     @Test
-    fun testCompatibility() = clientTest(MockEngine) {
+    fun testCompatibility() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->
@@ -45,7 +45,7 @@ class CookiesTest {
     }
 
     @Test
-    fun testAllowedCharacters() = clientTest(MockEngine) {
+    fun testAllowedCharacters() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->

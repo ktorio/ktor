@@ -15,7 +15,7 @@ import kotlin.test.*
 
 class HttpRedirectMockedTest {
     @Test
-    fun relativeRedirect(): Unit = clientTest(MockEngine) {
+    fun testRelativeRedirect() = testWithEngine(MockEngine) {
         config {
             server { "child" }
         }
@@ -34,7 +34,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun absoluteRedirect(): Unit = clientTest(MockEngine) {
+    fun testAbsoluteRedirect() = testWithEngine(MockEngine) {
         config {
             server { "/child" }
         }
@@ -53,7 +53,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun hostRedirect(): Unit = clientTest(MockEngine) {
+    fun testHostRedirect() = testWithEngine(MockEngine) {
         config {
             server { "http://localhost2/child" }
         }
@@ -68,7 +68,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun httpsRedirect(): Unit = clientTest(MockEngine) {
+    fun testHttpsRedirect() = testWithEngine(MockEngine) {
         config {
             server { "https://localhost2/child" }
         }
@@ -84,7 +84,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun httpsRedirectFromHttps(): Unit = clientTest(MockEngine) {
+    fun testHttpsRedirectFromHttps() = testWithEngine(MockEngine) {
         config {
             server { "https://localhost2/child" }
         }
@@ -100,7 +100,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun httpRedirectFromHttps(): Unit = clientTest(MockEngine) {
+    fun testHttpRedirectFromHttps() = testWithEngine(MockEngine) {
         config {
             server { "http://localhost2/child" }
         }
@@ -115,7 +115,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun httpRedirectFromHttpsDowngradeAllowed(): Unit = clientTest(MockEngine) {
+    fun testHttpRedirectFromHttpsDowngradeAllowed() = testWithEngine(MockEngine) {
         config {
             server { "http://localhost2/child" }
             install(HttpRedirect) {
@@ -134,7 +134,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun authHeaderResend(): Unit = clientTest(MockEngine) {
+    fun testAuthHeaderResend() = testWithEngine(MockEngine) {
         config {
             server {
                 when (it.url.parameters["i"]) {
@@ -172,7 +172,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun prohibitedRedirectHttpMethodCheck(): Unit = clientTest(MockEngine) {
+    fun testProhibitedRedirectHttpMethodCheck() = testWithEngine(MockEngine) {
         config {
             server {
                 "http://localhost/child"
@@ -193,7 +193,7 @@ class HttpRedirectMockedTest {
     }
 
     @Test
-    fun allowedRedirectHttpMethodCheck(): Unit = clientTest(MockEngine) {
+    fun testAllowedRedirectHttpMethodCheck() = testWithEngine(MockEngine) {
         config {
             server {
                 "http://localhost/child"
