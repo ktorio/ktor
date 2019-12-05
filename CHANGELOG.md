@@ -30,6 +30,12 @@
 * Fixed client hanging due to exception in response pipeline
 * Replaced HttpClientJvmEngine to HttpClientEngineBase that is now common for all platforms (affects only custom client engines)
 * Fixed hierarchy of execution and call contexts in clients that allows to properly handle request lifetime using execution context.
+* Optimize JS module import time (#1464)
+* Upgraded versions of Netty and Jetty implementations
+* Added Pebble template engine (#1374)
+* Introduced localPort route that is always tied to actual socket port (#1392)
+* Fixed cookie expiration date parsing (#1390)
+* Server authentication feature's phases are now public (#1160)
 
 # 1.2.6
 > 25 Nov 2019
