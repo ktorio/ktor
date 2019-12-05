@@ -2,7 +2,7 @@
 > Unpublished yet
 
 * ktor client proxy support
-* Introduced `HttpStatement` and deprecated potentially dangerous client API
+* Introduced `HttpStatement` and deprecated potentially dangerous resource-leaking client API
 * Eliminated kotlinx.io dependency 
 * Fixed server identity compression handling: keep original content length
 * Fixed handling GET requests with body (#1302)
@@ -21,12 +21,15 @@
 * Restricted CIO HTTP headers parser
 * Introduced header name and value validation
 * Fixed must-revalidate on the request side in ktor client (#1406)
-* Fixed OkHttp close method
+* Fixed OkHttp client resource cleanup on close
 * Added watchos/tvos native targets
 * Fixed content truncation at native and JS targets
 * Fixed server's `If-Range` header parsing to avoid crash at date parsing (#1377) 
 * Fixed server's conditional headers processing
 * Reduced required JDK version for `DefaultHeaders` server feature
+* Fixed client hanging due to exception in response pipeline
+* Replaced HttpClientJvmEngine to HttpClientEngineBase that is now common for all platforms (affects only custom client engines)
+* Fixed hierarchy of execution and call contexts in clients that allows to properly handle request lifetime using execution context.
 
 # 1.2.6
 > 25 Nov 2019
