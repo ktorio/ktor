@@ -281,7 +281,7 @@ public final class io/ktor/http/CookieKt {
 }
 
 public final class io/ktor/http/DateUtilsKt {
-    public static final fun fromCookieToGmtDate (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
+	public static final fun fromCookieToGmtDate (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
 	public static final fun fromHttpToGmtDate (Ljava/lang/String;)Lio/ktor/util/date/GMTDate;
 	public static final fun toHttpDate (Lio/ktor/util/date/GMTDate;)Ljava/lang/String;
 }
