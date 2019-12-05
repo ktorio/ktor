@@ -70,7 +70,7 @@ class PebbleTest {
                 }
             }
 
-            assertEquals("e", handleRequest(HttpMethod.Get, "/").response.headers[HttpHeaders.ETag])
+            assertEquals("\"e\"", handleRequest(HttpMethod.Get, "/").response.headers[HttpHeaders.ETag])
         }
     }
 
