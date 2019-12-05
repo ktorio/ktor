@@ -133,14 +133,55 @@ class HttpRedirectMockedTest {
         }
     }
 
+    @Test
+    fun authHeaderResend(): Unit = clientTest(MockEngine) {
+        config {
+            server {
+                when (it.url.parameters["i"]) {
+                    "1" -> "http://localhost/child"
+                    "2" -> "http://localhost:80/child"
+                    "3" -> "http://localhost:443/child"
+                    "4" -> "https://localhost/child"
+                    "5" -> "http://otherhost/child"
+                    else -> fail()
+                }
+            }
+        }
+
+        test { client ->
+            suspend fun run(url: String, block: suspend (HttpResponse) -> Unit) {
+                client.get<HttpResponse>(url, { header(HttpHeaders.Authorization, "aab") }).let { block(it) }
+            }
+
+            val results = HashMap<String, String>()
+
+            repeat(5) {
+                val number = it + 1
+                run("http://localhost/path?i=$number") { response ->
+                    assertEquals("OK", response.readText())
+                    results[number.toString()] = response.headers["_auth"]!!
+                }
+            }
+
+            assertEquals("aab", results["1"])
+            assertEquals("aab", results["2"])
+            assertEquals("", results["3"])
+            assertEquals("", results["4"])
+            assertEquals("", results["5"])
+        }
+    }
+
     private fun HttpClientConfig<MockEngineConfig>.server(block: (HttpRequestData) -> String) {
         engine {
             addHandler { request ->
                 if (request.url.fullPath.endsWith("child")) {
-                    respondOk("OK")
+                    respond("OK", HttpStatusCode.OK, headers = Headers.build {
+                        append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
+                    })
                 } else {
                     respond("redirect", HttpStatusCode.PermanentRedirect, headers = Headers.build {
                         append(HttpHeaders.Location, block(request))
+                        append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
                     })
                 }
             }

@@ -202,5 +202,9 @@ val URLBuilder.authority: String
 
         append(host)
         append(':')
-        append(port)
+        if (port == DEFAULT_PORT) {
+            append(protocol.defaultPort)
+        } else {
+            append(port)
+        }
     }
