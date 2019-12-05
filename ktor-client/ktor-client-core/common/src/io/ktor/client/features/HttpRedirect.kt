@@ -29,10 +29,17 @@ class HttpRedirect {
     @Volatile
     var checkHttpMethod: Boolean = true
 
-    companion object Feature : HttpClientFeature<Unit, HttpRedirect> {
+    /**
+     * `true` value allows client redirect with downgrade from https to plain http.
+     */
+    @KtorExperimentalAPI
+    @Volatile
+    var allowHttpsDowngrade: Boolean = false
+
+    companion object Feature : HttpClientFeature<HttpRedirect, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
-        override fun prepare(block: Unit.() -> Unit): HttpRedirect = HttpRedirect()
+        override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
             scope.feature(HttpSend)!!.intercept { origin ->
@@ -40,11 +47,14 @@ class HttpRedirect {
                     return@intercept origin
                 }
 
-                handleCall(origin)
+                handleCall(origin, feature.allowHttpsDowngrade)
             }
         }
 
-        private suspend fun Sender.handleCall(origin: HttpClientCall): HttpClientCall {
+        private suspend fun Sender.handleCall(
+            origin: HttpClientCall,
+            allowHttpsDowngrade: Boolean
+        ): HttpClientCall {
             if (!origin.response.status.isRedirect()) return origin
 
             var call = origin
@@ -57,18 +67,18 @@ class HttpRedirect {
                     takeFrom(origin.request)
                     url.parameters.clear()
 
+                    location?.let { url.takeFrom(it) }
+
                     /**
                      * Disallow redirect with a security downgrade.
                      */
-                    if (originProtocol.isSecure() && !url.protocol.isSecure()) {
+                    if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
                         return call
                     }
 
                     if (originAuthority != url.authority) {
                         headers.remove(HttpHeaders.Authorization)
                     }
-
-                    location?.let { url.takeFrom(it) }
                 }
 
                 call = execute(requestBuilder)
