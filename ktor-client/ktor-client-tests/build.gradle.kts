@@ -116,9 +116,11 @@ if (!ideaActive) {
 }
 
 rootProject.allprojects {
-    val tasks = tasks.matching { it.name in testTasks }
-    configure(tasks) {
-        dependsOn(startTestServer)
+    if (path.contains("ktor-client")) {
+        val tasks = tasks.matching { it.name in testTasks }
+        configure(tasks) {
+            dependsOn(startTestServer)
+        }
     }
 }
 
