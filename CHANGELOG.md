@@ -36,6 +36,7 @@
 * Introduced localPort route that is always tied to actual socket port (#1392)
 * Fixed cookie expiration date parsing (#1390)
 * Server authentication feature's phases are now public (#1160)
+* Fixed auth header resending after redirect (#1467)
 
 # 1.2.6
 > 25 Nov 2019
