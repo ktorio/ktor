@@ -171,6 +171,49 @@ class HttpRedirectMockedTest {
         }
     }
 
+    @Test
+    fun prohibitedRedirectHttpMethodCheck(): Unit = clientTest(MockEngine) {
+        config {
+            server {
+                "http://localhost/child"
+            }
+        }
+
+        test { client ->
+            client.get<HttpResponse>("http://localhost/path").let { response ->
+                assertEquals("OK", response.readText())
+            }
+
+            assertFailsWith<RedirectResponseException> {
+                client.post<HttpResponse>("http://localhost/path").let { response ->
+                    assertEquals("OK", response.readText())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun allowedRedirectHttpMethodCheck(): Unit = clientTest(MockEngine) {
+        config {
+            server {
+                "http://localhost/child"
+            }
+            install(HttpRedirect) {
+                checkHttpMethod = false
+            }
+        }
+
+        test { client ->
+            client.get<HttpResponse>("http://localhost/path").let { response ->
+                assertEquals("OK", response.readText())
+            }
+
+            client.post<HttpResponse>("http://localhost/path").let { response ->
+                assertEquals("OK", response.readText())
+            }
+        }
+    }
+
     private fun HttpClientConfig<MockEngineConfig>.server(block: (HttpRequestData) -> String) {
         engine {
             addHandler { request ->
