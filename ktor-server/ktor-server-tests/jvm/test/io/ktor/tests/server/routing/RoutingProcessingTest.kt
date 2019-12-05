@@ -448,6 +448,45 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun `local port route processing`(): Unit = withTestApplication {
+        application.routing {
+            route("/") {
+                // TestApplicationRequest.local defaults to 80 in the absence of headers
+                // so connections paths to port 80 in tests should work, whereas other ports shouldn't
+                localPort(80) {
+                    get("http") {
+                        call.respond("received")
+                    }
+                }
+                localPort(443) {
+                    get("https") {
+                        fail("shouldn't be received")
+                    }
+                }
+            }
+        }
+
+        // accepts calls to the specified port
+        handleRequest(HttpMethod.Get, "/http").apply {
+            assertEquals("received", response.content)
+        }
+
+        // ignores calls to different ports
+        handleRequest(HttpMethod.Get, "/https").apply {
+            assertNull(response.content)
+        }
+
+        // I tried to write a test to confirm that it ignores the HTTP Host header,
+        // but I couldn't get it to work without adding headers, because
+        // [io.ktor.server.testing.TestApplicationRequest.local] is hard-coded to
+        // extract the value of those headers.
+        // (even though, according to docs, it shouldn't; this should be done by `origin`)
+
+        // I also tried to create a test listening to multiple ports, but I couldn't get it
+        // to work because of the same reason above.
+    }
+
+    @Test
     fun `routing with tracing`() = withTestApplication {
         var trace: RoutingResolveTrace? = null
         application.routing {
