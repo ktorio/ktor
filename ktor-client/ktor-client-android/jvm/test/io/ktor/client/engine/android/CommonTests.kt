@@ -5,7 +5,6 @@
 package io.ktor.client.engine.android
 
 import io.ktor.client.tests.*
-import org.junit.*
 
 class AndroidCookiesTest : CookiesTest(Android)
 

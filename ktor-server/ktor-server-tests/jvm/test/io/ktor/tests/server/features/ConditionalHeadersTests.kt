@@ -38,28 +38,28 @@ class ETagsTest {
     }
 
     @Test
-    fun testNoConditions() = withConditionalApplication {
+    fun testNoConditions(): Unit = withConditionalApplication {
         val result = handleRequest {}
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
 
     @Test
-    fun testIfMatchConditionAccepted() = withConditionalApplication {
+    fun testIfMatchConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag1")
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchConditionFailed() = withConditionalApplication {
+    fun testIfMatchConditionFailed(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag2")
         }
@@ -68,7 +68,7 @@ class ETagsTest {
     }
 
     @Test
-    fun testIfNoneMatchConditionAccepted() = withConditionalApplication {
+    fun testIfNoneMatchConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag1")
         }
@@ -77,7 +77,7 @@ class ETagsTest {
     }
 
     @Test
-    fun testIfNoneMatchWeakConditionAccepted() = withConditionalApplication {
+    fun testIfNoneMatchWeakConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
         }
@@ -86,29 +86,29 @@ class ETagsTest {
     }
 
     @Test
-    fun testIfNoneMatchConditionFailed() = withConditionalApplication {
+    fun testIfNoneMatchConditionFailed(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchStar() = withConditionalApplication {
+    fun testIfMatchStar(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "*")
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfNoneMatchStar() = withConditionalApplication {
+    fun testIfNoneMatchStar(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "*")
         }
@@ -120,7 +120,7 @@ class ETagsTest {
     }
 
     @Test
-    fun testIfNoneMatchListConditionFailed() = withConditionalApplication {
+    fun testIfNoneMatchListConditionFailed(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
         }
@@ -129,29 +129,29 @@ class ETagsTest {
     }
 
     @Test
-    fun testIfNoneMatchListConditionSuccess() = withConditionalApplication {
+    fun testIfNoneMatchListConditionSuccess(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchListConditionAccepted() = withConditionalApplication {
+    fun testIfMatchListConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.OK, result.response.status())
         assertEquals("response", result.response.content)
-        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchListConditionFailed() = withConditionalApplication {
+    fun testIfMatchListConditionFailed(): Unit = withConditionalApplication {
         val result = handleRequest {
             addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
@@ -166,7 +166,8 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
-        fun zones(): List<Array<Any>> = listOf(arrayOf<Any>("GMT", ZoneId.of("GMT")), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
+        fun zones(): List<Array<Any>> =
+            listOf(arrayOf<Any>("GMT", ZoneId.of("GMT")), arrayOf<Any>("SomeLocal", ZoneId.of("GMT+1")))
     }
 
     private val date = ZonedDateTime.now(zone)!!
@@ -185,7 +186,7 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 
     @Test
-    fun testNoHeaders() = withConditionalApplication {
+    fun testNoHeaders(): Unit = withConditionalApplication {
         handleRequest(HttpMethod.Get, "/").let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
@@ -193,8 +194,13 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 
     @Test
-    fun testIfModifiedSinceEq() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString()) }).let { result ->
+    fun testIfModifiedSinceEq(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
         }
@@ -212,7 +218,12 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString()) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.IfModifiedSince,
+                    date.toHttpDateString()
+                )
+            }.let { result ->
                 assertEquals(HttpStatusCode.NotModified, result.response.status())
                 assertNull(result.response.content)
             }
@@ -220,72 +231,287 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 
     @Test
-    fun testIfModifiedSinceLess() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.minusDays(1).toHttpDateString()) }).let { result ->
+    fun testIfModifiedSinceLess(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.minusDays(1).toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
         }
     }
 
     @Test
-    fun testIfModifiedSinceGt() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.plusDays(1).toHttpDateString()) }).let { result ->
+    fun testIfModifiedSinceGt(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
-        }
-    }
-
-    // this test is disabled since non-GMT timezones are strictly prohibited by the specification
-    fun testIfModifiedSinceTimeZoned() = withConditionalApplication {
-        val expectedDate = date.toHttpDateString()
-        val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
-
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date).replace("MT", "MSK")) }).let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
-        }
-
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.plusDays(1)).replace("MT", "MSK")) }).let { result ->
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
-            assertNull(result.response.content)
-        }
-
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.minusDays(1)).replace("MT", "MSK")) }).let { result ->
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals(expectedDate, result.response.headers[HttpHeaders.LastModified])
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceEq() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toHttpDateString()) }).let { result ->
+    fun testIfUnModifiedSinceEq(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceLess() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.minusDays(1).toHttpDateString()) }).let { result ->
+    fun testIfUnModifiedSinceLess(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.minusDays(1).toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
             assertNull(result.response.content)
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceGt() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.plusDays(1).toHttpDateString()) }).let { result ->
+    fun testIfUnModifiedSinceGt(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+        }.let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
+        }
+    }
+
+    @Test
+    fun testIfUnmodifiedSinceIllegal(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                "zzz"
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                "zzz"
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                "zzz"
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                "zzz"
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+            assertEquals(null, result.response.content)
+        }
+    }
+
+    @Test
+    fun testIfUnmodifiedSinceMultiple(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                ""
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+            assertNull(result.response.content)
+        }
+    }
+
+    @Test
+    fun testIfModifiedSinceMultiple(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                ""
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(2).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
+        }
+    }
+
+    @Test
+    fun testBoth(): Unit = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                ""
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                ""
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+            assertEquals(null, result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+        }.let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertEquals(null, result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(
+                HttpHeaders.IfModifiedSince,
+                date.plusDays(1).toHttpDateString()
+            )
+            addHeader(
+                HttpHeaders.IfUnmodifiedSince,
+                date.plusDays(-1).toHttpDateString()
+            )
+        }.let { result ->
+            // both conditions are not met but actually it is not clear which one should win
+            // so we declare the order
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertEquals(null, result.response.content)
         }
     }
 }
 
 
 class LastModifiedVersionTest {
-    private fun temporaryDefaultTimezone(timeZone : TimeZone, block : () -> Unit) {
-        val originalTimeZone : TimeZone = TimeZone.getDefault()
+    private fun temporaryDefaultTimezone(timeZone: TimeZone, block: () -> Unit) {
+        val originalTimeZone: TimeZone = TimeZone.getDefault()
         TimeZone.setDefault(timeZone)
         try {
             block()
@@ -294,15 +520,18 @@ class LastModifiedVersionTest {
         }
     }
 
-    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion : (Date) -> LastModifiedVersion) {
+    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion: (Date) -> LastModifiedVersion) {
         // setup: any non-zero-offset-Timezone will do
         temporaryDefaultTimezone(TimeZone.getTimeZone("GMT+08:00")) {
 
             // guard: local default timezone needs to be different from GMT for the problem to manifest
-            assertTrue(TimeZone.getDefault().rawOffset != 0, "invalid test setup - local timezone is GMT: ${TimeZone.getDefault()}")
+            assertTrue(
+                TimeZone.getDefault().rawOffset != 0,
+                "invalid test setup - local timezone is GMT: ${TimeZone.getDefault()}"
+            )
 
             // setup: last modified for file
-            val expectedLastModified : Date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").parse("2018-03-04 15:12:23 GMT")
+            val expectedLastModified: Date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").parse("2018-03-04 15:12:23 GMT")
 
             // setup: object to test
             val lastModifiedVersion = constructLastModifiedVersion(expectedLastModified)
@@ -320,26 +549,26 @@ class LastModifiedVersionTest {
 
     @Test
     fun lastModifiedHeaderFromDateIsIndependentOfLocalTimezone() {
-        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input: Date ->
             LastModifiedVersion(input)
         }
     }
 
     @Test
     fun lastModifiedHeaderFromLocalDateTimeIsIndependentOfLocalTimezone() {
-        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input: Date ->
             LastModifiedVersion(ZonedDateTime.ofInstant(input.toInstant(), ZoneId.systemDefault()))
         }
     }
 
     @get:Rule
-    val temporaryFolder = TemporaryFolder()
+    val temporaryFolder: TemporaryFolder = TemporaryFolder()
 
     @Test
     fun lastModifiedHeaderFromFileTimeIsIndependentOfLocalTimezone() {
-        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input: Date ->
             // setup: create file
-            val file : File = temporaryFolder.newFile("foo.txt").apply {
+            val file: File = temporaryFolder.newFile("foo.txt").apply {
                 setLastModified(input.time)
             }
 

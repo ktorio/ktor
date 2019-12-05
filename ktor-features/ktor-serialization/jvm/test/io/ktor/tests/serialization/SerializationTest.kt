@@ -344,7 +344,7 @@ class SerializationTest {
             post("/") {
                 val result = try {
                     call.receive<NullValues>().toString()
-                } catch (expected: JsonParsingException) {
+                } catch (expected: JsonDecodingException) {
                     "OK"
                 }
                 call.respondText(result)

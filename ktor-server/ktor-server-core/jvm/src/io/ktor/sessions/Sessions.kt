@@ -10,25 +10,25 @@ import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
- * Sessions reature that provides a mechanism to persist information between requests.
+ * Sessions feature that provides a mechanism to persist information between requests.
  * @property providers list of session providers
  */
-class Sessions(val providers: List<SessionProvider>) {
+class Sessions(val providers: List<SessionProvider<*>>) {
     /**
      * Sessions configuration builder
      */
     class Configuration {
-        private val registered = ArrayList<SessionProvider>()
+        private val registered = ArrayList<SessionProvider<*>>()
 
         /**
          * List of session providers to be registered
          */
-        val providers: List<SessionProvider> get() = registered.toList()
+        val providers: List<SessionProvider<*>> get() = registered.toList()
 
         /**
          * Register a session [provider]
          */
-        fun register(provider: SessionProvider) {
+        fun register(provider: SessionProvider<*>) {
             registered.firstOrNull { it.name == provider.name }?.let { alreadyRegistered ->
                 throw IllegalArgumentException("There is already registered session provider with " +
                     "name ${provider.name}: $alreadyRegistered")
@@ -56,9 +56,7 @@ class Sessions(val providers: List<SessionProvider>) {
             // Capture data in the attribute's value
             pipeline.intercept(ApplicationCallPipeline.Features) {
                 val providerData = sessions.providers.associateBy({ it.name }) {
-                    val receivedValue = it.transport.receive(call)
-                    val unwrapped = it.tracker.load(call, receivedValue)
-                    SessionProviderData(unwrapped, unwrapped != null, it)
+                    it.receiveSessionData(call)
                 }
                 val sessionData = SessionData(sessions, providerData)
                 call.attributes.put(SessionKey, sessionData)
@@ -74,20 +72,8 @@ class Sessions(val providers: List<SessionProvider>) {
                     return@intercept
                 }
 
-                sessionData.providerData.forEach { (_, data) ->
-                    when {
-                        data.value != null -> {
-                            val value = data.value
-                            value ?: throw IllegalStateException("Session data shouldn't be null in Modified state")
-                            val wrapped = data.provider.tracker.store(call, value)
-                            data.provider.transport.send(call, wrapped)
-                        }
-                        data.incoming && data.value == null -> {
-                            /* Deleted session should be cleared off */
-                            data.provider.transport.clear(call)
-                            data.provider.tracker.clear(call)
-                        }
-                    }
+                sessionData.providerData.values.forEach { data ->
+                    data.sendSessionData(call)
                 }
 
                 sessionData.commit()
@@ -103,7 +89,12 @@ class Sessions(val providers: List<SessionProvider>) {
  * @throws MissingApplicationFeatureException
  */
 val ApplicationCall.sessions: CurrentSession
-    get() = attributes.getOrNull(SessionKey) ?: throw MissingApplicationFeatureException(Sessions.key)
+    get() = attributes.getOrNull(SessionKey) ?: reportMissingSession()
+
+private fun ApplicationCall.reportMissingSession(): Nothing {
+    application.feature(Sessions) // ensure the feature is installed
+    throw SessionNotYetConfiguredException()
+}
 
 /**
  * Represents a container for all session instances
@@ -169,7 +160,7 @@ inline fun <reified T> CurrentSession.getOrSet(name: String = findName(T::class)
 }
 
 private data class SessionData(val sessions: Sessions,
-                               val providerData: Map<String, SessionProviderData>) : CurrentSession {
+                               val providerData: Map<String, SessionProviderData<*>>) : CurrentSession {
 
     private var committed = false
 
@@ -188,9 +179,14 @@ private data class SessionData(val sessions: Sessions,
             throw TooLateSessionSetException()
         }
         val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        setTyped(providerData, value)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <S : Any> setTyped(data: SessionProviderData<S>, value: Any?) {
         if (value != null)
-            providerData.provider.tracker.validate(value)
-        providerData.value = value
+            data.provider.tracker.validate(value as S)
+        data.value = value as S
     }
 
     override fun get(name: String): Any? {
@@ -204,7 +200,28 @@ private data class SessionData(val sessions: Sessions,
     }
 }
 
-private data class SessionProviderData(var value: Any?, val incoming: Boolean, val provider: SessionProvider)
+private suspend fun <S : Any> SessionProvider<S>.receiveSessionData(call: ApplicationCall): SessionProviderData<S> {
+    val receivedValue = transport.receive(call)
+    val unwrapped = tracker.load(call, receivedValue)
+    return SessionProviderData(unwrapped, unwrapped != null, this)
+}
+
+private suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: ApplicationCall) {
+    val value = value
+    when {
+        value != null -> {
+            val wrapped = provider.tracker.store(call, value)
+            provider.transport.send(call, wrapped)
+        }
+        incoming -> {
+            /* Deleted session should be cleared off */
+            provider.transport.clear(call)
+            provider.tracker.clear(call)
+        }
+    }
+}
+
+private data class SessionProviderData<S : Any>(var value: S?, val incoming: Boolean, val provider: SessionProvider<S>)
 
 private val SessionKey = AttributeKey<SessionData>("SessionKey")
 
@@ -214,3 +231,12 @@ private val SessionKey = AttributeKey<SessionData>("SessionKey")
 @InternalAPI
 class TooLateSessionSetException :
     IllegalStateException("It's too late to set session: response most likely already has been sent")
+
+/**
+ * This exception is thrown when a session is asked too early before the [Sessions] feature had chance to configure it.
+ * For example, in a phase before [ApplicationCallPipeline.Features] or in a feature installed before [Sessions] into
+ * the same phase.
+ */
+@InternalAPI
+class SessionNotYetConfiguredException :
+    IllegalStateException("Sessions are not yet ready: you are asking it to early before the Sessions feature.")

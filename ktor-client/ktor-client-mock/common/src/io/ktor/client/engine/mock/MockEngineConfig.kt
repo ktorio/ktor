@@ -7,12 +7,18 @@ package io.ktor.client.engine.mock
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
+import kotlin.coroutines.*
 
 /**
  * Single [HttpClientCall] to [HttpResponse] mapper.
  */
-typealias MockRequestHandler = suspend (request: HttpRequestData) -> HttpResponseData
+typealias MockRequestHandler = suspend MockRequestHandleScope.(request: HttpRequestData) -> HttpResponseData
+
+/**
+ * Scope for [MockRequestHandler].
+ */
+class MockRequestHandleScope(internal val callContext: CoroutineContext)
 
 /**
  * [HttpClientEngineConfig] for [MockEngine].

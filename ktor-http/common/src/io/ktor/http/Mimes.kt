@@ -1223,4 +1223,4 @@ internal fun loadMimes(): List<Pair<String, ContentType>> {
     }.toList()
 }
 
-internal val mimes: List<Pair<String, ContentType>> get() = loadMimes()
+internal val mimes: List<Pair<String, ContentType>> by lazy { loadMimes() }

@@ -6,7 +6,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -30,7 +30,7 @@ class CommonLoggingTest {
         test { client ->
             var failed = false
             try {
-                val response = client.get<HttpResponse>()
+                client.get<HttpResponse>()
             } catch (_: Throwable) {
                 failed = true
             }
@@ -64,15 +64,13 @@ class CommonLoggingTest {
 
         test { client ->
             var failed = false
-            val response = client.get<HttpResponse>()
-            try {
-                response.receive<String>()
-            } catch (_: CustomError) {
-                failed = true
+            client.get<HttpStatement>().execute {
+                try {
+                    it.receive<String>()
+                } catch (_: CustomError) {
+                    failed = true
+                }
             }
-
-            response.close()
-            response.coroutineContext[Job]!!.join()
 
             assertTrue(failed, "Exception is missing.")
 

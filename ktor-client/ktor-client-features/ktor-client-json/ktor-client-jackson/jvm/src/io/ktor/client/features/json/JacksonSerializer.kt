@@ -11,9 +11,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 
-class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
+class JacksonSerializer(jackson: ObjectMapper = jacksonObjectMapper(), block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
 
-    private val backend = jacksonObjectMapper().apply(block)
+    private val backend = jackson.apply(block)
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent =
         TextContent(backend.writeValueAsString(data), contentType)

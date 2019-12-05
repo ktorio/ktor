@@ -9,6 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -51,7 +52,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
 
         // check everything was installed in original
         val originalRequest = runBlocking {
-            originalClient.execute(HttpRequestBuilder())
+            originalClient.request<HttpResponse>(HttpRequestBuilder())
         }.request
         assertEquals("/empty", originalRequest.url.fullPath)
 
@@ -73,7 +74,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         // check the custom feature remained installed
         // and that we override the DefaultRequest
         val newRequest = runBlocking {
-            newClient.execute(HttpRequestBuilder())
+            newClient.request<HttpResponse>(HttpRequestBuilder())
         }.request
         assertEquals("/hello", newRequest.url.fullPath)
 

@@ -6,13 +6,15 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlin.jvm.*
 
 /**
- * Represents a cooke value
+ * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
+ * A cookie with neither [expires] nor [maxAge] is a session cookie.
  *
  * @property name
  * @property value
- * @property encoding - cookie encoding type
+ * @property encoding - cookie encoding type [CookieEncoding]
  * @property maxAge number of seconds to keep cookie
  * @property expires date when it expires
  * @property domain for which it is set
@@ -25,6 +27,7 @@ data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+    @get:JvmName("getMaxAgeInt")
     val maxAge: Int = 0,
     val expires: GMTDate? = null,
     val domain: String? = null,
@@ -32,7 +35,11 @@ data class Cookie(
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
     val extensions: Map<String, String?> = emptyMap()
-)
+) {
+    @Suppress("unused", "KDocMissingDocumentation")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun getMaxAge(): Int = maxAge
+}
 
 /**
  * Cooke encoding strategy

@@ -12,12 +12,13 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
 }
 
-public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientJvmEngine {
+public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientEngineBase {
 	public fun <init> (Lio/ktor/client/engine/okhttp/OkHttpConfig;)V
 	public fun close ()V
 	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
 	public fun getConfig ()Lio/ktor/client/engine/okhttp/OkHttpConfig;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 }
 
 public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/client/HttpClientEngineContainer {
@@ -26,7 +27,9 @@ public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException {
+public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
 	public fun <init> (Lio/ktor/http/cio/websocket/Frame;)V
+	public fun createCopy ()Lio/ktor/client/engine/okhttp/UnsupportedFrameTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
 }
 

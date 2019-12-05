@@ -6,15 +6,14 @@ package io.ktor.request
 
 import io.ktor.http.*
 import io.ktor.util.*
-import java.util.*
-import java.util.concurrent.*
+import io.ktor.util.collections.*
 
 /**
  * Server request's cookies
  * @property request application request to fetch cookies from
  */
 open class RequestCookies(protected val request: ApplicationRequest) {
-    private val map = ConcurrentHashMap<Pair<CookieEncoding, String>, String>()
+    private val map = ConcurrentMap<Pair<CookieEncoding, String>, String>()
 
     /**
      * RAW cookie values, not decoded so could have percent encoded values, quotes, escape characters and so on.

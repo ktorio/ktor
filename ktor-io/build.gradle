@@ -1,13 +1,6 @@
 kotlin {
     targets {
-        def current = []
-        if (project.ext.ideaActive) {
-            current = [posix]
-        } else {
-            current = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
-        }
-
-        configure(current) {
+        configure(project.ext.nativeTargets) {
             compilations.main.cinterops {
                 bits { defFile = file("posix/interop/bits.def") }
                 sockets { defFile = file("posix/interop/sockets.def") }
@@ -18,13 +11,7 @@ kotlin {
             }
         }
     }
-
-//    infra {
-//        shared {
-//            compilations.main.cinterops {
-//                bits { defFile = file("posix/interop/bits.def") }
-//                sockets { defFile = file("posix/interop/sockets.def") }
-//            }
-//        }
-//    }
+    sourceSets.commonTest.dependencies {
+        api project(":ktor-test-dispatcher")
+    }
 }

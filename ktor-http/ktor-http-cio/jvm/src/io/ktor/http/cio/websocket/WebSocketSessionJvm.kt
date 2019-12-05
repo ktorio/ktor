@@ -54,11 +54,9 @@ actual interface WebSocketSession : CoroutineScope {
     /**
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     actual fun terminate()
-
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    @Suppress("ACTUAL_FUNCTION_WITH_DEFAULT_ARGUMENTS")
-    actual suspend fun close(cause: Throwable? = null)
 }

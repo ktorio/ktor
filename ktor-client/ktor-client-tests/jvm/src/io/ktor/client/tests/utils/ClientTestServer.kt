@@ -23,6 +23,7 @@ internal fun Application.tests() {
     contentTestServer()
     fullFormTest()
     redirectTest()
+    featuresTest()
 
     routing {
         post("/echo") {

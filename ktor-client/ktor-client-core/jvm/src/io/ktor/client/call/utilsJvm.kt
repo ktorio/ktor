@@ -6,14 +6,16 @@ package io.ktor.client.call
 
 import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import java.net.*
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient],
  * an [url] and an optional [block] configuring a [HttpRequestBuilder].
  */
-suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall = call {
-    this.url.takeFrom(url)
-    block()
-}
+@Deprecated(
+    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(url, block)] instead.",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("this.request<HttpResponse>(url, block)", "io.ktor.client.statement.*")
+)
+suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+    error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(url, block)] instead.")

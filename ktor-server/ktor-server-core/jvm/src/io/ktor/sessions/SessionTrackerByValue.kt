@@ -14,8 +14,8 @@ import kotlin.reflect.*
  * @property type is a session instance type
  * @property serializer session serializer
  */
-class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializer) : SessionTracker {
-    override suspend fun load(call: ApplicationCall, transport: String?): Any? {
+class SessionTrackerByValue<S : Any>(val type: KClass<S>, val serializer: SessionSerializer<S>) : SessionTracker<S> {
+    override suspend fun load(call: ApplicationCall, transport: String?): S? {
         return transport?.let { serialized ->
             try {
                 serializer.deserialize(serialized)
@@ -26,12 +26,12 @@ class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializ
         }
     }
 
-    override suspend fun store(call: ApplicationCall, value: Any): String {
+    override suspend fun store(call: ApplicationCall, value: S): String {
         val serialized = serializer.serialize(value)
         return serialized
     }
 
-    override fun validate(value: Any) {
+    override fun validate(value: S) {
         if (!type.javaObjectType.isAssignableFrom(value.javaClass)) {
             throw IllegalArgumentException("Value for this session tracker expected to be of type $type but was $value")
         }

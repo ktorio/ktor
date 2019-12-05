@@ -12,7 +12,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import java.nio.charset.Charset
+import io.ktor.utils.io.charsets.*
+import kotlin.text.Charsets
 
 /**
  * Functional type for accepted content types contributor

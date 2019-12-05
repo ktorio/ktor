@@ -10,13 +10,15 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
 import org.junit.*
@@ -30,6 +32,7 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
+import kotlin.io.use
 import kotlin.test.*
 
 
@@ -284,7 +287,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     private fun withUrl(
-        url: String, port: Int,
+        urlString: String, port: Int,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) = runBlocking {
@@ -296,7 +299,10 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 followRedirects = false
                 expectSuccess = false
             }.use { client ->
-                client.call(url, builder).response.use { response ->
+                client.request<HttpStatement> {
+                    url.takeFrom(urlString)
+                    builder()
+                }.execute { response ->
                     block(response, port)
                 }
             }
@@ -313,10 +319,12 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 expectSuccess = false
                 engine {
                     pipelining = true
-                    sslContextFactory = SslContextFactory(true)
+                    sslContextFactory = SslContextFactory.Client(true)
                 }
-            }.use { httpClient ->
-                httpClient.call(urlString = url, block = builder).response.use { response ->
+            }.use { client ->
+                client.request<HttpStatement>(url) {
+                    builder()
+                }.execute { response ->
                     block(response, port)
                 }
             }

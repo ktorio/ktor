@@ -39,7 +39,7 @@ class WebSocketTest {
                         if (!frame.frameType.controlFrame) {
                             send(frame.copy())
                             flush()
-                            terminate()
+                            cancel()
                         }
                     }
                 }
@@ -103,7 +103,7 @@ class WebSocketTest {
                             assertEquals("Hello", frame.buffer.copy().array().toString(Charsets.UTF_8))
                             send(frame.copy())
                             flush()
-                            terminate()
+                            cancel()
                         }
                     }
                 }

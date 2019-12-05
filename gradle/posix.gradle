@@ -52,8 +52,13 @@ kotlin {
                 fromPreset(presets.iosArm64, 'iosArm64')
                 fromPreset(presets.iosArm32, 'iosArm32')
                 fromPreset(presets.iosX64, 'iosX64')
+                fromPreset(presets.tvosArm64, 'tvosArm64')
+                fromPreset(presets.tvosX64, 'tvosX64')
+                fromPreset(presets.watchosArm32, 'watchosArm32')
+                fromPreset(presets.watchosArm64, 'watchosArm64')
+                fromPreset(presets.watchosX86, 'watchosX86')
 
-                project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64]
+                project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
             }
 
             def crossCompileTargets = [linuxX64, macosX64, mingwX64]
@@ -91,11 +96,11 @@ kotlin {
         posixMain { dependsOn commonMain }
 
         if (!project.ext.ideaActive) {
-            configure([iosArm32Main, iosArm64Main, iosX64Main, macosX64Main, linuxX64Main, mingwX64Main]) {
+            configure(project.ext.nativeTargets.collect { getByName(it.name + 'Main') }) {
                 dependsOn posixMain
             }
 
-            configure([iosArm32Test, iosArm64Test, iosX64Test, macosX64Test, linuxX64Test, mingwX64Test]) {
+            configure(project.ext.nativeTargets.collect { getByName(it.name + 'Test') }) {
                 dependsOn posixTest
             }
         }

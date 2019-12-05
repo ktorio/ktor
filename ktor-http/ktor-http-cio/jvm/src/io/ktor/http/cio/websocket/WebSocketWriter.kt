@@ -28,7 +28,7 @@ class WebSocketWriter(
 ) : CoroutineScope {
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
-    private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
+    private val queue = actor<Any>(context = CoroutineName("ws-writer"), capacity = 8) {
         pool.useInstance { writeLoop(it) }
     }
 
@@ -49,11 +49,10 @@ class WebSocketWriter(
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
+        } catch (t: Throwable) {
+            queue.close(t)
         } finally {
-            (coroutineContext[Job] as? CompletableJob)?.apply {
-                complete()
-            }
-            close()
+            queue.close(CancellationException("WebSocket closed.", null))
             writeChannel.close()
         }
 
@@ -77,19 +76,21 @@ class WebSocketWriter(
 
         // initially serializer has at least one message queued
         while (true) {
-            poll@ while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
+            while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
                 val message = poll() ?: break
                 when (message) {
                     is FlushRequest -> flush = message
                     is Frame.Close -> {
                         serializer.enqueue(message)
-                        close()
                         closeSent = true
-                        break@poll
                     }
                     is Frame -> serializer.enqueue(message)
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
+            }
+
+            if (closeSent) {
+                queue.close()
             }
 
             if (!serializer.hasOutstandingBytes && buffer.position() == 0) break
@@ -143,6 +144,7 @@ class WebSocketWriter(
     /**
      * Closes the message queue
      */
+    @Deprecated("Will be removed")
     fun close() {
         queue.close()
     }

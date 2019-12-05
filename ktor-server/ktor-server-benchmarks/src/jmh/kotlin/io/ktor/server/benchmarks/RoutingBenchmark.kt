@@ -10,7 +10,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import org.openjdk.jmh.annotations.*
-import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 class RoutingBenchmark {
@@ -34,7 +33,7 @@ class RoutingBenchmark {
 
     @TearDown
     fun stopServer() {
-        testHost.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        testHost.stop(0L, 0L)
     }
 
     @Benchmark

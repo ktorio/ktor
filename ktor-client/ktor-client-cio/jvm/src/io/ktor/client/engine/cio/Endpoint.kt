@@ -13,13 +13,15 @@ import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import java.io.*
 import java.net.*
+import java.nio.channels.*
 import kotlin.coroutines.*
 
 internal class Endpoint(
-    host: String,
-    port: Int,
+    private val host: String,
+    private val port: Int,
     private val overProxy: Boolean,
     private val secure: Boolean,
     private val config: CIOEngineConfig,
@@ -27,8 +29,6 @@ internal class Endpoint(
     override val coroutineContext: CoroutineContext,
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
-    private val address = InetSocketAddress(host, port)
-
     private val connections: AtomicInt = atomic(0)
     private val tasks: Channel<RequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<RequestTask> = Channel()
@@ -142,6 +142,10 @@ internal class Endpoint(
 
         try {
             repeat(retryAttempts) {
+                val address = InetSocketAddress(host, port)
+
+                if (address.isUnresolved) throw UnresolvedAddressException()
+
                 val connection = withTimeoutOrNull(connectTimeout) { connectionFactory.connect(address) }
                     ?: return@repeat
 

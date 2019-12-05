@@ -6,7 +6,6 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
@@ -63,7 +62,7 @@ internal class OkHttpWebsocketSession(
                 }
             }
         } finally {
-            websocket.close(CloseReason.Codes.UNEXPECTED_CONDITION.code.toInt(), "Client failure")
+            websocket.close(CloseReason.Codes.INTERNAL_ERROR.code.toInt(), "Client failure")
         }
     }
 
@@ -87,7 +86,8 @@ internal class OkHttpWebsocketSession(
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
         _incoming.close()
-        outgoing.close()
+        outgoing.close(CancellationException("WebSocket session closed with code " +
+            "${CloseReason.Codes.byCode(code.toShort())?.toString() ?: code}."))
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
@@ -101,15 +101,20 @@ internal class OkHttpWebsocketSession(
     override suspend fun flush() {
     }
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         coroutineContext.cancel()
-    }
-
-    @KtorExperimentalAPI
-    override suspend fun close(cause: Throwable?) {
-        outgoing.close(cause)
     }
 }
 
 @Suppress("KDocMissingDocumentation")
-class UnsupportedFrameTypeException(frame: Frame) : IllegalArgumentException("Unsupported frame type: $frame")
+class UnsupportedFrameTypeException(
+    private val frame: Frame
+) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
+    override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {
+        it.initCause(this)
+    }
+}

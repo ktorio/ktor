@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -18,7 +19,7 @@ class FullFormTest : ClientLoader() {
     @Test
     fun testGet() = clientTests {
         test { client ->
-            val text = client.call {
+            val text = client.request<HttpStatement> {
                 url {
                     protocol = URLProtocol.HTTP
                     host = "127.0.0.1"
@@ -26,7 +27,7 @@ class FullFormTest : ClientLoader() {
                     encodedPath = "/forms/hello"
                     method = HttpMethod.Get
                 }
-            }.use { it.response.readText() }
+            }.execute { it.readText() }
 
             assertEquals("Hello, client", text)
         }
@@ -35,7 +36,7 @@ class FullFormTest : ClientLoader() {
     @Test
     fun testPost() = clientTests {
         test { client ->
-            val text = client.call {
+            val text = client.request<HttpStatement> {
                 url {
                     protocol = URLProtocol.HTTP
                     host = "127.0.0.1"
@@ -44,7 +45,7 @@ class FullFormTest : ClientLoader() {
                     method = HttpMethod.Post
                     body = "Hello, server"
                 }
-            }.use { it.response.readText() }
+            }.execute { it.readText() }
 
             assertEquals("Hello, client", text)
         }

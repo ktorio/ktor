@@ -6,8 +6,10 @@ package io.ktor.client.features.websocket
 
 import io.ktor.client.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+
 /**
  * Open [DefaultClientWebSocketSession].
  */
@@ -38,16 +40,21 @@ suspend fun HttpClient.webSocketSession(
  */
 suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
-    val session = webSocketSession(request)
+) {
+    val session = request<HttpStatement> {
+        url {
+            protocol = URLProtocol.WS
+            port = protocol.defaultPort
+        }
+        request()
+    }
 
-    try {
-        session.block()
-    } catch (cause: Throwable) {
-        session.close(cause)
-        throw cause
-    } finally {
-        session.close(null)
+    session.receive<DefaultClientWebSocketSession, Unit> {
+        try {
+            block(it)
+        } finally {
+            it.close()
+        }
     }
 }
 
@@ -57,21 +64,14 @@ suspend fun HttpClient.webSocket(
 suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
-    val session = webSocketSession(method, host, port, path) {
-        url.protocol = URLProtocol.WS
-        url.port = port
-        request()
-    }
-
-    try {
-        session.block()
-    } catch (cause: Throwable) {
-        session.close(cause)
-        throw cause
-    } finally {
-        session.close(null)
-    }
+) {
+    webSocket(
+        {
+            this.method = method
+            url("ws", host, port, path)
+            request()
+        }, block
+    )
 }
 
 /**
@@ -80,23 +80,16 @@ suspend fun HttpClient.webSocket(
 suspend fun HttpClient.webSocket(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit {
-    val session = webSocketSession(HttpMethod.Get) {
-        url.protocol = URLProtocol.WS
-        url.port = port
+) {
+    webSocket(
+        HttpMethod.Get, "localhost", DEFAULT_PORT, "/", {
+            url.protocol = URLProtocol.WS
+            url.port = port
 
-        url.takeFrom(urlString)
-        request()
-    }
-
-    try {
-        session.block()
-    } catch (cause: Throwable) {
-        session.close(cause)
-        throw cause
-    } finally {
-        session.close(null)
-    }
+            url.takeFrom(urlString)
+            request()
+        }, block
+    )
 }
 
 /**
@@ -118,7 +111,9 @@ suspend fun HttpClient.ws(
  * Open [block] with [DefaultClientWebSocketSession].
  */
 suspend fun HttpClient.ws(
-    urlString: String, request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
+    urlString: String,
+    request: HttpRequestBuilder.() -> Unit = {},
+    block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(urlString, request, block)
 
 /**
@@ -126,11 +121,13 @@ suspend fun HttpClient.ws(
  */
 suspend fun HttpClient.wss(
     request: HttpRequestBuilder.() -> Unit, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit = webSocket({
-    url.protocol = URLProtocol.WSS
-    url.port = url.protocol.defaultPort
-    request()
-}, block = block)
+): Unit = webSocket(
+    {
+        url.protocol = URLProtocol.WSS
+        url.port = url.protocol.defaultPort
+        request()
+    }, block = block
+)
 
 /**
  * Open [block] with secure [DefaultClientWebSocketSession].
@@ -138,10 +135,12 @@ suspend fun HttpClient.wss(
 suspend fun HttpClient.wss(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit = wss({
-    url.takeFrom(urlString)
-    request()
-}, block = block)
+): Unit = wss(
+    {
+        url.takeFrom(urlString)
+        request()
+    }, block = block
+)
 
 /**
  * Open [block] with secure [DefaultClientWebSocketSession].
@@ -149,9 +148,12 @@ suspend fun HttpClient.wss(
 suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit = webSocket(method, host, port, path, request = {
-    url.protocol = URLProtocol.WSS
-    url.port = port
+): Unit = webSocket(
+    method, host, port, path, request = {
+        url.protocol = URLProtocol.WSS
+        url.port = port
 
-    request()
-}, block = block)
+        request()
+    }, block = block
+)
+

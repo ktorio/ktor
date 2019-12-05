@@ -52,11 +52,13 @@ fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
-private val contentTypesByExtensions: Map<String, List<ContentType>> =
+private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
     caseInsensitiveMap<List<ContentType>>().apply { putAll(mimes.asSequence().groupByPairs()) }
+}
 
-private val extensionsByContentType: Map<ContentType, List<String>> =
+private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
     mimes.asSequence().map { (first, second) -> second to first }.groupByPairs()
+}
 
 internal fun List<ContentType>.selectDefault(): ContentType {
     val contentType = firstOrNull() ?: ContentType.Application.OctetStream

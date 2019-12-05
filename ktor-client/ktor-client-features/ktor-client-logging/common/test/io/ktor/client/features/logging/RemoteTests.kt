@@ -6,6 +6,7 @@ package io.ktor.client.features.logging
 
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
@@ -21,7 +22,7 @@ class RemoteTests : ClientLoader() {
 
         test { client ->
             val size = 4 * 1024 * 1024
-            client.get<HttpResponse>("$TEST_SERVER/bytes?size=$size").use {
+            client.get<HttpStatement>("$TEST_SERVER/bytes?size=$size").execute {
                 assertEquals(size, it.readBytes().size)
             }
         }

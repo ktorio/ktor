@@ -78,24 +78,13 @@ class DefaultWebSocketSessionImpl(
         raw.flush()
     }
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         context.cancel()
-        raw.terminate()
-    }
-
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    @KtorExperimentalAPI
-    override suspend fun close(cause: Throwable?) {
-        if (closed.value) return
-        val reason = when (cause) {
-            null -> NORMAL_CLOSE
-            is ClosedReceiveChannelException, is ClosedSendChannelException -> null
-            else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, cause.message ?: cause.javaClass.name)
-        }
-
-        reason?.let { send(Frame.Close(it)) }
+        raw.cancel()
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
@@ -145,29 +134,33 @@ class DefaultWebSocketSessionImpl(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            for (frame in outgoingToBeProcessed) {
-                if (frame is Frame.Close) {
-                    sendCloseSequence(frame.readReason())
-                    break
-                }
-
-                raw.outgoing.send(frame)
-            }
+            outgoingProcessorLoop()
         } catch (ignore: ClosedSendChannelException) {
         } catch (ignore: ClosedReceiveChannelException) {
         } catch (ignore: CancellationException) {
         } catch (ignore: ChannelIOException) {
         } catch (cause: Throwable) {
-            outgoingToBeProcessed.close()
-            raw.close(cause)
+            outgoingToBeProcessed.cancel(CancellationException("Failed to send frame", cause))
+            raw.closeExceptionally(cause)
         } finally {
-            outgoingToBeProcessed.close()
+            outgoingToBeProcessed.cancel()
             raw.close()
         }
     }
 
+    private suspend fun outgoingProcessorLoop() {
+        for (frame in outgoingToBeProcessed) {
+            if (frame is Frame.Close) {
+                sendCloseSequence(frame.readReason())
+                break
+            }
+
+            raw.outgoing.send(frame)
+        }
+    }
+
     private suspend fun sendCloseSequence(reason: CloseReason?) {
-        if (!closed.compareAndSet(false, true)) return
+        if (!tryClose()) return
         context.complete()
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
@@ -178,6 +171,8 @@ class DefaultWebSocketSessionImpl(
             closeReasonRef.complete(reasonToSend)
         }
     }
+
+    private fun tryClose(): Boolean = closed.compareAndSet(false, true)
 
     private fun runOrCancelPinger() {
         val interval = pingIntervalMillis
@@ -208,13 +203,11 @@ class DefaultWebSocketSessionImpl(
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
-    val failure = try {
+    try {
         val me: DefaultWebSocketSession = this@run
         me.handler()
-        null
+        close()
     } catch (failure: Throwable) {
-        failure
+        closeExceptionally(failure)
     }
-
-    close(failure)
 }

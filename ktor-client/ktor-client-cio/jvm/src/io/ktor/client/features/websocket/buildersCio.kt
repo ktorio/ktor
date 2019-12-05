@@ -7,6 +7,7 @@ package io.ktor.client.features.websocket
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
@@ -37,7 +38,7 @@ suspend fun HttpClient.webSocketRaw(
     try {
         session.block()
     } catch (cause: Throwable) {
-        session.close(cause)
+        session.closeExceptionally(cause)
     } finally {
         session.close()
     }

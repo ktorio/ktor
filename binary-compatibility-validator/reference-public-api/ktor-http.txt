@@ -249,7 +249,8 @@ public final class io/ktor/http/Cookie {
 	public final fun getExpires ()Lio/ktor/util/date/GMTDate;
 	public final fun getExtensions ()Ljava/util/Map;
 	public final fun getHttpOnly ()Z
-	public final fun getMaxAge ()I
+	public final synthetic fun getMaxAge ()I
+	public final fun getMaxAgeInt ()I
 	public final fun getName ()Ljava/lang/String;
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getSecure ()Z
@@ -427,6 +428,8 @@ public final class io/ktor/http/HttpHeaderValueParserKt {
 
 public final class io/ktor/http/HttpHeaders {
 	public static final field INSTANCE Lio/ktor/http/HttpHeaders;
+	public final fun checkHeaderName (Ljava/lang/String;)V
+	public final fun checkHeaderValue (Ljava/lang/String;)V
 	public final fun getALPN ()Ljava/lang/String;
 	public final fun getAccept ()Ljava/lang/String;
 	public final fun getAcceptCharset ()Ljava/lang/String;
@@ -511,6 +514,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getTrailer ()Ljava/lang/String;
 	public final fun getTransferEncoding ()Ljava/lang/String;
 	public final fun getUnsafeHeaders ()[Ljava/lang/String;
+	public final fun getUnsafeHeadersList ()Ljava/util/List;
 	public final fun getUpgrade ()Ljava/lang/String;
 	public final fun getUserAgent ()Ljava/lang/String;
 	public final fun getVary ()Ljava/lang/String;
@@ -524,6 +528,7 @@ public final class io/ktor/http/HttpHeaders {
 	public final fun getXForwardedServer ()Ljava/lang/String;
 	public final fun getXHttpMethodOverride ()Ljava/lang/String;
 	public final fun getXRequestId ()Ljava/lang/String;
+	public final fun getXTotalCount ()Ljava/lang/String;
 	public final fun isUnsafe (Ljava/lang/String;)Z
 }
 
@@ -700,6 +705,18 @@ public final class io/ktor/http/HttpUrlEncodedKt {
 	public static final fun formUrlEncodeTo (Ljava/util/List;Ljava/lang/Appendable;)V
 	public static final fun parseUrlEncodedParameters (Ljava/lang/String;Ljava/nio/charset/Charset;I)Lio/ktor/http/Parameters;
 	public static synthetic fun parseUrlEncodedParameters$default (Ljava/lang/String;Ljava/nio/charset/Charset;IILjava/lang/Object;)Lio/ktor/http/Parameters;
+}
+
+public final class io/ktor/http/IllegalHeaderNameException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun getPosition ()I
+}
+
+public final class io/ktor/http/IllegalHeaderValueException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun getHeaderValue ()Ljava/lang/String;
+	public final fun getPosition ()I
 }
 
 public final class io/ktor/http/IpParserKt {
@@ -1074,16 +1091,29 @@ public final class io/ktor/http/content/CachingOptionsKt {
 }
 
 public final class io/ktor/http/content/EntityTagVersion : io/ktor/http/content/Version {
-	public fun <init> (Ljava/lang/String;)V
+	public static final field Companion Lio/ktor/http/content/EntityTagVersion$Companion;
+	public synthetic fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Z)V
 	public fun appendHeadersTo (Lio/ktor/http/HeadersBuilder;)V
 	public fun check (Lio/ktor/http/Headers;)Lio/ktor/http/content/VersionCheckResult;
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lio/ktor/http/content/EntityTagVersion;
-	public static synthetic fun copy$default (Lio/ktor/http/content/EntityTagVersion;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/content/EntityTagVersion;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Lio/ktor/http/content/EntityTagVersion;
+	public static synthetic fun copy$default (Lio/ktor/http/content/EntityTagVersion;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/http/content/EntityTagVersion;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEtag ()Ljava/lang/String;
+	public final fun getWeak ()Z
 	public fun hashCode ()I
+	public final fun match (Lio/ktor/http/content/EntityTagVersion;)Z
+	public final fun match (Ljava/util/List;)Lio/ktor/http/content/VersionCheckResult;
+	public final fun noneMatch (Ljava/util/List;)Lio/ktor/http/content/VersionCheckResult;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/content/EntityTagVersion$Companion {
+	public final fun getSTAR ()Lio/ktor/http/content/EntityTagVersion;
+	public final fun parse (Ljava/lang/String;)Ljava/util/List;
+	public final fun parseSingle (Ljava/lang/String;)Lio/ktor/http/content/EntityTagVersion;
 }
 
 public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/content/Version {
@@ -1097,6 +1127,8 @@ public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/conte
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLastModified ()Lio/ktor/util/date/GMTDate;
 	public fun hashCode ()I
+	public final fun ifModifiedSince (Ljava/util/List;)Z
+	public final fun ifUnmodifiedSince (Ljava/util/List;)Z
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1224,6 +1256,7 @@ public final class io/ktor/http/content/VersionCheckResult : java/lang/Enum {
 }
 
 public final class io/ktor/http/content/VersionsKt {
+	public static final fun EntityTagVersion (Ljava/lang/String;)Lio/ktor/http/content/EntityTagVersion;
 	public static final fun getVersionListProperty ()Lio/ktor/util/AttributeKey;
 	public static final fun getVersions (Lio/ktor/http/content/OutgoingContent;)Ljava/util/List;
 	public static final fun setVersions (Lio/ktor/http/content/OutgoingContent;Ljava/util/List;)V

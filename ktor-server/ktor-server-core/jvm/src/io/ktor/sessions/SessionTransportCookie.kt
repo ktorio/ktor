@@ -1,15 +1,13 @@
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
 package io.ktor.sessions
 
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.date.*
-import java.time.*
-import java.time.temporal.*
-import java.util.concurrent.*
+
+const val DEFAULT_SESSION_MAX_AGE: Long = 7L * 24 * 3600 // 7 days
 
 /**
  * SessionTransport that adds a Set-Cookie header and reads Cookie header
@@ -32,14 +30,17 @@ class SessionTransportCookie(
 
     override fun send(call: ApplicationCall, value: String) {
         val now = GMTDate()
-        val maxAge = configuration.duration?.let { it[ChronoUnit.SECONDS].coerceAtMost(Int.MAX_VALUE.toLong()) }
-        val expires = maxAge?.let { now + TimeUnit.SECONDS.toMillis(maxAge) }
+        val maxAge = configuration.maxAgeInSeconds
+        val expires = when {
+            maxAge == 0L -> null
+            else -> now + maxAge * 1000L
+        }
 
         val cookie = Cookie(
             name,
             transformers.transformWrite(value),
             configuration.encoding,
-            maxAge?.toInt() ?: 0,
+            maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
             expires,
             configuration.domain,
             configuration.path,
@@ -65,9 +66,28 @@ class SessionTransportCookie(
  */
 class CookieConfiguration {
     /**
-     * Cookie time to live duration
+     * Cookie time to live duration or `null` for session cookies.
+     * Session cookies are client-driven. For example, a web browser usually removes session
+     * cookies at browser or window close unless the session is restored.
      */
-    var duration: TemporalAmount? = Duration.ofDays(7)
+    @Suppress("DEPRECATION", "unused")
+    @Deprecated("Use maxAge or maxAgeInSeconds instead.", level = DeprecationLevel.HIDDEN)
+    var duration: java.time.temporal.TemporalAmount?
+        get() = duration
+        set(newDuration) {
+            duration = newDuration
+        }
+
+    /**
+     * Cookie time to live duration or 0 for session cookies.
+     * Session cookies are client-driven. For example, a web browser usually removes session
+     * cookies at browser or window close unless the session is restored.
+     */
+    var maxAgeInSeconds: Long = DEFAULT_SESSION_MAX_AGE
+        set(newMaxAge) {
+            require(newMaxAge >= 0) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+            field = newMaxAge
+        }
 
     /**
      * Cookie encoding

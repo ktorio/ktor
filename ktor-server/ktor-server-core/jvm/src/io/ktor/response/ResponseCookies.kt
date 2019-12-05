@@ -35,11 +35,30 @@ class ResponseCookies(
     /**
      * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
      */
+    @Deprecated("Convert maxAge to Long")
     fun append(
         name: String,
         value: String,
         encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Int = 0,
+        maxAge: Int,
+        expires: GMTDate? = null,
+        domain: String? = null,
+        path: String? = null,
+        secure: Boolean = false,
+        httpOnly: Boolean = false,
+        extensions: Map<String, String?> = emptyMap()
+    ) {
+        append(name, value, encoding, maxAge.toLong(), expires, domain, path, secure, httpOnly, extensions)
+    }
+
+    /**
+     * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
+     */
+    fun append(
+        name: String,
+        value: String,
+        encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+        maxAge: Long = 0,
         expires: GMTDate? = null,
         domain: String? = null,
         path: String? = null,
@@ -52,7 +71,7 @@ class ResponseCookies(
                 name,
                 value,
                 encoding,
-                maxAge,
+                maxAge.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                 expires,
                 domain,
                 path,

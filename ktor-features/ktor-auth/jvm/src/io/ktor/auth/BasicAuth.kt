@@ -9,7 +9,8 @@ import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.nio.charset.*
+import io.ktor.utils.io.charsets.*
+import kotlin.text.Charsets
 
 /**
  * Represents a Basic authentication provider

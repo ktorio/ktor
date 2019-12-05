@@ -42,13 +42,11 @@ expect interface WebSocketSession : CoroutineScope {
     /**
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     fun terminate()
-
-    /**
-     * Close session with the specified [cause] or with no reason if `null`
-     */
-    @KtorExperimentalAPI
-    suspend fun close(cause: Throwable? = null)
 }
 
 /**
@@ -66,14 +64,41 @@ suspend fun WebSocketSession.send(content: String): Unit = send(Frame.Text(conte
 suspend fun WebSocketSession.send(content: ByteArray): Unit = send(Frame.Binary(true, content))
 
 /**
- * Send a close frame with the specified [reason]. May suspend if outgoing channel is full or
- * may throw an exception if it is already closed. The specified [reason] could be ignored if there was already
- * close frame sent (for example in reply to a peer close frame).
+ * Send a close frame with the specified [reason]. May suspend if outgoing channel is full.
+ * The specified [reason] could be ignored if there was already
+ * close frame sent (for example in reply to a peer close frame). It also may do nothing when a session or an outgoing
+ * channel is already closed due to any reason.
  */
-suspend fun WebSocketSession.close(reason: CloseReason) {
-    send(Frame.Close(reason))
+suspend fun WebSocketSession.close(reason: CloseReason = CloseReason(CloseReason.Codes.NORMAL, "")) {
     try {
+        send(Frame.Close(reason))
         flush()
-    } catch (ignore: ClosedSendChannelException) {
+    } catch (_: Throwable) {
     }
+}
+
+/**
+ * Closes with reason depending on [cause] or normally if [cause] is `null`.
+ * This is going to be removed. Close with a particular reason or terminate instead.
+ */
+@Deprecated("Close with reason or terminate instead.")
+suspend fun WebSocketSession.close(cause: Throwable?) {
+    if (cause == null) {
+        close()
+    } else {
+        closeExceptionally(cause)
+    }
+}
+
+/**
+ * Closes session with normal or error close reason, depending on whether [cause] is cancellation or not.
+ */
+@InternalAPI
+suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
+    val reason = when (cause) {
+        is CancellationException -> CloseReason(CloseReason.Codes.NORMAL, "")
+        else -> CloseReason(CloseReason.Codes.INTERNAL_ERROR, cause.toString())
+    }
+
+    close(reason)
 }

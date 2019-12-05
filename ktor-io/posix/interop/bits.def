@@ -1,11 +1,12 @@
 package = io.ktor.utils.io.bits.internal.utils
-compilerOpts.mingw_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DMINGW
-compilerOpts.linux_x64 = -DM_ALLOW_UNALIGNED_ACCESS
-compilerOpts.macos_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
-compilerOpts.ios_arm32 = -DM_DARWIN
-compilerOpts.ios_arm64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
-compilerOpts.ios_x64 = -DM_ALLOW_UNALIGNED_ACCESS -DM_DARWIN
-compilerOpts.android_arm64 = -DM_ALLOW_UNALIGNED_ACCESS
+compilerOpts.ios = -DM_DARWIN
+compilerOpts.osx = -DM_DARWIN
+compilerOpts.watchos = -DM_DARWIN
+compilerOpts.tvos = -DM_DARWIN
+compilerOpts.mingw = -DMINGW
+compilerOpts.x64 = -DM_ALLOW_UNALIGNED_ACCESS
+compilerOpts.x86 = -DM_ALLOW_UNALIGNED_ACCESS
+compilerOpts.arm64 = -DM_ALLOW_UNALIGNED_ACCESS
 ---
 
 #ifdef M_ALLOW_UNALIGNED_ACCESS

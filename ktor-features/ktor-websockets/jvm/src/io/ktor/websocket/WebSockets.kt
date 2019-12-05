@@ -5,6 +5,7 @@
 package io.ktor.websocket
 
 import io.ktor.application.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -24,14 +25,14 @@ import kotlin.coroutines.*
  * }
  * ```
  *
- * @param pingInterval duration between pings or `null` to disable pings
- * @param timeout write/ping timeout after that a connection will be closed
+ * @param pingIntervalMillis duration between pings or `null` to disable pings
+ * @param timeoutMillis write/ping timeout after that a connection will be closed
  * @param maxFrameSize maximum frame that could be received or sent
  * @param masking whether masking need to be enabled (useful for security)
  */
 class WebSockets(
-    val pingInterval: Duration?,
-    val timeout: Duration,
+    val pingIntervalMillis: Long,
+    val timeoutMillis: Long,
     val maxFrameSize: Long,
     val masking: Boolean
 ) : CoroutineScope {
@@ -39,6 +40,12 @@ class WebSockets(
 
     override val coroutineContext: CoroutineContext
         get() = parent
+
+    init {
+        require(pingIntervalMillis >= 0)
+        require(timeoutMillis >= 0)
+        require(maxFrameSize > 0)
+    }
 
     private fun shutdown() {
         parent.complete()
@@ -51,12 +58,34 @@ class WebSockets(
         /**
          * Duration between pings or `null` to disable pings
          */
-        var pingPeriod: Duration? = null
+        @Suppress("unused")
+        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+        var pingPeriod: Duration?
+            get() = pingPeriod
+            set(new) {
+                pingPeriod = new
+            }
+
+        /**
+         * Duration between pings or `0` to disable pings
+         */
+        var pingPeriodMillis: Long = 0
 
         /**
          * write/ping timeout after that a connection will be closed
          */
-        var timeout: Duration = Duration.ofSeconds(15)
+        @Suppress("unused")
+        @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+        var timeout: Duration
+            get() = timeout
+            set(new) {
+                timeout = new
+            }
+
+        /**
+         * write/ping timeout after that a connection will be closed
+         */
+        var timeoutMillis: Long = 15000L
 
         /**
          * Maximum frame that could be received or sent
@@ -78,7 +107,7 @@ class WebSockets(
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)
             with(config) {
-                val webSockets = WebSockets(pingPeriod, timeout, maxFrameSize, masking)
+                val webSockets = WebSockets(pingPeriodMillis, timeoutMillis, maxFrameSize, masking)
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
                     webSockets.shutdown()

@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 fun routing(rootPath: String = "") = Route(parent = null, selector = RootRouteSelector(rootPath))
@@ -41,7 +40,7 @@ class RoutingResolveTest {
     @Test
     fun `custom root path`() {
         val root = routing("context/path")
-        val child = root.handle(PathSegmentConstantRouteSelector("foo"))
+        root.handle(PathSegmentConstantRouteSelector("foo"))
 
         on("resolving /") {
             val result = resolve(root, "/")

@@ -5,7 +5,7 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -20,13 +20,12 @@ internal actual fun HttpClient.platformDefaultTransformers() {
                 val response = object : InputStream() {
                     override fun read(): Int = stream.read()
                     override fun read(b: ByteArray, off: Int, len: Int): Int = stream.read(b, off, len)
-
                     override fun available(): Int = stream.available()
 
                     override fun close() {
                         super.close()
                         stream.close()
-                        context.response.close()
+                        context.response.complete()
                     }
                 }
                 proceedWith(HttpResponseContainer(info, response))

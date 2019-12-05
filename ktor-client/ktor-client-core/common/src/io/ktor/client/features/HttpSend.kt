@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 
 /**
  * HttpSend pipeline interceptor function
@@ -58,7 +59,6 @@ class HttpSend(
                 context.body = content
 
                 val sender = DefaultSender(feature.maxSendCount, scope)
-
                 var currentCall = sender.execute(context)
                 var callChanged: Boolean
 
@@ -80,14 +80,30 @@ class HttpSend(
         }
     }
 
-    private class DefaultSender(private val maxSendCount: Int, private val client: HttpClient) : Sender {
+    private class DefaultSender(
+        private val maxSendCount: Int,
+        private val client: HttpClient
+    ) : Sender {
         private var sentCount: Int = 0
+        private var currentCall: HttpClientCall? = null
 
         override suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall {
-            if (sentCount >= maxSendCount) throw SendCountExceedException("Max send count $maxSendCount exceeded")
-            sentCount++
+            currentCall?.cancel()
 
-            return client.sendPipeline.execute(requestBuilder, requestBuilder.body) as HttpClientCall
+            if (sentCount >= maxSendCount) {
+                throw SendCountExceedException("Max send count $maxSendCount exceeded")
+            }
+
+            sentCount++
+            val sendResult = client.sendPipeline.execute(
+                requestBuilder, requestBuilder.body
+            )
+
+            val call = sendResult as? HttpClientCall
+                ?: error("Failed to execute send pipeline. Expected to got [HttpClientCall], but received $sendResult")
+
+            currentCall = call
+            return call
         }
     }
 }

@@ -35,6 +35,8 @@ class MockedTests {
                     append(HttpHeaders.ContentType, "application/json")
                 }
             }
+
+            assertEquals("content", response)
         }
     }
 

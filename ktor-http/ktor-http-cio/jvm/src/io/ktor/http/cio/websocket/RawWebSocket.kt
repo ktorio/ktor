@@ -46,20 +46,22 @@ class RawWebSocket(
         coroutineContext[Job]?.invokeOnCompletion {
             reader.cancel()
         }
+
+        // this was extracted from WebSocketReader (was broken).
+        writer.outgoing.invokeOnClose {
+            socketJob.complete()
+        }
     }
 
     override suspend fun flush(): Unit = writer.flush()
 
+    @Deprecated(
+        "Use cancel() instead.",
+        ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
+    )
     override fun terminate() {
         outgoing.close()
         socketJob.complete()
-    }
-
-    override suspend fun close(cause: Throwable?) {
-        if (cause != null) {
-            socketJob.completeExceptionally(cause)
-            outgoing.close(cause)
-        } else terminate()
     }
 }
 
@@ -71,6 +73,6 @@ suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
         handler()
         writer.flush()
     } finally {
-        terminate()
+        cancel()
     }
 }
