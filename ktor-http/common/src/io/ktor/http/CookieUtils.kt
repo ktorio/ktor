@@ -4,6 +4,7 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
 import io.ktor.util.date.*
 
 /**
@@ -263,7 +264,7 @@ internal fun CookieDateBuilder.handleToken(token: String) {
  *
  *
  */
-class CookieDateParser {
+internal class CookieDateParser {
 
     private fun <T> checkFieldNotNull(source: String, name: String, field: T?) {
         if (null == field)
@@ -275,6 +276,9 @@ class CookieDateParser {
             throw InvalidCookieDateException(source, msg())
     }
 
+    /**
+     * Parses cookie expiration date from the [source].
+     */
     fun parse(source: String): GMTDate {
         val lexer = StringLexer(source)
         val builder = CookieDateBuilder()
@@ -334,6 +338,6 @@ internal class CookieDateBuilder {
 /**
  * Thrown when the date string doesn't satisfy the RFC6265 grammar
  */
-class InvalidCookieDateException(
+internal class InvalidCookieDateException(
     data: String, reason: String
 ) : IllegalStateException("Failed to parse date string: \"${data}\". Reason: \"$reason\"")

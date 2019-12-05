@@ -4,6 +4,7 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
 import io.ktor.util.date.*
 
 private val HTTP_DATE_FORMATS = listOf(
@@ -42,6 +43,7 @@ fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
  *
  * @see [fromHttpToGmtDate]
  */
+@KtorExperimentalAPI
 fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
     try {
         val parser = CookieDateParser()
