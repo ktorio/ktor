@@ -38,6 +38,21 @@ fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
 }
 
 /**
+ * Convert valid cookie date [String] to [GMTDate] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
+ *
+ * @see [fromHttpToGmtDate]
+ */
+fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
+    try {
+        val parser = CookieDateParser()
+        return parser.parse(this@with)
+    } catch (_: InvalidCookieDateException) {
+    }
+
+    return fromHttpToGmtDate()
+}
+
+/**
  * Convert [GMTDate] to valid http date [String]
  */
 fun GMTDate.toHttpDate(): String = buildString {
