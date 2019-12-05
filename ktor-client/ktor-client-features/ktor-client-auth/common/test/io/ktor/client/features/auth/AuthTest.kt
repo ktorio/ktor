@@ -6,10 +6,9 @@ package io.ktor.client.features.auth
 
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
@@ -25,14 +24,14 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/digest").use {
+            client.get<HttpStatement>("$TEST_SERVER/auth/digest").execute {
                 assertTrue(it.status.isSuccess())
             }
         }
     }
 
     @Test
-    fun testBasicAuth(): Unit = clientTests(listOf("js")) {
+    fun testBasicAuth() = clientTests(listOf("js")) {
         config {
             install(Auth) {
                 basic {
@@ -48,7 +47,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthWithoutNegotiation(): Unit = clientTests {
+    fun testBasicAuthWithoutNegotiation() = clientTests {
         config {
             install(Auth) {
                 basic {

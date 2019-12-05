@@ -111,4 +111,10 @@ internal class OkHttpWebsocketSession(
 }
 
 @Suppress("KDocMissingDocumentation")
-class UnsupportedFrameTypeException(frame: Frame) : IllegalArgumentException("Unsupported frame type: $frame")
+class UnsupportedFrameTypeException(
+    private val frame: Frame
+) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
+    override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {
+        it.initCause(this)
+    }
+}

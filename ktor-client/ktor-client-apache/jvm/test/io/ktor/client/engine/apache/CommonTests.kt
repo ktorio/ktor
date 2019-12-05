@@ -12,6 +12,4 @@ class ApacheMultithreadedTest : MultithreadedTest(Apache)
 
 class ApacheBuildersTest : BuildersTest(Apache)
 
-class ApacheFeaturesTest : FeaturesTest(Apache)
-
 class ApacheHttpClientTest : HttpClientTest(Apache)

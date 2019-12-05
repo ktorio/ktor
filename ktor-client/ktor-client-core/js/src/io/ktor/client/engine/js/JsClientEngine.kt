@@ -5,9 +5,8 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.engine.js.compatible.*
+import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.features.websocket.*
-import io.ktor.client.features.websocket.JsWebSocketSession
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -16,7 +15,6 @@ import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.w3c.dom.*
 import org.w3c.dom.events.*
-import org.w3c.fetch.Headers
 import kotlin.coroutines.*
 
 internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngineBase("ktor-js") {
@@ -36,17 +34,19 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
         val requestTime = GMTDate()
         val rawRequest = data.toRaw(callContext)
-        val rawResponse = fetch(data.url.toString(), rawRequest)
+        val rawResponse = commonFetch(data.url.toString(), rawRequest)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor()
         val version = HttpProtocolVersion.HTTP_1_1
 
+        val body = CoroutineScope(callContext).readBody(rawResponse)
+
         return HttpResponseData(
             status,
             requestTime,
             headers, version,
-            readBody(rawResponse, callContext),
+            body,
             callContext
         )
     }
@@ -77,7 +77,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         return HttpResponseData(
             HttpStatusCode.OK,
             requestTime,
-            io.ktor.http.Headers.Empty,
+            Headers.Empty,
             HttpProtocolVersion.HTTP_1_1,
             session,
             callContext
@@ -108,7 +108,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     }
 }
 
-private fun Headers.mapToKtor(): io.ktor.http.Headers = buildHeaders {
+private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }

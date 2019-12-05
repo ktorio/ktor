@@ -7,11 +7,11 @@ package io.ktor.client.features.compression
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 /**
  * Content-Encoding header support.
@@ -128,9 +128,11 @@ class ContentEncoding(
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) { (type, content) ->
                 if (content !is ByteReadChannel) return@intercept
 
-                with(feature) {
-                    proceedWith(HttpResponseContainer(type, context.decode(context.response.headers, content)))
+                val response = with(feature) {
+                    HttpResponseContainer(type, context.decode(context.response.headers, content))
                 }
+
+                proceedWith(response)
             }
         }
     }

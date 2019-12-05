@@ -47,10 +47,7 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
             }
         }
         val result = withPool {
-            val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
-            val result = response.readText().toInt()
-            response.close()
-            result
+            client.get<Int>("http://127.0.0.1:$serverPort")
         }.toSet().size
 
         assertEquals(TEST_SIZE, result)

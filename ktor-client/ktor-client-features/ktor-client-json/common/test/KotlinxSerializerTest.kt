@@ -112,11 +112,7 @@ class KotlinxSerializerTest : ClientLoader() {
         }
     }
 
-    /**
-     * Waiting for typeOf compiler implementation
-     */
     @Test
-    @Ignore
     fun testMultipleListSerializersWithClient() = clientTests {
         val testSerializer = KotlinxSerializer()
 

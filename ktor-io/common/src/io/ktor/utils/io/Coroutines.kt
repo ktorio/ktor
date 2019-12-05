@@ -113,7 +113,8 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
     context: CoroutineContext,
     channel: ByteChannel,
     attachJob: Boolean,
-    block: suspend S.() -> Unit): ChannelJob {
+    block: suspend S.() -> Unit
+): ChannelJob {
 
     val job = launch(context) {
         if (attachJob) {
@@ -130,10 +131,14 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
     return ChannelJob(job, channel)
 }
 
-private class ChannelScope(delegate: CoroutineScope,
-                           override val channel: ByteChannel) : ReaderScope, WriterScope, CoroutineScope by delegate
+private class ChannelScope(
+    delegate: CoroutineScope,
+    override val channel: ByteChannel
+) : ReaderScope, WriterScope, CoroutineScope by delegate
 
 private class ChannelJob(
-    delegate: Job,
+    private val delegate: Job,
     override val channel: ByteChannel
-) : ReaderJob, WriterJob, Job by delegate
+) : ReaderJob, WriterJob, Job by delegate {
+    override fun toString(): String = "ChannelJob[$delegate]"
+}

@@ -7,7 +7,6 @@ package io.ktor.client.engine.mock
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
@@ -36,6 +35,8 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
     val responseHistory: List<HttpResponseData> get() = _responseHistory
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val callContext = callContext()
+
         if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
         val handler = config.requestHandlers[invocationCount]
 
@@ -44,8 +45,7 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
             invocationCount %= config.requestHandlers.size
         }
 
-
-        val response = handler(data)
+        val response = handler(MockRequestHandleScope(callContext), data)
 
         _requestsHistory.add(data)
         _responseHistory.add(response)
@@ -69,7 +69,7 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
         /**
          * Create [MockEngine] instance with single request handler.
          */
-        operator fun invoke(handler: suspend (HttpRequestData) -> HttpResponseData): MockEngine =
+        operator fun invoke(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): MockEngine =
             MockEngine(MockEngineConfig().apply {
                 requestHandlers.add(handler)
             })

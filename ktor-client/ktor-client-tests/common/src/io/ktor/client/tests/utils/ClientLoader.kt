@@ -18,5 +18,8 @@ expect abstract class ClientLoader() {
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     )
 
+    /**
+     * Print coroutines in debug mode.
+     */
     fun dumpCoroutines()
 }

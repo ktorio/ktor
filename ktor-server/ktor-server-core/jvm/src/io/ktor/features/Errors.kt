@@ -6,6 +6,7 @@ package io.ktor.features
 
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 
@@ -31,8 +32,15 @@ class NotFoundException(message: String? = "Resource not found") : Exception(mes
  * @property parameterName of missing request parameter
  */
 @KtorExperimentalAPI
-class MissingRequestParameterException(val parameterName: String) :
-    BadRequestException("Request parameter $parameterName is missing")
+class MissingRequestParameterException(
+    val parameterName: String
+) : BadRequestException("Request parameter $parameterName is missing"),
+    CopyableThrowable<MissingRequestParameterException> {
+
+    override fun createCopy(): MissingRequestParameterException = MissingRequestParameterException(parameterName).also {
+        it.initCause(this)
+    }
+}
 
 /**
  * This exception is thrown when a required parameter with name [parameterName] couldn't be converted to the [type]
@@ -41,7 +49,14 @@ class MissingRequestParameterException(val parameterName: String) :
  */
 @KtorExperimentalAPI
 class ParameterConversionException(val parameterName: String, val type: String, cause: Throwable? = null) :
-    BadRequestException("Request parameter $parameterName couldn't be parsed/converted to $type", cause)
+    BadRequestException("Request parameter $parameterName couldn't be parsed/converted to $type", cause),
+    CopyableThrowable<ParameterConversionException> {
+
+    override fun createCopy(): ParameterConversionException =
+        ParameterConversionException(parameterName, type, this).also {
+            it.initCause(this)
+        }
+}
 
 /**
  * Thrown when content cannot be transformed to the desired type.
@@ -51,16 +66,30 @@ class ParameterConversionException(val parameterName: String, val type: String, 
 @KtorExperimentalAPI
 abstract class ContentTransformationException(message: String) : Exception(message)
 
-internal class CannotTransformContentToTypeException(type: KType) :
-    ContentTransformationException("Cannot transform this request's content to $type") {
+internal class CannotTransformContentToTypeException(
+    private val type: KType
+) : ContentTransformationException("Cannot transform this request's content to $type"),
+    CopyableThrowable<CannotTransformContentToTypeException> {
     @Suppress("unused")
     @Deprecated("Use KType instead", level = DeprecationLevel.HIDDEN)
     constructor(type: KClass<*>) : this(type.starProjectedType)
+
+    override fun createCopy(): CannotTransformContentToTypeException? =
+        CannotTransformContentToTypeException(type).also {
+            it.initCause(this)
+        }
 }
 
 /**
  * Thrown when there is no conversion for a content type configured.
  * HTTP status 415 Unsupported Media Type will be replied when this exception is thrown and not caught.
  */
-class UnsupportedMediaTypeException(contentType: ContentType) :
-    ContentTransformationException("Content type $contentType is not supported")
+class UnsupportedMediaTypeException(
+    private val contentType: ContentType
+) : ContentTransformationException("Content type $contentType is not supported"),
+    CopyableThrowable<UnsupportedMediaTypeException> {
+
+    override fun createCopy(): UnsupportedMediaTypeException? = UnsupportedMediaTypeException(contentType).also {
+        it.initCause(this)
+    }
+}

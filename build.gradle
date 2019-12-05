@@ -48,13 +48,10 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
-        classpath "kotlinx.team:kotlinx.team.infra:$infra_version"
         classpath "io.spring.gradle:dependency-management-plugin:$spring_dependency_management_version"
     }
 }
 
-
-apply plugin: 'kotlinx.team.infra'
 
 ext.configuredVersion = project.hasProperty("releaseVersion") ? project.releaseVersion : project.version
 ext.globalM2 = "$buildDir/m2"
@@ -109,7 +106,6 @@ allprojects {
             check(version, atomicfu_version, "atomicfu")
             check(version, coroutines_version, "coroutines")
             check(version, serialization_version, "serialization")
-//            check(version, kotlinx_io_version, "kotlinx-io")
         }
         kotlin_version = rootProject.properties['kotlin_snapshot_version']
         repositories {
@@ -211,7 +207,7 @@ if (build_snapshot_train) {
             exclude '**/*numberTest*'
             exclude '**/*testWithPause*'
             exclude '**/*WebSocketTest*'
-            exclude '**/*HugePost*'
+            exclude '**/*PostTest*'
         }
     }
 

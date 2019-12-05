@@ -6,7 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.application.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.tls.*
@@ -138,7 +138,7 @@ class CIOHttpsTest : TestWithKtor() {
     @Test
     fun external(): Unit = clientTest(CIO) {
         test { client ->
-            client.get<HttpResponse>("https://kotlinlang.org").use { response ->
+            client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
             }
         }
@@ -184,7 +184,7 @@ class CIOHttpsTest : TestWithKtor() {
             var received = 0
             client.async {
                 repeat(testSize) {
-                    client.get<HttpResponse>("https://www.facebook.com").use { response ->
+                    client.get<HttpStatement>("https://www.facebook.com").execute { response ->
                         assertTrue(response.status.isSuccess())
                         received++
                     }

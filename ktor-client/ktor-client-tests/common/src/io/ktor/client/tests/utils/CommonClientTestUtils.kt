@@ -6,7 +6,7 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.tests.utils.dispatcher.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
@@ -54,9 +54,10 @@ fun <T : HttpClientEngineConfig> clientTest(
     }
 
     try {
-        client.coroutineContext[Job]?.join()
+        val job = client.coroutineContext[Job]!!
+        job.join()
     } catch (cause: Throwable) {
-        client.cancel()
+        client.cancel("Test failed", cause)
         throw cause
     }
 }
