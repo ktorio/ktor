@@ -857,10 +857,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
 
             val responses = s.getInputStream().bufferedReader(Charsets.ISO_8859_1).lineSequence()
-                .filterNot {
-                    it.startsWith("Date") || it.startsWith("Server") || it.startsWith("Content-") || it.toIntOrNull() != null || it.isBlank() || it.startsWith(
-                        "Connection"
-                    )
+                .filterNot { line ->
+                    line.startsWith("Date") || line.startsWith("Server")
+                        || line.startsWith("Content-")
+                        || line.toIntOrNull() != null
+                        || line.isBlank()
+                        || line.startsWith("Connection")
+                        || line.startsWith("Keep-Alive")
                 }
                 .map { it.trim() }
                 .joinToString(separator = "\n").replace("200 OK", "200")
