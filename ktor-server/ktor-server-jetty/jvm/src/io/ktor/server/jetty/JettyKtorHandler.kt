@@ -96,11 +96,12 @@ internal class JettyKtorHandler(
                 try {
                     pipeline().execute(call)
                 } catch (cancelled: CancellationException) {
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    response.sendError(HttpServletResponse.SC_GONE)
+                    response.sendErrorIfNotCommitted(HttpServletResponse.SC_GONE)
                 } catch (channelFailed: ChannelIOException) {
                 } catch (t: Throwable) {
-                    call.respond(HttpStatusCode.InternalServerError)
+                    if (!response.isCommitted) {
+                        call.respond(HttpStatusCode.InternalServerError)
+                    }
                 } finally {
                     try {
                         request.asyncContext?.complete()
@@ -110,7 +111,13 @@ internal class JettyKtorHandler(
             }
         } catch (ex: Throwable) {
             environment.log.error("Application ${environment.application::class.java} cannot fulfill the request", ex)
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    private fun HttpServletResponse.sendErrorIfNotCommitted(status: Int) {
+        if (!isCommitted) {
+            sendError(status)
         }
     }
 }
