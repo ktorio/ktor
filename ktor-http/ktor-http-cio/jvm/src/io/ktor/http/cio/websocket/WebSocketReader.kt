@@ -9,10 +9,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.CancellationException
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 /**
@@ -34,7 +33,7 @@ class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(CoroutineName("ws-reader")) {
+    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
