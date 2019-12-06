@@ -107,7 +107,7 @@ class PosixIoTest {
         bind(acceptor, serverAddr.ptr.reinterpret(), sockaddr_in.size.convert()).let { rc ->
             if (rc != 0) {
                 val error = socket_get_error()
-                fail("bind() failed with error $error")
+                throw PosixException.forErrno(errno = error, posixFunctionName = "bind()")
             }
         }
         listen(acceptor, 10).checkError("listen()")
