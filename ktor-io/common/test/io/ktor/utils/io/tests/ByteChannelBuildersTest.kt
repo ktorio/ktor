@@ -11,7 +11,7 @@ import io.ktor.test.dispatcher.*
 
 class ByteChannelBuildersTest {
     @Test
-    fun testWriterCancelledByChannel() = testSuspend {
+    fun testWriterCancelledByChannel(): Unit = testSuspend {
         val context = Job()
         val scope = CoroutineScope(context)
 
@@ -24,7 +24,7 @@ class ByteChannelBuildersTest {
 
         context.complete()
         task.channel.cancel()
-        task.join()
+        context.join()
         assertTrue(task.isCancelled)
         assertTrue(context.isCompleted)
     }
