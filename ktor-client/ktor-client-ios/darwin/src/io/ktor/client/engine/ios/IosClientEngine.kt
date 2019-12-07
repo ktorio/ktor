@@ -15,7 +15,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import platform.CFNetwork.*
 import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
@@ -85,7 +84,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
             }
 
             val configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
-            configuration.setupProxy()
+            configuration.setupProxy(config)
             config.sessionConfig(configuration)
 
             val session = NSURLSession.sessionWithConfiguration(
@@ -121,25 +120,6 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                 session.dataTaskWithRequest(nativeRequest).resume()
             }
         }
-    }
-
-    private fun NSURLSessionConfiguration.setupProxy() {
-        val proxy = config.proxy ?: return
-        val url = proxy.url
-
-        val type = when (url.protocol) {
-            URLProtocol.HTTP -> kCFProxyTypeHTTP
-            URLProtocol.HTTPS -> kCFProxyTypeHTTPS
-            URLProtocol.SOCKS -> kCFProxyTypeSOCKS
-            else -> error("Proxy type ${url.protocol.name} is unsupported by iOS client engine.")
-        }
-
-        val port = url.port.toString()
-        connectionProxyDictionary = mapOf(
-            kCFProxyHostNameKey to url.host,
-            kCFProxyPortNumberKey to port,
-            kCFProxyTypeKey to type
-        )
     }
 }
 

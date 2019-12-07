@@ -9,13 +9,13 @@ kotlin {
 
             get("posixMain").dependsOn(posixIde)
         } else {
-            //configure(listOf(watchosArm32().compilations.get("main").defaultSourceSet)) {
-            //    kotlin.srcDir("iosArm32/src")
-            //}
+            configure(listOf(watchosArm32().compilations.get("main").defaultSourceSet)) {
+                kotlin.srcDir("iosArm32/src")
+            }
 
             configure(
                 listOf(
-                    //watchosArm64().compilations.get("main").defaultSourceSet,
+                    watchosArm64().compilations.get("main").defaultSourceSet,
                     tvosArm64().compilations.get("main").defaultSourceSet
                 )
             ) {
@@ -24,7 +24,7 @@ kotlin {
 
             configure(
                 listOf(
-                    //watchosX86().compilations.get("main").defaultSourceSet,
+                    watchosX86().compilations.get("main").defaultSourceSet,
                     tvosX64().compilations.get("main").defaultSourceSet
                 )
             ) {
