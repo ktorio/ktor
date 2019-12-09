@@ -34,9 +34,11 @@ fun clientTest(
 ) = testSuspend {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
-    @Suppress("UNCHECKED_CAST")
-    client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-        .use { client -> builder.test(client) }
+    repeat(builder.repeatCount) {
+        @Suppress("UNCHECKED_CAST")
+        client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+            .use { client -> builder.test(client) }
+    }
 }
 
 /**
@@ -47,18 +49,20 @@ fun <T : HttpClientEngineConfig> clientTest(
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = testSuspend {
     val builder = TestClientBuilder<T>().apply { block() }
-    val client = HttpClient(factory, block = builder.config)
+    repeat(builder.repeatCount) {
+        val client = HttpClient(factory, block = builder.config)
 
-    client.use {
-        builder.test(it)
-    }
+        client.use {
+            builder.test(it)
+        }
 
-    try {
-        val job = client.coroutineContext[Job]!!
-        job.join()
-    } catch (cause: Throwable) {
-        client.cancel("Test failed", cause)
-        throw cause
+        try {
+            val job = client.coroutineContext[Job]!!
+            job.join()
+        } catch (cause: Throwable) {
+            client.cancel("Test failed", cause)
+            throw cause
+        }
     }
 }
 
@@ -66,7 +70,8 @@ fun <T : HttpClientEngineConfig> clientTest(
 @Suppress("KDocMissingDocumentation")
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
-    var test: suspend (client: HttpClient) -> Unit = {}
+    var test: suspend (client: HttpClient) -> Unit = {},
+    var repeatCount: Int = 1
 )
 
 @InternalAPI
