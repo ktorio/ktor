@@ -107,9 +107,7 @@ class HttpRedirectMockedTest {
 
         test { client ->
             assertFailsWith<RedirectResponseException> {
-                client.get<HttpResponse>("https://localhost/path").let { response ->
-                    assertEquals("OK", response.readText())
-                }
+                client.get<String>("https://localhost/path")
             }
         }
     }
