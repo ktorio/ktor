@@ -55,20 +55,7 @@ class URLBuilder(
     private fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
         out.append("://")
-        user?.let { user ->
-            out.append(user.encodeURLParameter())
-            password?.let { password ->
-                out.append(":")
-                out.append(password.encodeURLParameter())
-            }
-            out.append("@")
-        }
-        out.append(host)
-
-        if (port != DEFAULT_PORT && port != protocol.defaultPort) {
-            out.append(":")
-            out.append(port.toString())
-        }
+        out.append(authority)
 
         out.appendUrlFullPath(encodedPath, parameters.build(), trailingQuery)
 
@@ -136,20 +123,7 @@ data class Url(
     override fun toString(): String = buildString {
         append(protocol.name)
         append("://")
-        if (user != null) {
-            append(user)
-            if (password != null) {
-                append(':')
-                append(password)
-            }
-            append('@')
-        }
-        if (specifiedPort == DEFAULT_PORT) {
-            append(host)
-        } else {
-            append(hostWithPort)
-        }
-
+        append(authority)
         append(fullPath)
 
         if (fragment.isNotEmpty()) {
@@ -166,21 +140,19 @@ data class Url(
  */
 val Url.authority: String
     get() = buildString {
-        user?.let {
-            append(it)
-        }
-        password?.let {
-            append(':')
-            append(it)
-        }
-
-        if (isNotEmpty()) {
+        if (user != null) {
+            append(user.encodeURLParameter())
+            if (password != null) {
+                append(':')
+                append(password.encodeURLParameter())
+            }
             append('@')
         }
-
-        append(host)
-        append(':')
-        append(port)
+        if (specifiedPort == DEFAULT_PORT) {
+            append(host)
+        } else {
+            append(hostWithPort)
+        }
     }
 
 /**
@@ -188,23 +160,18 @@ val Url.authority: String
  */
 val URLBuilder.authority: String
     get() = buildString {
-        user?.let {
-            append(it)
+        user?.let { user ->
+            append(user.encodeURLParameter())
+            password?.let { password ->
+                append(":")
+                append(password.encodeURLParameter())
+            }
+            append("@")
         }
-        password?.let {
-            append(':')
-            append(it)
-        }
-
-        if (isNotEmpty()) {
-            append('@')
-        }
-
         append(host)
-        append(':')
-        if (port == DEFAULT_PORT) {
-            append(protocol.defaultPort)
-        } else {
-            append(port)
+
+        if (port != DEFAULT_PORT && port != protocol.defaultPort) {
+            append(":")
+            append(port.toString())
         }
     }
