@@ -148,7 +148,7 @@ class HttpRedirectMockedTest {
 
         test { client ->
             suspend fun run(url: String, block: suspend (HttpResponse) -> Unit) {
-                client.get<HttpResponse>(url, { header(HttpHeaders.Authorization, "aab") }).let { block(it) }
+                block(client.get(url) { header(HttpHeaders.Authorization, "aab") })
             }
 
             val results = HashMap<String, String>()
@@ -164,7 +164,7 @@ class HttpRedirectMockedTest {
             assertEquals("aab", results["1"])
             assertEquals("aab", results["2"])
             assertEquals("", results["3"])
-            assertEquals("", results["4"])
+            assertEquals("aab", results["4"])
             assertEquals("", results["5"])
         }
     }
@@ -178,14 +178,10 @@ class HttpRedirectMockedTest {
         }
 
         test { client ->
-            client.get<HttpResponse>("http://localhost/path").let { response ->
-                assertEquals("OK", response.readText())
-            }
+            assertEquals("OK", client.get<HttpResponse>("http://localhost/path").readText())
 
             assertFailsWith<RedirectResponseException> {
-                client.post<HttpResponse>("http://localhost/path").let { response ->
-                    assertEquals("OK", response.readText())
-                }
+                assertEquals("OK", client.post<HttpResponse>("http://localhost/path").readText())
             }
         }
     }

@@ -156,4 +156,24 @@ class UrlTest {
 
         assertFails { testPort(-2) }
     }
+
+    @Test
+    fun testEscapeInUrls() {
+        val url = Url("https://google.com:80\\\\@yahoo.com/")
+
+        with(url) {
+            assertEquals("google.com", host)
+            assertEquals(80, port)
+            assertEquals(null, user)
+            assertEquals(null, password)
+        }
+
+        val url2 = Url("https://google.com:80\\@yahoo.com/")
+        with(url2) {
+            assertEquals("google.com", host)
+            assertEquals(80, port)
+            assertEquals(null, user)
+            assertEquals(null, password)
+        }
+    }
 }

@@ -10,6 +10,7 @@ import io.ktor.client.features.observer.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class FeaturesTest : ClientLoader() {
@@ -40,14 +41,14 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
-    fun bodyObserverTest() = clientTests {
+    fun testBodyObserver() = clientTests {
         val body = "Hello, world"
-        var observerExecuted = false
+        val task = Job()
         config {
             ResponseObserver { response ->
                 val text = response.receive<String>()
                 assertEquals(body, text)
-                observerExecuted = true
+                task.complete()
             }
         }
 
@@ -57,7 +58,7 @@ class FeaturesTest : ClientLoader() {
                 assertEquals(body, text)
             }
 
-            assertTrue(observerExecuted)
+            task.join()
         }
     }
 
