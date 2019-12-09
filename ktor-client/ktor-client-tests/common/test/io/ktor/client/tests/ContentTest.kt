@@ -79,6 +79,22 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
+    fun testEmptyContent() = clientTests(listOf("js")) {
+        val size = 0
+        val content = makeString(size)
+        repeatCount = 200
+        test { client ->
+            val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
+
+            assertArrayEquals(
+                "Test fail with size: $size",
+                content.toByteArray(),
+                response.toByteArray()
+            )
+        }
+    }
+
+    @Test
     fun testTextContent() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->

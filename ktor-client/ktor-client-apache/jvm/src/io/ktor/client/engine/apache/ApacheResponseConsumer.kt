@@ -28,6 +28,7 @@ internal class ApacheResponseConsumer(
 
     private val suspended = atomic(false)
     private val completed = atomic(false)
+    private val decoder = atomic<ContentDecoder?>(null)
 
     private val content = writer {
         channel.writeSuspendSession {
@@ -104,6 +105,7 @@ internal class ApacheResponseConsumer(
             current = continuation.getAndSet(null)
 
             if (current == null) {
+                this.decoder.value = decoder
                 return
             }
 
@@ -133,8 +135,10 @@ internal class ApacheResponseConsumer(
             continuation.value = it
             requestInput()
 
-            if (completed.value && continuation.compareAndSet(it, null)) {
-                null
+            val decoder = decoder.getAndSet(null)
+
+            if ((completed.value || decoder != null) && continuation.compareAndSet(it, null)) {
+                decoder
             } else {
                 COROUTINE_SUSPENDED
             }
