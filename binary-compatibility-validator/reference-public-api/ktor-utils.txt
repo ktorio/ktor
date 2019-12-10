@@ -197,9 +197,9 @@ public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
-public final class io/ktor/util/Lock : java/io/Closeable {
+public final class io/ktor/util/Lock {
 	public fun <init> ()V
-	public fun close ()V
+	public final fun close ()V
 	public final fun lock ()V
 	public final fun unlock ()V
 }
