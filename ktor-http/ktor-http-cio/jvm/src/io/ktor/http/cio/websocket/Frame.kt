@@ -61,7 +61,7 @@ actual sealed class Frame private actual constructor(
 
         actual constructor(reason: CloseReason) : this(buildPacket {
             writeShort(reason.code)
-            writeStringUtf8(reason.message)
+            writeText(reason.message)
         })
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         actual constructor() : this(Empty)
