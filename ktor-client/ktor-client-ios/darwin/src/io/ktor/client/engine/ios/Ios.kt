@@ -21,4 +21,6 @@ object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
 
     override fun create(block: IosClientEngineConfig.() -> Unit): HttpClientEngine =
         IosClientEngine(IosClientEngineConfig().apply(block))
+
+    override fun toString() = "Ios"
 }

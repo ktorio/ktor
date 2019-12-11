@@ -37,4 +37,6 @@ object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
 
         return CurlClientEngine(CurlClientEngineConfig().apply(block))
     }
+
+    override fun toString() = "Curl"
 }
