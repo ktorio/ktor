@@ -60,7 +60,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testETagCache() = clientTests(listOf("js")) {
+    fun testETagCache() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -82,7 +82,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testLastModified() = clientTests(listOf("js")) {
+    fun testLastModified() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -104,7 +104,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testVary() = clientTests(listOf("js")) {
+    fun testVary() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {

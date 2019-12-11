@@ -29,10 +29,10 @@ actual abstract class ClientLoader {
      * Perform test against all clients from dependencies.
      */
     actual fun clientTests(
-        skipPlatforms: List<String>,
+        skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        if ("jvm" in skipPlatforms) return
+        if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
         testWithEngine(engine.factory, block)
     }
 

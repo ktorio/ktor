@@ -13,7 +13,7 @@ import kotlin.test.*
 
 class AuthTest : ClientLoader() {
     @Test
-    fun testDigestAuth() = clientTests(listOf("js")) {
+    fun testDigestAuth() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 digest {
@@ -31,7 +31,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuth() = clientTests(listOf("js")) {
+    fun testBasicAuth() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 basic {
