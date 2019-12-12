@@ -60,11 +60,10 @@ internal class ApacheResponseConsumerDispatching(
                 decoderWaiter != null -> {
                 }
                 job.isActive -> {
-                    ioctrl.suspendInput()
-                    this.interestController.value = ioctrl // this should be after suspendInput
+                    suspendInput(ioctrl)
 
-                    if (queue.isNotEmpty() && interestController.compareAndSet(ioctrl, null)) {
-                        ioctrl.requestInput()
+                    if (queue.isNotEmpty()) {
+                        resumeInput()
                     } else {
                         return
                     }
@@ -130,14 +129,24 @@ internal class ApacheResponseConsumerDispatching(
         } while (true)
     }
 
+    private fun suspendInput(ioctrl: IOControl) {
+        ioctrl.suspendInput()
+        interestController.value = ioctrl
+    }
+
+    private fun resumeInput() {
+        interestController.getAndUpdate { before ->
+            if (before == null) return
+            null
+        }?.let { ioctrl ->
+            ioctrl.requestInput()
+        }
+    }
+
     private inner class Dispatcher : CoroutineDispatcher() {
         override fun dispatch(context: CoroutineContext, block: Runnable) {
             queue.add(block)
-
-            interestController.updateAndGet { before ->
-                if (before == null) return
-                null
-            }?.requestInput()
+            resumeInput()
         }
     }
 }
