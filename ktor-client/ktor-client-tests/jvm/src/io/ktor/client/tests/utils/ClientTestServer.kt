@@ -27,6 +27,7 @@ internal fun Application.tests() {
     redirectTest()
     featuresTest()
     webSockets()
+    multiPartFormDataTest()
 
     routing {
         post("/echo") {
