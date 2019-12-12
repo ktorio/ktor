@@ -50,20 +50,6 @@ class KotlinxSerializerTest : ClientLoader() {
     }
 
     @Test
-    fun testReceiveFromGithub() = clientTests {
-        config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer(Json.nonstrict)
-            }
-        }
-
-        test { client ->
-            val e5l = GithubProfile("e5l", 4290035, "Leonid Stashevsky")
-            assertEquals(e5l, client.get("https://api.github.com/users/e5l"))
-        }
-    }
-
-    @Test
     fun testCustomFormBody() = clientTests {
         config {
             install(JsonFeature)

@@ -25,7 +25,7 @@ actual abstract class ClientLoader {
                 block()
             }
         }
-    }
+    }()
 
     actual fun dumpCoroutines() {
         error("Debug probes unsupported[js]")
