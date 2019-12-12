@@ -36,11 +36,13 @@ public class io/ktor/client/engine/cio/ConnectException : java/lang/Exception {
 
 public final class io/ktor/client/engine/cio/EndpointConfig {
 	public fun <init> ()V
+	public final fun getAllowHalfClose ()Z
 	public final fun getConnectRetryAttempts ()I
 	public final fun getConnectTimeout ()J
 	public final fun getKeepAliveTime ()J
 	public final fun getMaxConnectionsPerRoute ()I
 	public final fun getPipelineMaxSize ()I
+	public final fun setAllowHalfClose (Z)V
 	public final fun setConnectRetryAttempts (I)V
 	public final fun setConnectTimeout (J)V
 	public final fun setKeepAliveTime (J)V

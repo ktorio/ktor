@@ -71,4 +71,11 @@ class EndpointConfig {
      * Maximum number of connection attempts.
      */
     var connectRetryAttempts: Int = 5
+
+    /**
+     * Allow socket to close output channel immediately on writing completion (TCP connection half close).
+     */
+    var allowHalfClose: Boolean = false
+        @Deprecated("Half closed TCP connection is not supported by all servers, use it at your own risk.")
+        set
 }
