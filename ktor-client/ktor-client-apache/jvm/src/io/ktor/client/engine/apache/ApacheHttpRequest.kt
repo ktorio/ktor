@@ -10,7 +10,6 @@ import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import org.apache.http.concurrent.*
 import org.apache.http.impl.nio.client.*
-import org.apache.http.protocol.*
 import kotlin.coroutines.*
 
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
@@ -19,7 +18,7 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
 ): HttpResponseData = suspendCancellableCoroutine { continuation ->
     val requestTime = GMTDate()
 
-    val consumer = ApacheResponseConsumer(callContext) { rawResponse, body ->
+    val consumer = ApacheResponseConsumerDispatching(callContext) { rawResponse, body ->
         val statusLine = rawResponse.statusLine
 
         val status = HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
