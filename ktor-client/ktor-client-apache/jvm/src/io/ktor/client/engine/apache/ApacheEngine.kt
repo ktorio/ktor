@@ -19,9 +19,9 @@ private const val IO_THREAD_COUNT_DEFAULT = 4
 internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientEngineBase("ktor-apache") {
 
     override val dispatcher by lazy {
-        Dispatchers.fixedThreadPoolDispatcher(
+        Dispatchers.clientDispatcher(
             config.threadsCount,
-            "ktor-apache-thread-%d"
+            "ktor-apache-dispatcher"
         )
     }
 

@@ -25,9 +25,9 @@ import kotlin.coroutines.*
 class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     override val dispatcher by lazy {
-        Dispatchers.fixedThreadPoolDispatcher(
+        Dispatchers.clientDispatcher(
             config.threadsCount,
-            "ktor-okhttp-thread-%d"
+            "ktor-okhttp-dispatcher"
         )
     }
 

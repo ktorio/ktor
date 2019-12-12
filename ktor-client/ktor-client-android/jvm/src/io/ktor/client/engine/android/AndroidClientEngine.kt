@@ -26,9 +26,9 @@ import kotlin.coroutines.*
 class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
     override val dispatcher by lazy {
-        Dispatchers.fixedThreadPoolDispatcher(
+        Dispatchers.clientDispatcher(
             config.threadsCount,
-            "ktor-android-thread-%d"
+            "ktor-android-dispatcher"
         )
     }
 
