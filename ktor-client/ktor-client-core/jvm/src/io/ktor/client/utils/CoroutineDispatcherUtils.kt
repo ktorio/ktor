@@ -6,19 +6,14 @@ package io.ktor.client.utils
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
-import java.util.concurrent.atomic.*
+import kotlinx.coroutines.scheduling.*
 
 /**
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
  */
+@UseExperimental(InternalCoroutinesApi::class)
 @InternalAPI
-fun Dispatchers.fixedThreadPoolDispatcher(threadCount: Int, threadName: String = "thread-pool-%d"): CoroutineDispatcher {
-    val threadsNum = AtomicInteger(0)
-    return Executors.newFixedThreadPool(threadCount) {
-        Thread(it).apply {
-            isDaemon = true
-            name = threadName.format(threadsNum.getAndIncrement())
-        }
-    }.asCoroutineDispatcher()
-}
+fun Dispatchers.clientDispatcher(
+    threadCount: Int,
+    dispatcherName: String = "thread-pool-%d"
+): CoroutineDispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)

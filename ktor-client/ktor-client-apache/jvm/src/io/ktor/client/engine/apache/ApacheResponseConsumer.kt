@@ -88,7 +88,6 @@ internal class ApacheResponseConsumer(
         job.channel
     }
 
-
     override fun isDone(): Boolean = !isActive
 
     override fun responseReceived(response: HttpResponse) {

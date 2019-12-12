@@ -17,7 +17,7 @@ import java.util.concurrent.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngineBase("ktor-cio") {
 
-    override val dispatcher by lazy { Dispatchers.fixedThreadPoolDispatcher(config.threadsCount, "ktor-cio-thread-%d") }
+    override val dispatcher by lazy { Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-thread-%d") }
 
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
