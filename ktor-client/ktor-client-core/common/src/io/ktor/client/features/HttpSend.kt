@@ -55,7 +55,9 @@ class HttpSend(
         override fun install(feature: HttpSend, scope: HttpClient) {
             // default send scenario
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { content ->
-                if (content !is OutgoingContent) return@intercept
+                check(content is OutgoingContent) {
+                    "Fail to send body. Content has type: ${content::class}, but OutgoingContent expected."
+                }
                 context.body = content
 
                 val sender = DefaultSender(feature.maxSendCount, scope)

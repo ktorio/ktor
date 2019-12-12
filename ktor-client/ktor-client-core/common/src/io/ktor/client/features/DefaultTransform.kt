@@ -40,6 +40,9 @@ fun HttpClient.defaultTransformers() {
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
             })
+            is ByteReadChannel -> proceedWith(object : OutgoingContent.ReadChannelContent() {
+                override fun readFrom(): ByteReadChannel = body
+            })
         }
     }
 
