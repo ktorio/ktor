@@ -3,6 +3,9 @@ description = 'Apache backend for ktor http client'
 kotlin.sourceSets {
     jvmMain.dependencies {
         api project(':ktor-client:ktor-client-core')
+        api group: 'org.apache.httpcomponents', name: 'httpcore', version: apache_httpcore_nio_version
+        api group: 'org.apache.httpcomponents', name: 'httpcore-nio', version: apache_httpcore_nio_version
+        api group: 'org.apache.httpcomponents', name: 'httpclient', version: apache_httpclient_version
         api group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: apache_async_version
     }
     jvmTest.dependencies {
