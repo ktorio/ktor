@@ -9,7 +9,9 @@ import io.ktor.client.call.*
 import io.ktor.util.*
 import io.ktor.client.statement.*
 import kotlin.jvm.*
+import kotlin.native.concurrent.*
 
+@SharedImmutable
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
 /**
