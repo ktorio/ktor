@@ -89,6 +89,7 @@ internal class ApacheResponseConsumerDispatching(
                     // let's wait for the next consumeContent invocation
                 }
                 job.isActive -> {
+                    check(!decoder.isCompleted) { "Decoder shouldn't be completed while the coroutine is on suspension" }
                     // The coroutine is in suspension somewhere else (possibly due to back-pressure).
                     interestController.suspendInput(ioctrl)
                     // no double check needed here since we do loop and resume input at the loop beginning
@@ -134,6 +135,11 @@ internal class ApacheResponseConsumerDispatching(
     override fun responseCompleted(context: HttpContext) {
         // Passing null should cause the coroutine to exit normally if not yet.
         processLoop(Result.success(null))
+
+        // We believe that this should never happen during backpressure
+        // since this callback is only invoked for an empty response or when the decoder is completed
+        // that couldn't be true if we have backpressure suspension
+        check(job.isCompleted) { "The coroutine didn't complete in time." }
     }
 
     override fun responseReceived(response: HttpResponse) {
