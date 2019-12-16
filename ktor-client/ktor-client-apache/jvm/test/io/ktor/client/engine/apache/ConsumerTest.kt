@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.*
 import org.apache.http.*
 import org.apache.http.message.*
 import org.apache.http.nio.*
-import java.lang.IllegalStateException
+import org.apache.http.protocol.*
 import java.nio.*
 import java.util.zip.*
 import kotlin.coroutines.*
@@ -33,6 +33,12 @@ class ConsumerTest : CoroutineScope {
             throw job.getCancellationException()
         }
 
+        job.complete()
+        runBlocking {
+            withTimeout(1000L) {
+                job.join()
+            }
+        }
         job.cancel()
     }
 
@@ -41,7 +47,7 @@ class ConsumerTest : CoroutineScope {
         ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
             this.receivedResponse = response
             this.channel = channel
-        }
+        }.responseCompleted(BasicHttpContext())
     }
 
     @Test
@@ -85,6 +91,25 @@ class ConsumerTest : CoroutineScope {
         }
 
         assertTrue(decoder.data.contentEquals(found))
+    }
+
+    @Test
+    fun emptyContentWhenItIsAlwaysEmpty() {
+        // for some response kinds (HEAD, status NoContent as so on) consumeContent is not called
+        // so we have completed immediately after response received
+
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+            this.receivedResponse = response
+            this.channel = channel
+        }
+
+        val decoder = TestDecoder(byteArrayOf())
+        decoder.complete()
+
+        consumer.responseReceived(response())
+        consumer.responseCompleted(BasicHttpContext())
+
+        assertTrue { channel.isClosedForRead }
     }
 
     @Test
