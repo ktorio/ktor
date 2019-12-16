@@ -29,7 +29,7 @@ internal class ApacheResponseConsumerDispatching(
      * This coroutine is executed with our custom [ReactorLoopDispatcher] so it will only run on apache's reactor thread
      * inside of callback's invocations (such as [consumeContent] or [failed]).
      */
-    private val job = writer {
+    private val job = writer(CoroutineName("content-decoder")) {
         try {
             var rc = 0
             do {
