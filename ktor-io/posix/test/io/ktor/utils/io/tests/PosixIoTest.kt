@@ -92,7 +92,7 @@ class PosixIoTest {
         with(serverAddr) {
             memset(this.ptr, 0, sockaddr_in.size.convert())
             sin_family = AF_INET.convert()
-            sin_port = my_htons(port)
+            sin_port = 0u //my_htons(port)
         }
 
         with(clientAddr) {
@@ -111,6 +111,15 @@ class PosixIoTest {
             }
         }
         listen(acceptor, 10).checkError("listen()")
+
+        val addrSizeResult = alloc<UIntVar>()
+        addrSizeResult.value = sockaddr_in.size.convert()
+        getsockname(
+            acceptor, serverAddr.ptr.reinterpret(),
+            addrSizeResult.ptr.reinterpret()
+        ).checkError("getsockname()")
+
+        clientAddr.sin_port = serverAddr.sin_port
 
         val connected: KX_SOCKET = socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
         val zero: KX_SOCKET = 0.convert()
