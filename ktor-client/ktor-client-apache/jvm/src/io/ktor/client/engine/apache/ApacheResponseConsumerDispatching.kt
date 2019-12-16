@@ -30,22 +30,16 @@ internal class ApacheResponseConsumerDispatching(
      * inside of callback's invocations (such as [consumeContent] or [failed]).
      */
     private val job = writer(CoroutineName("content-decoder")) {
-        try {
-            var rc = 0
-            do {
-                val decoder = waitForDecoder() ?: break
+        var rc = 0
+        do {
+            val decoder = waitForDecoder() ?: break
 
-                do {
-                    channel.write { dst ->
-                        rc = decoder.read(dst)
-                    }
-                } while (rc > 0)
-            } while (rc >= 0)
-        } catch (cause: Throwable) {
-            channel.close(cause)
-        } finally {
-            channel.close()
-        }
+            do {
+                channel.write { dst ->
+                    rc = decoder.read(dst)
+                }
+            } while (rc > 0)
+        } while (rc >= 0)
     }
 
     private val contentChannel: ByteReadChannel = job.channel
