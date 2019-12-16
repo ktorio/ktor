@@ -8,6 +8,7 @@ import ch.qos.logback.classic.*
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
 import org.slf4j.*
 import java.io.*
 import java.util.concurrent.*
@@ -19,7 +20,7 @@ internal fun startServer(): Closeable {
     val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     logger.level = Level.WARN
 
-    val server = embeddedServer(Jetty, DEFAULT_PORT) {
+    val server = embeddedServer(Netty, DEFAULT_PORT) {
         tests()
         benchmarks()
     }.start()
