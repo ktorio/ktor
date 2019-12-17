@@ -6,6 +6,8 @@ package io.ktor.client.engine.mock
 
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.util.*
+import kotlinx.atomicfu.locks.*
 import kotlinx.coroutines.*
 
 /**
@@ -14,6 +16,7 @@ import kotlinx.coroutines.*
 class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
     override val dispatcher = Dispatchers.Unconfined
     private var invocationCount = 0
+    private val mutex = Lock()
     private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
     private val contextState: CompletableJob = Job()
@@ -37,18 +40,24 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
-        val handler = config.requestHandlers[invocationCount]
+        val handler = mutex.withLock {
+            if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
+            val handler = config.requestHandlers[invocationCount]
 
-        invocationCount += 1
-        if (config.reuseHandlers) {
-            invocationCount %= config.requestHandlers.size
+            invocationCount += 1
+            if (config.reuseHandlers) {
+                invocationCount %= config.requestHandlers.size
+            }
+
+            handler
         }
 
         val response = handler(MockRequestHandleScope(callContext), data)
 
-        _requestsHistory.add(data)
-        _responseHistory.add(response)
+        mutex.withLock {
+            _requestsHistory.add(data)
+            _responseHistory.add(response)
+        }
 
         return response
     }
