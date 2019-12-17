@@ -31,12 +31,17 @@
 * Replaced HttpClientJvmEngine to HttpClientEngineBase that is now common for all platforms (affects only custom client engines)
 * Fixed hierarchy of execution and call contexts in clients that allows to properly handle request lifetime using execution context.
 * Optimize JS module import time (#1464)
-* Upgraded versions of Netty and Jetty implementations
+* Upgraded versions of Netty, Jetty and Tomcat implementations
 * Added Pebble template engine (#1374)
 * Introduced localPort route that is always tied to actual socket port (#1392)
 * Fixed cookie expiration date parsing (#1390)
 * Server authentication feature's phases are now public (#1160)
 * Fixed auth header resending after redirect (#1467)
+* TCP half-close made optional for CIO client engine and disabled by default.
+* Apache client random timeouts fixed
+* Fixed locale-dependat code (#1491)
+* Fixed unclosed websocket channels if cancelled too early
+* kotlinx.coroutines 1.3.3
 
 # 1.2.6
 > 25 Nov 2019
