@@ -35,7 +35,13 @@ buildscript {
         jcenter()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven {
+            url "https://kotlin.bintray.com/kotlin-dev"
+            credentials {
+                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
+                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
+            }
+        }
         maven { url "https://dl.bintray.com/orangy/maven" }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
     }
@@ -123,7 +129,13 @@ allprojects {
             }
         }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+        maven {
+            url "https://kotlin.bintray.com/kotlin-dev"
+            credentials {
+                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
+                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
+            }
+        }
         maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
 
