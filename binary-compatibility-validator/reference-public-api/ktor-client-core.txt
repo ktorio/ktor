@@ -815,6 +815,7 @@ public final class io/ktor/client/request/HttpSendPipeline : io/ktor/util/pipeli
 public final class io/ktor/client/request/HttpSendPipeline$Phases {
 	public final fun getBefore ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getEngine ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getReceive ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
 }
