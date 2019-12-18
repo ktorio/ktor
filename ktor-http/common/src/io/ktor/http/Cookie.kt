@@ -7,6 +7,7 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.jvm.*
+import kotlin.native.concurrent.*
 
 /**
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
@@ -65,6 +66,7 @@ enum class CookieEncoding {
     BASE64_ENCODING
 }
 
+@SharedImmutable
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 
 /**
@@ -93,6 +95,7 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     )
 }
 
+@ThreadLocal
 private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
 /**
@@ -214,7 +217,9 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
+@SharedImmutable
 private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
+
 private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
 
 @Suppress("NOTHING_TO_INLINE")

@@ -4,8 +4,10 @@ import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.internal.utils.*
 import platform.posix.*
-import kotlin.native.concurrent.SharedImmutable
+import kotlin.native.concurrent.*
 
+@Suppress("unused")
+@SharedImmutable
 private val s: KX_SOCKET = 0.convert() // do not remove! This is required to hold star import for strerror_r
 
 @SharedImmutable

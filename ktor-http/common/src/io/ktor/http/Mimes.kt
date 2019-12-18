@@ -4,6 +4,8 @@
 
 package io.ktor.http
 
+import kotlin.native.concurrent.*
+
 private val rawMimes: String
     get() = """
 .123,application/vnd.lotus-1-2-3
@@ -1223,4 +1225,5 @@ internal fun loadMimes(): List<Pair<String, ContentType>> {
     }.toList()
 }
 
+@ThreadLocal
 internal val mimes: List<Pair<String, ContentType>> by lazy { loadMimes() }

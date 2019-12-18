@@ -6,6 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
+import kotlin.native.concurrent.*
 
 /**
  * Default [ContentType] for [extension]
@@ -52,10 +53,12 @@ fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
+@ThreadLocal
 private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
     caseInsensitiveMap<List<ContentType>>().apply { putAll(mimes.asSequence().groupByPairs()) }
 }
 
+@ThreadLocal
 private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
     mimes.asSequence().map { (first, second) -> second to first }.groupByPairs()
 }

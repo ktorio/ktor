@@ -7,6 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 
 /**
  * An HTTP parser exception
@@ -163,8 +164,9 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
     return s
 }
 
-
+@SharedImmutable
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
+
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {
     skipSpaces(text, range)
 
