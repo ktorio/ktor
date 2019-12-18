@@ -135,7 +135,7 @@ class Logging(
         }
 
         override fun install(feature: Logging, scope: HttpClient) {
-            scope.sendPipeline.intercept(HttpSendPipeline.Before) {
+            scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
                 try {
                     feature.logRequest(context)
                 } catch (_: Throwable) {
