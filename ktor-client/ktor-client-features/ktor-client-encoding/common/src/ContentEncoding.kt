@@ -99,7 +99,7 @@ class ContentEncoding(
          */
         fun customEncoder(encoder: ContentEncoder, quality: Float? = null) {
             val name = encoder.name
-            encoders[name] = encoder
+            encoders[name.toLowerCase()] = encoder
 
             if (quality == null) {
                 qualityValues.remove(name)
