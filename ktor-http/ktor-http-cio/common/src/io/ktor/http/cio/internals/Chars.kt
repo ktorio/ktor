@@ -24,7 +24,7 @@ internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, oth
     if (end - start != other.length) return false
 
     for (pos in start until end) {
-        if (get(pos).toInt().toLowerCase() != other.get(pos - start).toInt().toLowerCase()) return false
+        if (get(pos).toInt().toLowerCase() != other[pos - start].toInt().toLowerCase()) return false
     }
 
     return true
@@ -95,7 +95,7 @@ private fun CharSequence.parseDecLongWithCheck(): Long {
     return result
 }
 
-internal fun IoBuffer.writeIntHex(value: Int) {
+internal fun Buffer.writeIntHex(value: Int) {
     require(value > 0) { "Does only work for positive numbers" } // zero is not included!
     var current = value
     val table = HexLetterTable

@@ -26,7 +26,7 @@ class HttpPlainText internal constructor(
     charsets: Set<Charset>,
     charsetQuality: Map<Charset, Float>,
     sendCharset: Charset?,
-    internal val responseCharsetFallback: Charset
+    private val responseCharsetFallback: Charset
 ) {
     private val requestCharset: Charset
     private val acceptCharsetHeader: String
@@ -99,6 +99,7 @@ class HttpPlainText internal constructor(
         /**
          * Default [Charset] to use.
          */
+        @Suppress("unused")
         @Deprecated(
             "Use [register] method instead.",
             replaceWith = ReplaceWith("register()"),
@@ -109,7 +110,7 @@ class HttpPlainText internal constructor(
 
     @Suppress("KDocMissingDocumentation")
     companion object Feature : HttpClientFeature<Config, HttpPlainText> {
-        override val key = AttributeKey<HttpPlainText>("HttpPlainText")
+        override val key: AttributeKey<HttpPlainText> = AttributeKey("HttpPlainText")
 
         override fun prepare(block: Config.() -> Unit): HttpPlainText {
             val config = Config().apply(block)
@@ -161,6 +162,7 @@ class HttpPlainText internal constructor(
     /**
      * Deprecated
      */
+    @Suppress("unused", "UNUSED_PARAMETER")
     @Deprecated(
         "Use [Config.register] method instead.",
         replaceWith = ReplaceWith("register()"),
@@ -183,6 +185,7 @@ class HttpPlainText internal constructor(
  * }
  * ```
  */
+@Suppress("FunctionName")
 fun HttpClientConfig<*>.Charsets(block: HttpPlainText.Config.() -> Unit) {
     install(HttpPlainText, block)
 }

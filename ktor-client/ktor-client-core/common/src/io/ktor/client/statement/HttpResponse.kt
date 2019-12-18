@@ -57,14 +57,17 @@ abstract class HttpResponse : HttpMessage, CoroutineScope {
  */
 val HttpResponse.request: HttpRequest get() = call.request
 
+@Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("Close is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
 fun HttpResponse.close() {
 }
 
+@Suppress("UNUSED_PARAMETER", "KDocMissingDocumentation", "unused")
 @Deprecated("Use is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this.also(block)"))
 fun HttpResponse.use(block: () -> Unit) {
 }
 
+@Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("[response] is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
 val HttpResponse.response: HttpResponse
     get() = this

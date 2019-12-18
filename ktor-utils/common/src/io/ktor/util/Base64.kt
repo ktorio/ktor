@@ -23,7 +23,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
  */
 @InternalAPI
 fun String.encodeBase64(): String = buildPacket {
-    writeStringUtf8(this@encodeBase64)
+    writeText(this@encodeBase64)
 }.encodeBase64()
 
 /**
@@ -69,7 +69,7 @@ fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = 
  */
 @InternalAPI
 fun String.decodeBase64Bytes(): ByteArray = buildPacket {
-    writeStringUtf8(dropLastWhile { it == BASE64_PAD })
+    writeText(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64Bytes().readBytes()
 
 /**

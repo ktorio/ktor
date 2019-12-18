@@ -123,12 +123,14 @@ class FormBuilder internal constructor() {
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated(
         "Input is not reusable. Please use [InputProvider] instead.",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("appendInput(key, headers) { /* create fresh input here */ }")
     )
     fun append(key: String, value: Input, headers: Headers = Headers.Empty) {
+        error("Input is not reusable. Please use [InputProvider] instead.")
     }
 
     /**
@@ -160,6 +162,7 @@ inline fun FormBuilder.append(
 /**
  * Reusable [Input] form entry.
  *
+ * @property size estimate for data produced by the block or `null` if no size estimation known
  * @param block: content generator
  */
 @KtorExperimentalAPI

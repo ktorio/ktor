@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("KDocMissingDocumentation")
+
 package io.ktor.client.response
 
 import io.ktor.http.*
@@ -22,7 +24,7 @@ class HttpResponse : CoroutineScope, HttpMessage {
         get() = error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
 
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 @Deprecated(
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",
     level = DeprecationLevel.ERROR
@@ -38,7 +40,7 @@ suspend fun HttpResponse.readText(charset: Charset? = null): String {
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",
     level = DeprecationLevel.ERROR
 )
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpResponse.readBytes(count: Int): ByteArray {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
@@ -51,7 +53,7 @@ suspend fun HttpResponse.readBytes(count: Int): ByteArray {
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",
     level = DeprecationLevel.ERROR
 )
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpResponse.readBytes(): ByteArray {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
@@ -63,7 +65,7 @@ suspend fun HttpResponse.readBytes(): ByteArray {
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",
     level = DeprecationLevel.ERROR
 )
-@Suppress("DEPRECATION_ERROR")
+@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpResponse.discardRemaining() {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }

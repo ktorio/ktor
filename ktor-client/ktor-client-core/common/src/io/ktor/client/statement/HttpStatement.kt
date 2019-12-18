@@ -125,7 +125,7 @@ class HttpStatement(
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("this.execute<T>(block)")
 )
-@Suppress("KDocMissingDocumentation")
+@Suppress("unused", "KDocMissingDocumentation", "UNUSED_PARAMETER")
 fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
 }
 
@@ -134,7 +134,7 @@ fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
     "Unbound [HttpResponse] is deprecated. Consider using [execute()] instead.",
     level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("this.execute()")
 )
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "unused")
 val HttpStatement.response: HttpResponse
     get() = error("Unbound [HttpClientCall] is deprecated. Consider using [HttpResponse] instead.")
 
@@ -142,7 +142,7 @@ val HttpStatement.response: HttpResponse
  * Read the [HttpResponse.content] as a String. You can pass an optional [charset]
  * to specify a charset in the case no one is specified as part of the Content-Type response.
  * If no charset specified either as parameter or as part of the response,
- * [HttpResponseConfig.defaultCharset] will be used.
+ * [io.ktor.client.features.HttpPlainText] settings will be used.
  *
  * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.

@@ -8,10 +8,8 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
-import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
@@ -79,6 +77,7 @@ class HttpBinTest : ClientLoader() {
         }
     }
 
+    @UseExperimental(UnstableDefault::class)
     private fun HttpClientConfig<*>.testConfiguration() {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json.nonstrict)

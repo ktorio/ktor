@@ -18,6 +18,7 @@ import kotlin.reflect.jvm.*
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
+@Suppress("DEPRECATION", "UNUSED")
 @Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
 inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
 
@@ -83,7 +84,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
 
     private fun findConstructor(bundle: StringValues): KFunction<T> =
         type.constructors
-            .filter { it.parameters.all { it.name != null && it.name!! in bundle } }
+            .filter { it.parameters.all { parameter -> parameter.name != null && parameter.name!! in bundle } }
             .maxBy { it.parameters.size }
             ?: throw IllegalArgumentException("Couldn't instantiate type $type for parameters ${bundle.names()}")
 
@@ -242,7 +243,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         filter { type.toJavaClass().isAssignableFrom(it.java) }
 
     private fun <T : Any> List<KClass<T>>.firstHasNoArgConstructor() =
-        firstOrNull { it.constructors.any { it.parameters.isEmpty() } }
+        firstOrNull { clazz -> clazz.constructors.any { it.parameters.isEmpty() } }
 
     private fun <T : Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
 

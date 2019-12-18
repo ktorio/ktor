@@ -60,7 +60,7 @@ expect fun generateNonce(): String
 @InternalAPI
 fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
-        writeStringUtf8(generateNonce())
+        writeText(generateNonce())
     }
 }.readBytes(size)
 

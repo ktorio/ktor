@@ -13,7 +13,7 @@ import kotlin.test.*
 internal const val TEST_SIZE = 100
 internal const val FAIL_TIMEOUT = 100L
 
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "DEPRECATION")
 class SemaphoreTest {
 
     @Test

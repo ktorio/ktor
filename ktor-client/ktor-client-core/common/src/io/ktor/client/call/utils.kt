@@ -14,7 +14,7 @@ import io.ktor.http.content.*
 class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")
 
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "UNUSED")
 class UnsupportedUpgradeProtocolException(
     url: Url
 ) : IllegalArgumentException("Unsupported upgrade protocol exception: $url")
@@ -28,6 +28,7 @@ class UnsupportedUpgradeProtocolException(
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("this.request<HttpResponse>(builder)", "io.ktor.client.statement.*")
 )
+@Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpClientCall =
     error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.")
 
@@ -42,6 +43,7 @@ suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpClientCall =
         "this.request<HttpResponse>(urlString, block)", "io.ktor.client.statement.*"
     )
 )
+@Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpClient.call(
     urlString: String,
     block: suspend HttpRequestBuilder.() -> Unit = {}
@@ -58,6 +60,7 @@ suspend fun HttpClient.call(
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("this.request<HttpResponse>(url, block)", "io.ktor.client.statement.*")
 )
+@Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 suspend fun HttpClient.call(
     url: Url,
     block: suspend HttpRequestBuilder.() -> Unit = {}

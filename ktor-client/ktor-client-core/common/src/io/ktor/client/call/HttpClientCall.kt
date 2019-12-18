@@ -58,10 +58,10 @@ open class HttpClientCall internal constructor(
         internal set
 
     /**
-     * Tries to receive the payload of the [response] as an specific [expectedType].
-     * Returns [response] if [expectedType] is [HttpResponse].
+     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
+     * Returns [response] if [info] corresponds to [HttpResponse].
      *
-     * @throws NoTransformationFoundException If no transformation is found for the [expectedType].
+     * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [receive].
      */
     suspend fun receive(info: TypeInfo): Any {
@@ -127,6 +127,7 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
         "io.ktor.client.statement.*"
     )
 )
+@Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
 suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
     error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 
@@ -158,7 +159,7 @@ class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
  */
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "unused")
 class ReceivePipelineException(
     val request: HttpClientCall,
     val info: TypeInfo,
