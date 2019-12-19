@@ -77,7 +77,7 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
-    val loweredMap = asMap.mapKeys { it.key.toLowerCase() }
+    val loweredMap = asMap.mapKeys { it.key.toLowerCasePreservingASCIIRules() }
 
     return Cookie(
         name = first.key,
@@ -90,7 +90,7 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         secure = "secure" in loweredMap,
         httpOnly = "httponly" in loweredMap,
         extensions = asMap.filterKeys {
-            it.toLowerCase() !in loweredPartNames && it != first.key
+            it.toLowerCasePreservingASCIIRules() !in loweredPartNames && it != first.key
         }
     )
 }

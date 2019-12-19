@@ -49,7 +49,7 @@ class CORS(configuration: Configuration) {
     /**
      * Set of all allowed headers
      */
-    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCase() }.toSet()
+    val allHeadersSet: Set<String> = allHeaders.map { it.toLowerCasePreservingASCIIRules() }.toSet()
 
     private val allowNonSimpleContentTypes: Boolean = configuration.allowNonSimpleContentTypes
 
@@ -176,7 +176,7 @@ class CORS(configuration: Configuration) {
     private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
         val requestHeaders =
             request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCase()
+                it.trim().toLowerCasePreservingASCIIRules()
             } ?: emptyList()
 
         return requestHeaders.none { it !in allHeadersSet }
@@ -465,6 +465,9 @@ class CORS(configuration: Configuration) {
      * Feature object for installation
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CORS> {
+        /**
+         * The default CORS max age value
+         */
         const val CORS_DEFAULT_MAX_AGE: Long = 24L * 3600 // 1 day
 
         override val key: AttributeKey<CORS> = AttributeKey("CORS")

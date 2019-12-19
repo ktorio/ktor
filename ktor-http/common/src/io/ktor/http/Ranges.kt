@@ -9,22 +9,18 @@ import kotlin.math.*
 
 /**
  * Possible content range units: bytes and none
+ * @property unitToken Lower-case unit name
  */
-enum class RangeUnits {
+enum class RangeUnits(val unitToken: String) {
     /**
      * Range unit `bytes`
      */
-    Bytes,
+    Bytes("bytes"),
 
     /**
      * Range unit `none`
      */
-    None;
-
-    /**
-     * Lower-case unit name
-     */
-    val unitToken: String = name.toLowerCase()
+    None("none");
 }
 
 /**

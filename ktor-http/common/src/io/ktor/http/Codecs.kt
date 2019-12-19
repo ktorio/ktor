@@ -222,9 +222,11 @@ private fun CharSequence.decodeImpl(
  */
 class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String {
-    val code = (toInt() and 0xff).toString(radix = 16).toUpperCase()
-    return "%${code.padStart(length = 2, padChar = '0')}"
+private fun Byte.percentEncode(): String= buildString(3) {
+    val code = toInt() and 0xff
+    append('%')
+    append(hexDigitToChar(code shr 4))
+    append(hexDigitToChar(code and 0x0f))
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {
@@ -232,6 +234,11 @@ private fun charToHexDigit(c2: Char) = when (c2) {
     in 'A'..'F' -> c2 - 'A' + 10
     in 'a'..'f' -> c2 - 'a' + 10
     else -> -1
+}
+
+private fun hexDigitToChar(digit: Int): Char = when (digit) {
+    in 0..9 -> '0' + digit
+    else -> 'A' + digit - 10
 }
 
 private fun ByteReadPacket.forEach(block: (Byte) -> Unit) {

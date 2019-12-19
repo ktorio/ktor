@@ -51,7 +51,7 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
         /**
          * Create an instance by [name] or use already existing instance
          */
-        fun createOrDefault(name: String): URLProtocol = name.toLowerCase().let {
+        fun createOrDefault(name: String): URLProtocol = name.toLowerCasePreservingASCIIRules().let {
             byName[it] ?: URLProtocol(it, DEFAULT_PORT)
         }
     }

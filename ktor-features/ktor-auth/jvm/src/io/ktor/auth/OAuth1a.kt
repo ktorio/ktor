@@ -249,7 +249,7 @@ fun signatureBaseString(
     method: HttpMethod,
     baseUrl: String,
     parameters: List<HeaderValueParam>
-): String = listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
+): String = listOf(method.value.toUpperCasePreservingASCIIRules(), baseUrl, parametersString(header.parameters + parameters))
     .joinToString("&") { it.encodeURLParameter() }
 
 private fun String.hmacSha1(key: String): String {
