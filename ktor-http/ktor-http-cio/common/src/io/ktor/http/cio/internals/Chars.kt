@@ -46,12 +46,12 @@ private val HexTable = (0..0xff).map { v ->
         v >= 'A'.toLong() && v <= 'F'.toLong() -> v - 'A'.toLong() + 10
         else -> -1L
     }
-}.toTypedArray()
+}.toLongArray()
 
 @SharedImmutable
-internal val HexLetterTable = (0..0xf).map {
+internal val HexLetterTable: ByteArray = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).toInt().toByte()
-}.toTypedArray()
+}.toByteArray()
 
 internal fun CharSequence.parseHexLong(): Long {
     var result = 0L
