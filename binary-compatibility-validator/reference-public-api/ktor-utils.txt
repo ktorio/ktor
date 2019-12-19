@@ -379,6 +379,8 @@ public class io/ktor/util/StringValuesSingleImpl : io/ktor/util/StringValues {
 public final class io/ktor/util/TextKt {
 	public static final fun chomp (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lkotlin/Pair;
 	public static final fun escapeHTML (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun toLowerCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun toUpperCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
