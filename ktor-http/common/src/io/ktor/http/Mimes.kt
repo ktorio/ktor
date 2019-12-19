@@ -4,6 +4,7 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
 import kotlin.native.concurrent.*
 
 private val rawMimes: String
@@ -1221,7 +1222,7 @@ internal fun loadMimes(): List<Pair<String, ContentType>> {
         val extension = line.substring(0, index)
         val mime = line.substring(index + 1)
 
-        extension.removePrefix(".").toLowerCase() to mime.toContentType()
+        extension.removePrefix(".").toLowerCasePreservingASCIIRules() to mime.toContentType()
     }.toList()
 }
 

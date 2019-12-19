@@ -8,6 +8,7 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
@@ -44,7 +45,7 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
 
     override val headers = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
-            responseHeaders.add(name.toLowerCase(), value)
+            responseHeaders.add(name.toLowerCasePreservingASCIIRules(), value)
         }
 
         override fun get(name: String): String? = responseHeaders[name]?.toString()

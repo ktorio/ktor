@@ -34,7 +34,7 @@ fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
  * Recommended content type by file name extension
  */
 fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
-    var current = ext.removePrefix(".")
+    var current = ext.removePrefix(".").toLowerCasePreservingASCIIRules()
     while (current.isNotEmpty()) {
         val type = contentTypesByExtensions[current]
         if (type != null) {

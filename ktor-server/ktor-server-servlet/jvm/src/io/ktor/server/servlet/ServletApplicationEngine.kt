@@ -8,6 +8,7 @@ import com.typesafe.config.*
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import org.slf4j.*
 import javax.servlet.*
 import javax.servlet.annotation.*
@@ -69,7 +70,7 @@ open class ServletApplicationEngine : KtorServlet() {
     }
 
     override val upgrade: ServletUpgrade by lazy {
-        if ("jetty" in servletContext.serverInfo?.toLowerCase() ?: "") {
+        if ("jetty" in servletContext.serverInfo?.toLowerCasePreservingASCIIRules() ?: "") {
             jettyUpgrade ?: DefaultServletUpgrade
         } else DefaultServletUpgrade
     }

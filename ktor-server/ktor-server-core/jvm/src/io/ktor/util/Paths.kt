@@ -39,7 +39,7 @@ private fun List<String>.filterComponentsImpl(startIndex: Int): List<String> {
 }
 
 private fun MutableList<String>.processAndReplaceComponent(component: String) {
-    if (component.isEmpty() || component == "." || component == "~" || component.toUpperCase() in ReservedWords) return
+    if (component.isEmpty() || component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords) return
     if (component == "..") {
         if (isNotEmpty()) {
             removeAt(lastIndex)
@@ -76,7 +76,7 @@ private fun String.shouldBeReplaced(): Boolean {
         return true
     }
 
-    if (first in FirstReservedLetters && (this in ReservedWords || this.toUpperCase() in ReservedWords)) {
+    if (first in FirstReservedLetters && (this in ReservedWords || this.toUpperCasePreservingASCIIRules() in ReservedWords)) {
         return true
     }
 
