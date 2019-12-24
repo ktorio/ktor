@@ -59,7 +59,11 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
      * JWT auth provider configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = { null }
+        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
+            throw NotImplementedError(
+                "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
+            )
+        }
 
         internal var schemes = JWTAuthSchemes("Bearer")
 

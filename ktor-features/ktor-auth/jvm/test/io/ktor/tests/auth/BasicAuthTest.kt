@@ -13,7 +13,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import java.nio.charset.*
 import kotlin.test.*
 
@@ -222,6 +221,24 @@ class BasicAuthTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("Secret info", call.response.content)
             }
+        }
+    }
+
+    @Test
+    fun testNonConfiguredAuth(): Unit = withTestApplication {
+        application.install(Authentication) {
+            basic {}
+        }
+
+        application.routing {
+            authenticate {
+                get("/") {
+                }
+            }
+        }
+
+        assertFailsWith<NotImplementedError> {
+            handleRequestWithBasic("/", "u", "a")
         }
     }
 
