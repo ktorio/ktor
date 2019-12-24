@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
 
@@ -79,6 +80,7 @@ class KotlinxSerializer(
 @Suppress("UNCHECKED_CAST")
 @UseExperimental(ImplicitReflectionSerializer::class)
 private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
+    is JsonElement -> JsonElementSerializer
     is List<*> -> value.elementSerializer().list
     is Array<*> -> value.firstOrNull()?.let { buildSerializer(it) } ?: String.serializer().list
     is Set<*> -> value.elementSerializer().set
@@ -92,5 +94,27 @@ private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
 }
 
 @UseExperimental(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer(): KSerializer<*> =
-    firstOrNull()?.let { buildSerializer(it) } ?: String.serializer()
+private fun Collection<*>.elementSerializer(): KSerializer<*> {
+    val serializers = filterNotNull().map { buildSerializer(it) }.distinctBy { it.descriptor.name }
+
+    if (serializers.size > 1) {
+        error("Serializing collections of different element types is not yet supported. " +
+            "Selected serializers: ${serializers.map { it.descriptor.name }}"
+        )
+    }
+
+    val selected = serializers.singleOrNull() ?: String.serializer()
+
+    if (selected.descriptor.isNullable) {
+        return selected
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    selected as KSerializer<Any>
+
+    if (any { it == null }) {
+        return selected.nullable
+    }
+
+    return selected
+}

@@ -89,9 +89,6 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
 
 @UseExperimental(ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class)
 private fun serializerByTypeInfo(type: KType): KSerializer<*> {
-    if (type.arguments.isEmpty()) {
-        return type.jvmErasure.serializer()
-    }
     val classifierClass = type.classifier as? KClass<*>
     if (classifierClass != null && classifierClass.java.isArray) {
         return arraySerializer(type)
@@ -114,6 +111,9 @@ private fun arraySerializer(type: KType): KSerializer<*> {
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private fun serializerForSending(value: Any): KSerializer<*> {
+    if (value is JsonElement) {
+        return JsonElementSerializer
+    }
     if (value is List<*>) {
         return ArrayListSerializer(value.elementSerializer())
     }
@@ -143,6 +143,28 @@ private fun serializerForSending(value: Any): KSerializer<*> {
 }
 
 @UseExperimental(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer() = firstOrNull { it != null }?.let { first ->
-    serializerByTypeInfo(first.javaClass.kotlin.starProjectedType)
-} ?: String::class.serializer()
+private fun Collection<*>.elementSerializer(): KSerializer<*> {
+    val serializers = mapNotNull { value ->
+        value?.let { serializerForSending(it) }
+    }.distinctBy { it.descriptor.name }
+
+    if (serializers.size > 1) {
+        error("Serializing collections of different element types is not yet supported. " +
+            "Selected serializers: ${serializers.map { it.descriptor.name }}"
+        )
+    }
+
+    val selected: KSerializer<*> = serializers.singleOrNull() ?: String.serializer()
+    if (selected.descriptor.isNullable) {
+        return selected
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    selected as KSerializer<Any>
+
+    if (any { it == null }) {
+        return selected.nullable
+    }
+
+    return selected
+}
