@@ -238,7 +238,7 @@ class BasicAuthTest {
         }
 
         assertFailsWith<NotImplementedError> {
-            handleRequest(HttpMethod.Get, "/")
+            handleRequestWithBasic("/", "u", "a")
         }
     }
 
