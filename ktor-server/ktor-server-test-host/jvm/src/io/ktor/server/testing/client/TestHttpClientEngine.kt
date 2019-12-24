@@ -26,7 +26,6 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
 
     private val clientJob: CompletableJob = Job(app.coroutineContext[Job])
 
-    override val dispatcher: CoroutineDispatcher = Dispatchers.IO
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
