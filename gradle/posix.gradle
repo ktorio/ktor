@@ -81,7 +81,7 @@ kotlin {
         }
 
         configure(project.ext.nativeTargets) {
-            binaries.getTest("DEBUG").freeCompilerArgs = [ "-opt" ]
+            binaries.getTest("DEBUG").optimized = true
         }
 
         project.ext.nativeCompilations = project.ext.nativeTargets.collect { it.compilations.main }
