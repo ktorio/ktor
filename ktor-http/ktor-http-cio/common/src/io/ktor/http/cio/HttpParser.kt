@@ -105,8 +105,10 @@ internal suspend fun parseHeaders(
             }
 
             range.end = builder.length
+            val rangeLength = range.end - range.start
 
-            if (range.start == range.end) break
+            if (rangeLength == 0) break
+            if (rangeLength >= HTTP_LINE_LIMIT) error("Header line length limit exceeded")
 
             val nameStart = range.start
             val nameEnd = parseHeaderName(builder, range)
