@@ -49,6 +49,8 @@ class WebSocketWriter(
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
+        } catch (cause: ChannelWriteException) {
+            queue.close(CancellationException("Failed to write to WebSocket.", cause))
         } catch (t: Throwable) {
             queue.close(t)
         } finally {
