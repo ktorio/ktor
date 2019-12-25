@@ -39,7 +39,10 @@ internal class ApacheResponseConsumerDispatching(
                     bytesRead = decoder.read(dst)
                 }
             } while (bytesRead > 0)
-        } while (bytesRead >= 0)
+        } while (bytesRead != -1 && !decoder.isCompleted)
+
+        // note: decoder.read may return 0 when the decoder is already completed
+        // so we need to check both read count and decoder completion
     }
 
     private val contentChannel: ByteReadChannel = job.channel
@@ -87,6 +90,7 @@ internal class ApacheResponseConsumerDispatching(
                     // If the coroutine is waiting for a decoder again
                     // then we don't touch interest
                     // let's wait for the next consumeContent invocation
+                    check(!decoder.isCompleted) { "The coroutine shouldn't wait for decoder while it is completed." }
                 }
                 job.isActive -> {
                     check(!decoder.isCompleted) { "Decoder shouldn't be completed while the coroutine is on suspension" }

@@ -6,25 +6,37 @@ package io.ktor.client.engine.apache
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.debug.junit4.*
 import org.apache.http.*
 import org.apache.http.message.*
 import org.apache.http.nio.*
 import org.apache.http.protocol.*
+import org.junit.*
 import java.nio.*
 import java.util.zip.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class ConsumerTest : CoroutineScope {
-    private val thread: Thread = Thread.currentThread()
+    private lateinit var thread: Thread
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = job + NonExistingDispatcher
 
     private lateinit var channel: ByteReadChannel
     private lateinit var receivedResponse: HttpResponse
+
+    @get:Rule
+    val timeout = CoroutinesTimeout(10000L, cancelOnTimeout = true)
+
+    @BeforeTest
+    fun setup() {
+        thread = Thread.currentThread()
+    }
 
     @AfterTest
     @UseExperimental(InternalCoroutinesApi::class)
@@ -240,8 +252,41 @@ class ConsumerTest : CoroutineScope {
                 yield()
             }
 
+            if (!job.isActive) {
+                producerCrc.cancel()
+                consumerCrc.cancel()
+                consumer.consumeContent(decoder, ioControl)
+            } else {
+                check(decoder.isCompleted) { "Decoder expected to be completed."}
+            }
+
             assertEquals(producerCrc.await(), consumerCrc.await())
         }
+    }
+
+    @Test
+    fun lastChunkReadTest() {
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext) { response, channel ->
+            this.receivedResponse = response
+            this.channel = channel
+        }
+
+        val decoder = object : ContentDecoder {
+            private var completed = false
+
+            override fun isCompleted(): Boolean = completed
+
+            override fun read(dst: ByteBuffer?): Int {
+                if (completed) return -1
+                completed = true
+                return 0
+            }
+        }
+
+        consumer.consumeContent(decoder, AlwaysFailingIOControl())
+
+        assertTrue(decoder.isCompleted)
+        assertTrue(consumer.isDone)
     }
 
     private fun assertThread() {
@@ -357,6 +402,7 @@ class ConsumerTest : CoroutineScope {
     private inner class ChannelDecoder : ContentDecoder {
         private val outgoing: Channel<ByteBuffer> = Channel(2)
         private val incoming: ReceiveChannel<ByteBuffer> = outgoing
+        private val completed = atomic(false)
 
         private var current: ByteBuffer = ByteBuffer.allocate(0)
 
@@ -374,17 +420,20 @@ class ConsumerTest : CoroutineScope {
 
         override fun isCompleted(): Boolean {
             assertThread()
-            return !current.hasRemaining() && incoming.isClosedForReceive
+            return completed.value
         }
 
         override fun read(dst: ByteBuffer): Int {
             assertThread()
-            if (isCompleted) return -1
+            if (completed.value) return -1
 
             while (!current.hasRemaining()) {
                 val next = incoming.poll()
                 if (next == null) {
-                    if (incoming.isClosedForReceive) return -1
+                    if (incoming.isClosedForReceive) {
+                        completed.value = true
+                        return -1
+                    }
                     return 0
                 }
                 current = next
