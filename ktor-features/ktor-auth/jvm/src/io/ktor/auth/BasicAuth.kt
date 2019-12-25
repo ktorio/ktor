@@ -9,7 +9,8 @@ import io.ktor.http.auth.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.nio.charset.*
+import io.ktor.utils.io.charsets.*
+import kotlin.text.Charsets
 
 /**
  * Represents a Basic authentication provider
@@ -28,7 +29,11 @@ class BasicAuthenticationProvider internal constructor(
      * Basic auth configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
+        internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
+            throw NotImplementedError(
+                "Basic auth validate function is not specified. Use basic { validate { ... } } to fix."
+            )
+        }
 
         /**
          * Specifies realm to be passed in `WWW-Authenticate` header

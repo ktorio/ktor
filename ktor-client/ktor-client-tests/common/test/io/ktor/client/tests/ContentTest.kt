@@ -9,16 +9,14 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class ContentTest : ClientLoader() {
@@ -29,7 +27,7 @@ class ContentTest : ClientLoader() {
     )
 
     @Test
-    fun testGetFormData() = clientTests(listOf("js")) {
+    fun testGetFormData() = clientTests(listOf("Js")) {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -45,7 +43,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArray() = clientTests(listOf("js")) {
+    fun testByteArray() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
@@ -57,20 +55,18 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteReadChannel() = clientTests(listOf("js")) {
+    fun testByteReadChannel() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
-                client.echo<HttpResponse>(content).use { response ->
-                    val responseData = response.content.toByteArray()
-                    assertArrayEquals("Test fail with size: $size", content, responseData)
-                }
+                val responseData = client.echo<ByteArray>(content)
+                assertArrayEquals("Test fail with size: $size", content, responseData)
             }
         }
     }
 
     @Test
-    fun testString() = clientTests(listOf("js")) {
+    fun testString() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -83,7 +79,23 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("js")) {
+    fun testEmptyContent() = clientTests(listOf("js")) {
+        val size = 0
+        val content = makeString(size)
+        repeatCount = 200
+        test { client ->
+            val response = client.echo<String>(TextContent(content, ContentType.Text.Plain))
+
+            assertArrayEquals(
+                "Test fail with size: $size",
+                content.toByteArray(),
+                response.toByteArray()
+            )
+        }
+    }
+
+    @Test
+    fun testTextContent() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -95,7 +107,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testByteArrayContent() = clientTests(listOf("js")) {
+    fun testByteArrayContent() = clientTests(listOf("Js")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
@@ -107,7 +119,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testPostFormData() = clientTests(listOf("js")) {
+    fun testPostFormData() = clientTests(listOf("Js")) {
         test { client ->
             val form = parametersOf(
                 "user" to listOf("myuser"),
@@ -120,12 +132,12 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testMultipartFormData() = clientTests(listOf("js")) {
+    fun testMultipartFormData() = clientTests(listOf("Js")) {
         val data = {
             formData {
                 append("name", "hello")
                 append("content") {
-                    writeStringUtf8("123456789")
+                    writeText("123456789")
                 }
                 append("file", "urlencoded_name.jpg") {
                     for (i in 1..4096) {
@@ -151,7 +163,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testFormDataWithContentLength() = clientTests(listOf("js")) {
+    fun testFormDataWithContentLength() = clientTests(listOf("Js")) {
         test { client ->
             client.submitForm<Unit> {
                 url("$TEST_SERVER/content/file-upload")
@@ -205,7 +217,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("js")) {
+    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
         test { client ->
             val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
             content.cancel()
@@ -213,25 +225,26 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("js")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js")) {
         test { client ->
-            val response = client.get<HttpResponse>("$TEST_SERVER/content/stream")
-            response.close()
+            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+            }
         }
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("js")) {
+    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
         test { client ->
-            val response = client.get<HttpResponse>("$TEST_SERVER/content/stream")
-            response.cancel()
+            client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
+                it.cancel()
+            }
         }
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("js")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js")) {
         test { client ->
-            val result = withTimeoutOrNull(100) {
+            val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")
             }
 

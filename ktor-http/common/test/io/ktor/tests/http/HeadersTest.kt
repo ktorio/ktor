@@ -247,4 +247,22 @@ class HeadersTest {
         assertNull(headers1.getAll("foo"))
         assertNull(headers2.getAll("foo"))
     }
+  
+    fun headerNamesValidation() {
+        val illegalCharacters = "\u0000\u0009\r\n\"(),/:;<=>?@[\\]{}"
+        HeadersBuilder().apply {
+            append("valid", "ok")
+
+            illegalCharacters.forEach { ch ->
+                val key = "not${ch}valid"
+                assertFails {
+                    append(key, "ok")
+                }
+                assertFails {
+                    set(key, "ok2")
+                }
+                assertNull(get(key))
+            }
+        }
+    }
 }

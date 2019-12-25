@@ -18,14 +18,22 @@ import kotlin.reflect.jvm.*
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
-@KtorExperimentalAPI
+@Suppress("DEPRECATION", "UNUSED")
+@Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
 inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
-@KtorExperimentalAPI
+@Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
 fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
+
+/**
+ * Creates the the default [SessionSerializer] for type [T]
+ */
+@KtorExperimentalAPI
+@Suppress("DEPRECATION")
+inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
 
 /**
  * Default reflection-based session serializer that does it via reflection.
@@ -34,7 +42,7 @@ fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> 
  * @property type is a session instance class handled by this serializer
  */
 @KtorExperimentalAPI
-class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer {
+class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
     private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {
@@ -58,7 +66,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         return instance
     }
 
-    override fun serialize(session: Any): String {
+    override fun serialize(session: T): String {
         if (type == Parameters::class)
             return (session as Parameters).formUrlEncode()
         val typed = session.cast(type)
@@ -76,7 +84,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
 
     private fun findConstructor(bundle: StringValues): KFunction<T> =
         type.constructors
-            .filter { it.parameters.all { it.name != null && it.name!! in bundle } }
+            .filter { it.parameters.all { parameter -> parameter.name != null && parameter.name!! in bundle } }
             .maxBy { it.parameters.size }
             ?: throw IllegalArgumentException("Couldn't instantiate type $type for parameters ${bundle.names()}")
 
@@ -235,7 +243,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         filter { type.toJavaClass().isAssignableFrom(it.java) }
 
     private fun <T : Any> List<KClass<T>>.firstHasNoArgConstructor() =
-        firstOrNull { it.constructors.any { it.parameters.isEmpty() } }
+        firstOrNull { clazz -> clazz.constructors.any { it.parameters.isEmpty() } }
 
     private fun <T : Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
 

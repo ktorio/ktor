@@ -15,7 +15,7 @@ import kotlin.test.*
 
 class MockedTests {
     @Test
-    fun testPostWithStringResult() = clientTest(MockEngine) {
+    fun testPostWithStringResult() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler {
@@ -35,11 +35,13 @@ class MockedTests {
                     append(HttpHeaders.ContentType, "application/json")
                 }
             }
+
+            assertEquals("content", response)
         }
     }
 
     @Test
-    fun testWithLongJson() = clientTest(MockEngine) {
+    fun testWithLongJson() = testWithEngine(MockEngine) {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer()

@@ -7,7 +7,7 @@ package io.ktor.client.tests.features
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -16,8 +16,7 @@ import kotlin.test.*
 class CookiesTest {
 
     @Test
-    fun testCompatibility() = clientTest(MockEngine) {
-
+    fun testCompatibility() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->
@@ -41,15 +40,15 @@ class CookiesTest {
         }
 
         test { client ->
-            client.get<HttpResponse>()
+            client.get<HttpStatement>().execute { }
         }
     }
 
     @Test
-    fun testAllowedCharacters() = clientTest(MockEngine) {
+    fun testAllowedCharacters() = testWithEngine(MockEngine) {
         config {
             engine {
-                addHandler {  request ->
+                addHandler { request ->
                     assertEquals("myServer=value:value;", request.headers[HttpHeaders.Cookie])
                     respondOk()
                 }

@@ -15,6 +15,8 @@ import kotlin.coroutines.*
  */
 object EmptyContent : OutgoingContent.NoContent() {
     override val contentLength: Long = 0
+
+    override fun toString(): String = "EmptyContent"
 }
 
 /**

@@ -11,7 +11,6 @@ import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import java.util.*
 
 /**
  * Status pages feature that handles exceptions and status codes. Useful to configure default error pages.
@@ -27,20 +26,21 @@ class StatusPages(config: Configuration) {
         /**
          * Exception handlers map by exception class
          */
-        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit>()
+        val exceptions: MutableMap<Class<*>, suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit> =
+            mutableMapOf()
 
         /**
          * Status handlers by status code
          */
-        val statuses =
-            mutableMapOf<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit>()
+        val statuses: MutableMap<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit> =
+            mutableMapOf()
 
         /**
          * Register exception [handler] for exception type [T] and it's children
          */
         inline fun <reified T : Throwable> exception(
             noinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
-        ) =
+        ): Unit =
             exception(T::class.java, handler)
 
         /**
@@ -51,7 +51,10 @@ class StatusPages(config: Configuration) {
             handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
         ) {
             @Suppress("UNCHECKED_CAST")
-            exceptions.put(klass, handler as suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit)
+            val cast =
+                handler as suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit
+
+            exceptions[klass] = cast
         }
 
         /**
@@ -62,7 +65,7 @@ class StatusPages(config: Configuration) {
             handler: suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit
         ) {
             status.forEach {
-                statuses.put(it, handler)
+                statuses[it] = handler
             }
         }
     }
@@ -110,10 +113,10 @@ class StatusPages(config: Configuration) {
     private fun findHandlerByType(clazz: Class<*>): (suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit)? {
         exceptions[clazz]?.let { return it }
         clazz.superclass?.let {
-            findHandlerByType(it)?.let { return it }
+            findHandlerByType(it)?.let { found -> return found }
         }
         clazz.interfaces.forEach {
-            findHandlerByType(it)?.let { return it }
+            findHandlerByType(it)?.let { found -> return found }
         }
         return null
     }
@@ -122,7 +125,7 @@ class StatusPages(config: Configuration) {
      * Feature installation object
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
-        override val key = AttributeKey<StatusPages>("Status Pages")
+        override val key: AttributeKey<StatusPages> = AttributeKey("Status Pages")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
             val configuration = Configuration().apply(configure)

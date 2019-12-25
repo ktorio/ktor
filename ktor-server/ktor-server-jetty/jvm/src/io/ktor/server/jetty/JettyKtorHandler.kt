@@ -73,7 +73,7 @@ internal class JettyKtorHandler(
         try {
             val contentType = request.contentType
             if (contentType != null && contentType.startsWith("multipart/")) {
-                baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, multipartConfig)
+                baseRequest.setAttribute(Request.MULTIPART_CONFIG_ELEMENT, multipartConfig)
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
 
@@ -96,11 +96,12 @@ internal class JettyKtorHandler(
                 try {
                     pipeline().execute(call)
                 } catch (cancelled: CancellationException) {
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    response.sendError(HttpServletResponse.SC_GONE)
+                    response.sendErrorIfNotCommitted(HttpServletResponse.SC_GONE)
                 } catch (channelFailed: ChannelIOException) {
                 } catch (t: Throwable) {
-                    call.respond(HttpStatusCode.InternalServerError)
+                    if (!response.isCommitted) {
+                        call.respond(HttpStatusCode.InternalServerError)
+                    }
                 } finally {
                     try {
                         request.asyncContext?.complete()
@@ -110,7 +111,13 @@ internal class JettyKtorHandler(
             }
         } catch (ex: Throwable) {
             environment.log.error("Application ${environment.application::class.java} cannot fulfill the request", ex)
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            response.sendErrorIfNotCommitted(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    private fun HttpServletResponse.sendErrorIfNotCommitted(status: Int) {
+        if (!isCommitted) {
+            sendError(status)
         }
     }
 }

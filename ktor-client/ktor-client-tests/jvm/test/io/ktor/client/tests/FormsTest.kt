@@ -4,7 +4,6 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -17,7 +16,7 @@ import kotlin.test.*
 class FormsTest {
 
     @Test
-    fun testEmptyFormData() = clientTest(MockEngine) {
+    fun testEmptyFormData() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler {
@@ -45,9 +44,7 @@ class FormsTest {
                 )
             }
 
-            val data = client.execute(builder).use {
-                it.response.receive<String>()
-            }
+            client.request<String>(builder)
         }
     }
 }

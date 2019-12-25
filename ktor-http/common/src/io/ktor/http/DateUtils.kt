@@ -4,8 +4,11 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlin.native.concurrent.*
 
+@SharedImmutable
 private val HTTP_DATE_FORMATS = listOf(
     "***, dd MMM YYYY hh:mm:ss zzz",
     "****, dd-MMM-YYYY hh:mm:ss zzz",
@@ -35,6 +38,22 @@ fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
     }
 
     error("Failed to parse date: $this")
+}
+
+/**
+ * Convert valid cookie date [String] to [GMTDate] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
+ *
+ * @see [fromHttpToGmtDate]
+ */
+@KtorExperimentalAPI
+fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
+    try {
+        val parser = CookieDateParser()
+        return parser.parse(this@with)
+    } catch (_: InvalidCookieDateException) {
+    }
+
+    return fromHttpToGmtDate()
 }
 
 /**

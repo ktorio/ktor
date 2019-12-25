@@ -125,4 +125,6 @@ internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChanne
             remaining -= rc
         }
     }
+
+    override fun toString(): String = "ByteChannel[$attachedJob, ${hashCode()}]"
 }

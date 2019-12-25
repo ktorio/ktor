@@ -7,23 +7,22 @@ package io.ktor.client.tests
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class HttpRedirectTest : ClientLoader() {
     private val TEST_URL_BASE = "$TEST_SERVER/redirect"
 
     @Test
-    fun redirectTest(): Unit = clientTests {
+    fun testRedirect() = clientTests {
         config {
             install(HttpRedirect)
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.readText())
             }
@@ -31,7 +30,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun infinityRedirectTest() = clientTests {
+    fun testInfinityRedirect() = clientTests {
         config {
             install(HttpRedirect)
         }
@@ -44,14 +43,14 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun redirectWithCookiesTest() = clientTests(listOf("js")) {
+    fun testRedirectWithCookies() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies)
             install(HttpRedirect)
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/cookie").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/cookie").execute {
                 assertEquals("OK", it.readText())
                 val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
@@ -60,7 +59,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun customUrlsTest() = clientTests {
+    fun testCustomUrls() = clientTests {
         val urls = listOf(
             "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
             "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
@@ -73,8 +72,8 @@ class HttpRedirectTest : ClientLoader() {
 
         test { client ->
             urls.forEach { url ->
-                client.get<HttpResponse>(url).use {
-                    if (it.status.value >= 500) return@use
+                client.get<HttpStatement>(url).execute {
+                    if (it.status.value >= 500) return@execute
                     assertTrue(it.status.isSuccess(), url)
                 }
             }
@@ -82,36 +81,27 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
-    fun httpStatsTest() = clientTests {
+    fun testRedirectRelative() = clientTests {
         test { client ->
-            client.get<HttpResponse>("https://httpstat.us/301").use { response ->
-                assertEquals(HttpStatusCode.OK, response.status)
-            }
-        }
-    }
-
-    @Test
-    fun redirectRelative() = clientTests {
-        test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/redirectFile").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/redirectFile").execute {
                 assertEquals("targetFile", it.readText())
             }
         }
     }
 
     @Test
-    fun redirectAbsolute() = clientTests {
+    fun testRedirectAbsolute() = clientTests {
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/absoluteRedirectFile").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
                 assertEquals("absoluteTargetFile", it.readText())
             }
         }
     }
 
     @Test
-    fun redirectHostAbsolute() = clientTests(listOf("js")) {
+    fun testRedirectHostAbsolute() = clientTests(listOf("Js")) {
         test { client ->
-            client.get<HttpResponse>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").use {
+            client.get<HttpStatement>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
                 assertEquals("200 OK", it.readText())
                 assertEquals("https://httpstat.us/200", it.call.request.url.toString())
             }

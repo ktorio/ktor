@@ -264,7 +264,7 @@ private fun BytePacketBuilder.writeDerGeneralizedTime(date: Date) {
 
 private fun BytePacketBuilder.writeDerUTF8String(s: String, type: Int = 0x0c) {
     val sub = buildPacket {
-        writeStringUtf8(s)
+        writeText(s)
     }
 
     writeDerType(0, type, true)

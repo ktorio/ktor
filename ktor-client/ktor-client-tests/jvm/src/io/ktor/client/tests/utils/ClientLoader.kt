@@ -23,17 +23,17 @@ actual abstract class ClientLoader {
     lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    open val timeout = CoroutinesTimeout.seconds(30)
+    open val timeout = CoroutinesTimeout.seconds(60)
 
     /**
      * Perform test against all clients from dependencies.
      */
     actual fun clientTests(
-        skipPlatforms: List<String>,
+        skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        if ("jvm" in skipPlatforms) return
-        clientTest(engine.factory, block)
+        if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
+        testWithEngine(engine.factory, block)
     }
 
     actual fun dumpCoroutines() {

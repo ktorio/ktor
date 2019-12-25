@@ -646,4 +646,28 @@ class CORSTest {
             }
         }
     }
+
+    @Test
+    fun testPreflightCustomMaxAge() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+                maxAgeInSeconds = 100
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("100", call.response.headers[HttpHeaders.AccessControlMaxAge])
+            }
+        }
+    }
 }

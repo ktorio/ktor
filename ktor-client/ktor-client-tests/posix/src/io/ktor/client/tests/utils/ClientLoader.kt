@@ -15,18 +15,19 @@ actual abstract class ClientLoader {
      * Perform test against all clients from dependencies.
      */
     actual fun clientTests(
-        skipPlatforms: List<String>,
+        skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        if ("native" in skipPlatforms) return
-
-        engines.forEach {
-            clientTest(it) {
-                withTimeout(3000) {
-                    block()
+        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
+        engines
+            .filter { !skipEnginesLowerCase.contains(it.toString().toLowerCase()) }
+            .forEach {
+                testWithEngine(it) {
+                    withTimeout(3000) {
+                        block()
+                    }
                 }
             }
-        }
     }
 
     actual fun dumpCoroutines() {

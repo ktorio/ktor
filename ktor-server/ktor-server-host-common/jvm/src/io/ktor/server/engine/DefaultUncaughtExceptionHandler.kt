@@ -8,7 +8,6 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
-import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 /**

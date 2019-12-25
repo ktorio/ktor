@@ -10,10 +10,11 @@ import io.ktor.features.*
 import io.ktor.features.ContentTransformationException
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -56,8 +57,15 @@ fun ContentNegotiation.Configuration.gson(
     register(contentType, converter)
 }
 
-internal class ExcludedTypeGsonException(val type: KClass<*>) :
-    Exception("Type ${type.jvmName} is excluded so couldn't be used in receive")
+internal class ExcludedTypeGsonException(
+    val type: KClass<*>
+) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),
+    CopyableThrowable<ExcludedTypeGsonException> {
+
+    override fun createCopy(): ExcludedTypeGsonException? = ExcludedTypeGsonException(type).also {
+        it.initCause(this)
+    }
+}
 
 internal class UnsupportedNullValuesException :
     ContentTransformationException("Receiving null values is not supported")

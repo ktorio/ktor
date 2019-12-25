@@ -7,12 +7,20 @@ package io.ktor.http.auth
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
+import kotlin.native.concurrent.*
 
 private const val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
 
+@ThreadLocal
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
+
+@ThreadLocal
 private val authSchemePattern = "\\S+".toRegex()
+
+@ThreadLocal
 private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
+
+@ThreadLocal
 private val escapeRegex: Regex = "\\\\.".toRegex()
 
 /**

@@ -246,7 +246,7 @@ fun DigestCredential.expectedDigest(
     val start = hex(userNameRealmPasswordDigest)
 
     // H(A2) in the RFC
-    val end = hex(digest("${method.value.toUpperCase()}:$digestUri"))
+    val end = hex(digest("${method.value.toUpperCasePreservingASCIIRules()}:$digestUri"))
 
     val hashParameters = when (qop) {
         null -> listOf(start, nonce, end)

@@ -5,7 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.util.*
 import kotlin.test.*

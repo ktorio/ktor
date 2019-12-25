@@ -6,7 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.application.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.network.tls.*
@@ -107,10 +107,14 @@ class CIOHttpsTest : TestWithKtor() {
             if (suite == CIOCipherSuites.ECDHE_RSA_AES128_SHA256) return@forEach
             if (suite == CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256) return@forEach
 
+            if (suite == CIOCipherSuites.ECDHE_RSA_AES256_SHA384) return@forEach
+            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES256_CBC_SHA) return@forEach
+            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
+
 //            Mandatory
 //            if (suite == CIOCipherSuites.TLS_RSA_WITH_AES128_CBC_SHA) return@forEach
 
-            clientTest(CIO) {
+            testWithEngine(CIO) {
                 config {
                     engine {
                         https {
@@ -136,16 +140,16 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun external(): Unit = clientTest(CIO) {
+    fun external() = testWithEngine(CIO) {
         test { client ->
-            client.get<HttpResponse>("https://kotlinlang.org").use { response ->
+            client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
             }
         }
     }
 
     @Test
-    fun customDomainsTest(): Unit = clientTest(CIO) {
+    fun customDomainsTest() = testWithEngine(CIO) {
         val domains = listOf(
             "https://google.com",
             "https://facebook.com",
@@ -165,7 +169,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
-    fun repeatRequestTest(): Unit = clientTest(CIO) {
+    fun repeatRequestTest() = testWithEngine(CIO) {
         config {
             followRedirects = false
 
@@ -184,7 +188,7 @@ class CIOHttpsTest : TestWithKtor() {
             var received = 0
             client.async {
                 repeat(testSize) {
-                    client.get<HttpResponse>("https://www.facebook.com").use { response ->
+                    client.get<HttpStatement>("https://www.facebook.com").execute { response ->
                         assertTrue(response.status.isSuccess())
                         received++
                     }

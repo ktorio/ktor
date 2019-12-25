@@ -5,10 +5,12 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
@@ -16,7 +18,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
 import io.ktor.utils.io.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -29,6 +30,7 @@ class TestApplicationEngine(
 ) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
 
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private var cancellationDeferred: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext
         get() = testEngineJob
@@ -44,7 +46,7 @@ class TestApplicationEngine(
     private val configuration = Configuration().apply(configure)
 
     init {
-        pipeline.intercept(EnginePipeline.Call) {callInterceptor(Unit)}
+        pipeline.intercept(EnginePipeline.Call) { callInterceptor(Unit) }
     }
 
     /**
@@ -59,6 +61,10 @@ class TestApplicationEngine(
             }
         }
 
+    /**
+     * A client instance connected to this test server instance. Only works until engine stop invocation.
+     */
+    val client: HttpClient = HttpClient(TestHttpClientEngine.create { app = this@TestApplicationEngine })
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
         tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
@@ -74,16 +80,16 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (!testEngineJob.isActive) throw IllegalStateException("Test engine is already completed")
-        testEngineJob.invokeOnCompletion {
-            stop(0, 0, TimeUnit.SECONDS)
-        }
+        check(testEngineJob.isActive) { "Test engine is already completed" }
         environment.start()
+        cancellationDeferred = stopServerOnCancellation()
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
+            cancellationDeferred?.complete()
+            client.close()
             environment.monitor.raise(ApplicationStopPreparing, environment)
             environment.stop()
         } finally {
@@ -263,7 +269,7 @@ fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {
-            trackedCookies = response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
+            trackedCookies += response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
         }
     ) {
         callback()

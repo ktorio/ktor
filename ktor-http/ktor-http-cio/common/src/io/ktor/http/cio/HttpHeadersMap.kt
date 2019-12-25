@@ -10,7 +10,7 @@ import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
 
-private const val EXPECTED_HEADERS_QTY = 32
+private const val EXPECTED_HEADERS_QTY = 64
 /*
  * index array structure
  * [0] = name hash

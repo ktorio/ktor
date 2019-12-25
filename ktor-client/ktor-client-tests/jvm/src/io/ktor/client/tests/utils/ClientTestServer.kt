@@ -13,7 +13,9 @@ import io.ktor.routing.*
 import io.ktor.websocket.*
 
 internal fun Application.tests() {
-    install(WebSockets)
+    install(WebSockets) {
+        maxFrameSize = 4 * 1024
+    }
 
     authTestServer()
     encodingTestServer()
@@ -24,6 +26,9 @@ internal fun Application.tests() {
     fullFormTest()
     redirectTest()
     headersTestServer()
+    featuresTest()
+    webSockets()
+    multiPartFormDataTest()
 
     routing {
         post("/echo") {

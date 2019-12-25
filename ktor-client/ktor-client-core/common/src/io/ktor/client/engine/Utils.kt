@@ -8,6 +8,8 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 /**
  * Default user agent to use in ktor client.
@@ -43,4 +45,38 @@ fun mergeHeaders(
 
     type?.let { block(HttpHeaders.ContentType, it) }
     length?.let { block(HttpHeaders.ContentLength, it) }
+}
+
+/**
+ * Returns current call context if exists, otherwise null.
+ */
+@InternalAPI
+suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
+
+/**
+ * Coroutine context element containing call job.
+ */
+internal class KtorCallContextElement(val callContext: CoroutineContext) : CoroutineContext.Element {
+    override val key: CoroutineContext.Key<*>
+        get() = KtorCallContextElement
+
+    companion object : CoroutineContext.Key<KtorCallContextElement>
+}
+
+/**
+ * Attach [callJob] to user job using the following logic: when user job completes with exception, [callJob] completes
+ * with exception too.
+ */
+@UseExperimental(InternalCoroutinesApi::class)
+internal suspend inline fun attachToUserJob(callJob: Job) {
+    val userJob = coroutineContext[Job]!!
+
+    val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
+        cause ?: return@invokeOnCompletion
+        callJob.cancel(CancellationException(cause.message))
+    }
+
+    callJob.invokeOnCompletion {
+        cleanupHandler.dispose()
+    }
 }

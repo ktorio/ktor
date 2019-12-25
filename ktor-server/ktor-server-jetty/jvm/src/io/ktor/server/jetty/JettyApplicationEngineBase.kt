@@ -57,10 +57,10 @@ open class JettyApplicationEngineBase(
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
-        server.stopTimeout = timeUnit.toMillis(timeout)
+        server.stopTimeout = timeoutMillis
         server.stop()
         server.destroy()
         environment.stop()

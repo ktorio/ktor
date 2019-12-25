@@ -29,7 +29,7 @@ class AndroidProxyTest : TestWithKtor() {
     }
 
     @Test
-    fun testProxyPost() = clientTest(factory) {
+    fun testProxyPost() = testWithEngine(factory) {
         config {
             engine {
                 if (this is AndroidEngineConfig) {

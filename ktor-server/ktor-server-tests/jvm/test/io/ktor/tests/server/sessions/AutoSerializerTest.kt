@@ -14,7 +14,7 @@ import kotlin.test.*
 class AutoSerializerTest {
     @Test
     fun testSimple() {
-        val serializer = autoSerializerOf<TestSession>()
+        val serializer = defaultSessionSerializer<TestSession>()
         val result = serializer.deserialize("test=#i1&list=#cl${"#sa&#sb&#sc".encodeURLParameter()}")
 
         assertEquals(1, result.test)
@@ -25,41 +25,41 @@ class AutoSerializerTest {
 
     @Test
     fun testPrimitive() {
-        assertSerializeDeserialize(PrimitiveSession(), autoSerializerOf())
+        assertSerializeDeserialize(PrimitiveSession(), defaultSessionSerializer())
     }
 
     @Test
     fun testLists() {
-        assertSerializeDeserialize(ListSession(), autoSerializerOf())
+        assertSerializeDeserialize(ListSession(), defaultSessionSerializer())
     }
 
     @Test
     fun testSets() {
-        assertSerializeDeserialize(SetSession(), autoSerializerOf())
+        assertSerializeDeserialize(SetSession(), defaultSessionSerializer())
     }
 
     @Test
     fun testMaps() {
-        assertSerializeDeserialize(MapSession(), autoSerializerOf())
+        assertSerializeDeserialize(MapSession(), defaultSessionSerializer())
     }
 
     @Test
     fun testAdditionalTypes() {
-        assertSerializeDeserialize(AdditionalTypesSession(), autoSerializerOf())
+        assertSerializeDeserialize(AdditionalTypesSession(), defaultSessionSerializer())
         // TODO randomize values
     }
 
     @Test
     fun testEnum() {
-        assertSerializeDeserialize(EnumTypeSession(), autoSerializerOf())
+        assertSerializeDeserialize(EnumTypeSession(), defaultSessionSerializer())
     }
 
     @Test
     fun testEnumInCollection() {
-        assertSerializeDeserialize(EnumCollectionSession(), autoSerializerOf())
+        assertSerializeDeserialize(EnumCollectionSession(), defaultSessionSerializer())
     }
 
-    private fun <T : Any> assertSerializeDeserialize(session: T, serializer: SessionSerializerReflection<T>) {
+    private fun <T : Any> assertSerializeDeserialize(session: T, serializer: SessionSerializer<T>) {
         val serialized = serializer.serialize(session)
         val deserialized = serializer.deserialize(serialized)
         assertEquals(session, deserialized)

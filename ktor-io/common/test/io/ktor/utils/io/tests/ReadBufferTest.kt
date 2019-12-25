@@ -2,8 +2,10 @@ package io.ktor.utils.io.tests
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
+import kotlin.native.concurrent.*
 import kotlin.test.*
 
+@SharedImmutable
 private val SIZES = intArrayOf(0, 1, 2, 3, 10, 100, 4087, 4088, 4089, 4095, 4096, 4097, 8191, 8192, 8193, 65537)
 
 class ReadBufferTest {

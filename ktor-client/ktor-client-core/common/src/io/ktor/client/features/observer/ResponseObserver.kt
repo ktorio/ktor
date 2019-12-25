@@ -6,7 +6,7 @@ package io.ktor.client.features.observer
 
 import io.ktor.client.*
 import io.ktor.client.features.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 

@@ -6,6 +6,7 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
+import kotlin.native.concurrent.*
 
 /**
  * Default [ContentType] for [extension]
@@ -33,7 +34,7 @@ fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
  * Recommended content type by file name extension
  */
 fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
-    var current = ext.removePrefix(".")
+    var current = ext.removePrefix(".").toLowerCasePreservingASCIIRules()
     while (current.isNotEmpty()) {
         val type = contentTypesByExtensions[current]
         if (type != null) {
@@ -52,11 +53,15 @@ fun ContentType.fileExtensions(): List<String> = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
-private val contentTypesByExtensions: Map<String, List<ContentType>> =
+@ThreadLocal
+private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
     caseInsensitiveMap<List<ContentType>>().apply { putAll(mimes.asSequence().groupByPairs()) }
+}
 
-private val extensionsByContentType: Map<ContentType, List<String>> =
+@ThreadLocal
+private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
     mimes.asSequence().map { (first, second) -> second to first }.groupByPairs()
+}
 
 internal fun List<ContentType>.selectDefault(): ContentType {
     val contentType = firstOrNull() ?: ContentType.Application.OctetStream

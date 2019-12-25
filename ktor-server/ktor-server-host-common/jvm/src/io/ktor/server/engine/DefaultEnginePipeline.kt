@@ -13,9 +13,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import java.nio.channels.*
 import java.util.concurrent.*
-import java.util.concurrent.CancellationException
 
 /**
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.

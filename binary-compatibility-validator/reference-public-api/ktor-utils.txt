@@ -89,6 +89,28 @@ public final class io/ktor/util/CaseInsensitiveMap : java/util/Map, kotlin/jvm/i
 	public final fun values ()Ljava/util/Collection;
 }
 
+public final class io/ktor/util/CaseInsensitiveSet : java/util/Set, kotlin/jvm/internal/markers/KMutableSet {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Iterable;)V
+	public synthetic fun add (Ljava/lang/Object;)Z
+	public fun add (Ljava/lang/String;)Z
+	public fun addAll (Ljava/util/Collection;)Z
+	public fun clear ()V
+	public final fun contains (Ljava/lang/Object;)Z
+	public fun contains (Ljava/lang/String;)Z
+	public fun containsAll (Ljava/util/Collection;)Z
+	public fun getSize ()I
+	public fun isEmpty ()Z
+	public fun iterator ()Ljava/util/Iterator;
+	public final fun remove (Ljava/lang/Object;)Z
+	public fun remove (Ljava/lang/String;)Z
+	public fun removeAll (Ljava/util/Collection;)Z
+	public fun retainAll (Ljava/util/Collection;)Z
+	public final fun size ()I
+	public fun toArray ()[Ljava/lang/Object;
+	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+}
+
 public final class io/ktor/util/CharsetKt {
 	public static final fun isLowerCase (C)Z
 	public static final fun toCharArray (Ljava/lang/String;)[C
@@ -175,9 +197,9 @@ public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
-public final class io/ktor/util/Lock : java/io/Closeable {
+public final class io/ktor/util/Lock {
 	public fun <init> ()V
-	public fun close ()V
+	public final fun close ()V
 	public final fun lock ()V
 	public final fun unlock ()V
 }
@@ -293,6 +315,8 @@ public class io/ktor/util/StringValuesBuilder {
 	public final fun removeKeysWithNoEntries ()V
 	public final fun set (Ljava/lang/String;Ljava/lang/String;)V
 	protected final fun setBuilt (Z)V
+	protected fun validateName (Ljava/lang/String;)V
+	protected fun validateValue (Ljava/lang/String;)V
 }
 
 public class io/ktor/util/StringValuesImpl : io/ktor/util/StringValues {
@@ -355,6 +379,8 @@ public class io/ktor/util/StringValuesSingleImpl : io/ktor/util/StringValues {
 public final class io/ktor/util/TextKt {
 	public static final fun chomp (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lkotlin/Pair;
 	public static final fun escapeHTML (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun toLowerCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun toUpperCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
@@ -414,8 +440,11 @@ public final class io/ktor/util/cio/OutputStreamAdaptersKt {
 	public static synthetic fun writer$default (Lio/ktor/utils/io/ByteWriteChannel;Ljava/nio/charset/Charset;ILjava/lang/Object;)Ljava/io/Writer;
 }
 
-public final class io/ktor/util/cio/ReadersKt {
+public final class io/ktor/util/cio/ReadersJvmKt {
 	public static final fun pass (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/util/cio/ReadersKt {
 	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun toByteArray$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun use (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
@@ -451,6 +480,7 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;)V
 	public synthetic fun <init> (Lio/ktor/util/Lock;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun clear ()V
+	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun containsKey (Ljava/lang/Object;)Z
 	public fun containsValue (Ljava/lang/Object;)Z
 	public final fun entrySet ()Ljava/util/Set;
@@ -479,6 +509,7 @@ public final class io/ktor/util/date/DateJvmKt {
 	public static final fun GMTDate (IIIILio/ktor/util/date/Month;I)Lio/ktor/util/date/GMTDate;
 	public static final fun GMTDate (Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
 	public static synthetic fun GMTDate$default (Ljava/lang/Long;ILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
+	public static final fun toDate (Ljava/util/Calendar;Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
 	public static final fun toJvmDate (Lio/ktor/util/date/GMTDate;)Ljava/util/Date;
 }
 

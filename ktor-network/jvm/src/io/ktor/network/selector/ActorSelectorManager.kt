@@ -81,6 +81,8 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
                 selector.selectNow()
                 if (pending > 0) {
                     handleSelectedKeys(selector.selectedKeys(), selector.keys())
+                } else {
+                    cancelled = 0
                 }
             } else {
                 val received = mb.receiveOrNull() ?: break

@@ -7,7 +7,7 @@ package io.ktor.client.features.cookies
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*

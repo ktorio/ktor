@@ -36,11 +36,13 @@ class KotlinxSerializer(
     }
 
     /** Set the mapping from [T] to [mapper]. */
+    @Suppress("UNUSED_PARAMETER", "unused")
     @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> register(mapper: KSerializer<T>) {
     }
 
     /** Set the mapping from [List<T>] to [mapper]. */
+    @Suppress("UNUSED_PARAMETER", "unused")
     @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> registerList(mapper: KSerializer<T>) {
     }
@@ -48,6 +50,7 @@ class KotlinxSerializer(
     /**
      * Set the mapping from [T] to it's [KSerializer]. This method only works for non-parameterized types.
      */
+    @Suppress("unused")
     @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
     inline fun <reified T : Any> register() {
     }
@@ -56,10 +59,12 @@ class KotlinxSerializer(
      * Set the mapping from [List<T>] to it's [KSerializer]. This method only works for non-parameterized types.
      */
     @Deprecated("[register] is obsolete with 1.3.50 `typeOf` feature", level = DeprecationLevel.WARNING)
+    @Suppress("unused")
     inline fun <reified T : Any> registerList() {
     }
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent {
+        @Suppress("UNCHECKED_CAST")
         val content = json.stringify(buildSerializer(data) as KSerializer<Any>, data)
         return TextContent(content, contentType)
     }
@@ -71,6 +76,7 @@ class KotlinxSerializer(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 @UseExperimental(ImplicitReflectionSerializer::class)
 private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
     is List<*> -> value.elementSerializer().list

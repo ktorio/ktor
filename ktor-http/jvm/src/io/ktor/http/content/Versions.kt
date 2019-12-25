@@ -74,23 +74,24 @@ enum class VersionCheckResult(val statusCode: HttpStatusCode) {
  *  @param lastModified of the current content, for example file's last modified date
  */
 data class LastModifiedVersion(val lastModified: GMTDate) : Version {
+    constructor(lastModified: Date) : this(GMTDate(lastModified.time))
+
+    private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
+
     /**
      *  @return [VersionCheckResult.OK] if all header pass or there was no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
      *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        val normalized = lastModified.truncateToSeconds()
-        val ifModifiedSince = requestHeaders[HttpHeaders.IfModifiedSince]?.fromHttpToGmtDate()
-        val ifUnmodifiedSince = requestHeaders[HttpHeaders.IfUnmodifiedSince]?.fromHttpToGmtDate()
-
-        if (ifModifiedSince != null) {
-            if (normalized <= ifModifiedSince) {
+        requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()?.let { dates ->
+            if (!ifModifiedSince(dates)) {
                 return VersionCheckResult.NOT_MODIFIED
             }
         }
-        if (ifUnmodifiedSince != null) {
-            if (normalized > ifUnmodifiedSince) {
+
+        requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()?.let { dates ->
+            if (!ifUnmodifiedSince(dates)) {
                 return VersionCheckResult.PRECONDITION_FAILED
             }
         }
@@ -98,11 +99,42 @@ data class LastModifiedVersion(val lastModified: GMTDate) : Version {
         return VersionCheckResult.OK
     }
 
-    constructor(lastModified: Date) : this(GMTDate(lastModified.time))
+    /**
+     * If-Modified-Since logic: all [dates] should be _before_ this date (truncated to seconds).
+     */
+    @KtorExperimentalAPI
+    fun ifModifiedSince(dates: List<GMTDate>): Boolean {
+        return dates.any { truncatedModificationDate > it }
+    }
+
+    /**
+     * If-Unmodified-Since logic: all [dates] should not be before this date (truncated to seconds).
+     */
+    @KtorExperimentalAPI
+    fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
+        return dates.all { truncatedModificationDate <= it }
+    }
 
     override fun appendHeadersTo(builder: HeadersBuilder) {
         builder[HttpHeaders.LastModified] = lastModified.toHttpDate()
     }
+
+    private fun List<String>.parseDates(): List<GMTDate>? = filter { it.isNotBlank() }.
+        mapNotNull { try {
+            it.fromHttpToGmtDate()
+        } catch (_: Throwable) {
+            // according to RFC7232 sec 3.3 illegal dates should be ignored
+            null
+        }
+    }.takeIf { it.isNotEmpty() }
+}
+
+/**
+ * Creates an instance of [EntityTagVersion] parsing the [spec] via [EntityTagVersion.parseSingle].
+ */
+@Suppress("FunctionName", "CONFLICTING_OVERLOADS")
+fun EntityTagVersion(spec: String): EntityTagVersion {
+    return EntityTagVersion.parseSingle(spec)
 }
 
 /**
@@ -113,30 +145,136 @@ data class LastModifiedVersion(val lastModified: GMTDate) : Version {
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  *
  * @param etag - entity tag, for example file's content hash
+ * @param weak - whether strong or weak validation should be applied
  * @return [VersionCheckResult.OK] if all headers pass or there was no related headers,
  * [VersionCheckResult.NOT_MODIFIED] for successful If-None-Match,
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
-data class EntityTagVersion(val etag: String) : Version {
+data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
+    @Suppress("unused", "CONFLICTING_OVERLOADS")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(etag: String) : this(etag.removePrefix("W/"), etag.startsWith("W/"))
+
+    private val normalized: String = when {
+        etag == "*" -> etag
+        etag.startsWith("\"") -> etag
+        else -> etag.quote()
+    }
+
+    init {
+        for (index in etag.indices) {
+            val ch = etag[index]
+            if (ch <= ' ' || ch == '\"') {
+                require(index == 0 || index == etag.lastIndex) { "Character '$ch' is not allowed in entity-tag." }
+            }
+        }
+    }
 
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        val givenNoneMatchEtags = requestHeaders[HttpHeaders.IfNoneMatch]?.parseMatchTag()
-        val givenMatchEtags = requestHeaders[HttpHeaders.IfMatch]?.parseMatchTag()
-
-        if (givenNoneMatchEtags != null && etag in givenNoneMatchEtags && "*" !in givenNoneMatchEtags) {
-            return VersionCheckResult.NOT_MODIFIED
+        requestHeaders[HttpHeaders.IfNoneMatch]?.let { parse(it) }?.let { givenNoneMatchEtags ->
+            noneMatch(givenNoneMatchEtags).let { result ->
+                if (result != VersionCheckResult.OK) return result
+            }
         }
 
-        if (givenMatchEtags != null && givenMatchEtags.isNotEmpty() && etag !in givenMatchEtags && "*" !in givenMatchEtags) {
-            return VersionCheckResult.PRECONDITION_FAILED
+        requestHeaders[HttpHeaders.IfMatch]?.let { parse(it) }?.let { givenMatchEtags ->
+            match(givenMatchEtags).let { result ->
+                if (result != VersionCheckResult.OK) return result
+            }
         }
 
         return VersionCheckResult.OK
     }
 
-    private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
+    /**
+     * Examine two entity-tags for match (strong).
+     */
+    @KtorExperimentalAPI
+    fun match(other: EntityTagVersion): Boolean {
+        if (this == STAR || other == STAR) return true
+        return normalized == other.normalized
+    }
+
+    /**
+     * `If-None-Match` logic using [match] function.
+     */
+    @KtorExperimentalAPI
+    fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
+        if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
+
+        if (givenNoneMatchEtags.any { match(it) }) {
+            return VersionCheckResult.NOT_MODIFIED
+        }
+
+        return VersionCheckResult.OK
+    }
+
+    /**
+     * `If-Match` logic using [match] function.
+     */
+    @KtorExperimentalAPI
+    fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
+        if (givenMatchEtags.isEmpty()) return VersionCheckResult.OK
+        if (STAR in givenMatchEtags) return VersionCheckResult.OK
+
+        for (given in givenMatchEtags) {
+            if (match(given)) {
+                return VersionCheckResult.OK
+            }
+        }
+
+        return VersionCheckResult.PRECONDITION_FAILED
+    }
 
     override fun appendHeadersTo(builder: HeadersBuilder) {
-        builder.etag(etag)
+        builder.etag(normalized)
+    }
+
+    companion object {
+        /**
+         * Instance for `*` entity-tag pattern.
+         */
+        @KtorExperimentalAPI
+        val STAR: EntityTagVersion = EntityTagVersion("*", false)
+
+        /**
+         * Parse headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
+         */
+        @KtorExperimentalAPI
+        fun parse(headerValue: String): List<EntityTagVersion> {
+            val rawEntries = parseHeaderValue(headerValue)
+            return rawEntries.map { entry ->
+                check (entry.quality == 1.0) { "entity-tag quality parameter is not allowed: ${entry.quality}."}
+                check (entry.params.isEmpty()) { "entity-tag parameters are not allowed: ${entry.params}." }
+
+                parseSingle(entry.value)
+            }
+        }
+
+        /**
+         * Parse single entity-tag or pattern specification.
+         */
+        @KtorExperimentalAPI
+        fun parseSingle(value: String): EntityTagVersion {
+            if (value == "*") return STAR
+
+            val weak: Boolean
+            val rawEtag: String
+
+            if (value.startsWith("W/")) {
+                weak = true
+                rawEtag = value.drop(2)
+            } else {
+                weak = false
+                rawEtag = value
+            }
+
+            val etag = when {
+                rawEtag.startsWith("\"") -> rawEtag
+                else -> rawEtag.quote()
+            }
+
+            return EntityTagVersion(etag, weak)
+        }
     }
 }

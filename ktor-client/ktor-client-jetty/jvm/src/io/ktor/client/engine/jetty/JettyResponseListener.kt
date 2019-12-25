@@ -4,11 +4,14 @@
 
 package io.ktor.client.engine.jetty
 
+import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import io.ktor.utils.io.*
+import kotlinx.coroutines.selects.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
@@ -25,6 +28,7 @@ internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val header
 private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
 
 internal class JettyResponseListener(
+    private val request: HttpRequestData,
     private val session: HTTP2ClientSession,
     private val channel: ByteWriteChannel,
     private val callContext: CoroutineContext
@@ -53,6 +57,7 @@ internal class JettyResponseListener(
         }
 
         error?.let { backendChannel.close(it) }
+
         onHeadersReceived.complete(null)
     }
 
@@ -75,7 +80,9 @@ internal class JettyResponseListener(
             headersBuilder.append(field.name, field.value)
         }
 
-        if (frame.isEndStream) backendChannel.close()
+        if (frame.isEndStream || request.method == HttpMethod.Head) {
+            backendChannel.close()
+        }
 
         onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
             val (status, reason) = it.status to it.reason

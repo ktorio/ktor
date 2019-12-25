@@ -9,8 +9,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.util.concurrent.*
-import kotlin.concurrent.*
+import kotlinx.coroutines.*
 import kotlin.system.*
 
 /**
@@ -29,9 +28,9 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
         val environment = application.environment
         val exitCode = exitCode(call)
 
-        val latch = CountDownLatch(1)
-        thread {
-            latch.await(10L, TimeUnit.SECONDS)
+        val latch = CompletableDeferred<Nothing>()
+        call.application.launch {
+            latch.join()
 
             environment.monitor.raise(ApplicationStopPreparing, environment)
             if (environment is ApplicationEngineEnvironment) {
@@ -43,8 +42,11 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
             exitProcess(exitCode)
         }
 
-        call.respond(HttpStatusCode.Gone)
-        latch.countDown()
+        try {
+            call.respond(HttpStatusCode.Gone)
+        } finally {
+            latch.cancel()
+        }
     }
 
     /**

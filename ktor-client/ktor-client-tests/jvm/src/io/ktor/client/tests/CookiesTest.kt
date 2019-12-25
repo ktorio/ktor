@@ -87,7 +87,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testAccept(): Unit = clientTest(factory) {
+    fun testAccept() = testWithEngine(factory) {
         config {
             install(HttpCookies)
         }
@@ -102,7 +102,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testUpdate(): Unit = clientTest(factory) {
+    fun testUpdate() = testWithEngine(factory) {
         config {
             install(HttpCookies) {
                 default {
@@ -124,7 +124,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testExpiration(): Unit = clientTest(factory) {
+    fun testExpiration() = testWithEngine(factory) {
         config {
             install(HttpCookies) {
                 default {
@@ -143,7 +143,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testConstant(): Unit = clientTest(factory) {
+    fun testConstant() = testWithEngine(factory) {
         config {
             install(HttpCookies) {
                 storage = ConstantCookiesStorage(Cookie("id", "1", domain = "localhost"))
@@ -160,7 +160,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testMultipleCookies(): Unit = clientTest(factory) {
+    fun testMultipleCookies() = testWithEngine(factory) {
         config {
             install(HttpCookies) {
                 default {
@@ -179,7 +179,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testPath() = clientTest(factory) {
+    fun testPath() = testWithEngine(factory) {
         config {
             install(HttpCookies)
         }
@@ -191,7 +191,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testWithLeadingDot() = clientTest(factory) {
+    fun testWithLeadingDot() = testWithEngine(factory) {
         config {
             install(HttpCookies)
         }
@@ -208,7 +208,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun caseSensitive() = clientTest(factory) {
+    fun caseSensitive() = testWithEngine(factory) {
         config {
             install(HttpCookies)
         }

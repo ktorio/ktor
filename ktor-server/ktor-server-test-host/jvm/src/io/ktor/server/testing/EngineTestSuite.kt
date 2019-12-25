@@ -7,7 +7,7 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -117,7 +117,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(Arrays.equals(byteArrayOf(25, 37, 42), readBytes()))
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
         }
     }
 
@@ -857,10 +857,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
 
             val responses = s.getInputStream().bufferedReader(Charsets.ISO_8859_1).lineSequence()
-                .filterNot {
-                    it.startsWith("Date") || it.startsWith("Server") || it.startsWith("Content-") || it.toIntOrNull() != null || it.isBlank() || it.startsWith(
-                        "Connection"
-                    )
+                .filterNot { line ->
+                    line.startsWith("Date") || line.startsWith("Server")
+                        || line.startsWith("Content-")
+                        || line.toIntOrNull() != null
+                        || line.isBlank()
+                        || line.startsWith("Connection")
+                        || line.startsWith("Keep-Alive")
                 }
                 .map { it.trim() }
                 .joinToString(separator = "\n").replace("200 OK", "200")
@@ -1820,12 +1823,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             val expected = buildString {
                 produceText()
             }
-            call.receive<HttpResponse>().use { response ->
-                assertTrue { HttpHeaders.ContentEncoding in response.headers }
-                val array = response.receive<ByteArray>()
-                val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
-                assertEquals(expected, text)
-            }
+            assertTrue { HttpHeaders.ContentEncoding in headers }
+            val array = receive<ByteArray>()
+            val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
+            assertEquals(expected, text)
         }
     }
 

@@ -10,9 +10,9 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import java.io.*
 import java.net.*
@@ -91,15 +91,16 @@ internal class Endpoint(
             val connection = connect()
             val input = connection.openReadChannel()
             val output = connection.openWriteChannel()
+
             val requestTime = GMTDate()
 
             val timeout = config.requestTimeout
             val responseData = if (timeout == 0L) {
-                request.write(output, callContext, overProxy)
+                request.write(output.wrap(callContext, config.endpoint.allowHalfClose), callContext, overProxy)
                 readResponse(requestTime, request, input, output, callContext)
             } else {
                 withTimeout(timeout) {
-                    request.write(output, callContext, overProxy)
+                    request.write(output.wrap(callContext, config.endpoint.allowHalfClose), callContext, overProxy)
                     readResponse(requestTime, request, input, output, callContext)
                 }
             }

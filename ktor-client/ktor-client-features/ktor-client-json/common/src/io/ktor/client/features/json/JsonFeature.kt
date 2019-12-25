@@ -7,7 +7,7 @@ package io.ktor.client.features.json
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -107,13 +107,13 @@ class JsonFeature internal constructor(
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
 
-                if (feature.acceptContentTypes.none { context.response.contentType()?.match(it) == true })
+                if (feature.acceptContentTypes.none { context.response.contentType()?.match(it) == true }) {
                     return@intercept
-                try {
-                    proceedWith(HttpResponseContainer(info, feature.serializer.read(info, body.readRemaining())))
-                } finally {
-                    context.close()
                 }
+
+                val parsedBody = feature.serializer.read(info, body.readRemaining())
+                val response = HttpResponseContainer(info, parsedBody)
+                proceedWith(response)
             }
         }
     }

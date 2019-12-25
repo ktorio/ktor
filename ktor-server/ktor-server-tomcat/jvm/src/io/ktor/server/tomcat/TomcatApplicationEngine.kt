@@ -122,7 +122,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         if (stopped.compareAndSet(false, true)) {
             cancellationDeferred?.complete()
             environment.monitor.raise(ApplicationStopPreparing, environment)
