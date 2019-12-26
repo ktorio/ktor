@@ -61,6 +61,7 @@ fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,
+    remoteHost: CharSequence = "",
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val outputsActor = actor<ByteReadChannel>(
@@ -97,7 +98,7 @@ fun CoroutineScope.startConnectionPipeline(
     try {
         while (true) {  // parse requests loop
             val request = try {
-                parseRequest(input) ?: break
+                parseRequest(input, remoteHost) ?: break
             } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {

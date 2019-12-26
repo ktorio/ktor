@@ -42,6 +42,7 @@ class Request internal constructor(
     val method: HttpMethod,
     val uri: CharSequence,
     val version: CharSequence,
+    val remoteHost: CharSequence,
     headers: HttpHeadersMap,
     builder: CharArrayBuilder
 ) : HttpMessage(headers, builder)

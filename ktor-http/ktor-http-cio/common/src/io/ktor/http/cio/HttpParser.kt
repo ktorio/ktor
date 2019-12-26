@@ -19,7 +19,7 @@ private const val HTTP_LINE_LIMIT = 8192
 /**
  * Parse an HTTP request line and headers
  */
-suspend fun parseRequest(input: ByteReadChannel): Request? {
+suspend fun parseRequest(input: ByteReadChannel, remoteHost: CharSequence = ""): Request? {
     val builder = CharArrayBuilder()
     val range = MutableRange(0, 0)
 
@@ -45,7 +45,7 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
 
             val headers = parseHeaders(input, builder, range) ?: return null
 
-            return Request(method, uri, version, headers, builder)
+            return Request(method, uri, version, remoteHost, headers, builder)
         }
     } catch (t: Throwable) {
         builder.release()

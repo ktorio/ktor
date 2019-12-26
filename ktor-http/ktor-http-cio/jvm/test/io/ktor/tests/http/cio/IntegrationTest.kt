@@ -73,6 +73,7 @@ class IntegrationTest {
         val url = URL("http://localhost:$port/do")
 
         handler = { r, input, o ->
+            assertEquals("127.0.0.1", r.remoteHost)
             val rr = RequestResponseBuilder()
             try {
                 rr.responseLine(r.version, 200, "OK")
