@@ -246,10 +246,11 @@ class ConsumerTest : CoroutineScope {
             }
 
             while (!decoder.isCompleted && job.isActive) {
+                yield()
+                ioControl.waitNotSuspended()
                 if (!ioControl.suspended) {
                     consumer.consumeContent(decoder, ioControl)
                 }
-                yield()
             }
 
             if (!job.isActive) {
@@ -297,9 +298,11 @@ class ConsumerTest : CoroutineScope {
         BasicHttpResponse(BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK"))
 
     private class SuspendableInputIOControl : AlwaysFailingIOControl() {
-        @Volatile
-        var suspended: Boolean = false
-            private set
+        private val suspendedLatch = atomic(CompletableDeferred(Unit))
+
+        val suspended: Boolean get() = suspendedLatch.value.isActive
+
+        suspend fun waitNotSuspended(): Unit = suspendedLatch.value.await()
 
         fun assertSuspended() {
             assertTrue(suspended)
@@ -310,11 +313,16 @@ class ConsumerTest : CoroutineScope {
         }
 
         override fun requestInput() {
-            suspended = false
+            suspendedLatch.value.complete(Unit)
         }
 
         override fun suspendInput() {
-            suspended = true
+            val newLatch = CompletableDeferred<Unit>()
+
+            suspendedLatch.getAndUpdate { before ->
+                if (before.isActive) return
+                newLatch
+            }.complete(Unit)
         }
     }
 
