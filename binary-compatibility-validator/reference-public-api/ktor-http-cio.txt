@@ -138,7 +138,7 @@ public final class io/ktor/http/cio/PipelineKt {
 	public static final fun getHttpPipelineWriterCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final fun getRequestHandlerCoroutine ()Lkotlinx/coroutines/CoroutineName;
 	public static final synthetic fun lastHttpRequest (ZLio/ktor/http/cio/ConnectionOptions;)Z
-	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function6;)Lkotlinx/coroutines/Job;
+	public static final fun startConnectionPipeline (Lkotlinx/coroutines/CoroutineScope;Ljava/net/SocketAddress;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/internals/WeakTimeoutQueue;Lkotlin/jvm/functions/Function7;)Lkotlinx/coroutines/Job;
 }
 
 public final class io/ktor/http/cio/Request : io/ktor/http/cio/HttpMessage {
