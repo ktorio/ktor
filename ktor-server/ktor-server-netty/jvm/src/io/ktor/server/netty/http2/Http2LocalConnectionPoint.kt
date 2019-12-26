@@ -8,7 +8,11 @@ import io.ktor.http.*
 import io.netty.handler.codec.http2.*
 import java.net.*
 
-internal class Http2LocalConnectionPoint(private val nettyHeaders: Http2Headers, private val address: InetSocketAddress?) : RequestConnectionPoint {
+internal class Http2LocalConnectionPoint(
+                    private val nettyHeaders: Http2Headers,
+                    private val localAddress: InetSocketAddress?,
+                    private val remoteAddress: InetSocketAddress?
+) : RequestConnectionPoint {
     override val method: HttpMethod = nettyHeaders.method()?.let { HttpMethod.parse(it.toString()) } ?: HttpMethod.Get
 
     override val scheme: String
@@ -25,9 +29,11 @@ internal class Http2LocalConnectionPoint(private val nettyHeaders: Http2Headers,
 
     override val port: Int
         get() = nettyHeaders.authority()?.toString()?.substringAfter(":")?.toInt()
-                ?: address?.port
+                ?: localAddress?.port
                 ?: 80
 
     override val remoteHost: String
-        get() = "unknown" // TODO
+        get() = remoteAddress?.let {
+            it.hostName ?: it.address.hostAddress
+        } ?: "unknown"
 }

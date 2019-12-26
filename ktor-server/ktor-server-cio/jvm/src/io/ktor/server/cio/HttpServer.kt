@@ -104,10 +104,11 @@ fun CoroutineScope.httpServer(
                     val client: Socket = server.accept()
 
                     val clientJob = connectionScope.startConnectionPipeline(
-                        input = client.openReadChannel(),
-                        output = client.openWriteChannel(),
-                        timeout = timeout,
-                        handler = handler
+                        client.remoteAddress,
+                        client.openReadChannel(),
+                        client.openWriteChannel(),
+                        timeout,
+                        handler
                     )
 
                     clientJob.invokeOnCompletion {

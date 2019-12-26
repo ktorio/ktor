@@ -113,15 +113,17 @@ private suspend fun client(
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
 
     CoroutineScope(ioCoroutineContext + Dispatchers.Unconfined).startConnectionPipeline(
+        socket.remoteAddress,
         incoming,
         outgoing,
         timeouts
-    ) { request: Request,
+    ) { remoteAddress: SocketAddress,
+        request: Request,
         _input: ByteReadChannel,
         _output: ByteWriteChannel,
         upgraded: CompletableDeferred<Boolean>? ->
         withContext(callDispatcher) {
-            handler(request, _input, _output, upgraded)
+            handler(remoteAddress, request, _input, _output, upgraded)
         }
     }.invokeOnCompletion {
         incoming.close()

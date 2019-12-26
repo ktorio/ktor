@@ -54,7 +54,11 @@ internal class NettyHttp2ApplicationRequest(
         http2frameLoop(contentByteChannel)
     }
 
-    override val local = Http2LocalConnectionPoint(nettyHeaders, context.channel().localAddress() as? InetSocketAddress)
+    override val local = Http2LocalConnectionPoint(
+        nettyHeaders,
+        context.channel().localAddress() as? InetSocketAddress,
+        context.channel().remoteAddress() as? InetSocketAddress
+    )
 
     override val cookies: RequestCookies
         get() = throw UnsupportedOperationException()
