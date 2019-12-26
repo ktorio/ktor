@@ -39,6 +39,7 @@ internal class ApacheResponseConsumerDispatching(
                     bytesRead = decoder.read(dst)
                 }
             } while (bytesRead > 0)
+            channel.flush()
         } while (bytesRead != -1 && !decoder.isCompleted)
 
         // note: decoder.read may return 0 when the decoder is already completed
