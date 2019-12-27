@@ -39,8 +39,17 @@
 * Fixed auth header resending after redirect (#1467)
 * TCP half-close made optional for CIO client engine and disabled by default.
 * Apache client random timeouts fixed
-* Fixed locale-dependat code (#1491)
+* Fixed locale-dependant code (#1491)
 * Fixed unclosed websocket channels if cancelled too early
+* TCP half-close made optional for CIO client engine and disabled by default. (#1456)
+* Improved ktor-client-mock engine to be thread safe (#1505)
+* Fixed client cookies logging (#1506)
+* Fixed multiple application stop events in test engine (#1498)
+* Fixed CIO ActorSelectorManager to not spin due to cancelled keys (affects both CIO client and server)
+* Made default auth validate functions fail to force users to implement them
+* Introduced test client instance in the test server
+* Fixed various server and client engines to return `null` for missing headers rather than empty list
+* Introduced support for json structures in client and server (#1519)
 * kotlinx.coroutines 1.3.3
 
 # 1.2.6
