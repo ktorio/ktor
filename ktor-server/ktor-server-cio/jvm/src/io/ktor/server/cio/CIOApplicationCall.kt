@@ -9,11 +9,13 @@ import io.ktor.http.cio.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import java.net.*
 import kotlin.coroutines.*
 
 internal class CIOApplicationCall(
     application: Application,
     _request: Request,
+    remoteAddress: SocketAddress,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     engineDispatcher: CoroutineContext,
@@ -21,7 +23,7 @@ internal class CIOApplicationCall(
     upgraded: CompletableDeferred<Boolean>?
 ) : BaseApplicationCall(application) {
 
-    override val request = CIOApplicationRequest(this, input, _request)
+    override val request = CIOApplicationRequest(this, input, _request, remoteAddress as? InetSocketAddress)
     override val response = CIOApplicationResponse(this, output, input, engineDispatcher, appDispatcher, upgraded)
 
     internal fun release() {

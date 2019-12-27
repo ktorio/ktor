@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import java.io.*
+import java.net.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
@@ -24,6 +25,7 @@ fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boo
  */
 typealias HttpRequestHandler = suspend CoroutineScope.(
     request: Request,
+    remoteAddress: SocketAddress,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     upgraded: CompletableDeferred<Boolean>?
@@ -61,7 +63,7 @@ fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,
-    remoteHost: CharSequence = "",
+    remoteAddress: SocketAddress,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val outputsActor = actor<ByteReadChannel>(
@@ -98,7 +100,7 @@ fun CoroutineScope.startConnectionPipeline(
     try {
         while (true) {  // parse requests loop
             val request = try {
-                parseRequest(input, remoteHost) ?: break
+                parseRequest(input) ?: break
             } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
@@ -165,7 +167,7 @@ fun CoroutineScope.startConnectionPipeline(
 
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 try {
-                    handler(request, requestBody, response, upgraded)
+                    handler(request, remoteAddress, requestBody, response, upgraded)
                 } catch (cause: Throwable) {
                     response.close(cause)
                     upgraded?.completeExceptionally(cause)

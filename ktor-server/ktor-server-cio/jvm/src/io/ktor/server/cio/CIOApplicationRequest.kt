@@ -10,10 +10,12 @@ import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.utils.io.*
+import java.net.*
 
 internal class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
-                            private val request: Request
+                            private val request: Request,
+                            private val remoteAddress: InetSocketAddress?
 ) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
 
@@ -48,10 +50,11 @@ internal class CIOApplicationRequest(call: ApplicationCall,
             get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
-            get() = request.remoteHost.toString()
+            get() = remoteAddress?.hostString ?: "unknown"
     }
 
     internal fun release() {
         request.release()
     }
+
 }

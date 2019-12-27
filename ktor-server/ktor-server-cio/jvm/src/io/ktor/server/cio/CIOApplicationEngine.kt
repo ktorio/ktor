@@ -141,10 +141,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        return scope.httpServer(settings) { request, input, output, upgraded ->
+        return scope.httpServer(settings) { request, remoteAddress, input, output, upgraded ->
             withContext(userDispatcher) {
                 val call = CIOApplicationCall(
-                    application, request, input, output,
+                    application, request, remoteAddress, input, output,
                     engineDispatcher, userDispatcher, upgraded
                 )
                 try {
