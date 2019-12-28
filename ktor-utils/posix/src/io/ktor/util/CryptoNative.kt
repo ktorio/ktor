@@ -15,15 +15,7 @@ private const val NONCE_SIZE_IN_BYTES = 16
  */
 @InternalAPI
 actual fun generateNonce(): String {
-    memScoped {
-        return NSData
-            .create(
-                bytes = allocArrayOf(elements = generateRandomByteArray()),
-                length = NONCE_SIZE_IN_BYTES.toULong()
-            ).base64EncodedStringWithOptions(
-                options = 0.toULong()
-            )
-    }
+    return hex(generateRandomByteArray())
 }
 
 private fun generateRandomByteArray(): ByteArray {
