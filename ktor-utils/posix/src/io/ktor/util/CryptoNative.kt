@@ -5,8 +5,7 @@
 package io.ktor.util
 
 import kotlinx.cinterop.*
-import platform.Foundation.*
-import platform.posix.*
+import platform.Security.*
 
 private const val NONCE_SIZE_IN_BYTES = 16
 
@@ -15,19 +14,26 @@ private const val NONCE_SIZE_IN_BYTES = 16
  */
 @InternalAPI
 actual fun generateNonce(): String {
-    return hex(generateRandomByteArray())
+    return hex(generateNonceByteArray())
 }
 
-private fun generateRandomByteArray(): ByteArray {
-    val result = ByteArray(NONCE_SIZE_IN_BYTES)
-    for (i in 0..3) {
-        val random = arc4random().toLong()
-        result[(i * 4) + 3] = (random and 0xFFFF).toByte()
-        result[(i * 4) + 2] = ((random ushr 8) and 0xFFFF).toByte()
-        result[(i * 4) + 1] = ((random ushr 16) and 0xFFFF).toByte()
-        result[(i * 4)] = ((random ushr 24) and 0xFFFF).toByte()
+private fun generateNonceByteArray(): ByteArray {
+    memScoped {
+        val array = allocArray<ByteVarOf<Byte>>(NONCE_SIZE_IN_BYTES)
+        val status = SecRandomCopyBytes(
+            kSecRandomDefault,
+            NONCE_SIZE_IN_BYTES.toULong(),
+            array
+        )
+        if (status == errSecSuccess) {
+            val result = ByteArray(NONCE_SIZE_IN_BYTES)
+            for (i in 0 until NONCE_SIZE_IN_BYTES) {
+                result[i] = array[i]
+            }
+            return result
+        }
+        error("Nonce could not be generated")
     }
-    return result
 }
 
 /**
