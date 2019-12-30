@@ -11,6 +11,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
+import kotlinx.serialization.*
 import io.ktor.util.*
 import kotlin.reflect.*
 
@@ -31,6 +32,7 @@ annotation class KtorExperimentalLocationsAPI
  */
 @KtorExperimentalLocationsAPI
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
+@SerialInfo
 annotation class Location(val path: String)
 
 /**

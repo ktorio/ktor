@@ -1,4 +1,7 @@
 description = ''
 kotlin.sourceSets.jvmMain.dependencies {
     api project(':ktor-features:ktor-auth')
+    api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version")
 }
+
+apply plugin: 'kotlinx-serialization'
