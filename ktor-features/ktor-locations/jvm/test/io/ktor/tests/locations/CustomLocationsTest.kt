@@ -14,6 +14,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.serialization.Serializable
 import org.junit.Test
 import kotlin.reflect.*
 import kotlin.test.*
@@ -35,12 +36,17 @@ object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locat
     }
 }
 
+@Serializable
 class index
+
+@Serializable
 class bye(val value: String)
 
+@Serializable
 @Location("entity/{id}")
 class entity(val id: EntityID)
 
+@Serializable
 data class EntityID(val typeId: Int, val entityId: Int)
 
 @OptIn(KtorExperimentalLocationsAPI::class)
