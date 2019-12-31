@@ -19,20 +19,25 @@ actual fun generateNonce(): String {
 
 private fun generateNonceByteArray(): ByteArray {
     memScoped {
-        val array = allocArray<ByteVarOf<Byte>>(NONCE_SIZE_IN_BYTES)
-        val status = SecRandomCopyBytes(
+        val randomBytes = allocArray<ByteVarOf<Byte>>(NONCE_SIZE_IN_BYTES)
+
+        // Generates random Data of given length
+        // Crashes if the system random number generator is not available
+        val result = SecRandomCopyBytes(
             kSecRandomDefault,
             NONCE_SIZE_IN_BYTES.toULong(),
-            array
+            randomBytes
         )
-        if (status == errSecSuccess) {
-            val result = ByteArray(NONCE_SIZE_IN_BYTES)
+
+        if (result == errSecSuccess) {
+            val byteArray = ByteArray(NONCE_SIZE_IN_BYTES)
             for (i in 0 until NONCE_SIZE_IN_BYTES) {
-                result[i] = array[i]
+                byteArray[i] = randomBytes[i]
             }
-            return result
+            return byteArray
         }
-        error("Nonce could not be generated")
+
+        error("SECURITY FAILURE: Could not generate secure random numbers for Nonce! Result code: $result")
     }
 }
 
