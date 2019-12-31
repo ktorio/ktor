@@ -37,26 +37,26 @@ internal class TLSClientHandshake(
     @Volatile
     private lateinit var masterSecret: SecretKeySpec
 
-    private val keyMaterial: ByteArray by lazy {
-        with(serverHello.cipherSuite) {
+    private val cipher = CompletableDeferred<TLSCipher>()
+
+    private fun createCipher(masterSecret: SecretKeySpec, serverHello: TLSServerHello): TLSCipher {
+        val keyMaterial: ByteArray = with(serverHello.cipherSuite) {
             keyMaterial(
                 masterSecret, serverHello.serverSeed + clientSeed,
                 keyStrengthInBytes, macStrengthInBytes, fixedIvLength
             )
         }
-    }
 
-    private val cipher: TLSCipher by lazy {
-        TLSCipher.fromSuite(serverHello.cipherSuite, keyMaterial)
+        return TLSCipher.fromSuite(serverHello.cipherSuite, keyMaterial)
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     val input: ReceiveChannel<TLSRecord> = produce(CoroutineName("cio-tls-parser")) {
-        var useCipher = false
+        var cipher: TLSCipher? = null
         try {
             loop@ while (true) {
                 val rawRecord = rawInput.readTLSRecord()
-                val record = if (useCipher) cipher.decrypt(rawRecord) else rawRecord
+                val record = cipher?.decrypt(rawRecord) ?: rawRecord
                 val packet = record.packet
 
                 when (record.type) {
@@ -71,17 +71,16 @@ internal class TLSClientHandshake(
                         return@produce
                     }
                     TLSRecordType.ChangeCipherSpec -> {
-                        check(!useCipher)
+                        check(cipher == null) { "Multiple change_cipher_spec frames received."}
                         val flag = packet.readByte()
                         if (flag != 1.toByte()) throw TLSException("Expected flag: 1, received $flag in ChangeCipherSpec")
-                        useCipher = true
+                        cipher = this@TLSClientHandshake.cipher.await()
                         continue@loop
                     }
                     else -> {
+                        channel.send(TLSRecord(record.type, packet = packet))
                     }
                 }
-
-                channel.send(TLSRecord(record.type, packet = packet))
             }
         } catch (cause: ClosedReceiveChannelException) {
             channel.close()
@@ -95,15 +94,17 @@ internal class TLSClientHandshake(
 
     @UseExperimental(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
-        var useCipher = false
+        var cipher: TLSCipher? = null
 
         try {
             for (rawRecord in channel) {
                 try {
-                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
-
+                    val record = cipher?.encrypt(rawRecord) ?: rawRecord
                     rawOutput.writeRecord(record)
+
+                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) {
+                        cipher = this@TLSClientHandshake.cipher.await()
+                    }
                 } catch (cause: Throwable) {
                     channel.close(cause)
                 }
@@ -147,13 +148,18 @@ internal class TLSClientHandshake(
     }
 
     suspend fun negotiate() {
-        digest.use {
-            sendClientHello()
-            serverHello = receiveServerHello()
+        try {
+            digest.use {
+                sendClientHello()
+                serverHello = receiveServerHello()
 
-            verifyHello(serverHello)
-            handleCertificatesAndKeys()
-            receiveServerFinished()
+                verifyHello(serverHello)
+                handleCertificatesAndKeys()
+                receiveServerFinished()
+            }
+        } catch (cause: Throwable) {
+            cipher.completeExceptionally(cause)
+            throw cause
         }
     }
 
@@ -267,7 +273,7 @@ internal class TLSClientHandshake(
                             }
 
                             val signature = Signature.getInstance(hashAndSign.name)!!.apply {
-                                initVerify(serverCertificate)
+                                initVerify(serverCertificate ?: error("No Server Certificate received"))
                                 update(buildPacket {
                                     writeFully(clientSeed)
                                     writeFully(serverHello.serverSeed)
@@ -290,7 +296,7 @@ internal class TLSClientHandshake(
                 TLSHandshakeType.ServerDone -> {
                     handleServerDone(
                         exchangeType,
-                        serverCertificate!!,
+                        serverCertificate ?: error("No Server Certificate received"),
                         certificateInfo,
                         encryptionInfo
                     )
@@ -322,6 +328,7 @@ internal class TLSClientHandshake(
             SecretKeySpec(preSecret, serverHello.cipherSuite.hash.macName),
             clientSeed, serverHello.serverSeed
         )
+        cipher.complete(createCipher(masterSecret, serverHello))
         preSecret.fill(0)
 
         certificateInfo?.let { sendClientCertificateVerify(it, chain!!) }
@@ -337,7 +344,7 @@ internal class TLSClientHandshake(
                 it[0] = 0x03
                 it[1] = 0x03
             }
-            SecretExchangeType.ECDHE -> KeyAgreement.getInstance("ECDH")!!.run {
+            ECDHE -> KeyAgreement.getInstance("ECDH")!!.run {
                 if (encryptionInfo == null) throw TLSException("ECDHE_ECDSA: Encryption info should be provided")
                 init(encryptionInfo.clientPrivate)
                 doPhase(encryptionInfo.serverPublic, true)
