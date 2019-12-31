@@ -5,7 +5,7 @@
 package io.ktor.util
 
 import kotlinx.cinterop.*
-import platform.Security.*
+import platform.posix.*
 
 private const val NONCE_SIZE_IN_BYTES = 16
 
@@ -14,30 +14,22 @@ private const val NONCE_SIZE_IN_BYTES = 16
  */
 @InternalAPI
 actual fun generateNonce(): String {
-    return hex(generateNonceByteArray())
+    return hex(generateRandomByteArray())
 }
 
-private fun generateNonceByteArray(): ByteArray {
+private fun generateRandomByteArray(size: Int = NONCE_SIZE_IN_BYTES): ByteArray {
     memScoped {
-        val randomBytes = allocArray<ByteVarOf<Byte>>(NONCE_SIZE_IN_BYTES)
-
-        // Generates random Data of given length
-        // Crashes if the system random number generator is not available
-        val result = SecRandomCopyBytes(
-            kSecRandomDefault,
-            NONCE_SIZE_IN_BYTES.toULong(),
-            randomBytes
-        )
-
-        if (result == errSecSuccess) {
-            val byteArray = ByteArray(NONCE_SIZE_IN_BYTES)
-            for (i in 0 until NONCE_SIZE_IN_BYTES) {
-                byteArray[i] = randomBytes[i]
-            }
-            return byteArray
+        val result = ByteArray(size)
+        val tmp = allocArray<ByteVar>(size)
+        val ptr = tmp.getPointer(this)
+        val file = fopen("/dev/urandom", "rb")
+        if (file != null) {
+            fread(ptr, 1.convert(), result.size.convert(), file)
+            for (n in result.indices) result[n] = ptr[n]
+            fclose(file)
+            return result
         }
-
-        error("SECURITY FAILURE: Could not generate secure random numbers for Nonce! Result code: $result")
+        error("SECURITY FAILURE: Could not generate random byte array! Reason: '/dev/urandom' could not be found")
     }
 }
 
