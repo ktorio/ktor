@@ -191,4 +191,8 @@ class ChunkedTest {
 
         assertEquals(first, second)
     }
+
+    private suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
+        return decodeChunked(input, out, -1L)
+    }
 }
