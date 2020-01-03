@@ -1,0 +1,5 @@
+description = ''
+
+kotlin.sourceSets.jvmMain.dependencies {
+    api group: 'org.jtwig', name: 'jtwig-core', version: '5.87.0.RELEASE'
+}
