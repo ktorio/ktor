@@ -18,6 +18,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.intrinsics.*
+import java.util.concurrent.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
@@ -31,6 +34,28 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 call.respondText("hello")
             }
         }
+    }
+
+    @Test
+    fun testWithNoParentJob() {
+        val block = suspend {
+            val client = HttpClient(factory)
+            val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
+            assertEquals("hello", statement.execute().readText())
+        }
+
+        val latch = ArrayBlockingQueue<Result<Unit>>(1)
+
+        block.startCoroutine(object : Continuation<Unit> {
+            override val context: CoroutineContext
+                get() = EmptyCoroutineContext
+
+            override fun resumeWith(result: Result<Unit>) {
+                latch.put(result)
+            }
+        })
+
+        latch.take().exceptionOrNull()?.let { throw it }
     }
 
     @Test
