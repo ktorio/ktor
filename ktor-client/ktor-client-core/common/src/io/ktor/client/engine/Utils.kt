@@ -69,7 +69,7 @@ internal class KtorCallContextElement(val callContext: CoroutineContext) : Corou
  */
 @UseExperimental(InternalCoroutinesApi::class)
 internal suspend inline fun attachToUserJob(callJob: Job) {
-    val userJob = coroutineContext[Job]!!
+    val userJob = coroutineContext[Job] ?: return
 
     val cleanupHandler = userJob.invokeOnCompletion(onCancelling = true) { cause ->
         cause ?: return@invokeOnCompletion
