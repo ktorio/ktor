@@ -10,7 +10,6 @@ import io.ktor.server.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import java.net.*
 
 @Volatile
 private var cachedDateText: String = GMTDate().toHttpDate()
@@ -38,7 +37,6 @@ fun main(args: Array<String>) {
     }
 
     val server = GlobalScope.httpServer(settings, handler = { request: Request,
-                                                              _: SocketAddress,
                                                               _: ByteReadChannel,
                                                               output: ByteWriteChannel,
                                                               _: CompletableDeferred<Boolean>? ->

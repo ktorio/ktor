@@ -1109,27 +1109,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
-    fun testRemoteHost() {
-        createAndStartServer {
-            handle {
-                call.respondText {
-                    call.request.local.remoteHost
-                }
-            }
-        }
-
-        withUrl("/") {
-            readText().also { text ->
-                assertNotNull(
-                    listOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1").find {
-                        it == text
-                    }
-                )
-            }
-        }
-    }
-
-    @Test
     fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
         createAndStartServer {

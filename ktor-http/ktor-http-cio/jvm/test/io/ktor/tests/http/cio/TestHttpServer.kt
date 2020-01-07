@@ -112,18 +112,34 @@ private suspend fun client(
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
 
+    val remoteHost =
+        when(val address = (socket.remoteAddress as? InetSocketAddress)?.address) {
+            is Inet4Address -> address.address.
+                joinToString(".") {
+                    it.toString()
+                }
+            is Inet6Address -> address.address.
+                toList().
+                chunked(2).
+                joinToString(":") { pair ->
+                    pair.joinToString {
+                        it.toString(16).padStart(2, '0')
+                    }
+                }
+            else -> ""
+        }
+
     CoroutineScope(ioCoroutineContext + Dispatchers.Unconfined).startConnectionPipeline(
         incoming,
         outgoing,
         timeouts,
-        socket.remoteAddress
+        remoteHost(socket)
     ) { request: Request,
-        remoteAddress: SocketAddress,
         _input: ByteReadChannel,
         _output: ByteWriteChannel,
         upgraded: CompletableDeferred<Boolean>? ->
         withContext(callDispatcher) {
-            handler(request, remoteAddress, _input, _output, upgraded)
+            handler(request, _input, _output, upgraded)
         }
     }.invokeOnCompletion {
         incoming.close()

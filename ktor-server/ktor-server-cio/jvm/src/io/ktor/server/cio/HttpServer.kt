@@ -14,6 +14,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.slf4j.*
+import java.net.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 
@@ -107,7 +108,7 @@ fun CoroutineScope.httpServer(
                         input = client.openReadChannel(),
                         output = client.openWriteChannel(),
                         timeout = timeout,
-                        remoteAddress = client.remoteAddress,
+                        remoteHost = remoteHost(client),
                         handler = handler
                     )
 
