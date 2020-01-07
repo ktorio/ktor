@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import java.io.*
+import java.net.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
@@ -23,6 +24,7 @@ fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boo
  * HTTP request handler function
  */
 typealias HttpRequestHandler = suspend CoroutineScope.(
+    remoteAddress: SocketAddress,
     request: Request,
     input: ByteReadChannel,
     output: ByteWriteChannel,
@@ -58,11 +60,12 @@ val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 @KtorExperimentalAPI
 @UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun CoroutineScope.startConnectionPipeline(
+    remoteAddress: SocketAddress,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
-): Job = launch(HttpPipelineCoroutine) {
+    ): Job = launch(HttpPipelineCoroutine) {
     val outputsActor = actor<ByteReadChannel>(
         context = HttpPipelineWriterCoroutine,
         capacity = 3,
@@ -164,7 +167,7 @@ fun CoroutineScope.startConnectionPipeline(
 
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 try {
-                    handler(request, requestBody, response, upgraded)
+                    handler(remoteAddress, request, requestBody, response, upgraded)
                 } catch (cause: Throwable) {
                     response.close(cause)
                     upgraded?.completeExceptionally(cause)

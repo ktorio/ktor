@@ -10,8 +10,11 @@ import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.utils.io.*
+import java.net.*
 
-internal class CIOApplicationRequest(call: ApplicationCall,
+internal class CIOApplicationRequest(
+                            call: ApplicationCall,
+                            private val remoteAddress: InetSocketAddress?,
                             private val input: ByteReadChannel,
                             private val request: Request
 ) : BaseApplicationRequest(call) {
@@ -48,7 +51,7 @@ internal class CIOApplicationRequest(call: ApplicationCall,
             get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
-            get() = "unknown" // TODO
+            get() = remoteAddress?.hostString ?: "unknown"
     }
 
     internal fun release() {

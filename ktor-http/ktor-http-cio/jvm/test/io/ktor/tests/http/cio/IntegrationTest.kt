@@ -28,7 +28,7 @@ class IntegrationTest {
     @Before
     fun setUp() {
         val dispatcher = pool.asCoroutineDispatcher()
-        val (j, s) = testHttpServer(0, dispatcher, dispatcher) { request, input, output, _ ->
+        val (j, s) = testHttpServer(0, dispatcher, dispatcher) { _, request, input, output, _ ->
             if (request.uri.toString() == "/do" && request.method == HttpMethod.Post) {
                 handler(request, input, output)
             } else {
