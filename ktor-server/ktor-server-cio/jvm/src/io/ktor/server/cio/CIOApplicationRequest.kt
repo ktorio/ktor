@@ -48,7 +48,7 @@ internal class CIOApplicationRequest(call: ApplicationCall,
             get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
-            get() = request.remoteHost.toString()
+            get() = "unknown" // TODO
     }
 
     internal fun release() {
