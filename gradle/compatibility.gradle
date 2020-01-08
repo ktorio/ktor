@@ -16,7 +16,8 @@ dependencies {
         project(":ktor-client"),
         project(":ktor-http"),
         project(":ktor-network"),
-        project(":ktor-utils")
+        project(":ktor-utils"),
+        project(":ktor-server:ktor-server-core")
     ]
 
     while (!queue.isEmpty()) {
