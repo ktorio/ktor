@@ -51,7 +51,9 @@ internal class CIOApplicationRequest(
             get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
-            get() = remoteAddress?.hostString ?: "unknown"
+            get() = remoteAddress?.let {
+                it.hostName ?: it.address.hostAddress
+            } ?: "unknown"
     }
 
     internal fun release() {
