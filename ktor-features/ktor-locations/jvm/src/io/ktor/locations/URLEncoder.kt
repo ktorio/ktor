@@ -14,47 +14,32 @@ internal class URLEncoder(
     override val context: SerialModule
 ) : Encoder, CompositeEncoder {
     private val builder = URLBuilder()
-    private val unspecified = String()
     private val pathParameters = ParametersBuilder()
 
     private var path: String? = null
 
-    private fun path(path: String) {
-        check(this.path == null)
-        this.path = path
-        pathParameters.clear()
-
-        val parsed = RoutingPath.parse(path)
-        val pattern = "\\{([a-zA-Z0-9_-]*)(\\?|...)?}".toRegex()
-        parsed.parts.asSequence().filter { it.kind == RoutingPathSegmentKind.Parameter }.flatMap {
-            pattern.findAll(it.value).mapNotNull { parameter -> parameter.groups[1]?.value }
-        }.forEach { parameterName ->
-            pathParameters.append(parameterName, unspecified)
-        }
-    }
-
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
         if (path == null) {
-            val path = desc.getEntityAnnotations().filterIsInstance<Location>().map { it.path }.single()
-            path(path)
+            check(this.path == null)
+            this.path = buildPathParameters(desc, pathParameters)
         }
         return this
     }
 
     override fun encodeBoolean(value: Boolean) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeByte(value: Byte) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeChar(value: Char) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeDouble(value: Double) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
@@ -62,35 +47,35 @@ internal class URLEncoder(
     }
 
     override fun encodeFloat(value: Float) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeInt(value: Int) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeLong(value: Long) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeNotNullMark() {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeNull() {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeShort(value: Short) {
-        TODO("Not yet implemented")
+        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeString(value: String) {
-        TODO("Not yet implemented")
+        error("Encoding a String to URL is not supported")
     }
 
     override fun encodeUnit() {
-        TODO("Not yet implemented")
+        error("Encoding a Unit to URL is not supported")
     }
 
     override fun encodeBooleanElement(desc: SerialDescriptor, index: Int, value: Boolean) {
@@ -162,12 +147,12 @@ internal class URLEncoder(
         if (name in pathParameters) {
             pathParameters[name] = stringified
         } else {
-            builder.parameters[name] = stringified
+            builder.parameters.append(name, stringified)
         }
     }
 
     fun build(): Url {
-        check(pathParameters.entries().none { it.value.single() === unspecified })
+        check(pathParameters.entries().none { it.value.single() === UnspecifiedParameterValue })
         val parsed = RoutingPath.parse(path ?: "/")
         val pattern = "\\{([a-zA-Z0-9_-]*)(\\?|...)?}".toRegex()
         val suffix = when {
@@ -209,7 +194,37 @@ fun main() {
     val serializer = Xy::class.serializer()
     val encoder = URLEncoder(EmptyModule)
 
-    serializer.serialize(encoder, Xy("111", "222", C("333")))
+    val valueBefore = Xy("111", "222", C("333"))
+    println("Value before: $valueBefore")
 
-    println(encoder.build())
+    serializer.serialize(encoder, valueBefore)
+
+    val url = encoder.build()
+    println("URL: $url")
+
+    val decoder = URLDecoder(EmptyModule, url)
+    val valueAfter = serializer.deserialize(decoder)
+
+    println("Value after: $valueAfter")
+}
+
+internal val UnspecifiedParameterValue = String()
+
+@UseExperimental(KtorExperimentalLocationsAPI::class)
+private fun buildPathParameters(desc: SerialDescriptor, pathParameters: ParametersBuilder): String {
+    val path = desc.getEntityAnnotations().filterIsInstance<Location>().map { it.path }.single()
+    buildPathParameters(path, pathParameters)
+    return path
+}
+
+private fun buildPathParameters(path: String, pathParameters: ParametersBuilder) {
+    pathParameters.clear()
+
+    val parsed = RoutingPath.parse(path)
+    val pattern = "\\{([a-zA-Z0-9_-]*)(\\?|...)?}".toRegex()
+    parsed.parts.asSequence().filter { it.kind == RoutingPathSegmentKind.Parameter }.flatMap {
+        pattern.findAll(it.value).mapNotNull { parameter -> parameter.groups[1]?.value }
+    }.forEach { parameterName ->
+        pathParameters.append(parameterName, UnspecifiedParameterValue)
+    }
 }
