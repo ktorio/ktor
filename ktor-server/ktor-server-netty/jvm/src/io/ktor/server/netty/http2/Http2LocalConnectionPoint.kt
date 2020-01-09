@@ -33,5 +33,7 @@ internal class Http2LocalConnectionPoint(
                 ?: 80
 
     override val remoteHost: String
-        get() = remoteAddress?.hostString ?: "unknown"
+        get() = remoteAddress?.let {
+            it.hostName ?: it.address.hostAddress
+        } ?: "unknown"
 }
