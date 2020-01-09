@@ -63,4 +63,23 @@ class AuthTest : ClientLoader() {
             client.get<String>("$TEST_SERVER/auth/basic-fixed")
         }
     }
+
+    @Test
+    fun testUnauthorizedBasicAuth() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    username = "usr"
+                    password = "pw"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/auth/unauthorized").execute { response ->
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+            }
+        }
+    }
+
 }

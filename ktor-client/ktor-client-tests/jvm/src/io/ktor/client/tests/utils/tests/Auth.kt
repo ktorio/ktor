@@ -78,6 +78,12 @@ internal fun Application.authTestServer() {
                     call.respondText("ok")
                 }
             }
+
+            get("unauthorized") {
+                // simulate a server which responds with 401 and another auth request on bad credentials
+                call.response.status(HttpStatusCode.Unauthorized)
+                call.response.header(HttpHeaders.WWWAuthenticate, "Basic realm=\"TestServer\", charset=UTF-8")
+            }
         }
     }
 }
