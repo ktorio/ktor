@@ -184,5 +184,6 @@ class HttpClient(
         engine.close()
     }
 
+    override fun toString(): String = "HttpClient[$engine]"
 }
 

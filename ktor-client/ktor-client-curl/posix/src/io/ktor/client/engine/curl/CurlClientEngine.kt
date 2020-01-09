@@ -14,7 +14,9 @@ import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 
-internal class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClientEngineBase("ktor-curl") {
+internal class CurlClientEngine(
+    override val config: CurlClientEngineConfig
+) : HttpClientEngineBase("ktor-curl") {
     override val dispatcher = Dispatchers.Unconfined
 
     private val curlProcessor = CurlProcessor(coroutineContext)

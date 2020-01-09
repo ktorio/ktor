@@ -76,7 +76,7 @@ open class HttpClientCall internal constructor(
             if (!result.instanceOf(info.type)) {
                 val from = result::class
                 val to = info.type
-                throw NoTransformationFoundException(from, to)
+                throw NoTransformationFoundException(response, from, to)
             }
 
             return result
@@ -171,6 +171,14 @@ class ReceivePipelineException(
  * It includes the received type and the expected type as part of the message.
  */
 @Suppress("KDocMissingDocumentation")
-class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
-    override val message: String? = "No transformation found: $from -> $to"
+class NoTransformationFoundException(
+    response: HttpResponse,
+    from: KClass<*>, to: KClass<*>
+) : UnsupportedOperationException() {
+    override val message: String? = """No transformation found: $from -> $to
+        |with response from ${response.request.url}:
+        |status: ${response.status}
+        |response headers: 
+        |${response.headers.flattenEntries().joinToString { (key, value) -> "$key: $value\n" }}
+    """.trimMargin()
 }
