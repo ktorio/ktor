@@ -10,7 +10,22 @@ import io.ktor.http.*
  * @param url: proxy url address.
  */
 actual class ProxyConfig(val url: Url) {
-    override fun toString(): String = url.toString()
+    override fun toString(): String = buildString {
+        url.apply {
+            append(protocol.name)
+            append("://")
+            if (user != null) {
+                append(user!!.encodeURLParameter())
+                if (password != null) {
+                    append(':')
+                    append(password!!.encodeURLParameter())
+                }
+                append('@')
+            }
+
+            append(hostWithPort)
+        }
+    }
 }
 
 /**
