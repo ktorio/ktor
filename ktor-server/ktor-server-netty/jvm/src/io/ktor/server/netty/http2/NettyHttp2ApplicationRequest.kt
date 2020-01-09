@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.netty.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpMethod
@@ -15,7 +16,6 @@ import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import java.net.*
 import kotlin.coroutines.*
 
@@ -36,11 +36,13 @@ internal class NettyHttp2ApplicationRequest(
 
     override val headers: Headers by lazy {
         Headers.build {
-            nettyHeaders.forEach {
-                append(
-                    it.key.toString(),
-                    it.value.toString()
-                )
+            nettyHeaders.forEach { (name, value) ->
+                if (name.isNotEmpty() && name[0] != ':') {
+                    append(
+                        name.toString(),
+                        value.toString()
+                    )
+                }
             }
         }
     }
