@@ -41,8 +41,8 @@ class ProxyTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<ProxyResponse>("http://google.com")
-            val expected = ProxyResponse("OK")
+            val response = client.get<ProxyResponse>("http://google.com/json")
+            val expected = ProxyResponse("ok")
 
             assertEquals(expected, response)
         }

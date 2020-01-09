@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests.utils.tests
 
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
@@ -16,7 +17,11 @@ suspend fun proxyHandler(socket: Socket) {
 
     val response = when (statusLine) {
         "GET http://google.com/ HTTP/1.1" -> buildResponse(HttpStatusCode.OK)
-        "GET http://google.com/json HTTP/1.1" -> buildResponse(HttpStatusCode.OK, "{'status': 'ok'}")
+        "GET http://google.com/json HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK, buildHeaders {
+                append(HttpHeaders.ContentType, ContentType.Application.Json)
+            }, "{\"status\": \"ok\"}"
+        )
         else -> buildResponse(HttpStatusCode.BadRequest)
     }
 
@@ -28,9 +33,16 @@ suspend fun proxyHandler(socket: Socket) {
     }
 }
 
-private fun buildResponse(status: HttpStatusCode, body: String = "proxy") = buildString {
+private fun buildResponse(
+    status: HttpStatusCode,
+    headers: Headers = Headers.Empty,
+    body: String = "proxy"
+): String = buildString {
     append("HTTP/1.1 ${status.value} ${status.description}\r\n")
     append("Connection: close\r\n")
+    headers.forEach { key, values ->
+        append("$key: ${values.joinToString()}\r\n")
+    }
     append("\r\n")
     append(body)
 }

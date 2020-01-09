@@ -81,26 +81,15 @@ kotlin.sourceSets {
     if (!ideaActive) {
         listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
-                api(project(":ktor-client:ktor-client-curl"))
-            }
-        }
-
-        listOf("iosX64Test", "iosArm64Test", "iosArm64Test", "macosX64Test").map { getByName(it) }.forEach {
-            it.dependencies {
-                api(project(":ktor-client:ktor-client-ios"))
+//                api(project(":ktor-client:ktor-client-curl"))
             }
         }
     } else {
         posixTest {
             dependencies {
-                api(project(":ktor-client:ktor-client-curl"))
+//                api(project(":ktor-client:ktor-client-curl"))
             }
         }
-//        darwinTest {
-//            dependencies {
-//                api(project(":ktor-client:ktor-client-ios"))
-//            }
-//        }
     }
 }
 
