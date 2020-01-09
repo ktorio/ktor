@@ -24,7 +24,7 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
 
                 try {
                     socket.use { handler(it) }
-                } catch (_ : Throwable) {
+                } catch (_: Throwable) {
                 }
             }
         }

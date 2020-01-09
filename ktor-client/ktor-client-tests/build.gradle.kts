@@ -78,19 +78,30 @@ kotlin.sourceSets {
         }
     }
 
-//    if (!ideaActive) {
-//        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
-//            it.dependencies {
-//                api(project(":ktor-client:ktor-client-curl"))
-//            }
-//        }
-//
-//        listOf("iosX64Test", "iosArm64Test", "iosArm64Test", "macosX64Test").map { getByName(it) }.forEach {
-//            it.dependencies {
+    if (!ideaActive) {
+        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+
+        listOf("iosX64Test", "iosArm64Test", "iosArm64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                api(project(":ktor-client:ktor-client-ios"))
+            }
+        }
+    } else {
+        posixTest {
+            dependencies {
+                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+//        darwinTest {
+//            dependencies {
 //                api(project(":ktor-client:ktor-client-ios"))
 //            }
 //        }
-//    }
+    }
 }
 
 val startTestServer = task<KtorTestServer>("startTestServer") {

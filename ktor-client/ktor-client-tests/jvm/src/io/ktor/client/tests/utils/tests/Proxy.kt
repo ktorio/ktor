@@ -13,10 +13,11 @@ suspend fun proxyHandler(socket: Socket) {
     val output = socket.openWriteChannel()
 
     val statusLine = input.readUTF8Line()
-    val response = if (statusLine == "GET http://google.com/ HTTP/1.1") {
-        buildResponse(HttpStatusCode.OK)
-    } else {
-        buildResponse(HttpStatusCode.BadRequest)
+
+    val response = when (statusLine) {
+        "GET http://google.com/ HTTP/1.1" -> buildResponse(HttpStatusCode.OK)
+        "GET http://google.com/json HTTP/1.1" -> buildResponse(HttpStatusCode.OK, "{'status': 'ok'}")
+        else -> buildResponse(HttpStatusCode.BadRequest)
     }
 
     output.writeStringUtf8(response)
@@ -27,9 +28,9 @@ suspend fun proxyHandler(socket: Socket) {
     }
 }
 
-private fun buildResponse(status: HttpStatusCode) = buildString {
+private fun buildResponse(status: HttpStatusCode, body: String = "proxy") = buildString {
     append("HTTP/1.1 ${status.value} ${status.description}\r\n")
     append("Connection: close\r\n")
     append("\r\n")
-    append("proxy")
+    append(body)
 }
