@@ -35,24 +35,26 @@ class Auth(
                 }
             }
 
+            val circuitBreaker = AttributeKey<Int>("auth-request")
             scope.feature(HttpSend)!!.intercept { origin, context ->
-                var call = origin
+                if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
+                if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
 
-                val usedProviders = mutableSetOf<AuthProvider>()
+                var call = origin
+                val candidateProviders = HashSet(feature.providers).apply { removeAll(feature.alwaysSend) }
                 while (call.response.status == HttpStatusCode.Unauthorized) {
                     val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
-                    val provider = feature.providers.find { it.isApplicable(authHeader) } ?: return@intercept call
-
-                    if (provider in usedProviders || provider in feature.alwaysSend) return@intercept call
+                    val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    candidateProviders.remove(provider)
 
                     val request = HttpRequestBuilder()
                     request.takeFrom(context)
                     provider.addRequestHeaders(request)
+                    request.attributes.put(circuitBreaker, 0)
 
                     call = execute(request)
                 }
-
                 return@intercept call
             }
         }
