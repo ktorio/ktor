@@ -13,6 +13,7 @@ public final class io/ktor/client/HttpClient : java/io/Closeable, kotlinx/corout
 	public final fun getRequestPipeline ()Lio/ktor/client/request/HttpRequestPipeline;
 	public final fun getResponsePipeline ()Lio/ktor/client/statement/HttpResponsePipeline;
 	public final fun getSendPipeline ()Lio/ktor/client/request/HttpSendPipeline;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/client/HttpClientConfig {
@@ -91,7 +92,7 @@ public final class io/ktor/client/call/HttpEngineCall {
 }
 
 public final class io/ktor/client/call/NoTransformationFoundException : java/lang/UnsupportedOperationException {
-	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KClass;)V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Lkotlin/reflect/KClass;Lkotlin/reflect/KClass;)V
 	public fun getMessage ()Ljava/lang/String;
 }
 
