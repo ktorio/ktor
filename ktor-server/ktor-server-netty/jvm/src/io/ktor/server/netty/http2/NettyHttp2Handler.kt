@@ -100,6 +100,9 @@ internal class NettyHttp2Handler(
         val codec = channel.parent().pipeline().get(Http2MultiplexCodec::class.java)!!
         val connection = codec.connection()
 
+        if (!connection.remote().allowPushTo()) {
+            return
+        }
 
         val rootContext = channel.parent().pipeline().lastContext()
 
