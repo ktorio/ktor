@@ -15,6 +15,7 @@ import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
+import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
@@ -95,6 +96,9 @@ class NettyChannelInitializer(
             ApplicationProtocolNames.HTTP_2 -> {
                 val handler = NettyHttp2Handler(enginePipeline, environment.application, callEventGroup, userContext)
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
+                pipeline.channel().closeFuture().addListener {
+                    handler.cancel()
+                }
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val requestQueue = NettyRequestQueue(requestQueueLimit, runningLimit)
