@@ -13,12 +13,17 @@ import java.util.concurrent.atomic.*
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
  */
 @InternalAPI
-fun Dispatchers.fixedThreadPoolDispatcher(threadCount: Int, threadName: String = "thread-pool-%d"): CoroutineDispatcher {
+fun Dispatchers.fixedThreadPoolDispatcher(
+    threadCount: Int,
+    threadName: String = "thread-pool-%d"
+): CoroutineDispatcher {
     val threadsNum = AtomicInteger(0)
     return Executors.newFixedThreadPool(threadCount) {
         Thread(it).apply {
             isDaemon = true
             name = threadName.format(threadsNum.getAndIncrement())
+
+            setUncaughtExceptionHandler { _, _ -> }
         }
     }.asCoroutineDispatcher()
 }

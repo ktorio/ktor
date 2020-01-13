@@ -10,7 +10,6 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -61,11 +60,13 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData =
-        suspendCancellableCoroutine { continuation ->
-            val task = RequestTask(request, continuation, callContext)
-            tasks.offer(task)
-        }
+    suspend fun execute(
+        request: HttpRequestData,
+        callContext: CoroutineContext
+    ): HttpResponseData = suspendCancellableCoroutine { continuation ->
+        val task = RequestTask(request, continuation, callContext)
+        tasks.offer(task)
+    }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
         if (deliveryPoint.offer(task)) return
