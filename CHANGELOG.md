@@ -1,5 +1,5 @@
 # 1.3.0
-> Unpublished yet
+> 14 Jan 2020
 
 * ktor client proxy support
 * Introduced `HttpStatement` and deprecated potentially dangerous resource-leaking client API
@@ -50,6 +50,7 @@
 * Introduced test client instance in the test server
 * Fixed various server and client engines to return `null` for missing headers rather than empty list
 * Introduced support for json structures in client and server (#1519)
+* Introduced ktor-server-core binary compatibility tracking
 * kotlinx.coroutines 1.3.3
 
 # 1.2.6
