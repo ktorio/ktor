@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.okhttp
 
+import io.ktor.client.*
+import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import kotlin.test.*
@@ -15,16 +17,24 @@ class OkHttpEngineTests {
         val engine = OkHttpEngine(OkHttpConfig().apply { preconfigured = okHttpClient })
         engine.close()
 
-        runBlocking {
-            withTimeout(1000) {
-                while (!okHttpClient.dispatcher().executorService().isShutdown) {
-                    yield()
-                }
+        assertFalse("OkHttp dispatcher is not working.") { okHttpClient.dispatcher().executorService().isShutdown }
+        assertEquals(0, okHttpClient.connectionPool().connectionCount())
+        okHttpClient.cache()?.let { assertFalse("OkHttp client cache is closed.") { it.isClosed } }
+    }
 
-                assertTrue("OkHttp dispatcher is still working.") { okHttpClient.dispatcher().executorService().isShutdown }
-                assertEquals(0, okHttpClient.connectionPool().connectionCount())
-                okHttpClient.cache()?.let { assertTrue("OkHttp client cache is not closed.") { it.isClosed } }
+    @Test
+    fun threadLeakTest() = runBlocking {
+        val initialNumberOfThreads = Thread.getAllStackTraces().size
+
+        repeat(25) {
+            HttpClient(OkHttp).use { client ->
+                val response = client.get<String>("http://www.google.com")
+                assertNotNull(response)
             }
         }
+
+        val totalNumberOfThreads = Thread.getAllStackTraces().size
+        val threadsCreated = totalNumberOfThreads - initialNumberOfThreads
+        assertTrue { threadsCreated < 25 }
     }
 }

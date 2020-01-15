@@ -32,7 +32,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     private val engine: OkHttpClient = config.preconfigured ?: run {
-        val builder = OkHttpClient.Builder()
+        val builder = okHttpClientPrototype.newBuilder()
         builder.apply(config.config)
 
         config.proxy?.let { builder.proxy(it) }
@@ -55,9 +55,10 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
 
         coroutineContext[Job]!!.invokeOnCompletion {
             GlobalScope.launch(dispatcher) {
-                engine.dispatcher().executorService().shutdown()
+                // The engine dispatcher and the cache are not closed because:
+                // 1. If the engine was created by Ktor it shares common dispatcher and cache.
+                // 2. If the engine was created by a user the user is responsible for lifecycle management.
                 engine.connectionPool().evictAll()
-                engine.cache()?.close()
             }.invokeOnCompletion {
                 (dispatcher as Closeable).close()
             }
@@ -97,6 +98,16 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         val headers = response.headers().fromOkHttp()
 
         return HttpResponseData(status, requestTime, headers, version, body, callContext)
+    }
+
+    private companion object {
+        /**
+         * It's an artificial prototype object to be used to create actual clients and eliminate the following issue:
+         * https://github.com/square/okhttp/issues/3372.
+         */
+        val okHttpClientPrototype: OkHttpClient by lazy {
+            OkHttpClient.Builder().build()
+        }
     }
 }
 

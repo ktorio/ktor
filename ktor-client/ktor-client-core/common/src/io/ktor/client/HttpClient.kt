@@ -37,8 +37,15 @@ fun <T : HttpClientEngineConfig> HttpClient(
 ): HttpClient {
     val config: HttpClientConfig<T> = HttpClientConfig<T>().apply(block)
     val engine = engineFactory.create(config.engineConfig)
+    val client = HttpClient(engine, config)
 
-    return HttpClient(engine, config)
+    // If the engine was created using factory Ktor is responsible for its lifecycle management. Otherwise user has to
+    // close engine by himself.
+    client.coroutineContext[Job]!!.invokeOnCompletion {
+        engine.close()
+    }
+
+    return client
 }
 
 /**
@@ -63,7 +70,7 @@ class HttpClient(
 ) : CoroutineScope, Closeable {
     private val closed = atomic(false)
 
-    override val coroutineContext: CoroutineContext get() = engine.coroutineContext
+    override val coroutineContext: CoroutineContext = engine.coroutineContext + Job(engine.coroutineContext[Job])
 
     /**
      * Pipeline used for processing all the requests sent by this client.
@@ -181,7 +188,7 @@ class HttpClient(
             }
         }
 
-        engine.close()
+        (coroutineContext[Job] as CompletableJob).complete()
     }
 
     override fun toString(): String = "HttpClient[$engine]"
