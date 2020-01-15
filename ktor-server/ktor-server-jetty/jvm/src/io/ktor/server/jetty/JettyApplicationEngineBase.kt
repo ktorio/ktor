@@ -47,8 +47,12 @@ open class JettyApplicationEngineBase(
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
         environment.start()
-
-        server.start()
+        try {
+            server.start()
+        } catch (e: Exception) {
+            stop(1, 5, TimeUnit.SECONDS)
+            throw e
+        }
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.join()

@@ -17,6 +17,7 @@ import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.slf4j.*
+import java.net.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
@@ -114,6 +115,12 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
     override fun start(wait: Boolean): TomcatApplicationEngine {
         environment.start()
         server.start()
+        server.service.findConnectors().forEach {
+            if (it.localPort == -1) {
+                stop(1, 5, TimeUnit.SECONDS)
+                throw BindException("Tomcat socket could not be bound to port ${it.port}.")
+            }
+        }
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
             server.server.await()

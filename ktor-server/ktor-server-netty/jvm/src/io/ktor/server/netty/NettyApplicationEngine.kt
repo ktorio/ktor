@@ -8,17 +8,17 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.netty.bootstrap.ServerBootstrap
+import io.netty.bootstrap.*
 import io.netty.channel.*
+import io.netty.channel.epoll.*
+import io.netty.channel.kqueue.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
-import io.netty.channel.epoll.*
-import io.netty.channel.kqueue.*
-import kotlinx.coroutines.*
 import io.netty.handler.codec.http.*
+import kotlinx.coroutines.*
 import java.util.concurrent.*
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
@@ -125,9 +125,14 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     override fun start(wait: Boolean): NettyApplicationEngine {
         environment.start()
 
-        channels = bootstraps.zip(environment.connectors)
-            .map { it.first.bind(it.second.host, it.second.port) }
-            .map { it.sync().channel() }
+        try {
+            channels = bootstraps.zip(environment.connectors)
+                .map { it.first.bind(it.second.host, it.second.port) }
+                .map { it.sync().channel() }
+        } catch (e: Exception) {
+            stop(1, 5, TimeUnit.SECONDS)
+            throw e
+        }
 
         cancellationDeferred = stopServerOnCancellation()
 
