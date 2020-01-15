@@ -6,6 +6,7 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
@@ -62,9 +63,14 @@ class TestApplicationEngine(
         }
 
     /**
+     * An instance of client engine user to be used in [client].
+     */
+    val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
+
+    /**
      * A client instance connected to this test server instance. Only works until engine stop invocation.
      */
-    val client: HttpClient = HttpClient(TestHttpClientEngine.create { app = this@TestApplicationEngine })
+    val client: HttpClient = HttpClient(engine)
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
         tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
@@ -90,6 +96,7 @@ class TestApplicationEngine(
         try {
             cancellationDeferred?.complete()
             client.close()
+            engine.close()
             environment.monitor.raise(ApplicationStopPreparing, environment)
             environment.stop()
         } finally {

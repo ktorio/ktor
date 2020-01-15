@@ -40,6 +40,8 @@ private fun testWithClient(
         client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
             .use { client -> builder.test(client) }
     }
+
+    client.engine.close()
 }
 
 /**
