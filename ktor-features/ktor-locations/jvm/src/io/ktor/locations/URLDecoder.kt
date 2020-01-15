@@ -5,38 +5,62 @@
 package io.ktor.locations
 
 import io.ktor.http.*
-import io.ktor.routing.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 
 @KtorExperimentalLocationsAPI
-internal class URLDecoder(override val context: SerialModule, val url: Url) : Decoder, CompositeDecoder {
+internal class URLDecoder(override val context: SerialModule, private val url: Url) : Decoder, CompositeDecoder {
     private var pathParameters: Parameters = Parameters.Empty
+    private var pattern: LocationPattern? = null
     private val pathParameterIndexes = mutableMapOf<String, Int>()
 
     override val updateMode: UpdateMode = UpdateMode.BANNED
 
+    private var currentElementName: String? = null
+
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-        if (pathParameters.isEmpty() && desc.getEntityAnnotations().any { it is Location }) {
-            pathParameters = buildPathParameters(desc, url.encodedPath)
+        if (desc.kind != StructureKind.CLASS) {
+            return this
         }
+
+        val location = desc.getEntityAnnotations().firstOrNull { it is Location } as? Location
+
+        if (location != null && this.pattern == null) {
+            val children = desc.elementDescriptors().mapNotNull { child ->
+                child.getEntityAnnotations().firstOrNull { it is Location } as? Location
+            }
+
+            // TODO make recursion
+            this.pattern = when (children.size) {
+                0 -> LocationPattern(location.path)
+                1 -> LocationPattern(children[0].path) + LocationPattern(location.path)
+                else -> error("...")
+            }
+
+            try {
+                this.pathParameters = this.pattern!!.parse(url.encodedPath)
+            } catch (cause: Throwable) {
+                cause.printStackTrace()
+            }
+        }
+
         return this
     }
 
     override fun decodeBoolean(): Boolean {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toBoolean()
     }
 
     override fun decodeByte(): Byte {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toByte()
     }
 
     override fun decodeChar(): Char {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().single()
     }
 
     override fun decodeDouble(): Double {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toDouble()
     }
 
     override fun decodeEnum(enumDescription: SerialDescriptor): Int {
@@ -44,35 +68,48 @@ internal class URLDecoder(override val context: SerialModule, val url: Url) : De
     }
 
     override fun decodeFloat(): Float {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toFloat()
     }
 
     override fun decodeInt(): Int {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toInt()
     }
 
     override fun decodeLong(): Long {
-        TODO("Not yet implemented")
+        return decodeString().toLong()
     }
 
     override fun decodeNotNullMark(): Boolean {
-        error("Decoding a primitive from URL is not supported")
+        TODO("NotNull marks are not supported")
     }
 
     override fun decodeNull(): Nothing? {
-        error("Decoding a primitive from URL is not supported")
+        TODO("Decoding Nulls is not supported")
     }
 
     override fun decodeShort(): Short {
-        error("Decoding a primitive from URL is not supported")
+        return decodeString().toShort()
     }
 
     override fun decodeString(): String {
-        TODO("Not yet implemented")
+        val pattern = pattern
+        val parameterName = currentElementName
+
+        if (pattern != null && parameterName != null) {
+            val values = if (parameterName in pattern.pathParameterNames) {
+                pathParameters.getAll(parameterName)
+            } else {
+                url.parameters.getAll(parameterName)
+            } ?: error("No value for parameter $parameterName")
+
+            return values.getOrElse(indexFor(parameterName)) { values.last() }
+        }
+
+        error("Unable to decode a String.")
     }
 
     override fun decodeUnit() {
-        error("Decoding a primitive from URL is not supported")
+        decodeString()
     }
 
     override fun decodeBooleanElement(desc: SerialDescriptor, index: Int): Boolean {
@@ -120,7 +157,17 @@ internal class URLDecoder(override val context: SerialModule, val url: Url) : De
         index: Int,
         deserializer: DeserializationStrategy<T>
     ): T {
-        return deserializer.deserialize(this)
+        if (desc.kind != StructureKind.CLASS) {
+            return deserializer.deserialize(this)
+        }
+
+        val before = currentElementName
+        currentElementName = desc.getElementName(index)
+        return try {
+            deserializer.deserialize(this)
+        } finally {
+            currentElementName = before
+        }
     }
 
     override fun decodeShortElement(desc: SerialDescriptor, index: Int): Short {
@@ -138,12 +185,28 @@ internal class URLDecoder(override val context: SerialModule, val url: Url) : De
     private fun decodeElement(desc: SerialDescriptor, index: Int): String {
         val name = desc.getElementName(index)
 
-        return if (name in pathParameters) {
+        return if (name in pattern!!.pathParameterNames) {
             pathParameters[name]
         } else {
             val values = url.parameters.getAll(name)
             values?.getOrElse(indexFor(name)) { values.last() }
-        } ?: TODO("NPE?")
+        } ?: run {
+            TODO("NPE?")
+        }
+    }
+
+    override fun decodeCollectionSize(desc: SerialDescriptor): Int {
+        val pattern = pattern
+        val parameterName = currentElementName
+
+        if (pattern != null && parameterName != null) {
+            if (parameterName in pattern.pathParameterNames) {
+                return pathParameters.getAll(parameterName)?.size ?: 0
+            }
+            return url.parameters.getAll(parameterName)?.size ?: 0
+        }
+
+        return super.decodeCollectionSize(desc)
     }
 
     private fun indexFor(name: String): Int {
@@ -170,41 +233,5 @@ internal class URLDecoder(override val context: SerialModule, val url: Url) : De
         old: T
     ): T {
         TODO("Not yet implemented")
-    }
-}
-
-@UseExperimental(KtorExperimentalLocationsAPI::class)
-private fun buildPathParameters(desc: SerialDescriptor, actualPath: String): Parameters {
-    val pattern = desc.getEntityAnnotations().filterIsInstance<Location>().map { it.path }.single()
-    return buildPathParameters(pattern, actualPath)
-}
-
-private val pattern = "\\{([a-zA-Z0-9_-]*)(\\?|...)?}".toRegex()
-
-private fun buildPathParameters(pathPattern: String, actualPath: String): Parameters {
-    val parsed = RoutingPath.parse(pathPattern)
-    if (parsed.parts.none { it.kind == RoutingPathSegmentKind.Parameter }) {
-        return Parameters.Empty
-    }
-
-    val actualPathSegments = actualPath.split('/')
-        .dropWhile { it.isEmpty() }.map { it.decodeURLPart() }
-
-    return Parameters.build {
-        parsed.parts.forEachIndexed { index, patternSegment ->
-            when (patternSegment.kind) {
-                RoutingPathSegmentKind.Constant -> check(actualPathSegments[index] == patternSegment.value)
-                RoutingPathSegmentKind.Parameter -> {
-                    val matched = pattern.findAll(patternSegment.value).single()
-                    val segmentText = actualPathSegments[index]
-                    val parameterName = matched.groups[1]?.value ?: ""
-
-                    val suffixLength = patternSegment.value.length - matched.range.last - 1
-                    val parameterValue = segmentText.drop(matched.range.first).dropLast(suffixLength)
-
-                    append(parameterName, parameterValue)
-                }
-            }
-        }
     }
 }

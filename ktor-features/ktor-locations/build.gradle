@@ -5,3 +5,11 @@ kotlin.sourceSets.jvmMain.dependencies {
 }
 
 apply plugin: 'kotlinx-serialization'
+
+kotlin {
+    configure(sourceSets) {
+        languageSettings {
+            useExperimentalAnnotation("io.ktor.locations.KtorExperimentalLocationsAPI")
+        }
+    }
+}
