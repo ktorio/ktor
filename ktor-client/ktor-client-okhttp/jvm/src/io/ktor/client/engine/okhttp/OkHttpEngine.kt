@@ -70,7 +70,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         callContext: CoroutineContext
     ): HttpResponseData {
         val requestTime = GMTDate()
-        val session = OkHttpWebsocketSession(engine, engineRequest, callContext)
+        val session = OkHttpWebsocketSession(engine, engineRequest, callContext).apply { start() }
 
         val originResponse = session.originResponse.await()
         return buildResponseData(originResponse, requestTime, session, callContext)
