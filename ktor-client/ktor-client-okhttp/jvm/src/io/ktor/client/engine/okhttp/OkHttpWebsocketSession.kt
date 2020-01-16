@@ -18,7 +18,8 @@ internal class OkHttpWebsocketSession(
     engineRequest: Request,
     override val coroutineContext: CoroutineContext
 ) : DefaultWebSocketSession, WebSocketListener() {
-    private val websocket: WebSocket = engine.newWebSocket(engineRequest, this)
+    // Deferred reference to "this", completed only after the object successfully constructed.
+    private val self = CompletableDeferred<OkHttpWebsocketSession>()
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
 
@@ -48,6 +49,8 @@ internal class OkHttpWebsocketSession(
         get() = _closeReason
 
     override val outgoing: SendChannel<Frame> = actor {
+        val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
+
         try {
             for (frame in channel) {
                 when (frame) {
@@ -99,6 +102,13 @@ internal class OkHttpWebsocketSession(
     }
 
     override suspend fun flush() {
+    }
+
+    /**
+     * Creates a new web socket and starts the session.
+     */
+    fun start() {
+        self.complete(this)
     }
 
     @Deprecated(
