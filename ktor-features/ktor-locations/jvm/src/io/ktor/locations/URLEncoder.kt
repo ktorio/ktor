@@ -19,12 +19,12 @@ internal class URLEncoder(
     private var currentElementName: String? = null
 
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-        val pattern = this.pattern
+        if (desc.kind != StructureKind.CLASS) {
+            return this
+        }
 
-        if (pattern == null) {
-            this.pattern = buildPathParameters(desc)
-        } else if (desc.getEntityAnnotations().any { it is Location }) {
-            this.pattern = buildPathParameters(desc) + pattern
+        if (desc.kind == StructureKind.CLASS && this.pattern == null && desc.location != null) {
+            this.pattern = buildLocationPattern(desc)
         }
 
         return this

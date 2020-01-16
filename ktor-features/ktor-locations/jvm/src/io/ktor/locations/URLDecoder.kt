@@ -19,23 +19,8 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
     private var currentElementName: String? = null
 
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-        if (desc.kind != StructureKind.CLASS) {
-            return this
-        }
-
-        val location = desc.getEntityAnnotations().firstOrNull { it is Location } as? Location
-
-        if (location != null && this.pattern == null) {
-            val children = desc.elementDescriptors().mapNotNull { child ->
-                child.getEntityAnnotations().firstOrNull { it is Location } as? Location
-            }
-
-            // TODO make recursion
-            this.pattern = when (children.size) {
-                0 -> LocationPattern(location.path)
-                1 -> LocationPattern(children[0].path) + LocationPattern(location.path)
-                else -> error("...")
-            }
+        if (desc.kind == StructureKind.CLASS && this.pattern == null && desc.location != null) {
+            this.pattern = buildLocationPattern(desc)
 
             try {
                 this.pathParameters = this.pattern!!.parse(url.encodedPath)
