@@ -5,12 +5,15 @@
 package io.ktor.locations
 
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.Encoder
 import kotlinx.serialization.modules.*
 
 @KtorExperimentalLocationsAPI
 internal class URLEncoder(
-    override val context: SerialModule
+    override val context: SerialModule,
+    private val conversionService: ConversionService = DefaultConversionService
 ) : Encoder, CompositeEncoder {
     private val pathParameters = ParametersBuilder()
     private val queryParameters = ParametersBuilder()
@@ -19,20 +22,11 @@ internal class URLEncoder(
     private var currentElementName: String? = null
 
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-        if (desc.kind != StructureKind.CLASS) {
-            return this
-        }
-
-        if (desc.kind == StructureKind.CLASS && this.pattern == null && desc.location != null) {
+        if (desc.kind == StructureKind.CLASS && this.pattern == null) {
             this.pattern = buildLocationPattern(desc)
         }
 
         return this
-    }
-
-    @UseExperimental(KtorExperimentalLocationsAPI::class)
-    private fun buildPathParameters(desc: SerialDescriptor): LocationPattern {
-        return LocationPattern(desc.getEntityAnnotations().filterIsInstance<Location>().map { it.path }.single())
     }
 
     override fun encodeBoolean(value: Boolean) {
@@ -133,7 +127,7 @@ internal class URLEncoder(
         value: T?
     ) {
         if (value != null) {
-            serializer.serialize(this, value)
+            encodeSerializableElement(desc, index, serializer, value)
         }
     }
 
@@ -151,6 +145,18 @@ internal class URLEncoder(
 
         currentElementName = name
         try {
+            val elementDescriptor = desc.getElementDescriptor(index)
+            if (name != null && elementDescriptor.location == null && elementDescriptor.kind == StructureKind.CLASS) {
+                try {
+                    conversionService.toValues(value).forEach { valueComponent ->
+                        encodeElement(name, valueComponent)
+                    }
+
+                    return
+                } catch (_: DataConversionException) {
+                }
+            }
+
             serializer.serialize(this, value)
         } finally {
             currentElementName = before
@@ -171,7 +177,13 @@ internal class URLEncoder(
 
     private fun encodeElement(desc: SerialDescriptor, index: Int, stringified: String) {
         val name = desc.getElementName(index)
-        if (name in pattern!!.pathParameterNames) {
+        encodeElement(name, stringified)
+    }
+
+    private fun encodeElement(name: String, stringified: String) {
+        val pattern = pattern ?: error("No @Location annotation found")
+
+        if (name in pattern.pathParameterNames) {
             pathParameters[name] = stringified
         } else {
             queryParameters.append(name, stringified)
@@ -180,7 +192,6 @@ internal class URLEncoder(
 
     fun build(): Url {
         val pattern = pattern ?: error("No @Location annotation found.")
-        check(pattern.pathParameterNames.all { it in pathParameters })
 
         val builder = URLBuilder(
             parameters = queryParameters,

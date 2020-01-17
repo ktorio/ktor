@@ -29,17 +29,24 @@ internal class LocationPattern private constructor(private val segments: List<Se
                 is Segment.VariableSubstitution -> {
                     val index = indexes.getOrElse(segment.name) { 0 }
                     indexes[segment.name] = index + 1
-                    val allValues =
-                        pathParameters.getAll(segment.name) ?: error("No parameter ${segment.name} specified")
+                    val allValues = pathParameters.getAll(segment.name).orEmpty()
 
-                    append(segment.prefix)
-                    if (segment.ellipsis) {
-                        allValues.joinTo(this, "/") { it.encodeURLPathComponent() }
+                    if (allValues.isEmpty()) {
+                        if (segment.ellipsis || segment.optional) {
+                            deleteCharAt(lastIndex)
+                        } else {
+                            error("No parameter ${segment.name} specified")
+                        }
                     } else {
-                        val value = allValues.getOrElse(index) { allValues.last() }
-                        append(value.encodeURLPathComponent())
+                        append(segment.prefix)
+                        if (segment.ellipsis) {
+                            allValues.joinTo(this, "/") { it.encodeURLPathComponent() }
+                        } else {
+                            val value = allValues.getOrElse(index) { allValues.last() }
+                            append(value.encodeURLPathComponent())
+                        }
+                        append(segment.suffix)
                     }
-                    append(segment.suffix)
                 }
             }
         }
@@ -130,7 +137,7 @@ internal class LocationPattern private constructor(private val segments: List<Se
         }
 
         class VariableSubstitution(
-            val name: String, val ellipsis: Boolean, val prefix: String, val suffix: String
+            val name: String, val ellipsis: Boolean, val prefix: String, val suffix: String, val optional: Boolean
         ) : Segment() {
             override fun estimate(): Int = prefix.length + suffix.length + 10
             override fun toString(): String = "Substitution($name)"
@@ -166,14 +173,18 @@ internal class LocationPattern private constructor(private val segments: List<Se
 
                 val substitution = value.substring(substitutionStart + 1, substitutionEnd).trim()
                 val ellipsis = substitution.endsWith("...")
+                val optional = substitution.endsWith("?")
 
-                val parameterName = substitution.removeSuffix("...").trimEnd()
+                val parameterName = substitution.removeSuffix("...").removeSuffix("?").trimEnd()
 
                 if (parameterName.isEmpty()) {
                     error("Unnamed parameters are not supported in locations: '$substitution' in $value")
                 }
+                if (parameterName.endsWith("?") || parameterName.endsWith("...")) {
+                    error("Illegal parameter name '$parameterName'")
+                }
 
-                return VariableSubstitution(parameterName, ellipsis, prefix, suffix)
+                return VariableSubstitution(parameterName, ellipsis, prefix, suffix, optional)
             }
         }
     }

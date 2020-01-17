@@ -7,16 +7,24 @@ package io.ktor.locations
 import kotlinx.serialization.*
 
 internal fun buildLocationPattern(desc: SerialDescriptor): LocationPattern {
-    val location = desc.location ?: error("No @Location annotation found for ${desc.name}")
     val children = desc.elementDescriptors().mapNotNull { child ->
         child.location?.let { buildLocationPattern(child) }
     }
 
+    val thisPattern = when (val location = desc.location) {
+        null -> buildDummyPattern(desc)
+        else -> LocationPattern(location.path)
+    }
+
     return when (children.size) {
-        0 -> LocationPattern(location.path)
-        1 -> children[0] + LocationPattern(location.path)
+        0 -> thisPattern
+        1 -> children[0] + thisPattern
         else -> error("Multiple parents with @Location annotations")
     }
+}
+
+private fun buildDummyPattern(desc: SerialDescriptor): LocationPattern {
+    return LocationPattern("/" + desc.name.substringAfterLast("."))
 }
 
 internal val SerialDescriptor.location: Location?

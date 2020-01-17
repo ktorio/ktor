@@ -8,6 +8,9 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import kotlinx.serialization.*
+import kotlinx.serialization.modules.*
+import java.lang.reflect.*
 import kotlin.reflect.*
 
 /**
@@ -74,7 +77,15 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      *
      * The class of [location] instance **must** be annotated with [Location].
      */
-    fun href(location: Any): String = implementation.href(location)
+    @UseExperimental(ImplicitReflectionSerializer::class)
+    fun href(location: Any): String {
+        val serializer = location.javaClass.kotlin.serializer()
+        val encoder = URLEncoder(EmptyModule, conversionService)
+
+        serializer.serialize(encoder, location)
+
+        return encoder.build().fullPath
+    }
 
     internal fun href(location: Any, builder: URLBuilder) {
         implementation.href(location, builder)
