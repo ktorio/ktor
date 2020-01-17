@@ -13,3 +13,9 @@ kotlin {
         }
     }
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile).all { task ->
+    if (!task.name.contains("Test")) {
+        task.kotlinOptions.freeCompilerArgs += ["-Xexplicit-api=warning"]
+    }
+}
