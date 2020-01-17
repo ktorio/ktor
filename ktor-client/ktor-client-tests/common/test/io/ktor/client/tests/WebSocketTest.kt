@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class WebSocketTest : ClientLoader() {
@@ -24,6 +25,24 @@ class WebSocketTest : ClientLoader() {
                 val actual = incoming.receive()
                 assertTrue(actual is Frame.Text)
                 assertEquals("Hello, world", actual.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testClose() = clientTests(listOf("Apache", "Android")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            withTimeout(1000) {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/close") {
+                    send(Frame.Text("End"))
+                    val closeReason = closeReason.await()!!
+                    assertEquals("End", closeReason.message)
+                    assertEquals(1000, closeReason.code)
+                }
             }
         }
     }

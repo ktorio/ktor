@@ -93,6 +93,14 @@ internal class OkHttpWebsocketSession(
             "${CloseReason.Codes.byCode(code.toShort())?.toString() ?: code}."))
     }
 
+    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+        super.onClosing(webSocket, code, reason)
+
+        _closeReason.complete(CloseReason(code.toShort(), reason))
+        outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+        _incoming.close()
+    }
+
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
 

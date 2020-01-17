@@ -14,6 +14,15 @@ fun Application.webSockets() {
                     send(Frame.Text(fin = true, data = data))
                 }
             }
+
+            webSocket("close") {
+                for (packet in incoming) {
+                    val data = packet.data
+                    if (String(data) == "End") {
+                        close(CloseReason(1000, "End"))
+                    }
+                }
+            }
         }
     }
 }
