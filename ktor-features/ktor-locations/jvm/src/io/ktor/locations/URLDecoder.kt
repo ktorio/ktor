@@ -19,7 +19,7 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
     private var currentElementName: String? = null
 
     override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-        if (desc.kind == StructureKind.CLASS && this.pattern == null && desc.location != null) {
+        if (desc.kind == StructureKind.CLASS && this.pattern == null) {
             this.pattern = buildLocationPattern(desc)
 
             try {
