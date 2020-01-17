@@ -20,7 +20,7 @@ import kotlin.reflect.*
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
-open class Locations @KtorExperimentalLocationsAPI constructor(
+public open class Locations @KtorExperimentalLocationsAPI constructor(
     application: Application,
     routeService: LocationRouteService
 ) {
@@ -43,13 +43,10 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * Resolves parameters in a [call] to an instance of specified [locationClass].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(locationClass: KClass<*>, call: ApplicationCall): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, call: ApplicationCall): T {
         return resolve(locationClass, call.parameters)
     }
 
-    /**
-     * Resolves [parameters] to an instance of specified [locationClass].
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
         val info = implementation.getOrCreateInfo(locationClass)
@@ -62,6 +59,28 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     @KtorExperimentalLocationsAPI
     inline fun <reified T : Any> resolve(parameters: Parameters): T {
         return resolve(T::class, parameters) as T
+    }
+
+    // TODO: optimize allocations
+    private fun pathAndQuery(location: Any): ResolvedUriInfo {
+        val info = getOrCreateInfo(location::class.java.kotlin)
+
+        fun propertyValue(instance: Any, name: String): List<String> {
+            // TODO: Cache properties by name in info
+            val property = info.pathParameters.single { it.name == name }
+            val value = property.getter.call(instance)
+            return conversionService.toValues(value)
+    }
+
+        val substituteParts = RoutingPath.parse(info.path).parts.flatMap { segment ->
+            when (segment.kind) {
+                RoutingPathSegmentKind.Constant -> listOf(segment.value)
+                RoutingPathSegmentKind.Parameter -> {
+                    if (info.klass.objectInstance != null)
+                        throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
+                    propertyValue(location, PathSegmentSelectorBuilder.parseName(it.value))
+                }
+            }
     }
 
     /**
@@ -78,7 +97,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * The class of [location] instance **must** be annotated with [Location].
      */
     @UseExperimental(ImplicitReflectionSerializer::class)
-    fun href(location: Any): String {
+    public fun href(location: Any): String {
         val serializer = location.javaClass.kotlin.serializer()
         val encoder = URLEncoder(EmptyModule, conversionService)
 
@@ -100,7 +119,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Creates all necessary routing entries to match specified [locationClass].
      */
-    fun createEntry(parent: Route, locationClass: KClass<*>): Route {
+    public fun createEntry(parent: Route, locationClass: KClass<*>): Route {
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 
@@ -117,18 +136,18 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Configuration for [Locations].
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Specifies an alternative routing service. Default is [LocationAttributeRouteService].
          */
         @KtorExperimentalLocationsAPI
-        var routeService: LocationRouteService? = null
+        public var routeService: LocationRouteService? = null
     }
 
     /**
      * Installable feature for [Locations].
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
         @OptIn(KtorExperimentalLocationsAPI::class)
@@ -144,19 +163,19 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
  * Provides services for extracting routing information from a location class.
  */
 @KtorExperimentalLocationsAPI
-interface LocationRouteService {
+public interface LocationRouteService {
     /**
      * Retrieves routing information from a given [locationClass].
      * @return routing pattern, or null if a given class doesn't represent a route.
      */
-    fun findRoute(locationClass: KClass<*>): String?
+    public fun findRoute(locationClass: KClass<*>): String?
 }
 
 /**
  * Implements [LocationRouteService] by extracting routing information from a [Location] annotation.
  */
 @KtorExperimentalLocationsAPI
-class LocationAttributeRouteService : LocationRouteService {
+public class LocationAttributeRouteService : LocationRouteService {
     private inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
         return annotations.singleOrNull { it.annotationClass == T::class } as T?
     }
@@ -168,7 +187,7 @@ class LocationAttributeRouteService : LocationRouteService {
  * Exception indicating that route parameters in curly brackets do not match class properties.
  */
 @KtorExperimentalLocationsAPI
-class LocationRoutingException(message: String) : Exception(message)
+public class LocationRoutingException(message: String) : Exception(message)
 
 @KtorExperimentalLocationsAPI
 internal class LocationPropertyInfoImpl(
