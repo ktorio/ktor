@@ -95,11 +95,14 @@ private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private fun Collection<*>.elementSerializer(): KSerializer<*> {
+    @Suppress("DEPRECATION_ERROR")
     val serializers = filterNotNull().map { buildSerializer(it) }.distinctBy { it.descriptor.name }
 
     if (serializers.size > 1) {
-        error("Serializing collections of different element types is not yet supported. " +
-            "Selected serializers: ${serializers.map { it.descriptor.name }}"
+        @Suppress("DEPRECATION_ERROR")
+        error(
+            "Serializing collections of different element types is not yet supported. " +
+                "Selected serializers: ${serializers.map { it.descriptor.name }}"
         )
     }
 
