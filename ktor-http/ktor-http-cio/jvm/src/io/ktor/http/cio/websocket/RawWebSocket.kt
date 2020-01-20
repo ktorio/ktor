@@ -40,11 +40,19 @@ class RawWebSocket(
     }
 
     internal val writer: WebSocketWriter = WebSocketWriter(output, this.coroutineContext, masking, pool)
-    internal val reader: WebSocketReader = WebSocketReader(input, Job() + coroutineContext, maxFrameSize, pool)
+    internal val reader: WebSocketReader = WebSocketReader(input, coroutineContext + Job(), maxFrameSize, pool)
 
     init {
         coroutineContext[Job]?.invokeOnCompletion {
             reader.cancel()
+        }
+
+        reader.coroutineContext[Job]?.invokeOnCompletion { cause ->
+            if (cause == null) {
+                socketJob.complete()
+            } else {
+                socketJob.completeExceptionally(cause)
+            }
         }
 
         // this was extracted from WebSocketReader (was broken).
