@@ -97,7 +97,9 @@ internal class OkHttpWebsocketSession(
         super.onClosing(webSocket, code, reason)
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
-        outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+        if (!outgoing.isClosedForSend) {
+            outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+        }
         _incoming.close()
     }
 
