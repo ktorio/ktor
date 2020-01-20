@@ -36,7 +36,7 @@ class WebSocketTest : ClientLoader() {
         }
 
         test { client ->
-            withTimeout(1000) {
+            withTimeout(2000) {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/close") {
                     send(Frame.Text("End"))
                     val closeReason = closeReason.await()!!
