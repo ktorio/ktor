@@ -99,6 +99,8 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
+
+        context.channel().close()
     }
 
     private fun setChunked(message: HttpResponse) {
