@@ -27,6 +27,8 @@ class WebSocketWriter(
     val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
+    private val writeLoopCompletion: CompletableJob = Job()
+
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val queue = actor<Any>(context = CoroutineName("ws-writer"), capacity = 8, start = CoroutineStart.ATOMIC) {
         pool.useInstance { writeLoop(it) }
@@ -56,6 +58,7 @@ class WebSocketWriter(
         } finally {
             queue.close(CancellationException("WebSocket closed.", null))
             writeChannel.close()
+            writeLoopCompletion.complete()
         }
 
         consumeEach { message ->
@@ -137,6 +140,9 @@ class WebSocketWriter(
     suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             queue.send(it)
+        } catch (closed: ClosedSendChannelException) {
+            it.complete()
+            writeLoopCompletion.join()
         } catch (sendFailure: Throwable) {
             it.complete()
             throw sendFailure
