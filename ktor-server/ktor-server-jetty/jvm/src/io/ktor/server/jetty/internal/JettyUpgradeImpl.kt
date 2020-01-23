@@ -27,16 +27,20 @@ object JettyUpgradeImpl : ServletUpgrade {
 
         withContext(engineContext) {
             val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+            val endPoint = connection.endPoint
 
             // for upgraded connections IDLE timeout should be significantly increased
-            connection.endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
+            endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
 
             val inputChannel = ByteChannel(autoFlush = true)
-            val reader = EndPointReader(connection.endPoint, engineContext, inputChannel)
-            val writer = endPointWriter(connection.endPoint)
+            val reader = EndPointReader(endPoint, engineContext, inputChannel)
+            val writer = endPointWriter(endPoint)
             val outputChannel = writer.channel
 
             servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
+            if (endPoint is AbstractEndPoint) {
+                endPoint.upgrade(reader)
+            }
             val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
 
             writer.invokeOnCompletion {

@@ -62,8 +62,6 @@ internal class EndPointReader(
         }
     }
 
-    override fun onIdleExpired() = false
-
     override fun onFillable() {
         val handler = currentHandler.getAndSet(null) ?: return
         buffer.flip()
