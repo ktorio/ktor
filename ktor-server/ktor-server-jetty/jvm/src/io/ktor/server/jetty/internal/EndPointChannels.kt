@@ -51,8 +51,10 @@ internal class EndPointReader(
 
                     channel.writeFully(buffer)
                 }
+            } catch (cause: ClosedChannelException) {
+                channel.close()
             } catch (cause: Throwable) {
-                if (cause !is ClosedChannelException) channel.close(cause)
+                channel.close(cause)
             } finally {
                 channel.close()
                 JettyWebSocketPool.recycle(buffer)
@@ -80,7 +82,11 @@ internal class EndPointReader(
 
     override fun onFillInterestedFailed(cause: Throwable) {
         super.onFillInterestedFailed(cause)
-        currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
+        if (cause is ClosedChannelException) {
+            currentHandler.getAndSet(null)?.resumeWithException(cause)
+        } else {
+            currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
+        }
     }
 
     override fun failedCallback(callback: Callback, cause: Throwable) {
