@@ -36,7 +36,8 @@ fun mergeHeaders(
         block(key, values.joinToString(";"))
     }
 
-    if (requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null) {
+    val missingAgent = requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null
+    if (missingAgent && needUserAgent()) {
         block(HttpHeaders.UserAgent, KTOR_DEFAULT_USER_AGENT)
     }
 
@@ -80,3 +81,5 @@ internal suspend inline fun attachToUserJob(callJob: Job) {
         cleanupHandler.dispose()
     }
 }
+
+private fun needUserAgent(): Boolean = !PlatformUtils.IS_BROWSER
