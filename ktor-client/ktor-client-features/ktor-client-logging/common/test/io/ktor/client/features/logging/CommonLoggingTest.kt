@@ -6,20 +6,26 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 
 class CommonLoggingTest {
 
     @Test
-    fun testLogRequestWithException() = testWithEngine(MockEngine {
-        throw CustomError("BAD REQUEST")
-    }) {
+    fun testLogRequestWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger()
 
         config {
+            engine {
+                addHandler {
+                    throw CustomError("BAD REQUEST")
+                }
+            }
             install(Logging) {
                 level = LogLevel.ALL
                 logger = testLogger
@@ -43,12 +49,15 @@ class CommonLoggingTest {
     }
 
     @Test
-    fun testLogResponseWithException() = testWithEngine(MockEngine { request ->
-        respondOk("Hello")
-    }) {
+    fun testLogResponseWithException() = testWithEngine(MockEngine) {
         val testLogger = TestLogger()
 
         config {
+            engine {
+                addHandler { request ->
+                    respondOk("Hello")
+                }
+            }
             install("BadInterceptor") {
                 responsePipeline.intercept(HttpResponsePipeline.Parse) {
                     throw CustomError("PARSE ERROR")
@@ -78,6 +87,46 @@ class CommonLoggingTest {
                 dump.contains("RESPONSE http://localhost/ failed with exception: CustomError: PARSE ERROR"),
                 dump
             )
+        }
+    }
+
+    @Test
+    fun testLoggingWithForm() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler {
+                    val body = it.body.toByteReadPacket().readText()
+                    assertTrue { body.contains("Hello") }
+                    respondOk()
+                }
+            }
+
+            Logging {
+                level = LogLevel.ALL
+                logger = testLogger
+            }
+        }
+
+        test { client ->
+            val input = buildPacket { writeText("Hello") }
+            client.submitFormWithBinaryData<String>(
+                formData {
+                    appendInput(
+                        "file",
+                        headersOf(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "")
+                                .withParameter(ContentDisposition.Parameters.FileName, "")
+                                .toString()
+                        )
+                    ) { input }
+                }
+            )
+
+            val dump = testLogger.dump()
+            assertTrue { dump.contains("Hello") }
         }
     }
 }

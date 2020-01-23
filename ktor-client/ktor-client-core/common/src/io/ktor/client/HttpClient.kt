@@ -166,7 +166,8 @@ class HttpClient(
      * and additionally configured by the [block] parameter.
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
-        engine, HttpClientConfig<HttpClientEngineConfig>().apply {
+        engine,
+        HttpClientConfig<HttpClientEngineConfig>().apply {
             plusAssign(userConfig)
             block()
         }
