@@ -25,30 +25,32 @@ object JettyUpgradeImpl : ServletUpgrade {
     ) {
         // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
 
+        val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+        val endPoint = connection.endPoint
+
+        // for upgraded connections IDLE timeout should be significantly increased
+        endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
+
         withContext(engineContext) {
-            val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
-            val endPoint = connection.endPoint
+            try {
+                coroutineScope {
+                    val inputChannel = ByteChannel(autoFlush = true)
+                    val reader = EndPointReader(endPoint, coroutineContext, inputChannel)
+                    val writer = endPointWriter(endPoint)
+                    val outputChannel = writer.channel
 
-            // for upgraded connections IDLE timeout should be significantly increased
-            endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
-
-            val inputChannel = ByteChannel(autoFlush = true)
-            val reader = EndPointReader(endPoint, engineContext, inputChannel)
-            val writer = endPointWriter(endPoint)
-            val outputChannel = writer.channel
-
-            servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
-            if (endPoint is AbstractEndPoint) {
-                endPoint.upgrade(reader)
-            }
-            val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
-
-            writer.invokeOnCompletion {
+                    servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
+                    if (endPoint is AbstractEndPoint) {
+                        endPoint.upgrade(reader)
+                    }
+                    upgrade.upgrade(
+                        inputChannel, outputChannel, coroutineContext,
+                        coroutineContext + userContext
+                    )
+                }
+            } finally {
                 connection.close()
             }
-
-            job.join()
-            writer.join()
         }
     }
 }
