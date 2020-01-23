@@ -152,6 +152,21 @@ public final class io/ktor/client/call/UtilsKt {
 	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public final class io/ktor/client/content/LocalFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
+	public fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;)V
+	public synthetic fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentLength ()Ljava/lang/Long;
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public final fun getFile ()Ljava/io/File;
+	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
+	public fun readFrom (Lkotlin/ranges/LongRange;)Lio/ktor/utils/io/ByteReadChannel;
+}
+
+public final class io/ktor/client/content/LocalFileContentKt {
+	public static final fun LocalFileContent (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;)Lio/ktor/client/content/LocalFileContent;
+	public static synthetic fun LocalFileContent$default (Ljava/io/File;Ljava/lang/String;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lio/ktor/client/content/LocalFileContent;
+}
+
 public final class io/ktor/client/engine/ClientEngineClosedException : java/lang/IllegalStateException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
