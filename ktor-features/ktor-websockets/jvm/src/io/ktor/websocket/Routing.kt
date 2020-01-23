@@ -125,22 +125,33 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
         webSockets.pingInterval?.toMillis() ?: -1L,
         webSockets.timeout.toMillis()
     )
-    session.run {
-        try {
-            toServerSession(call).handler()
-            session.close()
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (io: ChannelIOException) {
-            // don't log I/O exceptions
-            throw io
-        } catch (cause: Throwable) {
-            application.log.error("Websocket handler failed", cause)
-            throw cause
-        }
-    }
+    session.handleServerSession(call, handler)
 
-    session.coroutineContext[Job]!!.join()
+    session.joinSession()
+}
+
+private suspend fun CoroutineScope.joinSession() {
+    coroutineContext[Job]!!.join()
+}
+
+@UseExperimental(WebSocketInternalAPI::class)
+private suspend fun DefaultWebSocketSessionImpl.handleServerSession(
+    call: ApplicationCall,
+    handler: suspend DefaultWebSocketServerSession.() -> Unit
+) {
+    try {
+        val serverSession = toServerSession(call)
+        handler(serverSession)
+        close()
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (io: ChannelIOException) {
+        // don't log I/O exceptions
+        throw io
+    } catch (cause: Throwable) {
+        call.application.log.error("Websocket handler failed", cause)
+        throw cause
+    }
 }
 
 private class WebSocketProtocolsSelector(
