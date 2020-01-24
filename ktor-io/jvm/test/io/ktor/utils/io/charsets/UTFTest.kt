@@ -12,7 +12,6 @@ class UTFTest {
     @Test
     fun testDecodeUTF8LineOnBufferWithOffset() {
         val buffer = "HELLO\nWORLD\r\n1\r\n2\n".allocateBufferWithOffset(4)
-        println("Has array: ${buffer.hasArray()}")
 
         buffer.assertEqualsDecodedUTF8Line("HELLO", 6)
         buffer.assertEqualsDecodedUTF8Line("WORLD", 13)

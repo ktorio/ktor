@@ -329,6 +329,8 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
+        closedCause?.let { throw it }
+
         val builder = BytePacketBuilder(headerSizeHint)
 
         builder.writePacket(readable, minOf(limit, readable.remaining))

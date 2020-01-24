@@ -58,6 +58,7 @@ class ChannelTest {
                 first.readRemaining().readBytes()
             }
             firstResult.await()
+
         }
 
         assertFailsWithMessage(message) {
@@ -87,15 +88,16 @@ class ChannelTest {
         first.cancel(IllegalStateException(message))
 
         assertFailsWithMessage(message) {
+            sourceResult.await()
+        }
+
+        assertFailsWithMessage(message) {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
                 second.readRemaining().readBytes()
             }
             secondResult.await()
         }
 
-        assertFailsWithMessage(message) {
-            sourceResult.await()
-        }
     }
 
     @Test
