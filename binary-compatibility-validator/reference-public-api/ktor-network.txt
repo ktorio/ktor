@@ -240,9 +240,11 @@ public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions 
 	public final fun getKeepAlive ()Ljava/lang/Boolean;
 	public final fun getLingerSeconds ()I
 	public final fun getNoDelay ()Z
+	public final fun getSocketTimeout ()J
 	public final fun setKeepAlive (Ljava/lang/Boolean;)V
 	public final fun setLingerSeconds (I)V
 	public final fun setNoDelay (Z)V
+	public final fun setSocketTimeout (J)V
 }
 
 public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {

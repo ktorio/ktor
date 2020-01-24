@@ -64,6 +64,10 @@ public final class io/ktor/util/BytesKt {
 	public static final fun readShort ([BI)S
 }
 
+public final class io/ktor/util/CacheKt {
+	public static final fun createLRUCache (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;I)Ljava/util/Map;
+}
+
 public final class io/ktor/util/CaseInsensitiveMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
 	public fun <init> ()V
 	public fun clear ()V
@@ -390,6 +394,10 @@ public final class io/ktor/util/TextKt {
 	public static final fun escapeHTML (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun toLowerCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun toUpperCasePreservingASCIIRules (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class io/ktor/util/ThrowableKt {
+	public static final fun getRootCause (Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
 public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
