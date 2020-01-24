@@ -144,11 +144,13 @@ private fun serializerForSending(value: Any): KSerializer<*> {
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private fun Collection<*>.elementSerializer(): KSerializer<*> {
+    @Suppress("DEPRECATION_ERROR")
     val serializers = mapNotNull { value ->
         value?.let { serializerForSending(it) }
     }.distinctBy { it.descriptor.name }
 
     if (serializers.size > 1) {
+        @Suppress("DEPRECATION_ERROR")
         error("Serializing collections of different element types is not yet supported. " +
             "Selected serializers: ${serializers.map { it.descriptor.name }}"
         )
