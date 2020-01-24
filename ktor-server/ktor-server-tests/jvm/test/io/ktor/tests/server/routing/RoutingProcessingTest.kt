@@ -349,6 +349,12 @@ class RoutingProcessingTest {
         }.let { call ->
             assertFalse { call.requestHandled }
         }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "...lla..laa..la")
+        }.let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
     }
 
     @Test

@@ -113,8 +113,16 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
                 if (subject is OutgoingContent) return@intercept
 
-                val acceptHeader = parseHeaderValue(call.request.header(HttpHeaders.Accept))
-                    .map { ContentTypeWithQuality(ContentType.parse(it.value), it.quality) }
+                val acceptHeaderContent = call.request.header(HttpHeaders.Accept)
+                val acceptHeader = try {
+                    parseHeaderValue(acceptHeaderContent)
+                        .map { ContentTypeWithQuality(ContentType.parse(it.value), it.quality) }
+                } catch (parseFailure: BadContentTypeFormatException) {
+                    throw BadRequestException(
+                        "Illegal Accept header format: $acceptHeaderContent",
+                        parseFailure
+                    )
+                }
 
                 val acceptItems = feature.acceptContributors.fold(acceptHeader) { acc, e ->
                     e(call, acc)
@@ -146,7 +154,14 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
                 // skip if a byte channel has been requested so there is nothing to negotiate
                 if (subject.type == ByteReadChannel::class) return@intercept
 
-                val requestContentType = call.request.contentType().withoutParameters()
+                val requestContentType = try {
+                    call.request.contentType().withoutParameters()
+                } catch (parseFailure: BadContentTypeFormatException) {
+                    throw BadRequestException(
+                        "Illegal Content-Type header format: ${call.request.headers[HttpHeaders.ContentType]}",
+                        parseFailure
+                    )
+                }
                 val suitableConverter =
                     feature.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
                         ?: throw UnsupportedMediaTypeException(requestContentType)

@@ -133,7 +133,13 @@ fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentTy
     val result = when (contentType) {
         null -> {
             val headersContentType = response.headers[HttpHeaders.ContentType]
-            headersContentType?.let { ContentType.parse(headersContentType) } ?: ContentType.Text.Plain
+            headersContentType?.let {
+                try {
+                    ContentType.parse(headersContentType)
+                } catch (_: BadContentTypeFormatException) {
+                    null
+                }
+            } ?: ContentType.Text.Plain
         }
         else -> contentType
     }
