@@ -340,13 +340,14 @@ abstract class ByteChannelSequentialBase(
             afterRead()
             builder.build()
         } else {
-            readRemainingSuspend(builder, limit)
+            readRemainingSuspend(builder, remaining)
         }
     }
 
     private suspend fun readRemainingSuspend(builder: BytePacketBuilder, limit: Long): ByteReadPacket {
         while (builder.size < limit) {
-            builder.writePacket(readable)
+            val partLimit = minOf(limit - builder.size, readable.remaining)
+            builder.writePacket(readable, partLimit)
             afterRead()
 
             if (readable.remaining == 0L && writable.size == 0 && closed) break
