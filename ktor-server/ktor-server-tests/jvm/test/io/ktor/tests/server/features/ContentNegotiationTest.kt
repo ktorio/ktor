@@ -471,4 +471,39 @@ class ContentNegotiationTest {
             assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
         }
     }
+
+    @Test
+    fun testIllegalAcceptAndContentTypes(): Unit = withTestApplication {
+        with(application) {
+            install(ContentNegotiation) {
+                register(ContentType.Text.Plain, textContentConverter)
+            }
+
+            routing {
+                get("/receive") {
+                    assertFailsWith<BadRequestException> {
+                        call.receive<String>()
+                    }.let { throw it }
+                }
+                get("/send") {
+                    assertFailsWith<BadRequestException> {
+                        call.respond(Any())
+                    }.let { throw it }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/receive") {
+            addHeader("Content-Type", "...la..lla..la")
+            setBody("any")
+        }.let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "....aa..laa...laa")
+        }.let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+    }
 }

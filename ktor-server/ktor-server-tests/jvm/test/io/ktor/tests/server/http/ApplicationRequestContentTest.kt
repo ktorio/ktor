@@ -29,6 +29,24 @@ class ApplicationRequestContentTest {
     }
 
     @Test
+    fun testSimpleStringContentWithBadContentType() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) {
+                assertFailsWith<BadRequestException> {
+                    call.receiveText()
+                }.let { throw it }
+            }
+
+            handleRequest(HttpMethod.Get, "") {
+                addHeader(HttpHeaders.ContentType, "...la..la..la")
+                setBody("any")
+            }.let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
+            }
+        }
+    }
+
+    @Test
     fun testStringValues() {
         withTestApplication {
             val values = parametersOf("a", "1")
@@ -42,6 +60,24 @@ class ApplicationRequestContentTest {
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
                 val value = values.formUrlEncode()
                 setBody(value)
+            }
+        }
+    }
+
+    @Test
+    fun testIllegalContentType() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) {
+                assertFailsWith<BadRequestException> {
+                    call.receiveParameters()
+                }.let { throw it }
+            }
+
+            handleRequest(HttpMethod.Post, "") {
+                addHeader(HttpHeaders.ContentType, "...la..la..la")
+                setBody("don't care")
+            }.let { call ->
+                assertEquals(HttpStatusCode.BadRequest, call.response.status())
             }
         }
     }
