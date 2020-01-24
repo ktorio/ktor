@@ -21,7 +21,7 @@ import java.util.concurrent.*
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
 @EngineAPI
-fun  defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
+fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline()
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
@@ -101,6 +101,9 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is CancellationException -> log.info("$status: $logString, cancelled")
             is ClosedChannelException -> log.info("$status: $logString, channel closed")
             is ChannelIOException -> log.info("$status: $logString, channel failed")
+            is BadRequestException -> log.debug("$status: $logString", cause)
+            is NotFoundException -> log.debug("$status: $logString", cause)
+            is UnsupportedMediaTypeException -> log.debug("$status: $logString, cause)")
             else -> log.error("$status: $logString", cause)
         }
     } catch (oom: OutOfMemoryError) {
