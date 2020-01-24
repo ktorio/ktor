@@ -8,6 +8,7 @@ public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine
 	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
 	public final fun getRequestHistory ()Ljava/util/List;
 	public final fun getResponseHistory ()Ljava/util/List;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
 }
 
 public final class io/ktor/client/engine/mock/MockEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {
