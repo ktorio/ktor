@@ -631,6 +631,8 @@ abstract class ByteChannelSequentialBase(
         }
         atLeastNBytesAvailableForRead.signal()
         atLeastNBytesAvailableForWrite.signal()
+        notFull.signal()
+
         return true
     }
 
