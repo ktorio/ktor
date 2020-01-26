@@ -30,6 +30,15 @@ class PipelinePhasesTest {
     }
 
     @Test
+    fun testNaturalOrderMerge3() {
+        val phases1 = Pipeline<String, Unit>(a, c)
+        val phases2 = Pipeline<String, Unit>(a)
+        phases2.addPhase(b)
+        phases1.merge(phases2)
+        assertEquals(listOf(a, c, b), phases1.items)
+    }
+
+    @Test
     fun testInsertAfterMerge() {
         val phases1 = Pipeline<String, Unit>(a)
         val phases2 = Pipeline<String, Unit>(c)
@@ -39,11 +48,29 @@ class PipelinePhasesTest {
     }
 
     @Test
+    fun testInsertAfterMerge2() {
+        val phases1 = Pipeline<String, Unit>(a, c)
+        val phases2 = Pipeline<String, Unit>(a)
+        phases2.insertPhaseAfter(a, b)
+        phases1.merge(phases2)
+        assertEquals(listOf(a, b, c), phases1.items)
+    }
+
+    @Test
     fun testInsertBeforeMerge() {
         val phases1 = Pipeline<String, Unit>(c, a)
         val phases2 = Pipeline<String, Unit>(c)
         phases2.insertPhaseBefore(c, b)
         phases1.merge(phases2)
         assertEquals(listOf(b, c, a), phases1.items)
+    }
+
+    @Test
+    fun testInsertBeforeMerge2() {
+        val phases1 = Pipeline<String, Unit>(a)
+        val phases2 = Pipeline<String, Unit>(c)
+        phases2.insertPhaseBefore(c, b)
+        phases1.merge(phases2)
+        assertEquals(listOf(a, b, c), phases1.items)
     }
 }
