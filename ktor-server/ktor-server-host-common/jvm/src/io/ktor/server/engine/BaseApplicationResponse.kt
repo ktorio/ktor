@@ -118,13 +118,17 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 return respondWriteChannelContent(content)
             }
 
-            // Pipe is least efficient
+            // Pipe is the least efficient
             is OutgoingContent.ReadChannelContent -> {
                 // First call user code to acquire read channel, because it could fail
                 val readChannel = content.readFrom()
-                // If channel is fine, commit headers and pipe data
-                commitHeaders(content)
-                return respondFromChannel(readChannel)
+                try {
+                    // If channel is fine, commit headers and pipe data
+                    commitHeaders(content)
+                    return respondFromChannel(readChannel)
+                } finally {
+                    readChannel.cancel()
+                }
             }
 
             // Do nothing, but maintain `when` exhaustiveness
