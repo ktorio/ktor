@@ -91,7 +91,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     val eventListener = { event: Event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> continuation.resumeWithException(WebSocketException("$event"))
+            "error" -> continuation.resumeWithException(WebSocketException(JSON.stringify(event)))
         }
     }
 
