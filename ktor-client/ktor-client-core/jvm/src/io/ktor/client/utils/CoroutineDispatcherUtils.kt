@@ -17,3 +17,15 @@ fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String = "client-dispatcher"
 ): CoroutineDispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)
+
+/**
+ * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
+ */
+@Suppress("unused")
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+fun Dispatchers.fixedThreadPoolDispatcher(
+    threadCount: Int,
+    dispatcherName: String = "client-dispatcher"
+): CoroutineDispatcher {
+    return clientDispatcher(threadCount, dispatcherName)
+}
