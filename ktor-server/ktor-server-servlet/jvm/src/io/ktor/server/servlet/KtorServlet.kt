@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
@@ -81,6 +82,8 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
             }
         } catch (ioError: ChannelIOException) {
             application.log.debug("I/O error", ioError)
+        } catch (cancelled: CancellationException) {
+            application.log.debug("Request cancelled", cancelled)
         } catch (ex: Throwable) {
             application.log.error("ServletApplicationEngine cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
