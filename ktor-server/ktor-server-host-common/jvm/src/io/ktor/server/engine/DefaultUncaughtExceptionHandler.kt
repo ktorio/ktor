@@ -27,6 +27,8 @@ class DefaultUncaughtExceptionHandler(
         if (exception is CancellationException) return
         if (exception is IOException) return
 
-        logger().error(exception)
+        val coroutineName = context[CoroutineName] ?: context.toString()
+
+        logger().error("Unhandled exception caught for $coroutineName", exception)
     }
 }
