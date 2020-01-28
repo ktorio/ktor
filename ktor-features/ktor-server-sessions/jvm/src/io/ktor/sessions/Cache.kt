@@ -33,7 +33,11 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
 
     override suspend fun getOrCompute(key: K): V {
         val coroutineContext = coroutineContext
-        return container.computeIfAbsent(key) { CoroutineScope(coroutineContext).async(Dispatchers.Unconfined) { calc(key) } }.await()
+        return container.computeIfAbsent(key) {
+            CoroutineScope(coroutineContext.minusKey(Job)).async(Dispatchers.Unconfined) {
+                calc(key)
+            }
+        }.await()
     }
 
     override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
