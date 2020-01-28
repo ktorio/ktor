@@ -61,9 +61,9 @@ class HttpStatement(
      * Note if T is a streaming type, you should manage how to close it manually.
      */
     @UseExperimental(ExperimentalStdlibApi::class)
-    suspend inline fun <reified T> receive(): T = when (typeOf<T>()) {
-        typeOf<HttpStatement>() -> this as T
-        typeOf<HttpResponse>() -> execute() as T
+    suspend inline fun <reified T> receive(): T = when (T::class) {
+        HttpStatement::class -> this as T
+        HttpResponse::class -> execute() as T
         else -> {
             val response = executeUnsafe()
             try {
