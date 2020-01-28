@@ -10,6 +10,7 @@ import com.auth0.jwt.algorithms.*
 import com.auth0.jwt.exceptions.*
 import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
+import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.auth.*

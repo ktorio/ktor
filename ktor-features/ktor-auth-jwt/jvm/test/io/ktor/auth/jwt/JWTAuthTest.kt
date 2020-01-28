@@ -55,6 +55,24 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwtMultipleNoAuthCustomChallengeNoToken() {
+        withApplication {
+            application.configureServerJwt {
+                challenge { _, _ ->
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
+                }
+            }
+
+            val response = handleRequest {
+                uri = "/"
+            }
+
+            verifyResponseUnauthorized(response)
+            assertEquals("Basic realm=custom1, charset=UTF-8", response.response.headers[HttpHeaders.WWWAuthenticate])
+        }
+    }
+
+    @Test
     fun testJwtSuccess() {
         withApplication {
             application.configureServerJwt()
