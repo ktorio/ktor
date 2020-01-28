@@ -38,6 +38,10 @@ class SessionTrackerById<S : Any>(
         } catch (notFound: NoSuchElementException) {
             call.application.log.debug("Failed to lookup session: $notFound")
         }
+
+        // we remove the wrong session identifier if no related session found
+        call.attributes.put(SessionIdKey, sessionId)
+
         return null
     }
 
