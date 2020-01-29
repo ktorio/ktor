@@ -47,7 +47,9 @@ public abstract class io/ktor/auth/AuthenticationFailedCause {
 
 public class io/ktor/auth/AuthenticationFailedCause$Error : io/ktor/auth/AuthenticationFailedCause {
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> ([Lkotlin/Unit;Ljava/lang/String;)V
 	public final fun getCause ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
 }
 
 public final class io/ktor/auth/AuthenticationFailedCause$InvalidCredentials : io/ktor/auth/AuthenticationFailedCause {
