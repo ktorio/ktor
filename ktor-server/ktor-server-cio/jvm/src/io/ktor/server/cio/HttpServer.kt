@@ -12,6 +12,7 @@ import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.nio.channels.*
@@ -66,6 +67,22 @@ fun httpServer(
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
+@Deprecated("Use handler function with single request parameter.")
+fun CoroutineScope.httpServer(
+    settings: HttpServerSettings,
+    handler: suspend CoroutineScope.(
+        request: Request,
+        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+    ) -> Unit
+): HttpServer {
+    return httpServer(settings) { request ->
+        handler(this, request, input, output, upgraded)
+    }
+}
+
+/**
+ * Start an http server with [settings] invoking [handler] for every request
+ */
 @UseExperimental(InternalAPI::class)
 fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
@@ -103,10 +120,13 @@ fun CoroutineScope.httpServer(
                 while (true) {
                     val client: Socket = server.accept()
 
-                    val clientJob = connectionScope.startConnectionPipeline(
-                        client.remoteAddress,
+                    val connection = ServerIncomingConnection(
                         client.openReadChannel(),
                         client.openWriteChannel(),
+                        client.remoteAddress
+                    )
+                    val clientJob = connectionScope.startServerConnectionPipeline(
+                        connection,
                         timeout,
                         handler
                     )

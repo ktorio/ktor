@@ -30,7 +30,7 @@ class CIOPlatformBenchmark : PlatformBenchmark() {
     }.build()
 
     override fun runServer(port: Int) {
-        server = GlobalScope.httpServer(HttpServerSettings(port = port), handler =  { request: Request, input: ByteReadChannel, output: ByteWriteChannel, _: CompletableDeferred<Boolean>? ->
+        server = GlobalScope.httpServer(HttpServerSettings(port = port), handler =  { request: Request ->
             val uri = request.uri
             if (uri.length == 6 && uri.startsWith("/sayOK")) {
                 output.writePacket(sayOK.copy())

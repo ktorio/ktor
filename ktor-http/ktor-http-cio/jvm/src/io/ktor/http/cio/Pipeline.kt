@@ -13,6 +13,7 @@ import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import java.io.*
 import java.net.*
+import kotlin.coroutines.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
@@ -23,13 +24,46 @@ fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boo
 /**
  * HTTP request handler function
  */
-typealias HttpRequestHandler = suspend CoroutineScope.(
-    remoteAddress: SocketAddress,
-    request: Request,
-    input: ByteReadChannel,
-    output: ByteWriteChannel,
-    upgraded: CompletableDeferred<Boolean>?
+typealias HttpRequestHandler = suspend ServerRequestScope.(
+    request: Request
 ) -> Unit
+
+/**
+ * Represents a server incoming connection. Usually it is a TCP connection but potentially could be other transport.
+ * @property input channel connected to incoming bytes end
+ * @property output channel connected to outgoing bytes end
+ * @property remoteAddress of the client (optional)
+ */
+@KtorExperimentalAPI
+class ServerIncomingConnection(
+    val input: ByteReadChannel,
+    val output: ByteWriteChannel,
+    val remoteAddress: SocketAddress?
+)
+
+/**
+ * Represents a request scope.
+ * @property upgraded deferred should be completed on upgrade request
+ * @property input channel connected to request body bytes stream
+ * @property output channel connected to response body
+ * @property remoteAddress of a client (if known)
+ */
+@KtorExperimentalAPI
+class ServerRequestScope internal constructor(
+    override val coroutineContext: CoroutineContext,
+    val input: ByteReadChannel,
+    val output: ByteWriteChannel,
+    val remoteAddress: SocketAddress?,
+    val upgraded: CompletableDeferred<Boolean>?
+) : CoroutineScope {
+    /**
+     * Creates another request scope with same parameters except coroutine context
+     */
+    @KtorExperimentalAPI
+    fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
+        ServerRequestScope(this.coroutineContext + coroutineContext,
+            input, output, remoteAddress, upgraded)
+}
 
 /**
  * HTTP pipeline coroutine name
@@ -57,15 +91,40 @@ val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
  *
  * @return pipeline job
  */
-@KtorExperimentalAPI
+@Deprecated("Use startServerConnectionPipeline instead.")
 @UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun CoroutineScope.startConnectionPipeline(
-    remoteAddress: SocketAddress,
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,
+    handler: suspend CoroutineScope.(
+        request: Request,
+        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+    ) -> Unit
+): Job {
+    val pipeline = ServerIncomingConnection(input, output, null)
+    return startServerConnectionPipeline(pipeline, timeout) { request ->
+        handler(this, request, input, output, upgraded)
+    }
+}
+
+/**
+ * Start connection HTTP pipeline invoking [handler] for every request.
+ * Note that [handler] could be invoked multiple times concurrently due to HTTP pipeline nature
+ *
+ * @param connection incoming client connection info
+ * @param timeout number of IDLE seconds after the connection will be closed
+ * @param handler to be invoked for every incoming request
+ *
+ * @return pipeline job
+ */
+@KtorExperimentalAPI
+@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+fun CoroutineScope.startServerConnectionPipeline(
+    connection: ServerIncomingConnection,
+    timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
-    ): Job = launch(HttpPipelineCoroutine) {
+): Job = launch(HttpPipelineCoroutine) {
     val outputsActor = actor<ByteReadChannel>(
         context = HttpPipelineWriterCoroutine,
         capacity = 3,
@@ -79,9 +138,9 @@ fun CoroutineScope.startConnectionPipeline(
             while (true) {
                 val child = timeout.withTimeout(receiveChildOrNull) ?: break
                 try {
-                    child.joinTo(output, false)
+                    child.joinTo(connection.output, false)
 //                        child.copyTo(output)
-                    output.flush()
+                    connection.output.flush()
                 } catch (t: Throwable) {
                     if (child is ByteWriteChannel) {
                         child.close(t)
@@ -89,9 +148,9 @@ fun CoroutineScope.startConnectionPipeline(
                 }
             }
         } catch (t: Throwable) {
-            output.close(t)
+            connection.output.close(t)
         } finally {
-            output.close()
+            connection.output.close()
         }
     }
 
@@ -100,7 +159,7 @@ fun CoroutineScope.startConnectionPipeline(
     try {
         while (true) {  // parse requests loop
             val request = try {
-                parseRequest(input) ?: break
+                parseRequest(connection.input) ?: break
             } catch (io: IOException) {
                 throw io
             } catch (cancelled: CancellationException) {
@@ -166,8 +225,10 @@ fun CoroutineScope.startConnectionPipeline(
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
+                val handlerScope = ServerRequestScope(coroutineContext, requestBody, response, connection.remoteAddress, upgraded)
+
                 try {
-                    handler(remoteAddress, request, requestBody, response, upgraded)
+                    handler(handlerScope, request)
                 } catch (cause: Throwable) {
                     response.close(cause)
                     upgraded?.completeExceptionally(cause)
@@ -180,7 +241,7 @@ fun CoroutineScope.startConnectionPipeline(
             if (upgraded != null) {
                 if (upgraded.await()) { // suspend pipeline until we know if upgrade performed?
                     outputsActor.close()
-                    input.copyAndClose(requestBody as ByteChannel)
+                    connection.input.copyAndClose(requestBody as ByteChannel)
                     break
                 } else if (!expectedHttpBody && requestBody is ByteChannel) { // not upgraded, for example 404
                     requestBody.close()
@@ -189,7 +250,7 @@ fun CoroutineScope.startConnectionPipeline(
 
             if (expectedHttpBody && requestBody is ByteWriteChannel) {
                 try {
-                    parseHttpBody(contentLength, transferEncoding, connectionOptions, input, requestBody)
+                    parseHttpBody(contentLength, transferEncoding, connectionOptions, connection.input, requestBody)
                 } catch (cause: Throwable) {
                     requestBody.close(cause)
                     throw cause
