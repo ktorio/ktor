@@ -131,13 +131,16 @@ class Authentication(config: Configuration) {
                 }
                 context.challenge.completed -> finish()
                 else -> {
-                    if (!optional) {
-                        executeChallenges(context, true)
+                    if (!optional || context.hasInvalidCredentials()) {
+                        executeChallenges(context)
                     }
                 }
             }
         }
     }
+
+    private fun AuthenticationContext.hasInvalidCredentials(): Boolean =
+        allFailures.any { it == AuthenticationFailedCause.InvalidCredentials }
 
     /**
      * Installable feature for [Authentication].
@@ -174,19 +177,11 @@ class Authentication(config: Configuration) {
                 finish()
                 return@intercept
             }
-
-            if (context.challenge.register.all { it.first === AuthenticationFailedCause.NoCredentials }) {
-                return@intercept
-            }
-
-            // NOTE: we don't handle errors per-provider here, we do it in the end
-            executeChallenges(context, false)
         }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(
-        context: AuthenticationContext,
-        handleErrors: Boolean
+        context: AuthenticationContext
     ) {
         val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(ChallengePhase)
         val challenges = context.challenge.challenges
@@ -199,23 +194,21 @@ class Authentication(config: Configuration) {
             }
         }
 
-        if (handleErrors) {
-            for (challenge in context.challenge.errorChallenges) {
-                challengePipeline.intercept(ChallengePhase) {
-                    challenge(it)
-                    if (it.completed)
-                        finish() // finish challenge pipeline if it has been completed
-                }
+        for (challenge in context.challenge.errorChallenges) {
+            challengePipeline.intercept(ChallengePhase) {
+                challenge(it)
+                if (it.completed)
+                    finish() // finish challenge pipeline if it has been completed
             }
+        }
 
-            for (error in context.errors.values.filterIsInstance<AuthenticationFailedCause.Error>()) {
-                challengePipeline.intercept(ChallengePhase) {
-                    if (!it.completed) {
-                        logger.trace("Responding unauthorized because of error ${error.cause}")
-                        call.respond(UnauthorizedResponse())
-                        it.complete()
-                        finish()
-                    }
+        for (error in context.allErrors) {
+            challengePipeline.intercept(ChallengePhase) {
+                if (!it.completed) {
+                    logger.trace("Responding unauthorized because of error ${error.message}")
+                    call.respond(UnauthorizedResponse())
+                    it.complete()
+                    finish()
                 }
             }
         }
