@@ -30,6 +30,8 @@ public final class io/ktor/auth/AuthenticationContext {
 	public fun <init> (Lio/ktor/application/ApplicationCall;)V
 	public final fun challenge (Ljava/lang/Object;Lio/ktor/auth/AuthenticationFailedCause;Lkotlin/jvm/functions/Function3;)V
 	public final fun error (Ljava/lang/Object;Lio/ktor/auth/AuthenticationFailedCause;)V
+	public final fun getAllErrors ()Ljava/util/List;
+	public final fun getAllFailures ()Ljava/util/List;
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public final fun getChallenge ()Lio/ktor/auth/AuthenticationProcedureChallenge;
 	public final fun getErrors ()Ljava/util/HashMap;
