@@ -35,7 +35,7 @@ class Auth(
                 }
             }
 
-            val circuitBreaker = AttributeKey<Int>("auth-request")
+            val circuitBreaker = AttributeKey<Unit>("auth-request")
             scope.feature(HttpSend)!!.intercept { origin, context ->
                 if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
                 if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
@@ -51,7 +51,7 @@ class Auth(
                     val request = HttpRequestBuilder()
                     request.takeFrom(context)
                     provider.addRequestHeaders(request)
-                    request.attributes.put(circuitBreaker, 0)
+                    request.attributes.put(circuitBreaker, Unit)
 
                     call = execute(request)
                 }
