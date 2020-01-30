@@ -32,6 +32,22 @@ actual abstract class ClientLoader {
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
+        for (skipEngine in skipEngines) {
+            val skipEngineArray = skipEngine.toLowerCase().split(":")
+
+            val (platform, engine) = when (skipEngineArray.size) {
+                2 -> skipEngineArray[0] to skipEngineArray[1]
+                1 -> "*" to skipEngineArray[0]
+                else -> throw IllegalStateException("Wrong skip engine format, expected 'engine' or 'platform:engine'")
+            }
+
+            val platformShouldBeSkipped = "*" == platform || OS_NAME == platform
+            val engineShouldBeSkipped = "*" == engine || this.engine.toString().toLowerCase() == engine
+
+            if (platformShouldBeSkipped && engineShouldBeSkipped) {
+                return
+            }
+        }
         if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
         testWithEngine(engine.factory, block)
     }
@@ -48,3 +64,14 @@ actual abstract class ClientLoader {
         }
     }
 }
+
+private val OS_NAME: String
+    get() {
+        val os = System.getProperty("os.name", "unknown").toLowerCase()
+        return when {
+            os.contains("win") -> "win"
+            os.contains("mac") -> "mac"
+            os.contains("nux") -> "unix"
+            else -> "unknown"
+        }
+    }
