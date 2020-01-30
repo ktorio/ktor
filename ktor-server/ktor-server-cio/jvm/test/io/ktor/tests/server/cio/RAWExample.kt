@@ -7,6 +7,7 @@ package io.ktor.tests.server.cio
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
+import io.ktor.server.cio.backend.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
