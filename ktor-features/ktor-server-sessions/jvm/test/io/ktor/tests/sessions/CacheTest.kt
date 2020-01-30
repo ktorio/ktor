@@ -4,8 +4,8 @@
 
 package io.ktor.tests.sessions
 
-import kotlinx.coroutines.*
 import io.ktor.sessions.*
+import kotlinx.coroutines.*
 import org.junit.Test
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -13,7 +13,7 @@ import kotlin.test.*
 
 class CacheTest {
     @Test
-    fun testBaseSimpleCase() = runBlocking {
+    fun testBaseSimpleCase(): Unit = runBlocking {
         val counter = AtomicInteger()
 
         val cache = BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
@@ -29,7 +29,7 @@ class CacheTest {
     }
 
     @Test
-    fun testBlocking() = runBlocking {
+    fun testBlocking(): Unit = runBlocking {
         val latch = CountDownLatch(1)
         val ref = AtomicReference("")
 
@@ -49,13 +49,13 @@ class CacheTest {
     }
 
     @Test
-    fun testPeek() = runBlocking {
+    fun testPeek(): Unit = runBlocking {
         val cache = BaseCache<Int, String> { fail(""); }
         assertNull(cache.peek(1))
     }
 
     @Test
-    fun testInvalidate() = runBlocking {
+    fun testInvalidate(): Unit = runBlocking {
         val counter = AtomicInteger()
         val cache = BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
 
@@ -77,21 +77,64 @@ class CacheTest {
     }
 
     @Test
-    fun testTimeout() = runBlocking {
+    fun testTimeout1(): Unit = runBlocking {
         val counter = AtomicInteger()
-        val timeout = BaseTimeoutCache(100L, true, BaseCache<Int, String> { counter.incrementAndGet(); it.toString() })
+        val timeout = BaseTimeoutCache(
+            1000L, true,
+            BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
+        )
 
         assertEquals("1", timeout.getOrCompute(1))
         assertEquals(1, counter.get())
         assertEquals("1", timeout.getOrCompute(1))
         assertEquals(1, counter.get())
+    }
 
-        Thread.sleep(300)
+    @Test
+    fun testTimeout2(): Unit = runBlocking {
+        val counter = AtomicInteger()
+        val timeout = BaseTimeoutCache(
+            10L, true,
+            BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
+        )
+
+        assertEquals("1", timeout.getOrCompute(1))
+        assertEquals(1, counter.get())
+
+        Thread.sleep(500)
+
         assertNull(timeout.peek(1))
     }
 
     @Test
-    fun testWeakReferenceCache() = runBlocking {
+    fun testInvalidateWithError(): Unit = runBlocking {
+        class ExpectedException : Exception()
+
+        val counter = AtomicInteger()
+        val cache = BaseCache<Int, String> { counter.incrementAndGet(); throw ExpectedException() }
+
+        assertFailsWith<ExpectedException> {
+            cache.getOrCompute(1)
+        }
+
+        assertEquals(1, counter.get())
+
+        assertFailsWith<ExpectedException> {
+            cache.getOrCompute(1)
+        }
+        assertEquals(1, counter.get())
+
+        cache.invalidate(1)
+        assertEquals(1, counter.get())
+
+        assertFailsWith<ExpectedException> {
+            cache.getOrCompute(1)
+        }
+        assertEquals(2, counter.get())
+    }
+
+    @Test
+    fun testWeakReferenceCache(): Unit = runBlocking {
         var ref: D? = null
         val weak = WeakReferenceCache<Int, D> { ref = D(it); ref!! }
 
@@ -113,5 +156,4 @@ class CacheTest {
     }
 
     private data class D(val i: Int)
-
 }
