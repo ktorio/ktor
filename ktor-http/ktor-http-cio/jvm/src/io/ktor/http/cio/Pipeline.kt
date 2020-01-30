@@ -60,9 +60,10 @@ class ServerRequestScope internal constructor(
      * Creates another request scope with same parameters except coroutine context
      */
     @KtorExperimentalAPI
-    fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
-        ServerRequestScope(this.coroutineContext + coroutineContext,
-            input, output, remoteAddress, upgraded)
+    fun withContext(coroutineContext: CoroutineContext): ServerRequestScope = ServerRequestScope(
+        this.coroutineContext + coroutineContext,
+        input, output, remoteAddress, upgraded
+    )
 }
 
 /**
