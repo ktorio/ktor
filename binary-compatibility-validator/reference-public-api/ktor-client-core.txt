@@ -332,10 +332,6 @@ public final class io/ktor/client/features/HttpClientFeatureKt {
 	public static final fun feature (Lio/ktor/client/HttpClient;Lio/ktor/client/features/HttpClientFeature;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/features/HttpConnectTimeoutException : java/net/ConnectException {
-	public fun <init> (Lio/ktor/client/request/HttpRequestData;)V
-}
-
 public final class io/ktor/client/features/HttpPlainText {
 	public static final field Feature Lio/ktor/client/features/HttpPlainText$Feature;
 	public final fun getDefaultCharset ()Ljava/nio/charset/Charset;
@@ -406,10 +402,6 @@ public final class io/ktor/client/features/HttpSend$Feature : io/ktor/client/fea
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
-public final class io/ktor/client/features/HttpSocketTimeoutException : java/net/SocketTimeoutException {
-	public fun <init> (Lio/ktor/client/request/HttpRequestData;)V
-}
-
 public final class io/ktor/client/features/HttpTimeout {
 	public static final field Feature Lio/ktor/client/features/HttpTimeout$Feature;
 	public static final field INFINITE_TIMEOUT_MS J
@@ -440,12 +432,11 @@ public final class io/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConf
 	public final fun getKey ()Lio/ktor/util/AttributeKey;
 }
 
-public final class io/ktor/client/features/HttpTimeoutJVMKt {
-	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteReadChannel;
-	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteWriteChannel;
-}
-
 public final class io/ktor/client/features/HttpTimeoutKt {
+	public static final fun ConnectTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Lio/ktor/network/sockets/ConnectTimeoutException;
+	public static synthetic fun ConnectTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/network/sockets/ConnectTimeoutException;
+	public static final fun SocketTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Lio/ktor/network/sockets/SocketTimeoutException;
+	public static synthetic fun SocketTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/network/sockets/SocketTimeoutException;
 	public static final fun convertLongTimeoutToIntWithInfiniteAsZero (J)I
 	public static final fun convertLongTimeoutToLongWithInfiniteAsZero (J)J
 	public static final fun timeout (Lio/ktor/client/request/HttpRequestBuilder;Lkotlin/jvm/functions/Function1;)V
@@ -1167,5 +1158,22 @@ public final class io/ktor/client/utils/EmptyContent : io/ktor/http/content/Outg
 public final class io/ktor/client/utils/HeadersKt {
 	public static final fun buildHeaders (Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Headers;
 	public static synthetic fun buildHeaders$default (Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/http/Headers;
+}
+
+public final class io/ktor/network/sockets/ConnectTimeoutException : java/net/ConnectException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+}
+
+public final class io/ktor/network/sockets/SocketTimeoutException : java/net/SocketTimeoutException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+}
+
+public final class io/ktor/network/sockets/TimeoutExceptionsJvmKt {
+	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun mapEngineExceptions (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/client/request/HttpRequestData;)Lio/ktor/utils/io/ByteWriteChannel;
 }
 
