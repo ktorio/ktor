@@ -18,7 +18,7 @@ abstract class TestWithKtor {
     protected val serverPort: Int = ServerSocket(0).use { it.localPort }
 
     @get:Rule
-    open val timeout = CoroutinesTimeout.seconds(3 * 60)
+    open val timeout = CoroutinesTimeout.seconds(5 * 60)
 
     abstract val server: ApplicationEngine
 

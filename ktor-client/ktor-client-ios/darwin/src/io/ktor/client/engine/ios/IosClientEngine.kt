@@ -45,7 +45,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
                     if (didCompleteWithError != null) {
                         val mappedException = when (didCompleteWithError.code) {
-                            NSURLErrorTimedOut -> HttpSocketTimeoutException(data)
+                            NSURLErrorTimedOut -> SocketTimeoutException(data)
                             else -> IosHttpRequestException(didCompleteWithError)
                         }
 

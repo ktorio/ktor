@@ -121,7 +121,7 @@ internal class Endpoint(
             response.resume(responseData)
         } catch (cause: Throwable) {
             val mappedException = when (cause.rootCause) {
-                is SocketTimeoutException -> HttpSocketTimeoutException(task.request)
+                is java.net.SocketTimeoutException -> SocketTimeoutException(task.request, cause)
                 else -> cause
             }
             response.resumeWithException(mappedException)
@@ -210,7 +210,7 @@ internal class Endpoint(
      */
     private fun getTimeoutException(retryAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
         when (timeoutFails) {
-            retryAttempts -> HttpConnectTimeoutException(request)
+            retryAttempts -> ConnectTimeoutException(request)
             else -> FailToConnectException()
         }
 

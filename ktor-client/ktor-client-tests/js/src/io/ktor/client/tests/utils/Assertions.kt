@@ -10,7 +10,7 @@ import io.ktor.util.*
  * Check that [block] completed with given type of root cause.
  */
 @InternalAPI
-actual inline fun <reified T : Throwable> assertFailsWithRootCause(block: () -> Unit) {
+actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit) {
     try {
         block()
         error("Expected ${T::class} exception, but it wasn't thrown")

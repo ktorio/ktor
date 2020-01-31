@@ -10,4 +10,4 @@ import io.ktor.util.*
  * Check that [block] completed with given type of root cause.
  */
 @InternalAPI
-expect inline fun <reified T : Throwable> assertFailsWithRootCause(block: () -> Unit)
+expect inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit)
