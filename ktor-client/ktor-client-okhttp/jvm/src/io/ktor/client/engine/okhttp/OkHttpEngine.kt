@@ -11,15 +11,15 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.network.sockets.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.internal.http.HttpMethod
 import okio.*
 import java.io.*
-import java.net.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 
@@ -149,8 +149,8 @@ private fun BufferedSource.toChannel(context: CoroutineContext, requestData: Htt
         }
     }.channel
 
-private fun mapExceptions(cause: Throwable, request: HttpRequestData) = when (cause) {
-    is SocketTimeoutException -> HttpSocketTimeoutException(request)
+private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable = when (cause) {
+    is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)
     else -> cause
 }
 

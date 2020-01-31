@@ -122,8 +122,8 @@ internal class ApacheResponseConsumerDispatching(
 
     override fun failed(cause: Exception) {
         val mappedCause = when {
-            cause is ConnectException && cause.isTimeoutException() -> HttpConnectTimeoutException(requestData!!)
-            cause is SocketTimeoutException -> HttpSocketTimeoutException(requestData!!)
+            cause is ConnectException && cause.isTimeoutException() -> ConnectTimeoutException(requestData!!, cause)
+            cause is java.net.SocketTimeoutException -> SocketTimeoutException(requestData!!, cause)
             else -> cause
         }
 

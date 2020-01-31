@@ -38,10 +38,10 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     val callback = object : FutureCallback<Unit> {
         override fun failed(exception: Exception) {
             val mappedCause = when {
-                exception is ConnectException && exception.isTimeoutException() -> HttpConnectTimeoutException(
-                    requestData
+                exception is ConnectException && exception.isTimeoutException() -> ConnectTimeoutException(
+                    requestData, exception
                 )
-                exception is SocketTimeoutException -> HttpSocketTimeoutException(requestData)
+                exception is java.net.SocketTimeoutException -> SocketTimeoutException(requestData, exception)
                 else -> exception
             }
 

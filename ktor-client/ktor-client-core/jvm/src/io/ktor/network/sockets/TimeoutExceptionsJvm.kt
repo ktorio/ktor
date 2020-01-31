@@ -1,33 +1,35 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.features
+package io.ktor.network.sockets
 
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.net.*
 
+/**
+ * This exception is thrown in case connect timeout exceeded.
+ */
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class HttpConnectTimeoutException actual constructor(request: HttpRequestData) :
-    ConnectException(
-        "Connect timeout has been expired [url=${request.url}, connect_timeout=${request.getCapabilityOrNull(
-            HttpTimeout
-        )?.connectTimeoutMillis ?: "unknown"} ms]"
-    )
-
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class HttpSocketTimeoutException actual constructor(request: HttpRequestData) :
-    SocketTimeoutException(
-        "Socket timeout has been expired [url=${request.url}, socket_timeout=${request.getCapabilityOrNull(
-            HttpTimeout
-        )?.socketTimeoutMillis ?: "unknown"}] ms"
-    )
+actual class ConnectTimeoutException actual constructor(
+    message: String, override val cause: Throwable?
+) : ConnectException(message) {
+}
 
 /**
- * Returns [ByteReadChannel] with [ByteChannel.close] handler that returns [HttpSocketTimeoutException] instead of
+ * This exception is thrown in case socket timeout (read or write) exceeded.
+ */
+@Suppress("ACTUAL_WITHOUT_EXPECT")
+actual class SocketTimeoutException actual constructor(
+    message: String, override val cause: Throwable?
+) : java.net.SocketTimeoutException(message)
+
+/**
+ * Returns [ByteReadChannel] with [ByteChannel.close] handler that returns [SocketTimeoutException] instead of
  * [SocketTimeoutException].
  */
 @InternalAPI
@@ -46,7 +48,7 @@ fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: HttpRequ
 }
 
 /**
- * Returns [ByteWriteChannel] with [ByteChannel.close] handler that returns [HttpSocketTimeoutException] instead of
+ * Returns [ByteWriteChannel] with [ByteChannel.close] handler that returns [SocketTimeoutException] instead of
  * [SocketTimeoutException].
  */
 @InternalAPI
@@ -65,12 +67,12 @@ fun CoroutineScope.mapEngineExceptions(input: ByteWriteChannel, request: HttpReq
 }
 
 /**
- * Creates [ByteChannel] that maps close exceptions (close the channel with [HttpSocketTimeoutException] if asked to
+ * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to
  * close it with [SocketTimeoutException]).
  */
 private fun ByteChannelWithMappedExceptions(request: HttpRequestData) = ByteChannel { cause ->
     when (cause?.rootCause) {
-        is SocketTimeoutException -> HttpSocketTimeoutException(request)
+        is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)
         else -> cause
     }
 }

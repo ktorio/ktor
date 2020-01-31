@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.Headers
 import java.io.*
-import java.net.*
 import kotlin.coroutines.*
 
 internal suspend fun OkHttpClient.execute(request: Request, requestData: HttpRequestData): Response =
@@ -25,10 +24,10 @@ internal suspend fun OkHttpClient.execute(request: Request, requestData: HttpReq
                 }
 
                 val mappedException = when (cause) {
-                    is SocketTimeoutException -> if (cause.message?.contains("connect") == true) {
-                        HttpConnectTimeoutException(requestData)
+                    is java.net.SocketTimeoutException -> if (cause.message?.contains("connect") == true) {
+                        ConnectTimeoutException(requestData, cause)
                     } else {
-                        HttpSocketTimeoutException(requestData)
+                        SocketTimeoutException(requestData, cause)
                     }
                     else -> cause
                 }

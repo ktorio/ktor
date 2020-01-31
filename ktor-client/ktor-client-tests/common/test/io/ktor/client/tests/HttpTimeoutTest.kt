@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -101,7 +102,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.head<HttpResponse>("$TEST_URL/with-delay?delay=1000")
             }
         }
@@ -208,7 +209,7 @@ class HttpTimeoutTest : ClientLoader() {
                 method = HttpMethod.Get
                 parameter("delay", 500)
             }
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
         }
@@ -227,7 +228,7 @@ class HttpTimeoutTest : ClientLoader() {
 
                 timeout { requestTimeoutMillis = 1000 }
             }
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
         }
@@ -272,7 +273,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<ByteArray>("$TEST_URL/with-stream") {
                     parameter("delay", 200)
                 }
@@ -287,7 +288,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<ByteArray>("$TEST_URL/with-stream") {
                     parameter("delay", 200)
 
@@ -337,7 +338,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
@@ -353,7 +354,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
@@ -371,7 +372,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 250)
                     parameter("count", 5)
@@ -387,7 +388,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpRequestTimeoutException> {
+            assertFailsAndContainsCause<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 250)
                     parameter("count", 5)
@@ -405,7 +406,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpConnectTimeoutException> {
+            assertFailsAndContainsCause<ConnectTimeoutException> {
                 client.get<String>("http://www.google.com:81")
             }
         }
@@ -421,7 +422,7 @@ class HttpTimeoutTest : ClientLoader() {
             assertFails {
                 try {
                     client.get<String>("http://localhost:11")
-                } catch (_: HttpConnectTimeoutException) {
+                } catch (_: ConnectTimeoutException) {
                     /* Ignore. */
                 }
             }
@@ -435,7 +436,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpConnectTimeoutException> {
+            assertFailsAndContainsCause<ConnectTimeoutException> {
                 client.get<String>("http://www.google.com:81") {
                     timeout { connectTimeoutMillis = 1000 }
                 }
@@ -450,7 +451,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpSocketTimeoutException> {
+            assertFailsAndContainsCause<SocketTimeoutException> {
                 client.get<String>("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
                 }
@@ -465,7 +466,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpSocketTimeoutException> {
+            assertFailsAndContainsCause<SocketTimeoutException> {
                 client.get<String>("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
 
@@ -482,7 +483,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpSocketTimeoutException> {
+            assertFailsAndContainsCause<SocketTimeoutException> {
                 client.post("$TEST_URL/slow-read") { body = makeString(4 * 1024 * 1024) }
             }
         }
@@ -495,7 +496,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsWithRootCause<HttpSocketTimeoutException> {
+            assertFailsAndContainsCause<SocketTimeoutException> {
                 client.post("$TEST_URL/slow-read") {
                     body = makeString(4 * 1024 * 1024)
                     timeout { socketTimeoutMillis = 500 }

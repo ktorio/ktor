@@ -6,6 +6,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import io.ktor.client.features.*
+import io.ktor.network.sockets.*
 import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
 import libcurl.*
@@ -204,7 +205,7 @@ internal class CurlMultiApiHandler : Closeable {
                     if (result == CURLE_OPERATION_TIMEDOUT) {
                         return CurlFail(
                             responseBuilder.request,
-                            HttpConnectTimeoutException(responseBuilder.request.requestData)
+                            ConnectTimeoutException(responseBuilder.request.requestData)
                         )
                     }
 

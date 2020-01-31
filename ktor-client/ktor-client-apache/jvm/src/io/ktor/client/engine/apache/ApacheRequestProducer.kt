@@ -11,10 +11,10 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import org.apache.http.*
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpRequest
@@ -25,7 +25,7 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
-import java.nio.ByteBuffer
+import java.nio.*
 import kotlin.coroutines.*
 
 internal class ApacheRequestProducer(
@@ -186,7 +186,8 @@ internal class ApacheRequestProducer(
 
     private fun ByteBuffer.recycle() {
         if (requestData.body is OutgoingContent.WriteChannelContent ||
-            requestData.body is OutgoingContent.ReadChannelContent) {
+            requestData.body is OutgoingContent.ReadChannelContent
+        ) {
             HttpClientDefaultPool.recycle(this)
         }
     }

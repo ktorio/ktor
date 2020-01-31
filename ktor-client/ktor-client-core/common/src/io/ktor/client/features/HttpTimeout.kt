@@ -7,8 +7,8 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.network.sockets.*
 import io.ktor.util.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 
@@ -141,22 +141,38 @@ fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityConfigura
 /**
  * This exception is thrown in case request timeout exceeded.
  */
-class HttpRequestTimeoutException(request: HttpRequestBuilder) :
-    CancellationException(
-        "Request timeout has been expired [url=${request.url}, request_timeout=${request.getCapabilityOrNull(
-            HttpTimeout
-        )?.requestTimeoutMillis ?: "unknown"} ms]"
-    )
+class HttpRequestTimeoutException(
+    request: HttpRequestBuilder
+) : CancellationException(
+    "Request timeout has been expired [url=${request.url}, request_timeout=${request.getCapabilityOrNull(
+        HttpTimeout
+    )?.requestTimeoutMillis ?: "unknown"} ms]"
+)
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-expect class HttpConnectTimeoutException(request: HttpRequestData) : IOException
+fun ConnectTimeoutException(
+    request: HttpRequestData, cause: Throwable? = null
+): ConnectTimeoutException = ConnectTimeoutException(
+    "Connect timeout has been expired [url=${request.url}, connect_timeout=${request.getCapabilityOrNull(
+        HttpTimeout
+    )?.connectTimeoutMillis ?: "unknown"} ms]",
+    cause
+)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-expect class HttpSocketTimeoutException(request: HttpRequestData) : IOException
+fun SocketTimeoutException(
+    request: HttpRequestData,
+    cause: Throwable? = null
+): SocketTimeoutException = SocketTimeoutException(
+    "Socket timeout has been expired [url=${request.url}, socket_timeout=${request.getCapabilityOrNull(
+        HttpTimeout
+    )?.socketTimeoutMillis ?: "unknown"}] ms",
+    cause
+)
 
 /**
  * Convert long timeout in milliseconds to int value. To do that we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
@@ -170,6 +186,10 @@ fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
     else -> timeout.toInt()
 }
 
+/**
+ * Convert long timeout in milliseconds to long value. To do that we need to consider [HttpTimeout.INFINITE_TIMEOUT_MS]
+ * as zero and convert timeout value to [Int].
+ */
 @InternalAPI
 fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {
     HttpTimeout.INFINITE_TIMEOUT_MS -> 0L
