@@ -99,6 +99,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
+        job.join()
 
         context.channel().close()
     }
