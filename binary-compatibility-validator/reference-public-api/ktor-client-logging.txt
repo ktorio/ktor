@@ -53,12 +53,6 @@ public final class io/ktor/client/features/logging/Logging$Config {
 	public final fun setLogger (Lio/ktor/client/features/logging/Logger;)V
 }
 
-public final class io/ktor/client/features/logging/LoggingContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
-	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;)V
-	public final fun getChannel ()Lio/ktor/utils/io/ByteReadChannel;
-	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
-}
-
 public final class io/ktor/client/features/logging/LoggingKt {
 	public static final fun Logging (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun Logging$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
