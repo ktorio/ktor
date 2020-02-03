@@ -147,8 +147,6 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun getDigestFunction (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;
-	public static final synthetic fun nextNonce ()Ljava/lang/String;
-	public static final synthetic fun raw (Ljava/lang/String;)[B
 	public static final fun sha1 ([B)[B
 }
 
@@ -257,10 +255,6 @@ public final class io/ktor/util/PlatformUtils {
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
 	public static final fun getLength (Lkotlin/ranges/LongRange;)J
-}
-
-public final class io/ktor/util/ReflectionKt {
-	public static final synthetic fun findAllSupertypes (Ljava/lang/Class;)Ljava/util/List;
 }
 
 public final class io/ktor/util/StatelessHmacNonceManager : io/ktor/util/NonceManager {
@@ -440,12 +434,6 @@ public final class io/ktor/util/cio/FileChannelsKt {
 public final class io/ktor/util/cio/InputStreamAdaptersKt {
 	public static final fun toByteReadChannel (Ljava/io/InputStream;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;)Lio/ktor/utils/io/ByteReadChannel;
 	public static synthetic fun toByteReadChannel$default (Ljava/io/InputStream;Lio/ktor/utils/io/pool/ObjectPool;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
-}
-
-public final class io/ktor/util/cio/NoopContinuation : kotlin/coroutines/Continuation {
-	public static final field INSTANCE Lio/ktor/util/cio/NoopContinuation;
-	public fun getContext ()Lkotlin/coroutines/CoroutineContext;
-	public fun resumeWith (Ljava/lang/Object;)V
 }
 
 public final class io/ktor/util/cio/OutputStreamAdaptersKt {
