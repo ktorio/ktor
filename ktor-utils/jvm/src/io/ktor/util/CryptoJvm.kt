@@ -10,7 +10,6 @@ package io.ktor.util
 
 import kotlinx.coroutines.*
 import java.security.*
-import java.util.*
 
 /**
  * Create a digest function with the specified [algorithm] and [salt]
@@ -61,24 +60,6 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
 
     override suspend fun build(): ByteArray = delegate.digest()
 }
-
-/**
- * Encode string as UTF-8 bytes
- */
-@Suppress("unused")
-@Deprecated(
-    "Will be removed in future releases",
-    ReplaceWith("s.toByteArray(Charsets.UTF_8)"),
-    level = DeprecationLevel.HIDDEN
-)
-fun raw(s: String): ByteArray = s.toByteArray(Charsets.UTF_8)
-
-/**
- * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
- */
-@Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Use generateNonce() instead", ReplaceWith("generateNonce()"), level = DeprecationLevel.HIDDEN)
-fun nextNonce(): String = generateNonce()
 
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty

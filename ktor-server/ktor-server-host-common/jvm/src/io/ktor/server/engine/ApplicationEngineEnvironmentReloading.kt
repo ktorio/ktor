@@ -41,18 +41,6 @@ class ApplicationEngineEnvironmentReloading(
         override val rootPath: String = ""
 ) : ApplicationEngineEnvironment {
 
-    @Suppress("UNUSED")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(
-        classLoader: ClassLoader,
-        log: Logger,
-        config: ApplicationConfig,
-        connectors: List<EngineConnectorConfig>,
-        modules: List<Application.() -> Unit>,
-        watchPaths: List<String> = emptyList(),
-        parentCoroutineContext: CoroutineContext = EmptyCoroutineContext
-    ) : this(classLoader, log, config, connectors, modules, watchPaths, parentCoroutineContext, "/")
-
     private var _applicationInstance: Application? = null
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
