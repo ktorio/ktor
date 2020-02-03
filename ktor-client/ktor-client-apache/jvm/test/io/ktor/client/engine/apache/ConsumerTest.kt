@@ -31,7 +31,7 @@ class ConsumerTest : CoroutineScope {
     private lateinit var receivedResponse: HttpResponse
 
     @get:Rule
-    val timeout = CoroutinesTimeout(10000L, cancelOnTimeout = true)
+    val timeout = CoroutinesTimeout(20000L, cancelOnTimeout = true)
 
     @BeforeTest
     fun setup() {
