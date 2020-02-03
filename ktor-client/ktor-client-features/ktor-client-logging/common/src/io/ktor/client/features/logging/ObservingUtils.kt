@@ -33,7 +33,7 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
     }
 }
 
-class LoggingContent(val channel: ByteReadChannel) : OutgoingContent.ReadChannelContent() {
+internal class LoggingContent(private val channel: ByteReadChannel) : OutgoingContent.ReadChannelContent() {
     override fun readFrom(): ByteReadChannel = channel
 }
 
