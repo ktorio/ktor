@@ -1,3 +1,28 @@
+# 1.3.1
+> Published 4 Feb 2020
+
+* Introduced experimental client timeout feature
+* Fixed OkHttp leaking threads
+* Fix decoding UTF8 lines (#1323)
+* Fixed websocket close sequence (#1262, #1571, #1427)
+* Reduced number of redundant exceptions logged in jetty server
+* Fixed text decoder in js client under nodejs
+* Fixed NSUrlSession memory leak (#1420)
+* Make server feature throw `BadContentTypeFormatException` to get status 400 
+* Reverted accidentally removed client `LocalFileContent`
+* Removed User-Agent header in browser (to avoid CORS-related issues)
+* Fixed request body with `Input`
+* Improved native clients performance
+* Fixed native and js client cancellation issues
+* Fixed file descriptor leak in Jetty server (#1589)
+* Fixed server sessions and cache related iseues (#1591)
+* Upgraded JWT/JWKS versions
+* Upgraded Netty version
+* Fixed multiple server jwt auth providers processing (#1586)
+* Fixed Auth retry logic (#1051)
+* Fixed ApplicationRequest.remoteHost to not report "unknown"
+* Fixed corrupted headers in CIO client and server on Android
+
 # 1.3.0
 > 14 Jan 2020
 
