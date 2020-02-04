@@ -7,8 +7,8 @@ kotlin.sourceSets {
         api group: 'io.netty', name: 'netty-codec-http2', version: netty_version
         api group: 'org.eclipse.jetty.alpn', name: 'alpn-api', version: jetty_alpn_api_version
 
-        api group: 'io.netty', name: 'netty-transport-native-kqueue', version: netty_version
-        api group: 'io.netty', name: 'netty-transport-native-epoll', version: netty_version
+        api group: 'io.netty', name: 'netty-transport-native-kqueue', version: netty_version, classifier: 'osx-x86_64'
+        api group: 'io.netty', name: 'netty-transport-native-epoll', version: netty_version, classifier: 'linux-x86_64'
     }
     jvmTest.dependencies {
         api project(':ktor-server:ktor-server-test-host')
