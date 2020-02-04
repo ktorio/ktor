@@ -34,6 +34,17 @@ object JettyUpgradeImpl : ServletUpgrade {
         withContext(engineContext) {
             try {
                 coroutineScope {
+                    endPoint.connection.addListener(
+                        object : Connection.Listener {
+                            override fun onOpened(connection: Connection?) {
+                            }
+
+                            override fun onClosed(connection: Connection?) {
+                                cancel()
+                            }
+                        }
+                    )
+
                     val inputChannel = ByteChannel(autoFlush = true)
                     val reader = EndPointReader(endPoint, coroutineContext, inputChannel)
                     val writer = endPointWriter(endPoint)
