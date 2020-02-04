@@ -13,10 +13,11 @@ import io.ktor.utils.io.*
 import java.net.*
 
 internal class CIOApplicationRequest(
-                            call: ApplicationCall,
-                            private val remoteAddress: InetSocketAddress?,
-                            private val input: ByteReadChannel,
-                            private val request: Request
+    call: ApplicationCall,
+    private val remoteAddress: InetSocketAddress?,
+    private val localAddress: InetSocketAddress?,
+    private val input: ByteReadChannel,
+    private val request: Request
 ) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
 
@@ -42,10 +43,15 @@ internal class CIOApplicationRequest(
             get() = request.uri.toString()
 
         override val host: String
-            get() = request.headers["Host"]?.toString()?.substringBefore(":") ?: "localhost"
+            get() = localAddress?.let { it.hostName ?: it.address.hostAddress }
+                ?: request.headers["Host"]?.toString()?.substringBefore(":")
+                ?: "localhost"
 
         override val port: Int
-            get() = request.headers["Host"]?.toString()?.substringAfter(":", "80")?.toInt() ?: 80
+            get() = localAddress?.port
+                ?: request.headers["Host"]?.toString()
+                    ?.substringAfter(":", "80")?.toInt()
+                ?: 80
 
         override val method: HttpMethod
             get() = HttpMethod.parse(request.method.value)

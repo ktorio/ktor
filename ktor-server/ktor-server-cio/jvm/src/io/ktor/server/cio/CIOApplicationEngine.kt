@@ -11,6 +11,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
+import java.net.*
 
 /**
  * Engine that based on CIO backend
@@ -142,13 +143,16 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        return scope.httpServer(settings) { request ->
+        val localAddress = CompletableDeferred<SocketAddress>()
+        val server = scope.httpServer(settings) { request ->
             withContext(userDispatcher) {
                 val call = CIOApplicationCall(
                     application, request, input, output,
                     engineDispatcher, userDispatcher, upgraded,
-                    remoteAddress
+                    remoteAddress,
+                    localAddress.await()
                 )
+
                 try {
                     pipeline.execute(call)
                 } finally {
@@ -156,5 +160,15 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 }
             }
         }
+
+        server.serverSocket.invokeOnCompletion { cause ->
+            if (cause != null) {
+                localAddress.completeExceptionally(cause)
+            } else {
+                localAddress.complete(server.serverSocket.getCompleted().localAddress)
+            }
+        }
+
+        return server
     }
 }

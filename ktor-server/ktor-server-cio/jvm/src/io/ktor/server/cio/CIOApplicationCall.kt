@@ -20,10 +20,18 @@ internal class CIOApplicationCall(
     engineDispatcher: CoroutineContext,
     appDispatcher: CoroutineContext,
     upgraded: CompletableDeferred<Boolean>?,
-    remoteAddress: SocketAddress?
-    ) : BaseApplicationCall(application) {
+    remoteAddress: SocketAddress?,
+    localAddress: SocketAddress?
+) : BaseApplicationCall(application) {
 
-    override val request = CIOApplicationRequest(this, remoteAddress as? InetSocketAddress, input, _request)
+    override val request = CIOApplicationRequest(
+        this,
+        remoteAddress as? InetSocketAddress,
+        localAddress as? InetSocketAddress,
+        input,
+        _request
+    )
+
     override val response = CIOApplicationResponse(this, output, input, engineDispatcher, appDispatcher, upgraded)
 
     internal fun release() {
