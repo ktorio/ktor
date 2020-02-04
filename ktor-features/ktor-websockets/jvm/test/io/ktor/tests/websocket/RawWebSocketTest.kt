@@ -18,7 +18,7 @@ import kotlin.test.*
 
 class RawWebSocketTest {
     @get:Rule
-    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(2, true)
+    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
 
     @get:Rule
     val test: TestName = TestName()
