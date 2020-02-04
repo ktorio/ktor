@@ -24,6 +24,12 @@ class HttpsRedirect(config: Configuration) {
     val permanent: Boolean = config.permanentRedirect
 
     /**
+     * Exempted paths
+     */
+
+    val exemptions: List<String> = config.exemptions
+
+    /**
      * Redirect feature configuration
      */
     class Configuration {
@@ -36,6 +42,12 @@ class HttpsRedirect(config: Configuration) {
          * Use permanent redirect or temporary
          */
         var permanentRedirect: Boolean = true
+
+        /**
+         * Exempted path prefixes. Any request for a path starting with these prefixes will not be redirected.
+         */
+
+        var exemptions: List<String> = listOf()
     }
 
     /**
@@ -46,7 +58,8 @@ class HttpsRedirect(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HttpsRedirect {
             val feature = HttpsRedirect(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Features) {
-                if (call.request.origin.scheme == "http") {
+                if (call.request.origin.scheme == "http" &&
+                        !feature.exemptions.any { call.request.origin.uri.startsWith(it) }) { 
                     val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = feature.redirectPort }
                     call.respondRedirect(redirectUrl, feature.permanent)
                     finish()
