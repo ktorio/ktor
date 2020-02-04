@@ -52,8 +52,8 @@ internal suspend fun HttpURLConnection.timeoutAwareConnect(request: HttpRequestD
     } catch (cause: Throwable) {
         // Allow to throw request timeout cancellation exception instead of connect timeout exception if needed.
         yield()
-        throw when (cause) {
-            is java.net.SocketTimeoutException -> ConnectTimeoutException(request, cause)
+        throw when {
+            cause.isTimeoutException() -> ConnectTimeoutException(request, cause)
             else -> cause
         }
     }
@@ -70,3 +70,9 @@ internal fun HttpURLConnection.content(callContext: CoroutineContext, request: H
     context = callContext,
     pool = KtorDefaultPool
 )?.let { CoroutineScope(callContext).mapEngineExceptions(it, request) } ?: ByteReadChannel.Empty
+
+/**
+ * Checks the exception and identifies timeout exception by it.
+ */
+private fun Throwable.isTimeoutException(): Boolean =
+    this is java.net.SocketTimeoutException || (this is ConnectException && message?.contains("timed out") ?: false)
