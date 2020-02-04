@@ -16,7 +16,7 @@ import java.nio.*
  * @property data - a frame content or fragment content
  * @property disposableHandle could be invoked when the frame is processed
  */
-actual sealed class Frame private actual constructor(
+actual sealed class Frame actual constructor(
     actual val fin: Boolean,
     actual val frameType: FrameType,
     actual val data: ByteArray,
@@ -59,10 +59,12 @@ actual sealed class Frame private actual constructor(
      */
     actual class Close actual constructor(data: ByteArray) : Frame(true, FrameType.CLOSE, data) {
 
-        actual constructor(reason: CloseReason) : this(buildPacket {
-            writeShort(reason.code)
-            writeText(reason.message)
-        })
+        actual constructor(reason: CloseReason) : this(
+            buildPacket {
+                writeShort(reason.code)
+                writeText(reason.message)
+            }
+        )
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         actual constructor() : this(Empty)
 
@@ -95,7 +97,7 @@ actual sealed class Frame private actual constructor(
         constructor(buffer: ByteBuffer) : this(buffer.moveToByteArray(), NonDisposableHandle)
     }
 
-    override fun toString() = "Frame $frameType (fin=$fin, buffer len = ${data.size})"
+    override fun toString(): String = "Frame $frameType (fin=$fin, buffer len = ${data.size})"
 
     /**
      * Creates a frame copy
@@ -128,6 +130,6 @@ actual sealed class Frame private actual constructor(
     }
 }
 
-@Suppress("CONFLICTING_OVERLOADS")
+@Suppress("CONFLICTING_OVERLOADS", "KDocMissingDocumentation", "unused")
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
 fun Frame.Close.readReason(): CloseReason? = readReason()
