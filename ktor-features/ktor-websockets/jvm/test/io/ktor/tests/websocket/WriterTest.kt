@@ -48,7 +48,7 @@ class WriterTest {
             (it.toInt() and 0xff).toString(16).padStart(2, '0')
         }
 
-        (writer.outgoing as Job).join()
+        writer.flush()
 
         assertEquals(true, writer.outgoing.isClosedForSend)
         assertEquals("88, 02, 03, e8", bytesWritten)
