@@ -9,15 +9,19 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import io.ktor.utils.io.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
 
-internal class RequestBodyHandler(val context: ChannelHandlerContext,
-                                  private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter(), CoroutineScope {
+internal class RequestBodyHandler(
+    val context: ChannelHandlerContext,
+    private val requestQueue: NettyRequestQueue
+) : ChannelInboundHandlerAdapter(), CoroutineScope {
     private val handlerJob = CompletableDeferred<Nothing>()
 
     private val queue = Channel<Any>(Channel.UNLIMITED)
+
     private object Upgrade
 
     override val coroutineContext: CoroutineContext get() = handlerJob
@@ -63,15 +67,24 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
     }
 
     fun upgrade(): ByteReadChannel {
-        queue.offer(Upgrade)
-        val channel = newChannel()
-        return channel
+        tryOfferChannelOrToken(Upgrade)
+        return newChannel()
     }
 
     fun newChannel(): ByteReadChannel {
         val bc = ByteChannel()
-        if (!queue.offer(bc)) throw IllegalStateException("Unable to start request processing: failed to offer byte channel to the queue")
+        tryOfferChannelOrToken(bc)
         return bc
+    }
+
+    private fun tryOfferChannelOrToken(token: Any) {
+        try {
+            if (!queue.offer(token)) {
+                throw IllegalStateException("Unable to start request processing: failed to offer $token to the HTTP pipeline queue")
+            }
+        } catch (closedCause: ClosedSendChannelException) {
+            throw CancellationException("HTTP pipeline has been terminated.", closedCause)
+        }
     }
 
     fun close() {
@@ -116,12 +129,17 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
     @UseExperimental(ExperimentalCoroutinesApi::class)
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
-            val e = try { queue.poll() } catch (t: Throwable) { null } ?: break
+            val e = try {
+                queue.poll()
+            } catch (t: Throwable) {
+                null
+            } ?: break
 
             when (e) {
                 is ByteChannel -> e.close()
                 is ReferenceCounted -> e.release()
-                else -> {}
+                else -> {
+                }
             }
         }
     }
