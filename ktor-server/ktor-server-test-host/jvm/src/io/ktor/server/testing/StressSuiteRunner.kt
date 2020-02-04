@@ -5,17 +5,30 @@
 package io.ktor.server.testing
 
 import org.junit.runner.*
+import org.junit.runner.manipulation.*
 import org.junit.runner.notification.*
 import org.junit.runners.*
 
-class StressSuiteRunner(klass: Class<*>) : Runner() {
+class StressSuiteRunner(klass: Class<*>) : Runner(), Filterable, Sortable {
     private val delegate = JUnit4(klass)
 
     override fun run(notifier: RunNotifier?) {
         if (System.getProperty("enable.stress.tests") != null) {
             delegate.run(notifier)
+        } else {
+            delegate.description.children?.forEach { child ->
+                notifier?.fireTestIgnored(child)
+            }
         }
     }
 
     override fun getDescription(): Description = delegate.description
+
+    override fun filter(filter: Filter?) {
+        delegate.filter(filter)
+    }
+
+    override fun sort(sorter: Sorter?) {
+        delegate.sort(sorter)
+    }
 }
