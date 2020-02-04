@@ -620,17 +620,18 @@ public final class io/ktor/features/HSTS$Feature : io/ktor/application/Applicati
 public final class io/ktor/features/HttpsRedirect {
 	public static final field Feature Lio/ktor/features/HttpsRedirect$Feature;
 	public fun <init> (Lio/ktor/features/HttpsRedirect$Configuration;)V
-	public final fun getExemptions ()Ljava/util/List;
+	public final fun getExcludePredicates ()Ljava/util/List;
 	public final fun getPermanent ()Z
 	public final fun getRedirectPort ()I
 }
 
 public final class io/ktor/features/HttpsRedirect$Configuration {
 	public fun <init> ()V
-	public final fun getExemptions ()Ljava/util/List;
+	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
+	public final fun excludePrefix (Ljava/lang/String;)V
+	public final fun getExcludePredicates ()Ljava/util/List;
 	public final fun getPermanentRedirect ()Z
 	public final fun getSslPort ()I
-	public final fun setExemptions (Ljava/util/List;)V
 	public final fun setPermanentRedirect (Z)V
 	public final fun setSslPort (I)V
 }

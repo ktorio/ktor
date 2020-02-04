@@ -88,7 +88,7 @@ class HttpsRedirectFeatureTest {
     fun testRedirectHttpsExemption() {
         withTestApplication {
             application.install(HttpsRedirect) {
-                exemptions = listOf("/exempted")
+                excludePrefix("/exempted")
             }
             application.intercept(ApplicationCallPipeline.Fallback) {
                 call.respond("ok")
