@@ -96,6 +96,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         job.invokeOnCompletion {
             upgradedWriteChannel.close()
             bodyHandler.close()
+            upgradedReadChannel.cancel()
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()

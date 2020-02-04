@@ -89,7 +89,7 @@ internal class CIOApplicationResponse(call: CIOApplicationCall,
         sendResponseMessage(contentReady = false)
 
         val upgradedJob = upgrade.upgrade(input, output, engineDispatcher, userDispatcher)
-        upgradedJob.invokeOnCompletion { output.close() }
+        upgradedJob.invokeOnCompletion { output.close(); input.cancel() }
         upgradedJob.join()
     }
 
