@@ -30,11 +30,6 @@ class HttpsRedirect(config: Configuration) {
     val exemptions: List<String> = config.exemptions
 
     /**
-     * Check if the uri is exempted. If it starts with one of the exemptions, it will not be redirected to https.
-     */
-    fun exempted(uri: String): Boolean = exemptions.any { uri.startsWith(it) }
-
-    /**
      * Redirect feature configuration
      */
     class Configuration {
@@ -63,7 +58,8 @@ class HttpsRedirect(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HttpsRedirect {
             val feature = HttpsRedirect(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Features) {
-                if (call.request.origin.scheme == "http" && !feature.exempted(call.request.origin.uri)) {
+                if (call.request.origin.scheme == "http" &&
+                        !feature.exemptions.any { call.request.origin.uri.startsWith(it) }) { 
                     val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = feature.redirectPort }
                     call.respondRedirect(redirectUrl, feature.permanent)
                     finish()

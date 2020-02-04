@@ -83,4 +83,24 @@ class HttpsRedirectFeatureTest {
             }
         }
     }
+
+    @Test
+    fun testRedirectHttpsExemption() {
+        withTestApplication {
+            application.install(HttpsRedirect) {
+                exemptions = listOf("/exempted")
+            }
+            application.intercept(ApplicationCallPipeline.Fallback) {
+                call.respond("ok")
+            }
+
+            handleRequest(HttpMethod.Get, "/nonexempted").let { call ->
+                assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/exempted/path").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
 }
