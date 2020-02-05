@@ -84,10 +84,8 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         private fun peekContinuation(): Continuation<*>? {
             if (lastPeekedIndex < 0) return null
-            val rootContinuation = rootContinuation
 
-            @Suppress("UNCHECKED_CAST")
-            when (rootContinuation) {
+            when (val rootContinuation = rootContinuation) {
                 null -> return null
                 is Continuation<*> -> {
                     --lastPeekedIndex
@@ -95,17 +93,37 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
                 }
                 is ArrayList<*> -> {
                     if (rootContinuation.isEmpty()) return null
-                    return rootContinuation[lastPeekedIndex--] as Continuation<*>
+                    @Suppress("UNCHECKED_CAST")
+                    return peekContinuationFromList(rootContinuation as List<Continuation<*>>)
                 }
                 else -> return null
+            }
+        }
+
+        private fun peekContinuationFromList(list: List<Continuation<*>>): Continuation<*>? {
+            // lastPeekedIndex is non-volatile intentionally
+            // and the list of continuations is not synchronized too
+            // so this is not guaranteed to work properly (may produce incorrect trace),
+            // but the only we care is to not crash here
+            // and simply return null on any unfortunate accident
+
+            try {
+                val index = lastPeekedIndex
+                val result = list.getOrNull(index) ?: return null
+                lastPeekedIndex = index - 1
+                return result
+            } catch (_: Throwable) {
+                // retry if modification occurred during the peek attempt
+                // the loop is not guaranteed to fix the accident
+                // due to unpredictable visibility but still there is a little chance
+                return null
             }
         }
 
         @Suppress("UNCHECKED_CAST")
         override val context: CoroutineContext
             get() {
-                val cont = rootContinuation
-                return when (cont) {
+                return when (val cont = rootContinuation) {
                     null -> throw IllegalStateException("Not started")
                     is Continuation<*> -> cont.context
                     is List<*> -> (cont as List<Continuation<*>>).last().context
@@ -240,9 +258,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     private fun addContinuation(continuation: Continuation<TSubject>) {
-        val rootContinuation = rootContinuation
-
-        when (rootContinuation) {
+        when (val rootContinuation = rootContinuation) {
             null -> {
                 lastPeekedIndex = 0
                 this.rootContinuation = continuation
