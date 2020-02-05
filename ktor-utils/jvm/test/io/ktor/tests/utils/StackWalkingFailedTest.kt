@@ -33,7 +33,7 @@ class StackWalkingFailedTest {
 
         val fileLines = file.readLines()
 
-        fileLines.firstOrNull { it.trimStart().startsWith("package ${foundClass.packageName}") }
+        fileLines.firstOrNull { it.trimStart().startsWith("package ${foundClass.getPackage().name}") }
             ?: fail("The returned file $fileName name should have the correct package definition")
 
         val pointedLine = fileLines.getOrElse(element.lineNumber - 1) {
