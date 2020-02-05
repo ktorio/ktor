@@ -1,5 +1,5 @@
 # 1.3.1
-> Published 4 Feb 2020
+> Published 5 Feb 2020
 
 * Introduced experimental client timeout feature
 * Fixed OkHttp leaking threads
@@ -22,6 +22,7 @@
 * Fixed Auth retry logic (#1051)
 * Fixed ApplicationRequest.remoteHost to not report "unknown"
 * Fixed corrupted headers in CIO client and server on Android
+* Improved server cancellation handling
 
 # 1.3.0
 > 14 Jan 2020
