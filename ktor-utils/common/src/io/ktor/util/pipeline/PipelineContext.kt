@@ -92,7 +92,13 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
                     return rootContinuation
                 }
                 is ArrayList<*> -> {
-                    if (rootContinuation.isEmpty()) return null
+                    if (rootContinuation.isEmpty()) {
+                        // If the list is empty, then lastPeekedIndex should be -1
+                        // and null should be already returned at the beginning of the function.
+                        // So if we are here and see that the list is empty but lastPeekedIndex wasn't -1,
+                        // then it means that element(s) has disappeared concurrently.
+                        return StackWalkingFailedFrame
+                    }
                     @Suppress("UNCHECKED_CAST")
                     return peekContinuationFromList(rootContinuation as List<Continuation<*>>)
                 }
@@ -101,22 +107,20 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
         }
 
         private fun peekContinuationFromList(list: List<Continuation<*>>): Continuation<*>? {
+            // this is only invoked by debug agent during job state probes
             // lastPeekedIndex is non-volatile intentionally
             // and the list of continuations is not synchronized too
             // so this is not guaranteed to work properly (may produce incorrect trace),
             // but the only we care is to not crash here
-            // and simply return null on any unfortunate accident
+            // and simply return StackWalkingFailedFrame on any unfortunate accident
 
             try {
                 val index = lastPeekedIndex
-                val result = list.getOrNull(index) ?: return null
+                val result = list.getOrNull(index) ?: return StackWalkingFailedFrame
                 lastPeekedIndex = index - 1
                 return result
             } catch (_: Throwable) {
-                // retry if modification occurred during the peek attempt
-                // the loop is not guaranteed to fix the accident
-                // due to unpredictable visibility but still there is a little chance
-                return null
+                return StackWalkingFailedFrame
             }
         }
 
@@ -282,5 +286,30 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     private fun unexpectedRootContinuationValue(rootContinuation: Any?): Nothing {
         throw IllegalStateException("Unexpected rootContinuation content: $rootContinuation")
+    }
+}
+
+/**
+ * This is a fake coroutine stack frame. It is reported by [SuspendFunctionGun] when the debug agent
+ * is trying to probe jobs state by peeking frames when the coroutine is running at the same time
+ * and the frames sequence is concurrently changed.
+ */
+internal object StackWalkingFailedFrame : CoroutineStackFrame, Continuation<Nothing> {
+    override val callerFrame: CoroutineStackFrame? get() = null
+
+    override fun getStackTraceElement(): StackTraceElement? {
+        return createStackTraceElement(
+            StackWalkingFailed::class,
+            StackWalkingFailed::failedToCaptureStackFrame.name,
+            "StackWalkingFailed.kt",
+            8
+        )
+    }
+
+    override val context: CoroutineContext
+        get() = EmptyCoroutineContext
+
+    override fun resumeWith(result: Result<Nothing>) {
+        StackWalkingFailed.failedToCaptureStackFrame()
     }
 }

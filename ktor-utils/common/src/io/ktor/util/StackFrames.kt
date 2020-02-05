@@ -4,7 +4,17 @@
 
 package io.ktor.util
 
+import kotlin.reflect.*
+
 internal expect class StackTraceElement
+
+@Suppress("FunctionName")
+internal expect fun createStackTraceElement(
+    kClass: KClass<*>,
+    methodName: String,
+    fileName: String,
+    lineNumber: Int
+): StackTraceElement
 
 internal expect interface CoroutineStackFrame {
     public val callerFrame: CoroutineStackFrame?
