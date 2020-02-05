@@ -144,7 +144,7 @@ fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityConfigura
 class HttpRequestTimeoutException(
     request: HttpRequestBuilder
 ) : CancellationException(
-    "Request timeout has been expired [url=${request.url}, request_timeout=${request.getCapabilityOrNull(
+    "Request timeout has been expired [url=${request.url.buildString()}, request_timeout=${request.getCapabilityOrNull(
         HttpTimeout
     )?.requestTimeoutMillis ?: "unknown"} ms]"
 )
