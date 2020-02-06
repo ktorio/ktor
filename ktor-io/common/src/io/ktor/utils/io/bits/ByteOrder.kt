@@ -46,7 +46,7 @@ fun UInt.reverseByteOrder(): UInt = toInt().reverseByteOrder().toUInt()
 fun ULong.reverseByteOrder(): ULong = toLong().reverseByteOrder().toULong()
 
 @ExperimentalIoApi
-inline val Short.highByte: Byte get() = ((toInt() and 0xff) shr 8).toByte()
+inline val Short.highByte: Byte get() = (toInt() ushr 8).toByte()
 
 @ExperimentalIoApi
 inline val Short.lowByte: Byte get() = (toInt() and 0xff).toByte()
