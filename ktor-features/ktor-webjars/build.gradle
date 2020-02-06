@@ -4,7 +4,7 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                api group: 'org.webjars', name: 'webjars-locator-core', version: '0.35'
+                api group: 'org.webjars', name: 'webjars-locator-core', version: '0.43'
             }
         }
         jvmTest {
