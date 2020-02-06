@@ -48,11 +48,32 @@ private fun CoroutineScope.inflate(
         val header = source.readPacket(GZIP_HEADER_SIZE)
         val magic = header.readShortLittleEndian()
         val format = header.readByte()
-        val padding = header.readBytes()
+        val flags = header.readByte().toInt()
+        // val time = header.readInt()
+        // val extraFlags = header.readByte()
+        // val osType = header.readByte()
+
+        /* flags bits:
+            bit 0   FTEXT
+            bit 1   FHCRC
+            bit 2   FEXTRA
+            bit 3   FNAME
+            bit 4   FCOMMENT
+            bit 5   reserved
+            bit 6   reserved
+            bit 7   reserved
+        */
+        if (flags and 0b0000_0100 != 0) { //FLG.FEXTRA
+            val extraLen = source.readShort().toInt()
+            val extra = source.readPacket(extraLen)
+        }
 
         check(magic == GZIP_MAGIC) { "GZIP magic invalid: $magic" }
         check(format.toInt() == Deflater.DEFLATED) { "Deflater method unsupported: $format." }
-        check(padding.contentEquals(GZIP_HEADER_PADDING)) { "Gzip padding invalid." }
+        //FLG.FNAME
+        check(flags and 0b0000_1000 == 0) { "Gzip file name not suported" }
+        //FLG.FCOMMENT
+        check(flags and 0b0001_0000 == 0) { "Gzip file comment not suported" }
     }
 
     try {
