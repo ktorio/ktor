@@ -22,6 +22,9 @@ import java.time.*
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
 class Webjars(private val configuration: Configuration) {
+    private val locator = WebJarAssetLocator()
+    private val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
+    private val lastModified = ZonedDateTime.now(configuration.zone)
 
     private fun fileName(path: String): String = Paths.get(path).fileName?.toString() ?: ""
 
@@ -30,11 +33,11 @@ class Webjars(private val configuration: Configuration) {
         val nextDelimiter = path.indexOf("/", 1)
         val webjar = if (nextDelimiter > -1) path.substring(firstDelimiter, nextDelimiter) else ""
         val partialPath = path.substring(nextDelimiter + 1)
+        if (webjar !in knownWebJars) {
+            throw IllegalArgumentException("jar $webjar not found")
+        }
         return locator.getFullPath(webjar, partialPath)
     }
-
-    private val locator = WebJarAssetLocator()
-    private val lastModified = ZonedDateTime.now(configuration.zone)
 
     @KtorExperimentalAPI
     class Configuration {
