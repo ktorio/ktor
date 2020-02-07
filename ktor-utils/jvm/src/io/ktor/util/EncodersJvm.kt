@@ -14,7 +14,7 @@ import java.util.zip.*
 private const val GZIP_HEADER_SIZE: Int = 10
 
 // GZIP header flags bits
-private object FLG {
+private object GzipHeaderFlags {
     const val FTEXT = 1 shl 0 // Is ASCII
     const val FHCRC = 1 shl 1 // Has header CRC16
     const val EXTRA = 1 shl 2 // Extra fields present
@@ -72,18 +72,18 @@ private fun CoroutineScope.inflate(
         header.discard()
 
         // skip the extra header if present
-        if (flags and FLG.EXTRA != 0) {
+        if (flags and GzipHeaderFlags.EXTRA != 0) {
             val extraLen = source.readShort().toLong()
             source.discardExact(extraLen)
         }
 
         check(magic == GZIP_MAGIC) { "GZIP magic invalid: $magic" }
         check(format.toInt() == Deflater.DEFLATED) { "Deflater method unsupported: $format." }
-        check(!(flags has FLG.FNAME)) { "Gzip file name not supported" }
-        check(!(flags has FLG.FCOMMENT)) { "Gzip file comment not supported" }
+        check(!(flags has GzipHeaderFlags.FNAME)) { "Gzip file name not supported" }
+        check(!(flags has GzipHeaderFlags.FCOMMENT)) { "Gzip file comment not supported" }
 
         // skip the header CRC if present
-        if (flags has FLG.FHCRC) {
+        if (flags has GzipHeaderFlags.FHCRC) {
             source.discardExact(2)
         }
     }
