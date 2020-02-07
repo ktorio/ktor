@@ -68,6 +68,8 @@ private fun CoroutineScope.inflate(
         // val extraFlags = header.readByte()
         // val osType = header.readByte()
 
+        // however we have to discard them to prevent a memory leak
+        header.discard()
 
         // skip the extra header if present
         if (flags and FLG.EXTRA != 0) {
