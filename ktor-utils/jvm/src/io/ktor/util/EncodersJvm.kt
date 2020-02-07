@@ -13,6 +13,17 @@ import java.util.zip.*
 
 private const val GZIP_HEADER_SIZE: Int = 10
 
+// GZIP header flags bits
+private object FLG {
+    const val FTEXT = 1 shl 0 // Is ASCII
+    const val FHCRC = 1 shl 1 // Has header CRC16
+    const val EXTRA = 1 shl 2 // Extra fields present
+    const val FNAME = 1 shl 3 // File name present
+    const val FCOMMENT = 1 shl 4 // File comment present
+}
+
+private infix fun Int.has(flag: Int) = this and flag != 0
+
 /**
  * Implementation of Deflate [Encoder].
  */
@@ -49,31 +60,30 @@ private fun CoroutineScope.inflate(
         val magic = header.readShortLittleEndian()
         val format = header.readByte()
         val flags = header.readByte().toInt()
+
+        // Next parts of the header are not used for now,
+        // uncomment the following lines once you need them
+
         // val time = header.readInt()
         // val extraFlags = header.readByte()
         // val osType = header.readByte()
 
-        /* flags bits:
-            bit 0   FTEXT
-            bit 1   FHCRC
-            bit 2   FEXTRA
-            bit 3   FNAME
-            bit 4   FCOMMENT
-            bit 5   reserved
-            bit 6   reserved
-            bit 7   reserved
-        */
-        if (flags and 0b0000_0100 != 0) { //FLG.FEXTRA
-            val extraLen = source.readShort().toInt()
-            val extra = source.readPacket(extraLen)
+
+        // skip the extra header if present
+        if (flags and FLG.EXTRA != 0) {
+            val extraLen = source.readShort().toLong()
+            source.discardExact(extraLen)
         }
 
         check(magic == GZIP_MAGIC) { "GZIP magic invalid: $magic" }
         check(format.toInt() == Deflater.DEFLATED) { "Deflater method unsupported: $format." }
-        //FLG.FNAME
-        check(flags and 0b0000_1000 == 0) { "Gzip file name not suported" }
-        //FLG.FCOMMENT
-        check(flags and 0b0001_0000 == 0) { "Gzip file comment not suported" }
+        check(!(flags has FLG.FNAME)) { "Gzip file name not supported" }
+        check(!(flags has FLG.FCOMMENT)) { "Gzip file comment not supported" }
+
+        // skip the header CRC if present
+        if (flags has FLG.FHCRC) {
+            source.discardExact(2)
+        }
     }
 
     try {
