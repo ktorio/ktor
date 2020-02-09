@@ -5,6 +5,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.network.util.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException

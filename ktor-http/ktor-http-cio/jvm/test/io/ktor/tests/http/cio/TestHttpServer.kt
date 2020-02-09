@@ -5,8 +5,8 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
 import io.ktor.http.cio.internals.WeakTimeoutQueue
+import io.ktor.network.util.*
 import io.ktor.server.cio.backend.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
