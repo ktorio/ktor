@@ -102,18 +102,18 @@ class DefaultWebSocketSessionImpl(
                     is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
+                        val currentSize = last?.size ?: 0
+                        val length = currentSize + frame.buffer.remaining()
+                        if (length > maxFrameSize) {
+                            throw WebSocketReader.FrameTooBigException(length.toLong())
+                        }
+
                         if (!frame.fin) {
                             if (last == null) {
                                 last = BytePacketBuilder()
                             }
 
-                            val current = last!!
-                            val length = current.size + frame.buffer.remaining()
-                            if (length > maxFrameSize) {
-                                throw WebSocketReader.FrameTooBigException(length.toLong())
-                            }
-
-                            current.writeFully(frame.buffer)
+                            last!!.writeFully(frame.buffer)
                             return@consumeEach
                         }
 
