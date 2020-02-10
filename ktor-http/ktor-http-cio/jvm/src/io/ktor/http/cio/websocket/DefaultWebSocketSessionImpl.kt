@@ -102,11 +102,7 @@ class DefaultWebSocketSessionImpl(
                     is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
-                        val currentSize = last?.size ?: 0
-                        val length = currentSize + frame.buffer.remaining()
-                        if (length > maxFrameSize) {
-                            throw WebSocketReader.FrameTooBigException(length.toLong())
-                        }
+                        checkMaxFrameSize(last, frame)
 
                         if (!frame.fin) {
                             if (last == null) {
@@ -201,6 +197,18 @@ class DefaultWebSocketSessionImpl(
 
         if (closed.value && newPinger != null) {
             runOrCancelPinger()
+        }
+    }
+
+    private suspend fun checkMaxFrameSize(
+        packet: BytePacketBuilder?,
+        frame: Frame
+    ) {
+        val size = frame.buffer.remaining() + (packet?.size ?: 0)
+        if (size > maxFrameSize) {
+            packet?.release()
+            close(CloseReason(CloseReason.Codes.TOO_BIG, "Frame is too big: $size. Max size is $maxFrameSize"))
+            throw WebSocketReader.FrameTooBigException(size.toLong())
         }
     }
 

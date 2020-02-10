@@ -5,8 +5,8 @@
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.nio.*
 
 /**
@@ -65,6 +65,7 @@ actual sealed class Frame actual constructor(
                 writeText(reason.message)
             }
         )
+
         actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
         actual constructor() : this(Empty)
 
