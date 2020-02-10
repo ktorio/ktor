@@ -41,8 +41,10 @@ class WebSocketReader(
         } catch (expected: CancellationException) {
         } catch (io: ChannelIOException) {
             queue.cancel()
-        } catch (cause: Throwable) {
+        } catch (cause: FrameTooBigException) {
+            // Bypass exception via queue to prevent cancellation and handle it on the top level.
             queue.close(cause)
+        } catch (cause: Throwable) {
             throw cause
         } finally {
             pool.recycle(buffer)

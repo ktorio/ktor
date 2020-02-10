@@ -74,6 +74,8 @@ class DefaultWebSocketTest {
         }
 
         client.close()
+        assertTrue(client.incoming.receive() is Frame.Close)
+
         ensureCompletion()
     }
 
