@@ -6,11 +6,11 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -103,8 +103,17 @@ class DefaultWebSocketSessionImpl(
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
                         if (!frame.fin) {
-                            if (last == null) last = BytePacketBuilder()
-                            last!!.writeFully(frame.buffer)
+                            if (last == null) {
+                                last = BytePacketBuilder()
+                            }
+
+                            val current = last!!
+                            val length = current.size + frame.buffer.remaining()
+                            if (length > maxFrameSize) {
+                                throw WebSocketReader.FrameTooBigException(length.toLong())
+                            }
+
+                            current.writeFully(frame.buffer)
                             return@consumeEach
                         }
 
