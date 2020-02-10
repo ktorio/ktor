@@ -129,7 +129,7 @@ class DefaultWebSocketSessionImpl(
             }
         } catch (ignore: ClosedSendChannelException) {
         } catch (cause: Throwable) {
-            ponger.close(cause)
+            ponger.close()
             filtered.close(cause)
         } finally {
             ponger.close()

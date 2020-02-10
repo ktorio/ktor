@@ -318,6 +318,45 @@ class WebSocketTest {
     }
 
     @Test
+    fun testFragmentationMaxSizeBound() {
+        val sendBuffer = ByteBuffer.allocate(5 * 1024)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(false, ByteArray(1024)))
+            enqueue(Frame.Binary(true, ByteArray(1024)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets) {
+                maxFrameSize = 1025
+            }
+
+            var exception: Throwable? = null
+            application.routing {
+                webSocket("/") {
+                    try {
+                        val frame = incoming.receive()
+                    } catch (cause: Throwable) {
+                        exception = cause
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                setBody(sendBuffer.array())
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+
+                assertTrue { exception is WebSocketReader.FrameTooBigException }
+            }
+        }
+    }
+
+
+    @Test
     fun testConversation() {
         withTestApplication {
             application.install(WebSockets)
