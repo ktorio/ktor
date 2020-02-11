@@ -120,6 +120,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
          */
         val Any = ContentType("application", "*")
         val Atom = ContentType("application", "atom+xml")
+        val Cbor = ContentType("application", "cbor")
         val Json = ContentType("application", "json")
         val JavaScript = ContentType("application", "javascript")
         val OctetStream = ContentType("application", "octet-stream")
@@ -131,6 +132,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val GZip = ContentType("application", "gzip")
         val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
         val Pdf = ContentType("application", "pdf")
+        val ProtoBuf = ContentType("application", "protobuf")
         val Wasm = ContentType("application", "wasm")
         val ProblemJson = ContentType("application", "problem+json")
         val ProblemXml = ContentType("application", "problem+xml")

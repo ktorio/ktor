@@ -146,6 +146,7 @@ public final class io/ktor/http/ContentType$Application {
 	public static final field INSTANCE Lio/ktor/http/ContentType$Application;
 	public final fun getAny ()Lio/ktor/http/ContentType;
 	public final fun getAtom ()Lio/ktor/http/ContentType;
+	public final fun getCbor ()Lio/ktor/http/ContentType;
 	public final fun getFontWoff ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
@@ -155,6 +156,7 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getPdf ()Lio/ktor/http/ContentType;
 	public final fun getProblemJson ()Lio/ktor/http/ContentType;
 	public final fun getProblemXml ()Lio/ktor/http/ContentType;
+	public final fun getProtoBuf ()Lio/ktor/http/ContentType;
 	public final fun getRss ()Lio/ktor/http/ContentType;
 	public final fun getWasm ()Lio/ktor/http/ContentType;
 	public final fun getXml ()Lio/ktor/http/ContentType;
