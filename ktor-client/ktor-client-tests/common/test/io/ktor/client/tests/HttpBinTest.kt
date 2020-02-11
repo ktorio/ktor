@@ -25,6 +25,9 @@ class HttpBinTest : ClientLoader() {
 
     @Test
     fun testGet() = clientTests {
+        // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+        if (isKotlinJsIr) return@clientTests
+
         config {
             testConfiguration()
         }
@@ -45,6 +48,9 @@ class HttpBinTest : ClientLoader() {
 
     @Test
     fun testPost() = clientTests {
+        // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+        if (isKotlinJsIr) return@clientTests
+
         config {
             testConfiguration()
         }

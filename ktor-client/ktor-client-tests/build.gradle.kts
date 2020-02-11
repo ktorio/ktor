@@ -102,7 +102,21 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 }
 
 val testTasks = mutableListOf(
-    "jvmTest", "jvmBenchmark", "jsNodeTest", "jsBrowserTest", "posixTest", "darwinTest"
+    "jvmTest",
+    "jvmBenchmark",
+
+    // 1.4.x JS tasks
+    "legacyjsNodeTest",
+    "jsIrNodeTest",
+    "legacyjsBrowserTest",
+    "jsIrBrowserTest",
+
+    // 1.3.x JS tasks
+    "jsNodeTest",
+    "jsBrowserTest",
+
+    "posixTest",
+    "darwinTest"
 )
 
 if (!ideaActive) {
