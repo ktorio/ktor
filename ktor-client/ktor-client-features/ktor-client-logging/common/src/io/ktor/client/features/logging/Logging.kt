@@ -23,12 +23,17 @@ import kotlinx.coroutines.*
  */
 class Logging(
     val logger: Logger,
-    var level: LogLevel
+    var level: LogLevel,
+    var filters: List<(HttpRequestBuilder) -> Boolean>
 ) {
     /**
      * [Logging] feature configuration
      */
     class Config {
+        /**
+         * filters
+         */
+        internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
         /**
          * [Logger] instance to use
          */
@@ -38,6 +43,12 @@ class Logging(
          * log [LogLevel]
          */
         var level: LogLevel = LogLevel.HEADERS
+        /**
+         * Log messages for calls matching a [predicate]
+         */
+        fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
+            filters.add(predicate)
+        }
     }
 
     private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
@@ -129,13 +140,17 @@ class Logging(
 
         override fun prepare(block: Config.() -> Unit): Logging {
             val config = Config().apply(block)
-            return Logging(config.logger, config.level)
+            return Logging(config.logger, config.level, config.filters)
         }
 
         override fun install(feature: Logging, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
                 val response = try {
-                    feature.logRequest(context)
+                    if (feature.filters.isEmpty() || feature.filters.any { it(context) }) {
+                        feature.logRequest(context)
+                    } else {
+                        null
+                    }
                 } catch (_: Throwable) {
                     null
                 } ?: subject
