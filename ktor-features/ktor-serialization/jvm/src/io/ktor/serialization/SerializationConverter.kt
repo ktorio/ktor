@@ -11,162 +11,112 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
+import kotlin.text.Charsets
 
 /**
- * Json [ContentConverter] with kotlinx.serialization.
+ * [ContentConverter] with kotlinx.serialization.
  *
  * Installation:
  * ```kotlin
  * install(ContentNegotiation) {
- *    register(ContentType.Application.Json, SerializationConverter())
- * }
- *
- * install(ContentNegotiation) {
- *     serialization(json = Json.nonstrict)
+ *    json()
+ *    json(ContentType.Application.Json, Json.nonstrict)
+ *    cbor()
+ *    protoBuf()
  * }
  * ```
  */
 @UseExperimental(ImplicitReflectionSerializer::class)
-class SerializationConverter(private val json: Json = Json(DefaultJsonConfiguration)) : ContentConverter {
+class SerializationConverter private constructor(
+    private val format: SerialFormat,
+    private val defaultCharset: Charset = Charsets.UTF_8
+) : ContentConverter {
+
+    constructor(format: BinaryFormat) : this(format as SerialFormat)
+
+    constructor(
+        format: StringFormat,
+        defaultCharset: Charset = Charsets.UTF_8
+    ) : this(format as SerialFormat, defaultCharset)
+
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    constructor(json: Json = Json(DefaultJsonConfiguration)) : this(json as StringFormat)
+
+    /**
+     * This is no longer supported. Instead, specify format explicitly or
+     * use the corresponding DSL function.
+     *
+     * ```kotlin
+     * install(ContentNegotiation) {
+     *     json() // json with the default config
+     *     json(Json.strict) // strict json
+     *     register(..., SerializationConverter(Json(Json.nonstrict)) // more generic and longer way
+     * }
+     * ```
+     */
+    @Deprecated("Specify format explicitly. E.g SerializationConverter(Json(...))")
+    constructor() : this(Json(DefaultJsonConfiguration))
+
+    init {
+        require(format is BinaryFormat || format is StringFormat) {
+            "Only binary and string formats are supported, " +
+                "$format is not supported."
+        }
+    }
+
     override suspend fun convertForSend(
         context: PipelineContext<Any, ApplicationCall>,
         contentType: ContentType,
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(serializerForSending(value) as KSerializer<Any>, value)
-        return TextContent(content, contentType.withCharset(context.call.suitableCharset()))
+        val serializer = serializerForSending(value) as KSerializer<Any>
+
+        return when (format) {
+            is StringFormat -> {
+                val content = format.stringify(serializer, value)
+                TextContent(content, contentType.withCharset(context.call.suitableCharset()))
+            }
+            is BinaryFormat -> {
+                val content = format.dump(serializer, value)
+                ByteArrayContent(content, contentType)
+            }
+            else -> error("Unsupported format $format")
+        }
     }
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
         val channel = request.value as? ByteReadChannel ?: return null
-        val charset = context.call.request.contentCharset() ?: Charsets.UTF_8
+        val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val content = channel.readRemaining().readText(charset)
         val serializer = serializerByTypeInfo(request.typeInfo)
+        val contentPacket = channel.readRemaining()
 
-        return json.parse(serializer, content)
+        return when (format) {
+            is StringFormat -> format.parse(serializer, contentPacket.readText(charset))
+            is BinaryFormat -> format.load(serializer, contentPacket.readBytes())
+            else -> {
+                contentPacket.discard()
+                error("Unsupported format $format")
+            }
+        }
     }
-
 }
 
-/**
- * Register kotlinx.serialization converter into [ContentNegotiation] feature
- */
+@Suppress("unused", "CONFLICTING_OVERLOADS")
+@Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
 fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType = ContentType.Application.Json,
     json: Json = Json(DefaultJsonConfiguration)
 ) {
-    val converter = SerializationConverter(json)
-    register(contentType, converter)
+    json(json, contentType)
 }
 
-/**
- * The default json configuration used in [SerializationConverter]. The settings are:
- * - defaults are serialized
- * - mode is not strict so extra json fields are ignored
- * - pretty printing is disabled
- * - array polymorphism is enabled
- * - keys and values are quoted, non-quoted are not allowed
- *
- * See [JsonConfiguration] for more details.
- */
-val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
-    encodeDefaults = true,
-    strictMode = false,
-    unquoted = false,
-    prettyPrint = false,
-    useArrayPolymorphism = true
-)
-
-@UseExperimental(ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class)
-private fun serializerByTypeInfo(type: KType): KSerializer<*> {
-    val classifierClass = type.classifier as? KClass<*>
-    if (classifierClass != null && classifierClass.java.isArray) {
-        return arraySerializer(type)
-    }
-
-    return serializer(type)
-}
-
-// NOTE: this should be removed once kotlinx.serialization serializer get support of arrays that is blocked by KT-32839
-private fun arraySerializer(type: KType): KSerializer<*> {
-    val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
-    val elementSerializer = serializerByTypeInfo(elementType)
-
-    @Suppress("UNCHECKED_CAST")
-    return ReferenceArraySerializer(
-        elementType.jvmErasure as KClass<Any>,
-        elementSerializer as KSerializer<Any>
-    )
-}
-
-@UseExperimental(ImplicitReflectionSerializer::class)
-private fun serializerForSending(value: Any): KSerializer<*> {
-    if (value is JsonElement) {
-        return JsonElementSerializer
-    }
-    if (value is List<*>) {
-        return ArrayListSerializer(value.elementSerializer())
-    }
-    if (value is Set<*>) {
-        return HashSetSerializer(value.elementSerializer())
-    }
-    if (value is Map<*, *>) {
-        return HashMapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
-    }
-    if (value is Map.Entry<*, *>) {
-        return MapEntrySerializer(
-            serializerForSending(value.key ?: error("Map.Entry(null, ...) is not supported")),
-            serializerForSending(value.value ?: error("Map.Entry(..., null) is not supported)"))
-        )
-    }
-    if (value is Array<*>) {
-        val componentType = value.javaClass.componentType.kotlin.starProjectedType
-        val componentClass =
-            componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
-        @Suppress("UNCHECKED_CAST")
-        return ReferenceArraySerializer(
-            componentClass as KClass<Any>,
-            serializerByTypeInfo(componentType) as KSerializer<Any>
-        )
-    }
-    return value::class.serializer()
-}
-
-@UseExperimental(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer(): KSerializer<*> {
-    @Suppress("DEPRECATION_ERROR")
-    val serializers = mapNotNull { value ->
-        value?.let { serializerForSending(it) }
-    }.distinctBy { it.descriptor.name }
-
-    if (serializers.size > 1) {
-        @Suppress("DEPRECATION_ERROR")
-        error("Serializing collections of different element types is not yet supported. " +
-            "Selected serializers: ${serializers.map { it.descriptor.name }}"
-        )
-    }
-
-    val selected: KSerializer<*> = serializers.singleOrNull() ?: String.serializer()
-    if (selected.descriptor.isNullable) {
-        return selected
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    selected as KSerializer<Any>
-
-    if (any { it == null }) {
-        return selected.nullable
-    }
-
-    return selected
-}
+@Suppress("unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun getDefaultJsonConfiguration(): JsonConfiguration = DefaultJsonConfiguration

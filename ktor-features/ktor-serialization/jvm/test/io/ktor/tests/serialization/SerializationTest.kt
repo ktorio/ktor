@@ -302,7 +302,7 @@ class SerializationTest {
     @Test
     fun testOnTextAny(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
             register(contentType = ContentType.Text.Any, converter = SerializationConverter())
         }
 
@@ -336,7 +336,7 @@ class SerializationTest {
     @Test
     fun testReceiveNullValue(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
             register(contentType = ContentType.Text.Any, converter = SerializationConverter())
         }
 
@@ -363,7 +363,7 @@ class SerializationTest {
     @Test
     fun testJsonElements(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
         }
         application.routing {
             get("/map") {
@@ -399,7 +399,7 @@ class SerializationTest {
     @Test
     fun testMapsElements(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
         }
         application.routing {
             get("/map") {
