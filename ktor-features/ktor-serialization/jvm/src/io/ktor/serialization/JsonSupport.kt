@@ -28,6 +28,14 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
     useArrayPolymorphism = true
 )
 
+/**
+ * Register `application/json` (or another specified [contentType]) content type
+ * to [ContentNegotiation] feature using kotlinx.serialization.
+ *
+ * @param json configuration with settings such as quoting, pretty print and so on (optional)
+ * @param module is used for serialization (optional)
+ * @param contentType to register with, application/json by default
+ */
 fun ContentNegotiation.Configuration.json(
     json: JsonConfiguration = DefaultJsonConfiguration,
     module: SerialModule = EmptyModule,
@@ -36,6 +44,13 @@ fun ContentNegotiation.Configuration.json(
     json(Json(json, module), contentType)
 }
 
+/**
+ * Register `application/json` (or another specified [contentType]) content type
+ * to [ContentNegotiation] feature using kotlinx.serialization.
+ *
+ * @param json format instance (optional)
+ * @param contentType to register with, application/json by default
+ */
 fun ContentNegotiation.Configuration.json(
     json: Json = Json(DefaultJsonConfiguration),
     contentType: ContentType = ContentType.Application.Json

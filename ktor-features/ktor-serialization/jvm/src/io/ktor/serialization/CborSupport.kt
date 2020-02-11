@@ -9,6 +9,11 @@ import io.ktor.http.*
 import kotlinx.serialization.cbor.*
 import kotlinx.serialization.modules.*
 
+/**
+ * Register `application/cbor` content type to [ContentNegotiation] feature using kotlinx.serialization.
+ * @param module is used for serialization (optional)
+ * @param encodeDefaults is true when property default values are serialized, false when skipped
+ */
 fun ContentNegotiation.Configuration.cbor(module: SerialModule = EmptyModule, encodeDefaults: Boolean = true) {
     serialization(
         ContentType.Application.Cbor,

@@ -36,13 +36,21 @@ class SerializationConverter private constructor(
     private val defaultCharset: Charset = Charsets.UTF_8
 ) : ContentConverter {
 
+    /**
+     * Creates a converter serializing with the specified binary [format].
+     */
     constructor(format: BinaryFormat) : this(format as SerialFormat)
 
+    /**
+     * Creates a converter serializing with the specified string [format] and
+     * [defaultCharset] (optional, usually it is UTF-8).
+     */
     constructor(
         format: StringFormat,
         defaultCharset: Charset = Charsets.UTF_8
     ) : this(format as SerialFormat, defaultCharset)
 
+    @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     constructor(json: Json = Json(DefaultJsonConfiguration)) : this(json as StringFormat)
 
