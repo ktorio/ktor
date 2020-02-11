@@ -167,10 +167,6 @@ public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
 	public final fun getVersion ()Ljava/lang/CharSequence;
 }
 
-public final class io/ktor/http/cio/internals/HttpByteBufferPoolKt {
-	public static final fun getDefaultByteBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
-}
-
 public final class io/ktor/http/cio/internals/MutableRange {
 	public fun <init> (II)V
 	public final fun getEnd ()I
