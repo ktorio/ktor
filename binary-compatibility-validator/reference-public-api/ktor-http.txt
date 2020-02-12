@@ -149,6 +149,7 @@ public final class io/ktor/http/ContentType$Application {
 	public final fun getFontWoff ()Lio/ktor/http/ContentType;
 	public final fun getFormUrlEncoded ()Lio/ktor/http/ContentType;
 	public final fun getGZip ()Lio/ktor/http/ContentType;
+	public final fun getHalJson ()Lio/ktor/http/ContentType;
 	public final fun getJavaScript ()Lio/ktor/http/ContentType;
 	public final fun getJson ()Lio/ktor/http/ContentType;
 	public final fun getOctetStream ()Lio/ktor/http/ContentType;

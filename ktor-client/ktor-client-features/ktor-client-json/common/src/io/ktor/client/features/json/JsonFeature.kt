@@ -60,16 +60,32 @@ class JsonFeature internal constructor(
         var serializer: JsonSerializer? = null
 
         /**
+         * Backing field with mutable list of content types that are handled by this feature.
+         */
+        private val _acceptContentTypes: MutableList<ContentType> = mutableListOf(ContentType.Application.Json)
+
+        /**
          * List of content types that are handled by this feature.
          * It also affects `Accept` request header value.
          * Please note that wildcard content types are supported but no quality specification provided.
          */
         @KtorExperimentalAPI
-        var acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json)
-            set(newList) {
-                require(newList.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
-                field = newList
+        var acceptContentTypes: List<ContentType>
+            set(value) {
+                require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
+                _acceptContentTypes.clear()
+                _acceptContentTypes.addAll(value)
             }
+            get() = _acceptContentTypes
+
+        /**
+         * Adds accepted content types. Be aware that [ContentType.Application.Json] accepted by default is removed from
+         * the list if you use this function to provide accepted content types.
+         * It also affects `Accept` request header value.
+         */
+        fun accept(vararg contentTypes: ContentType) {
+            _acceptContentTypes += contentTypes
+        }
     }
 
     /**
