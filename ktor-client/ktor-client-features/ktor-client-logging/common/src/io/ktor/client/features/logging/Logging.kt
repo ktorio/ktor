@@ -27,6 +27,11 @@ class Logging(
     var filters: List<(HttpRequestBuilder) -> Boolean>
 ) {
     /**
+     * Constructor
+     */
+    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+
+    /**
      * [Logging] feature configuration
      */
     class Config {
@@ -43,6 +48,7 @@ class Logging(
          * log [LogLevel]
          */
         var level: LogLevel = LogLevel.HEADERS
+
         /**
          * Log messages for calls matching a [predicate]
          */
