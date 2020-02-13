@@ -135,7 +135,7 @@ internal class ApacheRequestProducer(
             builder.addHeader(key, value)
         }
 
-        if (body is OutgoingContent.NoContent && method.isSupportingPayload) {
+        if (body is OutgoingContent.NoContent) {
             builder.entity = BasicHttpEntity().apply {
                 contentLength = 0
             }
@@ -202,10 +202,4 @@ private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpReques
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
         timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
     }
-}
-
-private val HttpMethod.isSupportingPayload get() = when(this.value) {
-    HttpMethod.Post.value -> true
-    HttpMethod.Put.value -> true
-    else -> false
 }
