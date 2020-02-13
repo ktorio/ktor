@@ -64,8 +64,12 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
             config.requestConfig(this)
 
-            if (outgoingContent !is OutgoingContent.NoContent) {
-                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) error(
+
+            if (outgoingContent is OutgoingContent.NoContent && data.method.supportsBody) {
+                setFixedLengthStreamingMode(0L)
+                doOutput = true
+            } else if (outgoingContent !is OutgoingContent.NoContent) {
+                if (!data.method.supportsBody) error(
                     "Request of type ${data.method} couldn't send a body with the [Android] engine."
                 )
 
@@ -75,7 +79,6 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
                 contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
                 doOutput = true
-
                 outgoingContent.writeTo(outputStream, callContext)
             }
         }
@@ -102,6 +105,9 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         return connection as HttpURLConnection
     }
 }
+
+private val httpMethodsNotSupportingBody = listOf(HttpMethod.Get, HttpMethod.Head)
+private val HttpMethod.supportsBody get() = this !in httpMethodsNotSupportingBody
 
 internal suspend fun OutgoingContent.writeTo(
     stream: OutputStream, callContext: CoroutineContext

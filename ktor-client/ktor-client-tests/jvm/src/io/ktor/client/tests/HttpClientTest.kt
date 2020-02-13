@@ -47,16 +47,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         runBlocking {
             val client = HttpClient(factory)
             val statement = client.post<HttpStatement>("http://localhost:$serverPort/contentLengthRequestHeader")
-            assertEquals("0", statement.execute().readText(), "expect content-length to be set to 0")
-        }
-    }
-
-    @Test
-    fun testContentLengthSetToZeroForGet() {
-        runBlocking {
-            val client = HttpClient(factory)
-            val statement = client.get<HttpStatement>("http://localhost:$serverPort/contentLengthRequestHeader")
-            assertEquals("0", statement.execute().readText(), "expect content-length to be set to 0")
+            assertEquals("0", statement.execute().readText(), "expect proper content-length to be set")
         }
     }
 
