@@ -135,7 +135,11 @@ internal class ApacheRequestProducer(
             builder.addHeader(key, value)
         }
 
-        if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
+        if (body is OutgoingContent.NoContent && method.isSupportingPayload) {
+            builder.entity = BasicHttpEntity().apply {
+                contentLength = 0
+            }
+        } else if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {
                 if (length == null) isChunked = true else contentLength = length.toLong()
                 setContentType(type)
@@ -198,4 +202,10 @@ private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpReques
         timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
         timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
     }
+}
+
+private val HttpMethod.isSupportingPayload get() = when(this.value) {
+    HttpMethod.Post.value -> true
+    HttpMethod.Put.value -> true
+    else -> false
 }

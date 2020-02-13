@@ -33,6 +33,30 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
             get("/hello") {
                 call.respondText("hello")
             }
+            post("/contentLengthRequestHeader") {
+                call.respondText(call.request.headers["content-length"] ?: "null")
+            }
+            get("/contentLengthRequestHeader") {
+                call.respondText(call.request.headers["content-length"] ?: "null")
+            }
+        }
+    }
+
+    @Test
+    fun testContentLengthSetToZeroForPostWithoutBodyBeingSet() {
+        runBlocking {
+            val client = HttpClient(factory)
+            val statement = client.post<HttpStatement>("http://localhost:$serverPort/contentLengthRequestHeader")
+            assertEquals("0", statement.execute().readText(), "Expected content-length to be set to 0.")
+        }
+    }
+
+    @Test
+    fun testContentLengthNotSentForGetRequest() {
+        runBlocking {
+            val client = HttpClient(factory)
+            val statement = client.get<HttpStatement>("http://localhost:$serverPort/contentLengthRequestHeader")
+            assertEquals("null", statement.execute().readText(), "Expected content-length not to be set.")
         }
     }
 
