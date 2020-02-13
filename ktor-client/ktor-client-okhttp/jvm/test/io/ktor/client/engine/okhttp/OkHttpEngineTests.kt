@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import okhttp3.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class OkHttpEngineTests {
@@ -36,5 +37,21 @@ class OkHttpEngineTests {
         val totalNumberOfThreads = Thread.getAllStackTraces().size
         val threadsCreated = totalNumberOfThreads - initialNumberOfThreads
         assertTrue { threadsCreated < 25 }
+    }
+
+    @Test
+    fun preconfiguresTest() = runBlocking {
+        var preconfiguredClientCalled = false
+        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(Interceptor { p0 ->
+            preconfiguredClientCalled = true
+            p0.proceed(p0.request())
+        }).connectTimeout(1, TimeUnit.MILLISECONDS).build()
+
+        HttpClient(OkHttp) {
+            engine { preconfigured = okHttpClient }
+        }.use { client ->
+            runCatching { client.get<String>("http://localhost:1234") }
+            assertTrue(preconfiguredClientCalled)
+        }
     }
 }
