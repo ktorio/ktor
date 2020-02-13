@@ -7,8 +7,10 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 
 /**
  * Response validator method.
@@ -86,8 +88,9 @@ class HttpCallValidator(
                 try {
                     proceedWith(it)
                 } catch (cause: Throwable) {
-                    feature.processException(cause)
-                    throw cause
+                    val unwrappedCause = cause.unwrapCancellationException()
+                    feature.processException(unwrappedCause)
+                    throw unwrappedCause
                 }
             }
 
@@ -96,8 +99,9 @@ class HttpCallValidator(
                     feature.validateResponse(context.response)
                     proceedWith(container)
                 } catch (cause: Throwable) {
-                    feature.processException(cause)
-                    throw cause
+                    val unwrappedCause = cause.unwrapCancellationException()
+                    feature.processException(unwrappedCause)
+                    throw unwrappedCause
                 }
             }
         }
