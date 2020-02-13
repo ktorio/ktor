@@ -121,7 +121,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     }
 
     private fun createOkHttpClient(timeoutExtension: HttpTimeout.HttpTimeoutCapabilityConfiguration?): OkHttpClient {
-        val builder = okHttpClientPrototype.newBuilder()
+        val builder = (config.preconfigured ?: okHttpClientPrototype).newBuilder()
 
         builder.apply(config.config)
         config.proxy?.let { builder.proxy(it) }
