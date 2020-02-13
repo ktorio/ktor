@@ -11,22 +11,31 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import org.webjars.*
 import java.io.*
-import java.nio.file.*
 import java.time.*
 
-@Suppress("KDocMissingDocumentation")
+/**
+ * This feature listens to requests starting with the specified path prefix and responding with static content
+ * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
+ */
 @KtorExperimentalAPI
-class Webjars(private val configuration: Configuration) {
+class Webjars internal constructor(private val webjarsPrefix: String) {
+    init {
+        require(webjarsPrefix.startsWith("/"))
+        require(webjarsPrefix.endsWith("/"))
+    }
+
+    @Deprecated("Use install(Webjars), there is no need to instantiate it directly.")
+    constructor(configuration: Configuration) : this(configuration.path)
+
     private val locator = WebJarAssetLocator()
     private val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
-    private val lastModified = ZonedDateTime.now(configuration.zone)
-
-    private fun fileName(path: String): String = Paths.get(path).fileName?.toString() ?: ""
+    private val lastModified = GMTDate()
 
     private fun extractWebJar(path: String): String {
         val firstDelimiter = if (path.startsWith("/")) 1 else 0
@@ -39,8 +48,14 @@ class Webjars(private val configuration: Configuration) {
         return locator.getFullPath(webjar, partialPath)
     }
 
+    /**
+     * Feature configuration.
+     */
     @KtorExperimentalAPI
     class Configuration {
+        /**
+         * Path prefix at which the installed feature responds.
+         */
         var path: String = "/webjars/"
             set(value) {
                 field = buildString(value.length + 2) {
@@ -54,23 +69,28 @@ class Webjars(private val configuration: Configuration) {
                 }
             }
 
+        /**
+         * Makes no effect. Will be dropped in future releases.
+         */
+        @Suppress("unused")
+        @Deprecated("This is no longer used and will be dropped in future releases.")
         var zone: ZoneId = ZoneId.systemDefault()
     }
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val fullPath = context.call.request.path()
-        if (fullPath.startsWith(configuration.path)
+        if (fullPath.startsWith(webjarsPrefix)
             && context.call.request.httpMethod == HttpMethod.Get
-            && fileName(fullPath).isNotEmpty()
+            && fullPath.last() != '/'
         ) {
-            val resourcePath = fullPath.removePrefix(configuration.path)
+            val resourcePath = fullPath.removePrefix(webjarsPrefix)
             try {
                 val location = extractWebJar(resourcePath)
                 val stream = Webjars::class.java.classLoader.getResourceAsStream(location) ?: return
                 context.call.respond(
                     InputStreamContent(
                         stream,
-                        ContentType.defaultForFilePath(fileName(fullPath)),
+                        ContentType.defaultForFilePath(fullPath),
                         lastModified
                     )
                 )
@@ -81,6 +101,9 @@ class Webjars(private val configuration: Configuration) {
         }
     }
 
+    /**
+     * Feature installation companion.
+     */
     @KtorExperimentalAPI
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Webjars> {
 
@@ -89,7 +112,7 @@ class Webjars(private val configuration: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Webjars {
             val configuration = Configuration().apply(configure)
 
-            val feature = Webjars(configuration)
+            val feature = Webjars(configuration.path)
 
             pipeline.intercept(ApplicationCallPipeline.Features) {
                 feature.intercept(this)
@@ -104,7 +127,7 @@ class Webjars(private val configuration: Configuration) {
 private class InputStreamContent(
     val input: InputStream,
     override val contentType: ContentType,
-    lastModified: ZonedDateTime
+    lastModified: GMTDate
 ) : OutgoingContent.ReadChannelContent() {
     init {
         versions += LastModifiedVersion(lastModified)
