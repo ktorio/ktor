@@ -15,6 +15,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import io.ktor.client.tests.utils.assertFailsWith
 
 private const val TEST_URL = "$TEST_SERVER/timeout"
 
@@ -102,7 +103,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.head<HttpResponse>("$TEST_URL/with-delay?delay=1000")
             }
         }
@@ -209,7 +210,7 @@ class HttpTimeoutTest : ClientLoader() {
                 method = HttpMethod.Get
                 parameter("delay", 500)
             }
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
         }
@@ -228,7 +229,7 @@ class HttpTimeoutTest : ClientLoader() {
 
                 timeout { requestTimeoutMillis = 1000 }
             }
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
         }
@@ -273,7 +274,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<ByteArray>("$TEST_URL/with-stream") {
                     parameter("delay", 400)
                 }
@@ -288,7 +289,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<ByteArray>("$TEST_URL/with-stream") {
                     parameter("delay", 400)
 
@@ -338,7 +339,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 1000)
                     parameter("count", 5)
@@ -354,7 +355,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 1000)
                     parameter("count", 5)
@@ -372,7 +373,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
@@ -388,7 +389,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<HttpRequestTimeoutException> {
+            assertFailsWith<HttpRequestTimeoutException> {
                 client.get<String>("$TEST_URL/with-redirect") {
                     parameter("delay", 500)
                     parameter("count", 5)
@@ -406,7 +407,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<ConnectTimeoutException> {
+            assertFailsWith<ConnectTimeoutException> {
                 client.get<String>("http://www.google.com:81")
             }
         }
@@ -436,7 +437,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<ConnectTimeoutException> {
+            assertFailsWith<ConnectTimeoutException> {
                 client.get<String>("http://www.google.com:81") {
                     timeout { connectTimeoutMillis = 1000 }
                 }
@@ -451,7 +452,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<SocketTimeoutException> {
+            assertFailsWith<SocketTimeoutException> {
                 client.get<String>("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
                 }
@@ -466,7 +467,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<SocketTimeoutException> {
+            assertFailsWith<SocketTimeoutException> {
                 client.get<String>("$TEST_URL/with-stream") {
                     parameter("delay", 5000)
 
@@ -483,7 +484,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<SocketTimeoutException> {
+            assertFailsWith<SocketTimeoutException> {
                 client.post("$TEST_URL/slow-read") { body = makeString(4 * 1024 * 1024) }
             }
         }
@@ -496,7 +497,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            assertFailsAndContainsCause<SocketTimeoutException> {
+            assertFailsWith<SocketTimeoutException> {
                 client.post("$TEST_URL/slow-read") {
                     body = makeString(4 * 1024 * 1024)
                     timeout { socketTimeoutMillis = 500 }

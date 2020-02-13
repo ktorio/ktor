@@ -21,3 +21,11 @@ actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () 
 
     assertTrue("Expected root cause is ${T::class}, but got ${cause::class}") { cause is T }
 }
+
+/**
+ * Asserts that a [block] fails with a specific exception of type [T] being thrown.
+ */
+@InternalAPI
+actual inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
+    kotlin.test.assertFailsWith<T> { block() }
+}

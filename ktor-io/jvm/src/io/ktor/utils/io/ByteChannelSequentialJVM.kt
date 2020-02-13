@@ -20,7 +20,7 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(CancellationException("Channel closed due to job failure").apply { initCause(cause) })
+                cancel(cause)
             }
         }
     }

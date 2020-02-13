@@ -45,8 +45,8 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
                 else -> exception
             }
 
+            continuation.cancel(mappedCause)
             callContext.cancel(CancellationException("Failed to execute request", mappedCause))
-            continuation.cancel(exception)
         }
 
         override fun completed(result: Unit) {}

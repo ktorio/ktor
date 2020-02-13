@@ -1,6 +1,9 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.EOFException
+import io.ktor.utils.io.errors.*
+import kotlinx.coroutines.*
 import kotlin.math.*
 import kotlin.test.*
 
@@ -646,6 +649,13 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         assertEquals(4, ch.availableForRead)
         ch.discard(4)
         finish(5)
+    }
+
+    @Test
+    fun testCompleteExceptionallyJob() = runTest {
+        Job().also { ch.attachJob(it) }.completeExceptionally(IOException("Test exception"))
+
+        assertFailsWith<IOException> { ch.readByte() }
     }
 
     private fun assertEquals(expected: Float, actual: Float) {
