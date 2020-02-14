@@ -66,7 +66,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
 
             if (outgoingContent is OutgoingContent.NoContent && data.method.supportsBody) {
-                setFixedLengthStreamingMode(0L)
+                setFixedLengthStreamingMode(0)
                 doOutput = true
             } else if (outgoingContent !is OutgoingContent.NoContent) {
                 if (!data.method.supportsBody) error(
