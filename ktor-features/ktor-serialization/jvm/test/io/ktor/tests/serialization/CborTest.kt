@@ -7,9 +7,9 @@ package io.ktor.tests.serialization
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.serialization.*
-import kotlinx.serialization.cbor.*
+//import kotlinx.serialization.cbor.*
 
-class CborTest : AbstractSerializationTest() {
+/*class CborTest : AbstractSerializationTest() {
     override val testContentType: ContentType = ContentType.Application.Cbor
 
     override fun ContentNegotiation.Configuration.configureContentNegotiation() {
@@ -23,4 +23,4 @@ class CborTest : AbstractSerializationTest() {
     override fun simpleSerialize(any: TestEntity): ByteArray {
         return Cbor.dump(serializer, any)
     }
-}
+}*/
