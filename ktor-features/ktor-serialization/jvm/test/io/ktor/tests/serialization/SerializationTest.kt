@@ -424,3 +424,5 @@ data class MyEntity(val id: Int, val name: String, val children: List<ChildEntit
 @Serializable
 data class ChildEntity(val item: String, val quantity: Int)
 
+private fun SerializationConverter(): SerializationConverter =
+    SerializationConverter(Json(DefaultJsonConfiguration))

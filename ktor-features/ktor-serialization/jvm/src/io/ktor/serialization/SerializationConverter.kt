@@ -18,6 +18,30 @@ import kotlinx.serialization.json.*
 import kotlin.text.Charsets
 
 /**
+ * This is no longer supported. Instead, specify format explicitly or
+ * use the corresponding DSL function.
+ *
+ * ```kotlin
+ * install(ContentNegotiation) {
+ *     json() // json with the default config
+ *     json(Json.strict) // strict json
+ *     register(..., SerializationConverter(Json(Json.nonstrict)) // more generic and longer way
+ * }
+ * ```
+ */
+@Suppress("FunctionName", "UNUSED", "CONFLICTING_OVERLOADS")
+@Deprecated(
+    "Specify format explicitly. E.g SerializationConverter(Json(...))",
+    replaceWith = ReplaceWith(
+        "SerializationConverter(Json(DefaultJsonConfiguration))",
+        "io.ktor.serialization.DefaultJsonConfiguration",
+        "kotlinx.serialization.json.Json"
+    )
+)
+fun SerializationConverter(): SerializationConverter =
+    SerializationConverter(Json(DefaultJsonConfiguration))
+
+/**
  * [ContentConverter] with kotlinx.serialization.
  *
  * Installation:
@@ -66,7 +90,11 @@ class SerializationConverter private constructor(
      * }
      * ```
      */
-    @Deprecated("Specify format explicitly. E.g SerializationConverter(Json(...))")
+    @Suppress("UNUSED", "CONFLICTING_OVERLOADS")
+    @Deprecated(
+        "Specify format explicitly. E.g SerializationConverter(Json(...))",
+        level = DeprecationLevel.HIDDEN
+    )
     constructor() : this(Json(DefaultJsonConfiguration))
 
     init {
