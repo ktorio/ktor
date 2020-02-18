@@ -55,7 +55,7 @@ interface HttpClientEngine : CoroutineScope, Closeable {
     fun install(client: HttpClient) {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
             val requestData = HttpRequestBuilder().apply {
-                takeFrom(context)
+                takeFromWithExecutionContext(context)
                 body = content
             }.build()
 

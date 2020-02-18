@@ -822,6 +822,7 @@ public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/Http
 	public final fun setCapability (Lio/ktor/client/engine/HttpClientEngineCapability;Ljava/lang/Object;)V
 	public final fun setMethod (Lio/ktor/http/HttpMethod;)V
 	public final fun takeFrom (Lio/ktor/client/request/HttpRequestBuilder;)Lio/ktor/client/request/HttpRequestBuilder;
+	public final fun takeFromWithExecutionContext (Lio/ktor/client/request/HttpRequestBuilder;)Lio/ktor/client/request/HttpRequestBuilder;
 	public final fun url (Lkotlin/jvm/functions/Function2;)V
 }
 
