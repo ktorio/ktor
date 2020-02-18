@@ -117,9 +117,15 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Mutates [this] copying all the data from another [builder] using it as base.
      */
     @InternalAPI
-    @Deprecated("For internal usage only")
-    fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
+    fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
         executionContext = builder.executionContext
+        return takeFrom(builder)
+    }
+
+    /**
+     * Mutates [this] copying all the data but execution context from another [builder] using it as base.
+     */
+    fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
         url.takeFrom(builder.url)

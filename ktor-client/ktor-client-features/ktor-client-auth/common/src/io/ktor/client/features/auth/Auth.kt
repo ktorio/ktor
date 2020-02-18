@@ -49,7 +49,7 @@ class Auth(
                     candidateProviders.remove(provider)
 
                     val request = HttpRequestBuilder()
-                    request.takeFrom(context)
+                    request.takeFromWithExecutionContext(context)
                     provider.addRequestHeaders(request)
                     request.attributes.put(circuitBreaker, Unit)
 

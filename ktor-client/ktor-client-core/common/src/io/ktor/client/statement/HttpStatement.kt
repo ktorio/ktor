@@ -14,7 +14,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.reflect.*
 
 /**
  * Prepared statement for http client request.
@@ -100,7 +99,7 @@ class HttpStatement(
      */
     @PublishedApi
     internal suspend fun executeUnsafe(): HttpResponse {
-        val builder = HttpRequestBuilder().takeFrom(builder)
+        val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
         @Suppress("DEPRECATION_ERROR")
         val call = client.execute(builder)
         return call.response
