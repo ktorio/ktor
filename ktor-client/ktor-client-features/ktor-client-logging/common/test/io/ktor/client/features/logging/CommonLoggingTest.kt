@@ -129,6 +129,31 @@ class CommonLoggingTest {
             assertTrue { dump.contains("Hello") }
         }
     }
+
+    @Test
+    fun testFilterRequest() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler { respondOk() }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+                filter { it.url.encodedPath == "/filtered_path" }
+            }
+        }
+
+        test { client ->
+            client.get<String>(urlString = "http://somewhere/filtered_path")
+            client.get<String>(urlString = "http://somewhere/not_filtered_path")
+
+            val dump = testLogger.dump()
+            assertTrue { dump.contains("REQUEST: http://somewhere/filtered_path") }
+            assertFalse { dump.contains("REQUEST: http://somewhere/not_filtered_path") }
+        }
+    }
 }
 
 internal class CustomError(override val message: String) : Throwable()
