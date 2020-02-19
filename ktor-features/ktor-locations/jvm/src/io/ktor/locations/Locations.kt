@@ -27,10 +27,10 @@ open class Locations(private val application: Application, private val routeServ
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
-    private class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
+    class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
 
     private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
-    private data class LocationInfo(
+    data class LocationInfo(
         val klass: KClass<*>,
         val parent: LocationInfo?,
         val parentParameter: LocationInfoProperty?,
@@ -80,6 +80,11 @@ open class Locations(private val application: Application, private val routeServ
 
     @Suppress("UNUSED_PARAMETER")
     private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
+
+    /**
+     *  Returns an immutable list of currently defined [LocationInfo]'s.
+     */
+    fun getLocationInfos() = info.values.toList()
 
     private fun ResolvedUriInfo.combine(
         relativePath: String,
