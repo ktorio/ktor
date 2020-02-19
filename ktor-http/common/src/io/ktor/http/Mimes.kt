@@ -1087,6 +1087,7 @@ N/A,application/andrew-inset
 .wmx,video/x-ms-wmx
 .wmz,application/x-ms-wmz
 .woff,application/x-font-woff
+.woff2,font/woff2
 .word,application/msword
 .wp5,application/wordperfect
 .wp5,application/wordperfect6.0
