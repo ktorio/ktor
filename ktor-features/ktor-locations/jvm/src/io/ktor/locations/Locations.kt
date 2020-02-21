@@ -27,18 +27,16 @@ open class Locations(private val application: Application, private val routeServ
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
-    private class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
-
     private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
-    private data class LocationInfo(
-        val klass: KClass<*>,
-        val parent: LocationInfo?,
-        val parentParameter: LocationInfoProperty?,
-        val path: String,
-        val pathParameters: List<LocationInfoProperty>,
-        val queryParameters: List<LocationInfoProperty>
-    )
 
+    /**
+     * All locations registered at the moment (Immutable list).
+     */
+    @KtorExperimentalLocationsAPI
+    val registeredLocations: List<LocationInfo>
+        get() = Collections.unmodifiableList(info.values.toList())
+
+    @UseExperimental(KtorExperimentalLocationsAPI::class)
     private fun LocationInfo.create(allParameters: Parameters): Any {
         val objectInstance = klass.objectInstance
         if (objectInstance != null) return objectInstance
@@ -60,8 +58,7 @@ open class Locations(private val application: Application, private val routeServ
     }
 
     private fun createFromParameters(parameters: Parameters, name: String, type: Type, optional: Boolean): Any? {
-        val values = parameters.getAll(name)
-        return when (values) {
+        return when (val values = parameters.getAll(name)) {
             null -> when {
                 !optional -> {
                     throw MissingRequestParameterException(name)
@@ -117,15 +114,16 @@ open class Locations(private val application: Application, private val routeServ
                                 "for class ${locationClass.qualifiedName} should have corresponding property"
                         )
 
-                LocationInfoProperty(
+                @Suppress("UNCHECKED_CAST")
+                LocationPropertyInfoImpl(
                     parameter.name ?: "<unnamed>",
-                    (property as KProperty1<out Any?, *>).getter,
+                    (property as KProperty1<Any, Any?>).getter,
                     parameter.isOptional
                 )
             }
 
             val parentParameter = declaredProperties.firstOrNull {
-                it.getter.returnType == outerClass?.starProjectedType
+                it.kGetter.returnType == outerClass?.starProjectedType
             }
 
             if (parentInfo != null && parentParameter == null) {
@@ -177,11 +175,11 @@ open class Locations(private val application: Application, private val routeServ
         fun propertyValue(instance: Any, name: String): List<String> {
             // TODO: Cache properties by name in info
             val property = info.pathParameters.single { it.name == name }
-            val value = property.getter.call(instance)
+            val value = property.getter(instance)
             return conversionService.toValues(value)
         }
 
-        val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
+        val substituteParts = RoutingPath.parse(info.path).parts.flatMap {
             when (it.kind) {
                 RoutingPathSegmentKind.Constant -> listOf(it.value)
                 RoutingPathSegmentKind.Parameter -> {
@@ -199,14 +197,14 @@ open class Locations(private val application: Application, private val routeServ
         val parentInfo = when {
             info.parent == null -> rootUri
             info.parentParameter != null -> {
-                val enclosingLocation = info.parentParameter.getter.call(location)!!
+                val enclosingLocation = info.parentParameter.getter(location)!!
                 pathAndQuery(enclosingLocation)
             }
             else -> ResolvedUriInfo(info.parent.path, emptyList())
         }
 
         val queryValues = info.queryParameters.flatMap { property ->
-            val value = property.getter.call(location)
+            val value = property.getter(location)
             conversionService.toValues(value).map { property.name to it }
         }
 
@@ -262,6 +260,7 @@ open class Locations(private val application: Application, private val routeServ
         /**
          * Specifies an alternative routing service. Default is [LocationAttributeRouteService].
          */
+        @KtorExperimentalLocationsAPI
         var routeService: LocationRouteService? = null
     }
 
@@ -309,3 +308,14 @@ class LocationAttributeRouteService : LocationRouteService {
  */
 @KtorExperimentalLocationsAPI
 class LocationRoutingException(message: String) : Exception(message)
+
+@KtorExperimentalLocationsAPI
+internal class LocationPropertyInfoImpl(
+    name: String,
+    val kGetter: KProperty1.Getter<Any, Any?>,
+    isOptional: Boolean
+) : LocationPropertyInfo(name, isOptional)
+
+@KtorExperimentalLocationsAPI
+private val LocationPropertyInfo.getter: (Any) -> Any?
+    get() = (this as LocationPropertyInfoImpl).kGetter
