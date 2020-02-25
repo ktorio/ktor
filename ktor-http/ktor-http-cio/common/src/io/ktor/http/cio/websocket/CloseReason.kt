@@ -4,6 +4,7 @@
 
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import kotlin.jvm.*
 
 /**
@@ -35,6 +36,10 @@ data class CloseReason(val code: Short, val message: String) {
         GOING_AWAY(1001),
         PROTOCOL_ERROR(1002),
         CANNOT_ACCEPT(1003),
+
+        @InternalAPI
+        @Deprecated("This code MUST NOT be set as a status code in a Close control frame by an endpoint")
+        CLOSED_ABNORMALLY(1006),
         NOT_CONSISTENT(1007),
         VIOLATED_POLICY(1008),
         TOO_BIG(1009),
@@ -46,9 +51,12 @@ data class CloseReason(val code: Short, val message: String) {
         companion object {
             private val byCodeMap = values().associateBy { it.code }
 
-            @Deprecated("Use INTERNAL_ERROR instead.",
-                ReplaceWith("INTERNAL_ERROR",
-                    "io.ktor.http.cio.websocket.CloseReason.Codes.INTERNAL_ERROR")
+            @Deprecated(
+                "Use INTERNAL_ERROR instead.",
+                ReplaceWith(
+                    "INTERNAL_ERROR",
+                    "io.ktor.http.cio.websocket.CloseReason.Codes.INTERNAL_ERROR"
+                )
             )
             @JvmField
             @Suppress("UNUSED")

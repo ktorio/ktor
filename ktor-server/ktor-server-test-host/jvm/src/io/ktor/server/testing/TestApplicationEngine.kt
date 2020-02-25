@@ -139,8 +139,8 @@ class TestApplicationEngine(
      * Make a test request
      */
     @UseExperimental(InternalAPI::class)
-    fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val call = createCall(readResponse = true, setup = { processRequest(setup) })
+    fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
 
         val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
         val pipelineJob = GlobalScope.async(context) {
@@ -158,7 +158,7 @@ class TestApplicationEngine(
     }
 
     private fun createWebSocketCall(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        createCall {
+        createCall(closeRequest = false) {
             this.uri = uri
             addHeader(HttpHeaders.Connection, "Upgrade")
             addHeader(HttpHeaders.Upgrade, "websocket")
@@ -256,8 +256,12 @@ class TestApplicationEngine(
     /**
      * Creates an instance of test call but doesn't start request processing
      */
-    fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        TestApplicationCall(application, readResponse, Dispatchers.IO).apply { setup(request) }
+    fun createCall(
+        readResponse: Boolean = false,
+        closeRequest: Boolean = true,
+        setup: TestApplicationRequest.() -> Unit
+    ): TestApplicationCall =
+        TestApplicationCall(application, readResponse, closeRequest, Dispatchers.IO).apply { setup(request) }
 }
 
 /**
