@@ -442,7 +442,7 @@ class LocationsTest {
     @Test fun `location class with enum value`() = withLocationsApplication {
         application.routing {
             get<LocationWithEnum> {
-                call.respondText(call.locations.resolve<LocationWithEnum>(LocationWithEnum::class, call).e.name)
+                call.respondText(call.locations.resolve<LocationWithEnum>(call).e.name)
             }
         }
 
