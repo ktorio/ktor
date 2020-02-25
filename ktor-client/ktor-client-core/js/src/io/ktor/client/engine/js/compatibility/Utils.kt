@@ -55,7 +55,6 @@ internal fun CoroutineScope.readBody(
     readBodyNode(response)
 }
 
-
 private fun jsRequire(moduleName: String): dynamic = try {
     js("require(moduleName)")
 } catch (cause: dynamic) {
