@@ -19,7 +19,7 @@ import kotlin.reflect.jvm.*
 
 @UseExperimental(KtorExperimentalLocationsAPI::class)
 internal abstract class LocationsImpl(
-    private val application: Application,
+    protected val application: Application,
     protected val routeService: LocationRouteService
 ) {
     protected val info: MutableMap<KClass<*>, LocationInfo> = HashMap()
@@ -179,6 +179,12 @@ internal class BackwardCompatibleImpl(
                     null
             }
 
+            if (parentInfo != null && locationClass.isKotlinObject && parentInfo.klass.isKotlinObject) {
+                application.log.warn("Object nesting in Ktor Locations is going to be deprecated. " +
+                    "Convert nested object to a class with parameter. " +
+                    "See https://github.com/ktorio/ktor/issues/1660 for more details.")
+            }
+
             val path = routeService.findRoute(locationClass) ?: ""
             if (locationClass.objectInstance != null)
                 return@getOrPut LocationInfo(locationClass, parentInfo, null, path, emptyList(), emptyList())
@@ -221,6 +227,12 @@ internal class BackwardCompatibleImpl(
                         "Nested location '$locationClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters
                             .filter { !it.isOptional }}"
                     )
+
+                if (!parentInfo.klass.isKotlinObject) {
+                    application.log.warn("A nested location class should have a parameter with the type " +
+                        "of the outer location class. " +
+                        "See https://github.com/ktorio/ktor/issues/1660 for more details.")
+                }
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts
@@ -244,4 +256,6 @@ internal class BackwardCompatibleImpl(
     private val LocationPropertyInfo.getter: (Any) -> Any?
         get() = (this as LocationPropertyInfoImpl).kGetter
 
+    private val KClass<*>.isKotlinObject: Boolean
+        get() = isFinal && objectInstance != null
 }
