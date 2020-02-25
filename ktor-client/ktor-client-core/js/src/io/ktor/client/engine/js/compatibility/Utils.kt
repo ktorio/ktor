@@ -22,10 +22,10 @@ internal suspend fun commonFetch(
         controller.abort()
     }
 
-    val promise: Promise<Response> = if (PlatformUtils.IS_NODE) {
-        jsRequire("node-fetch")(input, init)
-    } else {
+    val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
         fetch(input, init)
+    } else {
+        jsRequire("node-fetch")(input, init)
     }
 
     promise.then(
@@ -39,20 +39,20 @@ internal suspend fun commonFetch(
 }
 
 internal fun AbortController(): AbortController {
-    return if (PlatformUtils.IS_NODE) {
+    return if (PlatformUtils.IS_BROWSER) {
+        js("new AbortController()")
+    } else {
         val controller = js("require('abort-controller')")
         js("new controller()")
-    } else {
-        js("new AbortController()")
     }
 }
 
 internal fun CoroutineScope.readBody(
     response: Response
-): ByteReadChannel = if (PlatformUtils.IS_NODE) {
-    readBodyNode(response)
-} else {
+): ByteReadChannel = if (PlatformUtils.IS_BROWSER) {
     readBodyBrowser(response)
+} else {
+    readBodyNode(response)
 }
 
 
