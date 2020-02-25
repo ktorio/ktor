@@ -2,7 +2,12 @@ apply from: rootProject.file("gradle/ide.gradle")
 
 apply plugin: "kotlinx-atomicfu"
 
-if (project.name != 'ktor-client-curl') {
+def iosTestExclude = [
+    'ktor-client-curl',
+    'ktor-test-dispatcher'
+]
+
+if (!iosTestExclude.contains(project.name)) {
     apply from: rootProject.file("gradle/native.gradle")
 }
 
