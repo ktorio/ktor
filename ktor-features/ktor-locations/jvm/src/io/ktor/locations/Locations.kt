@@ -212,6 +212,14 @@ open class Locations(private val application: Application, private val routeServ
     }
 
     /**
+     * Resolves parameters in a [call] to an instance of specified [T].
+     */
+    @KtorExperimentalLocationsAPI
+    inline fun <reified T : Any> resolve(call: ApplicationCall): T {
+        return resolve(T::class, call)
+    }
+
+    /**
      * Constructs the url for [location].
      *
      * The class of [location] instance **must** be annotated with [Location].
