@@ -14,6 +14,8 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.io.*
+import java.nio.channels.*
 
 /**
  * Represents a test application request
@@ -25,6 +27,7 @@ import io.ktor.utils.io.core.*
  */
 class TestApplicationRequest constructor(
         call: TestApplicationCall,
+        closeRequest: Boolean,
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
@@ -58,7 +61,7 @@ class TestApplicationRequest constructor(
      * Request body channel
      */
     @Volatile
-    var bodyChannel: ByteReadChannel = ByteReadChannel.Empty
+    var bodyChannel: ByteReadChannel = if (closeRequest) ByteReadChannel.Empty else ByteChannel()
 
     override val queryParameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
 
