@@ -11,6 +11,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
+import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
@@ -31,19 +32,22 @@ annotation class Location(val path: String)
  * Gets the [Application.locations] feature
  */
 @KtorExperimentalLocationsAPI
-val PipelineContext<Unit, ApplicationCall>.locations: Locations get() = call.application.locations
+val PipelineContext<Unit, ApplicationCall>.locations: Locations
+    get() = call.application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
 @KtorExperimentalLocationsAPI
-val ApplicationCall.locations: Locations get() = application.locations
+val ApplicationCall.locations: Locations
+    get() = application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
 @KtorExperimentalLocationsAPI
-val Application.locations: Locations get() = feature(Locations)
+val Application.locations: Locations
+    get() = feature(Locations)
 
 /**
  * Renders link to a [location] using current installed locations service
@@ -206,8 +210,33 @@ inline fun <reified T : Any> Route.handle(noinline body: suspend PipelineContext
  */
 @KtorExperimentalLocationsAPI
 fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
+    intercept(ApplicationCallPipeline.Features) {
+        call.attributes.put(LocationInstanceKey, locations.resolve<T>(dataClass, call))
+    }
+
     handle {
-        val location = locations.resolve<T>(dataClass, call)
+        @Suppress("UNCHECKED_CAST")
+        val location = call.attributes[LocationInstanceKey] as T
+
         body(location)
     }
+}
+
+/**
+ * Retrieves the current call's location or `null` if it is not available (request is not handled by a location class),
+ * or not yet available (invoked too early before the locations feature takes place).
+ */
+@KtorExperimentalAPI
+inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = locationOrNull(T::class)
+
+@PublishedApi
+internal fun <T : Any> ApplicationCall.locationOrNull(type: KClass<T>): T =
+    attributes.getOrNull(LocationInstanceKey)?.let { instance ->
+        type.cast(instance)
+    } ?: error("Location instance is not available for this call.)")
+
+private val LocationInstanceKey = AttributeKey<Any>("LocationInstance")
+
+private fun <T : Any> KClass<T>.cast(instance: Any): T {
+    return javaObjectType.cast(instance)
 }

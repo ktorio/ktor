@@ -5,152 +5,36 @@
 package io.ktor.locations
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.util.*
-import java.lang.reflect.*
 import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 
 /**
- * **EXPERIMENTAL** Ktor feature that allows to handle and construct routes in a typed way.
+ * Ktor feature that allows to handle and construct routes in a typed way.
  *
  * You have to create data classes/objects representing parameterized routes and annotate them with [Location].
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
-@KtorExperimentalLocationsAPI
-open class Locations(private val application: Application, private val routeService: LocationRouteService) {
-    private val conversionService: ConversionService get() = application.conversionService
-    private val rootUri = ResolvedUriInfo("", emptyList())
-    private val info = hashMapOf<KClass<*>, LocationInfo>()
+open class Locations @KtorExperimentalLocationsAPI constructor(
+    application: Application,
+    routeService: LocationRouteService
+) {
+    /**
+     * Creates Locations service extracting path information from @Location annotation
+     */
+    @UseExperimental(KtorExperimentalLocationsAPI::class)
+    constructor(application: Application) : this(application, LocationAttributeRouteService())
 
-    private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
+    private val implementation: LocationsImpl = BackwardCompatibleImpl(application, routeService)
 
     /**
      * All locations registered at the moment (Immutable list).
      */
     @KtorExperimentalLocationsAPI
     val registeredLocations: List<LocationInfo>
-        get() = Collections.unmodifiableList(info.values.toList())
-
-    @UseExperimental(KtorExperimentalLocationsAPI::class)
-    private fun LocationInfo.create(allParameters: Parameters): Any {
-        val objectInstance = klass.objectInstance
-        if (objectInstance != null) return objectInstance
-
-        val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
-        val parameters = constructor.parameters
-        val arguments = parameters.map { parameter ->
-            val parameterType = parameter.type
-            val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
-            val value: Any? = if (parent != null && parameterType == parent.klass.starProjectedType) {
-                parent.create(allParameters)
-            } else {
-                createFromParameters(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
-            }
-            parameter to value
-        }.filterNot { it.first.isOptional && it.second == null }.toMap()
-
-        return constructor.callBy(arguments)
-    }
-
-    private fun createFromParameters(parameters: Parameters, name: String, type: Type, optional: Boolean): Any? {
-        return when (val values = parameters.getAll(name)) {
-            null -> when {
-                !optional -> {
-                    throw MissingRequestParameterException(name)
-                }
-                else -> null
-            }
-            else -> {
-                try {
-                    conversionService.fromValues(values, type)
-                } catch (cause: Throwable) {
-                    throw ParameterConversionException(name, type.toString(), cause)
-                }
-            }
-        }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
-
-    private fun ResolvedUriInfo.combine(
-        relativePath: String,
-        queryValues: List<Pair<String, String>>
-    ): ResolvedUriInfo {
-        val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
-        val combinedPath = pathElements.joinToString("/", "/")
-        return ResolvedUriInfo(combinedPath, query + queryValues)
-    }
-
-    private fun getOrCreateInfo(locationClass: KClass<*>): LocationInfo {
-        return info.getOrPut(locationClass) {
-            val outerClass = locationClass.java.declaringClass?.kotlin
-            val parentInfo = outerClass?.let {
-                if (routeService.findRoute(outerClass) != null)
-                    getOrCreateInfo(outerClass)
-                else
-                    null
-            }
-
-            val path = routeService.findRoute(locationClass) ?: ""
-            if (locationClass.objectInstance != null)
-                return@getOrPut LocationInfo(locationClass, parentInfo, null, path, emptyList(), emptyList())
-
-            val constructor: KFunction<Any> =
-                locationClass.primaryConstructor
-                    ?: locationClass.constructors.singleOrNull()
-                    ?: throw IllegalArgumentException("Class $locationClass cannot be instantiated because the constructor is missing")
-
-            val declaredProperties = constructor.parameters.map { parameter ->
-                val property =
-                    locationClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
-                        ?: throw LocationRoutingException(
-                            "Parameter ${parameter.name} of constructor " +
-                                "for class ${locationClass.qualifiedName} should have corresponding property"
-                        )
-
-                @Suppress("UNCHECKED_CAST")
-                LocationPropertyInfoImpl(
-                    parameter.name ?: "<unnamed>",
-                    (property as KProperty1<Any, Any?>).getter,
-                    parameter.isOptional
-                )
-            }
-
-            val parentParameter = declaredProperties.firstOrNull {
-                it.kGetter.returnType == outerClass?.starProjectedType
-            }
-
-            if (parentInfo != null && parentParameter == null) {
-                if (parentInfo.parentParameter != null)
-                    throw LocationRoutingException("Nested location '$locationClass' should have parameter for parent location because it is chained to its parent")
-                if (parentInfo.pathParameters.any { !it.isOptional })
-                    throw LocationRoutingException("Nested location '$locationClass' should have parameter for parent location because of non-optional path parameters ${parentInfo.pathParameters.filter { !it.isOptional }}")
-                if (parentInfo.queryParameters.any { !it.isOptional })
-                    throw LocationRoutingException("Nested location '$locationClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters.filter { !it.isOptional }}")
-            }
-
-            val pathParameterNames = RoutingPath.parse(path).parts
-                .filter { it.kind == RoutingPathSegmentKind.Parameter }
-                .map { PathSegmentSelectorBuilder.parseName(it.value) }
-
-            val declaredParameterNames = declaredProperties.map { it.name }.toSet()
-            val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
-            if (invalidParameters.any()) {
-                throw LocationRoutingException("Path parameters '$invalidParameters' are not bound to '$locationClass' properties")
-            }
-
-            val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
-            val queryParameters =
-                declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
-            LocationInfo(locationClass, parentInfo, parentParameter, path, pathParameters, queryParameters)
-        }
-    }
+        get() = implementation.registeredLocations
 
     /**
      * Resolves parameters in a [call] to an instance of specified [locationClass].
@@ -165,50 +49,16 @@ open class Locations(private val application: Application, private val routeServ
      */
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
-        return getOrCreateInfo(locationClass).create(parameters) as T
+        val info = implementation.getOrCreateInfo(locationClass)
+        return implementation.instantiate(info, parameters) as T
     }
 
-    // TODO: optimize allocations
-    private fun pathAndQuery(location: Any): ResolvedUriInfo {
-        val info = getOrCreateInfo(location::class.java.kotlin)
-
-        fun propertyValue(instance: Any, name: String): List<String> {
-            // TODO: Cache properties by name in info
-            val property = info.pathParameters.single { it.name == name }
-            val value = property.getter(instance)
-            return conversionService.toValues(value)
-        }
-
-        val substituteParts = RoutingPath.parse(info.path).parts.flatMap {
-            when (it.kind) {
-                RoutingPathSegmentKind.Constant -> listOf(it.value)
-                RoutingPathSegmentKind.Parameter -> {
-                    if (info.klass.objectInstance != null)
-                        throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
-                    propertyValue(location, PathSegmentSelectorBuilder.parseName(it.value))
-                }
-            }
-        }
-
-        val relativePath = substituteParts
-            .filterNot { it.isEmpty() }
-            .joinToString("/") { it.encodeURLQueryComponent() }
-
-        val parentInfo = when {
-            info.parent == null -> rootUri
-            info.parentParameter != null -> {
-                val enclosingLocation = info.parentParameter.getter(location)!!
-                pathAndQuery(enclosingLocation)
-            }
-            else -> ResolvedUriInfo(info.parent.path, emptyList())
-        }
-
-        val queryValues = info.queryParameters.flatMap { property ->
-            val value = property.getter(location)
-            conversionService.toValues(value).map { property.name to it }
-        }
-
-        return parentInfo.combine(relativePath, queryValues)
+    /**
+     * Resolves [parameters] to an instance of specified [T].
+     */
+    @KtorExperimentalLocationsAPI
+    inline fun <reified T : Any> resolve(parameters: Parameters): T {
+        return resolve(T::class, parameters) as T
     }
 
     /**
@@ -224,22 +74,13 @@ open class Locations(private val application: Application, private val routeServ
      *
      * The class of [location] instance **must** be annotated with [Location].
      */
-    fun href(location: Any): String {
-        val info = pathAndQuery(location)
-        return info.path + if (info.query.any())
-            "?" + info.query.formUrlEncode()
-        else
-            ""
-    }
+    fun href(location: Any): String = implementation.href(location)
 
     internal fun href(location: Any, builder: URLBuilder) {
-        val info = pathAndQuery(location)
-        builder.encodedPath = info.path
-        for ((name, value) in info.query) {
-            builder.parameters.append(name, value)
-        }
+        implementation.href(location, builder)
     }
 
+    @UseExperimental(KtorExperimentalLocationsAPI::class)
     private fun createEntry(parent: Route, info: LocationInfo): Route {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         return hierarchyEntry.createRouteFromPath(info.path)
@@ -249,9 +90,10 @@ open class Locations(private val application: Application, private val routeServ
      * Creates all necessary routing entries to match specified [locationClass].
      */
     fun createEntry(parent: Route, locationClass: KClass<*>): Route {
-        val info = getOrCreateInfo(locationClass)
+        val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 
+        @UseExperimental(KtorExperimentalLocationsAPI::class)
         return info.queryParameters.fold(pathRoute) { entry, query ->
             val selector = if (query.isOptional)
                 OptionalParameterRouteSelector(query.name)
@@ -275,10 +117,10 @@ open class Locations(private val application: Application, private val routeServ
     /**
      * Installable feature for [Locations].
      */
-    @KtorExperimentalLocationsAPI
     companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
+        @UseExperimental(KtorExperimentalLocationsAPI::class)
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Locations {
             val configuration = Configuration().apply(configure)
             val routeService = configuration.routeService ?: LocationAttributeRouteService()
@@ -323,7 +165,3 @@ internal class LocationPropertyInfoImpl(
     val kGetter: KProperty1.Getter<Any, Any?>,
     isOptional: Boolean
 ) : LocationPropertyInfo(name, isOptional)
-
-@KtorExperimentalLocationsAPI
-private val LocationPropertyInfo.getter: (Any) -> Any?
-    get() = (this as LocationPropertyInfoImpl).kGetter
