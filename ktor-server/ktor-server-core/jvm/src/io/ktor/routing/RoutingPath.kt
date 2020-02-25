@@ -19,7 +19,7 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
         val root: RoutingPath = RoutingPath(listOf())
 
         /**
-         * Parse the specified [path] and create and instance of [RoutingPath].
+         * Parse the specified [path] and create an instance of [RoutingPath].
          * It handles wildcards and decodes escape characters properly.
          */
         fun parse(path: String): RoutingPath {
