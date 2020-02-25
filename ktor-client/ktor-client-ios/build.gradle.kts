@@ -10,6 +10,10 @@ kotlin.sourceSets {
         listOf("tvosArm64Main", "tvosX64Main", "iosArm32Main", "iosArm64Main", "iosX64Main", "macosX64Main").map { getByName(it) }.forEach {
             it.kotlin.srcDir("nonWatchos/src")
         }
+    } else {
+        darwinMain {
+            kotlin.srcDir("nonWatchos/src")
+        }
     }
 
     darwinMain {

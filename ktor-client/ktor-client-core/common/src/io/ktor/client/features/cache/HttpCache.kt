@@ -141,13 +141,14 @@ class HttpCache(
         val cachedResponses = privateStorage.findByUrl(url) + publicStorage.findByUrl(url)
         for (item in cachedResponses) {
             val varyKeys = item.varyKeys
-            if (varyKeys.isEmpty() || varyKeys.all { (key, value) -> lookup(key) == value }) return item
+            if (varyKeys.isEmpty() || varyKeys.all { (key, value) -> lookup(key) == value }) {
+                return item
+            }
         }
 
         return null
     }
 }
-
 
 private fun mergedHeadersLookup(
     requestHeaders: HeadersBuilder,

@@ -346,7 +346,8 @@ abstract class ByteChannelSequentialBase(
 
         val builder = BytePacketBuilder(headerSizeHint)
 
-        builder.writePacket(readable, minOf(limit, readable.remaining))
+        val size = minOf(limit, readable.remaining)
+        builder.writePacket(readable, size)
         val remaining = limit - builder.size
 
         return if (remaining == 0L || (readable.isEmpty && closed)) {
@@ -354,7 +355,7 @@ abstract class ByteChannelSequentialBase(
             ensureNotFailed(builder)
             builder.build()
         } else {
-            readRemainingSuspend(builder, remaining)
+            readRemainingSuspend(builder, limit)
         }
     }
 
@@ -365,7 +366,9 @@ abstract class ByteChannelSequentialBase(
             afterRead()
             ensureNotFailed(builder)
 
-            if (readable.remaining == 0L && writable.size == 0 && closed) break
+            if (readable.remaining == 0L && writable.size == 0 && closed) {
+                break
+            }
 
             awaitSuspend(1)
         }

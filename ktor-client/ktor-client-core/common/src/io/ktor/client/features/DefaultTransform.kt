@@ -65,6 +65,12 @@ fun HttpClient.defaultTransformers() {
             }
             ByteArray::class -> {
                 val readRemaining = body.readRemaining(contentLength)
+                if (contentLength < Long.MAX_VALUE) {
+                    check(readRemaining.remaining == contentLength) {
+                        "Expected $contentLength, actual ${readRemaining.remaining}"
+                    }
+                }
+
                 proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
             }
             ByteReadChannel::class -> {

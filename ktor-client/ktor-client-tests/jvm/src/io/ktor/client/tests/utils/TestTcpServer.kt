@@ -27,6 +27,10 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
                 } catch (_: Throwable) {
                 }
             }
+        }.apply {
+            invokeOnCompletion {
+                server.close()
+            }
         }
     }
 

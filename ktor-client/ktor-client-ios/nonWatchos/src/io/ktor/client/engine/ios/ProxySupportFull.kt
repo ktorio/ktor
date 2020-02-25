@@ -6,23 +6,43 @@ package io.ktor.client.engine.ios
 
 import io.ktor.http.*
 import platform.CFNetwork.*
+import platform.CoreFoundation.*
 import platform.Foundation.*
 
 internal actual fun NSURLSessionConfiguration.setupProxy(config: IosClientEngineConfig) {
     val proxy = config.proxy ?: return
     val url = proxy.url
 
-    val type = when (url.protocol) {
-        URLProtocol.HTTP -> kCFProxyTypeHTTP
-        URLProtocol.HTTPS -> kCFProxyTypeHTTPS
-        URLProtocol.SOCKS -> kCFProxyTypeSOCKS
+    when (url.protocol) {
+        URLProtocol.HTTP -> setupHttpProxy(url)
+        URLProtocol.HTTPS -> setupHttpsProxy(url)
+        URLProtocol.SOCKS -> setupSocksProxy(url)
         else -> error("Proxy type ${url.protocol.name} is unsupported by iOS client engine.")
     }
+}
 
-    val port = url.port.toString()
+internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
     connectionProxyDictionary = mapOf(
-        kCFProxyHostNameKey to url.host,
-        kCFProxyPortNumberKey to port,
-        kCFProxyTypeKey to type
+        kCFNetworkProxiesHTTPEnable.toNSString() to 1,
+        kCFNetworkProxiesHTTPProxy.toNSString() to url.host,
+        kCFNetworkProxiesHTTPPort.toNSString() to url.port
     )
 }
+
+internal fun NSURLSessionConfiguration.setupHttpsProxy(url: Url) {
+    connectionProxyDictionary = mapOf(
+        kCFNetworkProxiesHTTPSEnable.toNSString() to 1,
+        kCFNetworkProxiesHTTPSProxy.toNSString() to url.host,
+        kCFNetworkProxiesHTTPSPort.toNSString() to url.port
+    )
+}
+
+internal fun NSURLSessionConfiguration.setupSocksProxy(url: Url) {
+    connectionProxyDictionary = mapOf(
+        kCFNetworkProxiesSOCKSEnable.toNSString() to true,
+        kCFNetworkProxiesSOCKSProxy.toNSString() to url.host,
+        kCFNetworkProxiesHTTPSPort.toNSString() to url.port
+    )
+}
+
+internal fun CFStringRef?.toNSString(): NSString = CFBridgingRelease(this) as NSString

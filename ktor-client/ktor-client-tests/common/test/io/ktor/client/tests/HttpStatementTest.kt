@@ -9,13 +9,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.core.*
-import kotlin.math.*
 import kotlin.test.*
 
 class HttpStatementTest : ClientLoader() {
 
     @Test
-    fun testExecute() = clientTests {
+    fun testExecute() = clientTests(listOf("iOS")) {
         test { client ->
             client.request<HttpStatement>("$TEST_SERVER/content/stream").execute {
                 val expected = buildPacket {
