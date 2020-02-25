@@ -31,14 +31,14 @@ import kotlin.reflect.jvm.*
  */
 @EngineAPI
 class ApplicationEngineEnvironmentReloading(
-        override val classLoader: ClassLoader,
-        override val log: Logger,
-        override val config: ApplicationConfig,
-        override val connectors: List<EngineConnectorConfig>,
-        private val modules: List<Application.() -> Unit>,
-        private val watchPaths: List<String> = emptyList(),
-        override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
-        override val rootPath: String = ""
+    override val classLoader: ClassLoader,
+    override val log: Logger,
+    override val config: ApplicationConfig,
+    override val connectors: List<EngineConnectorConfig>,
+    private val modules: List<Application.() -> Unit>,
+    private val watchPaths: List<String> = emptyList(),
+    override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
+    override val rootPath: String = ""
 ) : ApplicationEngineEnvironment {
 
     private var _applicationInstance: Application? = null
@@ -145,14 +145,14 @@ class ApplicationEngineEnvironmentReloading(
         // we shouldn't watch URL for ktor-server-core classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
-                ApplicationEnvironment::class.java, // ktor-server-core
-                ApplicationEngineEnvironment::class.java, // ktor-server-host-common
-                Pipeline::class.java, // ktor-parsing
-                HttpStatusCode::class.java, // ktor-http
-                kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
-                Logger::class.java, // slf4j
-                ByteReadChannel::class.java,
-                Input::class.java   // kotlinx-io
+            ApplicationEnvironment::class.java, // ktor-server-core
+            ApplicationEngineEnvironment::class.java, // ktor-server-host-common
+            Pipeline::class.java, // ktor-parsing
+            HttpStatusCode::class.java, // ktor-http
+            kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
+            Logger::class.java, // slf4j
+            ByteReadChannel::class.java,
+            Input::class.java   // kotlinx-io
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
@@ -300,8 +300,10 @@ class ApplicationEngineEnvironmentReloading(
     private fun avoidingDoubleStartupFor(fqName: String, block: () -> Unit) {
         val modules = currentStartupModules.getOrSet { ArrayList(1) }
         if (modules.contains(fqName)) {
-            throw IllegalStateException("Module startup is already in progress for " +
-                "function $fqName (recursive module startup from module main?)")
+            throw IllegalStateException(
+                "Module startup is already in progress for " +
+                    "function $fqName (recursive module startup from module main?)"
+            )
         }
         modules.add(fqName)
         try {
@@ -312,16 +314,16 @@ class ApplicationEngineEnvironmentReloading(
     }
 
     private fun executeModuleFunction(classLoader: ClassLoader, fqName: String, application: Application) {
-        fqName.lastIndexOfAny(".#".toCharArray()).let { idx ->
+        fqName.lastIndexOfAny(".#".toCharArray()).let<Int, Unit> { idx ->
             if (idx == -1) return@let
             val className = fqName.substring(0, idx)
             val functionName = fqName.substring(idx + 1)
             val clazz = classLoader.loadClassOrNull(className) ?: return@let
 
             val staticFunctions = clazz.methods
-                    .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
-                    .mapNotNull { it.kotlinFunction }
-                    .filter { it.isApplicableFunction() }
+                .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+                .mapNotNull { it.kotlinFunction }
+                .filter { it.isApplicableFunction() }
 
             staticFunctions.bestFunction()?.let { moduleFunction ->
                 if (moduleFunction.parameters.none { it.kind == KParameter.Kind.INSTANCE }) {
@@ -345,10 +347,10 @@ class ApplicationEngineEnvironmentReloading(
             clazz.takeIfNotFacade()?.let { kclass ->
                 kclass.functions.filter { it.name == functionName && it.isApplicableFunction() }
                     .bestFunction()?.let { moduleFunction ->
-                    val instance = createModuleContainer(kclass, application)
-                    callFunctionWithInjection(instance, moduleFunction, application)
-                    return
-                }
+                        val instance = createModuleContainer(kclass, application)
+                        callFunctionWithInjection(instance, moduleFunction, application)
+                        return
+                    }
             }
         }
 
@@ -363,7 +365,8 @@ class ApplicationEngineEnvironmentReloading(
             it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) }
         }
 
-        val constructor = constructors.bestFunction() ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
+        val constructor = constructors.bestFunction()
+            ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
         return callFunctionWithInjection(null, constructor, application)
     }
 
@@ -372,31 +375,35 @@ class ApplicationEngineEnvironmentReloading(
             compareBy(
                 { it.parameters.isNotEmpty() && isApplication(it.parameters[0]) },
                 { it.parameters.count { !it.isOptional } },
-                { it.parameters.size }))
+                { it.parameters.size })
+        )
             .lastOrNull()
     }
 
     private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R {
         return entryPoint.callBy(entryPoint.parameters
-                .filterNot { it.isOptional }
-                .associateBy({ it }, { p ->
-                    @Suppress("IMPLICIT_CAST_TO_ANY")
-                    when {
-                        p.kind == KParameter.Kind.INSTANCE -> instance
-                        isApplicationEnvironment(p) -> this
-                        isApplication(p) -> application
-                        else -> {
-                            if (p.type.toString().contains("Application")) {
-                                // It is possible that type is okay, but classloader is not
-                                val classLoader = (p.type.javaType as? Class<*>)?.classLoader
-                                throw IllegalArgumentException("Parameter type ${p.type}:{$classLoader} is not supported." +
-                                        "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}")
-                            }
-
-                            throw IllegalArgumentException("Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported")
+            .filterNot { it.isOptional }
+            .associateBy({ it }, { p ->
+                @Suppress("IMPLICIT_CAST_TO_ANY")
+                when {
+                    p.kind == KParameter.Kind.INSTANCE -> instance
+                    isApplicationEnvironment(p) -> this
+                    isApplication(p) -> application
+                    else -> {
+                        if (p.type.toString().contains("Application")) {
+                            // It is possible that type is okay, but classloader is not
+                            val classLoader = (p.type.javaType as? Class<*>)?.classLoader
+                            throw IllegalArgumentException(
+                                "Parameter type ${p.type}:{$classLoader} is not supported." +
+                                    "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                            )
                         }
+
+                        throw IllegalArgumentException("Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported")
                     }
-                }))
+                }
+            })
+        )
     }
 
     private fun ClassLoader.loadClassOrNull(name: String): Class<*>? = try {
@@ -417,7 +424,9 @@ class ApplicationEngineEnvironmentReloading(
     companion object {
         private val currentStartupModules = ThreadLocal<MutableList<String>>()
 
-        private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
+        private fun isParameterOfType(p: KParameter, type: Class<*>) =
+            (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
+
         private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, ApplicationEnvironmentClassInstance)
         private fun isApplication(p: KParameter) = isParameterOfType(p, ApplicationClassInstance)
 
@@ -442,8 +451,10 @@ class ApplicationEngineEnvironmentReloading(
                 }
             }
 
-            return parameters.all { isApplication(it) || isApplicationEnvironment(it)
-                || it.kind == KParameter.Kind.INSTANCE || it.isOptional }
+            return parameters.all {
+                isApplication(it) || isApplicationEnvironment(it)
+                    || it.kind == KParameter.Kind.INSTANCE || it.isOptional
+            }
         }
 
         private fun Class<*>.takeIfNotFacade(): KClass<*>? {
