@@ -23,7 +23,7 @@ private val testData = mutableMapOf(
 )
 
 class BenchmarkTest : ClientLoader() {
-    private val size = 1024
+    private val size = 1 // 1024
 
     @Test
     fun testDownload() = clientTests {

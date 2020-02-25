@@ -14,6 +14,12 @@ suspend fun proxyHandler(socket: Socket) {
     val output = socket.openWriteChannel()
 
     val statusLine = input.readUTF8Line()
+    while (true) {
+        val line = input.readUTF8Line() ?: ""
+        if (line.isEmpty()) {
+            break
+        }
+    }
 
     val response = when (statusLine) {
         "GET http://google.com/ HTTP/1.1" -> buildResponse(HttpStatusCode.OK)
