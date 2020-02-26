@@ -15,8 +15,8 @@ internal actual fun NSURLSessionConfiguration.setupProxy(config: IosClientEngine
 
     when (url.protocol) {
         URLProtocol.HTTP -> setupHttpProxy(url)
-        URLProtocol.HTTPS -> setupHttpsProxy(url)
-        URLProtocol.SOCKS -> setupSocksProxy(url)
+        URLProtocol.HTTPS -> setupHttpProxy(url)
+//        URLProtocol.SOCKS -> setupSocksProxy(url)
         else -> error("Proxy type ${url.protocol.name} is unsupported by iOS client engine.")
     }
 }
@@ -30,19 +30,19 @@ internal fun NSURLSessionConfiguration.setupHttpProxy(url: Url) {
 }
 
 internal fun NSURLSessionConfiguration.setupHttpsProxy(url: Url) {
-    connectionProxyDictionary = mapOf(
-        kCFNetworkProxiesHTTPSEnable.toNSString() to 1,
-        kCFNetworkProxiesHTTPSProxy.toNSString() to url.host,
-        kCFNetworkProxiesHTTPSPort.toNSString() to url.port
-    )
+//    connectionProxyDictionary = mapOf(
+//        kCFNetworkProxiesHTTPSEnable.toNSString() to 1,
+//        kCFNetworkProxiesHTTPSProxy.toNSString() to url.host,
+//        kCFNetworkProxiesHTTPSPort.toNSString() to url.port
+//    )
 }
 
 internal fun NSURLSessionConfiguration.setupSocksProxy(url: Url) {
-    connectionProxyDictionary = mapOf(
-        kCFNetworkProxiesSOCKSEnable.toNSString() to true,
-        kCFNetworkProxiesSOCKSProxy.toNSString() to url.host,
-        kCFNetworkProxiesHTTPSPort.toNSString() to url.port
-    )
+//    connectionProxyDictionary = mapOf(
+//        kCFNetworkProxiesSOCKSEnable.toNSString() to true,
+//        kCFNetworkProxiesSOCKSProxy.toNSString() to url.host,
+//        kCFNetworkProxiesSOCKSPort.toNSString() to url.port
+//    )
 }
 
 internal fun CFStringRef?.toNSString(): NSString = CFBridgingRelease(this) as NSString
