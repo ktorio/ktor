@@ -6,11 +6,13 @@ package io.ktor.client.features.cookies
 
 import io.ktor.client.*
 import io.ktor.client.features.*
+import io.ktor.client.features.cookies.HttpCookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * [HttpClient] feature that handles sent `Cookie`, and received `Set-Cookie` headers,
@@ -19,19 +21,28 @@ import io.ktor.utils.io.core.*
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
  * cookies when installing.
  */
-class HttpCookies(private val storage: CookiesStorage) : Closeable {
+class HttpCookies(
+    private val storage: CookiesStorage,
+    private val defaults: MutableList<suspend CookiesStorage.() -> Unit>
+) : Closeable {
+    private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
+        defaults.forEach { it(storage) }
+    }
 
     /**
      * Find all cookies by [requestUrl].
      */
-    suspend fun get(requestUrl: Url): List<Cookie> = storage.get(requestUrl)
+    suspend fun get(requestUrl: Url): List<Cookie> {
+        initializer.join()
+        return storage.get(requestUrl)
+    }
 
     override fun close() {
         storage.close()
     }
 
     class Config {
-        private val defaults = mutableListOf<CookiesStorage.() -> Unit>()
+        private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
          * [CookiesStorage] that will be used at this feature.
@@ -43,15 +54,11 @@ class HttpCookies(private val storage: CookiesStorage) : Closeable {
          * Registers a [block] that will be called when the configuration is complete the specified [storage].
          * The [block] can potentially add new cookies by calling [CookiesStorage.addCookie].
          */
-        fun default(block: CookiesStorage.() -> Unit) {
+        fun default(block: suspend CookiesStorage.() -> Unit) {
             defaults.add(block)
         }
 
-        internal fun build(): HttpCookies {
-            defaults.forEach { it.invoke(storage) }
-
-            return HttpCookies(storage)
-        }
+        internal fun build(): HttpCookies = HttpCookies(storage, defaults)
     }
 
     companion object : HttpClientFeature<Config, HttpCookies> {

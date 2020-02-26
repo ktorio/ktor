@@ -9,7 +9,6 @@ import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CookiesTest : ClientLoader() {
@@ -37,9 +36,7 @@ class CookiesTest : ClientLoader() {
         config {
             install(HttpCookies) {
                 default {
-                    runBlocking {
-                        addCookie(hostname, Cookie("id", "1", domain = domain))
-                    }
+                    addCookie(hostname, Cookie("id", "1", domain = domain))
                 }
             }
         }
@@ -59,9 +56,7 @@ class CookiesTest : ClientLoader() {
         config {
             install(HttpCookies) {
                 default {
-                    runBlocking {
-                        addCookie(hostname, Cookie("id", "777", domain = domain, path = "/"))
-                    }
+                    addCookie(hostname, Cookie("id", "777", domain = domain, path = "/"))
                 }
             }
 
@@ -96,10 +91,8 @@ class CookiesTest : ClientLoader() {
             config {
                 install(HttpCookies) {
                     default {
-                        runBlocking {
-                            addCookie(hostname, Cookie("first", "first-cookie", domain = domain))
-                            addCookie(hostname, Cookie("second", "second-cookie", domain = domain))
-                        }
+                        addCookie(hostname, Cookie("first", "first-cookie", domain = domain))
+                        addCookie(hostname, Cookie("second", "second-cookie", domain = domain))
                     }
                 }
             }
