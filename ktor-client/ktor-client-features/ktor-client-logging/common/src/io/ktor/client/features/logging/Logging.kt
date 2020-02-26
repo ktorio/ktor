@@ -52,24 +52,29 @@ class Logging(
         } else null
     }
 
-    private suspend fun logResponse(response: HttpResponse) {
+    private fun logResponse(response: HttpResponse) {
         if (level.info) {
             logger.log("RESPONSE: ${response.status}")
             logger.log("METHOD: ${response.call.request.method}")
             logger.log("FROM: ${response.call.request.url}")
         }
 
-        if (level.headers) logHeaders(response.headers.entries())
+        if (level.headers) {
+            logHeaders(response.headers.entries())
+        }
     }
 
     private fun logRequestException(context: HttpRequestBuilder, cause: Throwable) {
-        if (!level.info) return
-        logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+        if (level.info) {
+            logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
+        }
+
     }
 
     private fun logResponseException(context: HttpClientCall, cause: Throwable) {
-        if (!level.info) return
-        logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
+        if (level.info) {
+            logger.log("RESPONSE ${context.request.url} failed with exception: $cause")
+        }
     }
 
     private fun logHeaders(
@@ -145,6 +150,7 @@ class Logging(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 try {
+                    feature.logResponse(context.response)
                     proceedWith(subject)
                 } catch (cause: Throwable) {
                     feature.logResponseException(context, cause)
