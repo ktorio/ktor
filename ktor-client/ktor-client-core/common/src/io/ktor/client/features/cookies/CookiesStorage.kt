@@ -31,7 +31,9 @@ suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
 }
 
 internal fun Cookie.matches(requestUrl: Url): Boolean {
-    val domain = domain?.toLowerCasePreservingASCIIRules()?.trimStart('.') ?: error("Domain field should have the default value")
+    val domain = domain?.toLowerCasePreservingASCIIRules()?.trimStart('.')
+        ?: error("Domain field should have the default value")
+
     val path = with(path) {
         val current = path ?: error("Path field should have the default value")
         if (current.endsWith('/')) current else "$path/"
@@ -43,15 +45,16 @@ internal fun Cookie.matches(requestUrl: Url): Boolean {
         if (pathInRequest.endsWith('/')) pathInRequest else "$pathInRequest/"
     }
 
-    if (host != domain && (hostIsIp(host) || !host.endsWith(".$domain"))) return false
+    if (host != domain && (hostIsIp(host) || !host.endsWith(".$domain"))) {
+        return false
+    }
 
     if (path != "/" &&
         requestPath != path &&
         !requestPath.startsWith(path)
     ) return false
 
-    if (secure && !requestUrl.protocol.isSecure()) return false
-    return true
+    return !(secure && !requestUrl.protocol.isSecure())
 }
 
 internal fun Cookie.fillDefaults(requestUrl: Url): Cookie {

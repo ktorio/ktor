@@ -30,6 +30,7 @@ internal fun Application.tests() {
     multiPartFormDataTest()
     headersTestServer()
     timeoutTest()
+    cookiesTest()
 
     routing {
         post("/echo") {
