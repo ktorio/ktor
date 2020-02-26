@@ -72,6 +72,20 @@ fun Application.cookiesTest() {
                 }
                 call.respond("OK")
             }
+            get("/multiple-comma") {
+                val cookies = context.request.cookies
+                val first = cookies["fir,st"] ?: fail()
+                val second = cookies["sec,ond"] ?: fail()
+
+                assertEquals("first, cookie", first)
+                assertEquals("second, cookie", second)
+
+                with(context.response.cookies) {
+                    append(Cookie("third", "third cookie", domain = "127.0.0.1", path = "/"))
+                    append(Cookie("fourth", "fourth cookie", domain = "127.0.0.1", path = "/"))
+                }
+                context.respond("Multiple done")
+            }
         }
     }
 }

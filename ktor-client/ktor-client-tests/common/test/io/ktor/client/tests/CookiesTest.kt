@@ -86,21 +86,19 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testMultipleCookies() {
-        clientTests {
-            config {
-                install(HttpCookies) {
-                    default {
-                        addCookie(hostname, Cookie("first", "first-cookie", domain = domain))
-                        addCookie(hostname, Cookie("second", "second-cookie", domain = domain))
-                    }
+    fun testMultipleCookies() = clientTests {
+        config {
+            install(HttpCookies) {
+                default {
+                    addCookie(hostname, Cookie("first", "first-cookie", domain = domain))
+                    addCookie(hostname, Cookie("second", "second-cookie", domain = domain))
                 }
             }
+        }
 
-            test { client ->
-                val response = client.get<String>("$TEST_HOST/multiple")
-                assertEquals("Multiple done", response)
-            }
+        test { client ->
+            val response = client.get<String>("$TEST_HOST/multiple")
+            assertEquals("Multiple done", response)
         }
     }
 
@@ -124,12 +122,12 @@ class CookiesTest : ClientLoader() {
 
         test { client ->
             client.get<Unit>("https://m.vk.com")
-            assert(client.cookies("https://.vk.com").isNotEmpty())
-            assert(client.cookies("https://vk.com").isNotEmpty())
-            assert(client.cookies("https://m.vk.com").isNotEmpty())
-            assert(client.cookies("https://m.vk.com").isNotEmpty())
+            assertTrue(client.cookies("https://.vk.com").isNotEmpty())
+            assertTrue(client.cookies("https://vk.com").isNotEmpty())
+            assertTrue(client.cookies("https://m.vk.com").isNotEmpty())
+            assertTrue(client.cookies("https://m.vk.com").isNotEmpty())
 
-            assert(client.cookies("https://google.com").isEmpty())
+            assertTrue(client.cookies("https://google.com").isEmpty())
         }
     }
 
@@ -146,6 +144,29 @@ class CookiesTest : ClientLoader() {
             } catch (cause: Throwable) {
                 throw cause
             }
+        }
+    }
+
+    @Test
+    fun testMultipleCookiesWithComma() = clientTests {
+        config {
+            install(HttpCookies) {
+                default {
+                    addCookie(hostname, Cookie("fir,st", "first, cookie", domain = domain))
+                    addCookie(hostname, Cookie("sec,ond", "second, cookie", domain = domain))
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get<String>("$TEST_HOST/multiple-comma")
+            val cookies = client.cookies(hostname)
+            assertEquals("first, cookie", cookies["fir,st"]!!.value)
+            assertEquals("second, cookie", cookies["sec,ond"]!!.value)
+            assertEquals("third cookie", cookies["third"]!!.value)
+            assertEquals("fourth cookie", cookies["fourth"]!!.value)
+
+            assertEquals("Multiple done", response)
         }
     }
 

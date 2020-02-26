@@ -254,6 +254,7 @@ class HeadersTest {
         }
     }
 
+    @Test
     fun headersReturnNullWhenMissing() {
         val value = "world"
         val headers1 = headersOf("hello", value)
@@ -264,5 +265,14 @@ class HeadersTest {
 
         assertNull(headers1.getAll("foo"))
         assertNull(headers2.getAll("foo"))
+    }
+
+    @Test
+    fun testSplitSetCookieHeader() {
+        assertEquals(listOf("a=b;c,d", "x=0"), "a=b;c,d,x=0".splitSetCookieHeader())
+        assertEquals(
+            listOf("a=b; Expires=Wed, 21 Oct 2015 07:28:00 GMT", "x=0"),
+            "a=b; Expires=Wed, 21 Oct 2015 07:28:00 GMT,x=0".splitSetCookieHeader()
+        )
     }
 }
