@@ -22,8 +22,10 @@ import kotlinx.serialization.modules.*
  */
 val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
     encodeDefaults = true,
-    strictMode = false,
-    unquoted = false,
+    isLenient = true,
+    serializeSpecialFloatingPointValues = true,
+    allowStructuredMapKeys = true,
+    unquotedPrint = false,
     prettyPrint = false,
     useArrayPolymorphism = true
 )

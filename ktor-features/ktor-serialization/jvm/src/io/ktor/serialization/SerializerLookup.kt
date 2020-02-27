@@ -5,7 +5,7 @@
 package io.ktor.serialization
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.*
+import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
@@ -26,8 +26,9 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
     val elementSerializer = serializerByTypeInfo(elementType)
 
+
     @Suppress("UNCHECKED_CAST")
-    return ReferenceArraySerializer(
+    return ArraySerializer(
         elementType.jvmErasure as KClass<Any>,
         elementSerializer as KSerializer<Any>
     )
@@ -39,13 +40,13 @@ internal fun serializerForSending(value: Any): KSerializer<*> {
         return JsonElementSerializer
     }
     if (value is List<*>) {
-        return ArrayListSerializer(value.elementSerializer())
+        return ListSerializer(value.elementSerializer())
     }
     if (value is Set<*>) {
-        return HashSetSerializer(value.elementSerializer())
+        return SetSerializer(value.elementSerializer())
     }
     if (value is Map<*, *>) {
-        return HashMapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
+        return MapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
     }
     if (value is Map.Entry<*, *>) {
         return MapEntrySerializer(
@@ -58,7 +59,7 @@ internal fun serializerForSending(value: Any): KSerializer<*> {
         val componentClass =
             componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
         @Suppress("UNCHECKED_CAST")
-        return ReferenceArraySerializer(
+        return ArraySerializer(
             componentClass as KClass<Any>,
             serializerByTypeInfo(componentType) as KSerializer<Any>
         )
@@ -75,9 +76,9 @@ private fun Collection<*>.elementSerializer(): KSerializer<*> {
 
     if (serializers.size > 1) {
         @Suppress("DEPRECATION_ERROR")
-        error("Serializing collections of different element types is not yet supported. " +
+        val message = "Serializing collections of different element types is not yet supported. " +
             "Selected serializers: ${serializers.map { it.descriptor.name }}"
-        )
+        error(message)
     }
 
     val selected: KSerializer<*> = serializers.singleOrNull() ?: String.serializer()

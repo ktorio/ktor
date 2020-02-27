@@ -10,8 +10,11 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.list
+import kotlinx.serialization.set
 import kotlin.reflect.*
 
 /**
@@ -87,8 +90,7 @@ private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
     is Map<*, *> -> {
         val keySerializer = value.keys.elementSerializer() as KSerializer<Any>
         val valueSerializer = value.values.elementSerializer() as KSerializer<Any>
-
-        (keySerializer to valueSerializer).map
+        MapSerializer(keySerializer, valueSerializer)
     }
     else -> value::class.serializer()
 }
