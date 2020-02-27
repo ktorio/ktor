@@ -9,34 +9,40 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import platform.Foundation.*
 import platform.darwin.*
 import kotlin.coroutines.*
 
-internal class IosResponseReader(private val callContext: CoroutineContext) : NSObject(), NSURLSessionDataDelegateProtocol {
+internal class IosResponseReader(
+    private val callContext: CoroutineContext
+) : NSObject(), NSURLSessionDataDelegateProtocol {
     private val chunks = Channel<ByteArray>(Channel.UNLIMITED)
-    private val response = CompletableDeferred<NSURLSessionTask>(callContext[Job])
+    private val rawResponse = CompletableDeferred<NSHTTPURLResponse>(callContext[Job])
 
     private val requestTime = GMTDate()
 
     suspend fun awaitResponse(): HttpResponseData {
-        val task = response.await()
-        val rawResponse = task.response as NSHTTPURLResponse
+        val response = rawResponse.await()
 
         @Suppress("UNCHECKED_CAST")
-        val headersDict = rawResponse.allHeaderFields as Map<String, String>
+        val headersDict = response.allHeaderFields as Map<String, String>
 
-        val status = HttpStatusCode.fromValue(rawResponse.statusCode.toInt())
+        val status = HttpStatusCode.fromValue(response.statusCode.toInt())
         val headers = buildHeaders {
             headersDict.mapKeys { (key, value) -> append(key, value) }
         }
 
         val responseBody = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
-            chunks.consumeEach {
-                channel.writeFully(it)
-                channel.flush()
+            try {
+                chunks.consumeEach {
+                    channel.writeFully(it)
+                    channel.flush()
+                }
+            } catch (cause: CancellationException) {
+                chunks.cancel(cause)
             }
         }.channel
 
@@ -49,19 +55,31 @@ internal class IosResponseReader(private val callContext: CoroutineContext) : NS
     }
 
     override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
+        if (!rawResponse.isCompleted) {
+            val response = dataTask.response as NSHTTPURLResponse
+            rawResponse.complete(response)
+        }
+
         val content = didReceiveData.toByteArray()
-        check(chunks.offer(content)) { "Failed to process the received chunk of size: ${content.size}" }
+        try {
+            chunks.offer(content)
+        } catch (cause: CancellationException) {
+            dataTask.cancel()
+        }
     }
 
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
         chunks.close()
 
         if (didCompleteWithError != null) {
-            response.completeExceptionally(IosHttpRequestException(didCompleteWithError))
+            rawResponse.completeExceptionally(IosHttpRequestException(didCompleteWithError))
             return
         }
 
-        response.complete(task)
+        if (!rawResponse.isCompleted) {
+            val response = task.response as NSHTTPURLResponse
+            rawResponse.complete(response)
+        }
     }
 
     override fun URLSession(

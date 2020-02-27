@@ -200,7 +200,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Curl", "Ios", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(listOf("Curl", "Js", "iOS")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -217,7 +217,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Curl", "Ios", "Js")) {
+    fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(listOf("Curl", "Js", "iOS")) {
         config {
             install(HttpTimeout)
         }
@@ -268,7 +268,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStreamRequestTimeout() = clientTests {
+    fun testGetStreamRequestTimeout() = clientTests(listOf("iOS")) {
         config {
             install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
@@ -283,7 +283,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetStreamRequestTimeoutPerRequestAttributes() = clientTests {
+    fun testGetStreamRequestTimeoutPerRequestAttributes() = clientTests(listOf("iOS")) {
         config {
             install(HttpTimeout)
         }
@@ -401,7 +401,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "Ios")) {
+    fun testConnectTimeout() = clientTests(listOf("Js", "iOS")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -414,7 +414,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectionRefusedException() = clientTests(listOf("Js", "Ios", "win:*")) {
+    fun testConnectionRefusedException() = clientTests(listOf("Js", "win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -431,7 +431,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "Ios")) {
+    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "iOS")) {
         config {
             install(HttpTimeout)
         }
@@ -446,7 +446,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "iOS")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -461,7 +461,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "iOS")) {
         config {
             install(HttpTimeout)
         }

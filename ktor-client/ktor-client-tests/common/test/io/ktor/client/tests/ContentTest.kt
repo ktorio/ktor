@@ -61,11 +61,12 @@ class ContentTest : ClientLoader() {
         test { client ->
             testSize.forEach { size ->
                 val content = makeArray(size)
-                val responseData = client.echo<ByteArray>(content)
+                val responseData = client.echo<ByteReadChannel>(content)
+                val data = responseData.readRemaining().readBytes()
                 assertArrayEquals(
-                    "Test fail with size: $size, actual size: ${responseData.size}",
+                    "Test fail with size: $size, actual size: ${data.size}",
                     content,
-                    responseData
+                    data
                 )
             }
         }
@@ -101,7 +102,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js")) {
+    fun testTextContent() = clientTests(listOf("Js", "iOS")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -223,7 +224,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Ios")) {
+    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
         test { client ->
             val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
             content.cancel()
@@ -231,7 +232,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Ios")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
             }
@@ -239,7 +240,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js", "Ios")) {
+    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
                 it.cancel()
@@ -248,7 +249,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "Ios")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "iOS")) {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")
