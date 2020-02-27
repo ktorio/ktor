@@ -566,7 +566,7 @@ public final class io/ktor/client/features/cookies/CookiesStorageKt {
 
 public final class io/ktor/client/features/cookies/HttpCookies : java/io/Closeable {
 	public static final field Companion Lio/ktor/client/features/cookies/HttpCookies$Companion;
-	public fun <init> (Lio/ktor/client/features/cookies/CookiesStorage;)V
+	public fun <init> (Lio/ktor/client/features/cookies/CookiesStorage;Ljava/util/List;)V
 	public fun close ()V
 	public final fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -581,7 +581,7 @@ public final class io/ktor/client/features/cookies/HttpCookies$Companion : io/kt
 
 public final class io/ktor/client/features/cookies/HttpCookies$Config {
 	public fun <init> ()V
-	public final fun default (Lkotlin/jvm/functions/Function1;)V
+	public final fun default (Lkotlin/jvm/functions/Function2;)V
 	public final fun getStorage ()Lio/ktor/client/features/cookies/CookiesStorage;
 	public final fun setStorage (Lio/ktor/client/features/cookies/CookiesStorage;)V
 }
