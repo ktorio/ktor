@@ -17,7 +17,7 @@ class CookiesTest : ClientLoader() {
     private val domain = "127.0.0.1"
 
     @Test
-    fun testAccept() = clientTests {
+    fun testAccept() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies)
         }
@@ -32,7 +32,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testUpdate() = clientTests {
+    fun testUpdate() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies) {
                 default {
@@ -52,7 +52,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testExpiration() = clientTests {
+    fun testExpiration() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies) {
                 default {
@@ -69,7 +69,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testConstant() = clientTests {
+    fun testConstant() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies) {
                 storage = ConstantCookiesStorage(Cookie("id", "1", domain = domain))
@@ -86,7 +86,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testMultipleCookies() = clientTests {
+    fun testMultipleCookies() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies) {
                 default {
@@ -115,7 +115,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLeadingDot() = clientTests {
+    fun testWithLeadingDot() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies)
         }
@@ -132,7 +132,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun caseSensitive() = clientTests {
+    fun caseSensitive() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies)
         }
@@ -148,7 +148,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testMultipleCookiesWithComma() = clientTests {
+    fun testMultipleCookiesWithComma() = clientTests(listOf("Js")) {
         config {
             install(HttpCookies) {
                 default {
