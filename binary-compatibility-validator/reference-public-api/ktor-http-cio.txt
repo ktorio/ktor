@@ -211,6 +211,7 @@ public final class io/ktor/http/cio/websocket/CloseReason {
 
 public final class io/ktor/http/cio/websocket/CloseReason$Codes : java/lang/Enum {
 	public static final field CANNOT_ACCEPT Lio/ktor/http/cio/websocket/CloseReason$Codes;
+	public static final field CLOSED_ABNORMALLY Lio/ktor/http/cio/websocket/CloseReason$Codes;
 	public static final field Companion Lio/ktor/http/cio/websocket/CloseReason$Codes$Companion;
 	public static final field GOING_AWAY Lio/ktor/http/cio/websocket/CloseReason$Codes;
 	public static final field INTERNAL_ERROR Lio/ktor/http/cio/websocket/CloseReason$Codes;
