@@ -1,11 +1,11 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.internal.*
+import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.internal.*
-import io.ktor.utils.io.core.internal.ChunkBuffer
-import io.ktor.utils.io.pool.ObjectPool
 
 
 /**
@@ -54,10 +54,11 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
     return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), limit)
 }
 
-internal class ByteChannelNative(initial: IoBuffer,
-                                 autoFlush: Boolean,
-                                 pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) :
-    ByteChannelSequentialBase(initial, autoFlush, pool) {
+internal class ByteChannelNative(
+    initial: IoBuffer,
+    autoFlush: Boolean,
+    pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+) : ByteChannelSequentialBase(initial, autoFlush, pool) {
     private var attachedJob: Job? = null
 
     @UseExperimental(InternalCoroutinesApi::class)
@@ -178,6 +179,25 @@ internal class ByteChannelNative(initial: IoBuffer,
         }
 
         return writeAvailableSuspend(src, offset, length)
+    }
+
+    override fun close(cause: Throwable?): Boolean {
+        val close = super.close(cause)
+        val job = attachedJob
+        if (close && job != null && cause != null) {
+            if (cause is CancellationException) {
+                job.cancel(cause)
+            } else {
+                job.cancel("Channel is cancelled", cause)
+            }
+        }
+
+        return close
+    }
+
+    override fun toString(): String {
+        val hashCode = hashCode().toString(16)
+        return "ByteChannel[0x$hashCode, job: $attachedJob, cause: ${closedCause}]"
     }
 
     private suspend fun writeAvailableSuspend(src: CPointer<ByteVar>, offset: Long, length: Long): Int {

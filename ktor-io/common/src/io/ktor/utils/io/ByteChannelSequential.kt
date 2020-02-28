@@ -645,7 +645,7 @@ abstract class ByteChannelSequentialBase(
         return close(cause ?: io.ktor.utils.io.CancellationException("Channel cancelled"))
     }
 
-    final override fun close(cause: Throwable?): Boolean {
+    override fun close(cause: Throwable?): Boolean {
         if (closed || closedCause != null) return false
         closedCause = cause
         closed = true
