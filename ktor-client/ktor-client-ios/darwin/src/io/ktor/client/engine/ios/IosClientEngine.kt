@@ -19,7 +19,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val responseReader = IosResponseReader(callContext)
+        val responseReader = IosResponseReader(callContext, config)
 
         val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
             setupProxy(config)

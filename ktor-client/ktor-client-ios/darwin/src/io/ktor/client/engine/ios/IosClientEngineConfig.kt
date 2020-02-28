@@ -8,6 +8,15 @@ import io.ktor.client.engine.*
 import platform.Foundation.*
 
 /**
+ * Challenge handler type for [NSURLSession].
+ */
+typealias ChallengeHandler = (
+    session: NSURLSession,
+    challenge: NSURLAuthenticationChallenge,
+    completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
+) -> Unit
+
+/**
  * Custom [IosClientEngine] config.
  */
 class IosClientEngineConfig : HttpClientEngineConfig() {
@@ -20,6 +29,11 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
      * Session configuration.
      */
     var sessionConfig: NSURLSessionConfiguration.() -> Unit = {}
+
+    /**
+     * Handles the challenge of HTTP responses [NSURLSession].
+     */
+    var challengeHandler: ChallengeHandler? = null
 
     /**
      * Append block with [NSMutableURLRequest] configuration to [requestConfig].
