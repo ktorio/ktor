@@ -74,7 +74,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 closeReasonJob.join()
                 contextJob.join()
             }
@@ -120,7 +120,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 closeReasonJob.join()
                 contextJob.join()
             }
@@ -163,7 +163,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 closeReasonJob.join()
                 contextJob.join()
             }
@@ -197,7 +197,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 contextJob.join()
             }
         }
@@ -233,7 +233,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 contextJob.join()
             }
         }
@@ -268,7 +268,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         runBlocking {
-            withTimeout(2000) {
+            withTimeout(5000) {
                 contextJob.join()
             }
         }
