@@ -17,7 +17,8 @@ import platform.darwin.*
 import kotlin.coroutines.*
 
 internal class IosResponseReader(
-    private val callContext: CoroutineContext
+    private val callContext: CoroutineContext,
+    private val config: IosClientEngineConfig
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
     private val chunks = Channel<ByteArray>(Channel.UNLIMITED)
     private val rawResponse = CompletableDeferred<NSHTTPURLResponse>(callContext[Job])
@@ -90,5 +91,18 @@ internal class IosResponseReader(
         completionHandler: (NSURLRequest?) -> Unit
     ) {
         completionHandler(null)
+    }
+
+    override fun URLSession(
+        session: NSURLSession,
+        didReceiveChallenge: NSURLAuthenticationChallenge,
+        completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
+    ) {
+        val handler = config.challengeHandler
+        if (handler != null) {
+            handler(session, didReceiveChallenge, completionHandler)
+        } else {
+            super.URLSession(session, didReceiveChallenge, completionHandler)
+        }
     }
 }
