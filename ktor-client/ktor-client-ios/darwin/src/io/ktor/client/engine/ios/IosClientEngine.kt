@@ -19,7 +19,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val responseReader = IosResponseReader(callContext, config)
+        val responseReader = IosResponseReader(callContext, data, config)
 
         val configuration = NSURLSessionConfiguration.defaultSessionConfiguration().apply {
             setupProxy(config)
@@ -67,11 +67,6 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
                 task.cancel()
             }
             throw cause
-        } catch (cause: IosHttpRequestException) {
-            throw when (cause.origin.code) {
-                NSURLErrorTimedOut -> SocketTimeoutException(data)
-                else -> cause
-            }
         }
     }
 }

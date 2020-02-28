@@ -79,8 +79,10 @@ fun HttpClient.defaultTransformers() {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                     } catch (cause: CancellationException) {
                         response.cancel(cause)
+                        throw cause
                     } catch (cause: Throwable) {
                         response.cancel("Receive failed", cause)
+                        throw cause
                     } finally {
                         response.complete()
                     }
