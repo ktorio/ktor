@@ -22,3 +22,8 @@ internal fun NSMutableURLRequest.setupSocketTimeout(requestData: HttpRequestData
         }
     }
 }
+
+internal fun handleNSError(requestData: HttpRequestData, error: NSError): Throwable = when(error.code) {
+    NSURLErrorTimedOut -> SocketTimeoutException(requestData)
+    else -> IosHttpRequestException(error)
+}

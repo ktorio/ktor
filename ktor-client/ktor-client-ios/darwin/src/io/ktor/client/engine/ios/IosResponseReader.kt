@@ -18,6 +18,7 @@ import kotlin.coroutines.*
 
 internal class IosResponseReader(
     private val callContext: CoroutineContext,
+    private val requestData: HttpRequestData,
     private val config: IosClientEngineConfig
 ) : NSObject(), NSURLSessionDataDelegateProtocol {
     private val chunks = Channel<ByteArray>(Channel.UNLIMITED)
@@ -36,7 +37,7 @@ internal class IosResponseReader(
             headersDict.mapKeys { (key, value) -> append(key, value) }
         }
 
-        val responseBody = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
+        val responseBody = GlobalScope.writer(callContext + Dispatchers.Unconfined, autoFlush = true) {
             try {
                 chunks.consumeEach {
                     channel.writeFully(it)
@@ -44,6 +45,7 @@ internal class IosResponseReader(
                 }
             } catch (cause: CancellationException) {
                 chunks.cancel(cause)
+                throw cause
             }
         }.channel
 
@@ -70,10 +72,10 @@ internal class IosResponseReader(
     }
 
     override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
-        chunks.close()
-
         if (didCompleteWithError != null) {
-            rawResponse.completeExceptionally(IosHttpRequestException(didCompleteWithError))
+            val exception = handleNSError(requestData, didCompleteWithError)
+            chunks.close(exception)
+            rawResponse.completeExceptionally(exception)
             return
         }
 
@@ -81,6 +83,8 @@ internal class IosResponseReader(
             val response = task.response as NSHTTPURLResponse
             rawResponse.complete(response)
         }
+
+        chunks.close()
     }
 
     override fun URLSession(
@@ -102,7 +106,7 @@ internal class IosResponseReader(
         if (handler != null) {
             handler(session, didReceiveChallenge, completionHandler)
         } else {
-            super.URLSession(session, didReceiveChallenge, completionHandler)
+            completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, didReceiveChallenge.proposedCredential)
         }
     }
 }

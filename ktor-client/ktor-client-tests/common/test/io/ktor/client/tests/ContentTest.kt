@@ -249,7 +249,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "iOS")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js")) {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")
