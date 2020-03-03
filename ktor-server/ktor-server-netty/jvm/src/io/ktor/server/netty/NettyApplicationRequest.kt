@@ -29,6 +29,7 @@ abstract class NettyApplicationRequest(
 
     final override val queryParameters: Parameters = object : Parameters {
         private val decoder = QueryStringDecoder(uri)
+        override var urlEncoder: UrlEncoder? = null
         override val caseInsensitiveName: Boolean get() = true
         override fun getAll(name: String) = decoder.parameters()[name]
         override fun names() = decoder.parameters().keys

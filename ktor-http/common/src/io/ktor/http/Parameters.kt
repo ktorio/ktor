@@ -6,10 +6,15 @@ package io.ktor.http
 
 import io.ktor.util.*
 
+typealias UrlEncoder = (Parameters.() -> String)
+
 /**
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
  */
 interface Parameters : StringValues {
+
+    val urlEncoder: UrlEncoder?
+
     companion object {
         /**
          * Empty [Parameters] instance
@@ -23,15 +28,21 @@ interface Parameters : StringValues {
          */
         inline fun build(builder: ParametersBuilder.() -> Unit): Parameters = ParametersBuilder().apply(builder).build()
     }
-
 }
 
 @Suppress("KDocMissingDocumentation")
 class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+
+    private var urlEncoder: UrlEncoder? = null
+
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
-        return ParametersImpl(values)
+        return ParametersImpl(values, urlEncoder)
+    }
+
+    fun setUrlEncoder(encoder: UrlEncoder) {
+        urlEncoder = encoder
     }
 }
 
@@ -43,12 +54,12 @@ class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
 )
 object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true
+    override val urlEncoder: UrlEncoder? = null
     override fun getAll(name: String): List<String>? = null
     override fun names(): Set<String> = emptySet()
     override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
     override fun isEmpty(): Boolean = true
     override fun toString(): String = "Parameters ${entries()}"
-
     override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }
 
@@ -74,13 +85,19 @@ fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = Paramet
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
+class ParametersImpl(
+    values: Map<String, List<String>> = emptyMap(),
+    override val urlEncoder: UrlEncoder? = null
+) : Parameters, StringValuesImpl(true, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
+class ParametersSingleImpl(
+    name: String, values: List<String>,
+    override val urlEncoder: UrlEncoder? = null
+) : Parameters, StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
