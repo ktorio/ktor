@@ -102,10 +102,13 @@ internal suspend fun ByteReadChannel.completeReadingFromBuffer(buffer: Buffer?, 
 
     if (readSession != null) {
         readSession.discard(bytesRead)
+        if (this is HasReadSession) {
+            endReadSession()
+        }
         return
     }
 
-    if (buffer is ChunkBuffer) {
+    if (buffer is ChunkBuffer && buffer !== ChunkBuffer.Empty) {
         buffer.release(ChunkBuffer.Pool)
         discard(bytesRead.toLong())
     }
