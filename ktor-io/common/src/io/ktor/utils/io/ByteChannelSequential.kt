@@ -547,7 +547,12 @@ abstract class ByteChannelSequentialBase(
 
     override fun discard(n: Int): Int {
         closedCause?.let { throw it }
-        return readable.discard(n).also { afterRead() }
+        if (n == 0) return 0
+
+        return readable.discard(n).also {
+            afterRead()
+            requestNextView(1)
+        }
     }
 
     override fun request(atLeast: Int): IoBuffer? {
@@ -555,6 +560,10 @@ abstract class ByteChannelSequentialBase(
 
         completeReading()
 
+        return requestNextView(atLeast)
+    }
+
+    private fun requestNextView(atLeast: Int): IoBuffer? {
         val view = readable.prepareReadHead(atLeast) as IoBuffer?
 
         if (view == null) {
