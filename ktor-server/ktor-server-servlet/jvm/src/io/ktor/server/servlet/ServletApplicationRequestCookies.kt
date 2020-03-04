@@ -10,7 +10,10 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-class ServletApplicationRequestCookies(private val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
+class ServletApplicationRequestCookies(
+    private val servletRequest: HttpServletRequest,
+    request: ApplicationRequest
+) : RequestCookies(request) {
     override fun fetchCookies(): Map<String, String> {
         return servletRequest.cookies?.associateBy({ it.name }, { it.value }) ?: emptyMap()
     }
