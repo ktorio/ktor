@@ -1916,7 +1916,9 @@ internal open class ByteBufferChannel(
 
         state.let { s ->
             if (!s.capacity.tryReadExact(n)) throw IllegalStateException("Unable to consume $n bytes: not enough available bytes")
-            s.readBuffer.bytesRead(s.capacity, n)
+            if (n > 0) {
+                s.readBuffer.bytesRead(s.capacity, n)
+            }
         }
     }
 
