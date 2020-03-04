@@ -14,7 +14,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     /**
      * Provides common place to store pipeline attributes
      */
-    val attributes = Attributes()
+    val attributes = Attributes(concurrent = true)
 
     constructor(phase: PipelinePhase, interceptors: List<PipelineInterceptor<TSubject, TContext>>) : this(phase) {
         interceptors.forEach { intercept(phase, it) }
