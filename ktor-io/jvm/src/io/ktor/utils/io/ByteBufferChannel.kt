@@ -1684,6 +1684,7 @@ internal open class ByteBufferChannel(
         val state = state
         if (state is ReadWriteBufferState.Reading || state is ReadWriteBufferState.ReadingWriting) {
             restoreStateAfterRead()
+            tryTerminate()
         }
     }
 
