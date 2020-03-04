@@ -1,5 +1,6 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.core.*
 import java.nio.*
 
 /**
@@ -23,6 +24,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes using [close] function to close
  * channel.
  */
+@ExperimentalIoApi
 fun ByteChannel(autoFlush: Boolean = false, exceptionMapper: (Throwable?) -> Throwable?): ByteChannel =
     object : ByteBufferChannel(autoFlush = autoFlush) {
 
