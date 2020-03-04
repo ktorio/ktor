@@ -19,11 +19,13 @@ abstract class ServletApplicationRequest(
 
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
-    override val queryParameters by lazy {
+    override val queryParameters: Parameters by lazy {
         servletRequest.queryString?.let { parseQueryString(it) } ?: Parameters.Empty
     }
 
     override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)
+
+    @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
 }
 

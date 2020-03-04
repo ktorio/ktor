@@ -21,29 +21,71 @@ val ApplicationRequest.origin: RequestConnectionPoint
  * A key to install a mutable [RequestConnectionPoint]
  */
 @KtorExperimentalAPI
-val MutableOriginConnectionPointKey = AttributeKey<MutableOriginConnectionPoint>("MutableOriginConnectionPointKey")
+val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
+    AttributeKey("MutableOriginConnectionPointKey")
 
 /**
  * Represents a [RequestConnectionPoint]. Every it's component is mutable so application features could provide them
  */
 @KtorExperimentalAPI
-class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestConnectionPoint {
-    override var version by AssignableWithDelegate { delegate.version }
-    override var uri by AssignableWithDelegate { delegate.uri }
-    override var method by AssignableWithDelegate { delegate.method }
-    override var scheme by AssignableWithDelegate { delegate.scheme }
-    override var host by AssignableWithDelegate { delegate.host }
-    override var port by AssignableWithDelegate { delegate.port }
-    override var remoteHost by AssignableWithDelegate { delegate.remoteHost }
+class MutableOriginConnectionPoint
+@Deprecated(
+    "Instantiating CP is no longer supported: this will become internal.",
+    level = DeprecationLevel.WARNING
+)
+constructor(delegate: RequestConnectionPoint) : RequestConnectionPoint {
+
+    @Suppress("DEPRECATION")
+    internal constructor(delegate: OriginConnectionPoint) : this(delegate as RequestConnectionPoint)
+
+    override var version: String by AssignableWithDelegate { delegate.version }
+    override var uri: String by AssignableWithDelegate { delegate.uri }
+    override var method: HttpMethod by AssignableWithDelegate { delegate.method }
+    override var scheme: String by AssignableWithDelegate { delegate.scheme }
+    override var host: String by AssignableWithDelegate { delegate.host }
+    override var port: Int by AssignableWithDelegate { delegate.port }
+    override var remoteHost: String by AssignableWithDelegate { delegate.remoteHost }
+}
+
+internal class OriginConnectionPoint(
+    private val local: RequestConnectionPoint,
+    private val hostHeaderValue: String?
+) : RequestConnectionPoint {
+    constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
+
+    override val scheme: String
+        get() = local.scheme
+
+    override val version: String
+        get() = local.scheme
+
+    override val port: Int
+        get() = hostHeaderValue?.substringAfter(":", "80")
+            ?.toIntOrNull()
+            ?: local.port
+
+    override val host: String
+        get() = hostHeaderValue?.substringBefore(":")
+            ?: local.host
+
+    override val uri: String
+        get() = local.uri
+
+    override val method: HttpMethod
+        get() = local.method
+
+    override val remoteHost: String
+        get() = local.remoteHost
 }
 
 /**
  * `X-Forwarded-*` headers support
  * See http://ktor.io/servers/features/forward-headers.html for details
  */
-object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
+object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
+    XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
 
-    override val key = AttributeKey<Config>("XForwardedHeaderSupport")
+    override val key: AttributeKey<Config> = AttributeKey("XForwardedHeaderSupport")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): Config {
         val config = Config()
@@ -132,9 +174,9 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
      * A key for application call attribute that is used to cache parsed header values
      */
     @KtorExperimentalAPI
-    val ForwardedParsedKey = AttributeKey<List<ForwardedHeaderValue>>("ForwardedParsedKey")
+    val ForwardedParsedKey: AttributeKey<List<ForwardedHeaderValue>> = AttributeKey("ForwardedParsedKey")
 
-    override val key = AttributeKey<Unit>("ForwardedHeaderSupport")
+    override val key: AttributeKey<Unit> = AttributeKey("ForwardedHeaderSupport")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         configure(Unit)
@@ -209,7 +251,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
 internal val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
     get() = attributes.computeIfAbsent(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(
-            request.local
+            OriginConnectionPoint(this)
         )
     }
 
