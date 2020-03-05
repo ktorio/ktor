@@ -7,6 +7,7 @@ package io.ktor.serialization
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
