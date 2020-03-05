@@ -11,7 +11,7 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
-import kotlinx.serialization.internal.*
+import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.list
 import kotlinx.serialization.set
@@ -20,9 +20,7 @@ import kotlin.reflect.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-@OptIn(
-    ImplicitReflectionSerializer::class, UnstableDefault::class
-)
+@OptIn(ImplicitReflectionSerializer::class, UnstableDefault::class)
 class KotlinxSerializer(
     private val json: Json = Json.plain
 ) : JsonSerializer {
