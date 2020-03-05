@@ -17,9 +17,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-@OptIn(
-    ImplicitReflectionSerializer::class, UnstableDefault::class
-)
+@OptIn(ImplicitReflectionSerializer::class, UnstableDefault::class)
 public class KotlinxSerializer(
     private val json: Json = Json(DefaultJsonConfiguration)
 ) : JsonSerializer {
