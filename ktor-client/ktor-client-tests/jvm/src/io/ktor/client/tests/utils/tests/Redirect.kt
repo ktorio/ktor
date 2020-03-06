@@ -46,6 +46,15 @@ internal fun Application.redirectTest() {
             get("/directory/hostAbsoluteRedirect") {
                 call.respondRedirect("$TEST_SERVER/redirect/get")
             }
+            get("/multipleRedirects/login") {
+                call.respondRedirect("/redirect/multipleRedirects/user/")
+            }
+            get("/multipleRedirects/user/") {
+                call.respondRedirect("account/details")
+            }
+            get("/multipleRedirects/user/account/details") {
+                call.respondText("account details")
+            }
         }
     }
 }
