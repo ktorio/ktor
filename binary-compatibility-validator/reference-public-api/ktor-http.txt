@@ -1098,6 +1098,14 @@ public final class io/ktor/http/content/CachingOptionsKt {
 	public static final fun setCaching (Lio/ktor/http/content/OutgoingContent;Lio/ktor/http/content/CachingOptions;)V
 }
 
+public final class io/ktor/http/content/ChannelWriterContent : io/ktor/http/content/OutgoingContent$WriteChannelContent {
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function2;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getContentType ()Lio/ktor/http/ContentType;
+	public fun getStatus ()Lio/ktor/http/HttpStatusCode;
+	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class io/ktor/http/content/EntityTagVersion : io/ktor/http/content/Version {
 	public static final field Companion Lio/ktor/http/content/EntityTagVersion$Companion;
 	public synthetic fun <init> (Ljava/lang/String;)V

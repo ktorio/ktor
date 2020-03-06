@@ -122,6 +122,25 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
+    fun testBinaryUsingChannel() {
+        createAndStartServer {
+            handle {
+                call.respondBytesWriter {
+                    writeByte(25)
+                    writeByte(37)
+                    writeByte(42)
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            assertEquals(ContentType.Application.OctetStream, contentType())
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
+        }
+    }
+
+    @Test
     fun testLoggerOnError() {
         val message = "expected, ${Random().nextLong()}"
         val collected = LinkedBlockingQueue<Throwable>()
