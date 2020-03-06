@@ -54,6 +54,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
+        classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
     }
 }
 
@@ -70,7 +71,7 @@ apply from: 'gradle/verifier.gradle'
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
 def platforms = ["common", "jvm", "js", "posix", "darwin"]
-ext.skipPublish = ["binary-compatibility-validator", "ktor-server-benchmarks", "ktor-client-benchmarks"]
+ext.skipPublish = ["ktor-server-benchmarks", "ktor-client-benchmarks"]
 ext.nonDefaultProjectStructure = ["ktor-bom"]
 
 def projectNeedsPlatform(project, platform) {
@@ -94,6 +95,8 @@ def check(Object version, String libVersion, String libName) {
         throw new IllegalStateException("Current deploy version is $version, but $libName version is not overridden ($libVersion)")
     }
 }
+
+apply from: 'gradle/compatibility.gradle'
 
 allprojects {
     group = "io.ktor"
