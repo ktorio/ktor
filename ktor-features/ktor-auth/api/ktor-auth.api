@@ -36,7 +36,6 @@ public final class io/ktor/auth/AuthenticationContext {
 	public final fun getChallenge ()Lio/ktor/auth/AuthenticationProcedureChallenge;
 	public final fun getErrors ()Ljava/util/HashMap;
 	public final fun getPrincipal ()Lio/ktor/auth/Principal;
-	public final synthetic fun principal ()Lio/ktor/auth/Principal;
 	public final fun principal (Lio/ktor/auth/Principal;)V
 	public final fun setPrincipal (Lio/ktor/auth/Principal;)V
 }
@@ -67,7 +66,6 @@ public final class io/ktor/auth/AuthenticationKt {
 	public static synthetic fun authenticate$default (Lio/ktor/routing/Route;[Ljava/lang/String;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/routing/Route;
 	public static final fun authentication (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)V
 	public static final fun getAuthentication (Lio/ktor/application/ApplicationCall;)Lio/ktor/auth/AuthenticationContext;
-	public static final synthetic fun principal (Lio/ktor/application/ApplicationCall;)Lio/ktor/auth/Principal;
 }
 
 public final class io/ktor/auth/AuthenticationPipeline : io/ktor/util/pipeline/Pipeline {
@@ -484,12 +482,6 @@ public final class io/ktor/auth/SessionAuthChallenge$Unauthorized : io/ktor/auth
 
 public final class io/ktor/auth/SessionAuthKt {
 	public static final field SessionAuthChallengeKey Ljava/lang/String;
-	public static final synthetic fun session (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;)V
-	public static final synthetic fun session (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lio/ktor/auth/SessionAuthChallenge;)V
-	public static final synthetic fun session (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun session$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;ILjava/lang/Object;)V
-	public static synthetic fun session$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lio/ktor/auth/SessionAuthChallenge;ILjava/lang/Object;)V
-	public static synthetic fun session$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/auth/SessionAuthenticationProvider : io/ktor/auth/AuthenticationProvider {

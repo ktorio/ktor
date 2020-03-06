@@ -492,7 +492,6 @@ public final class io/ktor/features/DataConversion : io/ktor/util/ConversionServ
 
 public final class io/ktor/features/DataConversion$Configuration {
 	public fun <init> ()V
-	public final synthetic fun convert (Lkotlin/jvm/functions/Function1;)V
 	public final fun convert (Lkotlin/reflect/KClass;Lio/ktor/util/ConversionService;)V
 	public final fun convert (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
 	public final fun convert (Lkotlin/reflect/KType;Lio/ktor/util/ConversionService;)V
@@ -749,7 +748,6 @@ public final class io/ktor/features/StatusPages {
 public final class io/ktor/features/StatusPages$Configuration {
 	public fun <init> ()V
 	public final fun exception (Ljava/lang/Class;Lkotlin/jvm/functions/Function3;)V
-	public final synthetic fun exception (Lkotlin/jvm/functions/Function3;)V
 	public final fun getExceptions ()Ljava/util/Map;
 	public final fun getStatuses ()Ljava/util/Map;
 	public final fun status ([Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function3;)V
@@ -890,12 +888,10 @@ public final class io/ktor/http/content/StaticContentResolutionKt {
 }
 
 public final class io/ktor/request/ApplicationReceiveFunctionsKt {
-	public static final synthetic fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveChannel (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveMultipart (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final synthetic fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveParameters (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1461,7 +1457,6 @@ public final class io/ktor/routing/RoutingBuilderKt {
 	public static final fun patch (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun post (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun post (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
-	public static final synthetic fun postTyped (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun put (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun put (Lio/ktor/routing/Route;Lkotlin/jvm/functions/Function3;)Lio/ktor/routing/Route;
 	public static final fun route (Lio/ktor/routing/Route;Ljava/lang/String;Lio/ktor/http/HttpMethod;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
@@ -1644,9 +1639,7 @@ public final class io/ktor/sessions/SessionSerializerReflection : io/ktor/sessio
 }
 
 public final class io/ktor/sessions/SessionSerializerReflectionKt {
-	public static final synthetic fun autoSerializerOf ()Lio/ktor/sessions/SessionSerializerReflection;
 	public static final fun autoSerializerOf (Lkotlin/reflect/KClass;)Lio/ktor/sessions/SessionSerializerReflection;
-	public static final synthetic fun defaultSessionSerializer ()Lio/ktor/sessions/SessionSerializer;
 }
 
 public abstract interface class io/ktor/sessions/SessionStorage {
@@ -1793,20 +1786,12 @@ public final class io/ktor/sessions/Sessions$Feature : io/ktor/application/Appli
 }
 
 public final class io/ktor/sessions/SessionsBuilderKt {
-	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/CookieIdSessionBuilder;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
-	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;)V
-	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
-	public static final synthetic fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/CookieSessionBuilder;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
 	public static final fun cookie (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
-	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;)V
-	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;)V
-	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lio/ktor/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;)V
-	public static final synthetic fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;)V
 	public static final fun header (Lio/ktor/sessions/Sessions$Configuration;Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionStorage;Lio/ktor/sessions/HeaderSessionBuilder;)V
@@ -1815,12 +1800,7 @@ public final class io/ktor/sessions/SessionsBuilderKt {
 }
 
 public final class io/ktor/sessions/SessionsKt {
-	public static final synthetic fun clear (Lio/ktor/sessions/CurrentSession;)V
-	public static final synthetic fun get (Lio/ktor/sessions/CurrentSession;)Ljava/lang/Object;
-	public static final synthetic fun getOrSet (Lio/ktor/sessions/CurrentSession;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
-	public static synthetic fun getOrSet$default (Lio/ktor/sessions/CurrentSession;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun getSessions (Lio/ktor/application/ApplicationCall;)Lio/ktor/sessions/CurrentSession;
-	public static final synthetic fun set (Lio/ktor/sessions/CurrentSession;Ljava/lang/Object;)V
 }
 
 public final class io/ktor/sessions/TooLateSessionSetException : java/lang/IllegalStateException {
@@ -1830,6 +1810,10 @@ public final class io/ktor/sessions/TooLateSessionSetException : java/lang/Illeg
 public abstract interface class io/ktor/util/ConversionService {
 	public abstract fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
 	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
+}
+
+public final class io/ktor/util/ConversionServiceKt {
+	public static final fun fromValues (Lio/ktor/util/ConversionService;Ljava/util/List;Lkotlin/reflect/KType;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/CopyOnWriteHashMap {
@@ -1868,10 +1852,8 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 }
 
 public final class io/ktor/util/ParametersKt {
-	public static final synthetic fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/Object;
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
-	public static final synthetic fun getValue (Lio/ktor/http/Parameters;Ljava/lang/Object;Lkotlin/reflect/KProperty;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/PathsKt {
