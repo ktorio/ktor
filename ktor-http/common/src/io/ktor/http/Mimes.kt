@@ -757,8 +757,8 @@ N/A,application/andrew-inset
 .pwn,application/vnd.3m.post-it-notes
 .pwz,application/vnd.ms-powerpoint
 .pya,audio/vnd.ms-playready.media.pya
-.pyc,applicaiton/x-bytecode.python
-.py,text/x-script.phyton
+.pyc,application/x-bytecode.python
+.py,text/x-script.python
 .pyv,video/vnd.ms-playready.media.pyv
 .qam,application/vnd.epson.quickanime
 .qbo,application/vnd.intu.qbo
