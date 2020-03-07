@@ -558,8 +558,8 @@ private val rawMimes: String
 .mp3,audio/mpeg
 .mp3,audio/mpeg3
 .mp4a,audio/mp4
-.mp4,application/mp4
 .mp4,video/mp4
+.mp4,application/mp4
 .mpa,audio/mpeg
 .mpc,application/vnd.mophun.certificate
 .mpc,application/x-project
@@ -757,8 +757,8 @@ N/A,application/andrew-inset
 .pwn,application/vnd.3m.post-it-notes
 .pwz,application/vnd.ms-powerpoint
 .pya,audio/vnd.ms-playready.media.pya
-.pyc,applicaiton/x-bytecode.python
-.py,text/x-script.phyton
+.pyc,application/x-bytecode.python
+.py,text/x-script.python
 .pyv,video/vnd.ms-playready.media.pyv
 .qam,application/vnd.epson.quickanime
 .qbo,application/vnd.intu.qbo
