@@ -155,7 +155,7 @@ class WeakTimeoutQueue(
 
         init {
             context[Job]?.let { parent ->
-                @UseExperimental(InternalCoroutinesApi::class)
+                @OptIn(InternalCoroutinesApi::class)
                 parent.invokeOnCompletion(onCancelling = true) {
                     if (it != null) {
                         resumeWithException(it)

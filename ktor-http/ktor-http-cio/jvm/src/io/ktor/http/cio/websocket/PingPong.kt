@@ -22,7 +22,9 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
  * It is acting for every client's ping frame and replying with corresponding pong
  */
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
@@ -44,7 +46,9 @@ fun CoroutineScope.ponger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,

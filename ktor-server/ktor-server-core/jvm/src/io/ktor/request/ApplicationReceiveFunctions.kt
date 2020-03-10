@@ -69,7 +69,7 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
  * Receives content for this request.
  * @return instance of [T] received from this call, or `null` if content cannot be transformed to the requested type.
  */
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeOf<T>())
 
 /**
@@ -77,7 +77,7 @@ suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = recei
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receive(typeOf<T>())
 
 /**

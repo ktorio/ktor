@@ -16,7 +16,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
-@UseExperimental(EngineAPI::class)
+@OptIn(EngineAPI::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 class MultipleDispatchOnTimeout {
 

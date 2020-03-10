@@ -22,7 +22,7 @@ import kotlin.test.*
 import kotlin.time.*
 
 @Suppress("ReplaceSingleLineLet")
-@UseExperimental(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class)
 class SessionTest {
     private val cookieName = "_S" + Random.nextInt(100)
 

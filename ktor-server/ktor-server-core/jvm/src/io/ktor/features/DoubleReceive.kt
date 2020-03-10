@@ -44,7 +44,7 @@ class DoubleReceive internal constructor(private val config: Configuration) {
     /**
      * [DoubleReceive] feature's installation object.
      */
-    @UseExperimental(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class)
     companion object Feature : ApplicationFeature<Application, Configuration, DoubleReceive> {
         override val key: AttributeKey<DoubleReceive> = AttributeKey("DoubleReceive")
 
@@ -143,6 +143,6 @@ private val LastReceiveCachedResult = AttributeKey<CachedTransformationResult<*>
  * For example, if a stream is received, one is unable to receive any values after that. However, when received
  * a text, this instance will be replaced with the corresponding cached receive request.
  */
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 private val RequestAlreadyConsumedResult =
     CachedTransformationResult.Failure(typeOf<Any>(), RequestAlreadyConsumedException())

@@ -13,7 +13,7 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
     @Volatile
     private var attachedJob: Job? = null
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job

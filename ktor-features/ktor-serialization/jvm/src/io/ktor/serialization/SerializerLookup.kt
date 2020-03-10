@@ -11,7 +11,9 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-@UseExperimental(ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class)
+@OptIn(
+    ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class
+)
 internal fun serializerByTypeInfo(type: KType): KSerializer<*> {
     val classifierClass = type.classifier as? KClass<*>
     if (classifierClass != null && classifierClass.java.isArray) {
@@ -34,7 +36,7 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 internal fun serializerForSending(value: Any): KSerializer<*> {
     if (value is JsonElement) {
         return JsonElementSerializer
@@ -67,7 +69,7 @@ internal fun serializerForSending(value: Any): KSerializer<*> {
     return value::class.serializer()
 }
 
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 private fun Collection<*>.elementSerializer(): KSerializer<*> {
     @Suppress("DEPRECATION_ERROR")
     val serializers = mapNotNull { value ->

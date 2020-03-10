@@ -17,7 +17,7 @@ import org.junit.Test
 import java.net.*
 import kotlin.test.*
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 class OAuthLocationsTest {
     @Test
     fun testOAuthAtLocation() = withTestApplication {

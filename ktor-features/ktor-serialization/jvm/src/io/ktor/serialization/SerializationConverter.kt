@@ -55,7 +55,7 @@ fun SerializationConverter(): SerializationConverter =
  * }
  * ```
  */
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 class SerializationConverter private constructor(
     private val format: SerialFormat,
     private val defaultCharset: Charset = Charsets.UTF_8

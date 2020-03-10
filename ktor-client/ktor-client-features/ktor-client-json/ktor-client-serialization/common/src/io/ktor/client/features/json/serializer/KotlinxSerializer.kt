@@ -20,7 +20,9 @@ import kotlin.reflect.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-@UseExperimental(ImplicitReflectionSerializer::class, UnstableDefault::class)
+@OptIn(
+    ImplicitReflectionSerializer::class, UnstableDefault::class
+)
 class KotlinxSerializer(
     private val json: Json = Json.plain
 ) : JsonSerializer {
@@ -81,7 +83,7 @@ class KotlinxSerializer(
 }
 
 @Suppress("UNCHECKED_CAST")
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
     is JsonElement -> JsonElementSerializer
     is List<*> -> value.elementSerializer().list
@@ -95,7 +97,7 @@ private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
     else -> value::class.serializer()
 }
 
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 private fun Collection<*>.elementSerializer(): KSerializer<*> {
     @Suppress("DEPRECATION_ERROR")
     val serializers = filterNotNull().map { buildSerializer(it) }.distinctBy { it.descriptor.name }

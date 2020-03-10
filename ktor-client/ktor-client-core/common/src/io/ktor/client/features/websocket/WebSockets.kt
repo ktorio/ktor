@@ -19,7 +19,7 @@ import io.ktor.util.*
  * @property maxFrameSize - max size of single websocket frame.
  */
 @KtorExperimentalAPI
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 class WebSockets(
     val pingInterval: Long = -1L,
     val maxFrameSize: Long = Int.MAX_VALUE.toLong()

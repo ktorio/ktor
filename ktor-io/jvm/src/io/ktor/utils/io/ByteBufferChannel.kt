@@ -62,7 +62,7 @@ internal open class ByteBufferChannel(
 
     internal fun getJoining(): JoiningState? = joining
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         // TODO actually it looks like one-direction attachChild API
         attachedJob?.cancel()

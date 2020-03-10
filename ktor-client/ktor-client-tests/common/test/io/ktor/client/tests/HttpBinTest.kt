@@ -77,7 +77,7 @@ class HttpBinTest : ClientLoader() {
         }
     }
 
-    @UseExperimental(UnstableDefault::class)
+    @OptIn(UnstableDefault::class)
     private fun HttpClientConfig<*>.testConfiguration() {
         install(JsonFeature) {
             serializer = KotlinxSerializer(Json.nonstrict)

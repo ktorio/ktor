@@ -21,7 +21,9 @@ import kotlin.test.*
 class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
-        @UseExperimental(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
+        @OptIn(
+            ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class
+        )
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
             object : CoroutineDispatcher(), Delay by delay {
                 override fun isDispatchNeeded(context: CoroutineContext): Boolean =
@@ -45,7 +47,7 @@ class TestApplicationEngineTest {
                 }
             },
             configure = {
-                @UseExperimental(InternalCoroutinesApi::class)
+                @OptIn(InternalCoroutinesApi::class)
                 dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
                     override fun scheduleResumeAfterDelay(
                         timeMillis: Long,

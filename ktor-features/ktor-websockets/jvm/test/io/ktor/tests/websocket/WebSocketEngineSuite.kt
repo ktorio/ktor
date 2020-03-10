@@ -30,7 +30,9 @@ import java.util.concurrent.CancellationException
 import kotlin.test.*
 import kotlin.test.Ignore
 
-@UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
+)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {

@@ -61,7 +61,7 @@ internal fun CoroutineScope.attachForWritingImpl(
     }
 }
 
-@UseExperimental(ExperimentalIoApi::class)
+@OptIn(ExperimentalIoApi::class)
 internal fun CoroutineScope.attachForWritingDirectImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,

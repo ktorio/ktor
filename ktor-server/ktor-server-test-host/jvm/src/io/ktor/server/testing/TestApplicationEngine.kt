@@ -138,7 +138,7 @@ class TestApplicationEngine(
     /**
      * Make a test request
      */
-    @UseExperimental(InternalAPI::class)
+    @OptIn(InternalAPI::class)
     fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
 
@@ -195,7 +195,7 @@ class TestApplicationEngine(
      * Make a test request that setup a websocket session and invoke [callback] function
      * that does conversation with server
      */
-    @UseExperimental(WebSocketInternalAPI::class)
+    @OptIn(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {},

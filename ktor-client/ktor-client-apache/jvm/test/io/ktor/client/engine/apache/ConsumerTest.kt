@@ -39,7 +39,7 @@ class ConsumerTest : CoroutineScope {
     }
 
     @AfterTest
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     fun cancel() {
         if (job.isCancelled) {
             throw job.getCancellationException()

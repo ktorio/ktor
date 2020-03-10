@@ -50,7 +50,7 @@ internal class TLSClientHandshake(
         TLSCipher.fromSuite(serverHello.cipherSuite, keyMaterial)
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val input: ReceiveChannel<TLSRecord> = produce(CoroutineName("cio-tls-parser")) {
         var useCipher = false
         try {
@@ -93,7 +93,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    @UseExperimental(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
         var useCipher = false
 
@@ -118,7 +118,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val handshakes = produce<TLSHandshake>(CoroutineName("cio-tls-handshake")) {
         while (true) {
             val record = input.receive()

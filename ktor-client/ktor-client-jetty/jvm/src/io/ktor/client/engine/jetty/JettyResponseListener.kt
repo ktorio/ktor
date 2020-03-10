@@ -101,7 +101,9 @@ internal class JettyResponseListener(
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
         while (!backendChannel.isClosedForReceive) {
             val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break

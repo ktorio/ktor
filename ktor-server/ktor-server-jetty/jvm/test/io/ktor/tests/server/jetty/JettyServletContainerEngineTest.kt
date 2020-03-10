@@ -39,7 +39,7 @@ private class Servlet(private val async: Boolean) :
     }
 }
 
-@UseExperimental(EngineAPI::class)
+@OptIn(EngineAPI::class)
 private class JettyServletApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: JettyApplicationEngineBase.Configuration.() -> Unit,

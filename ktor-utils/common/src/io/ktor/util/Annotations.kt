@@ -11,6 +11,11 @@ package io.ktor.util
  *
  * We are strongly recommend to not use such API.
  */
+@Suppress("DEPRECATION")
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This API is internal in ktor and should not be used. It could be removed or changed without notice."
+)
 @Experimental(level = Experimental.Level.ERROR)
 @Target(
     AnnotationTarget.CLASS,
@@ -25,6 +30,12 @@ annotation class InternalAPI
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
  */
+@Suppress("DEPRECATION")
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This API is experimental. " +
+        "It could be removed or changed in future releases or it's behaviour may be different."
+)
 @Experimental(level = Experimental.Level.WARNING)
 @Target(
     AnnotationTarget.CLASS,

@@ -81,7 +81,7 @@ internal class ApacheRequestProducer(
         var buffer = currentBuffer.getAndSet(null) ?: requestChannel.poll()
 
         if (buffer == null) {
-            @UseExperimental(ExperimentalCoroutinesApi::class)
+            @OptIn(ExperimentalCoroutinesApi::class)
             if (requestChannel.isClosedForReceive) {
                 encoder.complete()
                 return

@@ -18,7 +18,7 @@ import java.nio.channels.*
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
-@UseExperimental(InternalAPI::class)
+@OptIn(InternalAPI::class)
 fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: HttpRequestHandler
@@ -87,7 +87,7 @@ fun CoroutineScope.httpServer(
         timeout.process()
     }
 
-    @UseExperimental(InternalCoroutinesApi::class) // TODO it's attach child?
+    @OptIn(InternalCoroutinesApi::class) // TODO it's attach child?
     serverJob.invokeOnCompletion(onCancelling = true) {
         timeout.cancel()
     }

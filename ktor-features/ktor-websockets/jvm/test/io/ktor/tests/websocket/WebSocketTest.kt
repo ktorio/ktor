@@ -24,7 +24,9 @@ import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
+)
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)

@@ -244,7 +244,7 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
  * Represents a Compression encoder
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 interface CompressionEncoder {
     /**
      * May predict compressed length based on the [originalLength] or return `null` if it is impossible.

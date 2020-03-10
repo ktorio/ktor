@@ -50,7 +50,7 @@ inline fun Parameters.getOrFail(name: String): String {
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
     return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
 }

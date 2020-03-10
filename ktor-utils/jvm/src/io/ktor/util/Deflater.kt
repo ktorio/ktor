@@ -59,7 +59,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,

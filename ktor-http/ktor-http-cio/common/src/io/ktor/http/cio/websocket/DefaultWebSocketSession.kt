@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 /**
  * Create [DefaultWebSocketSession] from session.
  */
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 expect fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingInterval: Long,

@@ -121,7 +121,7 @@ class HttpParserTest {
         }
     }
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     private fun test(block: suspend () -> Unit) {
         var completed = false
         val cont = Continuation<Unit>(EmptyCoroutineContext) {

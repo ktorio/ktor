@@ -9,7 +9,7 @@ import io.ktor.network.util.*
 /**
  * Socket options builder
  */
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 sealed class SocketOptions(
     @Suppress("KDocMissingDocumentation") protected val customOptions: MutableMap<Any, Any?>
 ) {

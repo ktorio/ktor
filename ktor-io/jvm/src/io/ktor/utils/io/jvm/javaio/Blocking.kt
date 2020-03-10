@@ -269,7 +269,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
 }
 
 private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {

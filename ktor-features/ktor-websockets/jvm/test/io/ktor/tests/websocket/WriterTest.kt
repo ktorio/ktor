@@ -12,7 +12,9 @@ import org.junit.Test
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
+@OptIn(
+    WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class
+)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {

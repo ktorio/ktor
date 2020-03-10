@@ -632,7 +632,7 @@ abstract class ByteChannelSequentialBase(
 
             return false
         }
-        @UseExperimental(DangerousInternalIoApi::class)
+        @OptIn(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead()
             if (await(size)) readable

@@ -26,7 +26,9 @@ import java.io.*
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(
+    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
+)
 fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,

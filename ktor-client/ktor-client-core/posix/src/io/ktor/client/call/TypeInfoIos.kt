@@ -14,7 +14,7 @@ object IosType : Type
 @PublishedApi
 internal open class TypeBase<T>
 
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 actual inline fun <reified T> typeInfo(): TypeInfo {
     val kClass = T::class
     return TypeInfo(kClass, IosType, typeOf<T>())

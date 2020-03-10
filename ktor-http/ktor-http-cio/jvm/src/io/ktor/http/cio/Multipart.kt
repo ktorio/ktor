@@ -45,7 +45,7 @@ sealed class MultipartEvent {
      * @property body a channel of part content
      */
     class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
-        @UseExperimental(ExperimentalCoroutinesApi::class)
+        @OptIn(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
                 if (t != null) {
@@ -155,7 +155,7 @@ suspend fun parsePartBody(
 /**
  * Skip multipart boundary
  */
-@UseExperimental(ExperimentalIoApi::class)
+@OptIn(ExperimentalIoApi::class)
 @KtorExperimentalAPI
 suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     input.skipDelimiter(boundaryPrefixed)
@@ -263,7 +263,7 @@ fun parseMultipart(
  * Starts a multipart parser coroutine producing multipart events
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {

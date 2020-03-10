@@ -23,7 +23,7 @@ interface AsyncHttpBenchmarkClient {
     fun joinTask(control: Control)
 }
 
-@UseExperimental(InternalAPI::class)
+@OptIn(InternalAPI::class)
 class KtorBenchmarkClient(val engineFactory: HttpClientEngineFactory<*>) : AsyncHttpBenchmarkClient {
     private val loadLimit = Semaphore(1000)
     private var httpClient: HttpClient? = null

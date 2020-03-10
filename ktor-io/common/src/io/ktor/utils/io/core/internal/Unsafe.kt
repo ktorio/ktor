@@ -1,3 +1,5 @@
+@file:Suppress("KDocMissingDocumentation")
+
 package io.ktor.utils.io.core.internal
 
 import io.ktor.utils.io.core.*
@@ -9,6 +11,8 @@ import kotlin.native.concurrent.*
  * Such API could be changed without notice including rename, removal and behaviour change.
  * Also using API marked with this annotation could cause data loss or any other damage.
  */
+@Suppress("DEPRECATION")
+@RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 @Experimental(level = Experimental.Level.ERROR)
 annotation class DangerousInternalIoApi
 
