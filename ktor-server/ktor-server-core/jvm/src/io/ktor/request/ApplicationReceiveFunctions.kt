@@ -126,7 +126,7 @@ suspend fun <T : Any> ApplicationCall.receive(type: KType): T {
  */
 suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
     return try {
-        receive(type)
+        receive<T>(type)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null
@@ -140,7 +140,7 @@ suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KType): T? {
  */
 suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
     return try {
-        receive(type)
+        receive<T>(type)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null
