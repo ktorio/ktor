@@ -21,4 +21,14 @@ class ServerIncomingConnection(
     val output: ByteWriteChannel,
     val remoteAddress: SocketAddress?,
     val localAddress: SocketAddress?
-)
+) {
+    @Deprecated(
+        "Specify localAddress as well.",
+        level = DeprecationLevel.HIDDEN
+    )
+    constructor(
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        remoteAddress: SocketAddress?
+    ) : this(input, output, remoteAddress, null)
+}
