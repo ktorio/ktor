@@ -12,6 +12,7 @@ import platform.Foundation.*
  */
 typealias ChallengeHandler = (
     session: NSURLSession,
+    task: NSURLSessionTask,
     challenge: NSURLAuthenticationChallenge,
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
 ) -> Unit
