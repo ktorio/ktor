@@ -57,7 +57,7 @@ class MultipartTest {
         @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -76,6 +76,9 @@ class MultipartTest {
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+
+        val epilogue = allEvents[6] as MultipartEvent.Epilogue
+        assertEquals("\r\nepilogue", epilogue.body.readText())
     }
 
     @Test
@@ -124,7 +127,7 @@ class MultipartTest {
         @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -251,7 +254,7 @@ class MultipartTest {
         @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -270,6 +273,9 @@ class MultipartTest {
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+
+        val epilogue = allEvents[6] as MultipartEvent.Epilogue
+        assertEquals("\r\nepilogue", epilogue.body.readText())
     }
 
     @Test
