@@ -99,12 +99,13 @@ internal class IosResponseReader(
 
     override fun URLSession(
         session: NSURLSession,
+        task: NSURLSessionTask,
         didReceiveChallenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
         val handler = config.challengeHandler
         if (handler != null) {
-            handler(session, didReceiveChallenge, completionHandler)
+            handler(session, task, didReceiveChallenge, completionHandler)
         } else {
             completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, didReceiveChallenge.proposedCredential)
         }
