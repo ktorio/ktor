@@ -15,7 +15,8 @@ import kotlin.coroutines.*
  * @property upgraded deferred should be completed on upgrade request
  * @property input channel connected to request body bytes stream
  * @property output channel connected to response body
- * @property remoteAddress of a client (if known)
+ * @property remoteAddress of the client (if known)
+ * @property localAddress on which the client was accepted (if known)
  */
 @KtorExperimentalAPI
 class ServerRequestScope internal constructor(
@@ -23,6 +24,7 @@ class ServerRequestScope internal constructor(
     val input: ByteReadChannel,
     val output: ByteWriteChannel,
     val remoteAddress: SocketAddress?,
+    val localAddress: SocketAddress?,
     val upgraded: CompletableDeferred<Boolean>?
 ) : CoroutineScope {
     /**
@@ -32,6 +34,6 @@ class ServerRequestScope internal constructor(
     fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(
             this.coroutineContext + coroutineContext,
-            input, output, remoteAddress, upgraded
+            input, output, remoteAddress, localAddress, upgraded
         )
 }
