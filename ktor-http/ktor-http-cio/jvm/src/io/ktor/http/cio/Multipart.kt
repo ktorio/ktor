@@ -70,8 +70,10 @@ sealed class MultipartEvent {
 }
 
 @Suppress("KDocMissingDocumentation", "unused")
-@Deprecated("Simply copy required number of bytes from input to output instead",
-    level = DeprecationLevel.HIDDEN)
+@Deprecated(
+    "Simply copy required number of bytes from input to output instead",
+    level = DeprecationLevel.HIDDEN
+)
 suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
     input.copyTo(out, length)
@@ -81,8 +83,21 @@ suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: 
  * Parse a multipart preamble
  * @return number of bytes copied
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use parseMultipart instead.")
 suspend fun parsePreamble(
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    output: BytePacketBuilder,
+    limit: Long = Long.MAX_VALUE
+): Long {
+    return parsePreambleImpl(boundaryPrefixed, input, output, limit)
+}
+
+/**
+ * Parse a multipart preamble
+ * @return number of bytes copied
+ */
+private suspend fun parsePreambleImpl(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel,
     output: BytePacketBuilder,
@@ -100,14 +115,14 @@ suspend fun parsePreamble(
 /**
  * Parse multipart part headers and body. Body bytes will be copied to [output] but up to [limit] bytes
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use parseMultipart instead.")
 suspend fun parsePart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel,
     limit: Long = Long.MAX_VALUE
 ): Pair<HttpHeadersMap, Long> {
-    val headers = parsePartHeaders(input)
+    val headers = parsePartHeadersImpl(input)
     try {
-        val size = parsePartBody(boundaryPrefixed, input, output, headers, limit)
+        val size = parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
         return Pair(headers, size)
     } catch (t: Throwable) {
         headers.release()
@@ -118,8 +133,15 @@ suspend fun parsePart(
 /**
  * Parse multipart part headers
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use parseMultipart instead.")
 suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
+    return parsePartHeadersImpl(input)
+}
+
+/**
+ * Parse multipart part headers
+ */
+private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharArrayBuilder()
 
     try {
@@ -134,8 +156,19 @@ suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
 /**
  * Parse multipart part body copying them to [output] channel but up to [limit] bytes
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use parseMultipart instead.")
 suspend fun parsePartBody(
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel, output: ByteWriteChannel,
+    headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
+): Long {
+    return parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
+}
+
+/**
+ * Parse multipart part body copying them to [output] channel but up to [limit] bytes
+ */
+private suspend fun parsePartBodyImpl(
     boundaryPrefixed: ByteBuffer,
     input: ByteReadChannel, output: ByteWriteChannel,
     headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
@@ -156,11 +189,19 @@ suspend fun parsePartBody(
  * Skip multipart boundary
  */
 @OptIn(ExperimentalIoApi::class)
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use parseMultipart instead.")
 suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
+    return skipBoundary(boundaryPrefixed, input)
+}
+
+/**
+ * Skip multipart boundary
+ */
+private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
     input.skipDelimiter(boundaryPrefixed)
 
     var result = false
+    @Suppress("DEPRECATION")
     input.lookAheadSuspend {
         awaitAtLeast(1)
         val buffer = request(0, 1)
@@ -190,7 +231,7 @@ suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Bool
 /**
  * Check if we have multipart content
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed.")
 fun expectMultipart(headers: HttpHeadersMap): Boolean {
     return headers["Content-Type"]?.startsWith("multipart/") ?: false
 }
@@ -242,6 +283,7 @@ fun CoroutineScope.parseMultipart(
 
     // TODO fail if contentLength = 0 and content subtype is wrong
 
+    @Suppress("DEPRECATION")
     return parseMultipart(boundaryBytes, input, contentLength)
 }
 
@@ -256,14 +298,14 @@ fun parseMultipart(
     input: ByteReadChannel,
     totalLength: Long?
 ): ReceiveChannel<MultipartEvent> {
+    @Suppress("DEPRECATION")
     return CoroutineScope(coroutineContext).parseMultipart(boundaryPrefixed, input, totalLength)
 }
 
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@KtorExperimentalAPI
-@OptIn(ExperimentalCoroutinesApi::class)
+@Deprecated("This is going to be removed. Use parseMultipart(contentType) instead.")
 fun CoroutineScope.parseMultipart(
     boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
@@ -274,13 +316,13 @@ fun CoroutineScope.parseMultipart(
     }
 
     val preamble = BytePacketBuilder()
-    parsePreamble(firstBoundary, input, preamble, 8192)
+    parsePreambleImpl(firstBoundary, input, preamble, 8192)
 
     if (preamble.size > 0) {
-        channel.send(MultipartEvent.Preamble(preamble.build()))
+        send(MultipartEvent.Preamble(preamble.build()))
     }
 
-    if (boundary(firstBoundary, input)) {
+    if (skipBoundary(firstBoundary, input)) {
         return@produce
     }
 
@@ -298,16 +340,16 @@ fun CoroutineScope.parseMultipart(
         val body = ByteChannel()
         val headers = CompletableDeferred<HttpHeadersMap>()
         val part = MultipartEvent.MultipartPart(headers, body)
-        channel.send(part)
+        send(part)
 
         var hh: HttpHeadersMap? = null
         try {
-            hh = parsePartHeaders(input)
+            hh = parsePartHeadersImpl(input)
             if (!headers.complete(hh)) {
                 hh.release()
                 throw CancellationException("Multipart processing has been cancelled")
             }
-            parsePartBody(boundaryPrefixed, input, body, hh)
+            parsePartBodyImpl(boundaryPrefixed, input, body, hh)
         } catch (t: Throwable) {
             if (headers.completeExceptionally(t)) {
                 hh?.release()
@@ -317,7 +359,7 @@ fun CoroutineScope.parseMultipart(
         }
 
         body.close()
-    } while (!boundary(boundaryPrefixed, input))
+    } while (!skipBoundary(boundaryPrefixed, input))
 
     if (totalLength != null) {
         @Suppress("DEPRECATION")
@@ -325,10 +367,13 @@ fun CoroutineScope.parseMultipart(
         val size = totalLength - consumedExceptEpilogue
         if (size > Int.MAX_VALUE) throw IOException("Failed to parse multipart: prologue is too long")
         if (size > 0) {
-            channel.send(MultipartEvent.Epilogue(input.readPacket(size.toInt())))
+            send(MultipartEvent.Epilogue(input.readPacket(size.toInt())))
         }
     } else {
-        // TODO epilogue size?
+        val epilogueContent = input.readRemaining()
+        if (epilogueContent.isNotEmpty) {
+            send(MultipartEvent.Epilogue(epilogueContent))
+        }
     }
 }
 
@@ -370,7 +415,7 @@ private fun findBoundary(contentType: CharSequence): Int {
     var state = 0 // 0 header value, 1 param name, 2 param value unquoted, 3 param value quoted, 4 escaped
     var paramNameCount = 0
 
-    for (i in 0 until contentType.length) {
+    for (i in contentType.indices) {
         val ch = contentType[i]
 
         when (state) {
@@ -378,8 +423,6 @@ private fun findBoundary(contentType: CharSequence): Int {
                 if (ch == ';') {
                     state = 1
                     paramNameCount = 0
-                } else if (ch == ',') {
-                    // do nothing
                 }
             }
             1 -> {
@@ -399,13 +442,13 @@ private fun findBoundary(contentType: CharSequence): Int {
                 }
             }
             2 -> {
-                if (ch == '"') {
-                    state = 3
-                } else if (ch == ',') {
-                    state = 0
-                } else if (ch == ';') {
-                    state = 1
-                    paramNameCount = 0
+                when (ch) {
+                    '"' -> state = 3
+                    ',' -> state = 0
+                    ';' -> {
+                        state = 1
+                        paramNameCount = 0
+                    }
                 }
             }
             3 -> {
@@ -427,6 +470,7 @@ private fun findBoundary(contentType: CharSequence): Int {
 
 /**
  * Parse multipart boundary encoded in [contentType] header value
+ * @return a buffer containing CRLF, prefix '--' and boundary bytes
  */
 @KtorExperimentalAPI
 fun parseBoundary(contentType: CharSequence): ByteBuffer {
