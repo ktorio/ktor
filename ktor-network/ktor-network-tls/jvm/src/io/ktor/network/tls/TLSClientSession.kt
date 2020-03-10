@@ -42,7 +42,7 @@ private class TLSSocket(
             appDataOutputLoop(this.channel)
         }
 
-    @UseExperimental(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
             input.consumeEach { record ->

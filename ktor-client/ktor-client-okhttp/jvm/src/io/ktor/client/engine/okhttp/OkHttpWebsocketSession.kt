@@ -12,7 +12,7 @@ import okhttp3.*
 import okio.*
 import kotlin.coroutines.*
 
-@UseExperimental(ObsoleteCoroutinesApi::class)
+@OptIn(ObsoleteCoroutinesApi::class)
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
     engineRequest: Request,

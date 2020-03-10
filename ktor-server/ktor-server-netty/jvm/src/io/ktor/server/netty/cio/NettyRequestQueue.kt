@@ -41,7 +41,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {

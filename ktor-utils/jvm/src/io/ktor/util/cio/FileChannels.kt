@@ -23,7 +23,7 @@ import kotlin.coroutines.*
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalIoApi::class)
+@OptIn(ExperimentalIoApi::class)
 fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,

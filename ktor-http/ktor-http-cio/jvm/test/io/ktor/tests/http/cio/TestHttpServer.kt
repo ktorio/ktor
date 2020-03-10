@@ -53,7 +53,7 @@ internal fun testHttpServer(
     j.invokeOnCompletion {
         deferred.invokeOnCompletion { t ->
             if (t == null) {
-                @UseExperimental(ExperimentalCoroutinesApi::class)
+                @OptIn(ExperimentalCoroutinesApi::class)
                 deferred.getCompleted().close()
             }
         }

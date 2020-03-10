@@ -15,13 +15,13 @@ import org.junit.Test
 import java.math.*
 import kotlin.test.*
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(Locations)
     test()
 }
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
     @Location("/") class index
 

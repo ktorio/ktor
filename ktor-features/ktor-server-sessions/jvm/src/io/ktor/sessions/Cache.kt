@@ -27,7 +27,7 @@ internal interface CacheReference<out K> {
     val key: K
 }
 
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 

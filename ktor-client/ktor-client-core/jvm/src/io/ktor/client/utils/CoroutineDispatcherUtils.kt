@@ -11,7 +11,7 @@ import kotlinx.coroutines.scheduling.*
 /**
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
  */
-@UseExperimental(InternalCoroutinesApi::class)
+@OptIn(InternalCoroutinesApi::class)
 @InternalAPI
 fun Dispatchers.clientDispatcher(
     threadCount: Int,

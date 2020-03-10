@@ -68,7 +68,7 @@ internal class KtorCallContextElement(val callContext: CoroutineContext) : Corou
  * Attach [callJob] to user job using the following logic: when user job completes with exception, [callJob] completes
  * with exception too.
  */
-@UseExperimental(InternalCoroutinesApi::class)
+@OptIn(InternalCoroutinesApi::class)
 internal suspend inline fun attachToUserJob(callJob: Job) {
     val userJob = coroutineContext[Job] ?: return
 

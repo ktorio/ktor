@@ -17,7 +17,7 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 internal abstract class LocationsImpl(
     protected val application: Application,
     protected val routeService: LocationRouteService
@@ -39,7 +39,7 @@ internal abstract class LocationsImpl(
     abstract fun href(location: Any, builder: URLBuilder)
 }
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 internal class BackwardCompatibleImpl(
     application: Application,
     routeService: LocationRouteService

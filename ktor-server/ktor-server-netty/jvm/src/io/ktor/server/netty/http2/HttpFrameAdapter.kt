@@ -10,7 +10,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {
     try {
         while (!isClosedForReceive) {

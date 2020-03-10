@@ -8,5 +8,10 @@ package io.ktor.server.engine
  * API marked with this annotation is not intended to be used by end users
  * unless a custom server engine implementation is required
  */
-@Experimental(Experimental.Level.WARNING)
+@Suppress("DEPRECATION")
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This is not general purpose API and should be only used in custom server engine implementations."
+)
+@Experimental(Experimental.Level.ERROR)
 annotation class EngineAPI

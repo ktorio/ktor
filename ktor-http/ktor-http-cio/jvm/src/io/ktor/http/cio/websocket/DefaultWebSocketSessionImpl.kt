@@ -88,7 +88,9 @@ class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
@@ -142,7 +144,9 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {

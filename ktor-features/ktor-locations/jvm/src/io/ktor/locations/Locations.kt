@@ -24,7 +24,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Creates Locations service extracting path information from @Location annotation
      */
-    @UseExperimental(KtorExperimentalLocationsAPI::class)
+    @OptIn(KtorExperimentalLocationsAPI::class)
     constructor(application: Application) : this(application, LocationAttributeRouteService())
 
     private val implementation: LocationsImpl = BackwardCompatibleImpl(application, routeService)
@@ -80,7 +80,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
         implementation.href(location, builder)
     }
 
-    @UseExperimental(KtorExperimentalLocationsAPI::class)
+    @OptIn(KtorExperimentalLocationsAPI::class)
     private fun createEntry(parent: Route, info: LocationInfo): Route {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         return hierarchyEntry.createRouteFromPath(info.path)
@@ -93,7 +93,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 
-        @UseExperimental(KtorExperimentalLocationsAPI::class)
+        @OptIn(KtorExperimentalLocationsAPI::class)
         return info.queryParameters.fold(pathRoute) { entry, query ->
             val selector = if (query.isOptional)
                 OptionalParameterRouteSelector(query.name)
@@ -120,7 +120,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
-        @UseExperimental(KtorExperimentalLocationsAPI::class)
+        @OptIn(KtorExperimentalLocationsAPI::class)
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Locations {
             val configuration = Configuration().apply(configure)
             val routeService = configuration.routeService ?: LocationAttributeRouteService()

@@ -146,7 +146,7 @@ class FormBuilder internal constructor() {
 /**
  * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
@@ -172,7 +172,7 @@ class InputProvider(val size: Long? = null, val block: () -> Input)
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
  */
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 fun FormBuilder.append(
     key: String,
     filename: String,

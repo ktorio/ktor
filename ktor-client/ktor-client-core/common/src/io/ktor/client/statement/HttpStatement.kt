@@ -65,7 +65,7 @@ class HttpStatement(
      *
      * Note if T is a streaming type, you should manage how to close it manually.
      */
-    @UseExperimental(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class)
     suspend inline fun <reified T> receive(): T = when (T::class) {
         HttpStatement::class -> this as T
         HttpResponse::class -> execute() as T

@@ -3,7 +3,7 @@
  */
 
 @file:Suppress("unused")
-@file:UseExperimental(KtorExperimentalLocationsAPI::class)
+@file:OptIn(KtorExperimentalLocationsAPI::class)
 
 package io.ktor.locations
 
@@ -17,6 +17,11 @@ import kotlin.reflect.*
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
  */
+@Suppress("DEPRECATION")
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This locations API is experimental. It could be changed or removed in future releases."
+)
 @Experimental(level = Experimental.Level.WARNING)
 annotation class KtorExperimentalLocationsAPI
 

@@ -26,7 +26,9 @@ internal class RequestBodyHandler(
 
     override val coroutineContext: CoroutineContext get() = handlerJob
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private val job = launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
         var upgraded = false
@@ -126,7 +128,7 @@ internal class RequestBodyHandler(
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun consumeAndReleaseQueue() {
         while (!queue.isEmpty) {
             val e = try {

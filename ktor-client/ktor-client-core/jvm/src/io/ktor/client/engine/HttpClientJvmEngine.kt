@@ -24,11 +24,11 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
         }.asCoroutineDispatcher()
     }
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override val dispatcher: CoroutineDispatcher
         get() = _dispatcher
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override val coroutineContext: CoroutineContext by lazy {
         _dispatcher + clientContext + CoroutineName("$engineName-context")
     }
@@ -36,7 +36,7 @@ abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     /**
      * Create [CoroutineContext] to execute call.
      */
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     protected suspend fun createCallContext(): CoroutineContext {
         val callJob = Job(clientContext[Job])
         val callContext = coroutineContext + callJob

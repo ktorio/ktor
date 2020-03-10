@@ -55,7 +55,9 @@ val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
     "This is going to become internal. " +
         "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts."
 )
-@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(
+    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
+)
 fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,

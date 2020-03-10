@@ -20,7 +20,9 @@ import kotlin.coroutines.*
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,

@@ -55,7 +55,7 @@ class CoroutineCancellationBenchmark {
     }
 
     @Benchmark
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     fun customCancellationHandler(): Unit = runBlocking {
         var continuation: Continuation<Unit>? = null
 

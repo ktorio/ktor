@@ -11,7 +11,7 @@ actual interface Type
 
 object JsType : Type
 
-@UseExperimental(ExperimentalStdlibApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 actual inline fun <reified T> typeInfo(): TypeInfo = try {
     TypeInfo(T::class, JsType, typeOf<T>())
 } catch (_: dynamic) {

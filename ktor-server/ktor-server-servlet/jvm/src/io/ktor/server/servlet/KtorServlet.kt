@@ -22,7 +22,7 @@ import kotlin.coroutines.*
  * A base class for servlet engine implementations
  */
 @EngineAPI
-@UseExperimental(InternalAPI::class)
+@OptIn(InternalAPI::class)
 abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 

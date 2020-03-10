@@ -13,7 +13,7 @@ import io.ktor.http.cio.websocket.*
 /**
  * Open [DefaultClientWebSocketSession].
  */
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 suspend fun HttpClient.webSocketSession(block: HttpRequestBuilder.() -> Unit): DefaultClientWebSocketSession = request {
     url {
         protocol = URLProtocol.WS
@@ -25,7 +25,7 @@ suspend fun HttpClient.webSocketSession(block: HttpRequestBuilder.() -> Unit): D
 /**
  * Open [DefaultClientWebSocketSession].
  */
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: HttpRequestBuilder.() -> Unit = {}

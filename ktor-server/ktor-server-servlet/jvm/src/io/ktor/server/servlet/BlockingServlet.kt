@@ -80,7 +80,7 @@ internal class BlockingServletApplicationResponse(
 /**
  * Never do like this! Very special corner-case.
  */
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean = true
 

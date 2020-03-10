@@ -10,7 +10,7 @@ import org.junit.Test
 import java.nio.*
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 class ParserTest {
     @Test
     fun testParserSimpleFrame() {

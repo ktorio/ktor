@@ -42,7 +42,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 ) : CoroutineScope {
     private val testJob = Job()
 
-    @UseExperimental(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class)
     protected val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
 
     protected val isUnderDebugger: Boolean =
@@ -230,7 +230,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         return try {
             runBlocking {
                 starting.join()
-                @UseExperimental(ExperimentalCoroutinesApi::class)
+                @OptIn(ExperimentalCoroutinesApi::class)
                 starting.getCompletionExceptionOrNull()?.let { listOf(it) } ?: emptyList()
             }
         } catch (t: Throwable) { // InterruptedException?

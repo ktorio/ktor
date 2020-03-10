@@ -37,10 +37,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         environment.connectors.size + 1 // number of selectors + 1
     )
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val stopRequest: CompletableJob = Job()
@@ -104,7 +104,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         try {
             shutdownServer(gracePeriodMillis, timeoutMillis)
         } finally {
-            @UseExperimental(InternalCoroutinesApi::class)
+            @OptIn(InternalCoroutinesApi::class)
             GlobalScope.launch(engineDispatcher) {
                 engineDispatcher.close()
             }
