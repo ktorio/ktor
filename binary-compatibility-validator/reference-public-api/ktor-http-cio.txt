@@ -483,8 +483,10 @@ public final class io/ktor/http/cio/websocket/WebSocketWriter : kotlinx/coroutin
 }
 
 public final class io/ktor/server/cio/backend/ServerIncomingConnection {
-	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;)V
+	public fun <init> (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Ljava/net/SocketAddress;Ljava/net/SocketAddress;)V
 	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
 	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
 	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
 }
@@ -496,6 +498,7 @@ public final class io/ktor/server/cio/backend/ServerPipelineKt {
 public final class io/ktor/server/cio/backend/ServerRequestScope : kotlinx/coroutines/CoroutineScope {
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getLocalAddress ()Ljava/net/SocketAddress;
 	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
 	public final fun getRemoteAddress ()Ljava/net/SocketAddress;
 	public final fun getUpgraded ()Lkotlinx/coroutines/CompletableDeferred;
