@@ -13,10 +13,12 @@ import java.net.*
  * @property input channel connected to incoming bytes end
  * @property output channel connected to outgoing bytes end
  * @property remoteAddress of the client (optional)
+ * @property localAddress on which the client was accepted (optional)
  */
 @InternalAPI
 class ServerIncomingConnection(
     val input: ByteReadChannel,
     val output: ByteWriteChannel,
-    val remoteAddress: SocketAddress?
+    val remoteAddress: SocketAddress?,
+    val localAddress: SocketAddress?
 )

@@ -143,14 +143,13 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        val localAddress = CompletableDeferred<SocketAddress>()
         val server = scope.httpServer(settings) { request ->
             withContext(userDispatcher) {
                 val call = CIOApplicationCall(
                     application, request, input, output,
                     engineDispatcher, userDispatcher, upgraded,
                     remoteAddress,
-                    localAddress.await()
+                    localAddress
                 )
 
                 try {
@@ -158,14 +157,6 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 } finally {
                     call.release()
                 }
-            }
-        }
-
-        server.serverSocket.invokeOnCompletion { cause ->
-            if (cause != null) {
-                localAddress.completeExceptionally(cause)
-            } else {
-                localAddress.complete(server.serverSocket.getCompleted().localAddress)
             }
         }
 

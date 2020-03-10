@@ -65,7 +65,7 @@ fun CoroutineScope.startConnectionPipeline(
         input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
     ) -> Unit
 ): Job {
-    val pipeline = ServerIncomingConnection(input, output, null)
+    val pipeline = ServerIncomingConnection(input, output, null, null)
     return startServerConnectionPipeline(pipeline, timeout) { request ->
         handler(this, request, input, output, upgraded)
     }

@@ -117,7 +117,8 @@ private suspend fun client(
         ServerIncomingConnection(
             incoming,
             outgoing,
-            socket.remoteAddress
+            socket.remoteAddress,
+            socket.localAddress
         ),
         timeouts
     ) { request: Request ->

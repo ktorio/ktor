@@ -140,7 +140,7 @@ fun CoroutineScope.startServerConnectionPipeline(
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 val handlerScope = ServerRequestScope(
                     coroutineContext,
-                    requestBody, response, connection.remoteAddress, upgraded
+                    requestBody, response, connection.remoteAddress, connection.localAddress, upgraded
                 )
 
                 try {
