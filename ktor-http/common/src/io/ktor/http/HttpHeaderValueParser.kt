@@ -68,7 +68,6 @@ fun parseHeaderValue(text: String?): List<HeaderValue> {
  * Parse header value respecting multi-values
  * @param parametersOnly if no header value itself, only parameters
  */
-@KtorExperimentalAPI
 fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
     if (text == null)
         return emptyList()

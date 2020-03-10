@@ -26,7 +26,8 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     suspend fun execute(context: TContext, subject: TSubject): TSubject =
         createContext(context, subject).execute(subject)
 
-    internal fun createContext(
+    @Suppress("DEPRECATION")
+    private fun createContext(
         context: TContext,
         subject: TSubject
     ): PipelineExecutor<TSubject> =

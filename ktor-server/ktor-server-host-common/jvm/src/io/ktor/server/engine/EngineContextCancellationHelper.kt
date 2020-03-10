@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
  * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
  */
 @EngineAPI
-@KtorExperimentalAPI
 fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
         stop(1000, 5000)

@@ -136,5 +136,4 @@ operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timestamp - mi
 /**
  * Truncate to seconds by discarding sub-second part
  */
-@KtorExperimentalAPI
 fun GMTDate.truncateToSeconds(): GMTDate = GMTDate(seconds, minutes, hours, dayOfMonth, month, year)

@@ -23,7 +23,6 @@ import java.time.*
  * This feature listens to requests starting with the specified path prefix and responding with static content
  * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
  */
-@KtorExperimentalAPI
 class Webjars internal constructor(private val webjarsPrefix: String) {
     init {
         require(webjarsPrefix.startsWith("/"))
@@ -51,7 +50,6 @@ class Webjars internal constructor(private val webjarsPrefix: String) {
     /**
      * Feature configuration.
      */
-    @KtorExperimentalAPI
     class Configuration {
         /**
          * Path prefix at which the installed feature responds.
@@ -104,7 +102,6 @@ class Webjars internal constructor(private val webjarsPrefix: String) {
     /**
      * Feature installation companion.
      */
-    @KtorExperimentalAPI
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Webjars> {
 
         override val key: AttributeKey<Webjars> = AttributeKey("Webjars")

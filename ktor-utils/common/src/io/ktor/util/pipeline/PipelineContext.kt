@@ -43,7 +43,7 @@ interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScope {
 /**
  * Represent an object that launches pipeline execution
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
 interface PipelineExecutor<R> {
     /**
      * Start pipeline execution or fail if already running and not yet completed.
@@ -55,12 +55,12 @@ interface PipelineExecutor<R> {
 /**
  * Build a pipeline of the specified [interceptors] and create executor
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
 fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
     context: TContext,
     interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject
-): PipelineExecutor<TSubject> {
+): @Suppress("DEPRECATION") PipelineExecutor<TSubject> {
     return SuspendFunctionGun(subject, context, interceptors)
 }
 
@@ -68,7 +68,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     override val context: TContext,
     private val blocks: List<PipelineInterceptor<TSubject, TContext>>
-) : PipelineContext<TSubject, TContext>, PipelineExecutor<TSubject>, CoroutineScope {
+) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject>, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 

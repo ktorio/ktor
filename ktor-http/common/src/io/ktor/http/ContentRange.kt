@@ -9,7 +9,6 @@ import io.ktor.util.*
 /**
  * Format `Content-Range` header value
  */
-@KtorExperimentalAPI
 fun contentRangeHeaderValue(
     range: LongRange?,
     fullLength: Long? = null,
@@ -20,7 +19,6 @@ fun contentRangeHeaderValue(
 /**
  * Format `Content-Range` header value
  */
-@KtorExperimentalAPI
 fun contentRangeHeaderValue(
     range: LongRange?,
     fullLength: Long? = null,

@@ -16,7 +16,6 @@ import io.ktor.util.*
  * @property method request method
  * @property versions request versions (last modification date, etag and so on)
  */
-@KtorExperimentalAPI
 interface ResponsePushBuilder {
     val url: URLBuilder
     val headers: HeadersBuilder

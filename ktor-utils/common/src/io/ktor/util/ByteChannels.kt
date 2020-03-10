@@ -75,5 +75,4 @@ fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel
 /**
  * Read channel to byte array.
  */
-@KtorExperimentalAPI
 suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()

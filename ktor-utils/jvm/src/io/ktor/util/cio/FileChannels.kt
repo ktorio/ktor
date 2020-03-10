@@ -22,7 +22,6 @@ import kotlin.coroutines.*
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-@KtorExperimentalAPI
 @OptIn(ExperimentalIoApi::class)
 fun File.readChannel(
     start: Long = 0,
@@ -42,6 +41,7 @@ fun File.readChannel(
             }
 
             if (endInclusive == -1L) {
+                @Suppress("DEPRECATION")
                 channel.writeSuspendSession {
                     while (true) {
                         val buffer = request(1)
@@ -101,10 +101,10 @@ fun File.writeChannel(
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-@KtorExperimentalAPI
 fun File.writeChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteWriteChannel = GlobalScope.reader(CoroutineName("file-writer") + coroutineContext, autoFlush = true) {
+    @Suppress("BlockingMethodInNonBlockingContext")
     RandomAccessFile(this@writeChannel, "rw").use { file ->
         val copied = channel.copyTo(file.channel)
         file.setLength(copied) // truncate tail that could remain from the previously written data

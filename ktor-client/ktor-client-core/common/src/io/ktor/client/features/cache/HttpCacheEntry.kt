@@ -85,7 +85,6 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
     return GMTDate()
 }
 
-@KtorExperimentalAPI
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
     val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
     val isStale = GMTDate() > expires

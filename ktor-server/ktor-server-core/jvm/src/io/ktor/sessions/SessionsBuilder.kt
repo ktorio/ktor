@@ -261,7 +261,6 @@ class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead
     /**
      * Register session ID generation function
      */
-    @KtorExperimentalAPI
     fun identity(f: () -> String) {
         sessionIdProvider = f
     }

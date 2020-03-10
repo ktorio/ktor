@@ -64,7 +64,6 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
  * Map [cause] to the corresponding status code or `null` if no default exception mapping for this [cause] type
  */
 @EngineAPI
-@KtorExperimentalAPI
 fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     return when (cause) {
         is BadRequestException -> HttpStatusCode.BadRequest

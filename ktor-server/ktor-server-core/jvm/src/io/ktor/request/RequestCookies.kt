@@ -19,7 +19,6 @@ open class RequestCookies(protected val request: ApplicationRequest) {
      * RAW cookie values, not decoded so could have percent encoded values, quotes, escape characters and so on.
      * It is recommended to use [get] instead
      */
-    @KtorExperimentalAPI
     val rawCookies: Map<String, String> by lazy { fetchCookies() }
 
     /**

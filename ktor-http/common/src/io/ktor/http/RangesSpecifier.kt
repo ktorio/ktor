@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 /**
  * Range specifier for partial content requests (RFC 2616 sec 14.35.1)
  * @property unit range units, usually bytes
@@ -22,8 +20,7 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
     /**
      * Verify ranges
      */
-    @KtorExperimentalAPI
-    fun isValid(rangeUnitPredicate: (String) -> Boolean = { it == RangeUnits.Bytes.unitToken }) =
+    fun isValid(rangeUnitPredicate: (String) -> Boolean = { it == RangeUnits.Bytes.unitToken }): Boolean =
         rangeUnitPredicate(unit) && ranges.none {
             when (it) {
                 is ContentRange.Bounded -> it.from < 0 || it.to < it.from

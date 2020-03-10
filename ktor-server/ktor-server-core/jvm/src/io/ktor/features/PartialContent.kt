@@ -258,7 +258,7 @@ class PartialContent(private val maxRangeCount: Int) {
                     boundary
                 )
 
-            override fun readFrom() = writeMultipleRanges(
+            override fun readFrom() = writeMultipleRangesImpl(
                 { range -> original.readFrom(range) }, ranges, length, boundary, contentType.toString()
             )
 

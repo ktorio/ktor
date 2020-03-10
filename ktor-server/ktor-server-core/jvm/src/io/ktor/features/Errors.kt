@@ -16,7 +16,6 @@ import kotlin.reflect.full.*
  * Throwing this exception in a handler will lead to 400 Bad Request response
  * unless a custom [io.ktor.features.StatusPages] handler registered.
  */
-@KtorExperimentalAPI
 open class BadRequestException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
@@ -24,7 +23,6 @@ open class BadRequestException(message: String, cause: Throwable? = null) : Exce
  * HTTP status 404 Not found will be replied when this exception is thrown and not caught.
  * 404 status page could be configured by registering a custom [io.ktor.features.StatusPages] handler.
  */
-@KtorExperimentalAPI
 class NotFoundException(message: String? = "Resource not found") : Exception(message)
 
 /**
@@ -63,7 +61,6 @@ class ParameterConversionException(val parameterName: String, val type: String, 
  * It is not defined which status code will be replied when an exception of this type is thrown and not caught.
  * Depending on child type it could be 4xx or 5xx status code. By default it will be 500 Internal Server Error.
  */
-@KtorExperimentalAPI
 abstract class ContentTransformationException(message: String) : Exception(message)
 
 internal class CannotTransformContentToTypeException(

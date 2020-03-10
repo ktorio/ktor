@@ -214,7 +214,6 @@ interface ContentConverter {
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
  */
-@KtorExperimentalAPI
 fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset

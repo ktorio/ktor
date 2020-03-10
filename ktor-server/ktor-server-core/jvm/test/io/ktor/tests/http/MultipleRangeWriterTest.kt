@@ -19,7 +19,7 @@ class ByteRangesChannelTest : CoroutineScope {
     @Test
     fun testAscendingNoLength() {
         val source = asyncOf("0123456789abcdef")
-        val result = writeMultipleRanges(source, listOf(1L .. 3L, 5L..6L), null, "boundary-1", "text/plain")
+        val result = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L..6L), null, "boundary-1", "text/plain")
 
         assertEquals("""
         --boundary-1
@@ -40,7 +40,7 @@ class ByteRangesChannelTest : CoroutineScope {
     @Test
     fun testAscendingWithLength() {
         val source = asyncOf("0123456789abcdef")
-        val ranges = writeMultipleRanges(source, listOf(1L .. 3L, 5L..6L), 99L, "boundary-1", "text/plain")
+        val ranges = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L..6L), 99L, "boundary-1", "text/plain")
 
         assertEquals("""
         --boundary-1
@@ -61,7 +61,7 @@ class ByteRangesChannelTest : CoroutineScope {
     @Test
     fun testNonAscendingNoLength() {
         val source = asyncOf("0123456789abcdef")
-        val ranges = writeMultipleRanges(source, listOf(1L .. 3L, 5L .. 6L, 0L .. 1L), null, "boundary-1", "text/plain")
+        val ranges = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L .. 6L, 0L .. 1L), null, "boundary-1", "text/plain")
 
         assertEquals("""
         --boundary-1

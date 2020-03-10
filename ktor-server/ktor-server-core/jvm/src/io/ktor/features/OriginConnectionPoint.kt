@@ -169,11 +169,11 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
 /**
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
  */
+@Suppress("MemberVisibilityCanBePrivate")
 object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     /**
      * A key for application call attribute that is used to cache parsed header values
      */
-    @KtorExperimentalAPI
     val ForwardedParsedKey: AttributeKey<List<ForwardedHeaderValue>> = AttributeKey("ForwardedParsedKey")
 
     override val key: AttributeKey<Unit> = AttributeKey("ForwardedHeaderSupport")
@@ -237,7 +237,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
 
     // do we need it public?
     private fun ApplicationRequest.forwarded() =
-        headers.getAll(HttpHeaders.Forwarded)?.flatMap { parseHeaderValue(";" + it) }?.mapNotNull {
+        headers.getAll(HttpHeaders.Forwarded)?.flatMap { parseHeaderValue(";$it") }?.mapNotNull {
             parseForwardedValue(it)
         }
 
