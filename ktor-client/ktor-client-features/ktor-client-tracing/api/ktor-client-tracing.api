@@ -1,0 +1,30 @@
+public final class io/ktor/client/features/tracing/EngineWithTracer : io/ktor/client/engine/HttpClientEngine {
+	public fun <init> (Lio/ktor/client/engine/HttpClientEngine;Lio/ktor/client/features/tracing/Tracer;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+	public fun install (Lio/ktor/client/HttpClient;)V
+}
+
+public abstract interface class io/ktor/client/features/tracing/Tracer {
+	public abstract fun httpExchangeFailed (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun interpretResponse (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public abstract fun requestWillBeSent (Ljava/lang/String;Lio/ktor/client/request/HttpRequestData;)V
+	public abstract fun responseHeadersReceived (Ljava/lang/String;Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/request/HttpResponseData;)V
+	public abstract fun responseReadFinished (Ljava/lang/String;)V
+	public abstract fun webSocketClosed (Ljava/lang/String;)V
+	public abstract fun webSocketCreated (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun webSocketFrameReceived (Ljava/lang/String;Lio/ktor/http/cio/websocket/Frame;)V
+	public abstract fun webSocketFrameSent (Ljava/lang/String;Lio/ktor/http/cio/websocket/Frame;)V
+	public abstract fun webSocketHandshakeResponseReceived (Ljava/lang/String;Lio/ktor/client/request/HttpRequestData;Lio/ktor/client/request/HttpResponseData;)V
+	public abstract fun webSocketWillSendHandshakeRequest (Ljava/lang/String;Lio/ktor/client/request/HttpRequestData;)V
+}
+
+public final class io/ktor/client/features/tracing/TracingWrapper : io/ktor/client/engine/HttpClientEngineFactory {
+	public fun <init> (Lio/ktor/client/engine/HttpClientEngineFactory;Lio/ktor/client/features/tracing/Tracer;)V
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+}
+

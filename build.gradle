@@ -33,6 +33,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
+        google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
         maven {
@@ -55,6 +56,7 @@ buildscript {
         classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
+        classpath "com.android.tools.build:gradle:$android_gradle_version"
     }
 }
 
@@ -148,19 +150,16 @@ allprojects {
 
     apply plugin: "kotlin-multiplatform"
 
+    apply from: rootProject.file("gradle/utility.gradle")
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
             configure([it]) {
-                apply from: rootProject.file("gradle/utility.gradle")
                 apply from: rootProject.file("gradle/${platform}.gradle")
             }
         }
     }
 
-    if (!rootProject.ext.skipPublish.contains(project.name)) {
-        apply from: rootProject.file('gradle/dokka.gradle')
-        apply from: rootProject.file('gradle/publish.gradle')
-    }
+
 
     configurations { testOutput }
 
@@ -184,7 +183,10 @@ allprojects {
         }
     }
 
-
+    if (!rootProject.ext.skipPublish.contains(project.name)) {
+        apply from: rootProject.file('gradle/dokka.gradle')
+        apply from: rootProject.file('gradle/publish.gradle')
+    }
 }
 
 
