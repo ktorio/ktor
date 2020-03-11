@@ -290,6 +290,46 @@ class ConsumerTest : CoroutineScope {
         assertTrue(consumer.isDone)
     }
 
+    @Test
+    fun testChannelCancellationBeforeIoControl() {
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
+            this.receivedResponse = response
+            this.channel = channel
+        }
+
+        consumer.responseReceived(response())
+
+        this.channel.cancel()
+
+        job.complete()
+        runBlocking {
+            job.join()
+        }
+    }
+
+    @Test
+    fun testChannelCancellationWithIoControl() {
+        val consumer = ApacheResponseConsumerDispatching(coroutineContext, null) { response, channel ->
+            this.receivedResponse = response
+            this.channel = channel
+        }
+
+        val control = SuspendableInputIOControl()
+
+        consumer.responseReceived(response())
+        consumer.consumeContent(ChannelDecoder(), control)
+
+        this.channel.cancel()
+
+        job.complete()
+        runBlocking {
+            job.join()
+        }
+
+        control.assertResumed()
+        consumer.consumeContent(ChannelDecoder(), control)
+    }
+
     private fun assertThread() {
         check(Thread.currentThread() === thread)
     }
