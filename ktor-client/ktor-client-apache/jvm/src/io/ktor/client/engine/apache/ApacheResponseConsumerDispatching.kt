@@ -27,6 +27,7 @@ internal class ApacheResponseConsumerDispatching(
 
     override val coroutineContext: CoroutineContext = callContext + dispatcher
 
+    // this is not volatile because it is always accessed from the reactor thread except for the constructor
     private var decoderWaiter: CancellableContinuation<ContentDecoder?>? = null
 
     /**
