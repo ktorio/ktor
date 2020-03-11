@@ -2,15 +2,6 @@ apply from: rootProject.file("gradle/ide.gradle")
 
 apply plugin: "kotlinx-atomicfu"
 
-def iosTestExclude = [
-    'ktor-client-curl',
-    'ktor-test-dispatcher'
-]
-
-if (!iosTestExclude.contains(project.name)) {
-    apply from: rootProject.file("gradle/native.gradle")
-}
-
 def getHostName() {
     def target = System.getProperty("os.name")
     if (target == 'Linux') return 'linux'
