@@ -20,6 +20,7 @@ apiValidation {
         project(":ktor-http"),
         project(":ktor-network"),
         project(":ktor-utils"),
+        project(":ktor-io"),
         project(":ktor-server:ktor-server-core"),
         project(":ktor-features:ktor-auth"),
         project(":ktor-features:ktor-websockets")
