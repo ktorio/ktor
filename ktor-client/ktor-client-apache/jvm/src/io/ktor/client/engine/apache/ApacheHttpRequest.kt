@@ -58,6 +58,13 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     }
 
     execute(request, consumer, callback).apply {
+        @OptIn(InternalCoroutinesApi::class)
+        callContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
+            if (cause != null) {
+                cancel(true)
+            }
+        }
+
         // We need to cancel Apache future if it's not needed anymore.
         continuation.invokeOnCancellation {
             cancel(true)
