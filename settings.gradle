@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         mavenCentral()
         jcenter()
+        google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/orangy/maven" }
     }
@@ -52,6 +53,8 @@ include ':ktor-client:ktor-client-features:ktor-client-auth-basic'
 include ':ktor-client:ktor-client-features:ktor-client-logging'
 include ':ktor-client:ktor-client-features:ktor-client-encoding'
 include ':ktor-client:ktor-client-features:ktor-client-websockets'
+include ':ktor-client:ktor-client-features:ktor-client-tracing'
+include ':ktor-client:ktor-client-features:ktor-client-tracing:ktor-client-tracing-stetho'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-mustache'
 include ':ktor-features:ktor-thymeleaf'

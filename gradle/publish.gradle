@@ -36,7 +36,7 @@ def isAvailableForPublication(publication) {
     if (name in ['maven']) return true
 
     def result = false
-    result = result | (name in ['jvm', 'js', 'metadata', 'kotlinMultiplatform'])
+    result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'metadata', 'kotlinMultiplatform'])
     result = result | (project.ext.isLinuxHost && name == 'linuxX64')
     result = result | (project.ext.isWinHost && name == 'mingwX64')
     result = result | (project.ext.isMacosHost && name in ['iosX64', 'iosArm32', 'iosArm64', 'macosX64', 'watchosArm32', 'watchosArm64', 'watchosX86', 'tvosArm64', 'tvosX64'])
