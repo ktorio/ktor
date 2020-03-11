@@ -41,7 +41,8 @@ class MockedTests {
     }
 
     @Test
-    fun testWithLongJson() = testWithEngine(MockEngine) {
+    // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+    fun testWithLongJson() = if (isKotlinJsIr) Unit else testWithEngine(MockEngine) {
         config {
             install(JsonFeature) {
                 serializer = KotlinxSerializer()
