@@ -59,13 +59,14 @@ class HttpRedirect {
             if (!origin.response.status.isRedirect()) return origin
 
             var call = origin
+            var requestBuilder = context
             val originProtocol = origin.request.url.protocol
             val originAuthority = origin.request.url.authority
             while (true) {
                 val location = call.response.headers[HttpHeaders.Location]
 
-                val requestBuilder = HttpRequestBuilder().apply {
-                    takeFromWithExecutionContext(context)
+                requestBuilder = HttpRequestBuilder().apply {
+                    takeFromWithExecutionContext(requestBuilder)
                     url.parameters.clear()
 
                     location?.let { url.takeFrom(it) }

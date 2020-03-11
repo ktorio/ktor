@@ -91,6 +91,15 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
+    fun testMultipleRedirectRelative() = clientTests {
+        test { client ->
+            client.get<HttpStatement>("$TEST_URL_BASE/multipleRedirects/login").execute {
+                assertEquals("account details", it.readText())
+            }
+        }
+    }
+
+    @Test
     fun testRedirectAbsolute() = clientTests {
         test { client ->
             client.get<HttpStatement>("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
