@@ -17,9 +17,9 @@ private const val NONCE_SIZE_IN_BYTES = 8
 actual fun generateNonce(): String {
     val buffer = ByteArray(NONCE_SIZE_IN_BYTES)
     if (PlatformUtils.IS_NODE) {
-        crypto.randomFillSync(buffer)
+        _crypto.randomFillSync(buffer)
     } else {
-        crypto.getRandomValues(buffer)
+        _crypto.getRandomValues(buffer)
     }
     return hex(buffer)
 }
@@ -40,13 +40,15 @@ actual fun Digest(name: String): Digest = object : Digest {
 
     override suspend fun build(): ByteArray {
         val snapshot = state.reduce { a, b -> a + b }
-        val digestBuffer = crypto.subtle.digest(name, snapshot).asDeferred().await()
+        val digestBuffer = _crypto.subtle.digest(name, snapshot).asDeferred().await()
         val digestView = DataView(digestBuffer)
         return ByteArray(digestView.byteLength) { digestView.getUint8(it) }
     }
 }
 
-private val crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("(crypto ? crypto : msCrypto)")
+// Variable is renamed to `_crypto` so it wouldn't clash with existing `crypto` variable.
+// JS IR backend doesn't reserve names accessed inside js("") calls
+private val _crypto: Crypto = if (PlatformUtils.IS_NODE) js("require('crypto')") else js("(crypto ? crypto : msCrypto)")
 
 private external class Crypto {
     val subtle: SubtleCrypto

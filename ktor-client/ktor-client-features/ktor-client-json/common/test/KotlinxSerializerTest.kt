@@ -32,6 +32,9 @@ data class GithubProfile(
 class KotlinxSerializerTest : ClientLoader() {
     @Test
     fun testRegisterCustom() {
+        // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+        if (isKotlinJsIr) return
+
         val serializer = KotlinxSerializer()
 
         val user = User(1, "vasya")
@@ -41,6 +44,9 @@ class KotlinxSerializerTest : ClientLoader() {
 
     @Test
     fun testRegisterCustomList() {
+        // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+        if (isKotlinJsIr) return
+
         val serializer = KotlinxSerializer()
 
         val user = User(2, "petya")
@@ -113,6 +119,10 @@ class KotlinxSerializerTest : ClientLoader() {
 
     @Test
     fun testMultipleListSerializersWithClient() = clientTests {
+
+        // TODO: unmute when JS IR serialization is fixed https://github.com/Kotlin/kotlinx.serialization/issues/751
+        if (isKotlinJsIr) return@clientTests
+
         val testSerializer = KotlinxSerializer()
 
         config {
