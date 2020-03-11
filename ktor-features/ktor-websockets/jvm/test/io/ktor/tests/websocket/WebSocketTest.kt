@@ -11,13 +11,13 @@ import io.ktor.http.cio.websocket.FrameType
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*
-import org.junit.*
-import org.junit.Test
+import org.junit.Rule
 import java.nio.*
 import java.time.*
 import java.util.*
@@ -214,8 +214,14 @@ class WebSocketTest {
                 }
             }
 
+            val conversation = Job()
+
             handleWebSocket("/") {
-                setBody(sendBuffer.array())
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
             }.let { call ->
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {
@@ -227,6 +233,8 @@ class WebSocketTest {
 
                         val frame = reader.incoming.receive()
                         val receivedContent = frame.buffer.moveToByteArray()
+
+                        conversation.complete()
 
                         assertEquals(FrameType.BINARY, frame.frameType)
                         assertEquals(content.size, receivedContent.size)
