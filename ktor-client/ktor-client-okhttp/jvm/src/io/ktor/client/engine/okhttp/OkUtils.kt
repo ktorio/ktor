@@ -19,7 +19,7 @@ internal suspend fun OkHttpClient.execute(request: Request, requestData: HttpReq
         val callback = object : Callback {
 
             override fun onFailure(call: Call, cause: IOException) {
-                if (call.isCanceled) {
+                if (call.isCanceled()) {
                     return
                 }
 
@@ -36,7 +36,7 @@ internal suspend fun OkHttpClient.execute(request: Request, requestData: HttpReq
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (!call.isCanceled) it.resume(response)
+                if (!call.isCanceled()) it.resume(response)
             }
         }
 
@@ -56,7 +56,7 @@ internal fun Headers.fromOkHttp(): io.ktor.http.Headers = object : io.ktor.http.
 
     override fun entries(): Set<Map.Entry<String, List<String>>> = this@fromOkHttp.toMultimap().entries
 
-    override fun isEmpty(): Boolean = this@fromOkHttp.size() == 0
+    override fun isEmpty(): Boolean = this@fromOkHttp.size == 0
 }
 
 @Suppress("DEPRECATION")
