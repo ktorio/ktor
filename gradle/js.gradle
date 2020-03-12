@@ -6,7 +6,6 @@ def skipModules = [
 
 if (skipModules.contains(project.name)) return
 
-
 kotlin {
     js {
         nodejs {
@@ -17,6 +16,7 @@ kotlin {
                 debug = false
             }
         }
+
         browser {
             testTask {
                 useKarma {
@@ -59,4 +59,6 @@ kotlin {
 }
 
 def shouldRunJsBrowserTest = !project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")
-jsBrowserTest.onlyIf { shouldRunJsBrowserTest }
+
+legacyjsBrowserTest.onlyIf { shouldRunJsBrowserTest }
+jsIrBrowserTest.onlyIf { shouldRunJsBrowserTest }
