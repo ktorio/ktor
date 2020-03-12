@@ -17,7 +17,7 @@
 * Fixed CIO server local address detection (#1663)
 * Fix server request origin to provide header's host and port when available
 * Fixed random missing feature errors caused by concurrency at startup (#1694)
-* Fixed `Set-Cookie` header merging
+* Fixed `Set-Cookie` header parser in iOS and JS
 * Fixed client multiple redirects with relative path (#1704)
 * Fixed unwrapping cancellation exceptions in client (#1482)
 * Fixed missed preconfigured `OkHttpClient` in `OkHttpEngine` (#1646)
