@@ -64,7 +64,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
                 // 1. If the engine was created by Ktor it shares common dispatcher and cache.
                 // 2. If the engine was created by a user the user is responsible for lifecycle management.
                 clientCache.forEach { (_, client) ->
-                    client.connectionPool().evictAll()
+                    client.connectionPool.evictAll()
                 }
             }.invokeOnCompletion {
                 (dispatcher as Closeable).close()
@@ -93,7 +93,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
         val requestTime = GMTDate()
         val response = engine.execute(engineRequest, requestData)
 
-        val body = response.body()
+        val body = response.body
         callContext[Job]!!.invokeOnCompletion { body?.close() }
 
         val responseContent = body?.source()?.toChannel(callContext, requestData) ?: ByteReadChannel.Empty
@@ -103,9 +103,9 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     private fun buildResponseData(
         response: Response, requestTime: GMTDate, body: Any, callContext: CoroutineContext
     ): HttpResponseData {
-        val status = HttpStatusCode(response.code(), response.message())
-        val version = response.protocol().fromOkHttp()
-        val headers = response.headers().fromOkHttp()
+        val status = HttpStatusCode(response.code, response.message)
+        val version = response.protocol.fromOkHttp()
+        val headers = response.headers.fromOkHttp()
 
         return HttpResponseData(status, requestTime, headers, version, body, callContext)
     }

@@ -18,9 +18,9 @@ class OkHttpEngineTests {
         val engine = OkHttpEngine(OkHttpConfig().apply { preconfigured = okHttpClient })
         engine.close()
 
-        assertFalse("OkHttp dispatcher is not working.") { okHttpClient.dispatcher().executorService().isShutdown }
-        assertEquals(0, okHttpClient.connectionPool().connectionCount())
-        okHttpClient.cache()?.let { assertFalse("OkHttp client cache is closed.") { it.isClosed } }
+        assertFalse("OkHttp dispatcher is not working.") { okHttpClient.dispatcher.executorService.isShutdown }
+        assertEquals(0, okHttpClient.connectionPool.connectionCount())
+        okHttpClient.cache?.let { assertFalse("OkHttp client cache is closed.") { it.isClosed } }
     }
 
     @Test
@@ -42,9 +42,11 @@ class OkHttpEngineTests {
     @Test
     fun preconfiguresTest() = runBlocking {
         var preconfiguredClientCalled = false
-        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(Interceptor { p0 ->
-            preconfiguredClientCalled = true
-            p0.proceed(p0.request())
+        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(object : Interceptor {
+            override fun intercept(chain: Interceptor.Chain): Response {
+                preconfiguredClientCalled = true
+                return chain.proceed(chain.request())
+            }
         }).connectTimeout(1, TimeUnit.MILLISECONDS).build()
 
         HttpClient(OkHttp) {
