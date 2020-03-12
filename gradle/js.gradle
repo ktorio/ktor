@@ -6,7 +6,6 @@ def skipModules = [
 
 if (skipModules.contains(project.name)) return
 
-
 kotlin {
     js {
         nodejs {
@@ -17,6 +16,7 @@ kotlin {
                 debug = false
             }
         }
+
         browser {
             testTask {
                 useKarma {
@@ -57,4 +57,9 @@ kotlin {
 //            api(npm("source-map-support", source_map_support_version))
         }
     }
+}
+
+if (build_snapshot_train) {
+    legacyjsBrowserTest.enabled = false
+    jsIrBrowserTest.enabled = false
 }
