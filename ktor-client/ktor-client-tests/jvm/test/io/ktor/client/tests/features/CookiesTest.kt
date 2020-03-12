@@ -32,7 +32,7 @@ class CookiesTest {
             install(HttpCookies) {
                 default {
                     runBlocking {
-                        addCookie("//localhost", Cookie("first", "1,2,3,4"))
+                        addCookie("//localhost", Cookie("first", "1,2,3,4", encoding = CookieEncoding.DQUOTES))
                         addCookie("http://localhost", Cookie("second", "abc"))
                     }
                 }
@@ -57,7 +57,7 @@ class CookiesTest {
             install(HttpCookies) {
                 default {
                     runBlocking {
-                        addCookie("http://localhost", Cookie("myServer", "value:value"))
+                        addCookie("http://localhost", Cookie("myServer", "value:value", encoding = CookieEncoding.RAW))
                     }
                 }
             }
