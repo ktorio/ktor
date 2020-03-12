@@ -56,6 +56,26 @@ actual abstract class ClientLoader {
         DebugProbes.dumpCoroutines()
     }
 
+    @After
+    fun waitForAllCoroutines() {
+        check(DebugProbes.isInstalled) {
+            "Debug probes isn't installed."
+        }
+
+        val info = DebugProbes.dumpCoroutinesInfo()
+
+        if (info.isEmpty()) {
+            return
+        }
+
+        val message = buildString {
+            appendln("Test failed. There are running coroutines")
+            appendln(info.dump())
+        }
+
+        error(message)
+    }
+
     companion object {
         @JvmStatic
         @Parameterized.Parameters(name = "{0}")
@@ -75,3 +95,14 @@ private val OS_NAME: String
             else -> "unknown"
         }
     }
+
+
+private fun List<CoroutineInfo>.dump(): String = buildString {
+    this@dump.forEach { info ->
+        appendln("Coroutine: $info")
+        info.lastObservedStackTrace().forEach {
+            appendln("\t$it")
+        }
+    }
+}
+
