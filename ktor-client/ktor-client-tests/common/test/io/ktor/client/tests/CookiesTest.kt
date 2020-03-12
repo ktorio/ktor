@@ -7,6 +7,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
@@ -167,6 +168,35 @@ class CookiesTest : ClientLoader() {
             assertEquals("fourth cookie", cookies["fourth"]!!.value)
 
             assertEquals("Multiple done", response)
+        }
+    }
+
+    @Test
+    fun testCookiesEncodedWithRespectiveEncoding() = clientTests(listOf("Js")) {
+        val cookies = listOf(
+            Cookie("uri", "first, cookie", domain = domain, encoding = CookieEncoding.URI_ENCODING),
+            Cookie("raw", "first%2C+cookie", domain = domain, encoding = CookieEncoding.RAW),
+            Cookie("base64", "first, cookie", domain = domain, encoding = CookieEncoding.BASE64_ENCODING),
+            Cookie("dquotes", "first, cookie", domain = domain, encoding = CookieEncoding.DQUOTES)
+        )
+        config {
+            install(HttpCookies) {
+                default {
+                    cookies.forEach { addCookie(hostname, it) }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_HOST/encoded").execute { httpResponse ->
+                val response = httpResponse.readText()
+                val cookieStrings = response.split(";").filter { it.isNotBlank() }
+                assertEquals(4, cookieStrings.size)
+                assertEquals("uri=first%2C+cookie", cookieStrings[0])
+                assertEquals("raw=first%2C+cookie", cookieStrings[1])
+                assertEquals("base64=Zmlyc3QsIGNvb2tpZQ==", cookieStrings[2])
+                assertEquals("dquotes=\"first, cookie\"", cookieStrings[3])
+            }
         }
     }
 

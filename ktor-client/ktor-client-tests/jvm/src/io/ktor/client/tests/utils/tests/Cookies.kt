@@ -6,6 +6,7 @@ package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlin.test.*
@@ -85,6 +86,9 @@ fun Application.cookiesTest() {
                     append(Cookie("fourth", "fourth cookie", domain = "127.0.0.1", path = "/"))
                 }
                 context.respond("Multiple done")
+            }
+            get("/encoded") {
+                context.respond(context.request.header(HttpHeaders.Cookie) ?: fail())
             }
         }
     }

@@ -89,7 +89,7 @@ private fun renderClientCookies(cookies: List<Cookie>): String = buildString {
     cookies.forEach {
         append(it.name)
         append('=')
-        append(encodeCookieValue(it.value, CookieEncoding.DQUOTES))
+        append(encodeCookieValue(it.value, it.encoding))
         append(';')
     }
 }
