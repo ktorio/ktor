@@ -212,7 +212,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
         }
     }
 
-    position(srcPos - arrayOffset() + 1)
+    position(srcPos - arrayOffset())
 
     return decodeUtf8Result(outPos - offset, 0)
 }
@@ -418,7 +418,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
         }
     }
 
-    position(srcPos - arrayOffset() + 1)
+    position(srcPos - arrayOffset())
 
     return decodeUtf8Result(outPos - offset, 0)
 }
