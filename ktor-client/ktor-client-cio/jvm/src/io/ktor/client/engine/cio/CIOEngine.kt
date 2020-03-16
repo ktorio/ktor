@@ -10,11 +10,13 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
+import kotlin.coroutines.*
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngineBase("ktor-cio") {
 
@@ -24,10 +26,28 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
 
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
-    @OptIn(InternalCoroutinesApi::class)
-    private val selectorManager by lazy { ActorSelectorManager(dispatcher) }
+    private val selectorManager = ActorSelectorManager(dispatcher)
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
+
+    private val requestsJob: CoroutineContext
+
+    override val coroutineContext: CoroutineContext
+
+    init {
+        val parent = super.coroutineContext[Job]!!
+        requestsJob = SilentSupervisor(parent)
+        coroutineContext = super.coroutineContext + requestsJob
+
+        GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
+            try {
+                requestsJob[Job]!!.join()
+            } finally {
+                selectorManager.close()
+                selectorManager.coroutineContext[Job]!!.join()
+            }
+        }
+    }
 
     private val proxy = when (val type = config.proxy?.type()) {
         Proxy.Type.DIRECT,
@@ -59,10 +79,7 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
     override fun close() {
         super.close()
         endpoints.forEach { (_, endpoint) -> endpoint.close() }
-
-        coroutineContext[Job]!!.invokeOnCompletion {
-            selectorManager.close()
-        }
+        (requestsJob[Job] as CompletableJob).complete()
     }
 
     private fun selectEndpoint(url: Url, proxy: ProxyConfig?): Endpoint {
