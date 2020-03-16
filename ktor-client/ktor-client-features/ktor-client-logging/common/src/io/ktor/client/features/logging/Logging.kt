@@ -24,12 +24,13 @@ import kotlinx.coroutines.*
 class Logging(
     val logger: Logger,
     var level: LogLevel,
-    var filters: List<(HttpRequestBuilder) -> Boolean>
+    val filters: List<(HttpClientCall) -> Boolean>,
+    val logContentType: LogContentType
 ) {
     /**
      * Constructor
      */
-    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList(), LogContentType.BOTH)
 
     /**
      * [Logging] feature configuration
@@ -38,7 +39,13 @@ class Logging(
         /**
          * filters
          */
-        internal var filters = mutableListOf<(HttpRequestBuilder) -> Boolean>()
+        internal var filters = mutableListOf<(HttpClientCall) -> Boolean>()
+
+        /**
+         * Log request/response/both
+         */
+        internal var logContentType = LogContentType.BOTH
+
         /**
          * [Logger] instance to use
          */
@@ -52,20 +59,19 @@ class Logging(
         /**
          * Log messages for calls matching a [predicate]
          */
-        fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
+        fun filter(predicate: (HttpClientCall) -> Boolean) {
             filters.add(predicate)
         }
     }
 
-    private suspend fun logRequest(request: HttpRequestBuilder): OutgoingContent? {
+    private suspend fun logRequest(request: HttpRequest): OutgoingContent? {
         if (level.info) {
-            logger.log("REQUEST: ${Url(request.url)}")
+            logger.log("REQUEST: ${request.url}")
             logger.log("METHOD: ${request.method}")
         }
-        val content = request.body as OutgoingContent
-        if (level.headers) logHeaders(request.headers.entries(), content.headers)
+        if (level.headers) logHeaders(request.headers.entries(), request.content.headers)
         return if (level.body) {
-            logRequestBody(content)
+            logRequestBody(request.content)
         } else null
     }
 
@@ -146,23 +152,13 @@ class Logging(
 
         override fun prepare(block: Config.() -> Unit): Logging {
             val config = Config().apply(block)
-            return Logging(config.logger, config.level, config.filters)
+            return Logging(config.logger, config.level, config.filters, config.logContentType)
         }
 
         override fun install(feature: Logging, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.Monitoring) {
-                val response = try {
-                    if (feature.filters.isEmpty() || feature.filters.any { it(context) }) {
-                        feature.logRequest(context)
-                    } else {
-                        null
-                    }
-                } catch (_: Throwable) {
-                    null
-                } ?: subject
-
                 try {
-                    proceedWith(response)
+                    proceed()
                 } catch (cause: Throwable) {
                     feature.logRequestException(context, cause)
                     throw cause
@@ -171,7 +167,14 @@ class Logging(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Receive) {
                 try {
-                    feature.logResponse(context.response)
+                    if (feature.filters.isEmpty() || feature.filters.any { it(context) }) {
+                        if (feature.logContentType.shouldLogRequest()) {
+                            feature.logRequest(context.request)
+                        }
+                        if (feature.logContentType.shouldLogResponse()) {
+                            feature.logResponse(context.response)
+                        }
+                    }
                     proceedWith(subject)
                 } catch (cause: Throwable) {
                     feature.logResponseException(context, cause)
@@ -204,3 +207,12 @@ fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
 
 private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
     readRemaining().readText(charset = charset)
+
+enum class LogContentType {
+    REQUEST_ONLY,
+    RESPONSE_ONLY,
+    BOTH
+}
+
+fun LogContentType.shouldLogRequest() = this == LogContentType.BOTH || this == LogContentType.REQUEST_ONLY
+fun LogContentType.shouldLogResponse() = this == LogContentType.BOTH || this == LogContentType.RESPONSE_ONLY
