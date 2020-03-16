@@ -27,19 +27,39 @@ import kotlin.coroutines.*
 @Suppress("KDocMissingDocumentation")
 class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
-    override val dispatcher by lazy {
+    public override val dispatcher: CoroutineDispatcher by lazy {
         Dispatchers.clientDispatcher(
             config.threadsCount,
             "ktor-okhttp-dispatcher"
         )
     }
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+
+    private val requestsJob: CoroutineContext
+
+    override val coroutineContext: CoroutineContext
 
     /**
      * Cache that keeps least recently used [OkHttpClient] instances.
      */
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
+    init {
+        val parent = super.coroutineContext[Job]!!
+        requestsJob = SilentSupervisor(parent)
+        coroutineContext = super.coroutineContext + requestsJob
+
+        GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
+            try {
+                requestsJob[Job]!!.join()
+            } finally {
+                clientCache.forEach { (_, client) ->
+                    client.connectionPool.evictAll()
+                }
+                (dispatcher as Closeable).close()
+            }
+        }
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -57,19 +77,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
 
     override fun close() {
         super.close()
-
-        coroutineContext[Job]!!.invokeOnCompletion {
-            GlobalScope.launch(dispatcher) {
-                // The engine dispatcher and the cache are not closed because:
-                // 1. If the engine was created by Ktor it shares common dispatcher and cache.
-                // 2. If the engine was created by a user the user is responsible for lifecycle management.
-                clientCache.forEach { (_, client) ->
-                    client.connectionPool.evictAll()
-                }
-            }.invokeOnCompletion {
-                (dispatcher as Closeable).close()
-            }
-        }
+        (requestsJob[Job] as CompletableJob).complete()
     }
 
     private suspend fun executeWebSocketRequest(

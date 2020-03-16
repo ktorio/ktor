@@ -5,7 +5,10 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
