@@ -40,11 +40,11 @@ object AuthScheme {
     const val Negotiate = "Negotiate"
 
     /**
-     * OAuth Authentication described in the RFC-6749:
+     * OAuth Authentication described in the RFC-6750:
      *
-     * see https://tools.ietf.org/html/rfc6749
+     * see https://tools.ietf.org/html/rfc6750#section-3
      */
-    const val OAuth = "OAuth"
+    const val OAuth = "Bearer"
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
