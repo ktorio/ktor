@@ -1,5 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
+package io.ktor.test.dispatcher
+
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import platform.Foundation.*
