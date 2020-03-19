@@ -53,7 +53,7 @@ class SessionTransportCookie(
     }
 
     override fun clear(call: ApplicationCall) {
-        call.response.cookies.appendExpired(name, configuration.domain, configuration.path)
+        call.response.cookies.appendExpired(name, configuration.domain, configuration.path, configuration.secure)
     }
 
     override fun toString(): String {
