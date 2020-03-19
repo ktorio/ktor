@@ -85,7 +85,7 @@ class ResponseCookies(
     /**
      * Append already expired cookie: useful to remove client cookies
      */
-    fun appendExpired(name: String, domain: String? = null, path: String? = null, secure: Boolean = false) {
-        append(name, "", domain = domain, path = path, expires = GMTDate.START, secure = secure)
+    fun appendExpired(name: String, domain: String? = null, path: String? = null, secure: Boolean = false, extensions: Map<String, String?> = emptyMap()) {
+        append(name, "", domain = domain, path = path, expires = GMTDate.START, secure = secure, extensions = extensions)
     }
 }
