@@ -68,8 +68,15 @@ class BasicAuthProvider(
         return true
     }
 
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
-        request.headers[HttpHeaders.Authorization] = constructBasicAuthValue()
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder): HttpRequestBuilder? {
+        // do not retry the request if the same authorization was already tried
+        val authorization = constructBasicAuthValue()
+        return if (authorization == request.headers[HttpHeaders.Authorization]) {
+            null
+
+        } else {
+            request.apply { headers[HttpHeaders.Authorization] = authorization }
+        }
     }
 
     internal fun constructBasicAuthValue(): String {

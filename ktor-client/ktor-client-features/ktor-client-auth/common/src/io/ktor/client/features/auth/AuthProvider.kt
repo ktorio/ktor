@@ -23,7 +23,7 @@ interface AuthProvider {
     fun isApplicable(auth: HttpAuthHeader): Boolean
 
     /**
-     * Add authentication method headers and creds.
+     * Add authentication method headers and creds and return the updated request.
      */
-    suspend fun addRequestHeaders(request: HttpRequestBuilder)
+    suspend fun addRequestHeaders(request: HttpRequestBuilder) : HttpRequestBuilder?
 }

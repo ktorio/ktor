@@ -35,10 +35,8 @@ class Auth(
                 }
             }
 
-            val circuitBreaker = AttributeKey<Unit>("auth-request")
             scope.feature(HttpSend)!!.intercept { origin, context ->
                 if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
-                if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
 
                 var call = origin
                 val candidateProviders = HashSet(feature.providers).apply { removeAll(feature.alwaysSend) }
@@ -48,12 +46,11 @@ class Auth(
                     val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
                     candidateProviders.remove(provider)
 
-                    val request = HttpRequestBuilder()
-                    request.takeFromWithExecutionContext(context)
-                    provider.addRequestHeaders(request)
-                    request.attributes.put(circuitBreaker, Unit)
-
-                    call = execute(request)
+                    // let the provider prepare a new request by passing a copy of the original request to it
+                    // `takeFromWithExecutionContext()` does not add the latest headers to the new request so use `call.request`
+                    provider.addRequestHeaders(HttpRequestBuilder().takeFrom(call.request))
+                        // only retry the request when the provider returns it (no circuitBreaker needed)
+                        ?.let { call = execute(it) }
                 }
                 return@intercept call
             }

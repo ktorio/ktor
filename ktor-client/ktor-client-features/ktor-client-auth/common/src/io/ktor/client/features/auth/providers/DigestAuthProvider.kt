@@ -70,7 +70,7 @@ class DigestAuthProvider(
         return true
     }
 
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder): HttpRequestBuilder? {
         val nonceCount = requestCounter.incrementAndGet()
         val methodName = request.method.value.toUpperCase()
         val url = URLBuilder().takeFrom(request.url).build()
@@ -98,8 +98,13 @@ class DigestAuthProvider(
             this["nc"] = nonceCount.toString()
         })
 
-        request.headers {
-            append(HttpHeaders.Authorization, auth.render())
+        // do not retry the request if the same authorization was already tried
+        val authorization = auth.render()
+        return if (authorization == request.headers[HttpHeaders.Authorization]) {
+            null
+
+        } else {
+            request.apply { headers[HttpHeaders.Authorization] = authorization }
         }
     }
 
