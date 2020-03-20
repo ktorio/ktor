@@ -13,7 +13,7 @@ import kotlin.test.*
 class WebSocketTest : ClientLoader() {
 
     @Test
-    fun testEcho() = clientTests(listOf("Apache", "Android", "iOS")) {
+    fun testEcho() = clientTests(listOf("Apache", "Android", "iOS", "Curl")) {
         config {
             install(WebSockets)
         }
@@ -30,7 +30,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testClose() = clientTests(listOf("Apache", "Android", "iOS")) {
+    fun testClose() = clientTests(listOf("Apache", "Android", "iOS", "Curl")) {
         config {
             install(WebSockets)
         }
@@ -48,7 +48,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancel() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
+    fun testCancel() = clientTests(listOf("Apache", "Android", "Js", "iOS", "Curl")) {
         config {
             install(WebSockets)
         }

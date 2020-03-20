@@ -22,14 +22,14 @@ class PostTest : ClientLoader() {
     }
 
     @Test
-    fun testHugePost() = clientTests(listOf("Js", "iOS")) {
+    fun testHugePost() = clientTests(listOf("Js", "iOS", "Curl")) {
         test { client ->
             client.postHelper(makeString(32 * 1024 * 1024))
         }
     }
 
     @Test
-    fun testWithPause() = clientTests(listOf("Js", "iOS")) {
+    fun testWithPause() = clientTests(listOf("Js", "iOS", "Curl")) {
         test { client ->
             val content = makeString(16 * 1024 * 1024)
 
