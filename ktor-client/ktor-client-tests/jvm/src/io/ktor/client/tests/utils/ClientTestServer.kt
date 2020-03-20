@@ -34,6 +34,7 @@ internal fun Application.tests() {
     buildersTest()
     downloadTest()
     uploadTest()
+    jsonTest()
 
     routing {
         post("/echo") {
