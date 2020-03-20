@@ -24,7 +24,7 @@ const val DEFAULT_PORT: Int = 0
  */
 class URLBuilder(
     var protocol: URLProtocol = URLProtocol.HTTP,
-    var host: String = "localhost",
+    var host: String = originHost,
     var port: Int = DEFAULT_PORT,
     var user: String? = null,
     var password: String? = null,
@@ -83,6 +83,13 @@ class URLBuilder(
     // Required to write external extension function
     companion object
 }
+
+/**
+ * Hostname of current origin.
+ *
+ * It uses "localhost" for all platforms except js.
+ */
+expect val URLBuilder.Companion.originHost: String
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
