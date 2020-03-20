@@ -10,10 +10,10 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
+import kotlinx.coroutines.*
 import libcurl.*
 import kotlin.coroutines.*
 
@@ -26,8 +26,7 @@ internal suspend fun HttpRequestData.toCurlRequest(config: HttpClientEngineConfi
     headers = headersToCurl(),
     proxy = config.proxy,
     content = body.toCurlByteArray(),
-    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
-    requestData = HttpRequestData(url, method, headers, body, Job(), attributes)
+    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis
 )
 
 internal class CurlRequestData(
@@ -36,8 +35,7 @@ internal class CurlRequestData(
     val headers: CPointer<curl_slist>,
     val proxy: ProxyConfig?,
     val content: ByteArray,
-    val connectTimeout: Long?,
-    val requestData: HttpRequestData
+    val connectTimeout: Long?
 ) {
     override fun toString(): String =
         "CurlRequestData(url='$url', method='$method', content: ${content.size} bytes)"
