@@ -4,6 +4,8 @@
 
 package io.ktor.util
 
+import kotlin.native.concurrent.*
+
 /**
  * Create native specific attributes instance.
  */
