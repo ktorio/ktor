@@ -160,6 +160,16 @@ fun ConnectTimeoutException(
 )
 
 /**
+ * This exception is thrown in case connect timeout exceeded.
+ */
+fun ConnectTimeoutException(
+    url: String, timeout: Long?, cause: Throwable? = null
+): ConnectTimeoutException = ConnectTimeoutException(
+    "Connect timeout has been expired [url=$url, connect_timeout=${timeout ?: "unknown"} ms]",
+    cause
+)
+
+/**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
 fun SocketTimeoutException(
