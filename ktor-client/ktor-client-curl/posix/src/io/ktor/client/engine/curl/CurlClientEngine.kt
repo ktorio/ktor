@@ -12,8 +12,8 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 internal class CurlClientEngine(
     override val config: CurlClientEngineConfig
@@ -23,6 +23,12 @@ internal class CurlClientEngine(
     override val supportedCapabilities = setOf(HttpTimeout)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
+
+    init {
+        coroutineContext[Job]!!.invokeOnCompletion {
+            curlProcessor.close()
+        }
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -53,14 +59,6 @@ internal class CurlClientEngine(
                 status, requestTime, headers, version.fromCurl(),
                 body, callContext
             )
-        }
-    }
-
-    override fun close() {
-        super.close()
-
-        coroutineContext[Job]!!.invokeOnCompletion {
-            curlProcessor.close()
         }
     }
 }

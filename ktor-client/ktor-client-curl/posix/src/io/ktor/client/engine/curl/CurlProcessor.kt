@@ -22,7 +22,6 @@ internal class CurlProcessor(
 ) : CoroutineScope {
     private val worker: Worker = Worker.start()
     private val responseConsumers: MutableMap<CurlRequestData, CompletableDeferred<CurlSuccess>> = mutableMapOf()
-    private val closed = atomic(false)
     private val activeRequests = atomic(0)
 
     init {
