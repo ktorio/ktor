@@ -70,7 +70,7 @@ class DigestAuthProvider(
         return true
     }
 
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder): HttpRequestBuilder? {
+    override suspend fun authenticate(request: HttpRequestBuilder): HttpRequestBuilder? {
         val nonceCount = requestCounter.incrementAndGet()
         val methodName = request.method.value.toUpperCase()
         val url = URLBuilder().takeFrom(request.url).build()

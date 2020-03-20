@@ -72,7 +72,7 @@ class OAuthProvider(
         return true
     }
 
-    override suspend fun addRequestHeaders(request: HttpRequestBuilder): HttpRequestBuilder? {
+    override suspend fun authenticate(request: HttpRequestBuilder): HttpRequestBuilder? {
         /**
          * Use [REQUEST_TRIES_HEADER] to store [tryCount].
          * Cannot use [AttributeKey] because those are not copied by [HttpRequestBuilder.takeFrom].
@@ -95,7 +95,7 @@ class OAuthProvider(
              * If so, the token did not work and should be invalidated.
              *
              * But still return the request (and not null) in this case
-             * so [addRequestHeaders] is called again and we can try a new token
+             * so [authenticate] is called again and we can try a new token
              * (which should be requested by the [TokenProvider] after the old token has been invalidated).
              */
             tokenProvider.invalidateToken(token)

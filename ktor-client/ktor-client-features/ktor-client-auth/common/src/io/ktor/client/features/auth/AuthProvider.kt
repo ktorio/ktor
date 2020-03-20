@@ -25,5 +25,5 @@ interface AuthProvider {
     /**
      * Add authentication method headers and creds and return the updated request.
      */
-    suspend fun addRequestHeaders(request: HttpRequestBuilder) : HttpRequestBuilder?
+    suspend fun authenticate(request: HttpRequestBuilder) : HttpRequestBuilder?
 }

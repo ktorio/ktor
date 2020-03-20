@@ -31,7 +31,7 @@ class Auth(
         override fun install(feature: Auth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {
                 for (provider in feature.alwaysSend) {
-                    provider.addRequestHeaders(context)
+                    provider.authenticate(context)
                 }
             }
 
@@ -48,7 +48,7 @@ class Auth(
 
                     // let the provider prepare a new request by passing a copy of the original request to it
                     // `takeFromWithExecutionContext()` does not add the latest headers to the new request so use `call.request`
-                    provider.addRequestHeaders(HttpRequestBuilder().takeFrom(call.request))
+                    provider.authenticate(HttpRequestBuilder().takeFrom(call.request))
                         // only retry the request when the provider returns it (no circuitBreaker needed)
                         ?.let { call = execute(it) }
                 }
