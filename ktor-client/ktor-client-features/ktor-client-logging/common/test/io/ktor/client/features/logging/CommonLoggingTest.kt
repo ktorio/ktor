@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 
@@ -152,6 +153,50 @@ class CommonLoggingTest {
             val dump = testLogger.dump()
             assertTrue { dump.contains("REQUEST: http://somewhere/filtered_path") }
             assertFalse { dump.contains("REQUEST: http://somewhere/not_filtered_path") }
+        }
+    }
+
+    @Test
+    fun testWithString() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler { respondOk("Hello world") }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+            }
+        }
+
+        test { client ->
+            client.get<String>("http://somewhere/")
+            delay(1000)
+            assertTrue { testLogger.dump().contains("Hello") }
+            assertTrue { testLogger.dump().contains("world") }
+        }
+    }
+
+    @Test
+    fun testWithUnit() = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler { respondOk("Hello world") }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+            }
+        }
+
+        test { client ->
+            client.get<Unit>("http://somewhere/")
+            delay(1000)
+            assertFalse { testLogger.dump().contains("Hello") }
+            assertFalse { testLogger.dump().contains("world") }
         }
     }
 }

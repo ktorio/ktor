@@ -11,36 +11,36 @@ import kotlinx.coroutines.*
 private const val CHUNK_BUFFER_SIZE = 4096L
 
 @KtorExperimentalAPI
-fun ByteReadChannel.splitOnMainAndDependant(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
-    val first = ByteChannel(autoFlush = true)
-    val second = ByteChannel(autoFlush = true)
+fun ByteReadChannel.splitOnDependantAndMain(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
+    val dependant = ByteChannel(autoFlush = true)
+    val main = ByteChannel(autoFlush = true)
 
     coroutineScope.launch {
         try {
             while (!isClosedForRead) {
-                readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
-                    second.writePacket(chunk.copy())
-                    while (second.availableForRead != 0) {
-                        yield()
+                this@splitOnDependantAndMain.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
+                    main.writePacket(chunk.copy())
+                    while (main.availableForRead != 0) {
+                        delay(1)
                     }
-                    if (second.closedCause != null) {
-                        first.cancel(second.closedCause)
+                    if (main.closedCause != null) {
+                        dependant.cancel(main.closedCause)
                     } else {
-                        first.writePacket(chunk.copy())
+                        dependant.writePacket(chunk.copy())
                     }
                 }
             }
         } catch (cause: Throwable) {
             cancel(cause)
-            first.cancel(cause)
-            second.cancel(cause)
+            dependant.cancel(cause)
+            main.cancel(cause)
         } finally {
-            first.close()
-            second.close()
+            dependant.close()
+            main.close()
         }
     }
 
-    return first to second
+    return dependant to main
 }
 
 /**
