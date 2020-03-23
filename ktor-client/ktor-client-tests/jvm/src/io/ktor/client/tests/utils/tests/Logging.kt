@@ -12,19 +12,19 @@ import io.ktor.routing.*
 
 internal fun Application.loggingTestServer() {
     routing {
-        route("/logging") {
-            get("/") {
+        route("logging") {
+            get {
                 call.respondText("home page")
             }
-            post("/") {
-                if ("response data" != call.receiveText()) {
+            post {
+                if ("Response data" != call.receiveText()) {
                     call.respond(HttpStatusCode.BadRequest)
                 } else {
                     call.respondText("/", status = HttpStatusCode.Created)
                 }
             }
-            get("/301") {
-                call.respondRedirect("/")
+            get("301") {
+                call.respondRedirect("/logging")
             }
         }
     }

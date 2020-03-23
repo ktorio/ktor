@@ -16,22 +16,22 @@ import kotlinx.coroutines.*
 /**
  * Web url for tests.
  */
-public const val TEST_SERVER: String = "http://127.0.0.1:8080"
+const val TEST_SERVER: String = "http://127.0.0.1:8080"
 
 /**
  * Websocket server url for tests.
  */
-public const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
+const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 
 /**
  * Proxy server url for tests.
  */
-public const val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
+const val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].
  */
-public fun testWithEngine(
+fun testWithEngine(
     engine: HttpClientEngine,
     block: suspend TestClientBuilder<*>.() -> Unit
 ) = testWithClient(HttpClient(engine), block)
@@ -59,7 +59,7 @@ private fun testWithClient(
 /**
  * Perform test with selected client engine [factory].
  */
-public fun <T : HttpClientEngineConfig> testWithEngine(
+fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
     block: suspend TestClientBuilder<T>.() -> Unit
@@ -74,7 +74,7 @@ public fun <T : HttpClientEngineConfig> testWithEngine(
         }
     }
 
-    concurrency(builder.concurrency) {  threadId ->
+    concurrency(builder.concurrency) { threadId ->
         repeat(builder.repeatCount) { attempt ->
             val client = HttpClient(factory, block = builder.config)
 
@@ -88,6 +88,8 @@ public fun <T : HttpClientEngineConfig> testWithEngine(
             } catch (cause: Throwable) {
                 client.cancel("Test failed", cause)
                 throw cause
+            } finally {
+                builder.after(client)
             }
         }
     }
@@ -105,22 +107,29 @@ private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public class TestClientBuilder<T : HttpClientEngineConfig>(
-    public var config: HttpClientConfig<T>.() -> Unit = {},
-    public var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
-    public var repeatCount: Int = 1,
+class TestClientBuilder<T : HttpClientEngineConfig>(
+    var config: HttpClientConfig<T>.() -> Unit = {},
+    var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
+    var after: suspend (client: HttpClient) -> Unit = {},
+    var repeatCount: Int = 1,
     var dumpAfterDelay: Long = -1,
     var concurrency: Int = 1
 )
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
+fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientConfig<T>.() -> Unit) {
     config = block
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
+fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit) {
     test = block
+}
+
+@InternalAPI
+@Suppress("KDocMissingDocumentation")
+fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit {
+    after = block
 }
