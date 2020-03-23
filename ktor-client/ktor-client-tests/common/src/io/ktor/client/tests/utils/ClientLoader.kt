@@ -5,6 +5,7 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
+import kotlin.jvm.*
 
 /**
  * Helper interface to test client.
