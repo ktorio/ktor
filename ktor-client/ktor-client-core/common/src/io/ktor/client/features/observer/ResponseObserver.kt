@@ -42,7 +42,7 @@ class ResponseObserver(
         override fun install(feature: ResponseObserver, scope: HttpClient) {
 
             scope.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-                val (loggingContent, responseContent) = response.content.split(response)
+                val (loggingContent, responseContent) = response.content.splitOnMainAndDependant(response)
 
                 val newClientCall = context.wrapWithContent(responseContent)
                 val sideCall = newClientCall.wrapWithContent(loggingContent)

@@ -115,11 +115,15 @@ class Logging(
 
     private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel) {
         with(logger) {
-            log("BODY Content-Type: $contentType")
-            log("BODY START")
-            val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
-            log(message)
-            log("BODY END")
+            try {
+                val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
+                log("BODY Content-Type: $contentType")
+                log("BODY START")
+                log(message)
+                log("BODY END")
+            } catch (cause: Throwable) {
+                log("BODY: ${cause.message}")
+            }
         }
     }
 

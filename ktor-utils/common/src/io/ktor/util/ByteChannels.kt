@@ -10,6 +10,39 @@ import kotlinx.coroutines.*
 
 private const val CHUNK_BUFFER_SIZE = 4096L
 
+@KtorExperimentalAPI
+fun ByteReadChannel.splitOnMainAndDependant(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
+    val first = ByteChannel(autoFlush = true)
+    val second = ByteChannel(autoFlush = true)
+
+    coroutineScope.launch {
+        try {
+            while (!isClosedForRead) {
+                readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
+                    second.writePacket(chunk.copy())
+                    while (second.availableForRead != 0) {
+                        yield()
+                    }
+                    if (second.closedCause != null) {
+                        first.cancel(second.closedCause)
+                    } else {
+                        first.writePacket(chunk.copy())
+                    }
+                }
+            }
+        } catch (cause: Throwable) {
+            cancel(cause)
+            first.cancel(cause)
+            second.cancel(cause)
+        } finally {
+            first.close()
+            second.close()
+        }
+    }
+
+    return first to second
+}
+
 /**
  * Split source [ByteReadChannel] into 2 new one.
  * Cancel of one channel in split(input or both outputs) cancels other channels.
