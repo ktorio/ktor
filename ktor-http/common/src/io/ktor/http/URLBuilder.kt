@@ -24,7 +24,7 @@ const val DEFAULT_PORT: Int = 0
  */
 class URLBuilder(
     var protocol: URLProtocol = URLProtocol.HTTP,
-    var host: String = originHost,
+    var host: String = "localhost",
     var port: Int = DEFAULT_PORT,
     var user: String? = null,
     var password: String? = null,
@@ -33,6 +33,13 @@ class URLBuilder(
     var fragment: String = "",
     var trailingQuery: Boolean = false
 ) {
+    init {
+        originHost?.let { takeFrom(it) }
+
+        if (encodedPath.isEmpty()) {
+            encodedPath = "/"
+        }
+    }
 
     /**
      * Encode [components] to [encodedPath]
@@ -89,7 +96,7 @@ class URLBuilder(
  *
  * It uses "localhost" for all platforms except js.
  */
-expect val URLBuilder.Companion.originHost: String
+internal expect val URLBuilder.Companion.originHost: String?
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.

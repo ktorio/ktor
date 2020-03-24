@@ -428,7 +428,9 @@ public final class io/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConf
 
 public final class io/ktor/client/features/HttpTimeoutKt {
 	public static final fun ConnectTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Lio/ktor/network/sockets/ConnectTimeoutException;
+	public static final fun ConnectTimeoutException (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Throwable;)Lio/ktor/network/sockets/ConnectTimeoutException;
 	public static synthetic fun ConnectTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/network/sockets/ConnectTimeoutException;
+	public static synthetic fun ConnectTimeoutException$default (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/network/sockets/ConnectTimeoutException;
 	public static final fun SocketTimeoutException (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;)Lio/ktor/network/sockets/SocketTimeoutException;
 	public static synthetic fun SocketTimeoutException$default (Lio/ktor/client/request/HttpRequestData;Ljava/lang/Throwable;ILjava/lang/Object;)Lio/ktor/network/sockets/SocketTimeoutException;
 	public static final fun convertLongTimeoutToIntWithInfiniteAsZero (J)I

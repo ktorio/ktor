@@ -18,5 +18,4 @@ operator fun Url.Companion.invoke(fullUrl: String): Url = URLBuilder().apply {
  *
  * It uses "localhost" for all platforms except js.
  */
-actual val URLBuilder.Companion.originHost: String
-    get() = "localhost"
+internal actual val URLBuilder.Companion.originHost: String? get() = null

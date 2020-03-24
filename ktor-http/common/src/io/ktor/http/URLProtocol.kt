@@ -42,6 +42,7 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
          * Socks proxy url protocol.
          */
         val SOCKS = URLProtocol("socks", 1080)
+
         /**
          * Protocols by names map
          */
