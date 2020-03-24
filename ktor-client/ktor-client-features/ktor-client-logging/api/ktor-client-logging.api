@@ -31,13 +31,12 @@ public final class io/ktor/client/features/logging/LoggerKt {
 
 public final class io/ktor/client/features/logging/Logging {
 	public static final field Companion Lio/ktor/client/features/logging/Logging$Companion;
-	public fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;)V
 	public fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;Ljava/util/List;)V
+	public synthetic fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getFilters ()Ljava/util/List;
 	public final fun getLevel ()Lio/ktor/client/features/logging/LogLevel;
 	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
 	public final fun setFilters (Ljava/util/List;)V
-	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
 }
 
 public final class io/ktor/client/features/logging/Logging$Companion : io/ktor/client/features/HttpClientFeature {
