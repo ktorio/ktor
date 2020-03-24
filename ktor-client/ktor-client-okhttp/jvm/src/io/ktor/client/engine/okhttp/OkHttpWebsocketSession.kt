@@ -110,6 +110,7 @@ internal class OkHttpWebsocketSession(
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
 
+        _closeReason.completeExceptionally(t)
         originResponse.completeExceptionally(t)
         _incoming.close(t)
         outgoing.close(t)
