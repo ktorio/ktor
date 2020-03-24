@@ -76,4 +76,6 @@ private fun StringBuilder.appendLog(log: List<String>) {
     }
 }
 
-internal class CustomError(override val message: String) : Throwable()
+internal class CustomError(override val message: String) : Throwable() {
+    override fun toString(): String = "CustomError[$message]"
+}

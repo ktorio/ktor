@@ -29,7 +29,7 @@ class LoggingMockedTests {
             "BODY START",
             "",
             "BODY END",
-            "REQUEST http://localhost/ failed with exception: io.ktor.client.tests.utils.CustomError: BAD REQUEST"
+            "REQUEST http://localhost/ failed with exception: CustomError[BAD REQUEST]"
         )
 
         config {
@@ -81,7 +81,7 @@ class LoggingMockedTests {
             "BODY START",
             "Hello",
             "BODY END",
-            "RESPONSE http://localhost/ failed with exception: io.ktor.client.tests.utils.CustomError: PARSE ERROR"
+            "RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]"
         )
 
         config {
@@ -137,8 +137,8 @@ class LoggingMockedTests {
             "METHOD: HttpMethod(value=GET)",
             "FROM: http://localhost/",
             "COMMON HEADERS",
-            "RESPONSE http://localhost/ failed with exception: io.ktor.client.tests.utils.CustomError: PARSE ERROR",
-            "REQUEST http://localhost/ failed with exception: io.ktor.client.tests.utils.CustomError: PARSE ERROR"
+            "RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
+            "REQUEST http://localhost/ failed with exception: CustomError[PARSE ERROR]"
         )
 
         config {
@@ -225,7 +225,7 @@ class LoggingMockedTests {
 
         test { client ->
             val input = buildPacket { writeText("Hello") }
-            client.submitFormWithBinaryData<String>(
+            client.submitFormWithBinaryData<String>("http://localhost/",
                 formData {
                     appendInput(
                         "file",
