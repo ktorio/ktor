@@ -25,7 +25,7 @@ val AuthScheme.Bearer: String
  */
 fun Auth.oauth(tokenProvider: TokenProvider, block: OAuthConfig.() -> Unit) {
     with(OAuthConfig().apply(block)) {
-        providers.add(OAuthProvider(tokenProvider, maxTries, realm, sendWithoutRequest))
+        providers.add(OAuthProvider(tokenProvider, maxTries, realm))
     }
 }
 
@@ -44,11 +44,6 @@ class OAuthConfig {
      * Optional: current provider realm
      */
     var realm: String? = null
-
-    /**
-     * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
-     */
-    var sendWithoutRequest: Boolean = false
 }
 
 /**
@@ -57,9 +52,11 @@ class OAuthConfig {
 class OAuthProvider(
     private val tokenProvider: TokenProvider,
     private var maxTries: Int,
-    private val realm: String? = null,
-    override val sendWithoutRequest: Boolean = false
+    private val realm: String? = null
 ) : AuthProvider {
+
+    // set to `false` so this provider is not ignored by [Auth] and retries are possible
+    override val sendWithoutRequest = false
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Bearer) return false
