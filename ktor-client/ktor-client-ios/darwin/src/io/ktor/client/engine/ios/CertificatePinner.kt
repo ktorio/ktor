@@ -236,7 +236,7 @@ data class CertificatePinner internal constructor(
      * Returns list of matching certificates' pins for the hostname. Returns an empty list if the
      * hostname does not have pinned certificates.
      */
-    private fun findMatchingPins(hostname: String): List<Pin> {
+    internal fun findMatchingPins(hostname: String): List<Pin> {
         var result: List<Pin> = emptyList()
         for (pin in pins) {
             if (pin.matches(hostname)) {
@@ -313,7 +313,7 @@ data class CertificatePinner internal constructor(
     /**
      * Checks that we support the key type and size
      */
-    private fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
+    internal fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
         return if (publicKeyType == keyTypeRSA && publicKeySize.longValue == 1024L) {
@@ -335,7 +335,7 @@ data class CertificatePinner internal constructor(
      * [ASN1Header](https://docs.oracle.com/middleware/11119/opss/SCRPJ/oracle/security/crypto/asn1
      * /ASN1Header.html)
      */
-    private fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
+    internal fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
         val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
         val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
         return if (publicKeyType == keyTypeRSA && publicKeySize.longValue == 1024L) {
@@ -530,33 +530,33 @@ data class CertificatePinner internal constructor(
           https://github.com/IBM-Swift/BlueRSA/blob/master/Sources/CryptorRSA/CryptorRSAUtilities.swift
          */
 
-        private val rsa1024Asn1HeaderInts: IntArray = intArrayOf(
+        internal val rsa1024Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x81, 0x9F, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7,
             0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x81, 0x8D, 0x00
         )
 
-        private val rsa2048Asn1HeaderInts: IntArray = intArrayOf(
+        internal val rsa2048Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x82, 0x01, 0x22, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,
             0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x0F, 0x00
         )
 
-        private val rsa3072Asn1HeaderInts: IntArray = intArrayOf(
+        internal val rsa3072Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x82, 0x01, 0xA2, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,
             0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x8F, 0x00
         )
 
-        private val rsa4096Asn1HeaderInts: IntArray = intArrayOf(
+        internal val rsa4096Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x82, 0x02, 0x22, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,
             0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x02, 0x0F, 0x00
         )
 
-        private val ecDsaSecp256r1Asn1HeaderInts: IntArray = intArrayOf(
+        internal val ecDsaSecp256r1Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02,
             0x01, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07, 0x03,
             0x42, 0x00
         )
 
-        private val ecDsaSecp384r1Asn1HeaderInts: IntArray = intArrayOf(
+        internal val ecDsaSecp384r1Asn1HeaderInts: IntArray = intArrayOf(
             0x30, 0x76, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02,
             0x01, 0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22, 0x03, 0x62, 0x00
         )
