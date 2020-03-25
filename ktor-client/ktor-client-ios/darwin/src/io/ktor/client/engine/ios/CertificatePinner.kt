@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.ios
 
+import io.ktor.client.engine.ios.toByteArray
+import io.ktor.util.*
 import kotlinx.cinterop.*
 import platform.CoreCrypto.*
 import platform.CoreFoundation.*
@@ -105,6 +107,7 @@ import platform.Security.*
  * https://square.github.io/okhttp/4.x/okhttp/okhttp3/-certificate-pinner/
  * https://github.com/square/okhttp/blob/master/okhttp/src/main/java/okhttp3/CertificatePinner.kt
  */
+@KtorExperimentalAPI
 data class CertificatePinner internal constructor(
     private val pins: Set<Pin>,
     private val validateTrust: Boolean
@@ -388,6 +391,7 @@ data class CertificatePinner internal constructor(
     /**
      * Builds a configured [CertificatePinner].
      */
+    @KtorExperimentalAPI
     data class Builder(
         private val pins: MutableList<Pin> = mutableListOf(),
         private var validateTrust: Boolean = true
@@ -431,6 +435,7 @@ data class CertificatePinner internal constructor(
      * Represents a pinned certificate. Recommended to use [Builder.add] to construct
      * [CertificatePinner]
      */
+    @KtorExperimentalAPI
     data class Pin(
         /**
          * A hostname like `example.com` or a pattern like `*.example.com` (canonical form).
