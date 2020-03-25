@@ -86,6 +86,8 @@ publishing {
         def publication = publishing.publications.findByName(target.name)
 
         if (publication != null) {
+            def platformName = target.platformType.name
+
             if (target.platformType.name == 'jvm') {
                 publication.artifact(emptyJar) {
                     classifier 'javadoc'
@@ -100,9 +102,12 @@ publishing {
                 }
             }
 
-            if (target.platformType.name != 'native') {
+            def publishMetadata = ['native', 'js']
+            if (!publishMetadata.contains(platformName)) {
                 publication.moduleDescriptorGenerator = null
-            } else {
+            }
+
+            if (platformName == 'native') {
                 publication.artifact emptyJar
             }
         }
