@@ -321,7 +321,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun customServerTest() = clientTests {
+    fun customServerTest() = clientTests(listOf("iOS")) {
         config {
             Logging {
                 level = LogLevel.ALL
