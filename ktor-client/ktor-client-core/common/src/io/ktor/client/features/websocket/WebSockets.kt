@@ -15,20 +15,22 @@ import io.ktor.util.*
 /**
  * Client WebSocket feature.
  *
- * @property pingInterval - interval between [FrameType.PING] messages.
- * @property maxFrameSize - max size of single websocket frame.
+ * @property pingIntervalMillis - interval between [FrameType.PING] messages.
+ * @property timeoutMillis - timeout to receive a [FrameType.PONG] message.
  */
 @KtorExperimentalAPI
 @OptIn(WebSocketInternalAPI::class)
 class WebSockets(
-    val pingInterval: Long = -1L,
-    val maxFrameSize: Long = Int.MAX_VALUE.toLong()
+    var pingIntervalMillis: Long = -1L,
+    var timeoutMillis: Long = 15000L
 ) {
     @Suppress("KDocMissingDocumentation")
-    companion object Feature : HttpClientFeature<Unit, WebSockets> {
+    companion object Feature : HttpClientFeature<WebSockets, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("Websocket")
 
-        override fun prepare(block: Unit.() -> Unit): WebSockets = WebSockets()
+        override fun prepare(block: WebSockets.() -> Unit): WebSockets = WebSockets().apply {
+            block()
+        }
 
         override fun install(feature: WebSockets, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) {
@@ -56,7 +58,7 @@ class WebSockets(
 
     private fun WebSocketSession.asDefault(): DefaultWebSocketSession {
         if (this is DefaultWebSocketSession) return this
-        return DefaultWebSocketSession(this, pingInterval, maxFrameSize)
+        return DefaultWebSocketSession(this, pingIntervalMillis, timeoutMillis)
     }
 }
 
