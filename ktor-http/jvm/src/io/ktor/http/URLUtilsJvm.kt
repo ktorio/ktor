@@ -56,4 +56,5 @@ fun Url.toURI(): URI = URI(toString())
  *
  * Creates [Url] from [URI]
  */
-fun Url.Companion.from(uri: URI): Url = URLBuilder().takeFrom(uri).build()
+@Suppress("FunctionName")
+fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()
