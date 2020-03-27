@@ -9,7 +9,7 @@ import io.ktor.http.*
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
-fun HttpRequestBuilder.url(url: java.net.URL): Unit = this.url.takeFrom(url)
+fun HttpRequestBuilder.url(url: java.net.URL): URLBuilder = this.url.takeFrom(url)
 
 /**
  * Constructs a [HttpRequestBuilder] from [url].
