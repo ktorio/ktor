@@ -35,6 +35,18 @@ internal fun NSData.toByteArray(): ByteArray {
     return ByteArray(length.toInt()) { index -> data[index] }
 }
 
+/**
+ * Executes the given block function on this resource and then releases it correctly whether an
+ * exception is thrown or not.
+ */
+internal inline fun <T : CPointed, R> CPointer<T>.use(block: (CPointer<T>) -> R): R {
+    try {
+        return block(this)
+    } finally {
+        CFBridgingRelease(this)
+    }
+}
+
 @KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
 class IosHttpRequestException(val origin: NSError) : Exception("Exception in http request: $origin")
