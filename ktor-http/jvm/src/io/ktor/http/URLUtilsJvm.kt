@@ -9,7 +9,7 @@ import java.net.*
 /**
  * Take URI components from [uri]
  */
-fun URLBuilder.takeFrom(uri: URI) {
+fun URLBuilder.takeFrom(uri: URI): URLBuilder {
     uri.scheme?.let {
         protocol = URLProtocol.createOrDefault(it)
         port = protocol.defaultPort
@@ -38,6 +38,7 @@ fun URLBuilder.takeFrom(uri: URI) {
     }
 
     uri.fragment?.let { fragment = it }
+    return this
 }
 
 /**
