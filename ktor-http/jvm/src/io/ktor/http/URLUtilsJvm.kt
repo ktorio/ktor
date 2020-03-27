@@ -50,3 +50,10 @@ fun URLBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
  * Convert [Url] to [URI]
  */
 fun Url.toURI(): URI = URI(toString())
+
+/**
+ * Helper method that concisely creates a [Url] from a [URI]
+ *
+ * Creates [Url] from [URI]
+ */
+fun Url.Companion.from(uri: URI): Url = URLBuilder().takeFrom(uri).build()
