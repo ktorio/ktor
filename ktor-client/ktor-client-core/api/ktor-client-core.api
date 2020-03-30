@@ -762,7 +762,7 @@ public final class io/ktor/client/request/HttpRequestData {
 
 public final class io/ktor/client/request/HttpRequestJvmKt {
 	public static final fun invoke (Lio/ktor/client/request/HttpRequestBuilder$Companion;Ljava/net/URL;)Lio/ktor/client/request/HttpRequestBuilder;
-	public static final fun url (Lio/ktor/client/request/HttpRequestBuilder;Ljava/net/URL;)V
+	public static final fun url (Lio/ktor/client/request/HttpRequestBuilder;Ljava/net/URL;)Lio/ktor/http/URLBuilder;
 }
 
 public final class io/ktor/client/request/HttpRequestKt {

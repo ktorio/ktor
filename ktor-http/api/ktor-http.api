@@ -935,8 +935,9 @@ public final class io/ktor/http/URLProtocolKt {
 }
 
 public final class io/ktor/http/URLUtilsJvmKt {
-	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/net/URI;)V
-	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/net/URL;)V
+	public static final fun Url (Ljava/net/URI;)Lio/ktor/http/Url;
+	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/net/URI;)Lio/ktor/http/URLBuilder;
+	public static final fun takeFrom (Lio/ktor/http/URLBuilder;Ljava/net/URL;)Lio/ktor/http/URLBuilder;
 	public static final fun toURI (Lio/ktor/http/Url;)Ljava/net/URI;
 }
 
