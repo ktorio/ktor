@@ -14,25 +14,35 @@ internal val FEATURE_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationFeatu
 /**
  * Base interface representing a [HttpClient] feature.
  */
-interface HttpClientFeature<out TConfig : Any, TFeature : Any> {
+public interface HttpClientFeature<out TConfig : Any, TFeature : Any> {
     /**
      * The [AttributeKey] for this feature.
      */
-    val key: AttributeKey<TFeature>
+    public val key: AttributeKey<TFeature>
 
     /**
      * Builds a [TFeature] by calling the [block] with a [TConfig] config instance as receiver.
      */
-    fun prepare(block: TConfig.() -> Unit = {}): TFeature
+    public fun prepare(block: TConfig.() -> Unit = {}): TFeature
 
     /**
      * Installs the [feature] class for a [HttpClient] defined at [scope].
      */
-    fun install(feature: TFeature, scope: HttpClient)
+    public fun install(feature: TFeature, scope: HttpClient)
 }
 
 /**
- * Try to get a [feature] installed in this client. Returns `null` if the feature was not previously installed.
+ * Try to get the [feature] installed in this client. Returns `null` if the feature was not previously installed.
  */
-fun <B : Any, F : Any> HttpClient.feature(feature: HttpClientFeature<B, F>): F? =
+public fun <B : Any, F : Any> HttpClient.feature(feature: HttpClientFeature<B, F>): F? =
     attributes.getOrNull(FEATURE_INSTALLED_LIST)?.getOrNull(feature.key)
+
+/**
+ * Find the [feature] installed in [HttpClient].
+ *
+ * @throws [IllegalStateException] if [feature] is not installed.
+ */
+public operator fun <B : Any, F: Any> HttpClient.get(feature: HttpClientFeature<B, F>): F {
+    val message = "Feature $feature is not installed. Consider using `install(${feature.key})` in client config first."
+    return feature(feature) ?: error(message)
+}
