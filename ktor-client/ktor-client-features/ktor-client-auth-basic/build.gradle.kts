@@ -6,6 +6,7 @@ kotlin.sourceSets {
     commonMain {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
         }
     }
     jvmTest {
