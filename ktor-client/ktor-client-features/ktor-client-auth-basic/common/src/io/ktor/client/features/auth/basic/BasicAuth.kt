@@ -40,6 +40,12 @@ class BasicAuth(val username: String, val password: String) {
         internal fun build(): BasicAuth = BasicAuth(username, password)
     }
 
+    @Suppress("KDocMissingDocumentation", "DEPRECATION_ERROR")
+    @Deprecated(
+        "[BasicAuth] deprecated, use [Auth] feature with [Basic] provider instead.",
+        ReplaceWith("Auth"),
+        level = DeprecationLevel.ERROR
+    )
     companion object Feature : HttpClientFeature<Configuration, BasicAuth> {
 
         override val key: AttributeKey<BasicAuth> = AttributeKey("AuthBasicHeader")
