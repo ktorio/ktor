@@ -182,6 +182,10 @@ allprojects {
                 }
             }
         }
+
+        sourceSets.matching({ it.name.contains("Main") }).all { srcSet ->
+            project.ext.set("kotlin.mpp.freeCompilerArgsForSourceSet.${srcSet.name}", "-Xexplicit-api=warning")
+        }
     }
 
     if (!rootProject.ext.skipPublish.contains(project.name)) {
