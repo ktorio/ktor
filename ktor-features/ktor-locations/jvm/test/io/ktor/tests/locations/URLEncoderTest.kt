@@ -9,10 +9,8 @@ import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
 
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 class URLEncoderTest {
-    private val encoder = URLEncoder(EmptyModule)
-
     @Test
     fun urlParameter() {
         assertEquals("http://localhost/path?p=a", serialize(URLParameter("a")))
@@ -39,6 +37,7 @@ class URLEncoderTest {
     }
 
     private inline fun <reified T> serialize(instance: T): String {
+        val encoder = URLEncoder(EmptyModule, T::class)
         serializer<T>().serialize(encoder, instance)
         return encoder.build().toString()
     }

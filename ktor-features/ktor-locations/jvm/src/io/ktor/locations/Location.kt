@@ -30,7 +30,6 @@ public annotation class KtorExperimentalLocationsAPI
  * Annotation for classes that will act as typed routes.
  * @property path the route path, including class property names wrapped with curly braces.
  */
-@KtorExperimentalLocationsAPI
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
 @SerialInfo
 public annotation class Location(public val path: String)
@@ -38,21 +37,18 @@ public annotation class Location(public val path: String)
 /**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val PipelineContext<Unit, ApplicationCall>.locations: Locations
     get() = call.application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val ApplicationCall.locations: Locations
     get() = application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val Application.locations: Locations
     get() = feature(Locations)
 
@@ -60,7 +56,6 @@ public val Application.locations: Locations
  * Renders link to a [location] using current installed locations service
  * @throws MissingApplicationFeatureException is no locations feature installed
  */
-@KtorExperimentalLocationsAPI
 public fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
     return call.application.locations.href(location)
 }

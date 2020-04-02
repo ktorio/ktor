@@ -20,23 +20,47 @@ import kotlin.reflect.*
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
-public open class Locations @KtorExperimentalLocationsAPI constructor(
+public open class Locations
+@Deprecated(
+    "Instantiating or inheriting this class is deprecated. Use feature instead.",
+    level = DeprecationLevel.ERROR
+)
+constructor(
     application: Application,
-    routeService: LocationRouteService
+    routeService: LocationRouteService,
+    compatibilityMode: Boolean
 ) {
+    @Deprecated(
+        "Instantiating or inheriting this class is deprecated. Use feature instead.",
+        level = DeprecationLevel.ERROR
+    )
+    @Suppress("DEPRECATION_ERROR")
+    public constructor(
+        application: Application,
+        routeService: LocationRouteService
+    ) : this(application, routeService, true)
+
     /**
      * Creates Locations service extracting path information from @Location annotation
      */
-    @OptIn(KtorExperimentalLocationsAPI::class)
-    constructor(application: Application) : this(application, LocationAttributeRouteService())
+    @Deprecated(
+        "Instantiating or inheriting this class is deprecated. Use feature instead.",
+        level = DeprecationLevel.ERROR
+    )
+    @Suppress("DEPRECATION_ERROR")
+    public constructor(application: Application) : this(application, LocationAttributeRouteService())
 
-    private val implementation: LocationsImpl = BackwardCompatibleImpl(application, routeService)
+    private val implementation: LocationsImpl =
+        if (compatibilityMode)
+            BackwardCompatibleImpl(application, routeService)
+        else
+            SerializationImpl(EmptyModule, application, routeService)
 
     /**
      * All locations registered at the moment (Immutable list).
      */
     @KtorExperimentalLocationsAPI
-    val registeredLocations: List<LocationInfo>
+    public val registeredLocations: List<LocationInfo>
         get() = implementation.registeredLocations
 
     /**
@@ -48,7 +72,7 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
         val info = implementation.getOrCreateInfo(locationClass)
         return implementation.instantiate(info, parameters) as T
     }
@@ -57,37 +81,15 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
      * Resolves [parameters] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    inline fun <reified T : Any> resolve(parameters: Parameters): T {
+    public inline fun <reified T : Any> resolve(parameters: Parameters): T {
         return resolve(T::class, parameters) as T
-    }
-
-    // TODO: optimize allocations
-    private fun pathAndQuery(location: Any): ResolvedUriInfo {
-        val info = getOrCreateInfo(location::class.java.kotlin)
-
-        fun propertyValue(instance: Any, name: String): List<String> {
-            // TODO: Cache properties by name in info
-            val property = info.pathParameters.single { it.name == name }
-            val value = property.getter.call(instance)
-            return conversionService.toValues(value)
-    }
-
-        val substituteParts = RoutingPath.parse(info.path).parts.flatMap { segment ->
-            when (segment.kind) {
-                RoutingPathSegmentKind.Constant -> listOf(segment.value)
-                RoutingPathSegmentKind.Parameter -> {
-                    if (info.klass.objectInstance != null)
-                        throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
-                    propertyValue(location, PathSegmentSelectorBuilder.parseName(it.value))
-                }
-            }
     }
 
     /**
      * Resolves parameters in a [call] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    inline fun <reified T : Any> resolve(call: ApplicationCall): T {
+    public inline fun <reified T : Any> resolve(call: ApplicationCall): T {
         return resolve(T::class, call)
     }
 
@@ -96,10 +98,14 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
      *
      * The class of [location] instance **must** be annotated with [Location].
      */
-    @UseExperimental(ImplicitReflectionSerializer::class)
     public fun href(location: Any): String {
+        return implementation.href(location)
+    }
+
+    @OptIn(ImplicitReflectionSerializer::class)
+    private fun href(location: Any, conversionService: ConversionService): String {
         val serializer = location.javaClass.kotlin.serializer()
-        val encoder = URLEncoder(EmptyModule, conversionService)
+        val encoder = URLEncoder(EmptyModule, location.javaClass.kotlin, conversionService)
 
         serializer.serialize(encoder, location)
 
@@ -142,6 +148,12 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
          */
         @KtorExperimentalLocationsAPI
         public var routeService: LocationRouteService? = null
+
+        /**
+         * Turns the old locations implementation on.
+         * The old implementation doesn't rely on kotlinx.serialization and works exactly as before.
+         */
+        public var compatibilityMode: Boolean = true
     }
 
     /**
@@ -154,7 +166,8 @@ public open class Locations @KtorExperimentalLocationsAPI constructor(
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Locations {
             val configuration = Configuration().apply(configure)
             val routeService = configuration.routeService ?: LocationAttributeRouteService()
-            return Locations(pipeline, routeService)
+            @Suppress("DEPRECATION_ERROR")
+            return Locations(pipeline, routeService, configuration.compatibilityMode)
         }
     }
 }

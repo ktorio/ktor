@@ -4,12 +4,26 @@
 
 package io.ktor.locations
 
+import io.ktor.features.*
 import io.ktor.http.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
+import kotlin.reflect.*
 
 @KtorExperimentalLocationsAPI
-internal class URLDecoder(override val context: SerialModule, private val url: Url) : Decoder, CompositeDecoder {
+internal class URLDecoder(
+    override val context: SerialModule,
+    private val encodedPath: String?,
+    private val queryParameters: Parameters,
+    private val rootClass: KClass<*>
+) : Decoder, CompositeDecoder {
+    constructor(context: SerialModule, url: Url, rootClass: KClass<*>) : this(
+        context,
+        url.encodedPath,
+        url.parameters,
+        rootClass
+    )
+
     private var pathParameters: Parameters = Parameters.Empty
     private var pattern: LocationPattern? = null
     private val pathParameterIndexes = mutableMapOf<String, Int>()
@@ -18,50 +32,90 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
 
     private var currentElementName: String? = null
 
-    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
-        if (desc.kind == StructureKind.CLASS && this.pattern == null) {
-            this.pattern = buildLocationPattern(desc)
+    private val iteratorIndexMap = HashMap<SerialDescriptor, Int>()
+
+//    override fun decodeSequentially(): Boolean = true
+
+    override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
+        if (descriptor.kind.isClassOrObject() && this.pattern == null) {
+            this.pattern = buildLocationPattern(descriptor, rootClass)
 
             try {
-                this.pathParameters = this.pattern!!.parse(url.encodedPath)
+                this.pathParameters = encodedPath
+                    ?.let { path -> this.pattern!!.parse(path) }
+                    ?: queryParameters
             } catch (cause: Throwable) {
-                cause.printStackTrace()
+                throw LocationRoutingException("Failed to parse path $encodedPath")
             }
         }
 
         return this
     }
 
+    override fun endStructure(descriptor: SerialDescriptor) {
+    }
+
+    private inline fun <T> decodeOrFail(type: String, block: (String) -> T): T {
+        return try {
+            block(decodeString())
+        } catch (cause: Exception) {
+            throw ParameterConversionException(currentElementName ?: "?", type, cause)
+        }
+    }
+
+    private inline fun <T> decodeElementOrFail(
+        descriptor: SerialDescriptor, index: Int, block: (String) -> T
+    ): T {
+        return try {
+            block(decodeElement(descriptor, index))
+        } catch (cause: Exception) {
+            throw ParameterConversionException(
+                descriptor.getElementName(index),
+                descriptor.getElementDescriptor(index).toString(), cause)
+        }
+    }
+
     override fun decodeBoolean(): Boolean {
-        return decodeString().toBoolean()
+        return decodeOrFail("Boolean") { it.toBoolean() }
     }
 
     override fun decodeByte(): Byte {
-        return decodeString().toByte()
+        return decodeOrFail("Byte") { it.toByte() }
     }
 
     override fun decodeChar(): Char {
-        return decodeString().single()
+        return decodeOrFail("Char") { it.single() }
     }
 
     override fun decodeDouble(): Double {
-        return decodeString().toDouble()
+        return decodeOrFail("Double") { it.toDouble() }
     }
 
-    override fun decodeEnum(enumDescription: SerialDescriptor): Int {
-        TODO("Not yet implemented")
+    override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
+        val value = decodeOrFail(enumDescriptor.serialName) { it }
+        val index = enumDescriptor.getElementIndex(value)
+
+        if (index < 0) {
+            throw ParameterConversionException(
+                currentElementName ?: "?",
+                enumDescriptor.serialName,
+                IllegalArgumentException("Illegal enum value $value")
+            )
+        }
+
+        return index
     }
 
     override fun decodeFloat(): Float {
-        return decodeString().toFloat()
+        return decodeOrFail("Float") { it.toFloat() }
     }
 
     override fun decodeInt(): Int {
-        return decodeString().toInt()
+        return decodeOrFail("Int") { it.toInt() }
     }
 
     override fun decodeLong(): Long {
-        return decodeString().toLong()
+        return decodeOrFail("Long") { it.toLong() }
     }
 
     override fun decodeNotNullMark(): Boolean {
@@ -73,7 +127,7 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
     }
 
     override fun decodeShort(): Short {
-        return decodeString().toShort()
+        return decodeOrFail("Short") { it.toShort() }
     }
 
     override fun decodeString(): String {
@@ -84,70 +138,87 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
             val values = if (parameterName in pattern.pathParameterNames) {
                 pathParameters.getAll(parameterName)
             } else {
-                url.parameters.getAll(parameterName)
+                queryParameters.getAll(parameterName)
             } ?: error("No value for parameter $parameterName")
 
-            return values.getOrElse(indexFor(parameterName)) { values.last() }
+            if (values.isNotEmpty()) {
+                return values.getOrElse(indexFor(parameterName)) { values.last() }
+            }
         }
 
-        error("Unable to decode a String.")
+        throw ParameterConversionException(parameterName ?: "", "String", null)
     }
 
     override fun decodeUnit() {
-        decodeString()
+        decodeOrFail("Unit") {}
     }
 
-    override fun decodeBooleanElement(desc: SerialDescriptor, index: Int): Boolean {
-        return decodeElement(desc, index).let { it == "" || it == "true" }
+    override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
+        return decodeElementOrFail(descriptor, index) { it == "" || it == "true" }
     }
 
-    override fun decodeByteElement(desc: SerialDescriptor, index: Int): Byte {
-        return decodeElement(desc, index).toByte()
+    override fun decodeByteElement(descriptor: SerialDescriptor, index: Int): Byte {
+        return decodeElementOrFail(descriptor, index) { it.toByte() }
     }
 
-    override fun decodeCharElement(desc: SerialDescriptor, index: Int): Char {
-        return decodeElement(desc, index).single()
+    override fun decodeCharElement(descriptor: SerialDescriptor, index: Int): Char {
+        return decodeElementOrFail(descriptor, index) { it.single() }
     }
 
-    override fun decodeDoubleElement(desc: SerialDescriptor, index: Int): Double {
-        return decodeElement(desc, index).toDouble()
+    override fun decodeDoubleElement(descriptor: SerialDescriptor, index: Int): Double {
+        return decodeElementOrFail(descriptor, index) { it.toDouble() }
     }
 
-    override fun decodeElementIndex(desc: SerialDescriptor): Int {
-        return CompositeDecoder.READ_ALL
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+        val currentElementName = currentElementName
+        val isCollection = descriptor.kind == StructureKind.LIST
+        val count = when {
+            isCollection && currentElementName != null -> pathParameters.getAll(currentElementName)?.size
+                ?: queryParameters.getAll(currentElementName)?.size ?: 0
+            else -> descriptor.elementsCount
+        }
+
+        var index = iteratorIndexMap.getOrElse(descriptor) { -1 } + 1
+        while (index < count) {
+            if (!isCollection &&
+                descriptor.isElementOptional(index)
+                && descriptor.getElementName(index).let { name ->
+                    name !in pathParameters && name !in queryParameters
+                }
+            ) {
+                index++
+                continue
+            }
+
+            iteratorIndexMap[descriptor] = index
+            return index
+        }
+        return CompositeDecoder.READ_DONE
     }
 
-    override fun decodeFloatElement(desc: SerialDescriptor, index: Int): Float {
-        return decodeElement(desc, index).toFloat()
+    override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float {
+        return decodeElementOrFail(descriptor, index) { it.toFloat() }
     }
 
-    override fun decodeIntElement(desc: SerialDescriptor, index: Int): Int {
-        return decodeElement(desc, index).toInt()
+    override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int {
+        return decodeElementOrFail(descriptor, index) { it.toInt() }
     }
 
-    override fun decodeLongElement(desc: SerialDescriptor, index: Int): Long {
-        return decodeElement(desc, index).toLong()
+    override fun decodeLongElement(descriptor: SerialDescriptor, index: Int): Long {
+        return decodeElementOrFail(descriptor, index) { it.toLong() }
     }
 
     override fun <T : Any> decodeNullableSerializableElement(
-        desc: SerialDescriptor,
+        descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T?>
     ): T? {
-        return deserializer.deserialize(this)
-    }
-
-    override fun <T> decodeSerializableElement(
-        desc: SerialDescriptor,
-        index: Int,
-        deserializer: DeserializationStrategy<T>
-    ): T {
-        if (desc.kind != StructureKind.CLASS) {
+        if (!descriptor.kind.isClassOrObject()) {
             return deserializer.deserialize(this)
         }
 
         val before = currentElementName
-        currentElementName = desc.getElementName(index)
+        currentElementName = descriptor.getElementName(index)
         return try {
             deserializer.deserialize(this)
         } finally {
@@ -155,16 +226,34 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
         }
     }
 
-    override fun decodeShortElement(desc: SerialDescriptor, index: Int): Short {
-        return decodeElement(desc, index).toShort()
+    override fun <T> decodeSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T>
+    ): T {
+        if (descriptor.kind != StructureKind.CLASS) {
+            return deserializer.deserialize(this)
+        }
+
+        val before = currentElementName
+        currentElementName = descriptor.getElementName(index)
+        return try {
+            deserializer.deserialize(this)
+        } finally {
+            currentElementName = before
+        }
     }
 
-    override fun decodeStringElement(desc: SerialDescriptor, index: Int): String {
-        return decodeElement(desc, index)
+    override fun decodeShortElement(descriptor: SerialDescriptor, index: Int): Short {
+        return decodeElementOrFail(descriptor, index) { it.toShort() }
     }
 
-    override fun decodeUnitElement(desc: SerialDescriptor, index: Int) {
-        check(decodeElement(desc, index) == "")
+    override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String {
+        return decodeElementOrFail(descriptor, index) { it }
+    }
+
+    override fun decodeUnitElement(descriptor: SerialDescriptor, index: Int) {
+        decodeElementOrFail(descriptor, index) {}
     }
 
     private fun decodeElement(desc: SerialDescriptor, index: Int): String {
@@ -173,14 +262,12 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
         return if (name in pattern!!.pathParameterNames) {
             pathParameters[name]
         } else {
-            val values = url.parameters.getAll(name)
+            val values = queryParameters.getAll(name)
             values?.getOrElse(indexFor(name)) { values.last() }
-        } ?: run {
-            TODO("NPE?")
-        }
+        } ?: ""
     }
 
-    override fun decodeCollectionSize(desc: SerialDescriptor): Int {
+    override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
         val pattern = pattern
         val parameterName = currentElementName
 
@@ -188,10 +275,10 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
             if (parameterName in pattern.pathParameterNames) {
                 return pathParameters.getAll(parameterName)?.size ?: 0
             }
-            return url.parameters.getAll(parameterName)?.size ?: 0
+            return queryParameters.getAll(parameterName)?.size ?: 0
         }
 
-        return super.decodeCollectionSize(desc)
+        return super.decodeCollectionSize(descriptor)
     }
 
     private fun indexFor(name: String): Int {
@@ -203,7 +290,7 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
     }
 
     override fun <T : Any> updateNullableSerializableElement(
-        desc: SerialDescriptor,
+        descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T?>,
         old: T?
@@ -212,7 +299,7 @@ internal class URLDecoder(override val context: SerialModule, private val url: U
     }
 
     override fun <T> updateSerializableElement(
-        desc: SerialDescriptor,
+        descriptor: SerialDescriptor,
         index: Int,
         deserializer: DeserializationStrategy<T>,
         old: T

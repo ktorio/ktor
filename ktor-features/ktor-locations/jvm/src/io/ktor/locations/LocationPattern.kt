@@ -25,7 +25,7 @@ internal class LocationPattern private constructor(private val segments: List<Se
         segments.forEach { segment ->
             append('/')
             when (segment) {
-                is Segment.Constant -> append(segment.text)
+                is Segment.Constant -> append(segment.text.encodeURLPathComponent())
                 is Segment.VariableSubstitution -> {
                     val index = indexes.getOrElse(segment.name) { 0 }
                     indexes[segment.name] = index + 1
@@ -35,17 +35,17 @@ internal class LocationPattern private constructor(private val segments: List<Se
                         if (segment.ellipsis || segment.optional) {
                             deleteCharAt(lastIndex)
                         } else {
-                            error("No parameter ${segment.name} specified")
+                            throw IllegalArgumentException("No parameter ${segment.name} specified")
                         }
                     } else {
-                        append(segment.prefix)
+                        append(segment.prefix.encodeURLPathComponent())
                         if (segment.ellipsis) {
                             allValues.joinTo(this, "/") { it.encodeURLPathComponent() }
                         } else {
                             val value = allValues.getOrElse(index) { allValues.last() }
                             append(value.encodeURLPathComponent())
                         }
-                        append(segment.suffix)
+                        append(segment.suffix.encodeURLPathComponent())
                     }
                 }
             }
