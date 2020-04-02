@@ -244,7 +244,6 @@ class LocationsTest {
                 assertEquals("text", it.optional)
                 call.respond(HttpStatusCode.OK)
             }
-
         }
         urlShouldBeHandled(href)
         urlShouldBeHandled("/container")
@@ -441,10 +440,11 @@ class LocationsTest {
     @Serializable
     @Location("/items/{id}") object items
 
-    @Test(expected = IllegalArgumentException::class) fun `location by object has bind argument`() =
-            withLocationsApplication {
-                application.locations.href(items)
-            }
+    @Test(expected = IllegalArgumentException::class)
+    fun `location by object has bind argument`() =
+        withLocationsApplication {
+            application.locations.href(items)
+        }
 
     @Serializable
     @Location("/items/{itemId}/{extra?}") class OverlappingPath1(val itemId: Int, val extra: String?)

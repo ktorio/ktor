@@ -11,48 +11,24 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.routing.*
-import kotlinx.serialization.*
 import io.ktor.util.*
 import kotlin.reflect.*
 
 /**
- * API marked with this annotation is experimental and is not guaranteed to be stable.
- */
-@Suppress("DEPRECATION")
-@RequiresOptIn(
-    level = RequiresOptIn.Level.WARNING,
-    message = "This locations API is experimental. It could be changed or removed in future releases."
-)
-@Experimental(level = Experimental.Level.WARNING)
-public annotation class KtorExperimentalLocationsAPI
-
-/**
- * Annotation for classes that will act as typed routes.
- * @property path the route path, including class property names wrapped with curly braces.
- */
-@KtorExperimentalLocationsAPI
-@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS)
-@SerialInfo
-public annotation class Location(public val path: String)
-
-/**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val PipelineContext<Unit, ApplicationCall>.locations: Locations
     get() = call.application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val ApplicationCall.locations: Locations
     get() = application.locations
 
 /**
  * Gets the [Application.locations] feature
  */
-@KtorExperimentalLocationsAPI
 public val Application.locations: Locations
     get() = feature(Locations)
 
@@ -60,7 +36,6 @@ public val Application.locations: Locations
  * Renders link to a [location] using current installed locations service
  * @throws MissingApplicationFeatureException is no locations feature installed
  */
-@KtorExperimentalLocationsAPI
 public fun PipelineContext<Unit, ApplicationCall>.href(location: Any): String {
     return call.application.locations.href(location)
 }
@@ -234,7 +209,7 @@ public fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineCo
  * or not yet available (invoked too early before the locations feature takes place).
  */
 @KtorExperimentalAPI
-inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = locationOrNull(T::class)
+public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = locationOrNull(T::class)
 
 @PublishedApi
 internal fun <T : Any> ApplicationCall.locationOrNull(type: KClass<T>): T =

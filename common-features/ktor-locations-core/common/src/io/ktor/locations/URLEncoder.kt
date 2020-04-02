@@ -9,11 +9,12 @@ import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.Encoder
 import kotlinx.serialization.modules.*
+import kotlin.reflect.*
 
-@KtorExperimentalLocationsAPI
-internal class URLEncoder(
+@InternalAPI
+public class URLEncoder(
     override val context: SerialModule,
-    private val conversionService: ConversionService = DefaultConversionService
+    private val rootClass: KClass<*>?
 ) : Encoder, CompositeEncoder {
     private val pathParameters = ParametersBuilder()
     private val queryParameters = ParametersBuilder()
@@ -21,12 +22,15 @@ internal class URLEncoder(
     private var pattern: LocationPattern? = null
     private var currentElementName: String? = null
 
-    override fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeEncoder {
-        if (desc.kind == StructureKind.CLASS && this.pattern == null) {
-            this.pattern = buildLocationPattern(desc)
+    override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
+        if (descriptor.kind.isClassOrObject() && this.pattern == null) {
+            this.pattern = buildLocationPattern(descriptor, rootClass)
         }
 
         return this
+    }
+
+    override fun endStructure(descriptor: SerialDescriptor) {
     }
 
     override fun encodeBoolean(value: Boolean) {
@@ -45,8 +49,8 @@ internal class URLEncoder(
         encodeString(value.toString())
     }
 
-    override fun encodeEnum(enumDescription: SerialDescriptor, ordinal: Int) {
-        TODO("Not yet implemented")
+    override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) {
+        encodeString(enumDescriptor.getElementName(index))
     }
 
     override fun encodeFloat(value: Float) {
@@ -62,11 +66,9 @@ internal class URLEncoder(
     }
 
     override fun encodeNotNullMark() {
-        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeNull() {
-        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeShort(value: Short) {
@@ -88,91 +90,75 @@ internal class URLEncoder(
         encodeString("Unit")
     }
 
-    override fun encodeBooleanElement(desc: SerialDescriptor, index: Int, value: Boolean) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeBooleanElement(descriptor: SerialDescriptor, index: Int, value: Boolean) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeByteElement(desc: SerialDescriptor, index: Int, value: Byte) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeByteElement(descriptor: SerialDescriptor, index: Int, value: Byte) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeCharElement(desc: SerialDescriptor, index: Int, value: Char) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeCharElement(descriptor: SerialDescriptor, index: Int, value: Char) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeDoubleElement(desc: SerialDescriptor, index: Int, value: Double) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeDoubleElement(descriptor: SerialDescriptor, index: Int, value: Double) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeFloatElement(desc: SerialDescriptor, index: Int, value: Float) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeFloatElement(descriptor: SerialDescriptor, index: Int, value: Float) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeIntElement(desc: SerialDescriptor, index: Int, value: Int) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeIntElement(descriptor: SerialDescriptor, index: Int, value: Int) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeLongElement(desc: SerialDescriptor, index: Int, value: Long) {
-        encodeElement(desc, index, value.toString())
-    }
-
-    override fun encodeNonSerializableElement(desc: SerialDescriptor, index: Int, value: Any) {
-        TODO("Not yet implemented")
+    override fun encodeLongElement(descriptor: SerialDescriptor, index: Int, value: Long) {
+        encodeElement(descriptor, index, value.toString())
     }
 
     override fun <T : Any> encodeNullableSerializableElement(
-        desc: SerialDescriptor,
+        descriptor: SerialDescriptor,
         index: Int,
         serializer: SerializationStrategy<T>,
         value: T?
     ) {
         if (value != null) {
-            encodeSerializableElement(desc, index, serializer, value)
+            encodeSerializableElement(descriptor, index, serializer, value)
         }
     }
 
     override fun <T> encodeSerializableElement(
-        desc: SerialDescriptor,
+        descriptor: SerialDescriptor,
         index: Int,
         serializer: SerializationStrategy<T>,
         value: T
     ) {
         val before = currentElementName
-        val name = when (desc.kind) {
-            StructureKind.CLASS -> desc.getElementName(index)
+        val name = when (descriptor.kind) {
+            StructureKind.CLASS, StructureKind.OBJECT -> descriptor.getElementName(index)
             else -> before
         }
 
         currentElementName = name
         try {
-            val elementDescriptor = desc.getElementDescriptor(index)
-            if (name != null && elementDescriptor.location == null && elementDescriptor.kind == StructureKind.CLASS) {
-                try {
-                    conversionService.toValues(value).forEach { valueComponent ->
-                        encodeElement(name, valueComponent)
-                    }
-
-                    return
-                } catch (_: DataConversionException) {
-                }
-            }
-
             serializer.serialize(this, value)
         } finally {
             currentElementName = before
         }
     }
 
-    override fun encodeShortElement(desc: SerialDescriptor, index: Int, value: Short) {
-        encodeElement(desc, index, value.toString())
+    override fun encodeShortElement(descriptor: SerialDescriptor, index: Int, value: Short) {
+        encodeElement(descriptor, index, value.toString())
     }
 
-    override fun encodeStringElement(desc: SerialDescriptor, index: Int, value: String) {
-        encodeElement(desc, index, value)
+    override fun encodeStringElement(descriptor: SerialDescriptor, index: Int, value: String) {
+        encodeElement(descriptor, index, value)
     }
 
-    override fun encodeUnitElement(desc: SerialDescriptor, index: Int) {
-        encodeElement(desc, index, "")
+    override fun encodeUnitElement(descriptor: SerialDescriptor, index: Int) {
+        encodeElement(descriptor, index, "")
     }
 
     private fun encodeElement(desc: SerialDescriptor, index: Int, stringified: String) {
@@ -190,7 +176,7 @@ internal class URLEncoder(
         }
     }
 
-    fun build(): Url {
+    public fun build(): Url {
         val pattern = pattern ?: error("No @Location annotation found.")
 
         val builder = URLBuilder(
@@ -199,6 +185,18 @@ internal class URLEncoder(
         )
 
         return builder.build()
+    }
+
+    public fun buildTo(builder: URLBuilder) {
+        val pattern = pattern ?: error("No @Location annotation found.")
+
+        builder.parameters.appendAll(queryParameters)
+        builder.encodedPath = pattern.format(pathParameters.build())
+    }
+
+    internal fun buildTo(parameters: ParametersBuilder) {
+        parameters.appendAll(queryParameters)
+        parameters.appendAll(pathParameters)
     }
 }
 
