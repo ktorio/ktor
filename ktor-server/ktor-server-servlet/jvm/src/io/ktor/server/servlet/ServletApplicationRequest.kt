@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
@@ -17,6 +18,10 @@ public abstract class ServletApplicationRequest(
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
 
+    companion object {
+        val servletRequestAttributes = AttributeKey<Map<String, Any>>("ServletRequestAttributes")
+    }
+
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters: Parameters by lazy {
@@ -24,6 +29,10 @@ public abstract class ServletApplicationRequest(
     }
 
     override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)
+
+    val attributes = servletRequest.attributeNames.toList().associateWith { servletRequest.getAttribute(it) }.also {
+        call.attributes.put(servletRequestAttributes, it)
+    }
 
     @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
