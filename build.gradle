@@ -227,6 +227,7 @@ if (build_snapshot_train) {
             exclude '**/*WebSocketTest*'
             exclude '**/*PostTest*'
             exclude '**/*testCustomUrls*'
+            exclude '**/*testStaticServeFromDir*'
         }
     }
 
