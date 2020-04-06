@@ -228,6 +228,9 @@ if (build_snapshot_train) {
             exclude '**/*PostTest*'
             exclude '**/*testCustomUrls*'
             exclude '**/*testStaticServeFromDir*'
+            exclude '**/*testRedirect*'
+            exclude '**/*CIOHttpsTest*'
+
         }
     }
 
