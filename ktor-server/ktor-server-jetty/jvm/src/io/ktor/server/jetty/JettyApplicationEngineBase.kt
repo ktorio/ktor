@@ -40,13 +40,12 @@ open class JettyApplicationEngineBase @EngineAPI constructor(
      * Jetty server instance being configuring and starting
      */
     protected val server: Server = Server().apply {
-        configuration.configureServer(this)
         initializeServer(environment)
     }
 
     override fun start(wait: Boolean): JettyApplicationEngineBase {
+        configuration.configureServer(server)
         environment.start()
-
         server.start()
         cancellationDeferred = stopServerOnCancellation()
         if (wait) {
