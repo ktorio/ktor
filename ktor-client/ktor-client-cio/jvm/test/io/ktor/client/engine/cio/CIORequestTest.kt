@@ -14,6 +14,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CIORequestTest : TestWithKtor() {
@@ -42,6 +43,31 @@ class CIORequestTest : TestWithKtor() {
                 header("LongHeader", headerValue)
             }.use { response ->
                 assertEquals(headerValue, response.headers["LongHeader"])
+            }
+        }
+    }
+
+    @Test
+    fun testHanging() = clientTest(CIO) {
+        config {
+            engine {
+                endpoint {
+                    connectTimeout = 1
+                }
+            }
+        }
+
+        test { client ->
+            withTimeout(5000) {
+                for (i in 0..1000) {
+                    try {
+                        client.get<String>("http://something.wrong")
+                    } catch (cause: CancellationException) {
+                        throw cause
+                    } catch (cause: Throwable) {
+                        // ignore
+                    }
+                }
             }
         }
     }
