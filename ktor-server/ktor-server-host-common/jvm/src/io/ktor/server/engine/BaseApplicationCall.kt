@@ -13,7 +13,7 @@ import io.ktor.util.*
  */
 @EngineAPI
 abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
-    final override val attributes = Attributes()
+    final override val attributes = Attributes(concurrent = true)
     override val parameters: Parameters get() = request.queryParameters
 
     abstract override val request: BaseApplicationRequest
