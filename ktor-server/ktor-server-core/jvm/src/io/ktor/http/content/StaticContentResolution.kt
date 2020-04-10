@@ -57,7 +57,8 @@ fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> C
                 null
             } else {
                 val zipFile = findContainingJarFile(url.toString())
-                JarFileContent(zipFile, path, mimeResolve(url.path.extension()))
+                val content = JarFileContent(zipFile, path, mimeResolve(url.path.extension()))
+                if (content.isFile) content else null
             }
         }
         "jrt" -> {

@@ -834,6 +834,7 @@ public final class io/ktor/http/content/JarFileContent : io/ktor/http/content/Ou
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getJarFile ()Ljava/io/File;
 	public final fun getResourcePath ()Ljava/lang/String;
+	public final fun isFile ()Z
 	public fun readFrom ()Lio/ktor/utils/io/ByteReadChannel;
 }
 
