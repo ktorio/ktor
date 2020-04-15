@@ -1894,7 +1894,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
-                assertEquals("foo;bar", call.request.headers["X-Double-Value"])
+                assertEquals("foo,bar", call.request.headers["X-Double-Value"])
 
                 assertNull(call.request.headers["X-Nonexistent-Header"])
                 assertNull(call.request.headers.getAll("X-Nonexistent-Header"))

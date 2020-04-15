@@ -8,14 +8,18 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
+import kotlin.text.*
 
 suspend fun proxyHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 
     val statusLine = input.readUTF8Line()
+    val requestData = StringBuilder()
+    requestData.append(statusLine).append("\n")
     while (true) {
         val line = input.readUTF8Line() ?: ""
+        requestData.append(line).append("\n")
         if (line.isEmpty()) {
             break
         }
@@ -27,6 +31,13 @@ suspend fun proxyHandler(socket: Socket) {
             HttpStatusCode.OK, buildHeaders {
                 append(HttpHeaders.ContentType, ContentType.Application.Json)
             }, "{\"status\": \"ok\"}"
+        )
+        "GET /headers-merge HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK,
+            buildHeaders {
+                append(HttpHeaders.ContentType, ContentType.Text.Plain)
+            },
+            requestData.toString()
         )
         else -> buildResponse(HttpStatusCode.BadRequest)
     }

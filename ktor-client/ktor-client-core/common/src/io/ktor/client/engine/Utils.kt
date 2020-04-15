@@ -33,7 +33,8 @@ fun mergeHeaders(
         if (HttpHeaders.ContentLength == key) return@forEach // set later
         if (HttpHeaders.ContentType == key) return@forEach // set later
 
-        block(key, values.joinToString(";"))
+        // https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+        block(key, values.joinToString(","))
     }
 
     val missingAgent = requestHeaders[HttpHeaders.UserAgent] == null && content.headers[HttpHeaders.UserAgent] == null
