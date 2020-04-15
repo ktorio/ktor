@@ -19,5 +19,18 @@ internal fun Application.headersTestServer() {
                 call.respond(HttpStatusCode.OK, "OK")
             }
         }
+
+        route("/headers-merge") {
+            accept(ContentType.Application.Json) {
+                get("/") {
+                    call.respondText("JSON", ContentType.Application.Json, HttpStatusCode.OK)
+                }
+            }
+            accept(ContentType.Application.Xml) {
+                get("/") {
+                    call.respondText("XML", ContentType.Application.Xml, HttpStatusCode.OK)
+                }
+            }
+        }
     }
 }
