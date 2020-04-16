@@ -4,20 +4,20 @@
 
 package io.ktor.locations
 
-import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
-@KtorExperimentalLocationsAPI
-internal class URLDecoder(
+@InternalAPI
+public class URLDecoder(
     override val context: SerialModule,
     private val encodedPath: String?,
     private val queryParameters: Parameters,
-    private val rootClass: KClass<*>
+    private val rootClass: KClass<*>?
 ) : Decoder, CompositeDecoder {
-    constructor(context: SerialModule, url: Url, rootClass: KClass<*>) : this(
+    public constructor(context: SerialModule, url: Url, rootClass: KClass<*>?) : this(
         context,
         url.encodedPath,
         url.parameters,
@@ -45,7 +45,7 @@ internal class URLDecoder(
                     ?.let { path -> this.pattern!!.parse(path) }
                     ?: queryParameters
             } catch (cause: Throwable) {
-                throw LocationRoutingException("Failed to parse path $encodedPath")
+                throw URLDecodingException("Failed to parse path $encodedPath", cause)
             }
         }
 
@@ -71,7 +71,8 @@ internal class URLDecoder(
         } catch (cause: Exception) {
             throw ParameterConversionException(
                 descriptor.getElementName(index),
-                descriptor.getElementDescriptor(index).toString(), cause)
+                descriptor.getElementDescriptor(index).toString(), cause
+            )
         }
     }
 
@@ -142,6 +143,11 @@ internal class URLDecoder(
             } ?: error("No value for parameter $parameterName")
 
             if (values.isNotEmpty()) {
+//                if (conversionService != null) {
+//                    conversionService.fromValues(
+//                        values.subList(indexFor(parameterName), values.size)
+//                    )
+//                }
                 return values.getOrElse(indexFor(parameterName)) { values.last() }
             }
         }
@@ -307,3 +313,38 @@ internal class URLDecoder(
         TODO("Not yet implemented")
     }
 }
+
+/**
+ * Thrown when URL decoder failed.
+ */
+public open class URLDecodingException(
+    public override val message: String,
+    public override val cause: Throwable?
+) : SerializationException(message, cause)
+
+/**
+ * Thrown when URL decoder failed to decode a property with name [propertyName] of
+ * type [typeName] due to an optionally provided [cause].
+ *
+ * @property propertyName that was not decoded
+ * @property typeName of the property
+ * @property cause of failure (optional)
+ */
+public class ParameterConversionException(
+    public val propertyName: String,
+    public val typeName: String,
+    override val cause: Throwable?
+) : URLDecodingException("Failed to convert property $propertyName: $typeName", cause)
+
+/**
+ * Thrown when a required parameter [propertyName] of
+ * type [typeName] is missing (not provided in URL).
+ *
+ * @property propertyName that was not decoded
+ * @property typeName of the property
+ */
+public class MissingParameterException(
+    public val propertyName: String,
+    public val typeName: String
+) : URLDecodingException("Missing property $propertyName: $typeName", null)
+

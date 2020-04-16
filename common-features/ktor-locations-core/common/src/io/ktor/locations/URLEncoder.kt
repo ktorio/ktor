@@ -11,11 +11,10 @@ import kotlinx.serialization.Encoder
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
-@KtorExperimentalLocationsAPI
-internal class URLEncoder(
+@InternalAPI
+public class URLEncoder(
     override val context: SerialModule,
-    private val rootClass: KClass<*>,
-    private val conversionService: ConversionService = DefaultConversionService
+    private val rootClass: KClass<*>?
 ) : Encoder, CompositeEncoder {
     private val pathParameters = ParametersBuilder()
     private val queryParameters = ParametersBuilder()
@@ -51,7 +50,7 @@ internal class URLEncoder(
     }
 
     override fun encodeEnum(enumDescriptor: SerialDescriptor, index: Int) {
-        TODO("Not yet implemented")
+        encodeString(enumDescriptor.getElementName(index))
     }
 
     override fun encodeFloat(value: Float) {
@@ -67,11 +66,9 @@ internal class URLEncoder(
     }
 
     override fun encodeNotNullMark() {
-        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeNull() {
-        error("Encoding a primitive to URL is not supported")
     }
 
     override fun encodeShort(value: Short) {
@@ -146,20 +143,6 @@ internal class URLEncoder(
 
         currentElementName = name
         try {
-            if (descriptor.kind.isClassOrObject()) {
-                val elementDescriptor = descriptor.getElementDescriptor(index)
-                if (name != null && elementDescriptor.location == null && elementDescriptor.kind.isClassOrObject()) {
-                    try {
-                        conversionService.toValues(value).forEach { valueComponent ->
-                            encodeElement(name, valueComponent)
-                        }
-
-                        return
-                    } catch (_: DataConversionException) {
-                    }
-                }
-            }
-
             serializer.serialize(this, value)
         } finally {
             currentElementName = before
@@ -193,7 +176,7 @@ internal class URLEncoder(
         }
     }
 
-    fun build(): Url {
+    public fun build(): Url {
         val pattern = pattern ?: error("No @Location annotation found.")
 
         val builder = URLBuilder(
@@ -204,11 +187,16 @@ internal class URLEncoder(
         return builder.build()
     }
 
-    fun buildTo(builder: URLBuilder) {
+    public fun buildTo(builder: URLBuilder) {
         val pattern = pattern ?: error("No @Location annotation found.")
 
         builder.parameters.appendAll(queryParameters)
         builder.encodedPath = pattern.format(pathParameters.build())
+    }
+
+    internal fun buildTo(parameters: ParametersBuilder) {
+        parameters.appendAll(queryParameters)
+        parameters.appendAll(pathParameters)
     }
 }
 

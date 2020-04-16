@@ -4,22 +4,19 @@
 
 package io.ktor.locations
 
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 
 internal class SerializationImpl(
-    private val module: SerialModule,
-    application: Application,
-    routeService: LocationRouteService
-) : LocationsImpl(application, routeService) {
+    private val initialModule: SerialModule,
+    private val conversionServiceProvider: () -> ConversionService?,
+    routeService: LocationRouteService,
+    private val logger: (String) -> Unit
+) : LocationsImpl(routeService) {
     init {
         check(routeService is LocationAttributeRouteService) {
             "Only the default route service works with kotlinx.serialization"
@@ -36,7 +33,7 @@ internal class SerializationImpl(
     @OptIn(ImplicitReflectionSerializer::class)
     private fun createInfo(
         locationDescriptor: SerialDescriptor,
-        locationClass: KClass<*>
+        locationClass: KClass<*>?
     ): LocationInfo = cache.getOrPut(locationDescriptor) {
         val elements = locationDescriptor.elementDescriptors()
         val names = locationDescriptor.elementNames()
@@ -45,7 +42,11 @@ internal class SerializationImpl(
         }
 
         val parameters = names.mapIndexed { index, name ->
-            LocationPropertyInfoImplSerialization(name, locationDescriptor.isElementOptional(index))
+            LocationPropertyInfoImplSerialization(
+                name,
+                locationDescriptor.isElementOptional(index),
+                locationDescriptor.getElementDescriptor(index)
+            )
         }
 
         val parentParameter = parentIndex.takeIf { it != -1 }?.let { parameters[it] }
@@ -53,26 +54,23 @@ internal class SerializationImpl(
 
         val pathParameterNames = RoutingPath.parse(path).parts
             .filter { it.kind == RoutingPathSegmentKind.Parameter }
-            .map { PathSegmentSelectorBuilder.parseName(it.value) }
+            .map { parseRoutingParameterName(it.value) }
 
         val parent = parentParameter?.let { property ->
-            val parentClass = locationClass.memberProperties
-                .first { it.name == property.name }
-                .returnType.jvmErasure
-
-            createInfo(elements[parentIndex], parentClass)
-        } ?: locationClass.java.declaringClass?.let { parentClass ->
-            routeService.findRoute(parentClass.kotlin)?.let {
-                createInfo(parentClass.kotlin)
+            val type = propertyType(locationClass, property.name)
+            createInfo(property.propertyDescriptor, type)
+        } ?: locationClass?.let { backwardCompatibleParentClass(locationClass) }?.let { parentClass ->
+            routeService.findRoute(parentClass)?.let {
+                createInfo(parentClass)
             }
         }
 
         if (parent != null && parentParameter == null) {
-            checkInfo(application, locationClass, parent)
+            checkInfo(logger, locationDescriptor.toString(), parent)
         }
 
         return LocationInfo(
-            locationClass,
+            locationClass ?: Any::class,
             parent,
             parentParameter,
             path,
@@ -83,9 +81,13 @@ internal class SerializationImpl(
     }
 
     @OptIn(ImplicitReflectionSerializer::class)
-    override fun instantiate(info: LocationInfo, allParameters: Parameters): Any {
-        val decoder = URLDecoder(module, null, allParameters, info.classRef)
-        val serializer = info.classRef.serializer()
+    override fun <T : Any> instantiate(
+        info: LocationInfo,
+        allParameters: Parameters,
+        klass: KClass<T>
+    ): T {
+        val decoder = URLDecoder(module, null, allParameters, info.klassOrNull)
+        val serializer = klass.serializer()
         return try {
             serializer.deserialize(decoder)
         } catch (e: ParameterConversionException) {
@@ -105,16 +107,37 @@ internal class SerializationImpl(
 
     @OptIn(ImplicitReflectionSerializer::class)
     override fun href(location: Any, builder: URLBuilder) {
-        val encoder = URLEncoder(module, location.javaClass.kotlin)
-        val serializer = location.javaClass.kotlin.serializer()
+        @Suppress("UNCHECKED_CAST")
+        val clazz = location::class as KClass<Any>
+        val encoder = URLEncoder(module, clazz)
+        val serializer = clazz.serializer()
         serializer.serialize(encoder, location)
         encoder.buildTo(builder)
     }
+
+    private val module: SerialModule
+        get() {
+            val conversionService = conversionServiceProvider() ?: return initialModule
+            val types = conversionService.supportedTypes()
+            if (types.isEmpty()) return initialModule
+
+            return SerializersModule {
+                include(initialModule)
+                val visited = HashSet<KClass<*>>()
+                types.forEach { type ->
+                    val klass = type.classifier as KClass<*>
+                    if (visited.add(klass)) {
+                        contextual(klass, ConverterSerializer(type, conversionService))
+                    }
+                }
+            }
+        }
 }
 
 private class LocationPropertyInfoImplSerialization(
     name: String,
-    isOptional: Boolean
+    isOptional: Boolean,
+    internal val propertyDescriptor: SerialDescriptor
 ) : LocationPropertyInfo(name, isOptional)
 
 /**

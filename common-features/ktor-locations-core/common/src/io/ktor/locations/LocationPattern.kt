@@ -6,20 +6,23 @@ package io.ktor.locations
 
 import io.ktor.http.*
 import io.ktor.routing.*
+import io.ktor.util.*
 
-internal class LocationPattern private constructor(private val segments: List<Segment>) {
-    constructor(pattern: String) : this(RoutingPath.parse(pattern))
-    constructor(routing: RoutingPath) : this(routing.parts.map { segment ->
+@InternalAPI
+public class LocationPattern private constructor(private val segments: List<Segment>) {
+    public constructor(pattern: String) : this(RoutingPath.parse(pattern))
+    private constructor(routing: RoutingPath) : this(routing.parts.map { segment ->
         Segment.fromRouting(segment)
     })
 
     private val sizeEstimate: Int = segments.sumBy { it.estimate() } + segments.size + 1
 
-    val pathParameterNames: Set<String> = segments.filterIsInstance<Segment.VariableSubstitution>()
+    public val pathParameterNames: Set<String> = segments.filterIsInstance<Segment.VariableSubstitution>()
         .map { it.name }
         .toSet()
 
-    fun format(pathParameters: Parameters): String = buildString(sizeEstimate) {
+    @OptIn(ExperimentalStdlibApi::class)
+    public fun format(pathParameters: Parameters): String = buildString(sizeEstimate) {
         val indexes = mutableMapOf<String, Int>()
 
         segments.forEach { segment ->
@@ -33,7 +36,7 @@ internal class LocationPattern private constructor(private val segments: List<Se
 
                     if (allValues.isEmpty()) {
                         if (segment.ellipsis || segment.optional) {
-                            deleteCharAt(lastIndex)
+                            deleteAt(lastIndex)
                         } else {
                             throw IllegalArgumentException("No parameter ${segment.name} specified")
                         }
@@ -56,7 +59,7 @@ internal class LocationPattern private constructor(private val segments: List<Se
         }
     }
 
-    fun parse(path: String): Parameters = Parameters.build {
+    public fun parse(path: String): Parameters = Parameters.build {
         check(path.startsWith("/"))
 
         var index = 1
@@ -86,7 +89,7 @@ internal class LocationPattern private constructor(private val segments: List<Se
         }
     }
 
-    operator fun plus(other: LocationPattern): LocationPattern = LocationPattern(segments + other.segments)
+    public operator fun plus(other: LocationPattern): LocationPattern = LocationPattern(segments + other.segments)
 
     private fun parseSegment(
         path: String,

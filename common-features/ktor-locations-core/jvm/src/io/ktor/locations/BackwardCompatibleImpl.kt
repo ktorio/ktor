@@ -4,51 +4,21 @@
 
 package io.ktor.locations
 
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.*
-import java.lang.reflect.*
-import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
+import kotlin.collections.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 @OptIn(KtorExperimentalLocationsAPI::class)
-internal abstract class LocationsImpl(
-    protected val application: Application,
-    protected val routeService: LocationRouteService
-) {
-    protected val info: MutableMap<KClass<*>, LocationInfo> = HashMap()
-
-    protected val conversionService: ConversionService
-        get() = application.conversionService
-
-    val registeredLocations: List<LocationInfo>
-        get() = Collections.unmodifiableList(info.values.toList())
-
-    fun getOrCreateInfo(locationClass: KClass<*>): LocationInfo {
-        return info[locationClass] ?: createInfo(locationClass)
-    }
-
-    protected abstract fun createInfo(locationClass: KClass<*>): LocationInfo
-
-    abstract fun instantiate(info: LocationInfo, allParameters: Parameters): Any
-
-    abstract fun href(instance: Any): String
-
-    abstract fun href(location: Any, builder: URLBuilder)
-}
-
-@OptIn(KtorExperimentalLocationsAPI::class)
 internal class BackwardCompatibleImpl(
-    application: Application,
-    routeService: LocationRouteService
-) : LocationsImpl(application, routeService) {
+    private val conversionServiceProvider: () -> ConversionService,
+    routeService: LocationRouteService,
+    private val logger: (String) -> Unit
+) : LocationsImpl(routeService) {
     private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
 
     private val rootUri = ResolvedUriInfo("", emptyList())
@@ -57,8 +27,13 @@ internal class BackwardCompatibleImpl(
         return getOrCreateInfo(locationClass, HashSet())
     }
 
-    override fun instantiate(info: LocationInfo, allParameters: Parameters): Any {
-        return info.create(allParameters)
+    override fun <T : Any> instantiate(
+        info: LocationInfo,
+        allParameters: Parameters,
+        klass: KClass<T>
+    ): T {
+        @Suppress("UNCHECKED_CAST")
+        return klass.cast(info.create(allParameters))
     }
 
     override fun href(instance: Any): String {
@@ -84,16 +59,16 @@ internal class BackwardCompatibleImpl(
             // TODO: Cache properties by name in info
             val property = info.pathParameters.single { it.name == name }
             val value = property.getter(instance)
-            return conversionService.toValues(value)
+            return conversionServiceProvider().toValues(value)
         }
 
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap {
             when (it.kind) {
                 RoutingPathSegmentKind.Constant -> listOf(it.value)
                 RoutingPathSegmentKind.Parameter -> {
-                    if (info.classRef.objectInstance != null)
+                    if (info.klass.objectInstance != null)
                         throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.serialDescriptor}'")
-                    propertyValue(location, PathSegmentSelectorBuilder.parseName(it.value))
+                    propertyValue(location, parseRoutingParameterName(it.value))
                 }
             }
         }
@@ -113,25 +88,26 @@ internal class BackwardCompatibleImpl(
 
         val queryValues = info.queryParameters.flatMap { property ->
             val value = property.getter(location)
-            conversionService.toValues(value).map { property.name to it }
+            conversionServiceProvider().toValues(value).map { property.name to it }
         }
 
         return parentInfo.combine(relativePath, queryValues)
     }
 
     private fun LocationInfo.create(allParameters: Parameters): Any {
-        val objectInstance = classRef.objectInstance
+        val objectInstance = klass.objectInstance
         if (objectInstance != null) return objectInstance
 
-        val constructor: KFunction<Any> = classRef.primaryConstructor ?: classRef.constructors.single()
+        val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
+        val parent = parent
         val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
             val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
-            val value: Any? = if (parent != null && parameterType == parent.classRef.starProjectedType) {
+            val value: Any? = if (parent != null && parameterType == parent.klass.starProjectedType) {
                 parent.create(allParameters)
             } else {
-                createFromParameters(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
+                createFromParameters(allParameters, parameterName, parameterType, parameter.isOptional)
             }
             parameter to value
         }.filterNot { it.first.isOptional && it.second == null }.toMap()
@@ -139,17 +115,17 @@ internal class BackwardCompatibleImpl(
         return constructor.callBy(arguments)
     }
 
-    private fun createFromParameters(parameters: Parameters, name: String, type: Type, optional: Boolean): Any? {
+    private fun createFromParameters(parameters: Parameters, name: String, type: KType, optional: Boolean): Any? {
         return when (val values = parameters.getAll(name)) {
             null -> when {
                 !optional -> {
-                    throw MissingRequestParameterException(name)
+                    throw MissingParameterException(name, type.toString())
                 }
                 else -> null
             }
             else -> {
                 try {
-                    conversionService.fromValues(values, type)
+                    conversionServiceProvider().fromValues(values, type)
                 } catch (cause: Throwable) {
                     throw ParameterConversionException(name, type.toString(), cause)
                 }
@@ -185,7 +161,7 @@ internal class BackwardCompatibleImpl(
             }
 
             if (parentInfo != null && locationClass.isKotlinObject && parentInfo.isKotlinObject()) {
-                application.log.warn("Object nesting in Ktor Locations is going to be deprecated. " +
+                logger("Object nesting in Ktor Locations is going to be deprecated. " +
                     "Convert nested object to a class with parameter. " +
                     "See https://github.com/ktorio/ktor/issues/1660 for more details.")
             }
@@ -228,12 +204,12 @@ internal class BackwardCompatibleImpl(
             }
 
             if (parentInfo != null && parentParameter == null) {
-                checkInfo(application, locationClass, parentInfo)
+                checkInfo(logger, locationClass.toString(), parentInfo)
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts
                 .filter { it.kind == RoutingPathSegmentKind.Parameter }
-                .map { PathSegmentSelectorBuilder.parseName(it.value) }
+                .map { parseRoutingParameterName(it.value) }
 
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
@@ -293,28 +269,11 @@ private fun createSerialDescriptor(
     }
 }
 
-internal fun checkInfo(application: Application, locationClass: KClass<*>, parentInfo: LocationInfo) {
-    if (parentInfo.parentParameter != null) {
-        throw LocationRoutingException("Nested location '$locationClass' should have parameter for parent location because it is chained to its parent")
-    }
+private fun LocationInfo.isKotlinObject(): Boolean =
+    serialDescriptor.kind == StructureKind.OBJECT
 
-    if (parentInfo.pathParameters.any { !it.isOptional }) {
-        throw LocationRoutingException(
-            "Nested location '$locationClass' should have parameter for parent location because of non-optional path parameters ${parentInfo.pathParameters
-                .filter { !it.isOptional }}"
-        )
-    }
-
-    if (parentInfo.queryParameters.any { !it.isOptional }) {
-        throw LocationRoutingException(
-            "Nested location '$locationClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters
-                .filter { !it.isOptional }}"
-        )
-    }
-
-    if (!parentInfo.isKotlinObject()) {
-        application.log.warn("A nested location class should have a parameter with the type " +
-            "of the outer location class. " +
-            "See https://github.com/ktorio/ktor/issues/1660 for more details.")
-    }
-}
+private class LocationPropertyInfoImpl(
+    name: String,
+    val kGetter: KProperty1.Getter<Any, Any?>,
+    isOptional: Boolean
+) : LocationPropertyInfo(name, isOptional)

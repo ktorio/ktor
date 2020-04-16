@@ -4,12 +4,13 @@
 
 package io.ktor.locations
 
+import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlin.reflect.*
 
 /**
  * A location class/object registration info.
- * @property klass of the location class/object
+ * @property klassOrNull of the location class/object
  * @property parent is a registered outer location class
  * @property parentParameter is a property for an outer class
  * @property path at which this location is registered
@@ -17,23 +18,28 @@ import kotlin.reflect.*
  * @property queryParameters is a list of properties stored in query parameters
  */
 @KtorExperimentalLocationsAPI
-public data class LocationInfo internal constructor(
-    @Deprecated("KClass will be removed. Use serialDescriptor instead.")
-    public val klass: KClass<*>,
-    public val parent: LocationInfo?,
-    public val parentParameter: LocationPropertyInfo?,
-    public val path: String,
-    public val pathParameters: List<LocationPropertyInfo>,
-    public val queryParameters: List<LocationPropertyInfo>,
-    public val serialDescriptor: SerialDescriptor
+public expect class LocationInfo @InternalAPI public constructor(
+    klass: KClass<*>?,
+    parent: LocationInfo?,
+    parentParameter: LocationPropertyInfo?,
+    path: String,
+    pathParameters: List<LocationPropertyInfo>,
+    queryParameters: List<LocationPropertyInfo>,
+    serialDescriptor: SerialDescriptor
 ) {
-    // this is for BackwardCompatibleImpl
-    @Suppress("DEPRECATION")
-    internal val classRef: KClass<*> get() = klass
-}
+    @InternalAPI
+    public val klassOrNull: KClass<*>?
 
-internal fun LocationInfo.isKotlinObject(): Boolean =
-    serialDescriptor.kind == StructureKind.OBJECT
+    public val parent: LocationInfo?
+    public val parentParameter: LocationPropertyInfo?
+    public val path: String
+    public val pathParameters: List<LocationPropertyInfo>
+    public val queryParameters: List<LocationPropertyInfo>
+    public val serialDescriptor: SerialDescriptor
+
+    public override fun equals(other: Any?): Boolean
+    public override fun hashCode(): Int
+}
 
 /**
  * Represents a location's property
@@ -41,7 +47,7 @@ internal fun LocationInfo.isKotlinObject(): Boolean =
  * @property isOptional when a property is optional
  */
 @KtorExperimentalLocationsAPI
-public abstract class LocationPropertyInfo internal constructor(
+public abstract class LocationPropertyInfo @InternalAPI public constructor(
     public val name: String,
     public val isOptional: Boolean
 ) {

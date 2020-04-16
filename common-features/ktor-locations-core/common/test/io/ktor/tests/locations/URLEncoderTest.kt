@@ -41,31 +41,31 @@ class URLEncoderTest {
         serializer<T>().serialize(encoder, instance)
         return encoder.build().toString()
     }
-}
 
-@Serializable
-private data class C(val b: String)
-
-@Serializable
-@Location("/path/{a}")
-private data class Xy(val a: String, val b: String, val c: C)
-
-@Serializable
-@Location("/path")
-private data class URLParameter(val p: String)
-
-@Serializable
-@Location("/path/{p}")
-private data class PathParameter(val p: String)
-
-@Serializable
-@Location("/root/{a}")
-private class Root(val a: String) {
     @Serializable
-    @Location("/child/{b}")
-    class Child(val b: String, val root: Root)
-}
+    data class C(val b: String)
 
-@Serializable
-@Location("/{param...}")
-private class Ellipsis(val param: List<String>)
+    @Serializable
+    @Location("/path/{a}")
+    data class Xy(val a: String, val b: String, val c: C)
+
+    @Serializable
+    @Location("/path")
+    data class URLParameter(val p: String)
+
+    @Serializable
+    @Location("/path/{p}")
+    data class PathParameter(val p: String)
+
+    @Serializable
+    @Location("/root/{a}")
+    class Root(val a: String) {
+        @Serializable
+        @Location("/child/{b}")
+        class Child(val b: String, val root: Root)
+    }
+
+    @Serializable
+    @Location("/{param...}")
+    class Ellipsis(val param: List<String>)
+}
