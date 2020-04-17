@@ -45,9 +45,6 @@ kotlin {
     sourceSets {
         jsMain.dependencies {
             api "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
-
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
-
             api(npm("text-encoding", text_encoding_version))
         }
         jsTest.dependencies {
