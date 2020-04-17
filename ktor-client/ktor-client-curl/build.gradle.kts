@@ -72,5 +72,16 @@ kotlin {
                 api(project(":ktor-client:ktor-client-features:ktor-client-json"))
             }
         }
+
+        // Hack: register the Native interop klibs as outputs of Kotlin source sets:
+        if (!ideaActive) {
+            val libcurlInterop by creating
+            getByName("posixMain").dependsOn(libcurlInterop)
+            apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
+            (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
+                linuxX64().compilations["main"].cinterops["libcurl"],
+                libcurlInterop
+            )
+        }
     }
 }
