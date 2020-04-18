@@ -11,6 +11,7 @@ build
 !.idea/copyright/*
 !.idea/codeStyles
 !.idea/codeStyles/*
+!.idea/icon.png
 out
 *.iml
 .vscode
