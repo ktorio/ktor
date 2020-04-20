@@ -21,6 +21,7 @@ public final class io/ktor/client/features/logging/Logger$Companion {
 
 public final class io/ktor/client/features/logging/LoggerJvmKt {
 	public static final fun getANDROID (Lio/ktor/client/features/logging/Logger$Companion;)Lio/ktor/client/features/logging/Logger;
+	public static final fun getAndroid (Lio/ktor/util/logging/Logger$Companion;)Lio/ktor/util/logging/Logger;
 	public static final fun getDEFAULT (Lio/ktor/client/features/logging/Logger$Companion;)Lio/ktor/client/features/logging/Logger;
 }
 
@@ -32,10 +33,10 @@ public final class io/ktor/client/features/logging/LoggerKt {
 public final class io/ktor/client/features/logging/Logging {
 	public static final field Companion Lio/ktor/client/features/logging/Logging$Companion;
 	public fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;)V
-	public fun <init> (Lio/ktor/client/features/logging/Logger;Lio/ktor/client/features/logging/LogLevel;Ljava/util/List;)V
+	public fun <init> (Lio/ktor/util/logging/Logger;Lio/ktor/client/features/logging/LogLevel;Ljava/util/List;)V
 	public final fun getFilters ()Ljava/util/List;
 	public final fun getLevel ()Lio/ktor/client/features/logging/LogLevel;
-	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
+	public final fun getLogger ()Lio/ktor/util/logging/Logger;
 	public final fun setFilters (Ljava/util/List;)V
 	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
 }
@@ -52,14 +53,24 @@ public final class io/ktor/client/features/logging/Logging$Config {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getLevel ()Lio/ktor/client/features/logging/LogLevel;
-	public final fun getLogger ()Lio/ktor/client/features/logging/Logger;
+	public final synthetic fun getLogger ()Lio/ktor/client/features/logging/Logger;
+	public final fun getNewLogger ()Lio/ktor/util/logging/Logger;
 	public final fun setLevel (Lio/ktor/client/features/logging/LogLevel;)V
-	public final fun setLogger (Lio/ktor/client/features/logging/Logger;)V
+	public final synthetic fun setLogger (Lio/ktor/client/features/logging/Logger;)V
+	public final fun setNewLogger (Lio/ktor/util/logging/Logger;)V
 }
 
 public final class io/ktor/client/features/logging/LoggingKt {
 	public static final fun Logging (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun Logging$default (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/client/features/logging/MessageLengthLimitingAppender : io/ktor/util/logging/Appender {
+	public fun <init> (IILio/ktor/util/logging/Appender;)V
+	public synthetic fun <init> (IILio/ktor/util/logging/Appender;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun append (Lio/ktor/util/logging/LogRecord;)V
+	public fun flush ()V
+	public fun getMuted ()Z
 }
 
 public final class io/ktor/client/features/logging/MessageLengthLimitingLogger : io/ktor/client/features/logging/Logger {

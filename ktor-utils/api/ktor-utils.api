@@ -609,6 +609,8 @@ public final class io/ktor/util/date/Month : java/lang/Enum {
 	public static final field NOVEMBER Lio/ktor/util/date/Month;
 	public static final field OCTOBER Lio/ktor/util/date/Month;
 	public static final field SEPTEMBER Lio/ktor/util/date/Month;
+	public final fun getFullName ()Ljava/lang/String;
+	public final fun getShortName ()Ljava/lang/String;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/Month;
 	public static fun values ()[Lio/ktor/util/date/Month;
@@ -617,6 +619,7 @@ public final class io/ktor/util/date/Month : java/lang/Enum {
 public final class io/ktor/util/date/Month$Companion {
 	public final fun from (I)Lio/ktor/util/date/Month;
 	public final fun from (Ljava/lang/String;)Lio/ktor/util/date/Month;
+	public final fun fromShortName (Ljava/lang/String;)Lio/ktor/util/date/Month;
 }
 
 public final class io/ktor/util/date/WeekDay : java/lang/Enum {
@@ -628,6 +631,8 @@ public final class io/ktor/util/date/WeekDay : java/lang/Enum {
 	public static final field THURSDAY Lio/ktor/util/date/WeekDay;
 	public static final field TUESDAY Lio/ktor/util/date/WeekDay;
 	public static final field WEDNESDAY Lio/ktor/util/date/WeekDay;
+	public final fun getFullName ()Ljava/lang/String;
+	public final fun getShortName ()Ljava/lang/String;
 	public final fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/date/WeekDay;
 	public static fun values ()[Lio/ktor/util/date/WeekDay;
@@ -636,6 +641,7 @@ public final class io/ktor/util/date/WeekDay : java/lang/Enum {
 public final class io/ktor/util/date/WeekDay$Companion {
 	public final fun from (I)Lio/ktor/util/date/WeekDay;
 	public final fun from (Ljava/lang/String;)Lio/ktor/util/date/WeekDay;
+	public final fun fromShortName (Ljava/lang/String;)Lio/ktor/util/date/WeekDay;
 }
 
 public abstract class io/ktor/util/internal/AtomicDesc {
@@ -743,6 +749,288 @@ public class io/ktor/util/internal/LockFreeLinkedListNode$RemoveFirstDesc : io/k
 public abstract class io/ktor/util/internal/OpDescriptor {
 	public fun <init> ()V
 	public abstract fun perform (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/util/logging/Appender {
+	public static final field Companion Lio/ktor/util/logging/Appender$Companion;
+	public abstract fun append (Lio/ktor/util/logging/LogRecord;)V
+	public abstract fun flush ()V
+	public abstract fun getMuted ()Z
+}
+
+public final class io/ktor/util/logging/Appender$Companion {
+}
+
+public final class io/ktor/util/logging/Appender$DefaultImpls {
+	public static fun getMuted (Lio/ktor/util/logging/Appender;)Z
+}
+
+public final class io/ktor/util/logging/AsyncAppender : io/ktor/util/logging/Appender {
+	public fun <init> (Lio/ktor/util/logging/Appender;ILkotlin/coroutines/CoroutineContext;)V
+	public synthetic fun <init> (Lio/ktor/util/logging/Appender;ILkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun append (Lio/ktor/util/logging/LogRecord;)V
+	public final fun close ()V
+	public fun flush ()V
+	public final fun getCapacity ()I
+	public final fun getContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getMuted ()Z
+}
+
+public final class io/ktor/util/logging/Config {
+	public static final field Companion Lio/ktor/util/logging/Config$Companion;
+	public final fun copy ()Lio/ktor/util/logging/LoggingConfigBuilder;
+	public final fun getAppender ()Lio/ktor/util/logging/Appender;
+	public final fun getKeys ()Ljava/util/List;
+}
+
+public final class io/ktor/util/logging/Config$Companion {
+	public final fun getDefault ()Lio/ktor/util/logging/Config;
+	public final fun getEmpty ()Lio/ktor/util/logging/Config;
+}
+
+public final class io/ktor/util/logging/ConfigKt {
+	public static final fun Config (Lio/ktor/util/logging/Appender;)Lio/ktor/util/logging/Config;
+	public static final fun withAppender (Lio/ktor/util/logging/Config;Lio/ktor/util/logging/Appender;)Lio/ktor/util/logging/Config;
+}
+
+public final class io/ktor/util/logging/DefaultAppenderJvmKt {
+	public static final fun getDefault (Lio/ktor/util/logging/Appender$Companion;)Lio/ktor/util/logging/Appender;
+}
+
+public final class io/ktor/util/logging/FormatterKt {
+	public static final fun formatLogRecordDefault (Ljava/lang/Appendable;Lio/ktor/util/logging/LogRecord;)V
+}
+
+public final class io/ktor/util/logging/Level : java/lang/Enum {
+	public static final field DEBUG Lio/ktor/util/logging/Level;
+	public static final field ERROR Lio/ktor/util/logging/Level;
+	public static final field INFO Lio/ktor/util/logging/Level;
+	public static final field TRACE Lio/ktor/util/logging/Level;
+	public static final field WARNING Lio/ktor/util/logging/Level;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/util/logging/Level;
+	public static fun values ()[Lio/ktor/util/logging/Level;
+}
+
+public abstract class io/ktor/util/logging/LogAttributeKey {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getInitial ()Ljava/lang/Object;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRegistered ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/logging/LogFunctionsKt {
+	public static final fun debug (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun debug (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static final fun debug (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;)V
+	public static final fun debug (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun debug$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun debug$default (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static final fun error (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun error (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static final fun error (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;)V
+	public static final fun error (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun error$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun error$default (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static final fun info (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun info (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static final fun info (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;)V
+	public static final fun info (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun info$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun info$default (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static final fun log (Lio/ktor/util/logging/Logger;Lio/ktor/util/logging/Level;Lkotlin/jvm/functions/Function1;)V
+	public static final fun log (Lio/ktor/util/logging/Logger;Ljava/lang/String;)V
+	public static synthetic fun log$default (Lio/ktor/util/logging/Logger;Lio/ktor/util/logging/Level;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun trace (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun trace (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static final fun trace (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;)V
+	public static final fun trace (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun trace$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun trace$default (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+	public static final fun warn (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun warn (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static synthetic fun warn$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static final fun warning (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public static final fun warning (Lio/ktor/util/logging/Logger;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static final fun warning (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;)V
+	public static final fun warning (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
+	public static synthetic fun warning$default (Lio/ktor/util/logging/Logger;Ljava/lang/String;Ljava/lang/Throwable;ILjava/lang/Object;)V
+	public static synthetic fun warning$default (Lio/ktor/util/logging/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/util/logging/LogRecord {
+	public static final field Companion Lio/ktor/util/logging/LogRecord$Companion;
+	public final fun defer ()Lio/ktor/util/logging/LogRecord$ManuallyManagedReference;
+	public final fun discard ()V
+	public final fun get (Lio/ktor/util/logging/LogAttributeKey;)Ljava/lang/Object;
+	public final fun getConfig ()Lio/ktor/util/logging/Config;
+	public final fun getDiscarded ()Z
+	public final fun getException ()Ljava/lang/Throwable;
+	public final fun getLevel ()Lio/ktor/util/logging/Level;
+	public final fun getText ()Ljava/lang/String;
+	public final fun release ()V
+	public final fun set (Lio/ktor/util/logging/LogAttributeKey;Ljava/lang/Object;)V
+	public final fun setException (Ljava/lang/Throwable;)V
+	public final fun setText (Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/logging/LogRecord$Companion {
+	public final fun createSimple ()Lio/ktor/util/logging/LogRecord;
+}
+
+public final class io/ktor/util/logging/LogRecord$ManuallyManagedReference {
+	public final fun consume (Lkotlin/jvm/functions/Function1;)V
+	public final fun end (Lio/ktor/util/logging/LogRecord;)V
+	public final fun start ()Lio/ktor/util/logging/LogRecord;
+}
+
+public class io/ktor/util/logging/Logger {
+	public static final field Companion Lio/ktor/util/logging/Logger$Companion;
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/util/logging/Config;)V
+	public synthetic fun <init> (Lio/ktor/util/logging/Config;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun begin (Lio/ktor/util/logging/Level;)Lio/ktor/util/logging/LogRecord;
+	public final fun commit (Lio/ktor/util/logging/LogRecord;)V
+	public final fun getConfig ()Lio/ktor/util/logging/Config;
+	public final fun log (Ljava/lang/String;)V
+}
+
+public final class io/ktor/util/logging/Logger$Companion {
+	public final fun getDefault ()Lio/ktor/util/logging/Logger;
+	public final fun getMuted ()Lio/ktor/util/logging/Logger;
+}
+
+public final class io/ktor/util/logging/LoggerKt {
+	public static final fun configure (Lio/ktor/util/logging/Logger;Lkotlin/jvm/functions/Function1;)Lio/ktor/util/logging/Logger;
+	public static final fun logger ()Lio/ktor/util/logging/Logger;
+	public static final fun logger (Lio/ktor/util/logging/Appender;)Lio/ktor/util/logging/Logger;
+	public static final fun logger (Lio/ktor/util/logging/Appender;Lkotlin/jvm/functions/Function1;)Lio/ktor/util/logging/Logger;
+	public static final fun logger (Lio/ktor/util/logging/Config;)Lio/ktor/util/logging/Logger;
+	public static final fun logger (Lkotlin/jvm/functions/Function1;)Lio/ktor/util/logging/Logger;
+}
+
+public final class io/ktor/util/logging/LoggingConfigBuilder {
+	public fun <init> ()V
+	public fun <init> (Lio/ktor/util/logging/Config;)V
+	public final fun addAppender (Lio/ktor/util/logging/Appender;)V
+	public final fun build ()Lio/ktor/util/logging/Config;
+	public final fun enrich (Lkotlin/jvm/functions/Function2;)V
+	public final fun filter (Lkotlin/jvm/functions/Function2;)V
+	public final fun getKeys ()Ljava/util/List;
+	public final fun label (Lkotlin/jvm/functions/Function2;)V
+	public final fun registerKey (Lio/ktor/util/logging/LogAttributeKey;)V
+}
+
+public final class io/ktor/util/logging/Slf4jAppender : io/ktor/util/logging/Appender {
+	public fun <init> ()V
+	public fun append (Lio/ktor/util/logging/LogRecord;)V
+	public fun flush ()V
+	public fun getMuted ()Z
+}
+
+public final class io/ktor/util/logging/StringBuilderAppender : io/ktor/util/logging/Appender {
+	public fun <init> (I)V
+	public synthetic fun <init> (IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/StringBuilder;)V
+	public fun append (Lio/ktor/util/logging/LogRecord;)V
+	public final fun build ()Ljava/lang/String;
+	public fun flush ()V
+	public fun getMuted ()Z
+}
+
+public final class io/ktor/util/logging/TextAppender : io/ktor/util/logging/Appender {
+	public static final field Companion Lio/ktor/util/logging/TextAppender$Companion;
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;)V
+	public fun append (Lio/ktor/util/logging/LogRecord;)V
+	public fun flush ()V
+	public final fun getFormatter ()Lkotlin/jvm/functions/Function2;
+	public fun getMuted ()Z
+	public final fun getOutput ()Lkotlin/jvm/functions/Function1;
+}
+
+public final class io/ktor/util/logging/TextAppender$Companion {
+}
+
+public final class io/ktor/util/logging/compat/Log4jFormatterKt {
+	public static final fun parseLog4jFormat (Ljava/lang/String;Lio/ktor/util/logging/LoggingConfigBuilder;)Lkotlin/jvm/functions/Function2;
+}
+
+public final class io/ktor/util/logging/labels/LocationEntry {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
+	public final fun getFile ()Ljava/lang/String;
+	public final fun getLine ()Ljava/lang/Integer;
+	public final fun getLocation ()Ljava/lang/String;
+}
+
+public final class io/ktor/util/logging/labels/LocationKt {
+	public static final fun defaultLocationFormat (Lio/ktor/util/logging/labels/LocationEntry;)Ljava/lang/String;
+	public static final fun defaultLocationPredicate (Ljava/util/List;)Lio/ktor/util/logging/labels/LocationEntry;
+	public static final fun ensureLocations (Lio/ktor/util/logging/LoggingConfigBuilder;)V
+	public static final fun getLocations (Lio/ktor/util/logging/LogRecord;)Ljava/util/List;
+	public static final fun isLoggingInternals (Lio/ktor/util/logging/labels/LocationEntry;)Z
+	public static final fun locations (Lio/ktor/util/logging/LoggingConfigBuilder;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun locations$default (Lio/ktor/util/logging/LoggingConfigBuilder;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static final fun locationsPure (Lio/ktor/util/logging/LoggingConfigBuilder;)V
+}
+
+public final class io/ktor/util/logging/labels/LogTimeLabelKt {
+	public static final fun appendLogEventTime (Ljava/lang/Appendable;Lio/ktor/util/date/GMTDate;)V
+	public static final fun getLogTime (Lio/ktor/util/logging/LogRecord;)Lio/ktor/util/date/GMTDate;
+	public static final fun logTime (Lio/ktor/util/logging/LoggingConfigBuilder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun logTime$default (Lio/ktor/util/logging/LoggingConfigBuilder;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/util/logging/labels/LoggerNameFilterKt {
+	public static final fun level (Lio/ktor/util/logging/LoggingConfigBuilder;Ljava/lang/String;Lio/ktor/util/logging/Level;)V
+	public static final fun nameFilter (Lio/ktor/util/logging/LoggingConfigBuilder;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/util/logging/labels/LoggerNameKt {
+	public static final fun addName (Lio/ktor/util/logging/Logger;Ljava/lang/String;)Lio/ktor/util/logging/Logger;
+	public static final fun forClass (Lio/ktor/util/logging/Logger;Lkotlin/reflect/KClass;)Lio/ktor/util/logging/Logger;
+	public static final fun getName (Lio/ktor/util/logging/LogRecord;)Ljava/lang/String;
+	public static final fun name (Lio/ktor/util/logging/LoggingConfigBuilder;Ljava/lang/String;)V
+	public static final fun toLoggerName (Lkotlin/reflect/KClass;)Ljava/lang/String;
+}
+
+public final class io/ktor/util/logging/labels/ThreadNameLabelKt {
+	public static final fun getThreadName (Lio/ktor/util/logging/LogRecord;)Ljava/lang/String;
+	public static final fun threadName (Lio/ktor/util/logging/LoggingConfigBuilder;)V
+}
+
+public final class io/ktor/util/logging/rolling/FileSize {
+	public fun <init> (J)V
+	public final fun getBytesCount ()J
+	public final fun getGib ()J
+	public final fun getKib ()J
+	public final fun getMib ()J
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/util/logging/rolling/RecordEncoder {
+	public static final field Companion Lio/ktor/util/logging/rolling/RecordEncoder$Companion;
+	public abstract fun encode (Lio/ktor/util/logging/LogRecord;Lio/ktor/utils/io/core/Output;)V
+}
+
+public final class io/ktor/util/logging/rolling/RecordEncoder$Companion {
+	public final fun getDefault ()Lio/ktor/util/logging/rolling/RecordEncoder;
+}
+
+public final class io/ktor/util/logging/rolling/RollingPolicy {
+	public synthetic fun <init> (Lio/ktor/util/logging/rolling/FileSize;ILio/ktor/util/logging/rolling/FileSize;DILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/util/logging/rolling/FileSize;ILio/ktor/util/logging/rolling/FileSize;DLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getKeepUntil ()D
+	public final fun getMaxFileSize ()Lio/ktor/util/logging/rolling/FileSize;
+	public final fun getMaxTotalCount ()I
+	public final fun getMaxTotalSize ()Lio/ktor/util/logging/rolling/FileSize;
+}
+
+public final class io/ktor/util/logging/rolling/RollingPolicyKt {
+	public static final fun format (Lio/ktor/util/logging/rolling/FileSize;)Ljava/lang/String;
+	public static final fun getGiB (I)Lio/ktor/util/logging/rolling/FileSize;
+	public static final fun getKiB (I)Lio/ktor/util/logging/rolling/FileSize;
+	public static final fun getMiB (I)Lio/ktor/util/logging/rolling/FileSize;
 }
 
 public abstract interface annotation class io/ktor/util/pipeline/ContextDsl : java/lang/annotation/Annotation {

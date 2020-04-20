@@ -2,16 +2,19 @@ public final class io/ktor/auth/Authentication {
 	public static final field Feature Lio/ktor/auth/Authentication$Feature;
 	public fun <init> ()V
 	public fun <init> (Lio/ktor/auth/Authentication$Configuration;)V
+	public synthetic fun <init> (Lio/ktor/util/logging/Logger;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/util/List;)V
 	public final fun configure (Lkotlin/jvm/functions/Function1;)V
+	public final fun getLogger ()Lio/ktor/util/logging/Logger;
 	public final fun interceptPipeline (Lio/ktor/application/ApplicationCallPipeline;Ljava/util/List;Z)V
 	public static synthetic fun interceptPipeline$default (Lio/ktor/auth/Authentication;Lio/ktor/application/ApplicationCallPipeline;Ljava/util/List;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/auth/Authentication$Configuration {
-	public fun <init> ()V
 	public fun <init> (Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Lio/ktor/util/logging/Logger;)V
+	public final fun getLogger ()Lio/ktor/util/logging/Logger;
 	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun provider$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun register (Lio/ktor/auth/AuthenticationProvider;)V
