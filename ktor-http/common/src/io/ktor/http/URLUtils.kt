@@ -81,6 +81,9 @@ val Url.fullPath: String
  */
 val Url.hostWithPort: String get() = "$host:$port"
 
+/**
+ * Append URL full path with query parameters. No host/port/auth/scheme will be appended.
+ */
 internal fun Appendable.appendUrlFullPath(
     encodedPath: String,
     queryParameters: Parameters,

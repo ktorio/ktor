@@ -271,14 +271,5 @@ object PathSegmentSelectorBuilder {
     /**
      * Parses a name out of segment specification
      */
-    fun parseName(value: String): String {
-        val prefix = value.substringBefore('{', "")
-        val suffix = value.substringAfterLast('}', "")
-        val signature = value.substring(prefix.length + 1, value.length - suffix.length - 1)
-        return when {
-            signature.endsWith("?") -> signature.dropLast(1)
-            signature.endsWith("...") -> signature.dropLast(3)
-            else -> signature
-        }
-    }
+    fun parseName(value: String): String = parseRoutingParameterName(value)
 }
