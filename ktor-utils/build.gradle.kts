@@ -11,6 +11,14 @@ kotlin {
         }
     }
 
+    js {
+        browser {
+            testTask {
+                filter.excludePatterns += "io.ktor.tests.utils.logging.ActualFileSystemTest.*"
+            }
+        }
+    }
+
     sourceSets {
         commonMain {
             dependencies {
@@ -20,6 +28,11 @@ kotlin {
         commonTest {
             dependencies {
                 api(project(":ktor-test-dispatcher"))
+            }
+        }
+        jsMain {
+            dependencies {
+                api(npm("fs", "*"))
             }
         }
     }
