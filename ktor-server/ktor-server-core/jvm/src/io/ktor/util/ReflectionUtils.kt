@@ -37,6 +37,23 @@ private class JavaTypeAdapter(val type: KType) : ParameterizedType {
             }
         }.toTypedArray()
     }
+
+    override fun hashCode(): Int = actualTypeArguments.contentHashCode() xor
+        0 xor
+        rawType.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+
+        return other is ParameterizedType &&
+            other.ownerType == null &&
+            other.rawType == rawType
+            && actualTypeArguments.contentEquals(other.actualTypeArguments)
+    }
+
+    override fun toString(): String {
+        return type.toString()
+    }
 }
 
 private class BoundTypeAdapter(val type: KTypeProjection) : WildcardType {
@@ -52,5 +69,19 @@ private class BoundTypeAdapter(val type: KTypeProjection) : WildcardType {
             null, KVariance.IN -> arrayOf(Any::class.java)
             else -> arrayOf(type.type!!.toJavaType())
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is WildcardType &&
+            lowerBounds.contentEquals(other.lowerBounds) &&
+            upperBounds.contentEquals(other.upperBounds)
+    }
+
+    override fun hashCode(): Int {
+        return lowerBounds.contentHashCode() xor upperBounds.contentHashCode()
+    }
+
+    override fun toString(): String {
+        return type.toString()
     }
 }

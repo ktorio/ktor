@@ -129,6 +129,17 @@ public final class io/ktor/util/CollectionsKt {
 	public static final fun caseInsensitiveMap ()Ljava/util/Map;
 }
 
+public abstract interface class io/ktor/util/ConversionService {
+	public abstract fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public abstract fun fromValues (Ljava/util/List;Lkotlin/reflect/KType;)Ljava/lang/Object;
+	public abstract fun supportedTypes ()Ljava/util/List;
+	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
+}
+
+public final class io/ktor/util/ConversionService$DefaultImpls {
+	public static fun fromValues (Lio/ktor/util/ConversionService;Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+}
+
 public final class io/ktor/util/CoroutinesUtilsKt {
 	public static final fun SilentSupervisor (Lkotlinx/coroutines/Job;)Lkotlin/coroutines/CoroutineContext;
 	public static synthetic fun SilentSupervisor$default (Lkotlinx/coroutines/Job;ILjava/lang/Object;)Lkotlin/coroutines/CoroutineContext;
@@ -148,6 +159,12 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;
 	public static final fun sha1 ([B)[B
+}
+
+public final class io/ktor/util/DataConversionException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/util/DeflaterKt {

@@ -9,7 +9,6 @@ import io.ktor.http.*
 import java.lang.reflect.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
 
 /**
  * Operator function that allows to delegate variables by call parameters.
@@ -52,16 +51,29 @@ inline fun Parameters.getOrFail(name: String): String {
 @KtorExperimentalAPI
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
-    return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
+    return getOrFailImpl(name, R::class, typeOf<R>())
 }
 
 @PublishedApi
-internal fun <R : Any> Parameters.getOrFailImpl(name: String, type: KClass<R>, javaType: Type): R {
+internal fun <R : Any> Parameters.getOrFailImpl(name: String, clazz: KClass<R>, type: KType): R {
     val values = getAll(name) ?: throw MissingRequestParameterException(name)
     return try {
-        type.cast(DefaultConversionService.fromValues(values, javaType))
+        clazz.cast(DefaultConversionService.fromValues(values, type))
     } catch (cause: Exception) {
-        throw ParameterConversionException(name, type.jvmName, cause)
+        throw ParameterConversionException(name, type.toString(), cause)
     }
 }
 
+@PublishedApi
+@Suppress("unused") // for binary compatibility
+internal fun <R : Any> Parameters.getOrFailImpl(name: String, clazz: KClass<R>, type: Type): R {
+    val values = getAll(name) ?: throw MissingRequestParameterException(name)
+    return try {
+        // the default conversion service does support java.lang.Type for backward compatibility for now
+        // so we may suppress the error here
+        @Suppress("DEPRECATION_ERROR")
+        clazz.cast(DefaultConversionService.fromValues(values, type))
+    } catch (cause: Exception) {
+        throw ParameterConversionException(name, type.toString(), cause)
+    }
+}

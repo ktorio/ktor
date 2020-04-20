@@ -184,6 +184,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     /**
+     * @param direct if it invoked from a suspendCoroutine block directly (unintercepted case)
      * @return `true` if it is possible to return result immediately
      */
     private fun loop(direct: Boolean): Boolean {
@@ -198,7 +199,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
                 return true
             }
 
-            this@SuspendFunctionGun.index = index + 1  // it is important to increase it before function invocation
+            this@SuspendFunctionGun.index = index + 1  // it is important to increase it before the function invocation
             val next = blocks[index]
 
             try {
