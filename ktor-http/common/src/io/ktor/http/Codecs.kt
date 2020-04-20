@@ -99,6 +99,50 @@ fun String.encodeURLPath(): String = buildString {
 }
 
 /**
+ * Encode URL path component. It escapes all illegal or ambiguous characters and slash.
+ */
+@InternalAPI
+fun String.encodeURLPathComponent(): String = buildString {
+    val charset = Charsets.UTF_8
+
+    var index = 0
+    while (index < this@encodeURLPathComponent.length) {
+        val current = this@encodeURLPathComponent[index]
+
+        if (current == '/') {
+            append("%2F")
+            index++
+            continue
+        }
+
+        if (current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
+            append(current)
+            index++
+            continue
+        }
+
+        if (current == '%' &&
+            index + 2 < this@encodeURLPathComponent.length &&
+            this@encodeURLPathComponent[index + 1] in HEX_ALPHABET &&
+            this@encodeURLPathComponent[index + 2] in HEX_ALPHABET
+        ) {
+            append(current)
+            append(this@encodeURLPathComponent[index + 1])
+            append(this@encodeURLPathComponent[index + 2])
+
+            index += 3
+            continue
+        }
+
+        // we need to call newEncoder() for every symbol, otherwise it won't work
+        charset.newEncoder().encode(this@encodeURLPathComponent, index, index + 1).forEach {
+            append(it.percentEncode())
+        }
+        index++
+    }
+}
+
+/**
  * Encode [this] in percent encoding specified here:
  * https://tools.ietf.org/html/rfc5849#section-3.6
  */
