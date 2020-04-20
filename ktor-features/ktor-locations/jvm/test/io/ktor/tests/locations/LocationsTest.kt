@@ -11,8 +11,9 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import org.junit.Test
+import java.math.*
 import kotlin.test.*
 
 @OptIn(KtorExperimentalLocationsAPI::class)
@@ -25,9 +26,11 @@ private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = w
 @OptIn(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
     @Serializable
-    @Location("/") class index
+    @Location("/")
+    class index
 
-    @Test fun `location without URL`() = withLocationsApplication {
+    @Test
+    fun `location without URL`() = withLocationsApplication {
         val href = application.locations.href(index())
         assertEquals("/", href)
         application.routing {
@@ -39,10 +42,12 @@ class LocationsTest {
         urlShouldBeUnhandled("/index")
     }
 
-    @Test fun locationLocal() {
+    @Test
+    fun locationLocal() {
         // ^^^ do not add spaces to method name, inline breaks
         @Serializable
-        @Location("/") class indexLocal
+        @Location("/")
+        class indexLocal
         withLocationsApplication {
             val href = application.locations.href(indexLocal())
             assertEquals("/", href)
@@ -57,9 +62,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/about") class about
+    @Location("/about")
+    class about
 
-    @Test fun `location with URL`() = withLocationsApplication {
+    @Test
+    fun `location with URL`() = withLocationsApplication {
         val href = application.locations.href(about())
         assertEquals("/about", href)
         application.routing {
@@ -72,9 +79,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/user/{id}") class user(val id: Int)
+    @Location("/user/{id}")
+    class user(val id: Int)
 
-    @Test fun `location with path param`() = withLocationsApplication {
+    @Test
+    fun `location with path param`() = withLocationsApplication {
         val href = application.locations.href(user(123))
         assertEquals("/user/123", href)
         application.routing {
@@ -88,9 +97,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/user/{id}/{name}") class named(val id: Int, val name: String)
+    @Location("/user/{id}/{name}")
+    class named(val id: Int, val name: String)
 
-    @Test fun `location with urlencoded path param`() = withLocationsApplication {
+    @Test
+    fun `location with urlencoded path param`() = withLocationsApplication {
         val href = application.locations.href(named(123, "abc def"))
         assertEquals("/user/123/abc%20def", href)
         application.routing {
@@ -106,9 +117,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/favorite") class favorite(val id: Int)
+    @Location("/favorite")
+    class favorite(val id: Int)
 
-    @Test fun `location with query param`() = withLocationsApplication {
+    @Test
+    fun `location with query param`() = withLocationsApplication {
         val href = application.locations.href(favorite(123))
         assertEquals("/favorite?id=123", href)
         application.routing {
@@ -123,14 +136,19 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container/{id}") class pathContainer(val id: Int) {
+    @Location("/container/{id}")
+    class pathContainer(val id: Int) {
         @Serializable
-        @Location("/items") class items(val container: pathContainer)
+        @Location("/items")
+        class items(val container: pathContainer)
+
         @Serializable
-        @Location("/items") class badItems
+        @Location("/items")
+        class badItems
     }
 
-    @Test fun `location with path parameter and nested data`() = withLocationsApplication {
+    @Test
+    fun `location with path parameter and nested data`() = withLocationsApplication {
         val c = pathContainer(123)
         val href = application.locations.href(pathContainer.items(c))
         assertEquals("/container/123/items", href)
@@ -149,14 +167,19 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container") class queryContainer(val id: Int) {
+    @Location("/container")
+    class queryContainer(val id: Int) {
         @Serializable
-        @Location("/items") class items(val container: queryContainer)
+        @Location("/items")
+        class items(val container: queryContainer)
+
         @Serializable
-        @Location("/items") class badItems
+        @Location("/items")
+        class badItems
     }
 
-    @Test fun `location with query parameter and nested data`() = withLocationsApplication {
+    @Test
+    fun `location with query parameter and nested data`() = withLocationsApplication {
         val c = queryContainer(123)
         val href = application.locations.href(queryContainer.items(c))
         assertEquals("/container/items?id=123", href)
@@ -175,9 +198,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container") class optionalName(val id: Int, val optional: String? = null)
+    @Location("/container")
+    class optionalName(val id: Int, val optional: String? = null)
 
-    @Test fun `location with missing optional String parameter`() = withLocationsApplication {
+    @Test
+    fun `location with missing optional String parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalName(123))
         assertEquals("/container?id=123", href)
         application.routing {
@@ -194,9 +219,11 @@ class LocationsTest {
 
 
     @Serializable
-    @Location("/container") class optionalIndex(val id: Int, val optional: Int = 42)
+    @Location("/container")
+    class optionalIndex(val id: Int, val optional: Int = 42)
 
-    @Test fun `location with missing optional Int parameter`() = withLocationsApplication {
+    @Test
+    fun `location with missing optional Int parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalIndex(123))
         assertEquals("/container?id=123&optional=42", href)
         application.routing {
@@ -211,7 +238,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/container/123")
     }
 
-    @Test fun `location with specified optional query parameter`() = withLocationsApplication {
+    @Test
+    fun `location with specified optional query parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalName(123, "text"))
         assertEquals("/container?id=123&optional=text", href)
         application.routing {
@@ -227,12 +255,15 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container/{id?}") class optionalContainer(val id: Int? = null) {
+    @Location("/container/{id?}")
+    class optionalContainer(val id: Int? = null) {
         @Serializable
-        @Location("/items") class items(val optional: String? = null)
+        @Location("/items")
+        class items(val optional: String? = null)
     }
 
-    @Test fun `location with optional path and query parameter`() = withLocationsApplication {
+    @Test
+    fun `location with optional path and query parameter`() = withLocationsApplication {
         val href = application.locations.href(optionalContainer())
         assertEquals("/container", href)
         application.routing {
@@ -251,12 +282,15 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container") class simpleContainer {
+    @Location("/container")
+    class simpleContainer {
         @Serializable
-        @Location("/items") class items
+        @Location("/items")
+        class items
     }
 
-    @Test fun `location with simple path container and items`() = withLocationsApplication {
+    @Test
+    fun `location with simple path container and items`() = withLocationsApplication {
         val href = application.locations.href(simpleContainer.items())
         assertEquals("/container/items", href)
         application.routing {
@@ -273,9 +307,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/container/{path...}") class tailCard(val path: List<String>)
+    @Location("/container/{path...}")
+    class tailCard(val path: List<String>)
 
-    @Test fun `location with tailcard`() = withLocationsApplication {
+    @Test
+    fun `location with tailcard`() = withLocationsApplication {
         val href = application.locations.href(tailCard(emptyList()))
         assertEquals("/container", href)
         application.routing {
@@ -290,11 +326,15 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/") class multiquery(val value: List<Int>)
-    @Serializable
-    @Location("/") class multiquery2(val name: List<String>)
+    @Location("/")
+    class multiquery(val value: List<Int>)
 
-    @Test fun `location with multiple query values`() = withLocationsApplication {
+    @Serializable
+    @Location("/")
+    class multiquery2(val name: List<String>)
+
+    @Test
+    fun `location with multiple query values`() = withLocationsApplication {
         val href = application.locations.href(multiquery(listOf(1, 2, 3)))
         assertEquals("/?value=1&value=2&value=3", href)
         application.routing {
@@ -306,7 +346,8 @@ class LocationsTest {
         urlShouldBeHandled(href, "[1, 2, 3]")
     }
 
-    @Test fun `location with multiple query values can select by query params`() = withLocationsApplication {
+    @Test
+    fun `location with multiple query values can select by query params`() = withLocationsApplication {
         val href = application.locations.href(multiquery(listOf(1)))
         assertEquals("/?value=1", href)
         application.routing {
@@ -321,7 +362,8 @@ class LocationsTest {
         urlShouldBeHandled(href, "1: [1]")
     }
 
-    @Test fun `location with multiple query values can select by query params2`() = withLocationsApplication {
+    @Test
+    fun `location with multiple query values can select by query params2`() = withLocationsApplication {
         val href = application.locations.href(multiquery2(listOf("john, mary")))
         assertEquals("/?name=john%2C+mary", href)
         application.routing {
@@ -337,9 +379,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/") class multiqueryWithDefault(val value: List<Int> = emptyList())
+    @Location("/")
+    class multiqueryWithDefault(val value: List<Int> = emptyList())
 
-    @Test fun `location with multiple query values and default`() = withLocationsApplication {
+    @Test
+    fun `location with multiple query values and default`() = withLocationsApplication {
         val href = application.locations.href(multiqueryWithDefault(listOf()))
         assertEquals("/", href)
         application.routing {
@@ -351,16 +395,22 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/space in") class SpaceInPath
+    @Location("/space in")
+    class SpaceInPath
+
     @Serializable
-    @Location("/plus+in") class PlusInPath
+    @Location("/plus+in")
+    class PlusInPath
 
     @Test
     fun testURLBuilder() = withLocationsApplication {
         application.routing {
             handle {
                 assertEquals("http://localhost/container?id=1&optional=ok", call.url(optionalName(1, "ok")))
-                assertEquals("http://localhost/container?id=1&optional=ok%2B.plus", call.url(optionalName(1, "ok+.plus")))
+                assertEquals(
+                    "http://localhost/container?id=1&optional=ok%2B.plus",
+                    call.url(optionalName(1, "ok+.plus"))
+                )
                 assertEquals("http://localhost/container?id=1&optional=ok+space", call.url(optionalName(1, "ok space")))
 
                 assertEquals("http://localhost/space%20in", call.url(SpaceInPath()))
@@ -374,9 +424,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/") object root
+    @Location("/")
+    object root
 
-    @Test fun `location root by object`() = withLocationsApplication {
+    @Test
+    fun `location root by object`() = withLocationsApplication {
         val href = application.locations.href(root)
         assertEquals("/", href)
         application.routing {
@@ -389,9 +441,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/help") object help
+    @Location("/help")
+    object help
 
-    @Test fun `location by object`() = withLocationsApplication {
+    @Test
+    fun `location by object`() = withLocationsApplication {
         val href = application.locations.href(help)
         assertEquals("/help", href)
         application.routing {
@@ -404,15 +458,19 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/users") object users {
+    @Location("/users")
+    object users {
         @Serializable
-        @Location("/me") object me
+        @Location("/me")
+        object me
 
         @Serializable
-        @Location("/{id}") class user(val id: Int)
+        @Location("/{id}")
+        class user(val id: Int)
     }
 
-    @Test fun `location by object in object`() = withLocationsApplication {
+    @Test
+    fun `location by object in object`() = withLocationsApplication {
         val href = application.locations.href(users.me)
         assertEquals("/users/me", href)
         application.routing {
@@ -424,7 +482,8 @@ class LocationsTest {
         urlShouldBeUnhandled("/users/123")
     }
 
-    @Test fun `location by class in object`() = withLocationsApplication {
+    @Test
+    fun `location by class in object`() = withLocationsApplication {
         val href = application.locations.href(users.user(123))
         assertEquals("/users/123", href)
         application.routing {
@@ -438,7 +497,8 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/items/{id}") object items
+    @Location("/items/{id}")
+    object items
 
     @Test(expected = IllegalArgumentException::class)
     fun `location by object has bind argument`() =
@@ -447,12 +507,15 @@ class LocationsTest {
         }
 
     @Serializable
-    @Location("/items/{itemId}/{extra?}") class OverlappingPath1(val itemId: Int, val extra: String?)
+    @Location("/items/{itemId}/{extra?}")
+    class OverlappingPath1(val itemId: Int, val extra: String?)
 
     @Serializable
-    @Location("/items/{extra}") class OverlappingPath2(val extra: String)
+    @Location("/items/{extra}")
+    class OverlappingPath2(val extra: String)
 
-    @Test fun `overlapping paths are resolved as expected`() = withLocationsApplication {
+    @Test
+    fun `overlapping paths are resolved as expected`() = withLocationsApplication {
         application.install(CallLogging)
         application.routing {
             get<OverlappingPath1> {
@@ -471,9 +534,11 @@ class LocationsTest {
     }
 
     @Serializable
-    @Location("/") class LocationWithEnum(val e: LocationEnum)
+    @Location("/")
+    class LocationWithEnum(val e: LocationEnum)
 
-    @Test fun `location class with enum value`() = withLocationsApplication {
+    @Test
+    fun `location class with enum value`() = withLocationsApplication {
         application.routing {
             get<LocationWithEnum> {
                 call.respondText(call.locations.resolve<LocationWithEnum>(call).e.name)
@@ -488,29 +553,40 @@ class LocationsTest {
         }
     }
 
-//    @Serializable
-//    @Location("/") class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
-//
-//    @Test fun `location class with big numbers`() = withLocationsApplication {
-//        val bd = BigDecimal("123456789012345678901234567890")
-//        val bi = BigInteger("123456789012345678901234567890")
-//
-//        application.routing {
-//            get<LocationWithBigNumbers> { location ->
-//                assertEquals(bd, location.bd)
-//                assertEquals(bi, location.bi)
-//
-//                call.respondText(call.locations.href(location))
-//            }
-//        }
-//
-//        urlShouldBeHandled("/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
-//            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890")
-//    }
+    @Serializable
+    @Location("/")
+    class LocationWithBigNumbers(
+        @ContextualSerialization
+        val bi: BigInteger,
+        @ContextualSerialization
+        val bd: BigDecimal
+    )
 
-    @Test fun `location parameter mismatch should lead to bad request status`() = withLocationsApplication {
+    @Test
+    fun `location class with big numbers`() = withLocationsApplication {
+        val bd = BigDecimal("123456789012345678901234567890")
+        val bi = BigInteger("123456789012345678901234567890")
+
+        application.routing {
+            get<LocationWithBigNumbers> { location ->
+                assertEquals(bd, location.bd)
+                assertEquals(bi, location.bi)
+
+                call.respondText(call.locations.href(location))
+            }
+        }
+
+        urlShouldBeHandled(
+            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
+            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890"
+        )
+    }
+
+    @Test
+    fun `location parameter mismatch should lead to bad request status`() = withLocationsApplication {
         @Serializable
-        @Location("/") data class L(val text: String, val number: Int, val longNumber: Long)
+        @Location("/")
+        data class L(val text: String, val number: Int, val longNumber: Long)
 
         application.routing {
             get<L> { instance ->

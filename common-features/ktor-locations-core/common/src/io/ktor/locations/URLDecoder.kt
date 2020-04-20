@@ -34,8 +34,6 @@ public class URLDecoder(
 
     private val iteratorIndexMap = HashMap<SerialDescriptor, Int>()
 
-//    override fun decodeSequentially(): Boolean = true
-
     override fun beginStructure(descriptor: SerialDescriptor, vararg typeParams: KSerializer<*>): CompositeDecoder {
         if (descriptor.kind.isClassOrObject() && this.pattern == null) {
             this.pattern = buildLocationPattern(descriptor, rootClass)
@@ -120,36 +118,44 @@ public class URLDecoder(
     }
 
     override fun decodeNotNullMark(): Boolean {
-        TODO("NotNull marks are not supported")
+        return hasNextString()
     }
 
     override fun decodeNull(): Nothing? {
-        TODO("Decoding Nulls is not supported")
+        return null
     }
 
     override fun decodeShort(): Short {
         return decodeOrFail("Short") { it.toShort() }
     }
 
+    private fun elementsForDecoding(): List<String>? {
+        val pattern = pattern ?: return null
+        val parameterName = currentElementName ?: return null
+
+        val values = if (parameterName in pattern.pathParameterNames) {
+            pathParameters.getAll(parameterName)
+        } else {
+            queryParameters.getAll(parameterName)
+        } ?: error("No value for parameter $parameterName")
+
+        if (values.isNotEmpty()) {
+            return values
+        }
+
+        return null
+    }
+
+    private fun hasNextString(): Boolean {
+        return elementsForDecoding() != null
+    }
+
     override fun decodeString(): String {
-        val pattern = pattern
         val parameterName = currentElementName
+        val values = elementsForDecoding()
 
-        if (pattern != null && parameterName != null) {
-            val values = if (parameterName in pattern.pathParameterNames) {
-                pathParameters.getAll(parameterName)
-            } else {
-                queryParameters.getAll(parameterName)
-            } ?: error("No value for parameter $parameterName")
-
-            if (values.isNotEmpty()) {
-//                if (conversionService != null) {
-//                    conversionService.fromValues(
-//                        values.subList(indexFor(parameterName), values.size)
-//                    )
-//                }
-                return values.getOrElse(indexFor(parameterName)) { values.last() }
-            }
+        if (parameterName != null && values != null) {
+            return values.getOrElse(indexFor(parameterName)) { values.last() }
         }
 
         throw ParameterConversionException(parameterName ?: "", "String", null)
@@ -301,7 +307,7 @@ public class URLDecoder(
         deserializer: DeserializationStrategy<T?>,
         old: T?
     ): T? {
-        TODO("Not yet implemented")
+        error("Update is not supported")
     }
 
     override fun <T> updateSerializableElement(
@@ -310,7 +316,7 @@ public class URLDecoder(
         deserializer: DeserializationStrategy<T>,
         old: T
     ): T {
-        TODO("Not yet implemented")
+        error("Update is not supported")
     }
 }
 
