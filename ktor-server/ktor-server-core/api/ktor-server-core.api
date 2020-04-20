@@ -485,8 +485,9 @@ public final class io/ktor/features/ContentTypeWithQuality {
 
 public final class io/ktor/features/DataConversion : io/ktor/util/ConversionService {
 	public static final field Feature Lio/ktor/features/DataConversion$Feature;
-	public fun <init> (Ljava/util/Map;)V
 	public fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public fun fromValues (Ljava/util/List;Lkotlin/reflect/KType;)Ljava/lang/Object;
+	public fun supportedTypes ()Ljava/util/List;
 	public fun toValues (Ljava/lang/Object;)Ljava/util/List;
 }
 
@@ -495,6 +496,7 @@ public final class io/ktor/features/DataConversion$Configuration {
 	public final fun convert (Lkotlin/reflect/KClass;Lio/ktor/util/ConversionService;)V
 	public final fun convert (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)V
 	public final fun convert (Lkotlin/reflect/KType;Lio/ktor/util/ConversionService;)V
+	public final fun convert (Lkotlin/reflect/KType;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/features/DataConversion$Feature : io/ktor/application/ApplicationFeature {
@@ -534,8 +536,11 @@ public final class io/ktor/features/DeflateEncoder : io/ktor/features/Compressio
 
 public final class io/ktor/features/DelegatingConversionService : io/ktor/util/ConversionService {
 	public final fun decode (Lkotlin/jvm/functions/Function2;)V
+	public final fun decodeByKType (Lkotlin/jvm/functions/Function2;)V
 	public final fun encode (Lkotlin/jvm/functions/Function1;)V
 	public fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public fun fromValues (Ljava/util/List;Lkotlin/reflect/KType;)Ljava/lang/Object;
+	public fun supportedTypes ()Ljava/util/List;
 	public fun toValues (Ljava/lang/Object;)Ljava/util/List;
 }
 
@@ -1808,11 +1813,6 @@ public final class io/ktor/sessions/TooLateSessionSetException : java/lang/Illeg
 	public fun <init> ()V
 }
 
-public abstract interface class io/ktor/util/ConversionService {
-	public abstract fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
-	public abstract fun toValues (Ljava/lang/Object;)Ljava/util/List;
-}
-
 public final class io/ktor/util/CopyOnWriteHashMap {
 	public fun <init> ()V
 	public final fun computeIfAbsent (Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -1820,12 +1820,6 @@ public final class io/ktor/util/CopyOnWriteHashMap {
 	public final fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun remove (Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
-}
-
-public final class io/ktor/util/DataConversionException : java/lang/Exception {
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/util/DatesJvmKt {
@@ -1837,6 +1831,8 @@ public final class io/ktor/util/DatesJvmKt {
 public final class io/ktor/util/DefaultConversionService : io/ktor/util/ConversionService {
 	public static final field INSTANCE Lio/ktor/util/DefaultConversionService;
 	public fun fromValues (Ljava/util/List;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public fun fromValues (Ljava/util/List;Lkotlin/reflect/KType;)Ljava/lang/Object;
+	public fun supportedTypes ()Ljava/util/List;
 	public fun toValues (Ljava/lang/Object;)Ljava/util/List;
 }
 
@@ -1851,6 +1847,7 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 public final class io/ktor/util/ParametersKt {
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
+	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)Ljava/lang/Object;
 }
 
 public final class io/ktor/util/PathsKt {

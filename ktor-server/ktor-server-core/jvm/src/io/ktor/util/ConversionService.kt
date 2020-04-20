@@ -6,26 +6,22 @@ package io.ktor.util
 
 import java.lang.reflect.*
 import java.math.*
-
-/**
- * Data conversion service that does serialization and deserialization to/from list of strings
- */
-interface ConversionService {
-    /**
-     * Deserialize [values] to an instance of [type]
-     */
-    fun fromValues(values: List<String>, type: Type): Any?
-
-    /**
-     * Serialize a [value] to values list
-     */
-    fun toValues(value: Any?): List<String>
-}
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 /**
  * The default conversion service that supports only basic types and enums
  */
 object DefaultConversionService : ConversionService {
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun supportedTypes(): List<KType> {
+        return listOf(
+            typeOf<BigInteger>(), typeOf<BigDecimal>()
+        )
+    }
+
     override fun toValues(value: Any?): List<String> = when (value) {
         null -> listOf()
         is Iterable<*> -> value.flatMap { toValues(it) }
@@ -49,7 +45,33 @@ object DefaultConversionService : ConversionService {
         }
     }
 
-    override fun fromValues(values: List<String>, type: Type): Any {
+    override fun fromValues(values: List<String>, type: KType): Any? {
+        if (type.arguments.isNotEmpty()) {
+            val rawType = type.jvmErasure.javaObjectType
+            if (Collection::class.java.isAssignableFrom(rawType)) {
+                val itemType = type.arguments.single().type?.toJavaType() ?: Any::class.java
+                val targetCollection: MutableCollection<Any?>? = when {
+                    rawType.isAssignableFrom(List::class.java) ||
+                    rawType.isAssignableFrom(ArrayList::class.java) -> ArrayList(values.size)
+                    rawType.isAssignableFrom(LinkedList::class.java) -> LinkedList()
+                    else -> null
+                }
+
+                if (targetCollection != null) {
+                    return values.mapTo(targetCollection) { convert(it, itemType) }
+                }
+            }
+        }
+
+        return when {
+            values.isEmpty() -> null
+            values.size > 1 -> throw DataConversionException("There are multiple values when trying to construct single value $type")
+            else -> convert(values.single(), type.toJavaType())
+        }
+    }
+
+    @Suppress("OverridingDeprecatedMember")
+    override fun fromValues(values: List<String>, type: Type): Any? {
         if (type is ParameterizedType) {
             val rawType = type.rawType as Class<*>
             if (rawType.isAssignableFrom(List::class.java)) {
@@ -58,10 +80,10 @@ object DefaultConversionService : ConversionService {
             }
         }
 
-        when {
-            values.isEmpty() -> throw DataConversionException("There are no values when trying to construct single value $type")
+        return when {
+            values.isEmpty() -> null
             values.size > 1 -> throw DataConversionException("There are multiple values when trying to construct single value $type")
-            else -> return convert(values.single(), type)
+            else -> convert(values.single(), type)
         }
     }
 
@@ -84,8 +106,3 @@ object DefaultConversionService : ConversionService {
     }
 
 }
-
-/**
- * Thrown when failed to convert value
- */
-class DataConversionException(message: String = "Invalid data format") : Exception(message)
