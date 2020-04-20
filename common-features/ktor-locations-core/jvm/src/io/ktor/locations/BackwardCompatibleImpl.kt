@@ -161,9 +161,11 @@ internal class BackwardCompatibleImpl(
             }
 
             if (parentInfo != null && locationClass.isKotlinObject && parentInfo.isKotlinObject()) {
-                logger("Object nesting in Ktor Locations is going to be deprecated. " +
-                    "Convert nested object to a class with parameter. " +
-                    "See https://github.com/ktorio/ktor/issues/1660 for more details.")
+                logger(
+                    "Object nesting in Ktor Locations is going to be deprecated. " +
+                        "Convert nested object to a class with parameter. " +
+                        "See https://github.com/ktorio/ktor/issues/1660 for more details."
+                )
             }
 
             val path = routeService.findRoute(locationClass) ?: ""
@@ -222,7 +224,8 @@ internal class BackwardCompatibleImpl(
                 declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
 
             @OptIn(ImplicitReflectionSerializer::class)
-            LocationInfo(locationClass,
+            LocationInfo(
+                locationClass,
                 parentInfo, parentParameter,
                 path,
                 pathParameters, queryParameters,

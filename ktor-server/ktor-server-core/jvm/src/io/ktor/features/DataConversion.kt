@@ -148,10 +148,10 @@ class DelegatingConversionService internal constructor(private val kType: KType)
 
     override fun fromValues(values: List<String>, type: KType): Any? {
         decoderByKType?.let { decoder ->
-            decoder(values, type)
+            return decoder(values, type)
         }
         decoder?.let { decoder ->
-            decoder(values, type.toJavaType())
+            return decoder(values, type.toJavaType())
         }
 
         throw DataConversionException("Decoder was not specified for class '$kType'")

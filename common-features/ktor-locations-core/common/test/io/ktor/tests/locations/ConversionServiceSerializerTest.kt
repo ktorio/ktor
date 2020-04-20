@@ -64,11 +64,17 @@ class ConversionServiceSerializerTest {
         assertEquals("inner=1&inner=2", url<C, Path>(Path(listOf("1", "2")), ConverterForC))
     }
 
-    private inline fun <reified T : Any, reified P : Any> json(instance: P, conversionService: ConversionService): String {
+    private inline fun <reified T : Any, reified P : Any> json(
+        instance: P,
+        conversionService: ConversionService
+    ): String {
         return Json(context = moduleFor<T>(conversionService)).stringify(instance)
     }
 
-    private inline fun <reified T : Any, reified P : Any> url(instance: P, conversionService: ConversionService): String {
+    private inline fun <reified T : Any, reified P : Any> url(
+        instance: P,
+        conversionService: ConversionService
+    ): String {
         val encoder = URLEncoder(moduleFor<T>(conversionService), P::class)
         val serializer = encoder.context.getContextualOrDefault(P::class)
 

@@ -22,7 +22,6 @@ kotlin.sourceSets {
         dependencies {
             api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version")
             api(kotlin("reflect"))
-//            api(kotlin("reflect-full"))
         }
     }
 
