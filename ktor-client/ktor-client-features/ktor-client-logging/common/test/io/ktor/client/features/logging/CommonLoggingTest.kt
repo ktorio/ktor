@@ -9,7 +9,10 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.content.TextContent
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
@@ -152,6 +155,47 @@ class CommonLoggingTest {
             val dump = testLogger.dump()
             assertTrue { dump.contains("REQUEST: http://somewhere/filtered_path") }
             assertFalse { dump.contains("REQUEST: http://somewhere/not_filtered_path") }
+        }
+    }
+
+    @Test
+    fun testLogRequestByteArrayContent() = testLogRequestBody(TextContent("Test body", ContentType.Text.Plain))
+
+    @Test
+    fun testLogRequestReadChannelContent() = testLogRequestBody(object : OutgoingContent.ReadChannelContent() {
+        override fun readFrom(): ByteReadChannel = ByteReadChannel("Test body")
+    })
+
+    @Test
+    fun testLogRequestWriteChannelContent() = testLogRequestBody(object : OutgoingContent.WriteChannelContent() {
+        override suspend fun writeTo(channel: ByteWriteChannel) {
+            channel.writeStringUtf8("Test body")
+        }
+    })
+
+    private fun testLogRequestBody(content: OutgoingContent) = testWithEngine(MockEngine) {
+        val testLogger = TestLogger()
+
+        config {
+            engine {
+                addHandler { respondOk() }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = testLogger
+            }
+        }
+
+        test { client ->
+            client.get<String> {
+                body = content
+            }
+
+            val dump = testLogger.dump()
+
+            val requestDump = dump.slice(0 until dump.indexOf("RESPONSE"))
+            assertTrue { requestDump.contains("BODY START") }
+            assertTrue { requestDump.contains("BODY END") }
         }
     }
 }

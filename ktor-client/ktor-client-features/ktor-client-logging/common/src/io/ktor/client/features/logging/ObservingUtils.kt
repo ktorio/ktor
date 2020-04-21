@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingContent = when (this) {
     is OutgoingContent.ByteArrayContent -> {
         log.writeFully(bytes())
+        log.close()
         this
     }
     is OutgoingContent.ReadChannelContent -> {
