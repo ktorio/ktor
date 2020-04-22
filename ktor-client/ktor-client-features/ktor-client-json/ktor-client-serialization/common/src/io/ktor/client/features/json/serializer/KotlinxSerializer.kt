@@ -77,7 +77,8 @@ class KotlinxSerializer(
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
-        val mapper = type.kotlinType?.let { serializer(it) } ?: type.type.serializer()
+        val deserializationStrategy = json.context.getContextual(type.type)
+        val mapper = deserializationStrategy ?: (type.kotlinType?.let { serializer(it) } ?: type.type.serializer())
         return json.parse(mapper, text)!!
     }
 }
