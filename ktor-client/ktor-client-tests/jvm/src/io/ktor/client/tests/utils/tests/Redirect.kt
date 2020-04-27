@@ -5,6 +5,7 @@
 package io.ktor.client.tests.utils.tests
 
 import io.ktor.application.*
+import io.ktor.client.tests.utils.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
@@ -43,7 +44,16 @@ internal fun Application.redirectTest() {
                 call.respondText("absoluteTargetFile")
             }
             get("/directory/hostAbsoluteRedirect") {
-                call.respondRedirect("https://httpstat.us/200")
+                call.respondRedirect("$TEST_SERVER/redirect/get")
+            }
+            get("/multipleRedirects/login") {
+                call.respondRedirect("/redirect/multipleRedirects/user/")
+            }
+            get("/multipleRedirects/user/") {
+                call.respondRedirect("account/details")
+            }
+            get("/multipleRedirects/user/account/details") {
+                call.respondText("account details")
             }
         }
     }

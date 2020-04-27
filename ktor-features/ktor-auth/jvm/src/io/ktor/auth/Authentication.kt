@@ -32,7 +32,7 @@ class Authentication(config: Configuration) {
      * Authentication configuration
      */
     class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
-        internal val providers = ArrayList<AuthenticationProvider>(providers)
+        internal val providers = ArrayList(providers)
 
         /**
          * Register a provider with the specified [name] and [configure] it
@@ -112,10 +112,10 @@ class Authentication(config: Configuration) {
             }
         }
 
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Features, authenticationPhase)
-        pipeline.insertPhaseAfter(authenticationPhase, challengePhase)
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Features, AuthenticatePhase)
+        pipeline.insertPhaseAfter(AuthenticatePhase, ChallengePhase)
 
-        pipeline.intercept(authenticationPhase) {
+        pipeline.intercept(AuthenticatePhase) {
             val call = call
             val authenticationContext = AuthenticationContext.from(call)
             if (authenticationContext.principal != null) return@intercept
@@ -123,7 +123,7 @@ class Authentication(config: Configuration) {
             processAuthentication(call, authenticationContext, configurations, authenticationPipeline)
         }
 
-        pipeline.intercept(challengePhase) {
+        pipeline.intercept(ChallengePhase) {
             val context = AuthenticationContext.from(call)
 
             when {
@@ -131,22 +131,36 @@ class Authentication(config: Configuration) {
                 }
                 context.challenge.completed -> finish()
                 else -> {
-                    if (!optional) {
-                        executeChallenges(context, true)
+                    if (!optional || context.hasInvalidCredentials()) {
+                        executeChallenges(context)
                     }
                 }
             }
         }
     }
 
+    private fun AuthenticationContext.hasInvalidCredentials(): Boolean =
+        allFailures.any { it == AuthenticationFailedCause.InvalidCredentials }
+
     /**
      * Installable feature for [Authentication].
      */
     companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
-        private val authenticationPhase = PipelinePhase("Authenticate")
-        private val challengePhase = PipelinePhase("Challenge")
+        /**
+         * Authenticate phase in that authentication procedures are executed.
+         * Please note that referring to the phase is only possible *after* feature installation.
+         */
+        @KtorExperimentalAPI
+        val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
-        override val key = AttributeKey<Authentication>("Authentication")
+        /**
+         * Authenticate phase in that auth provider's challenges performing.
+         * Please note that referring to the phase is only possible *after* feature installation.
+         */
+        @KtorExperimentalAPI
+        val ChallengePhase: PipelinePhase = PipelinePhase("Challenge")
+
+        override val key: AttributeKey<Authentication> = AttributeKey("Authentication")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
             return Authentication().apply {
@@ -163,48 +177,38 @@ class Authentication(config: Configuration) {
                 finish()
                 return@intercept
             }
-
-            if (context.challenge.register.all { it.first === AuthenticationFailedCause.NoCredentials }) {
-                return@intercept
-            }
-
-            // NOTE: we don't handle errors per-provider here, we do it in the end
-            executeChallenges(context, false)
         }
     }
 
     private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(
-        context: AuthenticationContext,
-        handleErrors: Boolean
+        context: AuthenticationContext
     ) {
-        val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
+        val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(ChallengePhase)
         val challenges = context.challenge.challenges
 
         for (challenge in challenges) {
-            challengePipeline.intercept(challengePhase) {
+            challengePipeline.intercept(ChallengePhase) {
                 challenge(it)
                 if (it.completed)
                     finish() // finish challenge pipeline if it has been completed
             }
         }
 
-        if (handleErrors) {
-            for (challenge in context.challenge.errorChallenges) {
-                challengePipeline.intercept(challengePhase) {
-                    challenge(it)
-                    if (it.completed)
-                        finish() // finish challenge pipeline if it has been completed
-                }
+        for (challenge in context.challenge.errorChallenges) {
+            challengePipeline.intercept(ChallengePhase) {
+                challenge(it)
+                if (it.completed)
+                    finish() // finish challenge pipeline if it has been completed
             }
+        }
 
-            for (error in context.errors.values.filterIsInstance<AuthenticationFailedCause.Error>()) {
-                challengePipeline.intercept(challengePhase) {
-                    if (!it.completed) {
-                        logger.trace("Responding unauthorized because of error ${error.cause}")
-                        call.respond(UnauthorizedResponse())
-                        it.complete()
-                        finish()
-                    }
+        for (error in context.allErrors) {
+            challengePipeline.intercept(ChallengePhase) {
+                if (!it.completed) {
+                    logger.trace("Responding unauthorized because of error ${error.message}")
+                    call.respond(UnauthorizedResponse())
+                    it.complete()
+                    finish()
                 }
             }
         }
@@ -267,7 +271,7 @@ val ApplicationCall.authentication: AuthenticationContext
 /**
  * Retrieves authenticated [Principal] for `this` call
  */
-inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()
+inline fun <reified P : Principal> ApplicationCall.principal(): P? = authentication.principal<P>()
 
 /**
  * Creates an authentication route that does handle authentication by the specified providers referred by

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.jetty
@@ -16,7 +16,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
 
-@UseExperimental(EngineAPI::class)
+@OptIn(EngineAPI::class)
 @Suppress("BlockingMethodInNonBlockingContext")
 class MultipleDispatchOnTimeout {
 

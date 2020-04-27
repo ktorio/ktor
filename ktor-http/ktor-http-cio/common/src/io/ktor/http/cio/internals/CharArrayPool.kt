@@ -4,7 +4,6 @@
 
 package io.ktor.http.cio.internals
 
-import io.ktor.util.*
 import io.ktor.utils.io.pool.*
 import kotlin.native.concurrent.*
 
@@ -13,7 +12,6 @@ private const val CHAR_ARRAY_POOL_SIZE = 4096
 /**
  * Number of characters that a array from the pool can store
  */
-@KtorExperimentalAPI
 internal const val CHAR_BUFFER_ARRAY_LENGTH: Int = 4096 / 2
 
 @ThreadLocal

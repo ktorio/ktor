@@ -4,6 +4,7 @@
 
 package io.ktor.routing
 
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
@@ -380,14 +381,19 @@ data class HttpHeaderRouteSelector(val name: String, val value: String) : RouteS
  */
 data class HttpAcceptRouteSelector(val contentType: ContentType) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val headers = context.call.request.headers["Accept"]
-        val parsedHeaders = parseAndSortContentTypeHeader(headers)
-        if (parsedHeaders.isEmpty())
-            return RouteSelectorEvaluation.Missing
-        val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
-        if (header != null)
-            return RouteSelectorEvaluation(true, header.quality)
-        return RouteSelectorEvaluation.Failed
+        val acceptHeaderContent = context.call.request.headers[HttpHeaders.Accept]
+        try {
+            val parsedHeaders = parseAndSortContentTypeHeader(acceptHeaderContent)
+
+            if (parsedHeaders.isEmpty())
+                return RouteSelectorEvaluation.Missing
+            val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
+            if (header != null)
+                return RouteSelectorEvaluation(true, header.quality)
+            return RouteSelectorEvaluation.Failed
+        } catch (failedToParse: BadContentTypeFormatException) {
+            throw BadRequestException("Illegal Accept header format: $acceptHeaderContent", failedToParse)
+        }
     }
 
     override fun toString(): String = "(contentType:$contentType)"

@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.date.*
 import org.junit.Test
 import java.io.*
 import java.util.*
@@ -22,8 +23,9 @@ class PartialContentTest {
         .first(File::exists)
 
     private val localPath = "features/StaticContentTest.kt"
+    private val fileEtag = "etag-99"
 
-    private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.(File) -> Unit) =
+    private fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.(File) -> Unit): Unit =
         withTestApplication {
             application.install(ConditionalHeaders)
             application.install(CachingHeaders)
@@ -36,7 +38,9 @@ class PartialContentTest {
                     handle {
                         val file = basedir.resolve(localPath)
                         if (file.isFile) {
-                            call.respond(LocalFileContent(file))
+                            call.respond(LocalFileContent(file).apply {
+                                versions += EntityTagVersion(fileEtag)
+                            })
                         }
                     }
                 }
@@ -234,6 +238,78 @@ class PartialContentTest {
             assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             assertEquals(file.readChars(0, 2), result.response.content)
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
+        }
+    }
+
+    @Test
+    fun testDontCrashWithEmptyIfRange(): Unit = withRangeApplication { file ->
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, "")
+        }.let { result ->
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+        }
+    }
+
+    @Test
+    fun testIfRangeETag(): Unit = withRangeApplication { file ->
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, "\"$fileEtag\"")
+        }.let { result ->
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+        }
+
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, "\"wrong-$fileEtag\"")
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
+        }
+    }
+
+    @Test
+    fun testIfRangeDate(): Unit = withRangeApplication { file ->
+        val fileDate = GMTDate(file.lastModified())
+
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, fileDate.toHttpDate())
+        }.let { result ->
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+        }
+
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, fileDate.plus(10000).toHttpDate())
+        }.let { result ->
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+        }
+
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, fileDate.minus(100000).toHttpDate())
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
+        }
+    }
+
+    @Test
+    fun testIfRangeWrongDate(): Unit = withRangeApplication { file ->
+        val fileDate = GMTDate(file.lastModified())
+
+        handleRequest(HttpMethod.Get, localPath) {
+            addHeader(HttpHeaders.Range, "bytes=1-2")
+            addHeader(HttpHeaders.IfRange, fileDate.toHttpDate().drop(15))
+        }.let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
         }
     }
 

@@ -1,6 +1,6 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import org.khronos.webgl.*
 
@@ -57,6 +57,7 @@ actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+
     actual suspend fun readFully(dst: IoBuffer, n: Int)
 
     suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)

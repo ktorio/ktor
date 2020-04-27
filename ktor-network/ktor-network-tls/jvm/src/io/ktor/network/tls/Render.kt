@@ -154,7 +154,7 @@ private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket
     writeShort((name.length + 2 + 1).toShort()) // list length
     writeByte(0) // type: host_name
     writeShort(name.length.toShort()) // name length
-    writeStringUtf8(name)
+    writeText(name)
 }
 
 private const val MAX_CURVES_QUANTITY: Int = Short.MAX_VALUE / 2 - 1

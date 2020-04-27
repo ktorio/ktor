@@ -37,7 +37,11 @@ internal class JsWebSocketSession(
                 val frame: Frame = when (data) {
                     is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
                     is String -> Frame.Text(data)
-                    else -> error("Unknown frame type: ${event.type}")
+                    else -> {
+                        val error = IllegalStateException("Unknown frame type: ${event.type}")
+                        _closeReason.completeExceptionally(error)
+                        throw error
+                    }
                 }
 
                 _incoming.offer(frame)
@@ -45,13 +49,17 @@ internal class JsWebSocketSession(
         })
 
         websocket.addEventListener("error", callback = {
-            _incoming.close(WebSocketException("$it"))
+            val cause = WebSocketException("$it")
+            _closeReason.completeExceptionally(cause)
+            _incoming.close(cause)
             _outgoing.cancel()
         })
 
         websocket.addEventListener("close", callback = { event: dynamic ->
             launch {
-                _incoming.send(Frame.Close(CloseReason(event.code as Short, event.reason as String)))
+                val reason = CloseReason(event.code as Short, event.reason as String)
+                _closeReason.complete(reason)
+                _incoming.send(Frame.Close(reason))
                 _incoming.close()
 
                 _outgoing.cancel()
@@ -75,7 +83,10 @@ internal class JsWebSocketSession(
                     }
                     FrameType.CLOSE -> {
                         val data = buildPacket { writeFully(it.data) }
-                        websocket.close(data.readShort(), data.readText())
+                        val code = data.readShort()
+                        val reason = data.readText()
+                        _closeReason.complete(CloseReason(code, reason))
+                        websocket.close(code, reason)
                     }
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
@@ -103,6 +114,7 @@ internal class JsWebSocketSession(
     override fun terminate() {
         _incoming.cancel()
         _outgoing.cancel()
+        _closeReason.cancel("WebSocket terminated")
         websocket.close()
     }
 }

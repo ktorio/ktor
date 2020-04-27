@@ -6,6 +6,7 @@ package io.ktor.client.request
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -83,7 +84,8 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     @KtorExperimentalAPI
-    val executionContext: Job = Job()
+    var executionContext: Job = Job()
+        internal set
 
     /**
      * Call specific attributes.
@@ -114,6 +116,15 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Mutates [this] copying all the data from another [builder] using it as base.
      */
+    @InternalAPI
+    fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
+        executionContext = builder.executionContext
+        return takeFrom(builder)
+    }
+
+    /**
+     * Mutates [this] copying all the data but execution context from another [builder] using it as base.
+     */
     fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
@@ -128,6 +139,24 @@ class HttpRequestBuilder : HttpMessageBuilder {
         return this
     }
 
+    /**
+     * Set capability configuration.
+     */
+    @KtorExperimentalAPI
+    fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
+        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
+        capabilities[key] = capability
+    }
+
+    /**
+     * Retrieve capability by key.
+     */
+    @KtorExperimentalAPI
+    fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
+    }
+
     companion object
 }
 
@@ -135,7 +164,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
  * Actual data of the [HttpRequest], including [url], [method], [headers], [body] and [executionContext].
  * Built by [HttpRequestBuilder].
  */
-class HttpRequestData internal constructor(
+class HttpRequestData @InternalAPI constructor(
     val url: Url,
     val method: HttpMethod,
     val headers: Headers,
@@ -143,6 +172,21 @@ class HttpRequestData internal constructor(
     val executionContext: Job,
     val attributes: Attributes
 ) {
+    /**
+     * Retrieve extension by it's key.
+     */
+    @KtorExperimentalAPI
+    fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
+    }
+
+    /**
+     * All extension keys associated with this request.
+     */
+    internal val requiredCapabilities: Set<HttpClientEngineCapability<*>> =
+        attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys ?: emptySet()
+
     override fun toString(): String = "HttpRequestData(url=$url, method=$method)"
 }
 

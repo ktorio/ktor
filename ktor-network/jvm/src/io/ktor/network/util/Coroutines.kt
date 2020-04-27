@@ -20,7 +20,7 @@ private class TrackingContinuation<in T>(private val delegate: CancellableContin
         }
     }
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override fun tryResumeWithException(exception: Throwable): Any? {
         val token = delegate.tryResumeWithException(suspensionPoint)
         if (token != null) {

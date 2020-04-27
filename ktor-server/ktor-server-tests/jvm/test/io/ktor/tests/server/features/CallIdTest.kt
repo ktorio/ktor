@@ -186,7 +186,7 @@ class CallIdTest {
         }
 
         // invalid call id
-        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "\u0000")}.let { call ->
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "\u1000")}.let { call ->
             assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
@@ -195,7 +195,7 @@ class CallIdTest {
     @Test
     fun testDefaultVerifierForGenerate(): Unit = withTestApplication {
         application.install(CallId) {
-            generate { if (it.request.uri == "/valid") CALL_ID_DEFAULT_DICTIONARY else "\u0000" }
+            generate { if (it.request.uri == "/valid") CALL_ID_DEFAULT_DICTIONARY else "\u1000" }
         }
         handle {
             call.respond(call.callId.toString())

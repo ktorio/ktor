@@ -5,35 +5,35 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.util.date.*
 import java.time.*
 import java.time.format.*
 import java.time.temporal.*
-import java.util.*
 
 /**
  * Format epoch milliseconds as HTTP date (GMT)
  */
 @KtorExperimentalAPI
-fun Long.toHttpDateString(): String = Instant.ofEpochMilli(this).toHttpDateString()
+fun Long.toHttpDateString(): String = GMTDate(this).toHttpDate()
 
 /**
  * Format as HTTP date (GMT)
  */
-fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
+@Suppress("CONFLICTING_OVERLOADS", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+fun Temporal.toHttpDateString(): String = toHttpDateString()
 
 /**
  * Parse HTTP date to [ZonedDateTime]
  */
-@KtorExperimentalAPI
+@Suppress("CONFLICTING_OVERLOADS", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
-
-private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
 
 /**
  * Default HTTP date format
  */
-@KtorExperimentalAPI
-val httpDateFormat: DateTimeFormatter = DateTimeFormatter
-    .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")
-    .withLocale(Locale.US)
-    .withZone(GreenwichMeanTime)!!
+@Suppress("CONFLICTING_OVERLOADS", "REDECLARATION", "unused")
+@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+val httpDateFormat: DateTimeFormatter
+    get() = httpDateFormat

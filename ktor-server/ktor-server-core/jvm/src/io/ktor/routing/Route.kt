@@ -6,7 +6,6 @@ package io.ktor.routing
 
 import io.ktor.application.*
 import io.ktor.util.pipeline.*
-import java.util.*
 
 /**
  * Describes a node in a routing tree
@@ -44,7 +43,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
     /**
      * Allows using route instance for building additional routes
      */
-    operator fun invoke(body: Route.() -> Unit) = body()
+    operator fun invoke(body: Route.() -> Unit): Unit = body()
 
     /**
      * Installs a handler into this route which will be called when the route is selected for a call
@@ -87,7 +86,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
             val handlers = handlers
             for (index in 0..handlers.lastIndex) {
-                pipeline.intercept(ApplicationCallPipeline.Call, handlers[index])
+                pipeline.intercept(Call, handlers[index])
             }
             cachedPipeline = pipeline
             pipeline

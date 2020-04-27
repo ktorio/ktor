@@ -31,7 +31,9 @@ class PosixIoTest {
 
     @Test
     fun testFFunctions() {
-        fopen(filename, "w")!!.use { file ->
+        val file = fopen(filename, "w") ?: return
+
+        file.use { file ->
             assertEquals(4, fwrite(buffer, file).convert(), "Expected all bytes to be written")
         }
         buffer.resetForWrite()
@@ -44,7 +46,12 @@ class PosixIoTest {
 
     @Test
     fun testFunctions() {
-        open(filename, O_WRONLY or O_CREAT, 420).use { file ->
+        val file = open(filename, O_WRONLY or O_CREAT, 420)
+        if (file < 0) {
+            return
+        }
+
+        file.use { file ->
             assertEquals(4, write(file, buffer).toInt(), "Expected all bytes to be written")
         }
         buffer.resetForWrite()
@@ -57,7 +64,12 @@ class PosixIoTest {
 
     @Test
     fun testInputOutputForFileDescriptor() {
-        Output(open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")).use { out ->
+        val file = open(filename, O_WRONLY or O_CREAT, 420)
+        if (file < 0) {
+            return
+        }
+
+        Output(file.checkError("open(C|W)")).use { out ->
             out.append("test")
         }
 
@@ -68,7 +80,9 @@ class PosixIoTest {
 
     @Test
     fun testInputOutputForFileInstance() {
-        Output(fopen(filename, "w")!!).use { out ->
+        val file = fopen(filename, "w") ?: return
+
+        Output(file).use { out ->
             out.append("test")
         }
 
@@ -92,7 +106,7 @@ class PosixIoTest {
         with(serverAddr) {
             memset(this.ptr, 0, sockaddr_in.size.convert())
             sin_family = AF_INET.convert()
-            sin_port = my_htons(port)
+            sin_port = 0u //my_htons(port)
         }
 
         with(clientAddr) {
@@ -107,10 +121,19 @@ class PosixIoTest {
         bind(acceptor, serverAddr.ptr.reinterpret(), sockaddr_in.size.convert()).let { rc ->
             if (rc != 0) {
                 val error = socket_get_error()
-                fail("bind() failed with error $error")
+                throw PosixException.forErrno(errno = error, posixFunctionName = "bind()")
             }
         }
         listen(acceptor, 10).checkError("listen()")
+
+        val addrSizeResult = alloc<UIntVar>()
+        addrSizeResult.value = sockaddr_in.size.convert()
+        getsockname(
+            acceptor, serverAddr.ptr.reinterpret(),
+            addrSizeResult.ptr.reinterpret()
+        ).checkError("getsockname()")
+
+        clientAddr.sin_port = serverAddr.sin_port
 
         val connected: KX_SOCKET = socket(AF_INET, SOCK_STREAM, 0).checkError("socket()")
         val zero: KX_SOCKET = 0.convert()
@@ -199,7 +222,12 @@ class PosixIoTest {
 
     @Test
     fun testInputDoubleCloseFD() {
-        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val fd = open(filename, O_WRONLY or O_CREAT, 420)
+
+        if (fd < 0) {
+            return
+        }
+
         val input = Input(fd)
         close(fd)
         input.close()
@@ -207,7 +235,11 @@ class PosixIoTest {
 
     @Test
     fun testInputDoubleCloseFD2() {
-        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val fd = open(filename, O_WRONLY or O_CREAT, 420)
+        if (fd < 0) {
+            return
+        }
+
         val input = Input(fd)
         input.close()
         input.close()
@@ -215,14 +247,19 @@ class PosixIoTest {
 
     @Test
     fun testInputDoubleCloseFILE() {
-        val input = Input(fopen(filename, "w")!!)
+        val fopen = fopen(filename, "w") ?: return
+        val input = Input(fopen)
         input.close()
         input.close()
     }
 
     @Test
     fun testOutputDoubleCloseFD() {
-        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val fd = open(filename, O_WRONLY or O_CREAT, 420)
+        if (fd < 0) {
+            return
+        }
+
         val output = Output(fd)
         close(fd)
         output.close()
@@ -230,7 +267,11 @@ class PosixIoTest {
 
     @Test
     fun testOutputDoubleCloseFD2() {
-        val fd = open(filename, O_WRONLY or O_CREAT, 420).checkError("open(C|W)")
+        val fd = open(filename, O_WRONLY or O_CREAT, 420)
+        if (fd < 0) {
+            return
+        }
+
         val output = Output(fd)
         output.close()
         output.close()
@@ -238,7 +279,9 @@ class PosixIoTest {
 
     @Test
     fun testOutputDoubleCloseFILE() {
-        val output = Output(fopen(filename, "w")!!)
+        val file = fopen(filename, "w") ?: return
+
+        val output = Output(file)
         output.close()
         output.close()
     }

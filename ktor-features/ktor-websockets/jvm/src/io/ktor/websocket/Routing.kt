@@ -11,8 +11,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.util.concurrent.CancellationException
 
 /**
  * Bind RAW websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
@@ -66,6 +64,30 @@ fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServe
 }
 
 /**
+ * Bind RAW websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * So [WebSocketSession]'s incoming channel will contain all low-level control frames and all fragmented frames need
+ * to be reassembled
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
+ * it is important to perform close sequence properly.
+ */
+@Deprecated(
+    "Use webSocketRaw(protocol = protocol, handler = handler) instead.",
+    ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)")
+)
+fun Route.webSocketRaw(
+    webSocketProtocol: String,
+    webSocketHandler: suspend WebSocketServerSession.() -> Unit,
+    nothing: Nothing? = null
+) {
+    webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)
+}
+
+/**
  * Bind websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
  * Requires [WebSockets] feature to be installed first
  *
@@ -81,6 +103,31 @@ fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketS
     webSocketRaw(protocol) {
         proceedWebSocket(handler)
     }
+}
+
+/**
+ * Bind websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
+ * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
+ * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
+ * a timeout exceeds
+ */
+@Deprecated(
+    "Use webSocket(protocol = protocol, handler = handler) instead.",
+    ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)")
+)
+fun Route.webSocket(
+    webSocketProtocol: String,
+    webSocketHandler: suspend DefaultWebSocketServerSession.() -> Unit,
+    @Suppress("UNUSED_PARAMETER")
+    nothing: Nothing? = null
+) {
+    webSocket(protocol = webSocketProtocol, handler = webSocketHandler)
 }
 
 /**
@@ -118,7 +165,7 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
     }
 }
 
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     val webSockets = application.feature(WebSockets)
 
@@ -127,22 +174,33 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
         webSockets.pingInterval?.toMillis() ?: -1L,
         webSockets.timeout.toMillis()
     )
-    session.run {
-        try {
-            toServerSession(call).handler()
-            session.close()
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (io: ChannelIOException) {
-            // don't log I/O exceptions
-            throw io
-        } catch (cause: Throwable) {
-            application.log.error("Websocket handler failed", cause)
-            throw cause
-        }
-    }
+    session.handleServerSession(call, handler)
 
-    session.coroutineContext[Job]!!.join()
+    session.joinSession()
+}
+
+private suspend fun CoroutineScope.joinSession() {
+    coroutineContext[Job]!!.join()
+}
+
+@OptIn(WebSocketInternalAPI::class)
+private suspend fun DefaultWebSocketSessionImpl.handleServerSession(
+    call: ApplicationCall,
+    handler: suspend DefaultWebSocketServerSession.() -> Unit
+) {
+    try {
+        val serverSession = toServerSession(call)
+        handler(serverSession)
+        close()
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (io: ChannelIOException) {
+        // don't log I/O exceptions
+        throw io
+    } catch (cause: Throwable) {
+        call.application.log.error("Websocket handler failed", cause)
+        throw cause
+    }
 }
 
 private class WebSocketProtocolsSelector(

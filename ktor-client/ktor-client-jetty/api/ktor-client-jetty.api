@@ -1,0 +1,19 @@
+public final class io/ktor/client/engine/jetty/Jetty : io/ktor/client/engine/HttpClientEngineFactory {
+	public static final field INSTANCE Lio/ktor/client/engine/jetty/Jetty;
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+}
+
+public final class io/ktor/client/engine/jetty/JettyEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
+	public fun <init> ()V
+	public final fun getClientCacheSize ()I
+	public final fun getSslContextFactory ()Lorg/eclipse/jetty/util/ssl/SslContextFactory;
+	public final fun setClientCacheSize (I)V
+	public final fun setSslContextFactory (Lorg/eclipse/jetty/util/ssl/SslContextFactory;)V
+}
+
+public final class io/ktor/client/engine/jetty/JettyEngineContainer : io/ktor/client/HttpClientEngineContainer {
+	public fun <init> ()V
+	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
+}
+

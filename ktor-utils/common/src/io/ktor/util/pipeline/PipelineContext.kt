@@ -43,7 +43,7 @@ interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScope {
 /**
  * Represent an object that launches pipeline execution
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
 interface PipelineExecutor<R> {
     /**
      * Start pipeline execution or fail if already running and not yet completed.
@@ -55,12 +55,12 @@ interface PipelineExecutor<R> {
 /**
  * Build a pipeline of the specified [interceptors] and create executor
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
 fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
     context: TContext,
     interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject
-): PipelineExecutor<TSubject> {
+): @Suppress("DEPRECATION") PipelineExecutor<TSubject> {
     return SuspendFunctionGun(subject, context, interceptors)
 }
 
@@ -68,7 +68,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     initial: TSubject,
     override val context: TContext,
     private val blocks: List<PipelineInterceptor<TSubject, TContext>>
-) : PipelineContext<TSubject, TContext>, PipelineExecutor<TSubject>, CoroutineScope {
+) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject>, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 
@@ -84,28 +84,50 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         private fun peekContinuation(): Continuation<*>? {
             if (lastPeekedIndex < 0) return null
-            val rootContinuation = rootContinuation
 
-            @Suppress("UNCHECKED_CAST")
-            when (rootContinuation) {
+            when (val rootContinuation = rootContinuation) {
                 null -> return null
                 is Continuation<*> -> {
                     --lastPeekedIndex
                     return rootContinuation
                 }
                 is ArrayList<*> -> {
-                    if (rootContinuation.isEmpty()) return null
-                    return rootContinuation[lastPeekedIndex--] as Continuation<*>
+                    if (rootContinuation.isEmpty()) {
+                        // If the list is empty, then lastPeekedIndex should be -1
+                        // and null should be already returned at the beginning of the function.
+                        // So if we are here and see that the list is empty but lastPeekedIndex wasn't -1,
+                        // then it means that element(s) has disappeared concurrently.
+                        return StackWalkingFailedFrame
+                    }
+                    @Suppress("UNCHECKED_CAST")
+                    return peekContinuationFromList(rootContinuation as List<Continuation<*>>)
                 }
                 else -> return null
+            }
+        }
+
+        private fun peekContinuationFromList(list: List<Continuation<*>>): Continuation<*>? {
+            // this is only invoked by debug agent during job state probes
+            // lastPeekedIndex is non-volatile intentionally
+            // and the list of continuations is not synchronized too
+            // so this is not guaranteed to work properly (may produce incorrect trace),
+            // but the only we care is to not crash here
+            // and simply return StackWalkingFailedFrame on any unfortunate accident
+
+            try {
+                val index = lastPeekedIndex
+                val result = list.getOrNull(index) ?: return StackWalkingFailedFrame
+                lastPeekedIndex = index - 1
+                return result
+            } catch (_: Throwable) {
+                return StackWalkingFailedFrame
             }
         }
 
         @Suppress("UNCHECKED_CAST")
         override val context: CoroutineContext
             get() {
-                val cont = rootContinuation
-                return when (cont) {
+                return when (val cont = rootContinuation) {
                     null -> throw IllegalStateException("Not started")
                     is Continuation<*> -> cont.context
                     is List<*> -> (cont as List<Continuation<*>>).last().context
@@ -240,9 +262,7 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     }
 
     private fun addContinuation(continuation: Continuation<TSubject>) {
-        val rootContinuation = rootContinuation
-
-        when (rootContinuation) {
+        when (val rootContinuation = rootContinuation) {
             null -> {
                 lastPeekedIndex = 0
                 this.rootContinuation = continuation
@@ -266,5 +286,30 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
     private fun unexpectedRootContinuationValue(rootContinuation: Any?): Nothing {
         throw IllegalStateException("Unexpected rootContinuation content: $rootContinuation")
+    }
+}
+
+/**
+ * This is a fake coroutine stack frame. It is reported by [SuspendFunctionGun] when the debug agent
+ * is trying to probe jobs state by peeking frames when the coroutine is running at the same time
+ * and the frames sequence is concurrently changed.
+ */
+internal object StackWalkingFailedFrame : CoroutineStackFrame, Continuation<Nothing> {
+    override val callerFrame: CoroutineStackFrame? get() = null
+
+    override fun getStackTraceElement(): StackTraceElement? {
+        return createStackTraceElement(
+            StackWalkingFailed::class,
+            StackWalkingFailed::failedToCaptureStackFrame.name,
+            "StackWalkingFailed.kt",
+            8
+        )
+    }
+
+    override val context: CoroutineContext
+        get() = EmptyCoroutineContext
+
+    override fun resumeWith(result: Result<Nothing>) {
+        StackWalkingFailed.failedToCaptureStackFrame()
     }
 }

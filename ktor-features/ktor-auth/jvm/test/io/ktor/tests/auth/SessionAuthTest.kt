@@ -10,7 +10,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -55,7 +55,7 @@ class SessionAuthTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("Cookie", "S=${autoSerializerOf<MySession>().serialize(MySession(1))}")
+                addHeader("Cookie", "S=${defaultSessionSerializer<MySession>().serialize(MySession(1))}")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
@@ -63,7 +63,7 @@ class SessionAuthTest {
             runBlocking {
                 val cookieStorage = AcceptAllCookiesStorage()
 
-                HttpClient(TestHttpClientEngine.create { this.app = this@withTestApplication }) {
+                client.config {
                     expectSuccess = false
                     install(HttpCookies) {
                         storage = cookieStorage
@@ -71,25 +71,21 @@ class SessionAuthTest {
                 }.use { client ->
                     cookieStorage.addCookie(
                         "/",
-                        Cookie("S", autoSerializerOf<MySession>().serialize(MySession(1)), path = "/")
+                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    client.get<HttpResponse>("/child/logout").let { response ->
-                        val body = response.receive<String>()
-                        println(body)
-                        assertEquals(HttpStatusCode.Unauthorized, response.status)
-                    }
+                    val first = client.get<HttpResponse>("/child/logout")
+                    first.receive<String>()
+                    assertEquals(HttpStatusCode.Unauthorized, first.status)
 
                     cookieStorage.addCookie(
                         "/",
-                        Cookie("S", autoSerializerOf<MySession>().serialize(MySession(1)), path = "/")
+                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    client.get<HttpResponse>("logout").let { response ->
-                        val body = response.receive<String>()
-                        println(body)
-                        assertEquals(HttpStatusCode.Unauthorized, response.status)
-                    }
+                    val second = client.get<HttpResponse>("logout")
+                    second.receive<String>()
+                    assertEquals(HttpStatusCode.Unauthorized, second.status)
                 }
             }
         }
@@ -125,7 +121,7 @@ class SessionAuthTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("Cookie", "S=${autoSerializerOf<MySession>().serialize(MySession(1))}")
+                addHeader("Cookie", "S=${defaultSessionSerializer<MySession>().serialize(MySession(1))}")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
@@ -133,7 +129,7 @@ class SessionAuthTest {
             runBlocking {
                 val cookieStorage = AcceptAllCookiesStorage()
 
-                HttpClient(TestHttpClientEngine.create { this.app = this@withTestApplication }) {
+                client.config {
                     expectSuccess = false
                     install(HttpCookies) {
                         storage = cookieStorage
@@ -141,25 +137,21 @@ class SessionAuthTest {
                 }.use { client ->
                     cookieStorage.addCookie(
                         "/",
-                        Cookie("S", autoSerializerOf<MySession>().serialize(MySession(1)), path = "/")
+                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    client.get<HttpResponse>("/child/logout").let { response ->
-                        val body = response.receive<String>()
-                        println(body)
-                        assertEquals(HttpStatusCode.Unauthorized, response.status)
-                    }
+                    val first = client.get<HttpResponse>("/child/logout")
+                    first.receive<String>()
+                    assertEquals(HttpStatusCode.Unauthorized, first.status)
 
                     cookieStorage.addCookie(
                         "/",
-                        Cookie("S", autoSerializerOf<MySession>().serialize(MySession(1)), path = "/")
+                        Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    client.get<HttpResponse>("logout").let { response ->
-                        val body = response.receive<String>()
-                        println(body)
-                        assertEquals(HttpStatusCode.Unauthorized, response.status)
-                    }
+                    val second = client.get<HttpResponse>("logout")
+                    second.receive<String>()
+                    assertEquals(HttpStatusCode.Unauthorized, second.status)
                 }
             }
         }
@@ -192,9 +184,9 @@ class SessionAuthTest {
                 assertEquals(HttpStatusCode.Found.value, call.response.status()?.value)
             }
 
-            handleRequest(HttpMethod.Get, "/", {
-                addHeader("Cookie", "S=${autoSerializerOf<MySession>().serialize(MySession(1))}")
-            }).let { call ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("Cookie", "S=${defaultSessionSerializer<MySession>().serialize(MySession(1))}")
+            }.let { call ->
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
         }

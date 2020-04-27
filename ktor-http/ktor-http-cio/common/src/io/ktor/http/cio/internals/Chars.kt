@@ -6,6 +6,9 @@ package io.ktor.http.cio.internals
 
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import kotlin.native.concurrent.*
+
+internal const val HTAB: Char = '\u0009'
 
 internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): Int {
     var hashCode = 0
@@ -21,7 +24,7 @@ internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, oth
     if (end - start != other.length) return false
 
     for (pos in start until end) {
-        if (get(pos).toInt().toLowerCase() != other.get(pos - start).toInt().toLowerCase()) return false
+        if (get(pos).toInt().toLowerCase() != other[pos - start].toInt().toLowerCase()) return false
     }
 
     return true
@@ -31,10 +34,11 @@ internal fun CharSequence.equalsLowerCase(start: Int = 0, end: Int = length, oth
 private inline fun Int.toLowerCase() =
     if (this in 'A'.toInt()..'Z'.toInt()) 'a'.toInt() + (this - 'A'.toInt()) else this
 
+@SharedImmutable
 internal val DefaultHttpMethods =
     AsciiCharTree.build(HttpMethod.DefaultMethods, { it.value.length }, { m, idx -> m.value[idx] })
 
-
+@SharedImmutable
 private val HexTable = (0..0xff).map { v ->
     when {
         v in 0x30..0x39 -> v - 0x30L
@@ -42,11 +46,12 @@ private val HexTable = (0..0xff).map { v ->
         v >= 'A'.toLong() && v <= 'F'.toLong() -> v - 'A'.toLong() + 10
         else -> -1L
     }
-}.toTypedArray()
+}.toLongArray()
 
-internal val HexLetterTable = (0..0xf).map {
+@SharedImmutable
+internal val HexLetterTable: ByteArray = (0..0xf).map {
     if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).toInt().toByte()
-}.toTypedArray()
+}.toByteArray()
 
 internal fun CharSequence.parseHexLong(): Long {
     var result = 0L
@@ -90,7 +95,7 @@ private fun CharSequence.parseDecLongWithCheck(): Long {
     return result
 }
 
-internal fun IoBuffer.writeIntHex(value: Int) {
+internal fun Buffer.writeIntHex(value: Int) {
     require(value > 0) { "Does only work for positive numbers" } // zero is not included!
     var current = value
     val table = HexLetterTable

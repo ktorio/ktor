@@ -13,8 +13,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
-@EngineAPI
-open class JettyApplicationEngineBase(
+open class JettyApplicationEngineBase @EngineAPI constructor(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
 ) : BaseApplicationEngine(environment) {
@@ -57,10 +56,10 @@ open class JettyApplicationEngineBase(
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
-        server.stopTimeout = timeUnit.toMillis(timeout)
+        server.stopTimeout = timeoutMillis
         server.stop()
         server.destroy()
         environment.stop()

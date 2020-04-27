@@ -8,7 +8,7 @@ package io.ktor.network.sockets
  * An inline class to hold a IP ToS value
  * @property value an unsigned byte IP_TOS value
  */
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 inline class TypeOfService(val value: UByte) {
     /**
      * Creates ToS by integer value discarding extra high bits

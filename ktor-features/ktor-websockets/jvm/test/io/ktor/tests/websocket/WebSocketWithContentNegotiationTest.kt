@@ -42,7 +42,7 @@ class WebSocketWithContentNegotiationTest {
             }
         }
 
-        handleWebSocketConversation("/", {}) { incoming, outgoing ->
+        handleWebSocketConversation("/", {}) { incoming, _ ->
             incoming.receive()
         }
     }

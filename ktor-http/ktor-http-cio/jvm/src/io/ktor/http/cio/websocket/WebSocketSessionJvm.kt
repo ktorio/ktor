@@ -22,10 +22,12 @@ actual interface WebSocketSession : CoroutineScope {
      * Specifies frame size limit. Connection will be closed if violated
      */
     var maxFrameSize: Long
+
     /**
      * Incoming frames channel
      */
     actual val incoming: ReceiveChannel<Frame>
+
     /**
      * Outgoing frames channel. It could have limited capacity so sending too much frames may lead to suspension at
      * corresponding send invocations. It also may suspend if a peer doesn't read frames for some reason.

@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.okhttp
 
+import io.ktor.client.features.*
+import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import okhttp3.*
@@ -11,36 +13,50 @@ import okhttp3.Headers
 import java.io.*
 import kotlin.coroutines.*
 
-internal suspend fun OkHttpClient.execute(request: Request): Response = suspendCancellableCoroutine {
-    val call = newCall(request)
-    val callback = object : Callback {
+internal suspend fun OkHttpClient.execute(request: Request, requestData: HttpRequestData): Response =
+    suspendCancellableCoroutine {
+        val call = newCall(request)
+        val callback = object : Callback {
 
-        override fun onFailure(call: Call, cause: IOException) {
-            if (!call.isCanceled) it.resumeWithException(cause)
+            override fun onFailure(call: Call, cause: IOException) {
+                if (call.isCanceled()) {
+                    return
+                }
+
+                val mappedException = when (cause) {
+                    is java.net.SocketTimeoutException -> if (cause.message?.contains("connect") == true) {
+                        ConnectTimeoutException(requestData, cause)
+                    } else {
+                        SocketTimeoutException(requestData, cause)
+                    }
+                    else -> cause
+                }
+
+                it.resumeWithException(mappedException)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!call.isCanceled()) it.resume(response)
+            }
         }
 
-        override fun onResponse(call: Call, response: Response) {
-            if (!call.isCanceled) it.resume(response)
+        call.enqueue(callback)
+
+        it.invokeOnCancellation {
+            call.cancel()
         }
     }
-
-    call.enqueue(callback)
-
-    it.invokeOnCancellation {
-        call.cancel()
-    }
-}
 
 internal fun Headers.fromOkHttp(): io.ktor.http.Headers = object : io.ktor.http.Headers {
-    override val caseInsensitiveName: Boolean = false
+    override val caseInsensitiveName: Boolean = true
 
-    override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name)
+    override fun getAll(name: String): List<String>? = this@fromOkHttp.values(name).takeIf { it.isNotEmpty() }
 
     override fun names(): Set<String> = this@fromOkHttp.names()
 
     override fun entries(): Set<Map.Entry<String, List<String>>> = this@fromOkHttp.toMultimap().entries
 
-    override fun isEmpty(): Boolean = this@fromOkHttp.size() == 0
+    override fun isEmpty(): Boolean = this@fromOkHttp.size == 0
 }
 
 @Suppress("DEPRECATION")

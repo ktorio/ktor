@@ -5,6 +5,7 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.engine.*
+import io.ktor.client.engine.js.*
 import kotlinx.coroutines.*
 
 /**
@@ -15,13 +16,16 @@ actual abstract class ClientLoader {
      * Perform test against all clients from dependencies.
      */
     actual fun clientTests(
-        skipPlatforms: List<String>,
+        skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): dynamic = if ("js" in skipPlatforms) GlobalScope.async {}.asPromise() else clientTest {
-        withTimeout(30 * 1000) {
-            block()
+    ): dynamic = {
+        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
+        if (skipEnginesLowerCase.contains("js")) GlobalScope.async {}.asPromise() else testWithEngine(Js) {
+            withTimeout(30 * 1000) {
+                block()
+            }
         }
-    }
+    }()
 
     actual fun dumpCoroutines() {
         error("Debug probes unsupported[js]")

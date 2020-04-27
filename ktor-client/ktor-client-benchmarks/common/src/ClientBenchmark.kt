@@ -48,7 +48,7 @@ internal class ClientBenchmark {
         val uploaded = client.post<String>("$TEST_BENCHMARKS_SERVER/bytes") {
             body = testData[size]!!
         }
-        check(uploaded.toInt() == size * 1024) { println("Expected ${size * 1024}, got $uploaded") }
+        check(uploaded.toInt() == size * 1024) { "Expected ${size * 1024}, got $uploaded" }
     }
 
     @Benchmark
@@ -57,7 +57,7 @@ internal class ClientBenchmark {
             body = testData[size]!!
         }
 
-        check(uploaded.size == size * 1024) { println("Expected ${size * 1024}, got ${uploaded.size}") }
+        check(uploaded.size == size * 1024) { "Expected ${size * 1024}, got ${uploaded.size}" }
     }
 
     @Benchmark
@@ -70,7 +70,7 @@ internal class ClientBenchmark {
             body = stream
         }
 
-        check(result.size == size * 1024) { println("Expected ${size * 1024}, got ${result.size}") }
+        check(result.size == size * 1024) { "Expected ${size * 1024}, got ${result.size}" }
     }
 
     @TearDown

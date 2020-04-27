@@ -5,18 +5,11 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.WeakTimeoutQueue
-import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.network.sockets.ServerSocket
-import io.ktor.network.sockets.Socket
-import io.ktor.server.engine.*
+import io.ktor.server.cio.backend.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import org.slf4j.*
-import java.net.*
-import java.nio.channels.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -68,77 +61,15 @@ fun httpServer(
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
-@UseExperimental(InternalAPI::class)
+@Deprecated("Use handler function with single request parameter from package io.ktor.server.cio.backend.")
 fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
-    handler: HttpRequestHandler
+    handler: suspend CoroutineScope.(
+        request: Request,
+        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+    ) -> Unit
 ): HttpServer {
-    val socket = CompletableDeferred<ServerSocket>()
-
-    val serverLatch: CompletableJob = Job()
-    val serverJob = launch(
-        context = CoroutineName("server-root-${settings.port}"),
-        start = CoroutineStart.UNDISPATCHED
-    ) {
-        serverLatch.join()
+    return httpServer(settings) { request ->
+        handler(this, request, input, output, upgraded)
     }
-
-    val selector = ActorSelectorManager(coroutineContext)
-    val timeout = WeakTimeoutQueue(
-        TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds)
-    )
-
-    val logger = LoggerFactory.getLogger(HttpServer::class.java)
-
-    val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
-        aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
-            socket.complete(server)
-
-            val connectionScope = CoroutineScope(
-                coroutineContext +
-                    SupervisorJob(serverJob) +
-                    DefaultUncaughtExceptionHandler(logger) +
-                    CoroutineName("request")
-            )
-
-            try {
-                while (true) {
-                    val client: Socket = server.accept()
-
-                    val clientJob = connectionScope.startConnectionPipeline(
-                        input = client.openReadChannel(),
-                        output = client.openWriteChannel(),
-                        timeout = timeout,
-                        handler = handler
-                    )
-
-                    clientJob.invokeOnCompletion {
-                        client.close()
-                    }
-                }
-            } catch (closed: ClosedChannelException) {
-                coroutineContext.cancel()
-            } finally {
-                server.close()
-                server.awaitClosed()
-                connectionScope.coroutineContext.cancel()
-            }
-        }
-    }
-
-    acceptJob.invokeOnCompletion { cause ->
-        cause?.let { socket.completeExceptionally(it) }
-        serverLatch.complete()
-        timeout.process()
-    }
-
-    @UseExperimental(InternalCoroutinesApi::class) // TODO it's attach child?
-    serverJob.invokeOnCompletion(onCancelling = true) {
-        timeout.cancel()
-    }
-    serverJob.invokeOnCompletion {
-        selector.close()
-    }
-
-    return HttpServer(serverJob, acceptJob, socket)
 }

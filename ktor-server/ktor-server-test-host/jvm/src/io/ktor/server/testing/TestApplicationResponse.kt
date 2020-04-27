@@ -12,7 +12,6 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import java.time.*
 import kotlin.coroutines.*
 
 /**
@@ -144,8 +143,8 @@ class TestApplicationResponse(
     /**
      * Wait for websocket session completion
      */
-    fun awaitWebSocket(duration: Duration): Unit = runBlocking {
-        withTimeout(duration.toMillis()) {
+    fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
+        withTimeout(durationMillis) {
             responseChannelDeferred.join()
             responseJob?.join()
             webSocketCompleted.join()
@@ -153,6 +152,10 @@ class TestApplicationResponse(
 
         Unit
     }
+
+    @Suppress("unused")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun awaitWebSocket(duration: java.time.Duration): Unit = awaitWebSocket(duration)
 
     /**
      * Websocket session's channel

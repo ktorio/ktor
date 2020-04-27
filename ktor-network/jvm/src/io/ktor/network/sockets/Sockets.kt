@@ -39,7 +39,7 @@ val ASocket.isClosed: Boolean get() = socketContext.isCompleted
 suspend fun ASocket.awaitClosed(): Unit {
     socketContext.join()
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     if (socketContext.isCancelled) throw socketContext.getCancellationException()
 }
 

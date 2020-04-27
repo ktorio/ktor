@@ -96,9 +96,13 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         job.invokeOnCompletion {
             upgradedWriteChannel.close()
             bodyHandler.close()
+            upgradedReadChannel.cancel()
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
+        job.join()
+
+        context.channel().close()
     }
 
     private fun setChunked(message: HttpResponse) {

@@ -11,20 +11,22 @@ import io.ktor.http.cio.websocket.FrameType
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*
-import io.ktor.utils.io.core.*
-import org.junit.*
-import org.junit.Test
+import org.junit.Rule
 import java.nio.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
+)
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)
@@ -162,6 +164,8 @@ class WebSocketTest {
             application.routing {
                 webSocket("/{p}") {
                     outgoing.send(Frame.Text(call.parameters["p"] ?: "null"))
+                    @Suppress("DEPRECATION")
+                    terminate() // We should terminate the socket to avoid waiting for response close.
                 }
             }
 
@@ -210,8 +214,14 @@ class WebSocketTest {
                 }
             }
 
+            val conversation = Job()
+
             handleWebSocket("/") {
-                setBody(sendBuffer.array())
+                bodyChannel = writer {
+                    channel.writeFully(sendBuffer.array())
+                    channel.flush()
+                    conversation.join()
+                }.channel
             }.let { call ->
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {
@@ -223,6 +233,8 @@ class WebSocketTest {
 
                         val frame = reader.incoming.receive()
                         val receivedContent = frame.buffer.moveToByteArray()
+
+                        conversation.complete()
 
                         assertEquals(FrameType.BINARY, frame.frameType)
                         assertEquals(content.size, receivedContent.size)
@@ -273,6 +285,138 @@ class WebSocketTest {
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
 
                 assertEquals("ABC123", receivedText)
+            }
+        }
+    }
+
+    @Test
+    fun testMaxSize() {
+        val sendBuffer = ByteBuffer.allocate(5 * 1024)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(true, ByteArray(1024)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets) {
+                maxFrameSize = 1023
+            }
+
+            var exception: Throwable? = null
+            val started = Job()
+            val executed = Job()
+            application.routing {
+                webSocket("/") {
+                    try {
+                        started.complete()
+                        incoming.receive()
+                    } catch (cause: Throwable) {
+                        exception = cause
+                    } finally {
+                        executed.complete()
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                bodyChannel = writer {
+                    started.join()
+                    channel.writeFully(sendBuffer)
+                }.channel
+            }.let { call ->
+                validateCloseWithBigFrame(call)
+                runBlocking {
+                    executed.join()
+                }
+
+                assertTrue("Expected FrameTooBigException, but found $exception") {
+                    exception is WebSocketReader.FrameTooBigException
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFragmentationMaxSize() {
+        val sendBuffer = ByteBuffer.allocate(5 * 1024)
+
+        Serializer().apply {
+            repeat(3) {
+                enqueue(Frame.Binary(false, ByteArray(1024)))
+            }
+            enqueue(Frame.Binary(true, ByteArray(1024)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets) {
+                maxFrameSize = 1025
+            }
+
+            var exception: Throwable? = null
+            application.routing {
+                webSocket("/") {
+                    try {
+                        incoming.receive()
+                    } catch (cause: Throwable) {
+                        exception = cause
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                setBody(sendBuffer.array())
+            }.let { call ->
+                validateCloseWithBigFrame(call)
+                assertTrue { exception is WebSocketReader.FrameTooBigException }
+            }
+        }
+    }
+
+    @Test
+    fun testFragmentationMaxSizeBound() {
+        val sendBuffer = ByteBuffer.allocate(5 * 1024)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(false, ByteArray(1024)))
+            enqueue(Frame.Binary(true, ByteArray(1024)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets) {
+                maxFrameSize = 1025
+            }
+
+            var exception: Throwable? = null
+            val executed = Job()
+            application.routing {
+                webSocket("/") {
+                    try {
+                        incoming.receive()
+                    } catch (cause: Throwable) {
+                        exception = cause
+                    } finally {
+                        executed.complete()
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                setBody(sendBuffer.array())
+            }.let { call ->
+                validateCloseWithBigFrame(call)
+                runBlocking {
+                    executed.join()
+                }
+                assertTrue { exception is WebSocketReader.FrameTooBigException }
             }
         }
     }
@@ -354,4 +498,21 @@ class WebSocketTest {
     }
 
     private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
+
+    private fun validateCloseWithBigFrame(call: TestApplicationCall) = runBlocking {
+        withTimeout(Duration.ofSeconds(10).toMillis()) {
+            val reader = WebSocketReader(
+                call.response.websocketChannel()!!,
+                coroutineContext,
+                Int.MAX_VALUE.toLong()
+            )
+
+            val frame = reader.incoming.receive()
+            call.response.awaitWebSocket(Duration.ofSeconds(10))
+
+            assertTrue("Expected Frame.Close, but found $frame") { frame is Frame.Close }
+            val reason = (frame as Frame.Close).readReason()
+            assertEquals(CloseReason.Codes.TOO_BIG.code, reason?.code)
+        }
+    }
 }

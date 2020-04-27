@@ -5,16 +5,17 @@
 package io.ktor.client.features.cache
 
 import io.ktor.client.call.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 
-internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry = response.use {
-    val body = it.content.readRemaining().readBytes()
-    return HttpCacheEntry(it.cacheExpires(), it.varyKeys(), it, body)
+internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
+    val body = response.content.readRemaining().readBytes()
+    response.complete()
+    return HttpCacheEntry(response.cacheExpires(), response.varyKeys(), response, body)
 }
 
 /**
@@ -84,12 +85,15 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
     return GMTDate()
 }
 
-@KtorExperimentalAPI
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
     val cacheControl = responseHeaders[HttpHeaders.CacheControl]?.let { parseHeaderValue(it) } ?: emptyList()
-    var result = GMTDate() > expires
-    result = result || CacheControl.MUST_REVALIDATE in cacheControl
-    result = result || CacheControl.NO_CACHE in cacheControl
-
-    return result
+    val isStale = GMTDate() > expires
+    // must-revalidate; re-validate once STALE, and MUST NOT return a cached response once stale.
+    //  This is how majority of clients implement the RFC
+    //  OkHttp Implements this the same: https://github.com/square/okhttp/issues/4043#issuecomment-403679369
+    // Disabled for now, as we don't currently return a cached object when there's a network failure; must-revalidate
+    // works the same as being stale on the request side. On response side, must-revalidate would not return a cached
+    // object if we are stale and couldn't refresh.
+    // isStale = isStale && CacheControl.MUST_REVALIDATE in cacheControl
+    return isStale || CacheControl.NO_CACHE in cacheControl
 }

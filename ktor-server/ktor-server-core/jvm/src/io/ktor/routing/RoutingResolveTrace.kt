@@ -5,7 +5,6 @@
 package io.ktor.routing
 
 import io.ktor.application.*
-import java.util.*
 
 /**
  * Represents a single entry in the [RoutingResolveTrace].
@@ -87,5 +86,29 @@ class RoutingResolveTrace(val call: ApplicationCall, val segments: List<String>)
     fun buildText(): String = buildString {
         appendln(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
+    }
+}
+
+private class Stack<E> {
+    private val tower = ArrayList<E>()
+
+    fun empty(): Boolean = tower.isEmpty()
+
+    fun push(element: E) {
+        tower.add(element)
+    }
+
+    fun pop(): E {
+        if (tower.isEmpty()) {
+            throw NoSuchElementException("Unable to pop an element from empty stack")
+        }
+        return tower.removeAt(tower.lastIndex)
+    }
+
+    fun peek(): E {
+        if (tower.isEmpty()) {
+            throw NoSuchElementException("Unable to peek an element into empty stack")
+        }
+        return tower.last()
     }
 }

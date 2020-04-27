@@ -25,7 +25,7 @@ class BaselinePipeline {
     }
 
     @Benchmark
-    @UseExperimental(InternalAPI::class)
+    @OptIn(InternalAPI::class)
     fun suspendCalls(): String {
         return runAndEnsureNoSuspensions {
             suspendFunctions.fold("") { a, b -> a + b() }
@@ -58,7 +58,7 @@ abstract class PipelineBenchmark {
     fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
     fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
 
-    @UseExperimental(InternalAPI::class)
+    @OptIn(InternalAPI::class)
     fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runAndEnsureNoSuspensions { execute(call, subject) }
 
     lateinit var pipeline: Pipeline<String, ApplicationCall>

@@ -1,0 +1,39 @@
+public final class io/ktor/client/engine/okhttp/OkHttp : io/ktor/client/engine/HttpClientEngineFactory {
+	public static final field INSTANCE Lio/ktor/client/engine/okhttp/OkHttp;
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/engine/HttpClientEngineConfig {
+	public fun <init> ()V
+	public final fun addInterceptor (Lokhttp3/Interceptor;)V
+	public final fun addNetworkInterceptor (Lokhttp3/Interceptor;)V
+	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun getClientCacheSize ()I
+	public final fun getPreconfigured ()Lokhttp3/OkHttpClient;
+	public final fun setClientCacheSize (I)V
+	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientEngineBase {
+	public fun <init> (Lio/ktor/client/engine/okhttp/OkHttpConfig;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/okhttp/OkHttpConfig;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
+public final class io/ktor/client/engine/okhttp/OkHttpEngineContainer : io/ktor/client/HttpClientEngineContainer {
+	public fun <init> ()V
+	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/okhttp/UnsupportedFrameTypeException : java/lang/IllegalArgumentException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (Lio/ktor/http/cio/websocket/Frame;)V
+	public fun createCopy ()Lio/ktor/client/engine/okhttp/UnsupportedFrameTypeException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+}
+

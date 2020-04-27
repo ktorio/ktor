@@ -7,7 +7,7 @@ package io.ktor.auth
 import io.ktor.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.*
-import java.util.*
+import kotlin.collections.HashMap
 import kotlin.properties.*
 
 /**
@@ -15,10 +15,12 @@ import kotlin.properties.*
  * @param call instance of [ApplicationCall] this context is for
  */
 class AuthenticationContext(val call: ApplicationCall) {
+    private val _errors = HashMap<Any, AuthenticationFailedCause>()
+
     /**
      * Retrieves authenticated principal, or returns null if no user was authenticated
      */
-    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ ->
+    var principal: Principal? by Delegates.vetoable<Principal?>(null) { _, old, _ ->
         require(old == null) { "Principal can be only assigned once" }
         true
     }
@@ -26,19 +28,33 @@ class AuthenticationContext(val call: ApplicationCall) {
     /**
      * Stores authentication failures for keys provided by authentication mechanisms
      */
-    val errors = HashMap<Any, AuthenticationFailedCause>()
+    @Suppress("unused")
+    @Deprecated("Use allErrors, allFailures or error() function instead")
+    val errors: HashMap<Any, AuthenticationFailedCause> get() = _errors
 
     /**
-     * Appends an error to the [errors]
+     * All registered errors during auth procedure (only [AuthenticationFailedCause.Error]).
+     */
+    val allErrors: List<AuthenticationFailedCause.Error>
+        get() = _errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
+
+    /**
+     * All authentication failures during auth procedure including missing or invalid credentials
+     */
+    val allFailures: List<AuthenticationFailedCause>
+        get() = _errors.values.toList()
+
+    /**
+     * Appends an error to the errors list. Overwrites if already registered for the same [key].
      */
     fun error(key: Any, cause: AuthenticationFailedCause) {
-        errors[key] = cause
+        _errors[key] = cause
     }
 
     /**
      * Gets an [AuthenticationProcedureChallenge] for this context
      */
-    val challenge = AuthenticationProcedureChallenge()
+    val challenge: AuthenticationProcedureChallenge = AuthenticationProcedureChallenge()
 
     /**
      * Sets an authenticated principal for this context.

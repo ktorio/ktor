@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
@@ -21,7 +22,7 @@ import kotlin.coroutines.*
  * A base class for servlet engine implementations
  */
 @EngineAPI
-@UseExperimental(InternalAPI::class)
+@OptIn(InternalAPI::class)
 abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
@@ -81,9 +82,22 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
             }
         } catch (ioError: ChannelIOException) {
             application.log.debug("I/O error", ioError)
+        } catch (cancelled: CancellationException) {
+            // could only happen in blockingService branch
+            application.log.debug("Request cancelled", cancelled)
+            response.sendErrorIfNotCommitted("Cancelled")
         } catch (ex: Throwable) {
             application.log.error("ServletApplicationEngine cannot service the request", ex)
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
+            response.sendErrorIfNotCommitted(ex.message ?: ex.toString())
+        }
+    }
+
+    private fun HttpServletResponse.sendErrorIfNotCommitted(message: String) {
+        try {
+            if (!isCommitted) {
+                sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)
+            }
+        } catch (alreadyCommitted: IllegalStateException) {
         }
     }
 

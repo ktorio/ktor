@@ -4,6 +4,7 @@
 package io.ktor.client.tests.features
 
 import io.ktor.client.features.cache.*
+import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -12,7 +13,7 @@ import kotlin.test.*
 
 class CacheTest : ClientLoader() {
     @Test
-    fun testNoStore(): Unit = clientTests {
+    fun testNoStore() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -36,7 +37,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testNoCache(): Unit = clientTests {
+    fun testNoCache() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -60,7 +61,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testETagCache(): Unit = clientTests(listOf("js")) {
+    fun testETagCache() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -82,7 +83,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testLastModified(): Unit = clientTests(listOf("js")) {
+    fun testLastModified() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -104,7 +105,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testVary(): Unit = clientTests(listOf("js")) {
+    fun testVary() = clientTests(listOf("Js")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -150,7 +151,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testMaxAge(): Unit = clientTests {
+    fun testMaxAge() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
@@ -162,12 +163,13 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/max-age")
 
             val first = client.get<String>(url)
-            assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
+            val cache = storage!!.publicStorage.findByUrl(url)
+            assertEquals(1, cache.size)
 
             val second = client.get<String>(url)
 
             assertEquals(first, second)
-            delay(1000)
+            delay(5000)
 
             val third = client.get<String>(url)
             assertNotEquals(first, third)
@@ -175,7 +177,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache(): Unit = clientTests {
+    fun testPublicAndPrivateCache() = clientTests {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {

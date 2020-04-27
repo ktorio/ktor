@@ -7,8 +7,8 @@ package io.ktor.util
 import io.ktor.utils.io.core.*
 
 @InternalAPI
-actual class Lock : Closeable {
+actual class Lock {
     actual fun lock() {}
     actual fun unlock() {}
-    override fun close() {}
+    actual fun close() {}
 }

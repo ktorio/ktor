@@ -8,6 +8,7 @@ private const val TEXT = "test\u00f0."
 private val BYTES = byteArrayOf(0x74, 0x65, 0x73, 0x74, 0xf0.toByte(), 0x2e)
 
 class ISOTest {
+    @Ignore
     @Test
     fun testEncode() {
         val bytes = Charsets.ISO_8859_1.newEncoder().encode(TEXT).readBytes()
@@ -16,6 +17,7 @@ class ISOTest {
         }
     }
 
+    @Ignore
     @Test
     fun testEncodeUnmappable() {
         assertFailsWith<MalformedInputException> {
@@ -23,6 +25,7 @@ class ISOTest {
         }
     }
 
+    @Ignore
     @Test
     fun testDecode() {
         val pkt = ByteReadPacket(BYTES)

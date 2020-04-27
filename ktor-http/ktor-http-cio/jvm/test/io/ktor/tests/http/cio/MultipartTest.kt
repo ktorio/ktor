@@ -54,10 +54,10 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @UseExperimental(ObsoleteCoroutinesApi::class)
+        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -76,6 +76,9 @@ class MultipartTest {
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+
+        val epilogue = allEvents[6] as MultipartEvent.Epilogue
+        assertEquals("\r\nepilogue", epilogue.body.readText())
     }
 
     @Test
@@ -121,10 +124,10 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @UseExperimental(ObsoleteCoroutinesApi::class)
+        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -192,7 +195,7 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @UseExperimental(ObsoleteCoroutinesApi::class)
+        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         val parts = allEvents.filterIsInstance<MultipartEvent.MultipartPart>()
@@ -244,14 +247,14 @@ class MultipartTest {
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
-        val decoded = GlobalScope.decodeChunked(ch)
+        val decoded = GlobalScope.decodeChunked(ch, -1L)
         val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @UseExperimental(ObsoleteCoroutinesApi::class)
+        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
-        assertEquals(6, allEvents.size)
+        assertEquals(7, allEvents.size)
 
         val preamble = allEvents[0] as MultipartEvent.Preamble
         assertEquals("preamble\r\n", preamble.body.readText())
@@ -270,6 +273,9 @@ class MultipartTest {
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+
+        val epilogue = allEvents[6] as MultipartEvent.Epilogue
+        assertEquals("\r\nepilogue", epilogue.body.readText())
     }
 
     @Test

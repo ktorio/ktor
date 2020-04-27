@@ -9,6 +9,7 @@ import io.ktor.util.*
 /**
  * List of [CacheControl] known values.
  */
+@Suppress("PublicApiImplicitType", "KDocMissingDocumentation", "MemberVisibilityCanBePrivate")
 @KtorExperimentalAPI
 object CacheControl {
     const val MAX_AGE = "max-age"

@@ -14,9 +14,12 @@ expect abstract class ClientLoader() {
      * Perform test against all clients from dependencies.
      */
     fun clientTests(
-        skipPlatforms: List<String> = emptyList(),
+        skipEngines: List<String> = emptyList(),
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     )
 
+    /**
+     * Print coroutines in debug mode.
+     */
     fun dumpCoroutines()
 }

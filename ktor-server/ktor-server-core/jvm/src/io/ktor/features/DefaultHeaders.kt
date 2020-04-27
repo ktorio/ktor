@@ -8,7 +8,9 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.time.*
+import io.ktor.util.date.*
+import kotlinx.atomicfu.*
+import java.util.*
 
 /**
  * Adds standard HTTP headers `Date` and `Server` and provides ability to specify other headers
@@ -16,12 +18,10 @@ import java.time.*
  */
 class DefaultHeaders(config: Configuration) {
     private val headers = config.headers.build()
-
-    private val UTC = ZoneId.of("UTC")!! // it is very important to get it like that
-    private val zoneUTCRules = UTC.rules
+    private val clock = config.clock
 
     private var cachedDateTimeStamp: Long = 0L
-    @Volatile private var cachedDateText: String = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
+    private val cachedDateText = atomic("")
 
     /**
      * Configuration for [DefaultHeaders] feature.
@@ -36,6 +36,12 @@ class DefaultHeaders(config: Configuration) {
          * Adds standard header property [name] with the specified [value].
          */
         fun header(name: String, value: String) = headers.append(name, value)
+
+        /**
+         * Provides time source. Useful for testing.
+         */
+        @InternalAPI
+        var clock: () -> Long = { System.currentTimeMillis() }
     }
 
     private fun intercept(call: ApplicationCall) {
@@ -43,31 +49,33 @@ class DefaultHeaders(config: Configuration) {
         headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
     }
 
-    // ZonedDateTime.now allocates too much so we reimplement it
-    private fun now(): ZonedDateTime {
-        // we shouldn't use ZoneOffset.UTC here otherwise we get to many allocations inside of Java Time implementation
-        val instant = Clock.system(UTC).instant()
-        val offset = zoneUTCRules.getOffset(instant)
-        val ldt = LocalDateTime.ofEpochSecond(instant.epochSecond, instant.nano, offset)
-
-        return ZonedDateTime.ofInstant(ldt, offset, UTC)
-    }
-
     private fun appendDateHeader(call: ApplicationCall) {
         val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = System.currentTimeMillis()
-        if (captureCached + 1000 < currentTimeStamp) {
+        val currentTimeStamp = clock()
+        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
             cachedDateTimeStamp = currentTimeStamp
-            cachedDateText = now().toHttpDateString()
+            cachedDateText.value = now(currentTimeStamp).toHttpDate()
         }
-        call.response.header("Date", cachedDateText)
+        call.response.header(HttpHeaders.Date, cachedDateText.value)
+    }
+
+    private fun now(time: Long): GMTDate {
+        return calendar.get().toDate(time)
     }
 
     /**
      * Installable feature for [DefaultHeaders].
      */
     companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
-        private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
+        private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
+
+        private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
+
+        private val calendar = object : ThreadLocal<Calendar>() {
+            override fun initialValue(): Calendar {
+                return Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)
+            }
+        }
 
         override val key = AttributeKey<DefaultHeaders>("Default Headers")
 

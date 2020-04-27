@@ -33,7 +33,7 @@ internal fun Application.cacheTestServer() {
             }
             get("/max-age") {
                 val value = counter.incrementAndGet()
-                call.response.cacheControl(CacheControl.MaxAge(1))
+                call.response.cacheControl(CacheControl.MaxAge(2))
                 call.respondText("$value")
             }
 

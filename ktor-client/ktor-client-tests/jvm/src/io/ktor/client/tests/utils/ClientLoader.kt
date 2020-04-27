@@ -23,21 +23,62 @@ actual abstract class ClientLoader {
     lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    open val timeout = CoroutinesTimeout.seconds(30)
+    open val timeout = CoroutinesTimeout.seconds(60)
 
     /**
      * Perform test against all clients from dependencies.
      */
     actual fun clientTests(
-        skipPlatforms: List<String>,
+        skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        if ("jvm" in skipPlatforms) return
-        clientTest(engine.factory, block)
+        for (skipEngine in skipEngines) {
+            val skipEngineArray = skipEngine.toLowerCase().split(":")
+
+            val (platform, engine) = when (skipEngineArray.size) {
+                2 -> skipEngineArray[0] to skipEngineArray[1]
+                1 -> "*" to skipEngineArray[0]
+                else -> throw IllegalStateException("Wrong skip engine format, expected 'engine' or 'platform:engine'")
+            }
+
+            val platformShouldBeSkipped = "*" == platform || OS_NAME == platform
+            val engineShouldBeSkipped = "*" == engine || this.engine.toString().toLowerCase() == engine
+
+            if (platformShouldBeSkipped && engineShouldBeSkipped) {
+                return
+            }
+        }
+        if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
+        testWithEngine(engine.factory, block)
     }
 
     actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
+    }
+
+    /**
+     * Issues to fix before unlock:
+     * 1. Pinger & Ponger in ws
+     * 2. Nonce generator
+     */
+    // @After
+    fun waitForAllCoroutines() {
+        check(DebugProbes.isInstalled) {
+            "Debug probes isn't installed."
+        }
+
+        val info = DebugProbes.dumpCoroutinesInfo()
+
+        if (info.isEmpty()) {
+            return
+        }
+
+        val message = buildString {
+            appendln("Test failed. There are running coroutines")
+            appendln(info.dump())
+        }
+
+        error(message)
     }
 
     companion object {
@@ -48,3 +89,25 @@ actual abstract class ClientLoader {
         }
     }
 }
+
+private val OS_NAME: String
+    get() {
+        val os = System.getProperty("os.name", "unknown").toLowerCase()
+        return when {
+            os.contains("win") -> "win"
+            os.contains("mac") -> "mac"
+            os.contains("nux") -> "unix"
+            else -> "unknown"
+        }
+    }
+
+
+private fun List<CoroutineInfo>.dump(): String = buildString {
+    this@dump.forEach { info ->
+        appendln("Coroutine: $info")
+        info.lastObservedStackTrace().forEach {
+            appendln("\t$it")
+        }
+    }
+}
+

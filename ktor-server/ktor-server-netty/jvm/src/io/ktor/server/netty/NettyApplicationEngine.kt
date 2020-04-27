@@ -138,7 +138,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationDeferred?.complete()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.mapNotNull { if (it.isOpen) it.close() else null }.orEmpty()
@@ -146,14 +146,17 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         dispatcherWithShutdown.prepareShutdown()
         engineDispatcherWithShutdown.prepareShutdown()
         try {
-            val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+            val shutdownConnections =
+                connectionEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
             shutdownConnections.await()
 
-            val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+            val shutdownWorkers =
+                workerEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
             if (configuration.shareWorkGroup) {
                 shutdownWorkers.await()
             } else {
-                val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+                val shutdownCall =
+                    callEventGroup.shutdownGracefully(gracePeriodMillis, timeoutMillis, TimeUnit.MILLISECONDS)
                 shutdownWorkers.await()
                 shutdownCall.await()
             }

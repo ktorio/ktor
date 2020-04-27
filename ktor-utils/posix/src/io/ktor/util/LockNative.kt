@@ -11,7 +11,7 @@ import utils.*
 import kotlin.native.concurrent.*
 
 @InternalAPI
-actual class Lock : Closeable {
+actual class Lock {
     private val mutex = nativeHeap.alloc<ktor_mutex_t>()
 
     init {
@@ -27,7 +27,7 @@ actual class Lock : Closeable {
         ktor_mutex_unlock(mutex.ptr).checkResult { "Failed to unlock mutex." }
     }
 
-    override fun close() {
+    actual fun close() {
         ktor_mutex_destroy(mutex.ptr)
         nativeHeap.free(mutex)
     }

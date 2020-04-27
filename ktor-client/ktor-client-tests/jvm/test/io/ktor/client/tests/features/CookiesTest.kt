@@ -7,7 +7,7 @@ package io.ktor.client.tests.features
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -16,8 +16,7 @@ import kotlin.test.*
 class CookiesTest {
 
     @Test
-    fun testCompatibility() = clientTest(MockEngine) {
-
+    fun testCompatibility() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { request ->
@@ -33,7 +32,7 @@ class CookiesTest {
             install(HttpCookies) {
                 default {
                     runBlocking {
-                        addCookie("//localhost", Cookie("first", "1,2,3,4"))
+                        addCookie("//localhost", Cookie("first", "1,2,3,4", encoding = CookieEncoding.DQUOTES))
                         addCookie("http://localhost", Cookie("second", "abc"))
                     }
                 }
@@ -41,15 +40,15 @@ class CookiesTest {
         }
 
         test { client ->
-            client.get<HttpResponse>()
+            client.get<HttpStatement>().execute { }
         }
     }
 
     @Test
-    fun testAllowedCharacters() = clientTest(MockEngine) {
+    fun testAllowedCharacters() = testWithEngine(MockEngine) {
         config {
             engine {
-                addHandler {  request ->
+                addHandler { request ->
                     assertEquals("myServer=value:value;", request.headers[HttpHeaders.Cookie])
                     respondOk()
                 }
@@ -58,7 +57,7 @@ class CookiesTest {
             install(HttpCookies) {
                 default {
                     runBlocking {
-                        addCookie("http://localhost", Cookie("myServer", "value:value"))
+                        addCookie("http://localhost", Cookie("myServer", "value:value", encoding = CookieEncoding.RAW))
                     }
                 }
             }

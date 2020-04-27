@@ -6,7 +6,6 @@ package io.ktor.server.cio
 
 import io.ktor.config.*
 import io.ktor.server.engine.*
-import java.util.concurrent.*
 
 /**
  * Default engine with main function that starts CIO engine using application.conf
@@ -20,7 +19,7 @@ object EngineMain {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
-            engine.stop(3, 5, TimeUnit.SECONDS)
+            engine.stop(3000, 5000)
         }
         engine.start(true)
     }

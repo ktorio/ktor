@@ -15,13 +15,13 @@ import org.junit.Test
 import java.math.*
 import kotlin.test.*
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(Locations)
     test()
 }
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 class LocationsTest {
     @Location("/") class index
 
@@ -442,7 +442,7 @@ class LocationsTest {
     @Test fun `location class with enum value`() = withLocationsApplication {
         application.routing {
             get<LocationWithEnum> {
-                call.respondText(call.locations.resolve<LocationWithEnum>(LocationWithEnum::class, call).e.name)
+                call.respondText(call.locations.resolve<LocationWithEnum>(call).e.name)
             }
         }
 

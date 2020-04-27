@@ -9,11 +9,17 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 
 /**
  * HttpSend pipeline interceptor function
  */
-typealias HttpSendInterceptor = suspend Sender.(HttpClientCall) -> HttpClientCall
+typealias HttpSendInterceptor = suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall
+
+/**
+ * HttpSend pipeline interceptor function backward compatible with previous implementation.
+ */
+typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpClientCall) -> HttpClientCall
 
 /**
  * This interface represents a request send pipeline interceptor chain
@@ -44,6 +50,16 @@ class HttpSend(
     }
 
     /**
+     * Install send pipeline starter interceptor (backward compatible function).
+     */
+    @Deprecated("Intercept with one parameter is deprecated, use both call and request builder as parameters.")
+    fun intercept(block: HttpSendInterceptorBackwardCompatible) {
+        interceptors += { call, _ ->
+            block(call)
+        }
+    }
+
+    /**
      * Feature installation object
      */
     companion object Feature : HttpClientFeature<HttpSend, HttpSend> {
@@ -54,11 +70,12 @@ class HttpSend(
         override fun install(feature: HttpSend, scope: HttpClient) {
             // default send scenario
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { content ->
-                if (content !is OutgoingContent) return@intercept
+                check(content is OutgoingContent) {
+                    "Fail to send body. Content has type: ${content::class}, but OutgoingContent expected."
+                }
                 context.body = content
 
                 val sender = DefaultSender(feature.maxSendCount, scope)
-
                 var currentCall = sender.execute(context)
                 var callChanged: Boolean
 
@@ -66,7 +83,7 @@ class HttpSend(
                     callChanged = false
 
                     passInterceptors@ for (interceptor in feature.interceptors) {
-                        val transformed = interceptor(sender, currentCall)
+                        val transformed = interceptor(sender, currentCall, context)
                         if (transformed === currentCall) continue@passInterceptors
 
                         currentCall = transformed
@@ -80,14 +97,30 @@ class HttpSend(
         }
     }
 
-    private class DefaultSender(private val maxSendCount: Int, private val client: HttpClient) : Sender {
+    private class DefaultSender(
+        private val maxSendCount: Int,
+        private val client: HttpClient
+    ) : Sender {
         private var sentCount: Int = 0
+        private var currentCall: HttpClientCall? = null
 
         override suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall {
-            if (sentCount >= maxSendCount) throw SendCountExceedException("Max send count $maxSendCount exceeded")
-            sentCount++
+            currentCall?.cancel()
 
-            return client.sendPipeline.execute(requestBuilder, requestBuilder.body) as HttpClientCall
+            if (sentCount >= maxSendCount) {
+                throw SendCountExceedException("Max send count $maxSendCount exceeded")
+            }
+
+            sentCount++
+            val sendResult = client.sendPipeline.execute(
+                requestBuilder, requestBuilder.body
+            )
+
+            val call = sendResult as? HttpClientCall
+                ?: error("Failed to execute send pipeline. Expected to got [HttpClientCall], but received $sendResult")
+
+            currentCall = call
+            return call
         }
     }
 }

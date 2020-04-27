@@ -10,14 +10,35 @@ import kotlin.reflect.*
 /**
  * Configure sessions to get it from cookie using session [storage]
  */
-fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage): Unit =
-    cookie(name, sessionType, storage, {})
+@Deprecated("Use reified types instead.")
+fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
+    @Suppress("DEPRECATION")
+    val builder = CookieIdSessionBuilder(sessionType)
+    cookie(name, builder, sessionType, storage)
+}
 
 /**
  * Configure sessions to get it from cookie using session [storage]
  */
-inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage): Unit =
-    cookie(name, S::class, storage, {})
+inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = CookieIdSessionBuilder(sessionType)
+    cookie(name, builder, sessionType, storage)
+}
+
+@PublishedApi
+internal fun <S : Any> Sessions.Configuration.cookie(
+    name: String,
+    builder: CookieIdSessionBuilder<S>,
+    sessionType: KClass<S>,
+    storage: SessionStorage
+) {
+    val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
+    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
+    val provider = SessionProvider(name, sessionType, transport, tracker)
+    register(provider)
+}
 
 /**
  * Configures a session using a cookie with the specified [name] using it as a session id.
@@ -28,36 +49,45 @@ inline fun <reified S : Any> Sessions.Configuration.cookie(
     name: String,
     storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit
-) = cookie(name, S::class, storage, block)
+) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = CookieIdSessionBuilder(sessionType).apply(block)
+    cookie(name, builder, sessionType, storage)
+}
 
 /**
  * Configure sessions to get it from cookie using session [storage]
  */
+@Deprecated("Use reified types intead.")
 inline fun <S : Any> Sessions.Configuration.cookie(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit
 ) {
+    @Suppress("DEPRECATION")
     val builder = CookieIdSessionBuilder(sessionType).apply(block)
-    val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
-    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
-    val provider = SessionProvider(name, sessionType, transport, tracker)
-    register(provider)
+    cookie(name, builder, sessionType, storage)
 }
 
 // header by id
 /**
  * Configure sessions to get it from HTTP header using session [storage]
  */
-fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage) =
-    header(name, sessionType, storage, {})
+@Deprecated("Use reified type instead.")
+fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage) {
+    @Suppress("DEPRECATION")
+    val builder = HeaderIdSessionBuilder(sessionType)
+    header(name, sessionType, storage, builder)
+}
 
 /**
  * Configure sessions to get it from HTTP header using session [storage]
  */
-inline fun <reified S : Any> Sessions.Configuration.header(name: String, storage: SessionStorage): Unit =
-    header(name, S::class, storage, {})
+inline fun <reified S : Any> Sessions.Configuration.header(name: String, storage: SessionStorage) {
+    header<S>(name, storage, {})
+}
 
 /**
  * Configures a session using a header with the specified [name] using it as a session id.
@@ -67,21 +97,46 @@ inline fun <reified S : Any> Sessions.Configuration.header(
     name: String,
     storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit
-) = header(name, S::class, storage, block)
+) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = HeaderIdSessionBuilder(sessionType).apply(block)
+    header(name, sessionType, storage, builder)
+}
 
 /**
  * Configures a session using a header with the specified [name] using it as a session id.
  * The actual content of the session is stored at server side using the specified [storage].
  */
+@Deprecated("Use reified types instead.")
 inline fun <S : Any> Sessions.Configuration.header(
     name: String,
     sessionType: KClass<S>,
     storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit
 ) {
+    @Suppress("DEPRECATION")
     val builder = HeaderIdSessionBuilder(sessionType).apply(block)
+    header(name, sessionType, storage, builder)
+}
+
+@PublishedApi
+internal fun <S : Any> Sessions.Configuration.header(
+    name: String,
+    sessionType: KClass<S>,
+    storage: SessionStorage?,
+    builder: HeaderSessionBuilder<S>
+) {
     val transport = SessionTransportHeader(name, builder.transformers)
-    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
+    val tracker = when {
+        storage != null && builder is HeaderIdSessionBuilder<S> -> SessionTrackerById(
+            sessionType,
+            builder.serializer,
+            storage,
+            builder.sessionIdProvider
+        )
+        else -> SessionTrackerByValue(sessionType, builder.serializer)
+    }
     val provider = SessionProvider(name, sessionType, transport, tracker)
     register(provider)
 }
@@ -90,12 +145,22 @@ inline fun <S : Any> Sessions.Configuration.header(
 /**
  * Configure sessions to serialize to/from HTTP cookie
  */
-fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>): Unit = cookie(name, sessionType, {})
+@Deprecated("Use reified type parameter instead.")
+fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>) {
+    @Suppress("DEPRECATION")
+    val builder = CookieSessionBuilder(sessionType)
+    cookie(name, sessionType, builder)
+}
 
 /**
  * Configure sessions to serialize to/from HTTP cookie
  */
-inline fun <reified S : Any> Sessions.Configuration.cookie(name: String): Unit = cookie(name, S::class, {})
+inline fun <reified S : Any> Sessions.Configuration.cookie(name: String) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = CookieSessionBuilder(sessionType)
+    cookie(name, sessionType, builder)
+}
 
 /**
  * Configures a session using a cookie with the specified [name] using it as for the actual session content
@@ -105,17 +170,33 @@ inline fun <reified S : Any> Sessions.Configuration.cookie(name: String): Unit =
 inline fun <reified S : Any> Sessions.Configuration.cookie(
     name: String,
     block: CookieSessionBuilder<S>.() -> Unit
-): Unit = cookie(name, S::class, block)
+) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = CookieSessionBuilder(sessionType).apply(block)
+    cookie(name, sessionType, builder)
+}
 
 /**
  * Configure sessions to serialize to/from HTTP cookie configuring it by [block]
  */
+@Deprecated("Use reified type instead.")
 inline fun <S : Any> Sessions.Configuration.cookie(
     name: String,
     sessionType: KClass<S>,
     block: CookieSessionBuilder<S>.() -> Unit
 ) {
+    @Suppress("DEPRECATION")
     val builder = CookieSessionBuilder(sessionType).apply(block)
+    cookie(name, sessionType, builder)
+}
+
+@PublishedApi
+internal fun <S : Any> Sessions.Configuration.cookie(
+    name: String,
+    sessionType: KClass<S>,
+    builder: CookieSessionBuilder<S>
+) {
     val transport = SessionTransportCookie(name, builder.cookie, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
     val provider = SessionProvider(name, sessionType, transport, tracker)
@@ -126,12 +207,19 @@ inline fun <S : Any> Sessions.Configuration.cookie(
 /**
  * Configure sessions to serialize to/from HTTP header
  */
-fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>): Unit = header(name, sessionType, {})
+@Deprecated("Use reified type instead.")
+fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>) {
+    @Suppress("DEPRECATION")
+    val builder = HeaderSessionBuilder(sessionType)
+    header(name, sessionType, null, builder)
+}
 
 /**
  * Configure sessions to serialize to/from HTTP header
  */
-inline fun <reified S : Any> Sessions.Configuration.header(name: String): Unit = header(name, S::class, {})
+inline fun <reified S : Any> Sessions.Configuration.header(name: String) {
+    header<S>(name, {})
+}
 
 /**
  * Configures a session using a header with the specified [name] using it for the actual session content
@@ -140,17 +228,24 @@ inline fun <reified S : Any> Sessions.Configuration.header(name: String): Unit =
 inline fun <reified S : Any> Sessions.Configuration.header(
     name: String,
     block: HeaderSessionBuilder<S>.() -> Unit
-): Unit = header(name, S::class, block)
+) {
+    val sessionType = S::class
+    @Suppress("DEPRECATION")
+    val builder = HeaderSessionBuilder(sessionType).apply(block)
+    header(name, sessionType, null, builder)
+}
 
 /**
  * Configures a session using a header with the specified [name] using it for the actual session content
  * and apply [block] function to configure serializataion and optional transformations
  */
+@Deprecated("Use reified type instead.")
 inline fun <S : Any> Sessions.Configuration.header(
     name: String,
     sessionType: KClass<S>,
     block: HeaderSessionBuilder<S>.() -> Unit
 ) {
+    @Suppress("DEPRECATION")
     val builder = HeaderSessionBuilder(sessionType).apply(block)
     val transport = SessionTransportHeader(name, builder.transformers)
     val tracker = SessionTrackerByValue(sessionType, builder.serializer)
@@ -161,11 +256,11 @@ inline fun <S : Any> Sessions.Configuration.header(
 /**
  * Cookie session configuration builder
  */
-class CookieIdSessionBuilder<S : Any>(type: KClass<S>) : CookieSessionBuilder<S>(type) {
+@Suppress("DEPRECATION")
+class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) : CookieSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
      */
-    @KtorExperimentalAPI
     fun identity(f: () -> String) {
         sessionIdProvider = f
     }
@@ -181,11 +276,11 @@ class CookieIdSessionBuilder<S : Any>(type: KClass<S>) : CookieSessionBuilder<S>
  * Cookie session configuration builder
  * @property type - session instance type
  */
-open class CookieSessionBuilder<S : Any>(val type: KClass<S>) {
+open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(val type: KClass<S>) {
     /**
      * Session instance serializer
      */
-    var serializer: SessionSerializer = autoSerializerOf(type)
+    var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -211,17 +306,17 @@ open class CookieSessionBuilder<S : Any>(val type: KClass<S>) {
  * Header session configuration builder
  * @property type session instance type
  */
-open class HeaderSessionBuilder<S : Any>(val type: KClass<S>) {
+open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(val type: KClass<S>) {
     /**
      * Session instance serializer
      */
-    var serializer: SessionSerializer = autoSerializerOf(type)
+    var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
     /**
-    * Registered session transformers
-    */
+     * Registered session transformers
+     */
     val transformers: List<SessionTransportTransformer> get() = _transformers
 
     /**
@@ -235,7 +330,9 @@ open class HeaderSessionBuilder<S : Any>(val type: KClass<S>) {
 /**
  * Header session configuration builder
  */
-class HeaderIdSessionBuilder<S : Any>(type: KClass<S>) : HeaderSessionBuilder<S>(type) {
+@Suppress("DEPRECATION")
+class HeaderIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) :
+    @Suppress("DEPRECATION") HeaderSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
      */

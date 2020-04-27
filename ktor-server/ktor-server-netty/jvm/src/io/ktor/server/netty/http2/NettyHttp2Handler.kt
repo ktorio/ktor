@@ -26,7 +26,7 @@ internal class NettyHttp2Handler(
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
-    private val handlerJob = CompletableDeferred<Nothing>()
+    private val handlerJob = SupervisorJob(userCoroutineContext[Job])
 
     override val coroutineContext: CoroutineContext
         get() = handlerJob
@@ -65,13 +65,7 @@ internal class NettyHttp2Handler(
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        handlerJob.completeExceptionally(cause)
         ctx.close()
-    }
-
-    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
-        super.handlerRemoved(ctx)
-        handlerJob.cancel()
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
@@ -100,6 +94,9 @@ internal class NettyHttp2Handler(
         val codec = channel.parent().pipeline().get(Http2MultiplexCodec::class.java)!!
         val connection = codec.connection()
 
+        if (!connection.remote().allowPushTo()) {
+            return
+        }
 
         val rootContext = channel.parent().pipeline().lastContext()
 
@@ -157,9 +154,15 @@ internal class NettyHttp2Handler(
         return superclass.findIdField()
     }
 
-    private class Http2ClosedChannelException(val errorCode: Long) : ClosedChannelException() {
+    private class Http2ClosedChannelException(
+        val errorCode: Long
+    ) : ClosedChannelException(), CopyableThrowable<Http2ClosedChannelException> {
         override val message: String
             get() = "Got close frame with code $errorCode"
+
+        override fun createCopy(): Http2ClosedChannelException? = Http2ClosedChannelException(errorCode).also {
+            it.initCause(this)
+        }
     }
 
     companion object {

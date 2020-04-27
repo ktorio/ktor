@@ -5,26 +5,49 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
-import kotlinx.atomicfu.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
+import kotlin.coroutines.*
 
-internal class CIOEngine(
-    override val config: CIOEngineConfig
-) : HttpClientJvmEngine("ktor-cio") {
+internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngineBase("ktor-cio") {
+
+    override val dispatcher by lazy { Dispatchers.clientDispatcher(config.threadsCount, "ktor-cio-dispatcher") }
+
+    override val supportedCapabilities = setOf(HttpTimeout)
+
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
-    @UseExperimental(InternalCoroutinesApi::class)
-    private val selectorManager by lazy { ActorSelectorManager(dispatcher) }
+    private val selectorManager = ActorSelectorManager(dispatcher)
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
-    private val closed = atomic(false)
+
+    private val requestsJob: CoroutineContext
+
+    override val coroutineContext: CoroutineContext
+
+    init {
+        val parent = super.coroutineContext[Job]!!
+        requestsJob = SilentSupervisor(parent)
+        coroutineContext = super.coroutineContext + requestsJob
+
+        GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
+            try {
+                requestsJob[Job]!!.join()
+            } finally {
+                selectorManager.close()
+                selectorManager.coroutineContext[Job]!!.join()
+            }
+        }
+    }
 
     private val proxy = when (val type = config.proxy?.type()) {
         Proxy.Type.DIRECT,
@@ -34,38 +57,29 @@ internal class CIOEngine(
     }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        while (true) {
-            if (closed.value) throw ClientClosedException()
+        val callContext = callContext()
 
+        while (coroutineContext.isActive) {
             val endpoint = selectEndpoint(data.url, proxy)
-            val callContext = createCallContext()
+
             try {
                 return endpoint.execute(data, callContext)
             } catch (cause: ClosedSendChannelException) {
-                if (closed.value) throw ClientClosedException(cause)
-                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
                 continue
-            } catch (cause: Throwable) {
-                (callContext[Job] as? CompletableJob)?.completeExceptionally(cause)
-                throw cause
             } finally {
-                if (closed.value) endpoint.close()
+                if (!coroutineContext.isActive) {
+                    endpoint.close()
+                }
             }
         }
+
+        throw ClientEngineClosedException()
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) throw ClientClosedException()
-
-        endpoints.forEach { (_, endpoint) ->
-            endpoint.close()
-        }
-
-        coroutineContext[Job]?.invokeOnCompletion {
-            selectorManager.close()
-        }
-
         super.close()
+        endpoints.forEach { (_, endpoint) -> endpoint.close() }
+        (requestsJob[Job] as CompletableJob).complete()
     }
 
     private fun selectEndpoint(url: Url, proxy: ProxyConfig?): Endpoint {
@@ -97,7 +111,8 @@ internal class CIOEngine(
 }
 
 @Suppress("KDocMissingDocumentation")
-class ClientClosedException(override val cause: Throwable? = null) : IllegalStateException("Client already closed")
+@Deprecated("Use ClientEngineClosedException instead", replaceWith = ReplaceWith("ClientEngineClosedException"))
+class ClientClosedException(cause: Throwable? = null) : IllegalStateException("Client already closed", cause)
 
 private fun <K : Any, V : Closeable> ConcurrentHashMap<K, V>.computeIfAbsentWeak(key: K, block: (K) -> V): V {
     get(key)?.let { return it }

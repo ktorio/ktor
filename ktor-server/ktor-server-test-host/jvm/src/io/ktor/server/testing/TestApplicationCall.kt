@@ -14,6 +14,7 @@ import kotlin.coroutines.*
  */
 class TestApplicationCall(
     application: Application, readResponse: Boolean = false,
+    closeRequest: Boolean = true,
     override val coroutineContext: CoroutineContext
 ) : BaseApplicationCall(application), CoroutineScope {
 
@@ -24,7 +25,7 @@ class TestApplicationCall(
     var requestHandled: Boolean = false
         internal set
 
-    override val request: TestApplicationRequest = TestApplicationRequest(this)
+    override val request: TestApplicationRequest = TestApplicationRequest(this, closeRequest)
     override val response: TestApplicationResponse = TestApplicationResponse(this, readResponse)
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"

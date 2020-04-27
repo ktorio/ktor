@@ -18,7 +18,7 @@ import kotlin.test.*
 class CharsetTest {
 
     @Test
-    fun testDefaultCharset() = clientTest(MockEngine) {
+    fun testDefaultCharset() = testWithEngine(MockEngine) {
         config {
             engine {
                 // get handler
@@ -51,7 +51,7 @@ class CharsetTest {
     }
 
     @Test
-    fun testCharsetsWithoutQuality() = clientTest(MockEngine) {
+    fun testCharsetsWithoutQuality() = testWithEngine(MockEngine) {
         config {
             engine {
                 // get handler
@@ -89,7 +89,7 @@ class CharsetTest {
     }
 
     @Test
-    fun testCharsetsWithQuality() = clientTest(MockEngine) {
+    fun testCharsetsWithQuality() = testWithEngine(MockEngine) {
         config {
             engine {
                 // get handler
@@ -127,7 +127,7 @@ class CharsetTest {
     }
 
     @Test
-    fun testCharsetMixedQuality() = clientTest(MockEngine) {
+    fun testCharsetMixedQuality() = testWithEngine(MockEngine) {
         config {
             engine {
                 // get handler

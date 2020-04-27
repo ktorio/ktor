@@ -10,8 +10,6 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.time.*
-import java.util.*
 
 /**
  * Feature to check modified/match conditional headers and avoid sending contents if it was not changed
@@ -147,7 +145,7 @@ fun Headers.parseVersions(): List<Version> {
     val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
 
     lastModifiedHeaders.mapTo(versions) {
-        LastModifiedVersion(ZonedDateTime.parse(it, httpDateFormat))
+        LastModifiedVersion(it.fromHttpToGmtDate())
     }
     etagHeaders.mapTo(versions) { EntityTagVersion(it) }
 

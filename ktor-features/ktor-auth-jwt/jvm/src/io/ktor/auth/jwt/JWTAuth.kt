@@ -10,6 +10,7 @@ import com.auth0.jwt.algorithms.*
 import com.auth0.jwt.exceptions.*
 import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
+import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.auth.*
@@ -59,7 +60,11 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
      * JWT auth provider configuration
      */
     class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = { null }
+        internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
+            throw NotImplementedError(
+                "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
+            )
+        }
 
         internal var schemes = JWTAuthSchemes("Bearer")
 

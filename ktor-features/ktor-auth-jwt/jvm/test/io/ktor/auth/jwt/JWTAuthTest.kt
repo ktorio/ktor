@@ -10,12 +10,12 @@ import com.auth0.jwt.algorithms.*
 import com.nhaarman.mockito_kotlin.*
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.auth.Principal
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import java.security.*
 import java.security.interfaces.*
 import java.util.concurrent.*
@@ -33,6 +33,104 @@ class JWTAuthTest {
             }
 
             verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwtNoAuthCustomChallengeNoToken() {
+        withApplication {
+            application.configureServerJwt {
+                challenge { _, _ ->
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
+                }
+            }
+
+            val response = handleRequest {
+                uri = "/"
+            }
+
+            verifyResponseUnauthorized(response)
+            assertEquals("Basic realm=custom1, charset=UTF-8", response.response.headers[HttpHeaders.WWWAuthenticate])
+        }
+    }
+
+    @Test
+    fun testJwtMultipleNoAuthCustomChallengeNoToken() {
+        withApplication {
+            application.configureServerJwt {
+                challenge { _, _ ->
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
+                }
+            }
+
+            val response = handleRequest {
+                uri = "/"
+            }
+
+            verifyResponseUnauthorized(response)
+            assertEquals("Basic realm=custom1, charset=UTF-8", response.response.headers[HttpHeaders.WWWAuthenticate])
+        }
+    }
+
+    @Test
+    fun testJwtWithMultipleConfigurations() {
+        val validated = mutableSetOf<String>()
+        var currentPrincipal: (JWTCredential) -> Principal? = { null }
+
+        withApplication {
+            application.install(Authentication) {
+                jwt(name = "first") {
+                    realm = "realm1"
+                    verifier(makeJwtVerifier())
+                    validate { validated.add("1"); currentPrincipal(it) }
+                    challenge { _, _ ->
+                        call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom1", Charsets.UTF_8)))
+                    }
+                }
+                jwt(name = "second") {
+                    realm = "realm2"
+                    verifier(makeJwtVerifier())
+                    validate { validated.add("2"); currentPrincipal(it) }
+                    challenge { _, _ ->
+                        call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge("custom2", Charsets.UTF_8)))
+                    }
+                }
+            }
+
+            application.routing {
+                authenticate("first", "second") {
+                    get("/") {
+                        val principal = call.authentication.principal<JWTPrincipal>()!!
+                        call.respondText("Secret info, ${principal.payload.audience}")
+                    }
+                }
+            }
+
+            val token = getToken()
+            handleRequestWithToken(token).let { call ->
+                verifyResponseUnauthorized(call)
+                assertEquals(
+                    "Basic realm=custom1, charset=UTF-8",
+                    call.response.headers[HttpHeaders.WWWAuthenticate]
+                )
+            }
+            assertEquals(setOf("1", "2"), validated)
+
+            currentPrincipal = { JWTPrincipal(it.payload) }
+            validated.clear()
+
+            handleRequestWithToken(token).let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+
+                assertEquals(
+                    "Secret info, [$audience]",
+                    call.response.content
+                )
+
+                assertNull(call.response.headers[HttpHeaders.WWWAuthenticate])
+            }
+
+            assertEquals(setOf("1"), validated)
         }
     }
 

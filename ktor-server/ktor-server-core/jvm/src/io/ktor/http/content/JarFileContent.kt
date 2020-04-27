@@ -27,6 +27,8 @@ class JarFileContent(
     private val jarEntry by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }
     private val jar by lazy(LazyThreadSafetyMode.NONE) { JarFile(jarFile) }
 
+    public val isFile by lazy(LazyThreadSafetyMode.NONE) { !jarEntry.isDirectory }
+
     constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType)
             : this(zipFilePath.toFile(), resourcePath, contentType)
 

@@ -103,7 +103,7 @@ class TcpSocketBuilder internal constructor(
         assignOptions(options)
         nonBlocking()
 
-        SocketImpl(this, socket()!!, selector).apply {
+        SocketImpl(this, socket()!!, selector, options).apply {
             connect(remoteAddress)
         }
     }

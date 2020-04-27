@@ -17,14 +17,14 @@ import org.junit.Test
 import java.net.*
 import kotlin.test.*
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 class OAuthLocationsTest {
     @Test
     fun testOAuthAtLocation() = withTestApplication {
         application.install(Locations)
         application.install(Authentication) {
             oauth {
-                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                client = this@withTestApplication.client
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
                             "http://oauth-server/token",
@@ -55,7 +55,7 @@ class OAuthLocationsTest {
         application.install(Locations)
         application.install(Authentication) {
             oauth {
-                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                client = this@withTestApplication.client
                 providerLookup = {
                     OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
                             "http://oauth-server/token",

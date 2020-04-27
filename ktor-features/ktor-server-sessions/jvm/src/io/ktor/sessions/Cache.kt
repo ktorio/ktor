@@ -27,19 +27,51 @@ internal interface CacheReference<out K> {
     val key: K
 }
 
-@UseExperimental(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 
     override suspend fun getOrCompute(key: K): V {
         val coroutineContext = coroutineContext
-        return container.computeIfAbsent(key) { CoroutineScope(coroutineContext).async(Dispatchers.Unconfined) { calc(key) } }.await()
+        return container.computeIfAbsent(key) {
+            CoroutineScope(coroutineContext.minusKey(Job)).async(Dispatchers.Unconfined) {
+                calc(key)
+            }
+        }.await()
     }
 
     override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
 
-    override fun invalidate(key: K): V? = container.remove(key)?.let { if (!it.isActive) it.getCompleted() else null }
-    override fun invalidate(key: K, value: V) = container[key]?.let { l -> !l.isActive && l.getCompleted() == value && container.remove(key, l) } ?: false
+    override fun invalidate(key: K): V? {
+        container.remove(key)?.let {
+            if (!it.isActive) {
+                try {
+                    it.getCompleted()
+                } catch (_: Throwable) {
+                    // we shouldn't re-throw a failure but simply return null
+                }
+            }
+        }
+
+        return null
+    }
+
+    override fun invalidate(key: K, value: V): Boolean {
+        container[key]?.let { l ->
+            if (!l.isActive) {
+                try {
+                    if (l.getCompleted() == value && container.remove(key, l)) {
+                        return true
+                    }
+                } catch (_: Throwable) {
+                    return false
+                }
+            }
+        }
+
+        return false
+    }
+
     override fun invalidateAll() {
         container.clear()
     }

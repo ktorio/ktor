@@ -41,7 +41,7 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
 
         val connectionFactories = when (ktorConnector.type) {
             ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig), HTTP2CServerConnectionFactory(httpConfig))
-            ConnectorType.HTTPS -> arrayOf(SslConnectionFactory(SslContextFactory().apply {
+            ConnectorType.HTTPS -> arrayOf(SslConnectionFactory(SslContextFactory.Server().apply {
                 if (alpnAvailable) {
                     cipherComparator = HTTP2Cipher.COMPARATOR
                     isUseCipherSuitesOrder = true

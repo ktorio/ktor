@@ -13,7 +13,7 @@ import kotlin.test.*
 class UserAgentTest {
 
     @Test
-    fun simpleInstallTest(): Unit = clientTest(MockEngine) {
+    fun simpleInstallTest()= testWithEngine(MockEngine) {
         config {
             BrowserUserAgent()
 

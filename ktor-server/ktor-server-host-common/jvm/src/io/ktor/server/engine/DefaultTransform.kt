@@ -5,6 +5,7 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.content.*
@@ -14,10 +15,11 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import java.io.*
-import java.nio.charset.*
+import kotlin.text.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
 
@@ -46,9 +48,12 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             ByteArray::class -> channel.toByteArray()
             InputStream::class -> channel.toInputStream()
             MultiPartData::class -> multiPartData(channel)
-            String::class -> channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
+            String::class -> channel.readText(
+                charset = withContentType(call) { call.request.contentCharset() }
+                    ?: Charsets.ISO_8859_1
+            )
             Parameters::class -> {
-                val contentType = call.request.contentType()
+                val contentType = withContentType(call) { call.request.contentType() }
                 when {
                     contentType.match(ContentType.Application.FormUrlEncoded) -> {
                         val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
@@ -75,6 +80,15 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
         if (transformed != null)
             proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.type in ReusableTypes))
     }
+}
+
+private inline fun <R> withContentType(call: ApplicationCall, block: () -> R): R = try {
+    block()
+} catch (parseFailure: BadContentTypeFormatException) {
+    throw BadRequestException(
+        "Illegal Content-Type header format: ${call.request.headers[HttpHeaders.ContentType]}",
+        parseFailure
+    )
 }
 
 private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData {

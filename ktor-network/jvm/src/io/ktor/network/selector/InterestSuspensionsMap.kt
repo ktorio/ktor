@@ -62,7 +62,13 @@ class InterestSuspensionsMap {
     companion object {
         @Suppress("UNCHECKED_CAST")
         private val updaters = SelectInterest.AllInterests.map { interest ->
-            AtomicReferenceFieldUpdater.newUpdater(InterestSuspensionsMap::class.java, CancellableContinuation::class.java, "${interest.name.toLowerCase()}HandlerReference") as AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?>
+            val property = when (interest) {
+                SelectInterest.READ -> InterestSuspensionsMap::readHandlerReference
+                SelectInterest.WRITE -> InterestSuspensionsMap::writeHandlerReference
+                SelectInterest.ACCEPT -> InterestSuspensionsMap::acceptHandlerReference
+                SelectInterest.CONNECT -> InterestSuspensionsMap::connectHandlerReference
+            }
+            AtomicReferenceFieldUpdater.newUpdater(InterestSuspensionsMap::class.java, CancellableContinuation::class.java, property.name) as AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?>
         }.toTypedArray()
 
         private fun updater(interest: SelectInterest): AtomicReferenceFieldUpdater<InterestSuspensionsMap, CancellableContinuation<Unit>?> = updaters[interest.ordinal]

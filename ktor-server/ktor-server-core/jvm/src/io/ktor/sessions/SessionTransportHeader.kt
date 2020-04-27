@@ -5,6 +5,7 @@
 package io.ktor.sessions
 
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.response.*
 
 /**
@@ -17,6 +18,10 @@ import io.ktor.response.*
 class SessionTransportHeader(val name: String,
                              val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
+    init {
+        HttpHeaders.checkHeaderName(name)
+    }
+
     override fun receive(call: ApplicationCall): String? {
         return transformers.transformRead(call.request.headers[name])
     }

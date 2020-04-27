@@ -12,7 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
@@ -20,7 +20,7 @@ class SerializationTest {
 
     @Test
     @Ignore
-    fun testMap() = withTestApplication {
+    fun testMap(): Unit = withTestApplication {
         val uc = "\u0422"
 
         application.install(ContentNegotiation) {
@@ -242,7 +242,7 @@ class SerializationTest {
     }
 
     @Test
-    fun testEntity() = withTestApplication {
+    fun testEntity(): Unit = withTestApplication {
         val uc = "\u0422"
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, SerializationConverter())
@@ -302,7 +302,7 @@ class SerializationTest {
     @Test
     fun testOnTextAny(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
             register(contentType = ContentType.Text.Any, converter = SerializationConverter())
         }
 
@@ -336,7 +336,7 @@ class SerializationTest {
     @Test
     fun testReceiveNullValue(): Unit = withTestApplication {
         application.install(ContentNegotiation) {
-            serialization()
+            json()
             register(contentType = ContentType.Text.Any, converter = SerializationConverter())
         }
 
@@ -344,7 +344,7 @@ class SerializationTest {
             post("/") {
                 val result = try {
                     call.receive<NullValues>().toString()
-                } catch (expected: JsonParsingException) {
+                } catch (expected: JsonDecodingException) {
                     "OK"
                 }
                 call.respondText(result)
@@ -360,6 +360,62 @@ class SerializationTest {
         }
     }
 
+    @Test
+    fun testJsonElements(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            json()
+        }
+        application.routing {
+            get("/map") {
+                call.respond(json {
+                    "a" to "1"
+                    "b" to json {
+                        "c" to 3
+                    }
+                    "x" to JsonNull
+                })
+            }
+            get("/array") {
+                call.respond(json {
+                    "a" to "1"
+                    "b" to jsonArray {
+                        +"c"
+                        +JsonPrimitive(2)
+                    }
+                })
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/map").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"a":"1","b":{"c":3},"x":null}""", it.response.content)
+        }
+        handleRequest(HttpMethod.Get, "/array").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"a":"1","b":["c",2]}""", it.response.content)
+        }
+    }
+
+    @Test
+    fun testMapsElements(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            json()
+        }
+        application.routing {
+            get("/map") {
+                call.respond(mapOf(
+                    "a" to "1",
+                    null to "2",
+                    "b" to null
+                ))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/map").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"a":"1",null:"2","b":null}""", it.response.content)
+        }
+    }
 }
 
 @Serializable
@@ -368,3 +424,5 @@ data class MyEntity(val id: Int, val name: String, val children: List<ChildEntit
 @Serializable
 data class ChildEntity(val item: String, val quantity: Int)
 
+private fun SerializationConverter(): SerializationConverter =
+    SerializationConverter(Json(DefaultJsonConfiguration))

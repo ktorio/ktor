@@ -18,7 +18,7 @@ import kotlin.test.*
 
 class RawWebSocketTest {
     @get:Rule
-    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(2, true)
+    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
 
     @get:Rule
     val test: TestName = TestName()
@@ -107,10 +107,13 @@ class RawWebSocketTest {
 
         client.close()
 
-        val closed = server.incoming.receive() as Frame.Close
-        assertEquals(CloseReason(CloseReason.Codes.NORMAL, ""), closed.readReason())
+        val clientCloseFrame = server.incoming.receive() as Frame.Close
+        assertEquals(CloseReason(CloseReason.Codes.NORMAL, ""), clientCloseFrame.readReason())
 
-        server.close(closed.readReason()!!)
+        server.close(clientCloseFrame.readReason()!!)
+
+        val serverCloseFrame = client.incoming.receive()
+        assertTrue { serverCloseFrame is Frame.Close }
 
         ensureCompletion()
     }

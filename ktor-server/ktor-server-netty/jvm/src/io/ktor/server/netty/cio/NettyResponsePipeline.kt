@@ -87,7 +87,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
             @Suppress("DEPRECATION")
@@ -238,7 +240,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         finishCall(call, encapsulation.endOfStream(true), future)
     }
 
-    @UseExperimental(ExperimentalIoApi::class)
+    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
@@ -280,7 +282,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
 
-    @UseExperimental(ExperimentalIoApi::class)
+    @OptIn(ExperimentalIoApi::class)
     private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation

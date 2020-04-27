@@ -11,6 +11,9 @@ plugins {
 
 kotlin {
     targets {
+        // Workaround: 1.3.60. Possible because of the new inference.
+        (this as NamedDomainObjectCollection<KotlinTarget>)
+
         val current = mutableListOf<KotlinTarget>()
         if (ideaActive) {
             current.add(getByName("posix"))
@@ -32,10 +35,12 @@ kotlin {
                                 "/opt/local/include/curl",
                                 "/usr/local/include/curl",
                                 "/usr/include/curl",
+                                "/usr/local/opt/curl/include/curl",
                                 "/usr/include/x86_64-linux-gnu/curl",
                                 "/usr/local/Cellar/curl/7.62.0/include/curl",
                                 "/usr/local/Cellar/curl/7.63.0/include/curl",
-                                "/usr/local/Cellar/curl/7.65.3/include/curl"
+                                "/usr/local/Cellar/curl/7.65.3/include/curl",
+                                "/usr/local/Cellar/curl/7.66.0/include/curl"
                             )
                         )
 

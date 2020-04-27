@@ -14,26 +14,26 @@ sealed class CacheControl(val visibility: Visibility?) {
     /**
      * Controls caching by proxies
      */
-    enum class Visibility {
+    enum class Visibility(internal val headerValue: String) {
         /**
          * Specifies that the response is cacheable by clients and shared (proxy) caches.
          */
-        Public,
+        Public("public"),
 
         /**
          * Specifies that the response is cacheable only on the client and not by shared (proxy server) caches.
          */
-        Private
+        Private("private")
     }
 
     /**
      * Represents a no-cache cache control value
      */
     class NoCache(visibility: Visibility?) : CacheControl(visibility) {
-        override fun toString() = if (visibility == null) {
+        override fun toString(): String = if (visibility == null) {
             "no-cache"
         } else {
-            "no-cache, ${visibility.name.toLowerCase()}"
+            "no-cache, ${visibility.headerValue}"
         }
     }
 
@@ -41,10 +41,10 @@ sealed class CacheControl(val visibility: Visibility?) {
      * Represents a no-store cache control value
      */
     class NoStore(visibility: Visibility?) : CacheControl(visibility) {
-        override fun toString() = if (visibility == null) {
+        override fun toString(): String = if (visibility == null) {
             "no-store"
         } else {
-            "no-store, ${visibility.name.toLowerCase()}"
+            "no-store, ${visibility.headerValue}"
         }
     }
 
@@ -75,7 +75,7 @@ sealed class CacheControl(val visibility: Visibility?) {
                 parts.add("proxy-revalidate")
             }
             if (visibility != null) {
-                parts.add(visibility.name.toLowerCase())
+                parts.add(visibility.headerValue)
             }
 
             return parts.joinToString(", ")

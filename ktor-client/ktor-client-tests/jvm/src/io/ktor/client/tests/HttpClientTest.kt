@@ -9,6 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -17,6 +18,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.intrinsics.*
+import java.util.concurrent.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
@@ -30,6 +34,28 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
                 call.respondText("hello")
             }
         }
+    }
+
+    @Test
+    fun testWithNoParentJob() {
+        val block = suspend {
+            val client = HttpClient(factory)
+            val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
+            assertEquals("hello", statement.execute().readText())
+        }
+
+        val latch = ArrayBlockingQueue<Result<Unit>>(1)
+
+        block.startCoroutine(object : Continuation<Unit> {
+            override val context: CoroutineContext
+                get() = EmptyCoroutineContext
+
+            override fun resumeWith(result: Result<Unit>) {
+                latch.put(result)
+            }
+        })
+
+        latch.take().exceptionOrNull()?.let { throw it }
     }
 
     @Test
@@ -51,7 +77,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
 
         // check everything was installed in original
         val originalRequest = runBlocking {
-            originalClient.execute(HttpRequestBuilder())
+            originalClient.request<HttpResponse>(HttpRequestBuilder())
         }.request
         assertEquals("/empty", originalRequest.url.fullPath)
 
@@ -73,7 +99,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
         // check the custom feature remained installed
         // and that we override the DefaultRequest
         val newRequest = runBlocking {
-            newClient.execute(HttpRequestBuilder())
+            newClient.request<HttpResponse>(HttpRequestBuilder())
         }.request
         assertEquals("/hello", newRequest.url.fullPath)
 

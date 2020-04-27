@@ -22,13 +22,17 @@ suspend inline fun ByteReadChannel.read(
     block: (source: Memory, start: Long, endExclusive: Long) -> Int
 ): Int {
     val buffer = requestBuffer(desiredSize) ?: Buffer.Empty
-    var bytesRead = 0
+
     try {
-        bytesRead = block(buffer.memory, buffer.readPosition.toLong(), buffer.readRemaining.toLong())
-        return bytesRead
-    } finally {
+        val bytesRead = block(buffer.memory, buffer.readPosition.toLong(), buffer.writePosition.toLong())
         completeReadingFromBuffer(buffer, bytesRead)
+        return bytesRead
+    } catch (cause: Throwable) {
+        completeReadingFromBuffer(buffer, 0)
+        throw cause
     }
+
+    // we don't use finally here because of KT-37279
 }
 
 @Deprecated("Use read { } instead.")
@@ -97,15 +101,19 @@ internal suspend fun ByteReadChannel.requestBuffer(desiredSize: Int): Buffer? {
 
 @PublishedApi
 internal suspend fun ByteReadChannel.completeReadingFromBuffer(buffer: Buffer?, bytesRead: Int) {
+    check(bytesRead >= 0) { "bytesRead shouldn't be negative: $bytesRead" }
     @Suppress("DEPRECATION")
     val readSession: SuspendableReadSession? = readSessionFor()
 
     if (readSession != null) {
         readSession.discard(bytesRead)
+        if (this is HasReadSession) {
+            endReadSession()
+        }
         return
     }
 
-    if (buffer is ChunkBuffer) {
+    if (buffer is ChunkBuffer && buffer !== ChunkBuffer.Empty) {
         buffer.release(ChunkBuffer.Pool)
         discard(bytesRead.toLong())
     }

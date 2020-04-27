@@ -4,19 +4,42 @@
 
 package io.ktor.client.tests.utils.tests
 
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
+import kotlin.text.*
 
 suspend fun proxyHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 
     val statusLine = input.readUTF8Line()
-    val response = if (statusLine == "GET http://google.com/ HTTP/1.1") {
-        buildResponse(HttpStatusCode.OK)
-    } else {
-        buildResponse(HttpStatusCode.BadRequest)
+    val requestData = StringBuilder()
+    requestData.append(statusLine).append("\n")
+    while (true) {
+        val line = input.readUTF8Line() ?: ""
+        requestData.append(line).append("\n")
+        if (line.isEmpty()) {
+            break
+        }
+    }
+
+    val response = when (statusLine) {
+        "GET http://google.com/ HTTP/1.1" -> buildResponse(HttpStatusCode.OK)
+        "GET http://google.com/json HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK, buildHeaders {
+                append(HttpHeaders.ContentType, ContentType.Application.Json)
+            }, "{\"status\": \"ok\"}"
+        )
+        "GET /headers-merge HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK,
+            buildHeaders {
+                append(HttpHeaders.ContentType, ContentType.Text.Plain)
+            },
+            requestData.toString()
+        )
+        else -> buildResponse(HttpStatusCode.BadRequest)
     }
 
     output.writeStringUtf8(response)
@@ -27,9 +50,16 @@ suspend fun proxyHandler(socket: Socket) {
     }
 }
 
-private fun buildResponse(status: HttpStatusCode) = buildString {
+private fun buildResponse(
+    status: HttpStatusCode,
+    headers: Headers = Headers.Empty,
+    body: String = "proxy"
+): String = buildString {
     append("HTTP/1.1 ${status.value} ${status.description}\r\n")
     append("Connection: close\r\n")
+    headers.forEach { key, values ->
+        append("$key: ${values.joinToString()}\r\n")
+    }
     append("\r\n")
-    append("proxy")
+    append(body)
 }

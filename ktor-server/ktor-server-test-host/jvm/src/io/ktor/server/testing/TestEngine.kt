@@ -9,7 +9,6 @@ import io.ktor.config.*
 import io.ktor.http.*
 import io.ktor.server.engine.*
 import org.slf4j.*
-import java.util.concurrent.*
 
 /**
  * Creates test application engine environment
@@ -49,7 +48,7 @@ fun <R> withApplication(
     try {
         return engine.test()
     } finally {
-        engine.stop(0L, 0L, TimeUnit.MILLISECONDS)
+        engine.stop(0L, 0L)
     }
 }
 

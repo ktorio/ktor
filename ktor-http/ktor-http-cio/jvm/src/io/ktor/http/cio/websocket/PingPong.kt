@@ -22,7 +22,9 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
  * It is acting for every client's ping frame and replying with corresponding pong
  */
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
@@ -44,7 +46,9 @@ fun CoroutineScope.ponger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
@@ -64,7 +68,7 @@ fun CoroutineScope.pinger(
         try {
             while (!isClosedForReceive) {
                 // drop pongs during period delay as they are irrelevant
-                // here timeout is expected so ignore it
+                // here we expect a timeout, so ignore it
                 withTimeoutOrNull(periodMillis) {
                     while (true) {
                         receive() // timeout causes loop to break on receive
@@ -86,7 +90,7 @@ fun CoroutineScope.pinger(
 
                 if (rc == null) {
                     // timeout
-                    // we were unable to send ping or hadn't get valid pong message in time
+                    // we were unable to send the ping or hadn't got a valid pong message in time,
                     // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
                     val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Ping timeout"))
@@ -116,12 +120,15 @@ private suspend fun SendChannel<Frame.Ping>.sendPing(
 ) = with(buffer) {
     clear()
     encoder.reset()
-
-    encoder.encode(CharBuffer.wrap(content), this, true).apply {
-        if (this.isError) throwException()
-        else if (this.isOverflow) throwException()
-    }
+    encoder.encodeOrFail(this, content)
     flip()
 
     send(Frame.Ping(this))
+}
+
+private fun CharsetEncoder.encodeOrFail(buffer: ByteBuffer, content: String) {
+    encode(CharBuffer.wrap(content), buffer, true).apply {
+        if (isError) throwException()
+        else if (isOverflow) throwException()
+    }
 }

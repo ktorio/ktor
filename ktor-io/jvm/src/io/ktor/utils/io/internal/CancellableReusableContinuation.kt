@@ -109,7 +109,7 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
         private var handler: DisposableHandle? = null // not volatile as double removal is safe
 
         init {
-            @UseExperimental(InternalCoroutinesApi::class)
+            @OptIn(InternalCoroutinesApi::class)
             val h = job.invokeOnCompletion(onCancelling = true, handler = this)
 
             if (job.isActive) {

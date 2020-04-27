@@ -5,8 +5,9 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
 import io.ktor.http.cio.internals.WeakTimeoutQueue
+import io.ktor.network.util.*
+import io.ktor.server.cio.backend.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import java.net.*
@@ -52,7 +53,7 @@ internal fun testHttpServer(
     j.invokeOnCompletion {
         deferred.invokeOnCompletion { t ->
             if (t == null) {
-                @UseExperimental(ExperimentalCoroutinesApi::class)
+                @OptIn(ExperimentalCoroutinesApi::class)
                 deferred.getCompleted().close()
             }
         }
@@ -112,16 +113,19 @@ private suspend fun client(
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
 
-    CoroutineScope(ioCoroutineContext + Dispatchers.Unconfined).startConnectionPipeline(
-        incoming,
-        outgoing,
+    CoroutineScope(ioCoroutineContext + Dispatchers.Unconfined).startServerConnectionPipeline(
+        ServerIncomingConnection(
+            incoming,
+            outgoing,
+            socket.remoteAddress,
+            socket.localAddress
+        ),
         timeouts
-    ) { request: Request,
-        _input: ByteReadChannel,
-        _output: ByteWriteChannel,
-        upgraded: CompletableDeferred<Boolean>? ->
+    ) { request: Request ->
+        val requestScope = this
+
         withContext(callDispatcher) {
-            handler(request, _input, _output, upgraded)
+            handler(requestScope.withContext(callDispatcher), request)
         }
     }.invokeOnCompletion {
         incoming.close()

@@ -78,7 +78,7 @@ if (!project.ext.ideaActive) {
     jmh {
         jmhVersion = jmh_version
         jmhJar {
-            archiveName = 'benchmarks.jar'
+            archiveFileName = 'benchmarks.jar'
         }
     }
 

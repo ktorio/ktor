@@ -18,7 +18,7 @@ import org.slf4j.*
 import org.slf4j.event.*
 import kotlin.test.*
 
-@UseExperimental(ObsoleteCoroutinesApi::class)
+@OptIn(ObsoleteCoroutinesApi::class)
 class CallLoggingTest {
 
     private lateinit var messages: MutableList<String>

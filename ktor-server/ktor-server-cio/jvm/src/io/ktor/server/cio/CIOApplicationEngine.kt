@@ -5,12 +5,13 @@
 package io.ktor.server.cio
 
 import io.ktor.application.*
+import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
-import java.util.concurrent.*
+import java.net.*
 
 /**
  * Engine that based on CIO backend
@@ -36,10 +37,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         environment.connectors.size + 1 // number of selectors + 1
     )
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val stopRequest: CompletableJob = Job()
@@ -99,22 +100,22 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
-            shutdownServer(gracePeriod, timeout, timeUnit)
+            shutdownServer(gracePeriodMillis, timeoutMillis)
         } finally {
-            @UseExperimental(InternalCoroutinesApi::class)
+            @OptIn(InternalCoroutinesApi::class)
             GlobalScope.launch(engineDispatcher) {
                 engineDispatcher.close()
             }
         }
     }
 
-    private fun shutdownServer(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    private fun shutdownServer(gracePeriodMillis: Long, timeoutMillis: Long) {
         stopRequest.complete()
 
         runBlocking {
-            val result = withTimeoutOrNull(timeUnit.toMillis(gracePeriod)) {
+            val result = withTimeoutOrNull(gracePeriodMillis) {
                 serverJob.join()
                 true
             }
@@ -124,7 +125,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 userDispatcher.prepareShutdown()
                 serverJob.cancel()
 
-                val forceShutdown = withTimeoutOrNull(timeUnit.toMillis(timeout - gracePeriod)) {
+                val forceShutdown = withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
                     serverJob.join()
                     false
                 } ?: true
@@ -142,12 +143,15 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        return scope.httpServer(settings) { request, input, output, upgraded ->
+        val server = scope.httpServer(settings) { request ->
             withContext(userDispatcher) {
                 val call = CIOApplicationCall(
                     application, request, input, output,
-                    engineDispatcher, userDispatcher, upgraded
+                    engineDispatcher, userDispatcher, upgraded,
+                    remoteAddress,
+                    localAddress
                 )
+
                 try {
                     pipeline.execute(call)
                 } finally {
@@ -155,5 +159,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 }
             }
         }
+
+        return server
     }
 }

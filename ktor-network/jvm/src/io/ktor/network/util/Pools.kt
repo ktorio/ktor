@@ -26,6 +26,21 @@ val ioThreadGroup = ThreadGroup("io-pool-group")
 val ioCoroutineDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO
 
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
+internal val DEFAULT_BYTE_BUFFER_POOL_SIZE: Int = 4096
+
+@Suppress("KDocMissingDocumentation")
+@InternalAPI
+internal const val DEFAULT_BYTE_BUFFER_BUFFER_SIZE: Int = 4096
+
+/**
+ * Byte buffer pool for general-purpose buffers.
+ */
+@InternalAPI
+val DefaultByteBufferPool: ObjectPool<ByteBuffer> =
+    DirectByteBufferPool(DEFAULT_BYTE_BUFFER_BUFFER_SIZE, DEFAULT_BYTE_BUFFER_POOL_SIZE)
+
 /**
  * Byte buffer pool for UDP datagrams
  */

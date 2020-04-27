@@ -6,14 +6,15 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
 import javax.net.ssl.*
@@ -22,69 +23,77 @@ import kotlin.coroutines.*
 /**
  * Android client engine
  */
-class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientJvmEngine("ktor-android") {
+class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
-    override suspend fun execute(
-        data: HttpRequestData
-    ): HttpResponseData {
-        val callContext: CoroutineContext = createCallContext()
-        return async(callContext) {
-            val requestTime: GMTDate = GMTDate()
+    override val dispatcher by lazy {
+        Dispatchers.clientDispatcher(
+            config.threadsCount,
+            "ktor-android-dispatcher"
+        )
+    }
 
-            val url: String = URLBuilder().takeFrom(data.url).buildString()
-            val outgoingContent: OutgoingContent = data.body
-            val contentLength: Long? =
-                data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
+    override val supportedCapabilities = setOf(HttpTimeout)
 
-            val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
-                connectTimeout = config.connectTimeout
-                readTimeout = config.socketTimeout
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val callContext = callContext()
 
-                if (this is HttpsURLConnection) {
-                    config.sslManager(this)
-                }
+        val requestTime: GMTDate = GMTDate()
 
-                requestMethod = data.method.value
-                useCaches = false
-                instanceFollowRedirects = false
+        val url: String = URLBuilder().takeFrom(data.url).buildString()
+        val outgoingContent: OutgoingContent = data.body
+        val contentLength: Long? =
+            data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
 
-                mergeHeaders(data.headers, outgoingContent) { key: String, value: String ->
-                    addRequestProperty(key, value)
-                }
+        val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
+            connectTimeout = config.connectTimeout
+            readTimeout = config.socketTimeout
 
-                config.requestConfig(this)
+            setupTimeoutAttributes(data)
 
-                if (outgoingContent !is OutgoingContent.NoContent) {
-                    if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) throw RequestInvalidException(
-                        "Request of type ${data.method} couldn't send a body with the [Android] engine."
-                    )
-
-                    if (contentLength == null && getRequestProperty(HttpHeaders.TransferEncoding) == null) {
-                        addRequestProperty(HttpHeaders.TransferEncoding, "chunked")
-                    }
-
-                    contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
-                    doOutput = true
-
-                    outgoingContent.writeTo(outputStream, callContext)
-                }
+            if (this is HttpsURLConnection) {
+                config.sslManager(this)
             }
 
-            connection.connect()
+            requestMethod = data.method.value
+            useCaches = false
+            instanceFollowRedirects = false
 
-            val statusCode = HttpStatusCode(connection.responseCode, connection.responseMessage)
-            val content: ByteReadChannel = connection.content(callContext)
-            val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
-            val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+            mergeHeaders(data.headers, outgoingContent) { key: String, value: String ->
+                addRequestProperty(key, value)
+            }
 
-            val responseHeaders = HeadersBuilder().apply {
-                headerFields.forEach { (key: String?, values: MutableList<String>) ->
-                    if (key != null) appendAll(key, values)
+            config.requestConfig(this)
+
+            if (outgoingContent !is OutgoingContent.NoContent) {
+                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) error(
+                    "Request of type ${data.method} couldn't send a body with the [Android] engine."
+                )
+
+                if (contentLength == null && getRequestProperty(HttpHeaders.TransferEncoding) == null) {
+                    addRequestProperty(HttpHeaders.TransferEncoding, "chunked")
                 }
-            }.build()
 
-            return@async HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
-        }.await()
+                contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
+                doOutput = true
+
+                outgoingContent.writeTo(outputStream, callContext)
+            }
+        }
+
+        connection.timeoutAwareConnect(data)
+
+        val statusCode = HttpStatusCode(connection.responseCode, connection.responseMessage)
+        val content: ByteReadChannel = connection.content(callContext, data)
+        val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
+        val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+
+        val responseHeaders = HeadersBuilder().apply {
+            headerFields.forEach { (key: String?, values: MutableList<String>) ->
+                if (key != null) appendAll(key, values)
+            }
+        }.build()
+
+        return HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
     }
 
     private fun getProxyAwareConnection(urlString: String): HttpURLConnection {
@@ -112,12 +121,3 @@ internal suspend fun OutgoingContent.writeTo(
         else -> throw UnsupportedContentTypeException(this)
     }
 }
-
-internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadChannel = try {
-    inputStream?.buffered()
-} catch (_: IOException) {
-    errorStream?.buffered()
-}?.toByteReadChannel(context = callScope, pool = KtorDefaultPool) ?: ByteReadChannel.Empty
-
-@Suppress("KDocMissingDocumentation")
-internal class RequestInvalidException(override val message: String) : IllegalStateException()

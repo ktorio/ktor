@@ -25,7 +25,7 @@ import kotlin.reflect.jvm.*
  * }
  * ```
  *
- * @throws MissingRequestParameterException if no values associated with [name]
+ * @throws MissingRequestParameterException if no values associated with name
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
 @KtorExperimentalAPI
@@ -50,13 +50,9 @@ inline fun Parameters.getOrFail(name: String): String {
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
 @KtorExperimentalAPI
+@OptIn(ExperimentalStdlibApi::class)
 inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
-    val o = object {
-        @Suppress("unused")
-        val reflectField: R? = null
-    }
-    val type = o.javaClass.declaredFields.first { it.name == "reflectField" }.genericType
-    return getOrFailImpl(name, R::class, type)
+    return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
 }
 
 @PublishedApi

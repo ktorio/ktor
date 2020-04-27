@@ -1,11 +1,9 @@
 ext.experimentalAnnotations = [
-    "kotlin.Experimental",
+    "kotlin.RequiresOptIn",
     "kotlin.ExperimentalUnsignedTypes",
     "io.ktor.util.KtorExperimentalAPI",
     "io.ktor.util.InternalAPI",
     "kotlinx.coroutines.ExperimentalCoroutinesApi",
-    "kotlinx.io.core.ExperimentalIoApi",
-    "kotlinx.io.core.internal.DangerousInternalIoApi",
     "io.ktor.utils.io.core.ExperimentalIoApi",
     "io.ktor.utils.io.core.internal.DangerousInternalIoApi",
     "kotlin.contracts.ExperimentalContracts"

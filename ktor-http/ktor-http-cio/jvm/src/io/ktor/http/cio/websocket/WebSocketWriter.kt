@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.CancellationException
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -19,7 +20,9 @@ import kotlin.coroutines.*
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+@OptIn(
+    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+)
 class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
@@ -27,28 +30,32 @@ class WebSocketWriter(
     val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
-    @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
-    private val queue = actor<Any>(context = CoroutineName("ws-writer"), capacity = 8) {
-        pool.useInstance { writeLoop(it) }
-    }
+    private val queue = Channel<Any>(capacity = 8)
+
+    private val serializer = Serializer()
 
     /**
      * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
      */
     val outgoing: SendChannel<Frame> get() = queue
 
-    private val serializer = Serializer()
+    @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
+    private val writeLoopJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
+        pool.useInstance { writeLoop(it) }
+    }
 
-    private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
+    private suspend fun writeLoop(buffer: ByteBuffer) {
         buffer.clear()
         try {
-            loop@ for (message in this) {
+            loop@ for (message in queue) {
                 when (message) {
                     is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
                     is FlushRequest -> message.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
+        } catch (cause: ChannelWriteException) {
+            queue.close(CancellationException("Failed to write to WebSocket.", cause))
         } catch (t: Throwable) {
             queue.close(t)
         } finally {
@@ -56,20 +63,31 @@ class WebSocketWriter(
             writeChannel.close()
         }
 
-        consumeEach { message ->
-            when (message) {
-                is Frame.Close -> {} // ignore
-                is Frame.Ping, is Frame.Pong -> {
-                } // ignore
-                is FlushRequest -> message.complete()
-                is Frame.Text, is Frame.Binary -> {
-                } // discard
-                else -> throw IllegalArgumentException("unknown message $message")
-            }
+        drainQueueAndDiscard()
+    }
+
+    private fun drainQueueAndDiscard() {
+        check(queue.isClosedForSend)
+
+        try {
+            do {
+                val message = queue.poll() ?: break
+                when (message) {
+                    is Frame.Close -> {
+                    } // ignore
+                    is Frame.Ping, is Frame.Pong -> {
+                    } // ignore
+                    is FlushRequest -> message.complete()
+                    is Frame.Text, is Frame.Binary -> {
+                    } // discard
+                    else -> throw IllegalArgumentException("unknown message $message")
+                }
+            } while (true)
+        } catch (_: CancellationException) {
         }
     }
 
-    private suspend fun ActorScope<Any>.drainQueueAndSerialize(firstMsg: Frame, buffer: ByteBuffer): Boolean {
+    private suspend fun drainQueueAndSerialize(firstMsg: Frame, buffer: ByteBuffer): Boolean {
         var flush: FlushRequest? = null
         serializer.enqueue(firstMsg)
         var closeSent = firstMsg is Frame.Close
@@ -77,7 +95,7 @@ class WebSocketWriter(
         // initially serializer has at least one message queued
         while (true) {
             while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
-                val message = poll() ?: break
+                val message = queue.poll() ?: break
                 when (message) {
                     is FlushRequest -> flush = message
                     is Frame.Close -> {
@@ -135,6 +153,9 @@ class WebSocketWriter(
     suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             queue.send(it)
+        } catch (closed: ClosedSendChannelException) {
+            it.complete()
+            writeLoopJob.join()
         } catch (sendFailure: Throwable) {
             it.complete()
             throw sendFailure

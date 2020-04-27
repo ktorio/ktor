@@ -68,6 +68,10 @@ fun expectHttpBody(request: Request): Boolean = expectHttpBody(
 /**
  * Parse HTTP request or response body using [contentLength], [transferEncoding] and [connectionOptions]
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
+ *
+ * @param contentLength from the corresponding header or -1
+ * @param transferEncoding header or `null`
+ * @param
  */
 @KtorExperimentalAPI
 suspend fun parseHttpBody(
@@ -79,12 +83,11 @@ suspend fun parseHttpBody(
 ) {
     if (transferEncoding != null) {
         when {
-            transferEncoding.equalsLowerCase(other = "chunked") -> return decodeChunked(input, out)
+            transferEncoding.equalsLowerCase(other = "chunked") -> return decodeChunked(input, out, contentLength)
             transferEncoding.equalsLowerCase(other = "identity") -> {
                 // do nothing special
             }
             else -> out.close(IllegalStateException("Unsupported transfer-encoding $transferEncoding"))
-            // TODO: combined transfer encodings
         }
     }
 

@@ -5,6 +5,7 @@
 package io.ktor.client.features.cookies
 
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -30,27 +31,30 @@ suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
 }
 
 internal fun Cookie.matches(requestUrl: Url): Boolean {
-    val domain = domain?.toLowerCase()?.trimStart('.') ?: error("Domain field should have the default value")
+    val domain = domain?.toLowerCasePreservingASCIIRules()?.trimStart('.')
+        ?: error("Domain field should have the default value")
+
     val path = with(path) {
         val current = path ?: error("Path field should have the default value")
         if (current.endsWith('/')) current else "$path/"
     }
 
-    val host = requestUrl.host.toLowerCase()
+    val host = requestUrl.host.toLowerCasePreservingASCIIRules()
     val requestPath = let {
         val pathInRequest = requestUrl.encodedPath
         if (pathInRequest.endsWith('/')) pathInRequest else "$pathInRequest/"
     }
 
-    if (host != domain && (hostIsIp(host) || !host.endsWith(".$domain"))) return false
+    if (host != domain && (hostIsIp(host) || !host.endsWith(".$domain"))) {
+        return false
+    }
 
     if (path != "/" &&
         requestPath != path &&
         !requestPath.startsWith(path)
     ) return false
 
-    if (secure && !requestUrl.protocol.isSecure()) return false
-    return true
+    return !(secure && !requestUrl.protocol.isSecure())
 }
 
 internal fun Cookie.fillDefaults(requestUrl: Url): Cookie {

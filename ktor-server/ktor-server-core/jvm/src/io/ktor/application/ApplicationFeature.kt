@@ -6,6 +6,7 @@ package io.ktor.application
 
 import io.ktor.util.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -116,6 +117,12 @@ class DuplicateApplicationFeatureException(message: String) : Exception(message)
  * Thrown when Application Feature has been attempted to be accessed but has not been installed before
  * @param key application feature's attribute key
  */
-class MissingApplicationFeatureException(val key: AttributeKey<*>) : IllegalStateException() {
+class MissingApplicationFeatureException(
+    val key: AttributeKey<*>
+) : IllegalStateException(), CopyableThrowable<MissingApplicationFeatureException> {
     override val message: String get() = "Application feature ${key.name} is not installed"
+
+    override fun createCopy(): MissingApplicationFeatureException? = MissingApplicationFeatureException(key).also {
+        it.initCause(this)
+    }
 }

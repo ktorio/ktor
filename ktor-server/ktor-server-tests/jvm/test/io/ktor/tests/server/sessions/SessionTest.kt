@@ -5,6 +5,7 @@
 package io.ktor.tests.server.sessions
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.respondText
 import io.ktor.routing.get
@@ -16,13 +17,14 @@ import io.ktor.util.date.*
 import io.ktor.util.hex
 import kotlinx.coroutines.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.time.Duration
-import java.util.*
+import kotlin.random.*
 import kotlin.test.*
+import kotlin.time.*
 
 @Suppress("ReplaceSingleLineLet")
+@OptIn(ExperimentalTime::class)
 class SessionTest {
-    private val cookieName = "_S" + Random().nextInt(100)
+    private val cookieName = "_S" + Random.nextInt(100)
 
     @Test
     fun testSessionCreateDelete() {
@@ -50,7 +52,7 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     cookie.domain = "foo.bar"
-                    cookie.duration = Duration.ofHours(1)
+                    cookie.maxAge = 1.hours
                 }
             }
 
@@ -93,7 +95,7 @@ class SessionTest {
                 assertEquals(3600, sessionCookie.maxAge)
                 assertNotNull(sessionCookie.expires)
 
-                assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(TestUserSession("id1", emptyList()), defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
             }
 
             handleRequest(HttpMethod.Get, "/2") {
@@ -304,7 +306,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(TestUserSession("id1", emptyList()), defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/2") {
@@ -357,7 +359,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(sessionA, autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals(sessionA, defaultSessionSerializer<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/a/2") {
@@ -371,7 +373,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie.value
 
-                assertEquals(sessionB, autoSerializerOf<TestUserSessionB>().deserialize(sessionParam))
+                assertEquals(sessionB, defaultSessionSerializer<TestUserSessionB>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/b/2") {
@@ -426,7 +428,7 @@ class SessionTest {
                 sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
             }
             assertNotNull(serializedSession)
-            assertEquals("id2", autoSerializerOf<TestUserSession>().deserialize(serializedSession).userId)
+            assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
 
             handleRequest(HttpMethod.Get, "/2") {
                 addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
@@ -449,7 +451,7 @@ class SessionTest {
         withTestApplication {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
-                    cookie.duration = Duration.ofSeconds(durationSeconds)
+                    cookie.maxAge = durationSeconds.seconds
                     identity { (id++).toString() }
                 }
             }
@@ -469,7 +471,7 @@ class SessionTest {
                 assertNotNull(sessionCookie, "No session cookie found")
                 val after = GMTDate()
 
-                assertEquals(durationSeconds.toInt(), sessionCookie.maxAge)
+                assertEquals(durationSeconds, sessionCookie.maxAge.toLong())
                 assertEquals("777", sessionCookie.value)
                 assertNotNull(sessionCookie.expires, "Expires cookie value is not set")
                 assertTrue("Expires cookie parameter value should be in the specified dates range") {
@@ -632,7 +634,7 @@ class SessionTest {
 
         application.install(Sessions) {
             cookie<TestUserSession>(cookieName, SessionStorageMemory()) {
-                cookie.duration = null
+                cookie.maxAge = null
             }
         }
 
@@ -667,7 +669,7 @@ class SessionTest {
         assertFailsWith<TooLateSessionSetException> {
             runBlocking {
                 handleRequest(HttpMethod.Get, "/after-response").let { call ->
-                    println(call.response.content)
+                    call.response.content
                 }
             }
         }
@@ -676,7 +678,7 @@ class SessionTest {
     @Test
     fun testSessionLongDuration(): Unit = withTestApplication {
         val transport = SessionTransportCookie("test", CookieConfiguration().apply {
-            duration = Duration.ofDays(365 * 100)
+            maxAge = (365 * 100).days
         }, emptyList())
 
         val call = createCall {}
@@ -690,7 +692,7 @@ class SessionTest {
     @Test
     fun testSessionOverflowDuration(): Unit = withTestApplication {
         val transport = SessionTransportCookie("test", CookieConfiguration().apply {
-            duration = Duration.ofSeconds(Long.MAX_VALUE)
+            maxAge = Long.MAX_VALUE.seconds
         }, emptyList())
 
         val call = createCall {}
@@ -721,6 +723,43 @@ class SessionTest {
             on("Registering another provider should be allowed") {
                 cookie<TestUserSessionB>("name2")
             }
+        }
+    }
+
+    @Test
+    fun testMissingSessionsFeature(): Unit = withTestApplication {
+        application.routing {
+            get("/") {
+                val cause = assertFailsWith<MissingApplicationFeatureException> {
+                    call.sessions.get<EmptySession>()
+                }
+                call.respondText(cause.key.name)
+            }
+        }
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(Sessions.key.name, call.response.content)
+        }
+    }
+
+    @Test
+    fun testMissingSession(): Unit = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Monitoring) {
+            assertFailsWith<SessionNotYetConfiguredException> {
+                call.sessions.get<EmptySession>()
+            }
+            call.respondText("OK")
+            finish()
+        }
+        application.routing {
+            get("/") {
+            }
+        }
+        application.install(Sessions) {
+            cookie<TestUserSession>("name1")
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals("OK", call.response.content)
         }
     }
 

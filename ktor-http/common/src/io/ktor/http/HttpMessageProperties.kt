@@ -92,8 +92,10 @@ fun HttpMessage.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toL
 /**
  * Parse `Set-Cookie` header value.
  */
-fun HttpMessage.setCookie(): List<Cookie> =
-    headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: emptyList()
+fun HttpMessage.setCookie(): List<Cookie> = headers.getAll(HttpHeaders.SetCookie)
+    ?.flatMap { it.splitSetCookieHeader() }
+    ?.map { parseServerSetCookieHeader(it) }
+    ?: emptyList()
 
 /**
  * Parse `Set-Cookie` header value.
@@ -107,3 +109,56 @@ fun HttpMessageBuilder.cookies(): List<Cookie> =
 fun HttpMessage.cacheControl() = headers[HttpHeaders.CacheControl]?.let {
     parseHeaderValue(it)
 } ?: emptyList()
+
+internal fun String.splitSetCookieHeader(): List<String> {
+    var comma = indexOf(',')
+
+    if (comma == -1) {
+        return listOf(this)
+    }
+
+    val result = mutableListOf<String>()
+    var current = 0
+
+    var equals = indexOf('=', comma)
+    var semicolon = indexOf(';', comma)
+    while (current < length && comma > 0) {
+        if (equals < comma) {
+            equals = indexOf('=', comma)
+        }
+
+        var nextComma = indexOf(',', comma + 1)
+        while (nextComma >= 0 && nextComma < equals) {
+            comma = nextComma
+            nextComma = indexOf(',', nextComma + 1)
+        }
+
+        if (semicolon < comma) {
+            semicolon = indexOf(';', comma)
+        }
+
+        // No more keys remaining.
+        if (equals < 0) {
+            result += substring(current)
+            return result
+        }
+
+        // No ';' between ',' and '=' => We're on a header border.
+        if (semicolon == -1 || semicolon > equals) {
+            result += substring(current, comma)
+            current = comma + 1
+            // Update comma index at the end of loop.
+        }
+
+        // ',' in value, skip it and find next.
+        comma = nextComma
+    }
+
+    // Add last chunk if no more ',' available.
+    if (current < length) {
+        result += substring(current)
+    }
+
+    return result
+}
+

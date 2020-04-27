@@ -71,18 +71,12 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     val length = toIndex - fromIndex
     if (length == 0) return 0
 
-    val chars = CharArray(length)
+    val chars = input.substring(fromIndex, toIndex).toCharArray()
     val charset = iconvCharsetName(_charset._name)
     val cd: COpaquePointer? = iconv_open(charset, platformUtf16)
     checkErrors(cd, charset)
 
-    @Suppress("ReplaceRangeToWithUntil")
-    for (index in 0..length - 1) {
-        chars[index] = input[fromIndex + index]
-    }
-
     var charsConsumed = 0
-
     try {
         dst.writeDirect { buffer ->
             chars.usePinned { pinned ->

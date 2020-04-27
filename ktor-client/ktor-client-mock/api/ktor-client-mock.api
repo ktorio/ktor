@@ -1,0 +1,46 @@
+public final class io/ktor/client/engine/mock/MockEngine : io/ktor/client/engine/HttpClientEngineBase {
+	public static final field Companion Lio/ktor/client/engine/mock/MockEngine$Companion;
+	public fun <init> (Lio/ktor/client/engine/mock/MockEngineConfig;)V
+	public fun close ()V
+	public fun execute (Lio/ktor/client/request/HttpRequestData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getConfig ()Lio/ktor/client/engine/HttpClientEngineConfig;
+	public fun getConfig ()Lio/ktor/client/engine/mock/MockEngineConfig;
+	public fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+	public final fun getRequestHistory ()Ljava/util/List;
+	public final fun getResponseHistory ()Ljava/util/List;
+	public fun getSupportedCapabilities ()Ljava/util/Set;
+}
+
+public final class io/ktor/client/engine/mock/MockEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {
+	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
+	public final fun invoke (Lkotlin/jvm/functions/Function3;)Lio/ktor/client/engine/mock/MockEngine;
+}
+
+public final class io/ktor/client/engine/mock/MockEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
+	public fun <init> ()V
+	public final fun addHandler (Lkotlin/jvm/functions/Function3;)V
+	public final fun getRequestHandlers ()Ljava/util/List;
+	public final fun getReuseHandlers ()Z
+	public final fun setReuseHandlers (Z)V
+}
+
+public final class io/ktor/client/engine/mock/MockRequestHandleScope {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
+}
+
+public final class io/ktor/client/engine/mock/MockUtilsKt {
+	public static final fun respond (Lio/ktor/client/engine/mock/MockRequestHandleScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respond (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respond (Lio/ktor/client/engine/mock/MockRequestHandleScope;[BLio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respond$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respond$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;Lio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respond$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;[BLio/ktor/http/HttpStatusCode;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respondBadRequest (Lio/ktor/client/engine/mock/MockRequestHandleScope;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respondError (Lio/ktor/client/engine/mock/MockRequestHandleScope;Lio/ktor/http/HttpStatusCode;Ljava/lang/String;Lio/ktor/http/Headers;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respondError$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Lio/ktor/http/HttpStatusCode;Ljava/lang/String;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respondOk (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respondOk$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun toByteArray (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun toByteReadPacket (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

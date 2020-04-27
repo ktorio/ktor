@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class OriginConnectionPointTest {
@@ -315,6 +314,51 @@ class OriginConnectionPointTest {
             handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.Forwarded, "for=client;host=host,for=proxy;host=internal-host")
             }
+        }
+    }
+
+    @Test
+    fun testOriginWithNoFeatures(): Unit = withTestApplication {
+        application.routing {
+            get("/") {
+                with(call.request.origin) {
+                    assertEquals("host", host)
+                    assertEquals(80, port)
+                }
+
+                call.respond("OK")
+            }
+            get("/90") {
+                with(call.request.origin) {
+                    assertEquals("host", host)
+                    assertEquals(90, port)
+                }
+
+                call.respond("OK")
+            }
+            get("/no-header") {
+                with(call.request.origin) {
+                    assertEquals("localhost", host)
+                    assertEquals(80, port)
+                }
+
+                call.respond("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Host, "host")
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Host, "host:80")
+        }
+
+        handleRequest(HttpMethod.Get, "/90") {
+            addHeader(HttpHeaders.Host, "host:90")
+        }
+
+        handleRequest(HttpMethod.Get, "/no-header") {
         }
     }
 }

@@ -11,8 +11,10 @@ import java.nio.channels.*
 internal class SocketImpl<out S : SocketChannel>(
     override val channel: S,
     private val socket: java.net.Socket,
-    selector: SelectorManager
-) : NIOSocketImpl<S>(channel, selector, pool = null), Socket {
+    selector: SelectorManager,
+    socketOptions: SocketOptions.TCPClientSocketOptions? = null
+) : NIOSocketImpl<S>(channel, selector, pool = null, socketOptions = socketOptions),
+    Socket {
     init {
         require(!channel.isBlocking) { "channel need to be configured as non-blocking" }
     }

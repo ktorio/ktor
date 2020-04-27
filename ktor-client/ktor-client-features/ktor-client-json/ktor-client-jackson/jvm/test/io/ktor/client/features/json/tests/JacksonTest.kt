@@ -34,7 +34,7 @@ class JacksonTest: JsonTest() {
     }
 
     @Test
-    fun testJackson() = clientTest(CIO) {
+    fun testJackson() = testWithEngine(CIO) {
         configClient()
 
         test { client ->

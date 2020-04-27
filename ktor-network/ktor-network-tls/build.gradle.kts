@@ -2,7 +2,7 @@ kotlin.sourceSets {
     val commonMain by getting {
         dependencies {
             api(project(":ktor-network"))
-            api(project(":ktor-http:ktor-http-cio"))
+            api(project(":ktor-utils"))
         }
     }
     val jvmTest by getting {

@@ -3,9 +3,9 @@
  */
 
 package io.ktor.client.benchmarks
+
 import io.ktor.client.engine.*
 import kotlinx.coroutines.*
-
 
 internal expect fun <T> runBenchmark(block: suspend CoroutineScope.() -> T)
 

@@ -28,7 +28,7 @@ class IntegrationTest {
     @Before
     fun setUp() {
         val dispatcher = pool.asCoroutineDispatcher()
-        val (j, s) = testHttpServer(0, dispatcher, dispatcher) { request, input, output, _ ->
+        val (j, s) = testHttpServer(0, dispatcher, dispatcher) { request ->
             if (request.uri.toString() == "/do" && request.method == HttpMethod.Post) {
                 handler(request, input, output)
             } else {
@@ -38,13 +38,13 @@ class IntegrationTest {
 
         s.invokeOnCompletion { t ->
             if (t != null) server.completeExceptionally(t)
-            else server.complete(@UseExperimental(ExperimentalCoroutinesApi::class) s.getCompleted())
+            else server.complete(@OptIn(ExperimentalCoroutinesApi::class) s.getCompleted())
         }
 
         j.invokeOnCompletion {
             s.invokeOnCompletion { t ->
                 if (t != null && !s.isCancelled) {
-                    @UseExperimental(ExperimentalCoroutinesApi::class)
+                    @OptIn(ExperimentalCoroutinesApi::class)
                     s.getCompleted().close()
                 }
             }
@@ -56,7 +56,7 @@ class IntegrationTest {
     }
 
     @After
-    @UseExperimental(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun tearDown() {
         server.invokeOnCompletion { t ->
             if (t == null) {

@@ -5,7 +5,6 @@
 package io.ktor.features
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 
@@ -15,8 +14,21 @@ private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + 
 /**
  * Start multirange response writer coroutine
  */
-@KtorExperimentalAPI
+@Deprecated("This is going to be removed. Use PartialContent feature instead.")
 fun CoroutineScope.writeMultipleRanges(
+    channelProducer: (LongRange) -> ByteReadChannel,
+    ranges: List<LongRange>,
+    fullLength: Long?,
+    boundary: String,
+    contentType: String
+): ByteReadChannel {
+    return writeMultipleRangesImpl(channelProducer, ranges, fullLength, boundary, contentType)
+}
+
+/**
+ * Start multirange response writer coroutine
+ */
+internal fun CoroutineScope.writeMultipleRangesImpl(
     channelProducer: (LongRange) -> ByteReadChannel,
     ranges: List<LongRange>,
     fullLength: Long?,

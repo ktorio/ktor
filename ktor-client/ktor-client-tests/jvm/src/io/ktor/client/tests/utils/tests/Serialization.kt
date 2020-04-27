@@ -13,10 +13,10 @@ internal fun Application.serializationTestServer() {
     routing {
         route("/json") {
             get("/users") {
-                call.respondText("[{'id': 42, 'login': 'TestLogin'}]", contentType = ContentType.Application.Json)
+                call.respondText("[{\"id\": 42, \"login\": \"TestLogin\"}]", contentType = ContentType.Application.Json)
             }
             get("/photos") {
-                call.respondText("[{'id': 4242, 'path': 'cat.jpg'}]", contentType = ContentType.Application.Json)
+                call.respondText("[{\"id\": 4242, \"path\": \"cat.jpg\"}]", contentType = ContentType.Application.Json)
             }
         }
     }

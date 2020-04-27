@@ -47,16 +47,15 @@ class HeadersTest {
     }
 
     @Test
-    fun extraSpacesLeading() = runBlocking {
+    fun extraSpacesLeading(): Unit = runBlocking<Unit> {
         ch.writeStringUtf8(" Host:  localhost\r\n\r\n")
-        val hh = parseHeaders(ch, builder)!!
-
-        assertEquals("localhost", hh["Host"]?.toString())
-        hh.release()
+        assertFailsWith<ParserException> {
+            parseHeaders(ch, builder)!!.release()
+        }
     }
 
     @Test
-    fun extraSpacesMiddle() = runBlocking {
+    fun extraSpacesMiddle(): Unit = runBlocking {
         ch.writeStringUtf8("Host:  localhost\r\n\r\n")
         val hh = parseHeaders(ch, builder)!!
 
@@ -65,21 +64,19 @@ class HeadersTest {
     }
 
     @Test
-    fun extraSpacesMiddleBeforeColon() = runBlocking {
+    fun extraSpacesMiddleBeforeColon(): Unit = runBlocking<Unit> {
         ch.writeStringUtf8("Host : localhost\r\n\r\n")
-        val hh = parseHeaders(ch, builder)!!
-
-        assertEquals("localhost", hh["Host"]?.toString())
-        hh.release()
+        assertFailsWith<ParserException> {
+            parseHeaders(ch, builder)!!.release()
+        }
     }
 
     @Test
-    fun extraSpacesMiddleBeforeColonNoAfter() = runBlocking {
+    fun extraSpacesMiddleBeforeColonNoAfter(): Unit = runBlocking<Unit> {
         ch.writeStringUtf8("Host :localhost\r\n\r\n")
-        val hh = parseHeaders(ch, builder)!!
-
-        assertEquals("localhost", hh["Host"]?.toString())
-        hh.release()
+        assertFailsWith<ParserException> {
+            parseHeaders(ch, builder)!!.release()
+        }
     }
 
     @Test
@@ -87,7 +84,7 @@ class HeadersTest {
         ch.writeStringUtf8("Host:  localhost \r\n\r\n")
         val hh = parseHeaders(ch, builder)!!
 
-        assertEquals("localhost ", hh["Host"]?.toString())
+        assertEquals("localhost", hh["Host"]?.toString())
         hh.release()
     }
 

@@ -13,7 +13,7 @@ import kotlin.test.*
 
 class JvmLoggingTest {
     @Test
-    fun testLoggingWithForms() = clientTest(MockEngine) {
+    fun testLoggingWithForms() = testWithEngine(MockEngine) {
         val packetLogger = PacketLogger()
 
         config {

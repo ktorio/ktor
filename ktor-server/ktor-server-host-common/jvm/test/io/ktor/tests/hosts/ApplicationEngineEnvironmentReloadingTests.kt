@@ -16,13 +16,17 @@ import kotlin.test.*
 
 class ApplicationEngineEnvironmentReloadingTests {
 
-    @Test fun `top level extension function as module function`() {
+    @Test
+    fun `top level extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
+                    )
+                )
+            )
         }
 
         environment.start()
@@ -32,14 +36,18 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `top level extension function as module function reloading stress`() {
+    @Test
+    fun `top level extension function as module function reloading stress`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.deployment.watch" to listOf("ktor-server-host-common"),
-                            "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.deployment.watch" to listOf("ktor-server-host-common"),
+                        "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
+                    )
+                )
+            )
         }
 
 /*
@@ -68,14 +76,14 @@ class ApplicationEngineEnvironmentReloadingTests {
 */
     }
 
-
-    @Test fun `top level non-extension function as module function`() {
+    @Test
+    fun `top level non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
-                    mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(::topLevelFunction).map { it.fqName }
-                    )))
+                mapOf(
+                    "ktor.deployment.environment" to "test",
+                    "ktor.application.modules" to listOf<KFunction0<Unit>>(::topLevelFunction).map { it.fqName }
+                )))
         }
         environment.start()
         val application = environment.application
@@ -84,13 +92,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `companion object extension function as module function`() {
+    @Test
+    fun `companion object extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectExtensionFunction")
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectExtensionFunction")
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -99,13 +111,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `companion object non-extension function as module function`() {
+    @Test
+    fun `companion object non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -114,13 +130,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `companion object jvmstatic extension function as module function`() {
+    @Test
+    fun `companion object jvmstatic extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction")
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction")
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -129,13 +149,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `companion object jvmstatic non-extension function as module function`() {
+    @Test
+    fun `companion object jvmstatic non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -144,13 +168,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `object holder extension function as module function`() {
+    @Test
+    fun `object holder extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction")
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction")
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -159,13 +187,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `object holder non-extension function as module function`() {
+    @Test
+    fun `object holder non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -174,13 +206,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `class holder extension function as module function`() {
+    @Test
+    fun `class holder extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction")
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction")
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -189,13 +225,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `class holder non-extension function as module function`() {
+    @Test
+    fun `class holder non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(ClassModuleFunctionHolder::classFunction.fqName)
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ClassModuleFunctionHolder::classFunction.fqName)
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -204,13 +244,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `no-arg module function`() {
+    @Test
+    fun `no-arg module function`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(NoArgModuleFunction::class.functionFqName("main"))
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(NoArgModuleFunction::class.functionFqName("main"))
+                    )
+                )
+            )
 
         }
         environment.start()
@@ -220,13 +264,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `multiple module functions`() {
+    @Test
+    fun `multiple module functions`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
                     mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.modules" to listOf(MultipleModuleFunctions::class.jvmName + ".main")
-                    )))
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(MultipleModuleFunctions::class.jvmName + ".main")
+                    )
+                )
+            )
 
         }
         environment.start()
@@ -236,13 +284,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `multiple static module functions`() {
+    @Test
+    fun `multiple static module functions`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.modules" to listOf(MultipleStaticModuleFunctions::class.jvmName + ".main")
-                )))
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(MultipleStaticModuleFunctions::class.jvmName + ".main")
+                    )
+                )
+            )
 
         }
         environment.start()
@@ -252,13 +304,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `top level module function with default arg`() {
+    @Test
+    fun `top level module function with default arg`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg")
-                )))
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg")
+                    )
+                )
+            )
 
         }
         environment.start()
@@ -268,13 +324,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `static module function with default arg`() {
+    @Test
+    fun `static module function with default arg`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.modules" to listOf(Companion::class.jvmName + ".functionWithDefaultArg")
-                )))
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(Companion::class.jvmName + ".functionWithDefaultArg")
+                    )
+                )
+            )
 
         }
         environment.start()
@@ -284,13 +344,17 @@ class ApplicationEngineEnvironmentReloadingTests {
         environment.stop()
     }
 
-    @Test fun `top level module function with jvm overloads`() {
+    @Test
+    fun `top level module function with jvm overloads`() {
         val environment = applicationEngineEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads")
-                )))
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads")
+                    )
+                )
+            )
 
         }
         environment.start()

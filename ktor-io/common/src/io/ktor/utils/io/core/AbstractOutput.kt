@@ -406,7 +406,7 @@ internal constructor(
         writeText(s)
     }
 
-    @Deprecated("Use writeText instead", ReplaceWith("writeText(s)"))
+    @Deprecated("Use writeText instead", ReplaceWith("this.writeText(cs)"))
     fun writeStringUtf8(cs: CharSequence) {
         writeText(cs)
     }

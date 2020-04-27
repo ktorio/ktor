@@ -8,8 +8,10 @@ import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.CancellationException
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -68,13 +70,18 @@ class UpgradeRequest(
 
 private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 
+// this class is instantiated by a servlet container
+// so we can't pass [UpgradeRequest] through a constructor
+// we also can't make it internal due to the same reason
 @InternalAPI
 @EngineAPI
 @Suppress("KDocMissingDocumentation")
 class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest
-    private val upgradeJob: CompletableJob = Job()
+
+    @Volatile
+    lateinit var upgradeJob: CompletableJob
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 
@@ -83,6 +90,7 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
         }
 
+        upgradeJob = Job(up.engineContext[Job])
         upgradeJob.invokeOnCompletion {
             webConnection.close()
         }
@@ -98,11 +106,24 @@ class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
-            up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
+            val job = up.upgradeMessage.upgrade(
+                inputChannel, outputChannel,
+                up.engineContext + upgradeJob, up.userContext + upgradeJob
+            )
+
+            upgradeJob.complete()
+            job.invokeOnCompletion {
+                inputChannel.cancel()
+                outputChannel.close()
+                upgradeJob.cancel()
+            }
         }
     }
 
     override fun destroy() {
-        upgradeJob.completeExceptionally(CancellationException("Upgraded WebConnection destroyed"))
+        try {
+            upgradeJob.completeExceptionally(CancellationException("Upgraded WebConnection destroyed"))
+        } catch (_: Throwable) {
+        }
     }
 }

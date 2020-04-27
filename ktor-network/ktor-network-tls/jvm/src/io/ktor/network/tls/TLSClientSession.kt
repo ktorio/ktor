@@ -4,8 +4,8 @@
 
 package io.ktor.network.tls
 
-import io.ktor.http.cio.internals.*
 import io.ktor.network.sockets.*
+import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
@@ -42,7 +42,7 @@ private class TLSSocket(
             appDataOutputLoop(this.channel)
         }
 
-    @UseExperimental(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
             input.consumeEach { record ->

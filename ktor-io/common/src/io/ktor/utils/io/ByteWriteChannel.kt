@@ -53,6 +53,7 @@ expect interface ByteWriteChannel {
      * Writes as much as possible and only suspends if buffer is full
      */
     suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int
+
     suspend fun writeAvailable(src: IoBuffer): Int
 
     /**
@@ -60,6 +61,7 @@ expect interface ByteWriteChannel {
      * Crashes if channel get closed while writing.
      */
     suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
+
     suspend fun writeFully(src: IoBuffer)
 
     @Suppress("DEPRECATION")
@@ -70,6 +72,7 @@ expect interface ByteWriteChannel {
      * Writes a [packet] fully or fails if channel get closed before the whole packet has been written
      */
     suspend fun writePacket(packet: ByteReadPacket)
+
     /**
      * Writes long number and suspends until written.
      * Crashes if channel get closed while writing.
@@ -184,7 +187,7 @@ suspend fun ByteWriteChannel.writeStringUtf8(s: CharBuffer) {
 
 suspend fun ByteWriteChannel.writeStringUtf8(s: String) {
     val packet = buildPacket {
-        writeStringUtf8(s)
+        writeText(s)
     }
 
     return writePacket(packet)

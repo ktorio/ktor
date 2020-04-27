@@ -9,10 +9,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
-import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.CancellationException
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 /**
@@ -34,7 +33,7 @@ class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(CoroutineName("ws-reader")) {
+    private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
@@ -42,8 +41,10 @@ class WebSocketReader(
         } catch (expected: CancellationException) {
         } catch (io: ChannelIOException) {
             queue.cancel()
-        } catch (cause: Throwable) {
+        } catch (cause: FrameTooBigException) {
+            // Bypass exception via queue to prevent cancellation and handle it on the top level.
             queue.close(cause)
+        } catch (cause: Throwable) {
             throw cause
         } finally {
             pool.recycle(buffer)
@@ -111,9 +112,14 @@ class WebSocketReader(
      * Raised when the frame is bigger than allowed in a current websocket session
      * @param frameSize size of received or posted frame that is too big
      */
-    class FrameTooBigException(val frameSize: Long) : Exception() {
+    class FrameTooBigException(val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
+
         override val message: String
             get() = "Frame is too big: $frameSize"
+
+        override fun createCopy(): FrameTooBigException = FrameTooBigException(frameSize).also {
+            it.initCause(this)
+        }
     }
 
     private enum class State {

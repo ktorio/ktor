@@ -32,6 +32,16 @@ class HeadersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
         built = true
         return HeadersImpl(values)
     }
+
+    override fun validateName(name: String) {
+        super.validateName(name)
+        HttpHeaders.checkHeaderName(name)
+    }
+
+    override fun validateValue(value: String) {
+        super.validateValue(value)
+        HttpHeaders.checkHeaderValue(value)
+    }
 }
 
 @Suppress("KDocMissingDocumentation")

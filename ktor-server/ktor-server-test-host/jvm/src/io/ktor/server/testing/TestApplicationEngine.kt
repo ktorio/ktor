@@ -5,10 +5,13 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
@@ -16,7 +19,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.future.*
 import io.ktor.utils.io.*
-import java.util.concurrent.*
 import kotlin.coroutines.*
 
 /**
@@ -29,6 +31,7 @@ class TestApplicationEngine(
 ) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
 
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
+    private var cancellationDeferred: CompletableJob? = null
 
     override val coroutineContext: CoroutineContext
         get() = testEngineJob
@@ -44,7 +47,7 @@ class TestApplicationEngine(
     private val configuration = Configuration().apply(configure)
 
     init {
-        pipeline.intercept(EnginePipeline.Call) {callInterceptor(Unit)}
+        pipeline.intercept(EnginePipeline.Call) { callInterceptor(Unit) }
     }
 
     /**
@@ -59,6 +62,15 @@ class TestApplicationEngine(
             }
         }
 
+    /**
+     * An instance of client engine user to be used in [client].
+     */
+    val engine: HttpClientEngine = TestHttpClientEngine.create { app = this@TestApplicationEngine }
+
+    /**
+     * A client instance connected to this test server instance. Only works until engine stop invocation.
+     */
+    val client: HttpClient = HttpClient(engine)
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.handleTestFailure(cause: Throwable) {
         tryRespondError(defaultExceptionStatusCode(cause) ?: throw cause)
@@ -74,16 +86,17 @@ class TestApplicationEngine(
     }
 
     override fun start(wait: Boolean): ApplicationEngine {
-        if (!testEngineJob.isActive) throw IllegalStateException("Test engine is already completed")
-        testEngineJob.invokeOnCompletion {
-            stop(0, 0, TimeUnit.SECONDS)
-        }
+        check(testEngineJob.isActive) { "Test engine is already completed" }
         environment.start()
+        cancellationDeferred = stopServerOnCancellation()
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         try {
+            cancellationDeferred?.complete()
+            client.close()
+            engine.close()
             environment.monitor.raise(ApplicationStopPreparing, environment)
             environment.stop()
         } finally {
@@ -103,8 +116,8 @@ class TestApplicationEngine(
         processResponse: TestApplicationCall.() -> Unit,
         block: () -> Unit
     ) {
-        val oldProcessRequest = processRequest
-        val oldProcessResponse = processResponse
+        val oldProcessRequest = this.processRequest
+        val oldProcessResponse = this.processResponse
         this.processRequest = {
             oldProcessRequest {
                 processRequest(it)
@@ -125,9 +138,9 @@ class TestApplicationEngine(
     /**
      * Make a test request
      */
-    @UseExperimental(InternalAPI::class)
-    fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val call = createCall(readResponse = true, setup = { processRequest(setup) })
+    @OptIn(InternalAPI::class)
+    fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
 
         val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
         val pipelineJob = GlobalScope.async(context) {
@@ -145,7 +158,7 @@ class TestApplicationEngine(
     }
 
     private fun createWebSocketCall(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        createCall {
+        createCall(closeRequest = false) {
             this.uri = uri
             addHeader(HttpHeaders.Connection, "Upgrade")
             addHeader(HttpHeaders.Upgrade, "websocket")
@@ -182,7 +195,7 @@ class TestApplicationEngine(
      * Make a test request that setup a websocket session and invoke [callback] function
      * that does conversation with server
      */
-    @UseExperimental(WebSocketInternalAPI::class)
+    @OptIn(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {},
@@ -243,8 +256,12 @@ class TestApplicationEngine(
     /**
      * Creates an instance of test call but doesn't start request processing
      */
-    fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        TestApplicationCall(application, readResponse, Dispatchers.IO).apply { setup(request) }
+    fun createCall(
+        readResponse: Boolean = false,
+        closeRequest: Boolean = true,
+        setup: TestApplicationRequest.() -> Unit
+    ): TestApplicationCall =
+        TestApplicationCall(application, readResponse, closeRequest, Dispatchers.IO).apply { setup(request) }
 }
 
 /**
@@ -263,7 +280,7 @@ fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {
-            trackedCookies = response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
+            trackedCookies += response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
         }
     ) {
         callback()

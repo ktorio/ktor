@@ -6,7 +6,7 @@ package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.tests.utils.dispatcher.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
@@ -15,49 +15,57 @@ import io.ktor.utils.io.core.*
  * Local test server url.
  */
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
+const val TEST_WEBSOCKET_SERVER: String = "ws://127.0.0.1:8080"
 const val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].
  */
-fun clientTest(
+fun testWithEngine(
     engine: HttpClientEngine,
     block: suspend TestClientBuilder<*>.() -> Unit
-) = clientTest(HttpClient(engine), block)
+) = testWithClient(HttpClient(engine), block)
 
 /**
- * Perform test with selected [client] or client loaded by service loader.
+ * Perform test with selected [client].
  */
-fun clientTest(
-    client: HttpClient = HttpClient(),
+private fun testWithClient(
+    client: HttpClient,
     block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
 ) = testSuspend {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
-    @Suppress("UNCHECKED_CAST")
-    client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-        .use { client -> builder.test(client) }
+    repeat(builder.repeatCount) {
+        @Suppress("UNCHECKED_CAST")
+        client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+            .use { client -> builder.test(client) }
+    }
+
+    client.engine.close()
 }
 
 /**
  * Perform test with selected client engine [factory].
  */
-fun <T : HttpClientEngineConfig> clientTest(
+fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = testSuspend {
     val builder = TestClientBuilder<T>().apply { block() }
-    val client = HttpClient(factory, block = builder.config)
+    repeat(builder.repeatCount) {
+        val client = HttpClient(factory, block = builder.config)
 
-    client.use {
-        builder.test(it)
-    }
+        client.use {
+            builder.test(it)
+        }
 
-    try {
-        client.coroutineContext[Job]?.join()
-    } catch (cause: Throwable) {
-        client.cancel()
-        throw cause
+        try {
+            val job = client.coroutineContext[Job]!!
+            job.join()
+        } catch (cause: Throwable) {
+            client.cancel("Test failed", cause)
+            throw cause
+        }
     }
 }
 
@@ -65,7 +73,8 @@ fun <T : HttpClientEngineConfig> clientTest(
 @Suppress("KDocMissingDocumentation")
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
-    var test: suspend (client: HttpClient) -> Unit = {}
+    var test: suspend (client: HttpClient) -> Unit = {},
+    var repeatCount: Int = 1
 )
 
 @InternalAPI

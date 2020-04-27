@@ -9,9 +9,11 @@ package io.ktor.util
 import io.ktor.utils.io.core.*
 
 @InternalAPI
-expect class Lock() : Closeable {
+expect class Lock() {
     fun lock()
     fun unlock()
+
+    fun close()
 }
 
 @InternalAPI

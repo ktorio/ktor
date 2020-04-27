@@ -7,12 +7,20 @@ package io.ktor.http.auth
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
+import kotlin.native.concurrent.*
 
 private const val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
 
+@ThreadLocal
 private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
+
+@ThreadLocal
 private val authSchemePattern = "\\S+".toRegex()
+
+@ThreadLocal
 private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
+
+@ThreadLocal
 private val escapeRegex: Regex = "\\\\.".toRegex()
 
 /**
@@ -30,7 +38,7 @@ fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 
     val parameters = parameterPattern.findAll(remaining).associateBy(
         { it.groups[1]!!.value },
-        { it.groups[2]!!.value.unescapeIfQuoted() }
+        { it.groups[2]!!.value.unescapedIfQuoted() }
     )
 
     return HttpAuthHeader.Parameterized(authScheme, parameters)
@@ -58,11 +66,11 @@ sealed class HttpAuthHeader(val authScheme: String) {
             require(blob.matches(token68Pattern)) { "invalid blob value: it should be token68 but it is $blob" }
         }
 
-        override fun render() = "$authScheme $blob"
-        override fun render(encoding: HeaderValueEncoding) = render()
+        override fun render(): String = "$authScheme $blob"
+        override fun render(encoding: HeaderValueEncoding): String = render()
 
         override fun equals(other: Any?): Boolean {
-            if (other !is HttpAuthHeader.Single) return false
+            if (other !is Single) return false
             return other.authScheme.equals(authScheme, ignoreCase = true) &&
                 other.blob.equals(blob, ignoreCase = true)
         }
@@ -97,7 +105,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Copies this [Parameterized] appending a new parameter [name] [value].
          */
-        fun withParameter(name: String, value: String) =
+        fun withParameter(name: String, value: String): Parameterized =
             Parameterized(authScheme, this.parameters + HeaderValueParam(name, value), encoding)
 
         /**
@@ -106,7 +114,6 @@ sealed class HttpAuthHeader(val authScheme: String) {
          * If there were several pairs they will be reduced into a single pair
          * at position of first occurrence discarding following pairs with this [name].
          */
-        @KtorExperimentalAPI
         fun withReplacedParameter(name: String, value: String): Parameterized {
             val firstIndex = parameters.indexOfFirst { it.name == name }
             if (firstIndex == -1) return withParameter(name, value)
@@ -126,13 +133,13 @@ sealed class HttpAuthHeader(val authScheme: String) {
             return Parameterized(authScheme, newParameters, encoding)
         }
 
-        override fun render(encoding: HeaderValueEncoding) =
+        override fun render(encoding: HeaderValueEncoding): String =
             parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
 
         /**
          * Tries to extract the first value of a parameter [name]. Returns null when not found.
          */
-        fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
+        fun parameter(name: String): String? = parameters.firstOrNull { it.name == name }?.value
 
         private fun String.encode(encoding: HeaderValueEncoding) = when (encoding) {
             HeaderValueEncoding.QUOTED_WHEN_REQUIRED -> escapeIfNeeded()
@@ -143,7 +150,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         override fun render(): String = render(encoding)
 
         override fun equals(other: Any?): Boolean {
-            if (other !is HttpAuthHeader.Parameterized) return false
+            if (other !is Parameterized) return false
             return other.authScheme.equals(authScheme, ignoreCase = true) &&
                 other.parameters == parameters
         }
@@ -174,7 +181,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Generates an [AuthScheme.Basic] challenge as a [HttpAuthHeader].
          */
-        fun basicAuthChallenge(realm: String, charset: Charset?) = Parameterized(
+        fun basicAuthChallenge(realm: String, charset: Charset?): Parameterized = Parameterized(
             AuthScheme.Basic, LinkedHashMap<String, String>().apply {
                 put(Parameters.Realm, realm)
                 if (charset != null) {
@@ -212,7 +219,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
     /**
      * Standard parameters for [Parameterized] [HttpAuthHeader].
      */
-    @Suppress("KDocMissingDocumentation")
+    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
     object Parameters {
         const val Realm = "realm"
         const val Charset = "charset"
@@ -233,10 +240,10 @@ sealed class HttpAuthHeader(val authScheme: String) {
 
 
 private fun String.substringAfterMatch(result: MatchResult): String = drop(
-    result.range.endInclusive + if (result.range.isEmpty()) 0 else 1
+    result.range.last + if (result.range.isEmpty()) 0 else 1
 )
 
-private fun String.unescapeIfQuoted() = when {
+private fun String.unescapedIfQuoted() = when {
     startsWith('"') && endsWith('"') -> {
         removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
     }

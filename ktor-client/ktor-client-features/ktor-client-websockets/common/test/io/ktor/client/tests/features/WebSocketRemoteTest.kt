@@ -16,7 +16,7 @@ class WebSocketRemoteTest : ClientLoader() {
     private val echoWebsocket = "echo.websocket.org"
 
     @Test
-    fun testRemotePingPong(): Unit = clientTests {
+    fun testRemotePingPong() = clientTests {
         config {
             install(WebSockets)
         }
@@ -31,7 +31,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSecureRemotePingPong(): Unit = clientTests {
+    fun testSecureRemotePingPong() = clientTests {
         config {
             install(WebSockets)
         }
@@ -46,7 +46,7 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testWithLogging(): Unit = clientTests {
+    fun testWithLogging() = clientTests {
         config {
             install(Logging) {
                 level = LogLevel.ALL
@@ -63,34 +63,34 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
-    fun testSessionClose(): Unit = clientTests {
+    fun testSessionClose() = clientTests {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            val session = client.webSocketSession(host = echoWebsocket) {
+            val session = client.webSocket(host = echoWebsocket, request = {
                 url.protocol = URLProtocol.WSS
                 url.port = DEFAULT_PORT
+            }) {
+                close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
             }
-
-            session.close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
         }
     }
 
     @Test
-    fun testSessionTermination(): Unit = clientTests {
+    fun testSessionTermination() = clientTests {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            val session = client.webSocketSession(host = echoWebsocket) {
+            client.webSocket(host = echoWebsocket, request = {
                 url.protocol = URLProtocol.WSS
                 url.port = DEFAULT_PORT
+            }) {
+                cancel()
             }
-
-            session.cancel()
         }
     }
 

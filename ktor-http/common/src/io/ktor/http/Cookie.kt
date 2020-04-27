@@ -6,13 +6,16 @@ package io.ktor.http
 
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlin.jvm.*
+import kotlin.native.concurrent.*
 
 /**
- * Represents a cooke value
+ * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
+ * A cookie with neither [expires] nor [maxAge] is a session cookie.
  *
  * @property name
  * @property value
- * @property encoding - cookie encoding type
+ * @property encoding - cookie encoding type [CookieEncoding]
  * @property maxAge number of seconds to keep cookie
  * @property expires date when it expires
  * @property domain for which it is set
@@ -25,6 +28,7 @@ data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+    @get:JvmName("getMaxAgeInt")
     val maxAge: Int = 0,
     val expires: GMTDate? = null,
     val domain: String? = null,
@@ -32,7 +36,11 @@ data class Cookie(
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
     val extensions: Map<String, String?> = emptyMap()
-)
+) {
+    @Suppress("unused", "KDocMissingDocumentation")
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun getMaxAge(): Int = maxAge
+}
 
 /**
  * Cooke encoding strategy
@@ -58,6 +66,7 @@ enum class CookieEncoding {
     BASE64_ENCODING
 }
 
+@SharedImmutable
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 
 /**
@@ -68,24 +77,25 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
-    val loweredMap = asMap.mapKeys { it.key.toLowerCase() }
+    val loweredMap = asMap.mapKeys { it.key.toLowerCasePreservingASCIIRules() }
 
     return Cookie(
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
         maxAge = loweredMap["max-age"]?.toInt() ?: 0,
-        expires = loweredMap["expires"]?.fromHttpToGmtDate(),
+        expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
         secure = "secure" in loweredMap,
         httpOnly = "httponly" in loweredMap,
         extensions = asMap.filterKeys {
-            it.toLowerCase() !in loweredPartNames && it != first.key
+            it.toLowerCasePreservingASCIIRules() !in loweredPartNames && it != first.key
         }
     )
 }
 
+@ThreadLocal
 private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
 /**
@@ -207,7 +217,9 @@ private fun String.assertCookieName() = when {
     else -> this
 }
 
+@SharedImmutable
 private val cookieCharsShouldBeEscaped = setOf(';', ',', '"')
+
 private fun Char.shouldEscapeInCookies() = isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
 
 @Suppress("NOTHING_TO_INLINE")

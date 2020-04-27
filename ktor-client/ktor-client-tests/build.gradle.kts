@@ -41,13 +41,14 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-client:ktor-client-mock"))
-            api(project(":ktor-client:ktor-client-tests:ktor-client-tests-dispatcher"))
+            api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
         }
     }
     commonTest {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
         }
     }
     jvmMain {
@@ -77,19 +78,25 @@ kotlin.sourceSets {
         }
     }
 
-//    if (!ideaActive) {
-//        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
-//            it.dependencies {
-//                api(project(":ktor-client:ktor-client-curl"))
-//            }
-//        }
-//
-//        listOf("iosX64Test", "iosArm64Test", "iosArm64Test", "macosX64Test").map { getByName(it) }.forEach {
-//            it.dependencies {
-//                api(project(":ktor-client:ktor-client-ios"))
-//            }
-//        }
-//    }
+    if (!ideaActive) {
+        listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                //                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+        listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
+            it.dependencies {
+                api(project(":ktor-client:ktor-client-ios"))
+            }
+        }
+    } else {
+        posixTest {
+            dependencies {
+                api(project(":ktor-client:ktor-client-ios"))
+                //                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+    }
 }
 
 val startTestServer = task<KtorTestServer>("startTestServer") {
@@ -101,7 +108,7 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 }
 
 val testTasks = mutableListOf(
-    "jvmTest", "jvmBenchmark"
+    "jvmTest", "jvmBenchmark", "jsNodeTest", "jsBrowserTest", "posixTest", "darwinTest"
 )
 
 if (!ideaActive) {
@@ -116,9 +123,11 @@ if (!ideaActive) {
 }
 
 rootProject.allprojects {
-    val tasks = tasks.matching { it.name in testTasks }
-    configure(tasks) {
-        dependsOn(startTestServer)
+    if (path.contains("ktor-client")) {
+        val tasks = tasks.matching { it.name in testTasks }
+        configure(tasks) {
+            dependsOn(startTestServer)
+        }
     }
 }
 

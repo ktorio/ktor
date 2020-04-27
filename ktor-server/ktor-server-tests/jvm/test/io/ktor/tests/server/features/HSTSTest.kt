@@ -10,8 +10,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
-import java.time.*
 import kotlin.test.*
 
 class HSTSTest {
@@ -111,7 +109,7 @@ class HSTSTest {
     private fun Application.testApp(block: HSTS.Configuration.() -> Unit = {}) {
         install(XForwardedHeaderSupport)
         install(HSTS) {
-            maxAge = Duration.ofSeconds(10L)
+            maxAgeInSeconds = 10
             includeSubDomains = true
             preload = true
             customDirectives["some"] = "va=lue"

@@ -18,11 +18,11 @@ class RequestResponseBuilder {
      * Append response status line
      */
     fun responseLine(version: CharSequence, status: Int, statusText: CharSequence) {
-        packet.writeStringUtf8(version)
+        packet.writeText(version)
         packet.writeByte(SP)
-        packet.writeStringUtf8(status.toString())
+        packet.writeText(status.toString())
         packet.writeByte(SP)
-        packet.writeStringUtf8(statusText)
+        packet.writeText(statusText)
         packet.writeByte(CR)
         packet.writeByte(LF)
     }
@@ -31,11 +31,11 @@ class RequestResponseBuilder {
      * Append request line
      */
     fun requestLine(method: HttpMethod, uri: CharSequence, version: CharSequence) {
-        packet.writeStringUtf8(method.value)
+        packet.writeText(method.value)
         packet.writeByte(SP)
-        packet.writeStringUtf8(uri)
+        packet.writeText(uri)
         packet.writeByte(SP)
-        packet.writeStringUtf8(version)
+        packet.writeText(version)
         packet.writeByte(CR)
         packet.writeByte(LF)
     }

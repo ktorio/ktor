@@ -7,7 +7,6 @@ package io.ktor.server.jetty
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Jetty
@@ -24,10 +23,10 @@ class JettyApplicationEngine(
         return this
     }
 
-    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+    override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         dispatcher.prepareShutdown()
         try {
-            super.stop(gracePeriod, timeout, timeUnit)
+            super.stop(gracePeriodMillis, timeoutMillis)
         } finally {
             dispatcher.completeShutdown()
         }

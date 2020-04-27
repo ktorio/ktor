@@ -1,9 +1,9 @@
+
 kotlin.sourceSets {
     commonMain.dependencies {
-        api 'org.jetbrains.kotlin:kotlin-stdlib-common'
-        api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
-        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
-        api group: 'org.jetbrains.kotlinx', name: 'atomicfu', version: atomicfu_version
+        api "org.jetbrains.kotlin:kotlin-stdlib-common"
+        api group: "org.jetbrains.kotlin", name: "kotlin-stdlib-common", version: kotlin_version
+        api group: "org.jetbrains.kotlinx", name: "kotlinx-coroutines-core-common", version: coroutines_version
     }
     commonTest.dependencies {
         api "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"

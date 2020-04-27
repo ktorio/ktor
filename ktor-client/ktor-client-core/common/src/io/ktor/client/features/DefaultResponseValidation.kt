@@ -6,11 +6,12 @@ package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.response.*
 import io.ktor.util.*
-import io.ktor.utils.io.core.*
+import io.ktor.client.statement.*
 import kotlin.jvm.*
+import kotlin.native.concurrent.*
 
+@SharedImmutable
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
 /**
@@ -24,21 +25,16 @@ fun HttpClientConfig<*>.addDefaultResponseValidation() {
             val originCall = response.call
             if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) return@validateResponse
 
-            response.use {
-                val exceptionCall = originCall.save().apply {
-                    attributes.put(ValidateMark, Unit)
-                }
+            val exceptionCall = originCall.save().apply {
+                attributes.put(ValidateMark, Unit)
+            }
 
-                val exceptionResponse = exceptionCall.response
-                when (statusCode) {
-                    in 300..399 -> throw RedirectResponseException(exceptionResponse)
-                    in 400..499 -> throw ClientRequestException(exceptionResponse)
-                    in 500..599 -> throw ServerResponseException(exceptionResponse)
-                }
-
-                if (statusCode >= 600) {
-                    throw ResponseException(exceptionResponse)
-                }
+            val exceptionResponse = exceptionCall.response
+            when (statusCode) {
+                in 300..399 -> throw RedirectResponseException(exceptionResponse)
+                in 400..499 -> throw ClientRequestException(exceptionResponse)
+                in 500..599 -> throw ServerResponseException(exceptionResponse)
+                else -> throw ResponseException(exceptionResponse)
             }
         }
     }

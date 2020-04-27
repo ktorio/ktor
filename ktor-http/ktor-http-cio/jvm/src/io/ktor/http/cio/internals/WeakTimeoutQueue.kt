@@ -24,7 +24,7 @@ import kotlin.coroutines.intrinsics.*
  *  however in the particular use-case (closing IDLE connection) it is just fine
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
-@KtorExperimentalAPI
+@InternalAPI
 @Suppress("KDocMissingDocumentation")
 class WeakTimeoutQueue(
     val timeoutMillis: Long,
@@ -155,7 +155,7 @@ class WeakTimeoutQueue(
 
         init {
             context[Job]?.let { parent ->
-                @UseExperimental(InternalCoroutinesApi::class)
+                @OptIn(InternalCoroutinesApi::class)
                 parent.invokeOnCompletion(onCancelling = true) {
                     if (it != null) {
                         resumeWithException(it)

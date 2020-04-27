@@ -34,7 +34,7 @@ internal suspend fun HttpRequestData.executeRequest(
 
     val headersFrame = prepareHeadersFrame()
     val responseChannel = ByteChannel()
-    val responseListener = JettyResponseListener(session, responseChannel, callContext)
+    val responseListener = JettyResponseListener(this, session, responseChannel, callContext)
 
     val jettyRequest = JettyHttp2Request(withPromise { promise ->
         session.newStream(headersFrame, promise, responseListener)

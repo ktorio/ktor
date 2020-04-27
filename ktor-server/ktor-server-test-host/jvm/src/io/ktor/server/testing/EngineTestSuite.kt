@@ -7,7 +7,7 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -18,11 +18,11 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -117,7 +117,26 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(Arrays.equals(byteArrayOf(25, 37, 42), readBytes()))
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
+        }
+    }
+
+    @Test
+    fun testBinaryUsingChannel() {
+        createAndStartServer {
+            handle {
+                call.respondBytesWriter {
+                    writeByte(25)
+                    writeByte(37)
+                    writeByte(42)
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            assertEquals(ContentType.Application.OctetStream, contentType())
+            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readBytes()))
         }
     }
 
@@ -513,8 +532,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
         }) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals(file.reader().use { it.read().toChar().toString() }, readText(),
-                "It should be no compression if range requested")
+            assertEquals(
+                file.reader().use { it.read().toChar().toString() }, readText(),
+                "It should be no compression if range requested"
+            )
         }
     }
 
@@ -855,10 +876,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
 
             val responses = s.getInputStream().bufferedReader(Charsets.ISO_8859_1).lineSequence()
-                .filterNot {
-                    it.startsWith("Date") || it.startsWith("Server") || it.startsWith("Content-") || it.toIntOrNull() != null || it.isBlank() || it.startsWith(
-                        "Connection"
-                    )
+                .filterNot { line ->
+                    line.startsWith("Date") || line.startsWith("Server")
+                        || line.startsWith("Content-")
+                        || line.toIntOrNull() != null
+                        || line.isBlank()
+                        || line.startsWith("Connection")
+                        || line.startsWith("Keep-Alive")
                 }
                 .map { it.trim() }
                 .joinToString(separator = "\n").replace("200 OK", "200")
@@ -1081,6 +1105,27 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
         withUrl("/uri/1") {
             assertEquals("/uri/1", readText())
+        }
+    }
+
+    @Test
+    fun testRemoteHost() {
+        createAndStartServer {
+            handle {
+                call.respondText {
+                    call.request.local.remoteHost
+                }
+            }
+        }
+
+        withUrl("/") {
+            readText().also { text ->
+                assertNotNull(
+                    listOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1").find {
+                        it == text
+                    }
+                )
+            }
         }
     }
 
@@ -1818,12 +1863,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             val expected = buildString {
                 produceText()
             }
-            call.receive<HttpResponse>().use { response ->
-                assertTrue { HttpHeaders.ContentEncoding in response.headers }
-                val array = response.receive<ByteArray>()
-                val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
-                assertEquals(expected, text)
-            }
+            assertTrue { HttpHeaders.ContentEncoding in headers }
+            val array = receive<ByteArray>()
+            val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
+            assertEquals(expected, text)
         }
     }
 
@@ -1842,6 +1885,33 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", { body = text; }) {
             val actual = readText()
             assertEquals(text, actual)
+        }
+    }
+
+    @Test
+    fun testHeadersReturnCorrectly() {
+        createAndStartServer {
+
+            get("/") {
+                assertEquals("foo", call.request.headers["X-Single-Value"])
+                assertEquals("foo,bar", call.request.headers["X-Double-Value"])
+
+                assertNull(call.request.headers["X-Nonexistent-Header"])
+                assertNull(call.request.headers.getAll("X-Nonexistent-Header"))
+
+                call.respond(HttpStatusCode.OK, "OK")
+            }
+        }
+
+        withUrl("/", {
+            headers {
+                append("X-Single-Value", "foo")
+                append("X-Double-Value", "foo")
+                append("X-Double-Value", "bar")
+            }
+        }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("OK", readText())
         }
     }
 

@@ -13,69 +13,76 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(
     output: ByteWriteChannel, callContext: CoroutineContext,
-    overProxy: Boolean
+    overProxy: Boolean,
+    closeChannel: Boolean = true
 ) {
-    val builder = RequestResponseBuilder()
-
-    val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
-    val contentEncoding = headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
-    val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
-
     try {
-        val urlString = if (overProxy) {
-            url.toString()
-        } else {
-            url.fullPath
+        val builder = RequestResponseBuilder()
+
+        val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
+        val contentEncoding = headers[HttpHeaders.TransferEncoding]
+        val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
+        val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
+
+        try {
+            val urlString = if (overProxy) {
+                url.toString()
+            } else {
+                url.fullPath
+            }
+
+            builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
+            // this will only add the port to the host header if the port is non-standard for the protocol
+            builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
+
+            mergeHeaders(headers, body) { key, value ->
+                builder.headerLine(key, value)
+            }
+
+            if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
+                builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
+            }
+
+            builder.emptyLine()
+            output.writePacket(builder.build())
+            output.flush()
+        } finally {
+            builder.release()
         }
 
-        builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
-        // this will only add the port to the host header if the port is non-standard for the protocol
-        builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
+        val content = body
+        if (content is OutgoingContent.NoContent)
+            return
 
-        mergeHeaders(headers, body) { key, value ->
-            builder.headerLine(key, value)
+        val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
+        val channel = chunkedJob?.channel ?: output
+
+        try {
+            when (content) {
+                is OutgoingContent.NoContent -> return
+                is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
+                is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
+                is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
+                is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+            }
+        } catch (cause: Throwable) {
+            channel.close(cause)
+        } finally {
+            channel.flush()
+            chunkedJob?.channel?.close()
+            chunkedJob?.join()
         }
-
-        if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
-            builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
-        }
-
-        builder.emptyLine()
-        output.writePacket(builder.build())
-        output.flush()
     } finally {
-        builder.release()
-    }
-
-    val content = body
-    if (content is OutgoingContent.NoContent)
-        return
-
-    val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
-    val channel = chunkedJob?.channel ?: output
-
-    try {
-        when (content) {
-            is OutgoingContent.NoContent -> return
-            is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
-            is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
-            is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
-            is OutgoingContent.ProtocolUpgrade -> UnsupportedContentTypeException(content)
+        if (closeChannel) {
+            output.close()
         }
-    } catch (cause: Throwable) {
-        channel.close(cause)
-    } finally {
-        channel.flush()
-        chunkedJob?.channel?.close()
-        chunkedJob?.join()
     }
 }
 
@@ -125,3 +132,29 @@ internal suspend fun readResponse(
 }
 
 internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
+
+/**
+ * Wrap channel using [withoutClosePropagation] if [propagateClose] is false otherwise return the same channel.
+ */
+internal fun ByteWriteChannel.wrap(coroutineContext: CoroutineContext, propagateClose: Boolean): ByteWriteChannel =
+    if (propagateClose) this else withoutClosePropagation(coroutineContext)
+
+/**
+ * Wrap channel so that [ByteWriteChannel.close] of the resulting channel doesn't lead to closing of the base channel.
+ */
+internal fun ByteWriteChannel.withoutClosePropagation(
+    coroutineContext: CoroutineContext,
+    closeOnCoroutineCompletion: Boolean = true
+): ByteWriteChannel {
+    if (closeOnCoroutineCompletion) {
+        // Pure output represents a socket output channel that is closed when request fully processed or after
+        // request sent in case TCP half-close is allowed.
+        coroutineContext[Job]!!.invokeOnCompletion {
+            close()
+        }
+    }
+
+    return GlobalScope.reader(coroutineContext, autoFlush = true) {
+        channel.copyTo(this@withoutClosePropagation, Long.MAX_VALUE)
+    }.channel
+}

@@ -5,12 +5,13 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import org.khronos.webgl.*
+import kotlinx.coroutines.*
+import org.khronos.webgl.Uint8Array
 import org.w3c.fetch.*
 import kotlin.coroutines.*
 

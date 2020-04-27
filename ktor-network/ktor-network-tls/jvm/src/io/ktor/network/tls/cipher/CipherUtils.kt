@@ -4,7 +4,7 @@
 
 package io.ktor.network.tls.cipher
 
-import io.ktor.http.cio.internals.*
+import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import java.nio.*

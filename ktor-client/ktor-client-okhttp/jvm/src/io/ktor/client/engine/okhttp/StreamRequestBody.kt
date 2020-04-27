@@ -17,7 +17,7 @@ internal class StreamRequestBody(
     override fun contentType(): MediaType? = null
 
     override fun writeTo(sink: BufferedSink) {
-        Okio.source(block().toInputStream()).use {
+        block().toInputStream().source().use {
             sink.writeAll(it)
         }
     }

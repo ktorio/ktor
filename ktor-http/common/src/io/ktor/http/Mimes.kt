@@ -4,6 +4,9 @@
 
 package io.ktor.http
 
+import io.ktor.util.*
+import kotlin.native.concurrent.*
+
 private val rawMimes: String
     get() = """
 .123,application/vnd.lotus-1-2-3
@@ -555,8 +558,8 @@ private val rawMimes: String
 .mp3,audio/mpeg
 .mp3,audio/mpeg3
 .mp4a,audio/mp4
-.mp4,application/mp4
 .mp4,video/mp4
+.mp4,application/mp4
 .mpa,audio/mpeg
 .mpc,application/vnd.mophun.certificate
 .mpc,application/x-project
@@ -754,8 +757,8 @@ N/A,application/andrew-inset
 .pwn,application/vnd.3m.post-it-notes
 .pwz,application/vnd.ms-powerpoint
 .pya,audio/vnd.ms-playready.media.pya
-.pyc,applicaiton/x-bytecode.python
-.py,text/x-script.phyton
+.pyc,application/x-bytecode.python
+.py,text/x-script.python
 .pyv,video/vnd.ms-playready.media.pyv
 .qam,application/vnd.epson.quickanime
 .qbo,application/vnd.intu.qbo
@@ -1219,8 +1222,9 @@ internal fun loadMimes(): List<Pair<String, ContentType>> {
         val extension = line.substring(0, index)
         val mime = line.substring(index + 1)
 
-        extension.removePrefix(".").toLowerCase() to mime.toContentType()
+        extension.removePrefix(".").toLowerCasePreservingASCIIRules() to mime.toContentType()
     }.toList()
 }
 
-internal val mimes: List<Pair<String, ContentType>> get() = loadMimes()
+@ThreadLocal
+internal val mimes: List<Pair<String, ContentType>> by lazy { loadMimes() }

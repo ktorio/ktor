@@ -4,7 +4,6 @@
 
 package io.ktor.network.util
 
-import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.core.Closeable
@@ -20,7 +19,6 @@ import kotlin.coroutines.intrinsics.*
     "This is going to be deprecated. Use kotlinx.coroutines dispatchers",
     level = DeprecationLevel.HIDDEN
 )
-@KtorExperimentalAPI
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     @Suppress("DEPRECATION_ERROR")
     private val dispatcherThreadGroup = ThreadGroup("io-pool-group-sub")

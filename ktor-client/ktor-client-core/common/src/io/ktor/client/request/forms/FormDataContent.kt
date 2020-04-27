@@ -50,7 +50,7 @@ class MultiPartFormDataContent(
     private val rawParts: List<PreparedPart> = parts.map { part ->
         val headersBuilder = BytePacketBuilder()
         for ((key, values) in part.headers.entries()) {
-            headersBuilder.writeStringUtf8("$key: ${values.joinToString("; ")}")
+            headersBuilder.writeText("$key: ${values.joinToString("; ")}")
             headersBuilder.writeFully(RN_BYTES)
         }
 
@@ -67,10 +67,10 @@ class MultiPartFormDataContent(
                 PreparedPart(headers, part.provider, size)
             }
             is PartData.FormItem -> {
-                val bytes = buildPacket { writeStringUtf8(part.value) }.readBytes()
+                val bytes = buildPacket { writeText(part.value) }.readBytes()
                 val provider = { buildPacket { writeFully(bytes) } }
                 if (bodySize == null) {
-                    headersBuilder.writeStringUtf8("${HttpHeaders.ContentLength}: ${bytes.size}")
+                    headersBuilder.writeText("${HttpHeaders.ContentLength}: ${bytes.size}")
                     headersBuilder.writeFully(RN_BYTES)
                 }
 

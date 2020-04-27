@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.benchmarks.*
 import io.ktor.server.cio.*
+import io.ktor.server.cio.backend.*
 import io.netty.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
@@ -30,7 +31,7 @@ class CIOPlatformBenchmark : PlatformBenchmark() {
     }.build()
 
     override fun runServer(port: Int) {
-        server = GlobalScope.httpServer(HttpServerSettings(port = port), handler =  { request: Request, input: ByteReadChannel, output: ByteWriteChannel, _: CompletableDeferred<Boolean>? ->
+        server = GlobalScope.httpServer(HttpServerSettings(port = port), handler =  { request: Request ->
             val uri = request.uri
             if (uri.length == 6 && uri.startsWith("/sayOK")) {
                 output.writePacket(sayOK.copy())

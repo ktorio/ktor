@@ -41,6 +41,8 @@ abstract class ResponseHeaders {
     fun append(name: String, value: String, safeOnly: Boolean = true) {
         if (safeOnly && HttpHeaders.isUnsafe(name))
             throw UnsafeHeaderException(name)
+        HttpHeaders.checkHeaderName(name)
+        HttpHeaders.checkHeaderValue(value)
         engineAppendHeader(name, value)
     }
 

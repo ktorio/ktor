@@ -77,14 +77,14 @@ actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): L
 internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
     private var attachedJob: Job? = null
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
         attachedJob?.cancel()
         attachedJob = job
         job.invokeOnCompletion(onCancelling = true) { cause ->
             attachedJob = null
             if (cause != null) {
-                cancel(CancellationException("Channel closed due to job failure: $cause"))
+                cancel(cause)
             }
         }
     }
@@ -125,4 +125,6 @@ internal class ByteChannelJS(initial: IoBuffer, autoFlush: Boolean) : ByteChanne
             remaining -= rc
         }
     }
+
+    override fun toString(): String = "ByteChannel[$attachedJob, ${hashCode()}]"
 }

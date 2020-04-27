@@ -2,7 +2,7 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:UseExperimental(KtorExperimentalLocationsAPI::class)
+@file:OptIn(KtorExperimentalLocationsAPI::class)
 
 package io.ktor.tests.locations
 
@@ -43,7 +43,7 @@ class entity(val id: EntityID)
 
 data class EntityID(val typeId: Int, val entityId: Int)
 
-@UseExperimental(KtorExperimentalLocationsAPI::class)
+@OptIn(KtorExperimentalLocationsAPI::class)
 class CustomLocationsTest {
 
     @Test

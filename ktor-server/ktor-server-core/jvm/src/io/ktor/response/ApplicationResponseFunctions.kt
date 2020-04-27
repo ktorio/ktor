@@ -7,9 +7,10 @@
 package io.ktor.response
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import java.io.*
 
 /**
@@ -102,7 +103,7 @@ suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingContent.(
 /**
  * Respond with text content writer.
  *
- * The [writer] parameter will be called later when engine is ready to produce content. 
+ * The [writer] parameter will be called later when engine is ready to produce content.
  * Provided [Writer] will be closed automatically.
  */
 suspend fun ApplicationCall.respondTextWriter(contentType: ContentType? = null, status: HttpStatusCode? = null, writer: suspend Writer.() -> Unit) {
@@ -122,6 +123,21 @@ suspend fun ApplicationCall.respondOutputStream(contentType: ContentType? = null
 }
 
 /**
+ * Respond with binary content producer.
+ *
+ * The [producer] parameter will be called later when engine is ready to produce content. You don't need to close it.
+ * Provided [ByteWriteChannel] will be closed automatically.
+ */
+@KtorExperimentalAPI
+suspend fun ApplicationCall.respondBytesWriter(
+    contentType: ContentType? = null,
+    status: HttpStatusCode? = null,
+    producer: suspend ByteWriteChannel.() -> Unit
+) {
+    respond(ChannelWriterContent(producer, contentType ?: ContentType.Application.OctetStream, status))
+}
+
+/**
  * Creates a default [ContentType] based on the given [contentType] and current call
  *
  * If [contentType] is null, it tries to fetch already set response header "Content-Type". If the header is not available
@@ -133,7 +149,13 @@ fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentTy
     val result = when (contentType) {
         null -> {
             val headersContentType = response.headers[HttpHeaders.ContentType]
-            headersContentType?.let { ContentType.parse(headersContentType) } ?: ContentType.Text.Plain
+            headersContentType?.let {
+                try {
+                    ContentType.parse(headersContentType)
+                } catch (_: BadContentTypeFormatException) {
+                    null
+                }
+            } ?: ContentType.Text.Plain
         }
         else -> contentType
     }

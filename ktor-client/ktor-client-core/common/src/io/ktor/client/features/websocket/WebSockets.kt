@@ -7,7 +7,7 @@ package io.ktor.client.features.websocket
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
@@ -19,7 +19,7 @@ import io.ktor.util.*
  * @property maxFrameSize - max size of single websocket frame.
  */
 @KtorExperimentalAPI
-@UseExperimental(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class)
 class WebSockets(
     val pingInterval: Long = -1L,
     val maxFrameSize: Long = Int.MAX_VALUE.toLong()
@@ -40,12 +40,16 @@ class WebSockets(
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, session) ->
                 if (session !is WebSocketSession) return@intercept
                 if (info.type == DefaultClientWebSocketSession::class) {
-                    val clientSession = with(feature) { DefaultClientWebSocketSession(context, session.asDefault()) }
+                    val clientSession: DefaultClientWebSocketSession = with(feature) {
+                        DefaultClientWebSocketSession(context, session.asDefault())
+                    }
+
                     proceedWith(HttpResponseContainer(info, clientSession))
                     return@intercept
                 }
 
-                proceedWith(HttpResponseContainer(info, DelegatingClientWebSocketSession(context, session)))
+                val response = HttpResponseContainer(info, DelegatingClientWebSocketSession(context, session))
+                proceedWith(response)
             }
         }
     }

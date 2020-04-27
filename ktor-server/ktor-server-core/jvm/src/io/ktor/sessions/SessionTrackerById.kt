@@ -18,15 +18,15 @@ import kotlin.reflect.*
  * @property storage session storage to store session
  * @property sessionIdProvider is a function that generates session IDs
  */
-class SessionTrackerById(
-    val type: KClass<*>,
-    val serializer: SessionSerializer,
+class SessionTrackerById<S : Any>(
+    val type: KClass<S>,
+    val serializer: SessionSerializer<S>,
     val storage: SessionStorage,
     val sessionIdProvider: () -> String
-) : SessionTracker {
+) : SessionTracker<S> {
     private val SessionIdKey = AttributeKey<String>("SessionId")
 
-    override suspend fun load(call: ApplicationCall, transport: String?): Any? {
+    override suspend fun load(call: ApplicationCall, transport: String?): S? {
         val sessionId = transport ?: return null
 
         call.attributes.put(SessionIdKey, sessionId)
@@ -38,10 +38,14 @@ class SessionTrackerById(
         } catch (notFound: NoSuchElementException) {
             call.application.log.debug("Failed to lookup session: $notFound")
         }
+
+        // we remove the wrong session identifier if no related session found
+        call.attributes.put(SessionIdKey, sessionId)
+
         return null
     }
 
-    override suspend fun store(call: ApplicationCall, value: Any): String {
+    override suspend fun store(call: ApplicationCall, value: S): String {
         val sessionId = call.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(value)
         storage.write(sessionId) { channel ->
@@ -58,7 +62,7 @@ class SessionTrackerById(
         }
     }
 
-    override fun validate(value: Any) {
+    override fun validate(value: S) {
         if (!type.javaObjectType.isAssignableFrom(value.javaClass)) {
             throw IllegalArgumentException("Value for this session tracker expected to be of type $type but was $value")
         }

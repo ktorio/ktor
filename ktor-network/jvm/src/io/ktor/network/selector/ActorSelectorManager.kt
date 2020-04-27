@@ -7,19 +7,18 @@ package io.ktor.network.selector
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.io.Closeable
+import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
-import kotlin.jvm.*
 
 /**
  * Default CIO selector manager implementation
  */
 @Suppress("BlockingMethodInNonBlockingContext")
 @KtorExperimentalAPI
-class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
+class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
     private var selectorRef: Selector? = null
 
@@ -35,7 +34,7 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
 
     private val mb = LockFreeMPSCQueue<Selectable>()
 
-    override val coroutineContext: CoroutineContext = dispatcher + CoroutineName("selector")
+    override val coroutineContext: CoroutineContext = context + CoroutineName("selector")
 
     init {
         launch {
@@ -81,6 +80,8 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
                 selector.selectNow()
                 if (pending > 0) {
                     handleSelectedKeys(selector.selectedKeys(), selector.keys())
+                } else {
+                    cancelled = 0
                 }
             } else {
                 val received = mb.receiveOrNull() ?: break
@@ -141,8 +142,7 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
                 if (!continuation.resume(Unit)) {
                     selectWakeup()
                 }
-            }
-            else if (selectable.channel.isOpen) throw ClosedSelectorException()
+            } else if (selectable.channel.isOpen) throw ClosedSelectorException()
             else throw ClosedChannelException()
         } catch (t: Throwable) {
             cancelAllSuspensions(selectable, t)
@@ -184,7 +184,8 @@ class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSuppor
         fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null)
             if (continuation != null) {
-                continuation.resume(value) /** we resume unintercepted, see [dispatchIfNeeded] */
+                continuation.resume(value)
+                /** we resume unintercepted, see [dispatchIfNeeded] */
                 return true
             }
 

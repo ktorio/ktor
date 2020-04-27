@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.cio
 
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
@@ -12,7 +13,6 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import java.io.*
 import java.net.*
@@ -61,11 +61,13 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData =
-        suspendCancellableCoroutine { continuation ->
-            val task = RequestTask(request, continuation, callContext)
-            tasks.offer(task)
-        }
+    suspend fun execute(
+        request: HttpRequestData,
+        callContext: CoroutineContext
+    ): HttpResponseData = suspendCancellableCoroutine { continuation ->
+        val task = RequestTask(request, continuation, callContext)
+        tasks.offer(task)
+    }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
         if (deliveryPoint.offer(task)) return
@@ -88,21 +90,11 @@ internal class Endpoint(
     ): Job = launch(task.context + CoroutineName("DedicatedRequest")) {
         val (request, response, callContext) = task
         try {
-            val connection = connect()
-            val input = connection.openReadChannel()
-            val output = connection.openWriteChannel()
-            val requestTime = GMTDate()
+            val connection = connect(request)
+            val input = this@Endpoint.mapEngineExceptions(connection.openReadChannel(), task.request)
+            val output = this@Endpoint.mapEngineExceptions(connection.openWriteChannel(), task.request)
 
-            val timeout = config.requestTimeout
-            val responseData = if (timeout == 0L) {
-                request.write(output, callContext, overProxy)
-                readResponse(requestTime, request, input, output, callContext)
-            } else {
-                withTimeout(timeout) {
-                    request.write(output, callContext, overProxy)
-                    readResponse(requestTime, request, input, output, callContext)
-                }
-            }
+            val requestTime = GMTDate()
 
             callContext[Job]!!.invokeOnCompletion { cause ->
                 try {
@@ -114,9 +106,25 @@ internal class Endpoint(
                 }
             }
 
+            val timeout = config.requestTimeout
+            val writeRequestAndReadResponse: suspend CoroutineScope.() -> HttpResponseData = {
+                request.write(output.wrap(callContext, config.endpoint.allowHalfClose), callContext, overProxy)
+                readResponse(requestTime, request, input, output, callContext)
+            }
+
+            val responseData = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS) {
+                writeRequestAndReadResponse()
+            } else {
+                withTimeout(timeout, writeRequestAndReadResponse)
+            }
+
             response.resume(responseData)
         } catch (cause: Throwable) {
-            response.resumeWithException(cause)
+            val mappedException = when (cause.rootCause) {
+                is java.net.SocketTimeoutException -> SocketTimeoutException(task.request, cause)
+                else -> cause
+            }
+            response.resumeWithException(mappedException)
         }
     }
 
@@ -134,9 +142,10 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
-    private suspend fun connect(): Socket {
+    private suspend fun connect(requestData: HttpRequestData? = null): Socket {
         val retryAttempts = config.endpoint.connectRetryAttempts
-        val connectTimeout = config.endpoint.connectTimeout
+        val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
+        var timeoutFails = 0
 
         connections.incrementAndGet()
 
@@ -146,8 +155,23 @@ internal class Endpoint(
 
                 if (address.isUnresolved) throw UnresolvedAddressException()
 
-                val connection = withTimeoutOrNull(connectTimeout) { connectionFactory.connect(address) }
-                    ?: return@repeat
+                val connect: suspend CoroutineScope.() -> Socket = {
+                    connectionFactory.connect(address) {
+                        this.socketTimeout = socketTimeout
+                    }
+                }
+
+                val connection = when (connectTimeout) {
+                    HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
+                    else -> {
+                        val connection = withTimeoutOrNull(connectTimeout, connect)
+                        if (connection == null) {
+                            timeoutFails++
+                            return@repeat
+                        }
+                        connection
+                    }
+                }
 
                 if (!secure) return@connect connection
 
@@ -177,8 +201,29 @@ internal class Endpoint(
         }
 
         connections.decrementAndGet()
-        throw FailToConnectException()
+
+        throw getTimeoutException(retryAttempts, timeoutFails, requestData!!)
     }
+
+    /**
+     * Defines exact type of exception based on [retryAttempts] and [timeoutFails].
+     */
+    private fun getTimeoutException(retryAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
+        when (timeoutFails) {
+            retryAttempts -> ConnectTimeoutException(request)
+            else -> FailToConnectException()
+        }
+
+    /**
+     * Take timeout attributes from [config] and [HttpTimeout.HttpTimeoutCapabilityConfiguration] and returns pair of
+     * connect timeout and socket timeout to be applied.
+     */
+    private fun retrieveTimeouts(requestData: HttpRequestData?): Pair<Long, Long> =
+        requestData?.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+            val socketTimeout = timeoutAttributes.socketTimeoutMillis ?: config.endpoint.socketTimeout
+            val connectTimeout = timeoutAttributes.connectTimeoutMillis ?: config.endpoint.connectTimeout
+            return connectTimeout to socketTimeout
+        } ?: config.endpoint.connectTimeout to config.endpoint.socketTimeout
 
     private fun releaseConnection() {
         connectionFactory.release()

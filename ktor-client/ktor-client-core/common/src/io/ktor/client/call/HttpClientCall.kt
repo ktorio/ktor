@@ -6,12 +6,11 @@ package io.ktor.client.call
 
 import io.ktor.client.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
 
@@ -36,7 +35,7 @@ internal fun HttpClientCall(
  */
 open class HttpClientCall internal constructor(
     val client: HttpClient
-) : CoroutineScope, Closeable {
+) : CoroutineScope {
     private val received = atomic(false)
 
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
@@ -59,52 +58,35 @@ open class HttpClientCall internal constructor(
         internal set
 
     /**
-     * Configuration for the [response].
-     */
-    @Deprecated(
-        message = "responseConfig is deprecated. Consider using [Charsets] config instead",
-        level = DeprecationLevel.ERROR
-    )
-    val responseConfig: HttpResponseConfig = client.engineConfig.response
-
-    /**
-     * Tries to receive the payload of the [response] as an specific [expectedType].
-     * Returns [response] if [expectedType] is [HttpResponse].
+     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
+     * Returns [response] if [info] corresponds to [HttpResponse].
      *
-     * @throws NoTransformationFoundException If no transformation is found for the [expectedType].
+     * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [receive].
      */
     suspend fun receive(info: TypeInfo): Any {
-        if (response.instanceOf(info.type)) return response
-        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
+        try {
+            if (response.instanceOf(info.type)) return response
+            if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val responseData = attributes.getOrNull(CustomResponse) ?: response.content
+            val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
-        val subject = HttpResponseContainer(info, responseData)
-        val result = client.responsePipeline.execute(this, subject).response
-        if (!result.instanceOf(info.type)) {
-            val from = result::class
-            val to = info.type
-            throw NoTransformationFoundException(from, to)
+            val subject = HttpResponseContainer(info, responseData)
+            val result = client.responsePipeline.execute(this, subject).response
+            if (!result.instanceOf(info.type)) {
+                val from = result::class
+                val to = info.type
+                throw NoTransformationFoundException(response, from, to)
+            }
+
+            return result
+        } catch (cause: Throwable) {
+            response.cancel("Receive failed", cause)
+            throw cause
         }
-
-        if (result is ByteReadChannel) {
-            return response.channelWithCloseHandling()
-        }
-
-        if (result !is Closeable && result !is HttpRequest) {
-            close()
-        }
-
-        return result
     }
 
-    /**
-     * Closes the underlying [response].
-     */
-    override fun close() {
-        response.close()
-    }
+    override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
 
     companion object {
         /**
@@ -136,8 +118,18 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
  * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
  * configured inside the [block].
  */
+@Deprecated(
+    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith(
+        "this.request<HttpResponse>(block)",
+        "io.ktor.client.request.request",
+        "io.ktor.client.statement.*"
+    )
+)
+@Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
 suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-    execute(HttpRequestBuilder().apply { block() })
+    error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -167,7 +159,7 @@ class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
  * Exception representing fail of the response pipeline
  * [cause] contains origin pipeline exception
  */
-@Suppress("KDocMissingDocumentation")
+@Suppress("KDocMissingDocumentation", "unused")
 class ReceivePipelineException(
     val request: HttpClientCall,
     val info: TypeInfo,
@@ -179,6 +171,14 @@ class ReceivePipelineException(
  * It includes the received type and the expected type as part of the message.
  */
 @Suppress("KDocMissingDocumentation")
-class NoTransformationFoundException(from: KClass<*>, to: KClass<*>) : UnsupportedOperationException() {
-    override val message: String? = "No transformation found: $from -> $to"
+class NoTransformationFoundException(
+    response: HttpResponse,
+    from: KClass<*>, to: KClass<*>
+) : UnsupportedOperationException() {
+    override val message: String? = """No transformation found: $from -> $to
+        |with response from ${response.request.url}:
+        |status: ${response.status}
+        |response headers: 
+        |${response.headers.flattenEntries().joinToString { (key, value) -> "$key: $value\n" }}
+    """.trimMargin()
 }

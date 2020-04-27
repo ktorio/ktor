@@ -57,7 +57,7 @@ class ApplicationEngineEnvironmentBuilder {
     /**
      * Paths to wait for application reload
      */
-    var watchPaths = emptyList<String>()
+    var watchPaths: List<String> = emptyList()
 
     /**
      * Root class loader
@@ -77,12 +77,12 @@ class ApplicationEngineEnvironmentBuilder {
     /**
      * Application connectors list
      */
-    val connectors = mutableListOf<EngineConnectorConfig>()
+    val connectors: MutableList<EngineConnectorConfig> = mutableListOf()
 
     /**
      * Application modules
      */
-    val modules = mutableListOf<Application.() -> Unit>()
+    val modules: MutableList<Application.() -> Unit> = mutableListOf()
 
     /**
      * Application's root path (prefix, context path in servlet container).
@@ -100,7 +100,6 @@ class ApplicationEngineEnvironmentBuilder {
     /**
      * Build an application engine environment
      */
-    @KtorExperimentalAPI
     fun build(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
         builder(this)
         return ApplicationEngineEnvironmentReloading(

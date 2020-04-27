@@ -14,6 +14,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import java.util.ArrayList
 import kotlin.coroutines.*
 
 /**
@@ -79,7 +80,7 @@ class Compression(compression: Configuration) {
             .sortedWith(comparator)
             .map { it.first }
 
-        if (!encoders.isNotEmpty())
+        if (encoders.isEmpty())
             return
 
         if (message is OutgoingContent
@@ -171,9 +172,9 @@ class Compression(compression: Configuration) {
         /**
          * Attribute that could be added to an application call to prevent it's response from being compressed
          */
-        val SuppressionAttribute = AttributeKey<Boolean>("preventCompression")
+        val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
 
-        override val key = AttributeKey<Compression>("Compression")
+        override val key: AttributeKey<Compression> = AttributeKey("Compression")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {
             val config = Configuration().apply(configure)
             if (config.encoders.none())
@@ -244,7 +245,6 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
  * Represents a Compression encoder
  */
 @KtorExperimentalAPI
-@UseExperimental(ExperimentalCoroutinesApi::class)
 interface CompressionEncoder {
     /**
      * May predict compressed length based on the [originalLength] or return `null` if it is impossible.
@@ -322,13 +322,14 @@ interface ConditionsHolderBuilder {
  * @property name of encoder
  * @property encoder instance
  */
+@Suppress("MemberVisibilityCanBePrivate")
 class CompressionEncoderBuilder internal constructor(
     val name: String, val encoder: CompressionEncoder
 ) : ConditionsHolderBuilder {
     /**
      * List of conditions for this encoder
      */
-    override val conditions = arrayListOf<ApplicationCall.(OutgoingContent) -> Boolean>()
+    override val conditions: ArrayList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
     /**
      * Priority for this encoder

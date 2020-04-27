@@ -6,14 +6,21 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.native.concurrent.*
 
+@SharedImmutable
 private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+
+@SharedImmutable
 private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+
+@SharedImmutable
 private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
 
 /**
  * https://tools.ietf.org/html/rfc3986#section-2
  */
+@SharedImmutable
 private val URL_PROTOCOL_PART = listOf(
     ':', '/', '?', '#', '[', ']', '@',  // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=',  // sub-components
@@ -23,6 +30,7 @@ private val URL_PROTOCOL_PART = listOf(
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
+@SharedImmutable
 private val VALID_PATH_PART = listOf(
     ':', '@',
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
@@ -32,6 +40,7 @@ private val VALID_PATH_PART = listOf(
  * Oauth specific percent encoding
  * https://tools.ietf.org/html/rfc5849#section-3.6
  */
+@SharedImmutable
 private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.toByte() }
 
 /**
@@ -213,9 +222,11 @@ private fun CharSequence.decodeImpl(
  */
 class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String {
-    val code = (toInt() and 0xff).toString(radix = 16).toUpperCase()
-    return "%${code.padStart(length = 2, padChar = '0')}"
+private fun Byte.percentEncode(): String= buildString(3) {
+    val code = toInt() and 0xff
+    append('%')
+    append(hexDigitToChar(code shr 4))
+    append(hexDigitToChar(code and 0x0f))
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {
@@ -223,6 +234,11 @@ private fun charToHexDigit(c2: Char) = when (c2) {
     in 'A'..'F' -> c2 - 'A' + 10
     in 'a'..'f' -> c2 - 'a' + 10
     else -> -1
+}
+
+private fun hexDigitToChar(digit: Int): Char = when (digit) {
+    in 0..9 -> '0' + digit
+    else -> 'A' + digit - 10
 }
 
 private fun ByteReadPacket.forEach(block: (Byte) -> Unit) {

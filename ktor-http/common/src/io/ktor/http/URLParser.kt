@@ -6,7 +6,6 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-
 /**
  * Take url parts from [urlString]
  * throws [URLParserException]
@@ -75,10 +74,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
         // Relative path
         val lastSlashIndex = encodedPath.lastIndexOf('/')
 
-        if (lastSlashIndex != encodedPath.length-1) {
+        if (lastSlashIndex != encodedPath.length - 1) {
             // Current path does not end in slash, get rid of last path segment.
             if (lastSlashIndex != -1) {
-                encodedPath.substring(0, lastSlashIndex+1)
+                encodedPath.substring(0, lastSlashIndex + 1)
             } else {
                 "/"
             }
@@ -132,15 +131,53 @@ private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: In
     }
 }
 
+/**
+ * Finds scheme in the given [urlString]. If there is no scheme found the function returns -1. If the scheme contains
+ * illegal characters an [IllegalArgumentException] will be thrown. If the scheme is present and it doesn't contain
+ * illegal characters the function returns the length of the scheme.
+ */
 private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
     var current = startIndex
+
+    // Incorrect scheme position is used to identify the first position at which the character is not allowed in the
+    // scheme or the part of the scheme. This number is reported in the exception message.
+    var incorrectSchemePosition = -1
+    val firstChar = urlString[current]
+    if (firstChar !in 'a'..'z' && firstChar !in 'A'..'Z') {
+        incorrectSchemePosition = current
+    }
+
     while (current < endIndex) {
         val char = urlString[current]
-        if (char == ':') return current
-        if (!char.isLetter()) return -1
+
+        // Character ':' means the end of the scheme and at this point the length of the scheme should be returned or
+        // the exception should be thrown in case the scheme contains illegal characters.
+        if (char == ':') {
+            if (incorrectSchemePosition != -1) {
+                throw IllegalArgumentException("Illegal character in scheme at position $incorrectSchemePosition")
+            }
+
+            return current
+        }
+
+        // If character '/' or '?' or '#' found this is not a scheme.
+        if (char == '/' || char == '?' || char == '#') return -1
+
+        // Update incorrect scheme position is current char is illegal.
+        if (incorrectSchemePosition == -1
+            && char !in 'a'..'z'
+            && char !in 'A'..'Z'
+            && char !in '0'..'9'
+            && char != '.'
+            && char != '+'
+            && char != '-'
+        ) {
+            incorrectSchemePosition = current
+        }
 
         ++current
     }
+
     return -1
 }
 

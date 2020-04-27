@@ -261,7 +261,7 @@ class AuthBuildersTest {
                 }
             }
 
-            val serializedSession = autoSerializerOf<TestSession>().serialize(TestSession("tester"))
+            val serializedSession = defaultSessionSerializer<TestSession>().serialize(TestSession("tester"))
             val sessionCookieContent = "S=$serializedSession"
             fun TestApplicationRequest.addCookie() {
                 addHeader(HttpHeaders.Cookie, sessionCookieContent)
@@ -447,11 +447,23 @@ class AuthBuildersTest {
 
     @Test
     fun testAuthProviderFailureNoChallenge(): Unit = withTestApplication<Unit> {
+        class CustomErrorCause : AuthenticationFailedCause.Error("custom error")
+
+        @Suppress("DEPRECATION", "unused")
+        class DeprecationTest : AuthenticationFailedCause.Error(cause = "deprecated") {
+            fun f(): String = cause
+        }
+
         application.apply {
             authentication {
                 provider("custom") {
                     pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
                         context.authentication.error(this, AuthenticationFailedCause.Error("test"))
+                    }
+                }
+                provider("custom-inheritance") {
+                    pipeline.intercept(AuthenticationPipeline.CheckAuthentication) {
+                        context.authentication.error(this, CustomErrorCause())
                     }
                 }
             }
@@ -466,6 +478,16 @@ class AuthBuildersTest {
                         call.respondText("OK")
                     }
                 }
+                authenticate("custom-inheritance") {
+                    get("/fail-inheritance") {
+                        fail("shouldn't reach here")
+                    }
+                }
+                authenticate("custom-inheritance", optional = true) {
+                    get("/pass-inheritance") {
+                        call.respondText("OK")
+                    }
+                }
             }
         }
 
@@ -474,6 +496,15 @@ class AuthBuildersTest {
         }
 
         handleRequest(HttpMethod.Get, "/pass").let { call ->
+            assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+            assertEquals("OK", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/fail-inheritance").let { call ->
+            assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+        }
+
+        handleRequest(HttpMethod.Get, "/pass-inheritance").let { call ->
             assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             assertEquals("OK", call.response.content)
         }

@@ -45,7 +45,8 @@ class HeadersTest {
 
     @Test
     fun parseAcceptHeaderWithExtraParametersAndFallback() {
-        val items = parseAndSortContentTypeHeader("text/*;q=0.3, text/html;q=0.7, text/html;level=1,text/html;level=2;q=0.4, */*;q=0.5")
+        val items =
+            parseAndSortContentTypeHeader("text/*;q=0.3, text/html;q=0.7, text/html;level=1,text/html;level=2;q=0.4, */*;q=0.5")
         val item0 = HeaderValue("text/html", listOf(HeaderValueParam("level", "1")))
         val item1 = HeaderValue("text/html", listOf(HeaderValueParam("q", "0.7")))
         val item2 = HeaderValue("*/*", listOf(HeaderValueParam("q", "0.5")))
@@ -68,14 +69,16 @@ class HeadersTest {
     @Test
     fun parseJustValueWithSingleParameterWithValue() {
         val headerValue = parseHeaderValue("justValue;a=b")
-        assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "b")))), headerValue
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "b")))), headerValue
         )
     }
 
     @Test
     fun parseJustValueWithSingleParameter() {
         val headerValue = parseHeaderValue("justValue;implicit")
-        assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("implicit", "")))), headerValue
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("implicit", "")))), headerValue
         )
     }
 
@@ -91,32 +94,46 @@ class HeadersTest {
     @Test
     fun parseJustValueWithMultipleParameters() {
         val headerValue = parseHeaderValue("justValue; a=b; c=d")
-        assertEquals(listOf(HeaderValue("justValue", listOf(
-                HeaderValueParam("a", "b"),
-                HeaderValueParam("c", "d")
-        ))),
-                headerValue)
+        assertEquals(
+            listOf(
+                HeaderValue(
+                    "justValue", listOf(
+                        HeaderValueParam("a", "b"),
+                        HeaderValueParam("c", "d")
+                    )
+                )
+            ),
+            headerValue
+        )
     }
 
     @Test
     fun parseJustValueWithQuotedParameter() {
         assertEquals(
-                listOf(HeaderValue("justValue", listOf(
+            listOf(
+                HeaderValue(
+                    "justValue", listOf(
                         HeaderValueParam("a", "quoted;=,\"value")
-                ))),
-                parseHeaderValue("justValue; a=\"quoted;=,\\\"value\"")
+                    )
+                )
+            ),
+            parseHeaderValue("justValue; a=\"quoted;=,\\\"value\"")
         )
     }
 
     @Test
     fun parseJustValueWithQuotedAndSimpleParameters() {
         assertEquals(
-                listOf(HeaderValue("justValue", listOf(
+            listOf(
+                HeaderValue(
+                    "justValue", listOf(
                         HeaderValueParam("a", "quoted;=,\"value"),
                         HeaderValueParam("b", "3"),
                         HeaderValueParam("q", "0.1")
-                ))),
-                parseHeaderValue("justValue; a=\"quoted;=,\\\"value\"; b=3; q=0.1")
+                    )
+                )
+            ),
+            parseHeaderValue("justValue; a=\"quoted;=,\\\"value\"; b=3; q=0.1")
         )
     }
 
@@ -131,19 +148,25 @@ class HeadersTest {
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;=33"))
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;====33"))
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;=\""))
-        assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "")))), parseHeaderValue("justValue;x=\"\""))
-        assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "abc\\")))), parseHeaderValue("justValue;x=\"abc\\"))
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "")))),
+            parseHeaderValue("justValue;x=\"\"")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "abc\\")))),
+            parseHeaderValue("justValue;x=\"abc\\")
+        )
     }
 
     @Test
     fun parseRealLifeHeadersShouldntFail() {
         val examples = listOf(
-                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "ru,en-US;q=0.7,en;q=0.3",
-                "gzip, deflate",
-                """If-Match: "strong", W/"weak", "oops, a \"comma\""""",
-                """WWW-Authenticate: Newauth realm="newauth";test="oh, a \"comma\""; foo=a'b'c, Basic realm="basic"""",
-                "remixlang=0; remixflash=11.2.202; remixscreen_depth=24; remixdt=0; audio_vol=35; remixrefkey=836214a50b5b18f112; audio_time_left=0; remixtst=483196cd; remixsid=63476f202634a7b7f6e9975e8b446b126c1d9c82a94e38801bcc3; remixsslsid=1"
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "ru,en-US;q=0.7,en;q=0.3",
+            "gzip, deflate",
+            """If-Match: "strong", W/"weak", "oops, a \"comma\""""",
+            """WWW-Authenticate: Newauth realm="newauth";test="oh, a \"comma\""; foo=a'b'c, Basic realm="basic"""",
+            "remixlang=0; remixflash=11.2.202; remixscreen_depth=24; remixdt=0; audio_vol=35; remixrefkey=836214a50b5b18f112; audio_time_left=0; remixtst=483196cd; remixsid=63476f202634a7b7f6e9975e8b446b126c1d9c82a94e38801bcc3; remixsslsid=1"
         )
 
         examples.forEach {
@@ -153,10 +176,20 @@ class HeadersTest {
 
     @Test
     fun parseParametersOnly() {
-        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v")))), parseHeaderValue("k=v", parametersOnly = true))
-        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"), HeaderValueParam("k2", "v2")))), parseHeaderValue("k=v;k2=v2", parametersOnly = true))
-        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"))),
-                HeaderValue("", listOf(HeaderValueParam("k2", "v2")))), parseHeaderValue("k=v,k2=v2", parametersOnly = true))
+        assertEquals(
+            listOf(HeaderValue("", listOf(HeaderValueParam("k", "v")))),
+            parseHeaderValue("k=v", parametersOnly = true)
+        )
+        assertEquals(
+            listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"), HeaderValueParam("k2", "v2")))),
+            parseHeaderValue("k=v;k2=v2", parametersOnly = true)
+        )
+        assertEquals(
+            listOf(
+                HeaderValue("", listOf(HeaderValueParam("k", "v"))),
+                HeaderValue("", listOf(HeaderValueParam("k2", "v2")))
+            ), parseHeaderValue("k=v,k2=v2", parametersOnly = true)
+        )
     }
 
     @Test
@@ -171,17 +204,27 @@ class HeadersTest {
 
     @Test
     fun testRenderSimpleWithMultipleParameters() {
-        assertEquals("file; k1=v1; k2=v2", ContentDisposition.File.withParameters(listOf(
-                HeaderValueParam("k1", "v1"),
-                HeaderValueParam("k2", "v2")
-        )).toString())
+        assertEquals(
+            "file; k1=v1; k2=v2", ContentDisposition.File.withParameters(
+                listOf(
+                    HeaderValueParam("k1", "v1"),
+                    HeaderValueParam("k2", "v2")
+                )
+            ).toString()
+        )
     }
 
     @Test
     fun testRenderEscaped() {
         assertEquals("file; k=\"v,v\"", ContentDisposition.File.withParameter("k", "v,v").toString())
-        assertEquals("file; k=\"v,v\"; k2=\"=\"", ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "=").toString())
-        assertEquals("file; k=\"v,v\"; k2=v2", ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "v2").toString())
+        assertEquals(
+            "file; k=\"v,v\"; k2=\"=\"",
+            ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "=").toString()
+        )
+        assertEquals(
+            "file; k=\"v,v\"; k2=v2",
+            ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "v2").toString()
+        )
     }
 
     @Test
@@ -190,5 +233,46 @@ class HeadersTest {
         assertEquals(value, headersOf("hello", value)["HELLO"])
         assertEquals(value, headersOf("hello", listOf(value))["HELLO"])
         assertEquals(value, headersOf("hello" to listOf(value))["HELLO"])
+    }
+
+    @Test
+    fun headerNamesValidation() {
+        val illegalCharacters = "\u0000\u0009\r\n\"(),/:;<=>?@[\\]{}"
+        HeadersBuilder().apply {
+            append("valid", "ok")
+
+            illegalCharacters.forEach { ch ->
+                val key = "not${ch}valid"
+                assertFails {
+                    append(key, "ok")
+                }
+                assertFails {
+                    set(key, "ok2")
+                }
+                assertNull(get(key))
+            }
+        }
+    }
+
+    @Test
+    fun headersReturnNullWhenMissing() {
+        val value = "world"
+        val headers1 = headersOf("hello", value)
+        val headers2 = headersOf("hello" to listOf(value))
+
+        assertNull(headers1["foo"])
+        assertNull(headers2["foo"])
+
+        assertNull(headers1.getAll("foo"))
+        assertNull(headers2.getAll("foo"))
+    }
+
+    @Test
+    fun testSplitSetCookieHeader() {
+        assertEquals(listOf("a=b;c,d", "x=0"), "a=b;c,d,x=0".splitSetCookieHeader())
+        assertEquals(
+            listOf("a=b; Expires=Wed, 21 Oct 2015 07:28:00 GMT", "x=0"),
+            "a=b; Expires=Wed, 21 Oct 2015 07:28:00 GMT,x=0".splitSetCookieHeader()
+        )
     }
 }

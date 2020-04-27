@@ -51,16 +51,16 @@ internal class EndPointReader(
 
                     channel.writeFully(buffer)
                 }
+            } catch (cause: ClosedChannelException) {
+                channel.close()
             } catch (cause: Throwable) {
-                if (cause !is ClosedChannelException) channel.close(cause)
+                channel.close(cause)
             } finally {
                 channel.close()
                 JettyWebSocketPool.recycle(buffer)
             }
         }
     }
-
-    override fun onIdleExpired() = false
 
     override fun onFillable() {
         val handler = currentHandler.getAndSet(null) ?: return
@@ -80,7 +80,11 @@ internal class EndPointReader(
 
     override fun onFillInterestedFailed(cause: Throwable) {
         super.onFillInterestedFailed(cause)
-        currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
+        if (cause is ClosedChannelException) {
+            currentHandler.getAndSet(null)?.resumeWithException(cause)
+        } else {
+            currentHandler.getAndSet(null)?.resumeWithException(ChannelReadException(exception = cause))
+        }
     }
 
     override fun failedCallback(callback: Callback, cause: Throwable) {
@@ -93,8 +97,8 @@ internal class EndPointReader(
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
         if (prefilled != null && prefilled.hasRemaining()) {
             // println("Got prefilled ${prefilled.remaining()} bytes")
-            // TODO in theory client could try to start communication with no server upgrade acknowledge
-            // it is generally not the case so it is not implemented yet
+            // in theory client could try to start communication with no server upgrade acknowledge
+            // it is generally not the case because clients negotiates first then communicate
         }
     }
 }
@@ -102,7 +106,7 @@ internal class EndPointReader(
 internal fun CoroutineScope.endPointWriter(
     endPoint: EndPoint,
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
-): ByteWriteChannel = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
+): ReaderJob = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
         while (!channel.isClosedForRead) {
             buffer.clear()
@@ -113,7 +117,7 @@ internal fun CoroutineScope.endPointWriter(
         }
         endPoint.flush()
     }
-}.channel
+}
 
 private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
     write(object : Callback {

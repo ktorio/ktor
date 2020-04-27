@@ -1,15 +1,12 @@
 /*
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
 package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.time.*
-import java.util.*
 
 /**
  * HSTS feature that appends `Strict-Transport-Security` HTTP header to every response.
@@ -24,17 +21,32 @@ class HSTS(config: Configuration) {
         /**
          * Consents that the policy allows including the domain into web browser preloading list
          */
-        var preload = false
+        var preload: Boolean = false
 
         /**
          * Adds includeSubDomains directive, which applies this policy to this domain and any subdomains
          */
-        var includeSubDomains = true
+        var includeSubDomains: Boolean = true
 
         /**
          * Duration to tell the client to keep the host in a list of known HSTS hosts
          */
-        var maxAge: Duration = Duration.ofDays(365)
+        @Suppress("unused", "DEPRECATION")
+        @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.", level = DeprecationLevel.HIDDEN)
+        var maxAge: java.time.Duration
+            get() = maxAge
+            set(newDuration) {
+                maxAge = newDuration
+            }
+
+        /**
+         * Duration in seconds to tell the client to keep the host in a list of known HSTS hosts.
+         */
+        var maxAgeInSeconds: Long = DEFAULT_HSTS_MAX_AGE
+            set(newMaxAge) {
+                check(newMaxAge >= 0L) { "maxAgeInSeconds shouldn't be negative: $newMaxAge" }
+                field = newMaxAge
+            }
 
         /**
          * Any custom directives supported by specific user-agent
@@ -45,9 +57,10 @@ class HSTS(config: Configuration) {
     /**
      * Constructed `Strict-Transport-Security` header value
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     val headerValue: String = buildString {
         append("max-age=")
-        append(config.maxAge.toMillis() / 1000L)
+        append(config.maxAgeInSeconds)
 
         if (config.includeSubDomains) {
             append("; includeSubDomains")
@@ -80,7 +93,9 @@ class HSTS(config: Configuration) {
      * Feature installation object
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, HSTS> {
-        override val key = AttributeKey<HSTS>("HSTS")
+        const val DEFAULT_HSTS_MAX_AGE: Long = 365L * 24 * 3600 // 365 days
+
+        override val key: AttributeKey<HSTS> = AttributeKey("HSTS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HSTS {
             val feature = HSTS(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Features) { feature.intercept(call) }

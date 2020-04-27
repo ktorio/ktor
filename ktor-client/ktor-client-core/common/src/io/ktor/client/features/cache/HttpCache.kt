@@ -9,12 +9,12 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.features.cache.storage.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")
@@ -99,6 +99,7 @@ class HttpCache(
                 }
 
                 if (response.status == HttpStatusCode.NotModified) {
+                    response.complete()
                     val responseFromCache = feature.findAndRefresh(response)
                         ?: throw InvalidCacheStateException(context.request.url)
 
@@ -122,15 +123,15 @@ class HttpCache(
         return cacheEntry.produceResponse()
     }
 
-    private fun findAndRefresh(response: HttpResponse): HttpResponse? = response.use {
+    private fun findAndRefresh(response: HttpResponse): HttpResponse? {
         val url = response.call.request.url
         val cacheControl = response.cacheControl()
 
         val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
-        val cache = storage.find(url, response.varyKeys()) ?: return@use null
+        val cache = storage.find(url, response.varyKeys()) ?: return null
 
         storage.store(url, HttpCacheEntry(response.cacheExpires(), response.varyKeys(), cache.response, cache.body))
-        return@use cache.produceResponse()
+        return cache.produceResponse()
     }
 
     private fun findResponse(context: HttpRequestBuilder, content: OutgoingContent): HttpCacheEntry? {
@@ -140,13 +141,14 @@ class HttpCache(
         val cachedResponses = privateStorage.findByUrl(url) + publicStorage.findByUrl(url)
         for (item in cachedResponses) {
             val varyKeys = item.varyKeys
-            if (varyKeys.isEmpty() || varyKeys.all { (key, value) -> lookup(key) == value }) return item
+            if (varyKeys.isEmpty() || varyKeys.all { (key, value) -> lookup(key) == value }) {
+                return item
+            }
         }
 
         return null
     }
 }
-
 
 private fun mergedHeadersLookup(
     requestHeaders: HeadersBuilder,

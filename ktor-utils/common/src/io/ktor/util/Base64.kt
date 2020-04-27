@@ -7,11 +7,13 @@ package io.ktor.util
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.experimental.*
+import kotlin.native.concurrent.*
 
 private const val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 private const val BASE64_MASK: Byte = 0x3f
 private const val BASE64_PAD = '='
 
+@SharedImmutable
 private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
 }
@@ -21,7 +23,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
  */
 @InternalAPI
 fun String.encodeBase64(): String = buildPacket {
-    writeStringUtf8(this@encodeBase64)
+    writeText(this@encodeBase64)
 }.encodeBase64()
 
 /**
@@ -67,7 +69,7 @@ fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = 
  */
 @InternalAPI
 fun String.decodeBase64Bytes(): ByteArray = buildPacket {
-    writeStringUtf8(dropLastWhile { it == BASE64_PAD })
+    writeText(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64Bytes().readBytes()
 
 /**

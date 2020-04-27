@@ -5,26 +5,25 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class LockTest {
     @Test
     fun testLockUnlock() {
-        Lock().use { lock ->
-            lock.lock()
-            lock.unlock()
-        }
+        val lock = Lock()
+        lock.lock()
+        lock.unlock()
+        lock.close()
     }
 
     @Test
     fun testReentrantLock() {
-        Lock().use { lock ->
-            lock.lock()
-            lock.lock()
+        val lock = Lock()
+        lock.lock()
+        lock.lock()
 
-            lock.unlock()
-            lock.unlock()
-        }
+        lock.unlock()
+        lock.unlock()
+        lock.close()
     }
 }

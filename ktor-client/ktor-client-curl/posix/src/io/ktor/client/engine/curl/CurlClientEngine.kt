@@ -6,30 +6,31 @@ package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.internal.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
 
-internal class CurlClientEngine(override val config: CurlClientEngineConfig) : HttpClientEngine {
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
-    override val coroutineContext: CoroutineContext = dispatcher + SilentSupervisor()
+internal class CurlClientEngine(
+    override val config: CurlClientEngineConfig
+) : HttpClientEngineBase("ktor-curl") {
+    override val dispatcher = Dispatchers.Unconfined
+
+    override val supportedCapabilities = setOf(HttpTimeout)
 
     private val curlProcessor = CurlProcessor(coroutineContext)
 
-    override suspend fun execute(
-        data: HttpRequestData
-    ): HttpResponseData {
-        val callContext = coroutineContext + Job()
+    override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val callContext = callContext()
+
         val requestTime = GMTDate()
 
         val curlRequest = data.toCurlRequest(config)
-        val responseData = curlProcessor.executeRequest(curlRequest)
+        val responseData = curlProcessor.executeRequest(curlRequest, callContext)
 
         return with(responseData) {
             val headerBytes = ByteReadChannel(headersBytes).apply {
@@ -56,8 +57,11 @@ internal class CurlClientEngine(override val config: CurlClientEngineConfig) : H
     }
 
     override fun close() {
-        curlProcessor.close()
-        coroutineContext.cancel()
+        super.close()
+
+        coroutineContext[Job]!!.invokeOnCompletion {
+            curlProcessor.close()
+        }
     }
 }
 

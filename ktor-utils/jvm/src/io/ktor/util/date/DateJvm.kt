@@ -4,6 +4,7 @@
 
 package io.ktor.util.date
 
+import io.ktor.util.*
 import java.util.*
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
@@ -31,8 +32,8 @@ actual fun GMTDate(
     set(Calendar.MILLISECOND, 0)
 }.toDate(timestamp = null)
 
-
-private fun Calendar.toDate(timestamp: Long?): GMTDate {
+@InternalAPI
+fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }
 
     val seconds = get(Calendar.SECOND)

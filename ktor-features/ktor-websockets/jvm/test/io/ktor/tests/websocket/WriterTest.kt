@@ -12,7 +12,9 @@ import org.junit.Test
 import java.nio.ByteBuffer
 import kotlin.test.*
 
-@UseExperimental(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
+@OptIn(
+    WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class
+)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {
@@ -48,7 +50,7 @@ class WriterTest {
             (it.toInt() and 0xff).toString(16).padStart(2, '0')
         }
 
-        (writer.outgoing as Job).join()
+        writer.flush()
 
         assertEquals(true, writer.outgoing.isClosedForSend)
         assertEquals("88, 02, 03, e8", bytesWritten)

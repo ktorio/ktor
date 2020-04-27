@@ -16,6 +16,7 @@ val backgroundWorker = Worker.start()
 class CurlNativeTests {
 
     @Test
+    @Ignore
     fun testDownloadInBackground() {
         backgroundWorker.execute(TransferMode.SAFE, { Unit }) {
             runBlocking {
@@ -23,5 +24,14 @@ class CurlNativeTests {
                 client.get<String>("http://google.com")
             }
         }.consume { assert(it.isNotEmpty()) }
+    }
+
+    @Test
+    fun testDownload() {
+        runBlocking {
+            val client = HttpClient()
+            val res = client.get<String>("http://google.com")
+            assert(res.isNotEmpty())
+        }
     }
 }

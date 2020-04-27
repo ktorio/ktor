@@ -154,7 +154,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
                 // 2 bytes, always valid
 
                 if (srcPos >= srcEnd) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 2)
                 }
 
@@ -164,7 +164,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
             vi and 0xf0 == 0xe0 -> {
                 // 3 bytes
                 if (srcEnd - srcPos < 2) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 3)
                 }
 
@@ -184,7 +184,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
                 // 4 bytes
 
                 if (srcEnd - srcPos < 3) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 4)
                 }
 
@@ -204,7 +204,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
                     out[outPos++] = high.toChar()
                     out[outPos++] = low.toChar()
                 } else {
-                    position(srcPos - 4)
+                    position(srcPos - 4 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 0)
                 }
             }
@@ -212,7 +212,7 @@ private fun ByteBuffer.decodeUTF8_array(out: CharArray, offset: Int, length: Int
         }
     }
 
-    position(srcPos)
+    position(srcPos - arrayOffset())
 
     return decodeUtf8Result(outPos - offset, 0)
 }
@@ -332,7 +332,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
             v >= 0 -> {
                 val ch = v.toChar()
                 if (!predicate(ch)) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, -1)
                 }
                 out[outPos++] = ch
@@ -341,7 +341,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
                 // 2 bytes, always valid
 
                 if (srcPos >= srcEnd) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 2)
                 }
 
@@ -349,7 +349,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
                 val ch = ((vi and 0x1f shl 6) or (second and 0x3f)).toChar()
 
                 if (!predicate(ch)) {
-                    position(srcPos - 2)
+                    position(srcPos - 2 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, -1)
                 }
 
@@ -358,7 +358,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
             vi and 0xf0 == 0xe0 -> {
                 // 3 bytes
                 if (srcEnd - srcPos < 2) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 3)
                 }
 
@@ -372,7 +372,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
                     val ch = vv.toChar()
 
                     if (!predicate(ch)) {
-                        position(srcPos - 4)
+                        position(srcPos - 4 - arrayOffset())
                         return decodeUtf8Result(outPos - offset, -1)
                     }
 
@@ -385,7 +385,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
                 // 4 bytes
 
                 if (srcEnd - srcPos < 3) {
-                    position(srcPos - 1)
+                    position(srcPos - 1 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 4)
                 }
 
@@ -403,14 +403,14 @@ private inline fun ByteBuffer.decodeUTF8_array(
                     val low = lowSurrogate(vv).toChar()
 
                     if (!predicate(high) || !predicate(low)) {
-                        position(srcPos - 4)
+                        position(srcPos - 4 - arrayOffset())
                         return decodeUtf8Result(outPos - offset, -1)
                     }
 
                     out[outPos++] = high
                     out[outPos++] = low
                 } else {
-                    position(srcPos - 4)
+                    position(srcPos - 4 - arrayOffset())
                     return decodeUtf8Result(outPos - offset, 0)
                 }
             }
@@ -418,7 +418,7 @@ private inline fun ByteBuffer.decodeUTF8_array(
         }
     }
 
-    position(srcPos)
+    position(srcPos - arrayOffset())
 
     return decodeUtf8Result(outPos - offset, 0)
 }

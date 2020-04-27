@@ -13,6 +13,17 @@ import java.util.zip.*
 
 private const val GZIP_HEADER_SIZE: Int = 10
 
+// GZIP header flags bits
+private object GzipHeaderFlags {
+    const val FTEXT = 1 shl 0 // Is ASCII
+    const val FHCRC = 1 shl 1 // Has header CRC16
+    const val EXTRA = 1 shl 2 // Extra fields present
+    const val FNAME = 1 shl 3 // File name present
+    const val FCOMMENT = 1 shl 4 // File comment present
+}
+
+private infix fun Int.has(flag: Int) = this and flag != 0
+
 /**
  * Implementation of Deflate [Encoder].
  */
@@ -48,11 +59,33 @@ private fun CoroutineScope.inflate(
         val header = source.readPacket(GZIP_HEADER_SIZE)
         val magic = header.readShortLittleEndian()
         val format = header.readByte()
-        val padding = header.readBytes()
+        val flags = header.readByte().toInt()
+
+        // Next parts of the header are not used for now,
+        // uncomment the following lines once you need them
+
+        // val time = header.readInt()
+        // val extraFlags = header.readByte()
+        // val osType = header.readByte()
+
+        // however we have to discard them to prevent a memory leak
+        header.discard()
+
+        // skip the extra header if present
+        if (flags and GzipHeaderFlags.EXTRA != 0) {
+            val extraLen = source.readShort().toLong()
+            source.discardExact(extraLen)
+        }
 
         check(magic == GZIP_MAGIC) { "GZIP magic invalid: $magic" }
         check(format.toInt() == Deflater.DEFLATED) { "Deflater method unsupported: $format." }
-        check(padding.contentEquals(GZIP_HEADER_PADDING)) { "Gzip padding invalid." }
+        check(!(flags has GzipHeaderFlags.FNAME)) { "Gzip file name not supported" }
+        check(!(flags has GzipHeaderFlags.FCOMMENT)) { "Gzip file comment not supported" }
+
+        // skip the header CRC if present
+        if (flags has GzipHeaderFlags.FHCRC) {
+            source.discardExact(2)
+        }
     }
 
     try {

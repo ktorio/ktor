@@ -4,7 +4,7 @@
 
 package io.ktor.network.tls
 
-import io.ktor.http.cio.internals.*
+import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import java.security.*
 

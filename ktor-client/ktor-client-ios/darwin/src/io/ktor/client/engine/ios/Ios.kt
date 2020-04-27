@@ -6,7 +6,6 @@ package io.ktor.client.engine.ios
 
 import io.ktor.client.engine.*
 import platform.Foundation.*
-import kotlin.native.concurrent.*
 
 private val initHook = Ios
 
@@ -21,4 +20,6 @@ object Ios : HttpClientEngineFactory<IosClientEngineConfig> {
 
     override fun create(block: IosClientEngineConfig.() -> Unit): HttpClientEngine =
         IosClientEngine(IosClientEngineConfig().apply(block))
+
+    override fun toString() = "Ios"
 }

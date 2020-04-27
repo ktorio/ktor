@@ -1,10 +1,10 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.internal.*
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.ObjectPool
+import io.ktor.utils.io.internal.*
+import io.ktor.utils.io.pool.*
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
 suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
@@ -12,7 +12,10 @@ suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, clo
 }
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-suspend fun ByteChannelSequentialBase.copyTo(dst: ByteChannelSequentialBase, limit: Long = kotlin.Long.MAX_VALUE): Long {
+suspend fun ByteChannelSequentialBase.copyTo(
+    dst: ByteChannelSequentialBase,
+    limit: Long = Long.MAX_VALUE
+): Long {
     return copyToSequentialImpl(dst, limit)
 }
 
@@ -79,7 +82,20 @@ abstract class ByteChannelSequentialBase(
     }
 
     private fun ensureNotClosed() {
-        if (closed) throw ClosedWriteChannelException("Channel is already closed")
+        if (closed) {
+            throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
+        }
+    }
+
+    private fun ensureNotFailed() {
+        closedCause?.let { throw it }
+    }
+
+    private fun ensureNotFailed(closeable: BytePacketBuilder) {
+        closedCause?.let { cause ->
+            closeable.release()
+            throw cause
+        }
     }
 
     override suspend fun writeByte(b: Byte) {
@@ -326,28 +342,38 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
+        ensureNotFailed()
+
         val builder = BytePacketBuilder(headerSizeHint)
 
-        builder.writePacket(readable, minOf(limit, readable.remaining))
+        val size = minOf(limit, readable.remaining)
+        builder.writePacket(readable, size)
         val remaining = limit - builder.size
 
         return if (remaining == 0L || (readable.isEmpty && closed)) {
             afterRead()
+            ensureNotFailed(builder)
             builder.build()
+        } else {
+            readRemainingSuspend(builder, limit)
         }
-        else readRemainingSuspend(builder, remaining)
     }
 
     private suspend fun readRemainingSuspend(builder: BytePacketBuilder, limit: Long): ByteReadPacket {
         while (builder.size < limit) {
-            builder.writePacket(readable)
+            val partLimit = minOf(limit - builder.size, readable.remaining)
+            builder.writePacket(readable, partLimit)
             afterRead()
+            ensureNotFailed(builder)
 
-            if (readable.remaining == 0L && writable.size == 0 && closed) break
+            if (readable.remaining == 0L && writable.size == 0 && closed) {
+                break
+            }
 
             awaitSuspend(1)
         }
 
+        ensureNotFailed(builder)
         return builder.build()
     }
 
@@ -495,7 +521,7 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun await(atLeast: Int): Boolean {
-        require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast"}
+        require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast" }
         require(atLeast <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $atLeast" }
 
         completeReading()
@@ -521,7 +547,12 @@ abstract class ByteChannelSequentialBase(
 
     override fun discard(n: Int): Int {
         closedCause?.let { throw it }
-        return readable.discard(n).also { afterRead() }
+        if (n == 0) return 0
+
+        return readable.discard(n).also {
+            afterRead()
+            requestNextView(1)
+        }
     }
 
     override fun request(atLeast: Int): IoBuffer? {
@@ -529,6 +560,10 @@ abstract class ByteChannelSequentialBase(
 
         completeReading()
 
+        return requestNextView(atLeast)
+    }
+
+    private fun requestNextView(atLeast: Int): IoBuffer? {
         val view = readable.prepareReadHead(atLeast) as IoBuffer?
 
         if (view == null) {
@@ -589,8 +624,15 @@ abstract class ByteChannelSequentialBase(
     }
 
     override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean {
-        if (isClosedForRead) return false
-        @UseExperimental(DangerousInternalIoApi::class)
+        if (isClosedForRead) {
+            val cause = closedCause
+            if (cause != null) {
+                throw cause
+            }
+
+            return false
+        }
+        @OptIn(DangerousInternalIoApi::class)
         return decodeUTF8LineLoopSuspend(out, limit) { size ->
             afterRead()
             if (await(size)) readable
@@ -612,7 +654,7 @@ abstract class ByteChannelSequentialBase(
         return close(cause ?: io.ktor.utils.io.CancellationException("Channel cancelled"))
     }
 
-    final override fun close(cause: Throwable?): Boolean {
+    override fun close(cause: Throwable?): Boolean {
         if (closed || closedCause != null) return false
         closedCause = cause
         closed = true
@@ -622,8 +664,11 @@ abstract class ByteChannelSequentialBase(
         } else {
             flush()
         }
+
         atLeastNBytesAvailableForRead.signal()
         atLeastNBytesAvailableForWrite.signal()
+        notFull.signal()
+
         return true
     }
 
@@ -662,7 +707,7 @@ abstract class ByteChannelSequentialBase(
     protected fun afterWrite() {
         if (closed) {
             writable.release()
-            throw closedCause ?: ClosedWriteChannelException("Channel is already closed")
+            ensureNotClosed()
         }
         if (autoFlush || availableForWrite == 0) {
             flush()
@@ -671,7 +716,10 @@ abstract class ByteChannelSequentialBase(
 
     protected suspend fun awaitFreeSpace() {
         afterWrite()
-        return notFull.await { flush() }
+        notFull.await {
+            flush()
+        }
+        ensureNotClosed()
     }
 
     final override suspend fun peekTo(

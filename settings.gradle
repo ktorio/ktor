@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         mavenCentral()
         jcenter()
+        google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/orangy/maven" }
     }
@@ -27,12 +28,10 @@ include ':ktor-server:ktor-server-tomcat'
 include ':ktor-server:ktor-server-netty'
 include ':ktor-server:ktor-server-cio'
 include ':ktor-server:ktor-server-benchmarks'
-include ':binary-compatibility-validator'
 include ':ktor-server'
 include ':ktor-client'
 include ':ktor-client:ktor-client-core'
 include ':ktor-client:ktor-client-tests'
-include ':ktor-client:ktor-client-tests:ktor-client-tests-dispatcher'
 include ':ktor-client:ktor-client-apache'
 include ':ktor-client:ktor-client-android'
 include ':ktor-client:ktor-client-cio'
@@ -54,10 +53,13 @@ include ':ktor-client:ktor-client-features:ktor-client-auth-basic'
 include ':ktor-client:ktor-client-features:ktor-client-logging'
 include ':ktor-client:ktor-client-features:ktor-client-encoding'
 include ':ktor-client:ktor-client-features:ktor-client-websockets'
+include ':ktor-client:ktor-client-features:ktor-client-tracing'
+include ':ktor-client:ktor-client-features:ktor-client-tracing:ktor-client-tracing-stetho'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-mustache'
 include ':ktor-features:ktor-thymeleaf'
 include ':ktor-features:ktor-velocity'
+include ':ktor-features:ktor-pebble'
 include ':ktor-features:ktor-gson'
 include ':ktor-features:ktor-jackson'
 include ':ktor-features:ktor-metrics'
@@ -80,3 +82,4 @@ include ':ktor-network'
 include ':ktor-network:ktor-network-tls'
 include ':ktor-network:ktor-network-tls:ktor-network-tls-certificates'
 include ':ktor-bom'
+include ':ktor-test-dispatcher'

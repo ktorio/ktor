@@ -8,7 +8,6 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
-import java.util.concurrent.CancellationException
 import kotlin.coroutines.*
 
 /**
@@ -28,6 +27,8 @@ class DefaultUncaughtExceptionHandler(
         if (exception is CancellationException) return
         if (exception is IOException) return
 
-        logger().error(exception)
+        val coroutineName = context[CoroutineName] ?: context.toString()
+
+        logger().error("Unhandled exception caught for $coroutineName", exception)
     }
 }

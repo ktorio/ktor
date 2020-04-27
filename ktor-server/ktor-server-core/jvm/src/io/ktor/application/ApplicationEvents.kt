@@ -4,15 +4,15 @@
 
 package io.ktor.application
 
+import io.ktor.util.*
 import io.ktor.util.internal.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
 
 /**
  * Provides events for [Application] lifecycle
  */
 class ApplicationEvents {
-    private val handlers = ConcurrentHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
+    private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
      * Subscribe [handler] to an event specified by [definition]
@@ -67,8 +67,11 @@ typealias EventHandler<T> = (T) -> Unit
 // Invoke only by definition, subscribe by declaration
 
 /**
- * Definition of an event
+ * Definition of an event.
+ * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
+ * Inheriting of this class is an experimental feature.
+ * Instantiate directly if inheritance not necessary.
  *
  * @param T specifies what is a type of a value passed to the event
  */
-class EventDefinition<T>
+open class EventDefinition<T> @KtorExperimentalAPI constructor()

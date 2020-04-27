@@ -23,26 +23,40 @@ object JettyUpgradeImpl : ServletUpgrade {
         servletRequest: HttpServletRequest, servletResponse: HttpServletResponse,
         engineContext: CoroutineContext, userContext: CoroutineContext
     ) {
-        // Jetty doesn't support Servlet API's upgrade so we have to implement our own
+        // Jetty doesn't support Servlet API's upgrade, so we have to implement our own
 
-        withContext(engineContext) {
-            val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+        val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
+        val endPoint = connection.endPoint
 
-            // for upgraded connections IDLE timeout should be significantly increased
-            connection.endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
+        // for upgraded connections IDLE timeout should be significantly increased
+        endPoint.idleTimeout = TimeUnit.MINUTES.toMillis(60L)
 
-            val inputChannel = ByteChannel(autoFlush = true)
-            val reader = EndPointReader(connection.endPoint, engineContext, inputChannel)
-            val outputChannel = endPointWriter(connection.endPoint)
+        withContext(engineContext + CoroutineName("upgrade-scope")) {
+            try {
+                coroutineScope {
+                    val inputChannel = ByteChannel(autoFlush = true)
+                    val reader = EndPointReader(endPoint, coroutineContext, inputChannel)
+                    val writer = endPointWriter(endPoint)
+                    val outputChannel = writer.channel
 
-            servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
-            val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
+                    servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
+                    if (endPoint is AbstractEndPoint) {
+                        endPoint.upgrade(reader)
+                    }
+                    val upgradeJob = upgrade.upgrade(
+                        inputChannel, outputChannel, coroutineContext,
+                        coroutineContext + userContext
+                    )
 
-            job.invokeOnCompletion {
+                    upgradeJob.invokeOnCompletion {
+                        inputChannel.cancel()
+                        outputChannel.close()
+                        cancel()
+                    }
+                }
+            } finally {
                 connection.close()
             }
-
-            job.join()
         }
     }
 }

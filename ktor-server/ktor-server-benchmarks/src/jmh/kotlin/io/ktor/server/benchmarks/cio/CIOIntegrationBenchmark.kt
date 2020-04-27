@@ -7,6 +7,7 @@ package io.ktor.server.benchmarks.cio
 import io.ktor.application.*
 import io.ktor.server.benchmarks.*
 import io.ktor.server.cio.*
+import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 
 class CIOIntegrationBenchmark : IntegrationBenchmark<CIOApplicationEngine>() {

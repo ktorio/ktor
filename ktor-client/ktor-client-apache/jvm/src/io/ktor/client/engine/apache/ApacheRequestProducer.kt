@@ -6,14 +6,15 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import org.apache.http.*
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpRequest
@@ -24,7 +25,7 @@ import org.apache.http.entity.*
 import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
-import java.nio.ByteBuffer
+import java.nio.*
 import kotlin.coroutines.*
 
 internal class ApacheRequestProducer(
@@ -80,7 +81,7 @@ internal class ApacheRequestProducer(
         var buffer = currentBuffer.getAndSet(null) ?: requestChannel.poll()
 
         if (buffer == null) {
-            @UseExperimental(ExperimentalCoroutinesApi::class)
+            @OptIn(ExperimentalCoroutinesApi::class)
             if (requestChannel.isClosedForReceive) {
                 encoder.complete()
                 return
@@ -148,6 +149,7 @@ internal class ApacheRequestProducer(
                 .setConnectTimeout(connectTimeout)
                 .setConnectionRequestTimeout(connectionRequestTimeout)
                 .customRequest()
+                .setupTimeoutAttributes(requestData)
                 .build()
         }
 
@@ -183,9 +185,17 @@ internal class ApacheRequestProducer(
     }
 
     private fun ByteBuffer.recycle() {
-        if (requestData.body is OutgoingContent.WriteChannelContent || requestData.body is OutgoingContent.ReadChannelContent) {
+        if (requestData.body is OutgoingContent.WriteChannelContent ||
+            requestData.body is OutgoingContent.ReadChannelContent
+        ) {
             HttpClientDefaultPool.recycle(this)
         }
     }
+}
 
+private fun RequestConfig.Builder.setupTimeoutAttributes(requestData: HttpRequestData): RequestConfig.Builder = also {
+    requestData.getCapabilityOrNull(HttpTimeout)?.let { timeoutAttributes ->
+        timeoutAttributes.connectTimeoutMillis?.let { setConnectTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
+        timeoutAttributes.socketTimeoutMillis?.let { setSocketTimeout(convertLongTimeoutToIntWithInfiniteAsZero(it)) }
+    }
 }

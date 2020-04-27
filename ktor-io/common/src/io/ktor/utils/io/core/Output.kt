@@ -1,8 +1,7 @@
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.jvm.JvmName
 
 /**
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.

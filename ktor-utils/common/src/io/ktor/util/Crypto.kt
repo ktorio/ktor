@@ -9,7 +9,9 @@ package io.ktor.util
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.native.concurrent.*
 
+@SharedImmutable
 private val digits = "0123456789abcdef".toCharArray()
 
 /**
@@ -58,7 +60,7 @@ expect fun generateNonce(): String
 @InternalAPI
 fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
-        writeStringUtf8(generateNonce())
+        writeText(generateNonce())
     }
 }.readBytes(size)
 

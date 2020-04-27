@@ -26,7 +26,6 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
  * @property digester a hash function to compute password digest
  * @property table of user names and hashed passwords
  */
-@KtorExperimentalAPI
 class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
     @Suppress("unused")
     @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.HIDDEN)

@@ -5,7 +5,6 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import java.util.concurrent.*
 
 /**
  * Engine which runs an application
@@ -15,6 +14,7 @@ interface ApplicationEngine {
     /**
      * Configuration for the [ApplicationEngine]
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     open class Configuration {
         /**
          * Provides currently available parallelism, e.g. number of available processors
@@ -24,17 +24,17 @@ interface ApplicationEngine {
         /**
          * Specifies size of the event group for accepting connections
          */
-        var connectionGroupSize = parallelism / 2 + 1
+        var connectionGroupSize: Int = parallelism / 2 + 1
 
         /**
          * Specifies size of the event group for processing connections, parsing messages and doing engine's internal work
          */
-        var workerGroupSize = parallelism / 2 + 1
+        var workerGroupSize: Int = parallelism / 2 + 1
 
         /**
          * Specifies size of the event group for running application code
          */
-        var callGroupSize = parallelism
+        var callGroupSize: Int = parallelism
     }
 
     /**
@@ -60,8 +60,19 @@ interface ApplicationEngine {
      *
      * @param gracePeriod the maximum amount of time for activity to cool down
      * @param timeout the maximum amount of time to wait until server stops gracefully
-     * @param timeUnit the [TimeUnit] for [gracePeriod] and [timeout]
+     * @param timeUnit the [java.util.concurrent.TimeUnit] for [gracePeriod] and [timeout]
      */
-    fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit)
+    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
+    fun stop(gracePeriod: Long, timeout: Long, timeUnit: java.util.concurrent.TimeUnit) {
+        stop(gracePeriod, timeout, timeUnit)
+    }
+
+    /**
+     * Stops this [ApplicationEngine]
+     *
+     * @param gracePeriodMillis the maximum amount of time for activity to cool down
+     * @param timeoutMillis the maximum amount of time to wait until server stops gracefully
+     */
+    fun stop(gracePeriodMillis: Long, timeoutMillis: Long)
 }
 

@@ -5,17 +5,20 @@
 package io.ktor.client.engine.mock
 
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.util.*
+import kotlinx.atomicfu.locks.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 
 /**
  * [HttpClientEngine] for writing tests without network.
  */
-class MockEngine(
-    override val config: MockEngineConfig
-) : HttpClientEngine {
+class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    override val dispatcher = Dispatchers.Unconfined
+    override val supportedCapabilities = setOf(HttpTimeout)
     private var invocationCount = 0
+    private val mutex = Lock()
     private val _requestsHistory: MutableList<HttpRequestData> = mutableListOf()
     private val _responseHistory: MutableList<HttpResponseData> = mutableListOf()
     private val contextState: CompletableJob = Job()
@@ -36,31 +39,38 @@ class MockEngine(
      */
     val responseHistory: List<HttpResponseData> get() = _responseHistory
 
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
-
-    override val coroutineContext: CoroutineContext = dispatcher + contextState
-
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
-        val handler = config.requestHandlers[invocationCount]
+        val callContext = callContext()
 
-        invocationCount += 1
-        if (config.reuseHandlers) {
-            invocationCount %= config.requestHandlers.size
+        val handler = mutex.withLock {
+            if (invocationCount >= config.requestHandlers.size) error("Unhandled ${data.url}")
+            val handler = config.requestHandlers[invocationCount]
+
+            invocationCount += 1
+            if (config.reuseHandlers) {
+                invocationCount %= config.requestHandlers.size
+            }
+
+            handler
         }
 
+        val response = handler(MockRequestHandleScope(callContext), data)
 
-        val response = handler(data)
-
-        _requestsHistory.add(data)
-        _responseHistory.add(response)
+        mutex.withLock {
+            _requestsHistory.add(data)
+            _responseHistory.add(response)
+        }
 
         return response
     }
 
     @Suppress("KDocMissingDocumentation")
     override fun close() {
-        contextState.complete()
+        super.close()
+
+        coroutineContext[Job]!!.invokeOnCompletion {
+            contextState.complete()
+        }
     }
 
     companion object : HttpClientEngineFactory<MockEngineConfig> {
@@ -70,7 +80,7 @@ class MockEngine(
         /**
          * Create [MockEngine] instance with single request handler.
          */
-        operator fun invoke(handler: suspend (HttpRequestData) -> HttpResponseData): MockEngine =
+        operator fun invoke(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): MockEngine =
             MockEngine(MockEngineConfig().apply {
                 requestHandlers.add(handler)
             })

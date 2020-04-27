@@ -6,11 +6,12 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.pool.*
+import java.lang.IllegalStateException
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -87,23 +88,32 @@ class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
         var last: BytePacketBuilder? = null
+        var closeFramePresented = false
         try {
             raw.incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Close -> {
                         outgoing.send(Frame.Close(frame.readReason() ?: NORMAL_CLOSE))
+                        closeFramePresented = true
                         return@launch
                     }
                     is Frame.Pong -> pinger.value?.send(frame)
                     is Frame.Ping -> ponger.send(frame)
                     else -> {
+                        checkMaxFrameSize(last, frame)
+
                         if (!frame.fin) {
-                            if (last == null) last = BytePacketBuilder()
+                            if (last == null) {
+                                last = BytePacketBuilder()
+                            }
+
                             last!!.writeFully(frame.buffer)
                             return@consumeEach
                         }
@@ -120,16 +130,23 @@ class DefaultWebSocketSessionImpl(
             }
         } catch (ignore: ClosedSendChannelException) {
         } catch (cause: Throwable) {
-            ponger.close(cause)
+            ponger.close()
             filtered.close(cause)
         } finally {
             ponger.close()
             last?.release()
             filtered.close()
+
+            if (!closeFramePresented) {
+                @Suppress("DEPRECATION")
+                close(CloseReason(CloseReason.Codes.CLOSED_ABNORMALLY, "Connection was closed without close frame"))
+            }
         }
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+    @OptIn(
+        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    )
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
@@ -166,7 +183,10 @@ class DefaultWebSocketSessionImpl(
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
         try {
             runOrCancelPinger()
-            raw.outgoing.send(Frame.Close(reasonToSend))
+            @Suppress("DEPRECATION")
+            if (reasonToSend.code != CloseReason.Codes.CLOSED_ABNORMALLY.code) {
+                raw.outgoing.send(Frame.Close(reasonToSend))
+            }
         } finally {
             closeReasonRef.complete(reasonToSend)
         }
@@ -192,6 +212,18 @@ class DefaultWebSocketSessionImpl(
 
         if (closed.value && newPinger != null) {
             runOrCancelPinger()
+        }
+    }
+
+    private suspend fun checkMaxFrameSize(
+        packet: BytePacketBuilder?,
+        frame: Frame
+    ) {
+        val size = frame.buffer.remaining() + (packet?.size ?: 0)
+        if (size > maxFrameSize) {
+            packet?.release()
+            close(CloseReason(CloseReason.Codes.TOO_BIG, "Frame is too big: $size. Max size is $maxFrameSize"))
+            throw WebSocketReader.FrameTooBigException(size.toLong())
         }
     }
 

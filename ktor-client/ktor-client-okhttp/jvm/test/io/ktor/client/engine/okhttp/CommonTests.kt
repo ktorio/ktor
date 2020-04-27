@@ -5,15 +5,9 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.tests.*
-import org.junit.*
 
-class OkHttpCookiesTest : CookiesTest(OkHttp)
-
-@Ignore
 class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
 
 class OkHttpBuildersTest : BuildersTest(OkHttp)
-
-class OkHttpFeaturesTest : FeaturesTest(OkHttp)
 
 class OkHttpHttpClientTest : HttpClientTest(OkHttp)

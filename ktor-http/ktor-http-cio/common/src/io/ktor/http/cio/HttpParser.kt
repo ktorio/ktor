@@ -7,6 +7,7 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 
 /**
  * An HTTP parser exception
@@ -104,29 +105,23 @@ internal suspend fun parseHeaders(
             }
 
             range.end = builder.length
+            val rangeLength = range.end - range.start
 
-            skipSpaces(builder, range)
-
-            range.end = builder.length
-            if (range.start == range.end) break
+            if (rangeLength == 0) break
+            if (rangeLength >= HTTP_LINE_LIMIT) error("Header line length limit exceeded")
 
             val nameStart = range.start
-            val nameEnd = findLetterBeforeColon(builder, range) + 1
-
-            if (nameEnd <= 0) {
-                val header = builder.substring(nameStart, builder.length)
-                throw ParserException("No colon in HTTP header in $header in builder: \n$builder")
-            }
+            val nameEnd = parseHeaderName(builder, range)
 
             val nameHash = builder.hashCodeLowerCase(nameStart, nameEnd)
-            range.start = nameEnd
 
-            skipSpacesAndColon(builder, range)
+            val headerEnd = range.end
+            parseHeaderValue(builder, range)
 
             val valueStart = range.start
             val valueEnd = range.end
             val valueHash = builder.hashCodeLowerCase(valueStart, valueEnd)
-            range.start = valueEnd
+            range.start = headerEnd
 
             headers.put(nameHash, valueHash, nameStart, nameEnd, valueStart, valueEnd)
         }
@@ -171,8 +166,9 @@ private fun parseUri(text: CharSequence, range: MutableRange): CharSequence {
     return s
 }
 
-
+@SharedImmutable
 private val versions = AsciiCharTree.build(listOf("HTTP/1.0", "HTTP/1.1"))
+
 private fun parseVersion(text: CharSequence, range: MutableRange): CharSequence {
     skipSpaces(text, range)
 
@@ -206,4 +202,82 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
 
     range.start = newStart
     return status
+}
+
+
+/**
+ * Returns index of the next character after the last header name character,
+ * range.start is modified to point to the next character after colon.
+ */
+internal fun parseHeaderName(text: CharArrayBuilder, range: MutableRange): Int {
+    var index = range.start
+    val end = range.end
+
+    while (index < end) {
+        val ch = text[index]
+        if (ch == ':') {
+            range.start = index + 1
+            return index
+        }
+
+        if (isDelimiter(ch)) {
+            parseHeaderNameFailed(text, index, range.start, ch)
+        }
+
+        index++
+    }
+
+    noColonFound(text, range)
+}
+
+private fun parseHeaderNameFailed(text: CharArrayBuilder, index: Int, start: Int, ch: Char): Nothing {
+    if (index == start) {
+        throw ParserException("Multiline headers via line folding is not supported " +
+            "since it is deprecated as per RFC7230.")
+    }
+    characterIsNotAllowed(text, ch)
+}
+
+internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
+    val start = range.start
+    val end = range.end
+    var index = start
+
+    index = skipSpacesAndHorizontalTabs(text, index, end)
+
+    if (index >= end) {
+        range.start = end
+        return
+    }
+
+    val valueStart = index
+    var valueLastIndex = index
+
+    while (index < end) {
+        val ch = text[index]
+        when {
+            ch == HTAB || ch == ' ' -> {
+            }
+            ch < ' ' -> characterIsNotAllowed(text, ch)
+            else -> {
+                valueLastIndex = index
+            }
+        }
+
+        index++
+    }
+
+    range.start = valueStart
+    range.end = valueLastIndex + 1
+}
+
+private fun noColonFound(text: CharSequence, range: MutableRange): Nothing {
+    throw ParserException("No colon in HTTP header in ${text.substring(range.start, range.end)} in builder: \n$text")
+}
+
+private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
+    throw ParserException("Character with code ${(ch.toInt() and 0xff)} is not allowed in header names, \n$text")
+
+private fun isDelimiter(ch: Char): Boolean {
+    return ch <= ' ' || ch in "\"(),/:;<=>?@[\\]{}"
 }

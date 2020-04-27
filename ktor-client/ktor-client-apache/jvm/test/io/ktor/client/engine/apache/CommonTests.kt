@@ -6,12 +6,8 @@ package io.ktor.client.engine.apache
 
 import io.ktor.client.tests.*
 
-class ApacheCookiesTest : CookiesTest(Apache)
-
 class ApacheMultithreadedTest : MultithreadedTest(Apache)
 
 class ApacheBuildersTest : BuildersTest(Apache)
-
-class ApacheFeaturesTest : FeaturesTest(Apache)
 
 class ApacheHttpClientTest : HttpClientTest(Apache)

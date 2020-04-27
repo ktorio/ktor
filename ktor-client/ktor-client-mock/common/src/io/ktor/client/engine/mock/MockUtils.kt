@@ -9,11 +9,9 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
@@ -40,7 +38,7 @@ suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
 /**
  * Send error response.
  */
-fun respondError(
+fun MockRequestHandleScope.respondError(
     status: HttpStatusCode,
     content: String = status.description,
     headers: Headers = headersOf()
@@ -49,7 +47,7 @@ fun respondError(
 /**
  * Send ok response.
  */
-fun respondOk(
+fun MockRequestHandleScope.respondOk(
     content: String = ""
 ): HttpResponseData = respond(content, HttpStatusCode.OK)
 
@@ -57,12 +55,12 @@ fun respondOk(
 /**
  * Send [HttpStatusCode.BadRequest] response.
  */
-fun respondBadRequest() = respond("Bad Request", HttpStatusCode.BadRequest)
+fun MockRequestHandleScope.respondBadRequest() = respond("Bad Request", HttpStatusCode.BadRequest)
 
 /**
  * Send response with specified string [content], [status] and [headers].
  */
-fun respond(
+fun MockRequestHandleScope.respond(
     content: String,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
@@ -72,7 +70,7 @@ fun respond(
 /**
  * Send response with specified bytes [content], [status] and [headers].
  */
-fun respond(
+fun MockRequestHandleScope.respond(
     content: ByteArray,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
@@ -81,12 +79,10 @@ fun respond(
 /**
  * Send response with specified [ByteReadChannel] [content], [status] and [headers].
  */
-fun respond(
+fun MockRequestHandleScope.respond(
     content: ByteReadChannel,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
 ): HttpResponseData = HttpResponseData(
-    status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, createMockCallContext()
+    status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, callContext
 )
-
-private fun createMockCallContext(): CoroutineContext = Dispatchers.Default + Job()

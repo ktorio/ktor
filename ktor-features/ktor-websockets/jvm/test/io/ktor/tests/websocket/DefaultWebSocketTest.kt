@@ -15,7 +15,7 @@ import kotlin.test.*
 
 class DefaultWebSocketTest {
     @get:Rule
-    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(2, true)
+    val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(10, true)
 
     private lateinit var parent: CompletableJob
     private lateinit var client2server: ByteChannel
@@ -74,6 +74,8 @@ class DefaultWebSocketTest {
         }
 
         client.close()
+        assertTrue(client.incoming.receive() is Frame.Close)
+
         ensureCompletion()
     }
 

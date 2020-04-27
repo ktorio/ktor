@@ -8,6 +8,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.netty.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpMethod
@@ -15,7 +16,6 @@ import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import java.net.*
 import kotlin.coroutines.*
 
@@ -36,23 +36,29 @@ internal class NettyHttp2ApplicationRequest(
 
     override val headers: Headers by lazy {
         Headers.build {
-            nettyHeaders.forEach {
-                append(
-                    it.key.toString(),
-                    it.value.toString()
-                )
+            nettyHeaders.forEach { (name, value) ->
+                if (name.isNotEmpty() && name[0] != ':') {
+                    append(
+                        name.toString(),
+                        value.toString()
+                    )
+                }
             }
         }
     }
 
-    @UseExperimental(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class)
     val contentActor = actor<Http2DataFrame>(
         Dispatchers.Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http2frameLoop(contentByteChannel)
     }
 
-    override val local = Http2LocalConnectionPoint(nettyHeaders, context.channel().localAddress() as? InetSocketAddress)
+    override val local = Http2LocalConnectionPoint(
+        nettyHeaders,
+        context.channel().localAddress() as? InetSocketAddress,
+        context.channel().remoteAddress() as? InetSocketAddress
+    )
 
     override val cookies: RequestCookies
         get() = throw UnsupportedOperationException()

@@ -6,9 +6,6 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.server.engine.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
 import okhttp3.*
 import kotlin.test.*
 
@@ -23,7 +20,7 @@ class RequestTests {
     }
 
     @Test
-    fun testFeatures() = clientTest(OkHttp) {
+    fun testFeatures() = testWithEngine(OkHttp) {
         config {
             engine {
                 addInterceptor(LoggingInterceptor())

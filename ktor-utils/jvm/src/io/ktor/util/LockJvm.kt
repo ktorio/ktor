@@ -11,7 +11,7 @@ import java.util.concurrent.locks.*
 import java.util.concurrent.locks.Lock
 
 @InternalAPI
-actual class Lock : Closeable {
+actual class Lock {
     private val lock = ReentrantLock()
 
     actual fun lock() {
@@ -22,6 +22,6 @@ actual class Lock : Closeable {
         lock.unlock()
     }
 
-    override fun close() {
+    actual fun close() {
     }
 }

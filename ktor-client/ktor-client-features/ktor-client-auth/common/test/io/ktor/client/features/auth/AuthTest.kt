@@ -6,15 +6,14 @@ package io.ktor.client.features.auth
 
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
 import kotlin.test.*
 
 class AuthTest : ClientLoader() {
     @Test
-    fun testDigestAuth() = clientTests(listOf("js")) {
+    fun testDigestAuth() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 digest {
@@ -25,14 +24,14 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/digest").use {
+            client.get<HttpStatement>("$TEST_SERVER/auth/digest").execute {
                 assertTrue(it.status.isSuccess())
             }
         }
     }
 
     @Test
-    fun testBasicAuth(): Unit = clientTests(listOf("js")) {
+    fun testBasicAuth() = clientTests(listOf("Js")) {
         config {
             install(Auth) {
                 basic {
@@ -48,7 +47,7 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
-    fun testBasicAuthWithoutNegotiation(): Unit = clientTests {
+    fun testBasicAuthWithoutNegotiation() = clientTests {
         config {
             install(Auth) {
                 basic {
@@ -64,4 +63,23 @@ class AuthTest : ClientLoader() {
             client.get<String>("$TEST_SERVER/auth/basic-fixed")
         }
     }
+
+    @Test
+    fun testUnauthorizedBasicAuth() = clientTests(listOf("Js")) {
+        config {
+            install(Auth) {
+                basic {
+                    username = "usr"
+                    password = "pw"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/auth/unauthorized").execute { response ->
+                assertEquals(HttpStatusCode.Unauthorized, response.status)
+            }
+        }
+    }
+
 }

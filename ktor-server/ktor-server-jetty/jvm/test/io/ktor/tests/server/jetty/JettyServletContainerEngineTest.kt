@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.jetty
@@ -13,10 +13,14 @@ import org.junit.*
 import javax.servlet.*
 
 class JettyAsyncServletContainerEngineTest :
-    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = true)
+    )
 
 class JettyBlockingServletContainerEngineTest :
-    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
+    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    ) {
     @Ignore
     override fun testUpgrade() {
     }
@@ -35,7 +39,7 @@ private class Servlet(private val async: Boolean) :
     }
 }
 
-@UseExperimental(EngineAPI::class)
+@OptIn(EngineAPI::class)
 private class JettyServletApplicationEngine(
     environment: ApplicationEngineEnvironment,
     configure: JettyApplicationEngineBase.Configuration.() -> Unit,

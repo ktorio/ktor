@@ -13,7 +13,9 @@ import java.net.*
 import java.nio.*
 import java.nio.channels.*
 
-@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(
+    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
+)
 internal class DatagramSocketImpl(override val channel: DatagramChannel, selector: SelectorManager)
     : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(channel, selector, DefaultDatagramByteBufferPool) {
 

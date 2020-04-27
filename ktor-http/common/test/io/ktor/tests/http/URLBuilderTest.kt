@@ -9,6 +9,36 @@ import kotlin.test.*
 
 internal class URLBuilderTest {
     @Test
+    fun testParseSchemeWithDigits() {
+        testBuildString("a123://google.com")
+    }
+
+    @Test
+    fun testParseSchemeWithDotsPlusAndMinusSigns() {
+        testBuildString("a.+-://google.com")
+    }
+
+    @Test
+    fun testParseSchemeWithCapitalCharacters() {
+        testBuildString("HTTP://google.com")
+    }
+
+    @Test
+    fun testParseSchemeNotStartedWithLetter() {
+        for (index in 0..0x7F) {
+            val char = index.toChar()
+
+            if (char in 'a'..'z' || char in 'A'..'Z') {
+                testBuildString("${char}http://google.com")
+            } else {
+                assertFails("Character $char is not allowed at the first position in the scheme.") {
+                    testBuildString("${char}http://google.com")
+                }
+            }
+        }
+    }
+
+    @Test
     fun portIsNotInStringIfItMatchesTheProtocolDefaultPort() {
         URLBuilder().apply {
             protocol = URLProtocol("custom", 12345)
@@ -139,5 +169,12 @@ internal class URLBuilderTest {
     fun retainEmptyPath() {
         val url = URLBuilder("http://www.test.com")
         assertEquals("", url.encodedPath)
+    }
+
+    /**
+     * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
+     */
+    private fun testBuildString(url: String) {
+        assertEquals(url.toLowerCase(), URLBuilder(url).buildString().toLowerCase())
     }
 }

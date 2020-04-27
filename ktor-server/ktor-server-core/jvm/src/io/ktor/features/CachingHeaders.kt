@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.util.*
 
 /**
  * Feature that set [CachingOptions] headers for every response.
@@ -65,10 +64,10 @@ class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> Cac
     /**
      * `ApplicationFeature` implementation for [ConditionalHeaders]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, CachingHeaders.Configuration, CachingHeaders> {
-        override val key = AttributeKey<CachingHeaders>("Conditional Headers")
-        override fun install(pipeline: ApplicationCallPipeline, configure: CachingHeaders.Configuration.() -> Unit): CachingHeaders {
-            val configuration = CachingHeaders.Configuration().apply(configure)
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CachingHeaders> {
+        override val key: AttributeKey<CachingHeaders> = AttributeKey("Conditional Headers")
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CachingHeaders {
+            val configuration = Configuration().apply(configure)
             val feature = CachingHeaders(configuration.optionsProviders)
 
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message -> feature.interceptor(this, message) }

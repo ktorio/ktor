@@ -5,15 +5,15 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.nio.*
 
 /**
@@ -70,7 +70,8 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             }
             !transferEncodingSet -> {
                 when (content) {
-                    is OutgoingContent.ProtocolUpgrade -> { }
+                    is OutgoingContent.ProtocolUpgrade -> {
+                    }
                     is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
                     else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
                 }
@@ -100,7 +101,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 return respondUpgrade(content)
             }
 
-        // ByteArrayContent is most efficient
+            // ByteArrayContent is most efficient
             is OutgoingContent.ByteArrayContent -> {
                 // First call user code to acquire bytes, because it could fail
                 val bytes = content.bytes()
@@ -109,7 +110,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 return respondFromBytes(bytes)
             }
 
-        // WriteChannelContent is more efficient than ReadChannelContent
+            // WriteChannelContent is more efficient than ReadChannelContent
             is OutgoingContent.WriteChannelContent -> {
                 // First set headers
                 commitHeaders(content)
@@ -117,16 +118,20 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 return respondWriteChannelContent(content)
             }
 
-        // Pipe is least efficient
+            // Pipe is the least efficient
             is OutgoingContent.ReadChannelContent -> {
                 // First call user code to acquire read channel, because it could fail
                 val readChannel = content.readFrom()
-                // If channel is fine, commit headers and pipe data
-                commitHeaders(content)
-                return respondFromChannel(readChannel)
+                try {
+                    // If channel is fine, commit headers and pipe data
+                    commitHeaders(content)
+                    return respondFromChannel(readChannel)
+                } finally {
+                    readChannel.cancel()
+                }
             }
 
-        // Do nothing, but maintain `when` exhaustiveness
+            // Do nothing, but maintain `when` exhaustiveness
             is OutgoingContent.NoContent -> {
                 commitHeaders(content)
                 return respondNoContent(content)
@@ -215,7 +220,13 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * ByteBuffer pool
      */
-    protected open val bufferPool: ObjectPool<ByteBuffer> get() = KtorDefaultPool
+    @Deprecated(
+        "Avoid specifying pools or use KtorDefaultPool instead.",
+        ReplaceWith("KtorDefaultPool", "io.ktor.util.cio.KtorDefaultPool"),
+        level = DeprecationLevel.ERROR
+    )
+    protected open val bufferPool: ObjectPool<ByteBuffer>
+        get() = KtorDefaultPool
 
     /**
      * Set underlying engine's response status
@@ -235,21 +246,39 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
      */
-    class InvalidHeaderForContent(name: String, content: String) : IllegalStateException("Header $name is not allowed for $content")
+    class InvalidHeaderForContent(
+        private val name: String, private val content: String
+    ) : IllegalStateException("Header $name is not allowed for $content"),
+        CopyableThrowable<InvalidHeaderForContent> {
+        override fun createCopy(): InvalidHeaderForContent? = InvalidHeaderForContent(name, content).also {
+            it.initCause(this)
+        }
+
+    }
 
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooSmall(expected: Long, actual: Long) : IllegalStateException(
-            "Body.size is too small. Body: $actual, Content-Length: $expected"
-    )
+    class BodyLengthIsTooSmall(
+        private val expected: Long, private val actual: Long
+    ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
+        CopyableThrowable<BodyLengthIsTooSmall> {
+        override fun createCopy(): BodyLengthIsTooSmall? = BodyLengthIsTooSmall(expected, actual).also {
+            it.initCause(this)
+        }
+    }
 
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooLong(expected: Long) : IllegalStateException(
-            "Body.size is too long. Expected $expected"
-    )
+    class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
+        "Body.size is too long. Expected $expected"
+    ), CopyableThrowable<BodyLengthIsTooLong> {
+        override fun createCopy(): BodyLengthIsTooLong? = BodyLengthIsTooLong(expected).also {
+            it.initCause(this)
+        }
+
+    }
 
     companion object {
         /**

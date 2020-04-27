@@ -7,10 +7,13 @@ package io.ktor.client.features.logging
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.close
+import kotlin.io.use
 import kotlin.test.*
 
 class NetworkLoggingTest : ClientLoader() {
@@ -169,7 +172,7 @@ BODY END
     }
 
     @Test
-    fun customServerHeadersLoggingTest(): Unit = clientTests {
+    fun customServerHeadersLoggingTest() = clientTests {
         val testLogger = TestLogger()
 
         config {
@@ -194,12 +197,12 @@ BODY END
         }
 
         test { client ->
-            client.call {
+            client.request<HttpStatement> {
                 method = HttpMethod.Get
                 url("https://jigsaw.w3.org/HTTP/ChunkedScript")
-            }.use { call ->
+            }.execute { response ->
                 val responseBytes = ByteArray(65536)
-                val body = call.response.content
+                val body = response.content
                 body.readFully(responseBytes)
             }
         }
@@ -220,7 +223,7 @@ BODY END
         }
 
         test { client ->
-            val response = client.request<HttpResponse> {
+            val response = client.request<HttpStatement> {
                 method = requestMethod
 
                 url {
@@ -229,12 +232,12 @@ BODY END
                 }
 
                 body?.let { this@request.body = body }
+            }.execute {
+                it.readText()
+                it
             }
 
-            response.readText()
-            response.close()
-            response.coroutineContext[Job]?.join()
-
+            response.coroutineContext[Job]!!.join()
             assertEquals(expected.toLowerCase(), testLogger.dump().toLowerCase())
         }
     }

@@ -9,7 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.features.*
 import io.ktor.gson.*
@@ -85,7 +85,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeSimple() = clientTest(CIO) {
+    fun testSerializeSimple() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -98,7 +98,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testSerializeNested() = clientTest(CIO) {
+    fun testSerializeNested() = testWithEngine(CIO) {
         configClient()
 
         test { client ->
@@ -111,7 +111,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypes() = clientTest(CIO) {
+    fun testCustomContentTypes() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(customContentType)
         }
@@ -125,7 +125,7 @@ abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
                 val result = response.receive<Response<List<User>>>()
 
                 assertTrue(result.ok)
@@ -149,7 +149,7 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesMultiple() = clientTest(CIO) {
+    fun testCustomContentTypesMultiple() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Json, customContentType)
         }
@@ -167,13 +167,13 @@ abstract class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testCustomContentTypesWildcard() = clientTest(CIO) {
+    fun testCustomContentTypesWildcard() = testWithEngine(CIO) {
         configCustomContentTypeClient {
             acceptContentTypes = listOf(ContentType.Application.Any)
         }
 
         test { client ->
-            client.get<HttpResponse>(path = "/users-x", port = serverPort).use { response ->
+            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
                 val result = response.receive<Response<List<User>>>()
 
                 assertTrue(result.ok)
