@@ -5,6 +5,7 @@
 package io.ktor.network.selector
 
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
@@ -12,7 +13,7 @@ import java.nio.channels.spi.*
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
  */
-interface SelectorManager {
+interface SelectorManager : CoroutineScope {
     /**
      * NIO selector provider
      */
