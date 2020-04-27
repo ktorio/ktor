@@ -12,7 +12,7 @@ import java.nio.channels.spi.*
 /**
  * Selector manager is a service that manages NIO selectors and selection threads
  */
-interface SelectorManager {
+interface SelectorManager : CoroutineScope  {
     /**
      * NIO selector provider
      */
