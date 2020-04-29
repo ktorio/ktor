@@ -349,7 +349,7 @@ data class AndRouteSelector(val first: RouteSelector, val second: RouteSelector)
  */
 data class HttpMethodRouteSelector(val method: HttpMethod) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.request.httpMethod == method)
+        if (context.call.request.httpMethod.match(method))
             return RouteSelectorEvaluation.Constant
         return RouteSelectorEvaluation.Failed
     }

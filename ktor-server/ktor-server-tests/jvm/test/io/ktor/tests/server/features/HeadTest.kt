@@ -26,6 +26,10 @@ class HeadTest {
                     call.response.header("M", "1")
                     call.respond("Hello")
                 }
+
+                head("/head") {
+                    call.respond(HttpStatusCode.OK)
+                }
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
@@ -38,6 +42,11 @@ class HeadTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertNull(call.response.content)
                 assertEquals("1", call.response.headers["M"])
+            }
+
+            handleRequest(HttpMethod.Head, "/head").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.content)
             }
         }
     }

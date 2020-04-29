@@ -33,7 +33,10 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
 
                 // Pretend the request was with GET method so that all normal routes and interceptors work
                 // but in the end we will drop the content
-                call.mutableOriginConnectionPoint.method = HttpMethod.Get
+                call.mutableOriginConnectionPoint.method = HttpMethod(
+                    "GET_OR_HEAD",
+                    listOf(HttpMethod.Get, HttpMethod.Head)
+                )
             }
         }
     }
