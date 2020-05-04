@@ -106,7 +106,8 @@ internal suspend fun oauth2RequestAccessToken(
         extraParameters,
         configure,
         settings.accessTokenRequiresBasicAuth,
-        settings.nonceManager
+        settings.nonceManager,
+        settings.passParamsInURL
     )
 }
 
@@ -152,6 +153,7 @@ private suspend fun oauth2RequestAccessToken(
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
     nonceManager: NonceManager,
+    passParamsInURL: Boolean = false,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
 
@@ -182,8 +184,12 @@ private suspend fun oauth2RequestAccessToken(
 
     when (method) {
         HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
-        HttpMethod.Post -> request.body =
-            TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+        HttpMethod.Post -> {
+            if (passParamsInURL)
+                request.url.parameters.appendAll(urlParameters)
+            else
+                request.body = TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+        }
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
 
@@ -300,6 +306,7 @@ suspend fun verifyWithOAuth2(
         ),
         useBasicAuth = true,
         nonceManager = settings.nonceManager,
+        passParamsInURL = settings.passParamsInURL,
         grantType = OAuthGrantTypes.Password
     )
 }
