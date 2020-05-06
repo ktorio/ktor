@@ -74,6 +74,7 @@ class ETagsTest {
         }
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.NotModified, result.response.status())
+        assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
