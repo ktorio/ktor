@@ -82,7 +82,7 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
         connection.timeoutAwareConnect(data)
 
-        val statusCode = HttpStatusCode(connection.responseCode, connection.responseMessage)
+        val statusCode = HttpStatusCode.fromValue(connection.responseCode)
         val content: ByteReadChannel = connection.content(callContext, data)
         val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
         val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
