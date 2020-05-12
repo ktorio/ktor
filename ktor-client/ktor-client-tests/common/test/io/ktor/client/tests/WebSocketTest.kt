@@ -51,17 +51,34 @@ class WebSocketTest : ClientLoader() {
     fun testCancel() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
         config {
             install(WebSockets)
+        }
 
-            test { client ->
-                io.ktor.client.tests.utils.assertFailsWith<CancellationException> {
-                    withTimeout(1000) {
-                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                            repeat(10) {
-                                send(Frame.Text("Hello"))
-                                delay(250)
-                            }
+        test { client ->
+            io.ktor.client.tests.utils.assertFailsWith<CancellationException> {
+                withTimeout(1000) {
+                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                        repeat(10) {
+                            send(Frame.Text("Hello"))
+                            delay(250)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testEchoWSS() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("wss://echo.websocket.org") {
+                outgoing.send(Frame.Text("PING"))
+                val frame = incoming.receive()
+                if (frame is Frame.Text) {
+                    assertEquals("PING", frame.readText())
                 }
             }
         }

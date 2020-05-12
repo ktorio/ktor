@@ -5,7 +5,9 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.client.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
+import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import java.util.concurrent.*
@@ -13,7 +15,7 @@ import kotlin.test.*
 
 class OkHttpEngineTests {
     @Test
-    fun closeTest() {
+    fun testClose() {
         val okHttpClient = OkHttpClient()
         val engine = OkHttpEngine(OkHttpConfig().apply { preconfigured = okHttpClient })
         engine.close()
@@ -24,7 +26,7 @@ class OkHttpEngineTests {
     }
 
     @Test
-    fun threadLeakTest() = runBlocking {
+    fun testThreadLeak() = runBlocking {
         val initialNumberOfThreads = Thread.getAllStackTraces().size
 
         repeat(25) {
@@ -40,7 +42,7 @@ class OkHttpEngineTests {
     }
 
     @Test
-    fun preconfiguresTest() = runBlocking {
+    fun testPreconfigured() = runBlocking {
         var preconfiguredClientCalled = false
         val okHttpClient = OkHttpClient().newBuilder().addInterceptor(object : Interceptor {
             override fun intercept(chain: Interceptor.Chain): Response {
@@ -54,6 +56,19 @@ class OkHttpEngineTests {
         }.use { client ->
             runCatching { client.get<String>("http://localhost:1234") }
             assertTrue(preconfiguredClientCalled)
+        }
+    }
+
+    @Test
+    fun testRequestAfterRecreate() {
+        runBlocking {
+            HttpClient(OkHttp)
+                .close()
+
+            HttpClient(OkHttp).use { client ->
+                val response = client.get<String>("http://www.google.com")
+                assertNotNull(response)
+            }
         }
     }
 }
