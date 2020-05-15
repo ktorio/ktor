@@ -57,7 +57,7 @@ internal class OriginConnectionPoint(
         get() = local.scheme
 
     override val version: String
-        get() = local.scheme
+        get() = local.version
 
     override val port: Int
         get() = hostHeaderValue?.substringAfter(":", "80")
