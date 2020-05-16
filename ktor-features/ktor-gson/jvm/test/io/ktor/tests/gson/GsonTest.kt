@@ -203,6 +203,28 @@ class GsonTest {
         }
     }
 
+
+    @Test
+    fun testReceiveMalformedJson(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            gson()
+        }
+
+        application.routing {
+            post("/") {
+                val result = call.receive<Map<String, String>>().toString()
+                call.respondText(result)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("{")
+        }.let {
+            assertEquals(HttpStatusCode.BadRequest, it.response.status())
+        }
+    }
+
 }
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
