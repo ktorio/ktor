@@ -8,6 +8,11 @@ plugins {
 
 kotlin {
     sourceSets {
+        // This is a workaround for https://youtrack.jetbrains.com/issue/KT-39037
+        fun excludingSelf(dependency: Any) = project.dependencies.create(dependency).apply {
+            (this as ModuleDependency).exclude(module = project.name)
+        }
+
         commonMain {
             dependencies {
                 api(project(":ktor-client:ktor-client-core"))
@@ -15,13 +20,13 @@ kotlin {
         }
         commonTest {
             dependencies {
-                api(project(":ktor-client:ktor-client-tests"))
-                api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
+                api(excludingSelf(project(":ktor-client:ktor-client-tests")))
+                api(excludingSelf(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization")))
             }
         }
         jvmTest {
             dependencies {
-                api(project(":ktor-client:ktor-client-tests"))
+                api(excludingSelf(project(":ktor-client:ktor-client-tests")))
                 api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson"))
 
                 runtimeOnly(project(":ktor-client:ktor-client-apache"))
