@@ -112,13 +112,6 @@ publishing {
             }
         }
     }
-
-    // Disable gradle metadata in root jvm modules
-    def hasNative = project.ext.has("hasNative") && project.ext.hasNative
-    if (!hasNative) {
-        def rootPublication = publishing.publications.findByName('kotlinMultiplatform')
-        rootPublication.moduleDescriptorGenerator = null
-    }
 }
 
 publish.dependsOn publishToMavenLocal
