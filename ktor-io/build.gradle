@@ -35,3 +35,12 @@ if (!project.ext.ideaActive) {
         registerInteropAsSourceSetOutput(linuxX64Interops.sockets, kotlin.sourceSets.socketsMain)
     }
 }
+
+// Workaround for KT-39063
+project.configurations.all {
+    if (name.endsWith("Npm")) {
+        incoming.beforeResolve {
+            setExtendsFrom(extendsFrom.findAll { !it.name.endsWith("DependenciesMetadata") })
+        }
+    }
+}
