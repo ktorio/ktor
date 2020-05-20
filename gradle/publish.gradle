@@ -16,11 +16,11 @@ def selectArtifactId(project, type, defaultName) {
     switch (type) {
         case 'metadata':
             if (!isCommon) return "$name-$type"
-            return commonIsRoot ? "$name" : "$name-common"
+            return "$name-common"
             break
         case 'kotlinMultiplatform':
             if (!hasNative) return "$name-kotlinMultiplatform"
-            return isCommon ? "$name-native" : "$name"
+            return name
             break
         case 'jvm':
             return commonIsRoot ? "$name-jvm" : "$name"
@@ -73,7 +73,7 @@ publishing {
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
 
-        if (id.endsWith('native')) {
+        if (name == "kotlinMultiplatform") {
             it.artifact(emptyJar) { classifier 'javadoc' }
             it.artifact(emptyJar) { classifier 'kdoc' }
             it.artifact emptyJar
