@@ -40,7 +40,14 @@ internal suspend fun HttpRequestData.write(
 
             builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
             // this will only add the port to the host header if the port is non-standard for the protocol
-            builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
+            if (!headers.contains(HttpHeaders.Host)) {
+                val host = if (url.protocol.defaultPort == url.port) {
+                    url.host
+                } else {
+                    url.hostWithPort
+                }
+                builder.headerLine(HttpHeaders.Host, host)
+            }
 
             mergeHeaders(headers, body) { key, value ->
                 builder.headerLine(key, value)
