@@ -32,17 +32,17 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
         )
     }
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val requestTime: GMTDate = GMTDate()
+        val requestTime = GMTDate()
 
         val url: String = URLBuilder().takeFrom(data.url).buildString()
         val outgoingContent: OutgoingContent = data.body
-        val contentLength: Long? =
-            data.headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
+        val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong()
+            ?: outgoingContent.contentLength
 
         val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
             connectTimeout = config.connectTimeout

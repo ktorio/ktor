@@ -13,8 +13,7 @@ import kotlin.test.*
 class HeadersTest : ClientLoader() {
 
     @Test
-    fun headersReturnNullWhenMissing() = clientTests {
-        config {}
+    fun testHeadersReturnNullWhenMissing() = clientTests {
         test { client ->
             client.get<HttpResponse>("$TEST_SERVER/headers/").let {
                 assertEquals(HttpStatusCode.OK, it.status)
@@ -27,8 +26,7 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
-    fun headersMergeTest() = clientTests(listOf("Js")) {
-        config {}
+    fun testHeadersMerge() = clientTests(listOf("Js")) {
         test { client ->
             client.get<HttpResponse>("$TEST_SERVER/headers-merge/") {
                 accept(ContentType.Text.Html)
@@ -50,8 +48,7 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testTest() = clientTests(listOf("Js")) {
-        config {}
+    fun testAcceptMerge() = clientTests(listOf("Js")) {
         test { client ->
             val lines = client.get<String>("$HTTP_PROXY_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
@@ -60,6 +57,15 @@ class HeadersTest : ClientLoader() {
 
             val acceptHeaderLine = lines.first { it.startsWith("Accept:") }
             assertEquals("Accept: application/xml,application/json", acceptHeaderLine)
+        }
+    }
+
+    @Test
+    fun testSingleHostHeader() = clientTests(listOf("Js", "Android")) {
+        test { client ->
+            client.get("$TEST_SERVER/headers/host") {
+                header(HttpHeaders.Host, "CustomHost")
+            }
         }
     }
 }
