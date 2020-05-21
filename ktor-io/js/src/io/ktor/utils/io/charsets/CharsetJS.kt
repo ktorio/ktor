@@ -204,8 +204,7 @@ private data class CharsetImpl(val name: String) : Charset(name) {
 }
 
 
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
-
+actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
     val decoder = TextDecoderFatal(charset.name, true)

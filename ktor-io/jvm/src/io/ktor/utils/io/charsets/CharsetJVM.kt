@@ -329,7 +329,7 @@ private fun CoderResult.throwExceptionWrapped() {
 actual typealias Charsets = kotlin.text.Charsets
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
+actual open class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message
 
     override val message: String?

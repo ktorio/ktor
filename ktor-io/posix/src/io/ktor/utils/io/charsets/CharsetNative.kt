@@ -390,4 +390,4 @@ actual object Charsets {
     internal val UTF_16: Charset = CharsetImpl(platformUtf16)
 }
 
-actual class MalformedInputException actual constructor(message: String) : Throwable(message)
+actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
