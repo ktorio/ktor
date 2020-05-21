@@ -15,7 +15,6 @@ import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
-import kotlin.jvm.*
 
 internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
 private const val BYTE_BUFFER_CAPACITY = 4088
@@ -1875,12 +1874,12 @@ internal open class ByteBufferChannel(
         }
 
         var result: R? = null
-        val rc = reading {
+        val continueReading = reading {
             result = visitor(this@ByteBufferChannel)
             true
         }
 
-        if (!rc) {
+        if (!continueReading) {
             return visitor(TerminatedLookAhead)
         }
 
@@ -2059,21 +2058,21 @@ internal open class ByteBufferChannel(
 
         var consumed = 0
 
-        val ca = CharArray(8192)
-        val cb = CharBuffer.wrap(ca)
+        val array = CharArray(8192)
+        val buffer = CharBuffer.wrap(array)
         var eol = false
 
         lookAhead {
-            eol = readLineLoop(out, ca, cb,
+            eol = readLineLoop(out, array, buffer,
                 await = { expected -> availableForRead >= expected },
                 addConsumed = { consumed += it },
-                decode = { it.decodeASCIILine(ca, 0, minOf(ca.size, limit - consumed)) })
+                decode = { it.decodeASCIILine(array, 0, minOf(array.size, limit - consumed)) })
         }
 
         if (eol) return true
         if (consumed == 0 && isClosedForRead) return false
 
-        return readUTF8LineToUtf8Suspend(out, limit - consumed, ca, cb, consumed)
+        return readUTF8LineToUtf8Suspend(out, limit - consumed, array, buffer, consumed)
     }
 
     private inline fun LookAheadSession.readLineLoop(
@@ -2140,25 +2139,31 @@ internal open class ByteBufferChannel(
         var result = true
 
         lookAheadSuspend {
-            val rc = readLineLoop(out, ca, cb,
+            val rc = readLineLoop(
+                out, ca, cb,
                 await = { awaitAtLeast(it) },
                 addConsumed = { consumed1 += it },
-                decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1)) })
+                decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1)) }
+            )
 
-            if (!rc && isClosedForWrite) {
-                val buffer = request(0, 1)
-                if (buffer != null) {
-                    if (buffer.get() == '\r'.toByte()) {
-                        consumed(1)
-
-                        if (buffer.hasRemaining()) {
-                            throw MalformedInputException("Illegal trailing bytes: ${buffer.remaining()}")
-                        }
-                    } else {
+            if (rc || !isClosedForWrite) {
+                return@lookAheadSuspend
+            }
+            val buffer = request(0, 1)
+            when {
+                buffer != null -> {
+                    if (buffer.get() != '\r'.toByte()) {
                         buffer.position(buffer.position() - 1)
-                        throw MalformedInputException("Illegal trailing byte")
+                        throw TooLongLineException("Line is longer than limit")
                     }
-                } else if (consumed1 == 0 && consumed0 == 0) {
+
+                    consumed(1)
+
+                    if (buffer.hasRemaining()) {
+                        throw MalformedInputException("Illegal trailing bytes: ${buffer.remaining()}")
+                    }
+                }
+                consumed1 == 0 && consumed0 == 0 -> {
                     result = false
                 }
             }

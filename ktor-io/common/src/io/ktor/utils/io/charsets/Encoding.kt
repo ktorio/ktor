@@ -113,8 +113,10 @@ expect object Charsets {
     val ISO_8859_1: Charset
 }
 
-expect class MalformedInputException(message: String) : Throwable
+expect open class MalformedInputException(message: String) : Throwable
 
+
+class TooLongLineException(message: String) : MalformedInputException(message)
 
 // ----------------------------- INTERNALS -----------------------------------------------------------------------------
 
