@@ -161,6 +161,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val PNG = ContentType("image", "png")
         val SVG = ContentType("image", "svg+xml")
         val XIcon = ContentType("image", "x-icon")
+        val TIFF = ContentType("image", "tiff")
     }
 
     /**
