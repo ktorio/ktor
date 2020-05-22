@@ -104,7 +104,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testPath() = clientTests {
+    fun testPath() = clientTests(listOf("js")) {
         config {
             install(HttpCookies)
         }
