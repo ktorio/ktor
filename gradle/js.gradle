@@ -56,6 +56,6 @@ kotlin {
 }
 
 if (build_snapshot_train) {
-    legacyjsBrowserTest.enabled = false
+    jsLegacyBrowserTest.enabled = false
     jsIrBrowserTest.enabled = false
 }
