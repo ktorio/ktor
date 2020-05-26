@@ -618,9 +618,13 @@ public final class io/ktor/utils/io/charsets/EncodingKt {
 	public static final fun encodeUTF8 (Ljava/nio/charset/CharsetEncoder;Lio/ktor/utils/io/core/ByteReadPacket;)Lio/ktor/utils/io/core/ByteReadPacket;
 }
 
-public final class io/ktor/utils/io/charsets/MalformedInputException : java/nio/charset/MalformedInputException {
+public class io/ktor/utils/io/charsets/MalformedInputException : java/nio/charset/MalformedInputException {
 	public fun <init> (Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
+}
+
+public final class io/ktor/utils/io/charsets/TooLongLineException : io/ktor/utils/io/charsets/MalformedInputException {
+	public fun <init> (Ljava/lang/String;)V
 }
 
 public final class io/ktor/utils/io/charsets/UTFKt {
