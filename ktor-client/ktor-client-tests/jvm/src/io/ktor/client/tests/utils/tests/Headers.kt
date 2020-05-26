@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlin.test.*
 
 internal fun Application.headersTestServer() {
     routing {
@@ -35,6 +34,13 @@ internal fun Application.headersTestServer() {
                 if (header.first() != "CustomHost") {
                     call.respond(HttpStatusCode.BadRequest, "Invalid host header: ${header.first()}")
                     return@get
+                }
+
+                call.respond(HttpStatusCode.OK)
+            }
+            post("mirror") {
+                call.request.headers.forEach{ name, values ->
+                    values.forEach { call.response.header(name, it, false) }
                 }
 
                 call.respond(HttpStatusCode.OK)
