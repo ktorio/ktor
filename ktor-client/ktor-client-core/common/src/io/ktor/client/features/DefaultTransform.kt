@@ -27,20 +27,22 @@ fun HttpClient.defaultTransformers() {
             context.headers.append(HttpHeaders.Accept, "*/*")
         }
 
+        if (body is OutgoingContent) return@intercept
+        val contentType = context.headers[HttpHeaders.ContentType]?.let {
+            context.headers.remove(HttpHeaders.ContentType)
+            ContentType.parse(it)
+        }
         when (body) {
             is String -> {
-                val contentType = context.headers[HttpHeaders.ContentType]?.let {
-                    context.headers.remove(HttpHeaders.ContentType)
-                    ContentType.parse(it)
-                } ?: ContentType.Text.Plain
-
-                proceedWith(TextContent(body, contentType))
+                proceedWith(TextContent(body, contentType ?: ContentType.Text.Plain))
             }
             is ByteArray -> proceedWith(object : OutgoingContent.ByteArrayContent() {
+                override val contentType: ContentType? = contentType ?: ContentType.Application.OctetStream
                 override val contentLength: Long = body.size.toLong()
                 override fun bytes(): ByteArray = body
             })
             is ByteReadChannel -> proceedWith(object : OutgoingContent.ReadChannelContent() {
+                override val contentType: ContentType? = contentType ?: ContentType.Application.OctetStream
                 override fun readFrom(): ByteReadChannel = body
             })
         }
