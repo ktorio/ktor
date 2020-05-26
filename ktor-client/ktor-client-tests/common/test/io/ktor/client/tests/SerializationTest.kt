@@ -33,4 +33,21 @@ class SerializationTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testSendStringWithSerialization() = clientTests {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            assertFailsWith<ClientRequestException> {
+                client.post {
+                    url("https://google.com")
+                    header(HttpHeaders.ContentType, ContentType.Application.Json)
+                    body = "Hello, world"
+                }
+            }
+        }
+    }
 }
