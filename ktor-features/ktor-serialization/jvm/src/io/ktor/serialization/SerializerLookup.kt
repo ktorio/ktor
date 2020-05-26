@@ -7,6 +7,7 @@ package io.ktor.serialization
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
@@ -37,43 +38,34 @@ private fun arraySerializer(type: KType): KSerializer<*> {
 }
 
 @OptIn(ImplicitReflectionSerializer::class)
-internal fun serializerForSending(value: Any): KSerializer<*> {
-    if (value is JsonElement) {
-        return JsonElementSerializer
-    }
-    if (value is List<*>) {
-        return ListSerializer(value.elementSerializer())
-    }
-    if (value is Set<*>) {
-        return SetSerializer(value.elementSerializer())
-    }
-    if (value is Map<*, *>) {
-        return MapSerializer(value.keys.elementSerializer(), value.values.elementSerializer())
-    }
-    if (value is Map.Entry<*, *>) {
-        return MapEntrySerializer(
-            serializerForSending(value.key ?: error("Map.Entry(null, ...) is not supported")),
-            serializerForSending(value.value ?: error("Map.Entry(..., null) is not supported)"))
-        )
-    }
-    if (value is Array<*>) {
+internal fun serializerForSending(value: Any, module: SerialModule): KSerializer<*> = when (value) {
+    is JsonElement -> JsonElementSerializer
+    is List<*> -> ListSerializer(value.elementSerializer(module))
+    is Set<*> -> SetSerializer(value.elementSerializer(module))
+    is Map<*, *> -> MapSerializer(value.keys.elementSerializer(module), value.values.elementSerializer(module))
+    is Map.Entry<*, *> -> MapEntrySerializer(
+        serializerForSending(value.key ?: error("Map.Entry(null, ...) is not supported"), module),
+        serializerForSending(value.value ?: error("Map.Entry(..., null) is not supported)"), module)
+    )
+    is Array<*> -> {
         val componentType = value.javaClass.componentType.kotlin.starProjectedType
         val componentClass =
             componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
+
         @Suppress("UNCHECKED_CAST")
-        return ArraySerializer(
+        ArraySerializer(
             componentClass as KClass<Any>,
             serializerByTypeInfo(componentType) as KSerializer<Any>
         )
     }
-    return value::class.serializer()
+    else -> module.getContextual(value::class) ?: value::class.serializer()
 }
 
 @OptIn(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer(): KSerializer<*> {
+private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
     @Suppress("DEPRECATION_ERROR")
     val serializers = mapNotNull { value ->
-        value?.let { serializerForSending(it) }
+        value?.let { serializerForSending(it, module) }
     }.distinctBy { it.descriptor.name }
 
     if (serializers.size > 1) {

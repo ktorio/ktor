@@ -15,7 +15,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlin.reflect.*
+import kotlinx.serialization.modules.*
 import kotlin.text.Charsets
 
 /**
@@ -111,7 +111,7 @@ class SerializationConverter private constructor(
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(value) as KSerializer<Any>
+        val serializer = serializerForSending(value, format.context) as KSerializer<Any>
 
         return when (format) {
             is StringFormat -> {
@@ -131,7 +131,7 @@ class SerializationConverter private constructor(
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val serializer = serializerByTypeInfo(request.typeInfo)
+        val serializer = format.context.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
         val contentPacket = channel.readRemaining()
 
         return when (format) {
