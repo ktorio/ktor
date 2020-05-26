@@ -5,10 +5,8 @@
 package io.ktor.client.engine
 
 import io.ktor.client.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 
 /**
  * Base configuration for [HttpClientEngine].
@@ -26,6 +24,11 @@ open class HttpClientEngineConfig {
      */
     @KtorExperimentalAPI
     var pipelining: Boolean = false
+
+    /**
+     * Allow client using headers from [HttpHeaders.UnsafeHeadersList] in requests
+     */
+    var allowUnsafeHeaders: Boolean = false
 
     /**
      * Proxy address to use. Use system proxy by default.

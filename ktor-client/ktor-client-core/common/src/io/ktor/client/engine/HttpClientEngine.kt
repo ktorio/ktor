@@ -59,7 +59,9 @@ interface HttpClientEngine : CoroutineScope, Closeable {
                 body = content
             }.build()
 
-            validateHeaders(requestData)
+            if (!config.allowUnsafeHeaders) {
+                validateSafeHeaders(requestData)
+            }
             checkExtensions(requestData)
 
             val responseData = executeWithinCallContext(requestData)
@@ -133,7 +135,7 @@ fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() 
 /**
  * Validates request headers and fails if there are unsafe headers supplied
  */
-private fun validateHeaders(request: HttpRequestData) {
+private fun validateSafeHeaders(request: HttpRequestData) {
     val requestHeaders = request.headers
     for (header in HttpHeaders.UnsafeHeadersList) {
         if (header in requestHeaders) {
