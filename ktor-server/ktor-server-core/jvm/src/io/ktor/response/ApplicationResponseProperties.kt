@@ -13,42 +13,42 @@ import java.time.temporal.*
 /**
  * Append HTTP response header with string [value]
  */
-fun ApplicationResponse.header(name: String, value: String): Unit = headers.append(name, value)
+fun ApplicationResponse.header(name: String, value: String, safeOnly: Boolean = true): Unit = headers.append(name, value, safeOnly)
 
 /**
  * Append HTTP response header with integer numeric [value]
  */
-fun ApplicationResponse.header(name: String, value: Int): Unit = headers.append(name, value.toString())
+fun ApplicationResponse.header(name: String, value: Int, safeOnly: Boolean = true): Unit = header(name, value.toString(), safeOnly)
 
 /**
  * Append HTTP response header with long integer numeric [value]
  */
-fun ApplicationResponse.header(name: String, value: Long): Unit = headers.append(name, value.toString())
+fun ApplicationResponse.header(name: String, value: Long, safeOnly: Boolean = true): Unit = header(name, value.toString(), safeOnly)
 
 /**
  * Append HTTP response header with temporal [date] (date, time and so on)
  */
-fun ApplicationResponse.header(name: String, date: Temporal): Unit = headers.append(name, date.toHttpDateString())
+fun ApplicationResponse.header(name: String, date: Temporal, safeOnly: Boolean = true): Unit = header(name, date.toHttpDateString(), safeOnly)
 
 /**
  * Append response `E-Tag` HTTP header [value]
  */
-fun ApplicationResponse.etag(value: String): Unit = header(HttpHeaders.ETag, value)
+fun ApplicationResponse.etag(value: String, safeOnly: Boolean = true): Unit = header(HttpHeaders.ETag, value, safeOnly)
 
 /**
  * Append response `Last-Modified` HTTP header value from [dateTime]
  */
-fun ApplicationResponse.lastModified(dateTime: ZonedDateTime): Unit = header(HttpHeaders.LastModified, dateTime)
+fun ApplicationResponse.lastModified(dateTime: ZonedDateTime, safeOnly: Boolean = true): Unit = header(HttpHeaders.LastModified, dateTime, safeOnly)
 
 /**
  * Append response `Cache-Control` HTTP header [value]
  */
-fun ApplicationResponse.cacheControl(value: CacheControl): Unit = header(HttpHeaders.CacheControl, value.toString())
+fun ApplicationResponse.cacheControl(value: CacheControl, safeOnly: Boolean = true): Unit = header(HttpHeaders.CacheControl, value.toString(), safeOnly)
 
 /**
  * Append response `Expires` HTTP header [value]
  */
-fun ApplicationResponse.expires(value: LocalDateTime): Unit = header(HttpHeaders.Expires, value)
+fun ApplicationResponse.expires(value: LocalDateTime, safeOnly: Boolean = true): Unit = header(HttpHeaders.Expires, value, safeOnly)
 
 /**
  * Append `Cache-Control` HTTP header [value]
