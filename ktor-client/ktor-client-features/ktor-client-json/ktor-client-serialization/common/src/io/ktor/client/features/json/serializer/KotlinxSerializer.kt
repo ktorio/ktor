@@ -12,6 +12,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.*
 
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
@@ -19,13 +20,13 @@ import kotlinx.serialization.json.*
 @OptIn(
     ImplicitReflectionSerializer::class, UnstableDefault::class
 )
-class KotlinxSerializer(
+public class KotlinxSerializer(
     private val json: Json = Json(DefaultJsonConfiguration)
 ) : JsonSerializer {
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent {
         @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(buildSerializer(data) as KSerializer<Any>, data)
+        val content = json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
         return TextContent(content, contentType)
     }
 
@@ -40,8 +41,8 @@ class KotlinxSerializer(
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */
-        val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration(
-            isLenient = true,
+        public val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration(
+            isLenient = false,
             ignoreUnknownKeys = false,
             serializeSpecialFloatingPointValues = true,
             useArrayPolymorphism = false
@@ -51,22 +52,23 @@ class KotlinxSerializer(
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ImplicitReflectionSerializer::class)
-private fun buildSerializer(value: Any): KSerializer<*> = when (value) {
+private fun buildSerializer(value: Any, module: SerialModule): KSerializer<*> = when (value) {
     is JsonElement -> JsonElementSerializer
-    is List<*> -> value.elementSerializer().list
-    is Array<*> -> value.firstOrNull()?.let { buildSerializer(it) } ?: String.serializer().list
-    is Set<*> -> value.elementSerializer().set
+    is List<*> -> value.elementSerializer(module).list
+    is Array<*> -> value.firstOrNull()?.let { buildSerializer(it, module) } ?: String.serializer().list
+    is Set<*> -> value.elementSerializer(module).set
     is Map<*, *> -> {
-        val keySerializer = value.keys.elementSerializer() as KSerializer<Any>
-        val valueSerializer = value.values.elementSerializer() as KSerializer<Any>
+        val keySerializer = value.keys.elementSerializer(module) as KSerializer<Any>
+        val valueSerializer = value.values.elementSerializer(module) as KSerializer<Any>
         MapSerializer(keySerializer, valueSerializer)
     }
-    else -> value::class.serializer()
+    else -> module.getContextual(value::class) ?: value::class.serializer()
 }
 
 @OptIn(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer(): KSerializer<*> {
-    val serializers = filterNotNull().map { buildSerializer(it) }.distinctBy { it.descriptor.serialName }
+private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
+    val serializers: List<KSerializer<*>> =
+        filterNotNull().map { buildSerializer(it, module) }.distinctBy { it.descriptor.serialName }
 
     if (serializers.size > 1) {
         error(
