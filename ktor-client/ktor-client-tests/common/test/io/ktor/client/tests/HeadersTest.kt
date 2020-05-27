@@ -74,7 +74,7 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testSimpleContentTypePropagation() = clientTests(skipEngines = listOf("CIO")) {
+    fun testContentTypePropagation() = clientTests(skipEngines = listOf("CIO")) {
         test { client ->
             client.post<HttpResponse>("$TEST_SERVER/headers/mirror"){
                 contentType(ContentType.Application.Json)
@@ -135,7 +135,14 @@ class HeadersTest : ClientLoader() {
                 contentType(ContentType.Application.OctetStream)
                 body = TextContent("test", ContentType.Text.Plain)
             }.let {
-                assertEquals(ContentType.Application.OctetStream.toString(), it.headers[HttpHeaders.ContentType])
+                assertEquals(ContentType.Text.Plain.toString(), it.headers[HttpHeaders.ContentType])
+            }
+
+            client.post<HttpResponse>("$TEST_SERVER/headers/mirror"){
+                contentType(ContentType.Text.Plain)
+                body = ByteArrayContent("test".toByteArray())
+            }.let {
+                assertEquals(ContentType.Text.Plain.toString(), it.headers[HttpHeaders.ContentType])
             }
         }
     }
