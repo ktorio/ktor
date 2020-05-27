@@ -482,6 +482,51 @@ class OAuth2Test {
 
     }
 
+    @Test
+    fun testParamsInURL(): Unit = withApplication(createTestEnvironment()) {
+        application.apply {
+            install(Authentication) {
+                oauth("login") {
+                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
+                    urlProvider = { "http://localhost/login" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "oauth2",
+                            authorizeUrl = "http://localhost/authorize",
+                            accessTokenUrl = "http://localhost/oauth/access_token",
+                            clientId = "clientId1",
+                            clientSecret = "clientSecret1",
+                            requestMethod = HttpMethod.Post,
+                            passParamsInURL = true
+                        )
+                    }
+                }
+            }
+            routing {
+                post("/oauth/access_token") {
+                    // If these fail, you will see '401 Unauthorized' in test logs.
+                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
+                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
+                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                }
+                authenticate("login") {
+                    get("/login") {
+                        call.respond("We're in.")
+                    }
+                }
+            }
+        }
+
+        handleRequest {
+            uri = "/login?code=mow&state=wow"
+        }.also {
+            assertTrue(it.requestHandled)
+            // Usually 401 here means, that tests above failed.
+            assertEquals(it.response.status(), HttpStatusCode.OK)
+            assertEquals(it.response.content, "We're in.")
+        }
+    }
+
     private fun waitExecutor() {
         val latch = CountDownLatch(1)
         executor.submit {

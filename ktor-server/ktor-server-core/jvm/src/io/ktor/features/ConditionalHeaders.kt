@@ -39,13 +39,6 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
 
         val versions = if (message is OutgoingContent) versionsFor(message) else emptyList()
 
-        val checkResult = checkVersions(call, versions)
-        if (checkResult != VersionCheckResult.OK) {
-            val response = HttpStatusCodeContent(checkResult.statusCode)
-            context.proceedWith(response)
-            return
-        }
-
         if (versions.isNotEmpty()) {
             val headers = Headers.build {
                 versions.forEach { it.appendHeadersTo(this) }
@@ -55,6 +48,13 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
             headers.forEach { name, values ->
                 values.forEach { responseHeaders.append(name, it) }
             }
+        }
+
+        val checkResult = checkVersions(call, versions)
+        if (checkResult != VersionCheckResult.OK) {
+            val response = HttpStatusCodeContent(checkResult.statusCode)
+            context.proceedWith(response)
+            return
         }
     }
 

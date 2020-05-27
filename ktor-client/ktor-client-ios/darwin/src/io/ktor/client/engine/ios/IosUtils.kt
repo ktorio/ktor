@@ -37,4 +37,4 @@ internal fun NSData.toByteArray(): ByteArray {
 
 @KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
-class IosHttpRequestException(val origin: NSError) : Throwable("Exception in http request: $origin")
+class IosHttpRequestException(val origin: NSError) : Exception("Exception in http request: $origin")

@@ -91,7 +91,7 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
      * @property clientSecret client secret parameter (provided by OAuth server vendor)
      * @property defaultScopes OAuth scopes used by default
      * @property accessTokenRequiresBasicAuth to send BASIC auth header when an access token is requested
-     *
+     * @property passParamsInURL whether to pass request parameters in POST requests in URL instead of body.
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
      */
@@ -108,7 +108,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
 
         val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
-        val authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
+        val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+        val passParamsInURL: Boolean = false
     ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
