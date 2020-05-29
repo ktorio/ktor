@@ -165,7 +165,7 @@ allprojects {
     configurations { testOutput }
 
     kotlin {
-        configure(sourceSets) {
+        sourceSets.matching { !(it.name in ["jmh", "main", "test"]) }.all {
             def srcDir = name.endsWith("Main") ? "src" : "test"
             def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
             def platform = name[0..-5]

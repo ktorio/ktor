@@ -14,10 +14,10 @@ def getHostName() {
  * Disable cross compilation for missing cinterop.
  * @param targets
  */
-def disableCompilation(targets) {
+def disableCompilation(targets, disableCinterops) {
     configure(targets) {
         compilations.all {
-            cinterops.all { project.tasks[interopProcessingTaskName].enabled = false }
+            if (disableCinterops) cinterops.all { project.tasks[interopProcessingTaskName].enabled = false }
             compileKotlinTask.enabled = false
         }
         binaries.all { linkTask.enabled = false }
@@ -57,12 +57,9 @@ kotlin {
                 project.ext.nativeTargets = [iosX64, iosArm64, iosArm32, macosX64, linuxX64, mingwX64, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
             }
 
-            def crossCompileTargets = [linuxX64, macosX64, mingwX64]
+            def crossCompileTargets = [macosX64, mingwX64]
             def host = getHostName()
             switch (host) {
-                case 'linux':
-                    crossCompileTargets.remove(linuxX64)
-                    break
                 case 'windows':
                     crossCompileTargets.remove(mingwX64)
                     break
@@ -70,7 +67,12 @@ kotlin {
                     crossCompileTargets.remove(macosX64)
                     break
             }
-            disableCompilation(crossCompileTargets)
+            disableCompilation(crossCompileTargets, /* disableCinterops = */ true)
+
+            // We need linux cinterops for publishing even on non-linux, so we disable it
+            // separately and only non-cinterop parts
+            if (host != 'linux') disableCompilation([linuxX64], /* disableCinterops = */ false)
+
             configure([mingwX64Test]) {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
@@ -84,7 +86,8 @@ kotlin {
     }
     sourceSets {
         posixMain.dependencies {
-            implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+            implementation "org.jetbrains.kotlinx:atomicfu:$atomicfu_version"
         }
 
         posixTest
