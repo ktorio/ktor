@@ -107,7 +107,7 @@ if (!project.ext.ideaActive) {
 }
 
 kotlin {
-    configure(sourceSets) {
+    sourceSets.all {
         languageSettings {
             progressiveMode = true
             experimentalAnnotations.each { useExperimentalAnnotation(it) }

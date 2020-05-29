@@ -112,9 +112,9 @@ val testTasks = mutableListOf(
     "jvmBenchmark",
 
     // 1.4.x JS tasks
-    "legacyjsNodeTest",
+    "jsLegacyNodeTest",
     "jsIrNodeTest",
-    "legacyjsBrowserTest",
+    "jsLegacyBrowserTest",
     "jsIrBrowserTest",
 
     // 1.3.x JS tasks
