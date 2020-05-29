@@ -119,10 +119,6 @@ val testTasks = mutableListOf(
     "jsLegacyBrowserTest",
     "jsIrBrowserTest",
 
-    // 1.3.x JS tasks
-    "jsNodeTest",
-    "jsBrowserTest",
-
     "posixTest",
     "darwinTest"
 )
@@ -132,9 +128,7 @@ if (!ideaActive) {
         "macosX64Test",
         "linuxX64Test",
         "iosTest",
-        "mingwX64Test",
-        "jsNodeTest",
-        "jsBrowserTest"
+        "mingwX64Test"
     )
 }
 
