@@ -225,7 +225,7 @@ class HttpTimeoutTest : ClientLoader() {
         test { client ->
             val response = client.request<ByteReadChannel>("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
-                parameter("delay", 500)
+                parameter("delay", 10000)
 
                 timeout { requestTimeoutMillis = 1000 }
             }
