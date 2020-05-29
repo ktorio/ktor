@@ -60,6 +60,7 @@ class HttpRedirectTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testCustomUrls() = clientTests {
         val urls = listOf(
             "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
