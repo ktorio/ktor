@@ -8,6 +8,4 @@ import io.ktor.client.tests.*
 
 class AndroidMultithreadedTest : MultithreadedTest(Android)
 
-class AndroidBuildersTest : BuildersTest(Android)
-
 class AndroidHttpClientTest : HttpClientTest(Android)

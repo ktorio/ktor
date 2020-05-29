@@ -109,6 +109,9 @@ actual interface ByteWriteChannel {
      */
     actual suspend fun writeFloat(f: Float)
 
+    @ExperimentalIoApi
+    public actual suspend fun awaitFreeSpace()
+
     /**
      * Closes this channel with an optional exceptional [cause].
      * It flushes all pending write bytes (via [flush]).

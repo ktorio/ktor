@@ -110,6 +110,12 @@ expect interface ByteWriteChannel {
     suspend fun writeFloat(f: Float)
 
     /**
+     * Invokes [block] when at least 1 byte is available for write.
+     */
+    @ExperimentalIoApi
+    public suspend fun awaitFreeSpace()
+
+    /**
      * Closes this channel with an optional exceptional [cause].
      * It flushes all pending write bytes (via [flush]).
      * This is an idempotent operation -- repeated invocations of this function have no effect and return `false`.

@@ -1188,6 +1188,11 @@ internal open class ByteBufferChannel(
         return writeInt(java.lang.Float.floatToRawIntBits(f))
     }
 
+    @ExperimentalIoApi
+    override suspend fun awaitFreeSpace() {
+        writeSuspend(1)
+    }
+
     override suspend fun writeAvailable(src: ByteBuffer): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src) } }
 
@@ -1313,6 +1318,7 @@ internal open class ByteBufferChannel(
         }
 
         val autoFlush = autoFlush
+
         @Suppress("DEPRECATION_ERROR")
         val byteOrder = writeByteOrder
 
@@ -1552,9 +1558,11 @@ internal open class ByteBufferChannel(
         }
     }
 
-    override suspend fun write(min: Int, block: (ByteBuffer) -> Unit) {
+    override fun writeAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
         require(min > 0) { "min should be positive" }
+        require(min <= 4088) { "min should be positive" }
 
+        var result = 0
         var written = false
 
         writing { dst, state ->
@@ -1573,13 +1581,13 @@ internal open class ByteBufferChannel(
                 block(dst)
                 if (l != dst.limit()) throw IllegalStateException("buffer limit modified")
 
-                val actuallyWritten = dst.position() - position
-                if (actuallyWritten < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
+                result = dst.position() - position
+                if (result < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
 
-                dst.bytesWritten(state, actuallyWritten)
+                dst.bytesWritten(state, result)
 
-                if (actuallyWritten < locked) {
-                    state.completeRead(locked - actuallyWritten) // return back extra bytes (see note above)
+                if (result < locked) {
+                    state.completeRead(locked - result) // return back extra bytes (see note above)
                     // we use completeRead in spite of that it is write block
                     // we don't need to resume write as we are already in writing block
                 }
@@ -1588,15 +1596,27 @@ internal open class ByteBufferChannel(
             }
         }
 
-        if (!written) {
-            return writeBlockSuspend(min, block)
+        if (!written) return -1
+        return result
+    }
+
+    override suspend fun write(min: Int, block: (ByteBuffer) -> Unit) {
+        require(min > 0) { "min should be positive" }
+        require(min <= 4088) { "Min should be less than buffer size: $min" }
+
+        while (true) {
+            val writeAvailable = writeAvailable(min, block)
+            if (writeAvailable >= 0) {
+                break
+            }
+
+            awaitFreeSpaceOrDelegate(min, block)
         }
     }
 
-    private suspend fun writeBlockSuspend(min: Int, block: (ByteBuffer) -> Unit) {
+    private suspend fun awaitFreeSpaceOrDelegate(min: Int, block: (ByteBuffer) -> Unit) {
         writeSuspend(min)
         joining?.let { resolveDelegation(this, it)?.let { return it.write(min, block) } }
-        return write(min, block)
     }
 
     override suspend fun writeWhile(block: (ByteBuffer) -> Boolean) {
@@ -2109,7 +2129,13 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private suspend fun readUTF8LineToUtf8Suspend(out: Appendable, limit: Int, ca: CharArray, cb: CharBuffer, consumed0: Int): Boolean {
+    private suspend fun readUTF8LineToUtf8Suspend(
+        out: Appendable,
+        limit: Int,
+        ca: CharArray,
+        cb: CharBuffer,
+        consumed0: Int
+    ): Boolean {
         var consumed1 = 0
         var result = true
 
@@ -2117,7 +2143,7 @@ internal open class ByteBufferChannel(
             val rc = readLineLoop(out, ca, cb,
                 await = { awaitAtLeast(it) },
                 addConsumed = { consumed1 += it },
-                decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1))})
+                decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1)) })
 
             if (!rc && isClosedForWrite) {
                 val buffer = request(0, 1)
@@ -2141,7 +2167,8 @@ internal open class ByteBufferChannel(
         return result
     }
 
-    override suspend fun <A : kotlin.text.Appendable> readUTF8LineTo(out: A, limit: Int) = readUTF8LineToAscii(out, limit)
+    override suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean =
+        readUTF8LineToAscii(out, limit)
 
     override suspend fun readUTF8Line(limit: Int): String? {
         val sb = StringBuilder()
@@ -2171,18 +2198,18 @@ internal open class ByteBufferChannel(
         return readRemainingSuspend(limit, headerSizeHint)
     }
 
-    private suspend fun readRemainingSuspend(limit: Long, headerSizeHint: Int): ByteReadPacket {
-        return buildPacket(headerSizeHint) {
-            var remaining = limit
-            writeWhile { buffer ->
-                if (buffer.writeRemaining.toLong() > remaining) {
-                    buffer.resetForWrite(remaining.toInt())
-                }
-
-                val rc = readAsMuchAsPossible(buffer)
-                remaining -= rc
-                remaining > 0L && readSuspend(1)
+    private suspend fun readRemainingSuspend(
+        limit: Long, headerSizeHint: Int
+    ): ByteReadPacket = buildPacket(headerSizeHint) {
+        var remaining = limit
+        writeWhile { buffer ->
+            if (buffer.writeRemaining.toLong() > remaining) {
+                buffer.resetForWrite(remaining.toInt())
             }
+
+            val rc = readAsMuchAsPossible(buffer)
+            remaining -= rc
+            remaining > 0L && readSuspend(1)
         }
     }
 
@@ -2307,7 +2334,7 @@ internal open class ByteBufferChannel(
     }
 
     private fun shouldResumeReadOp() = joining != null &&
-            (state === ReadWriteBufferState.IdleEmpty || state is ReadWriteBufferState.IdleNonEmpty)
+        (state === ReadWriteBufferState.IdleEmpty || state is ReadWriteBufferState.IdleNonEmpty)
 
     private fun writeSuspendPredicate(size: Int): Boolean {
         val joined = joining
@@ -2322,6 +2349,7 @@ internal open class ByteBufferChannel(
     }
 
     private val writeSuspendContinuationCache = CancellableReusableContinuation<Unit>()
+
     @Volatile
     private var writeSuspensionSize: Int = 0
     private val writeSuspension = { ucont: Continuation<Unit> ->
@@ -2401,7 +2429,7 @@ internal open class ByteBufferChannel(
             if (updater.compareAndSet(this, null, continuation)) {
                 if (predicate() || !updater.compareAndSet(this, continuation, null)) {
                     //if (attachedJob == null && continuation is CancellableContinuation<*>) {
-                        // continuation.initCancellability()
+                    // continuation.initCancellability()
                     //}
                     return true
                 }
@@ -2438,7 +2466,7 @@ internal open class ByteBufferChannel(
 
     // todo: replace with atomicfu
     private inline fun updateState(block: (ReadWriteBufferState) -> ReadWriteBufferState?):
-            Pair<ReadWriteBufferState, ReadWriteBufferState> = update({ state }, State, block)
+        Pair<ReadWriteBufferState, ReadWriteBufferState> = update({ state }, State, block)
 
     // todo: replace with atomicfu
     private inline fun <T : Any> update(

@@ -33,9 +33,6 @@ internal class InterestControllerHolder {
      * Stealing is atomic, so for every suspend invocation, only single resume is possible.
      */
     fun resumeInputIfPossible() {
-        interestController.getAndUpdate { before ->
-            if (before == null) return
-            null
-        }?.requestInput()
+        interestController.getAndSet(null)?.requestInput()
     }
 }

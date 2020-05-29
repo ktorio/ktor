@@ -45,7 +45,7 @@ expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
 expect fun ByteReadChannel(content: ByteArray, offset: Int = 0, length: Int = content.size): ByteReadChannel
 
 fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
-        ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
+    ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
 
 
 /**
