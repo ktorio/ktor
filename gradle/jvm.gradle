@@ -76,11 +76,6 @@ dependencies {
             exclude(module: 'kotlin-stdlib-jdk7')
         }
     }
-
-    jvmMainApi(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version)  {
-        exclude(module: 'kotlin-stdlib')
-        exclude(module: 'kotlin-stdlib-jvm')
-    }
 }
 
 jvmTest {

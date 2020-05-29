@@ -15,3 +15,23 @@ kotlin {
         api project(":ktor-test-dispatcher")
     }
 }
+
+// Hack: register the Native interop klibs as outputs of Kotlin source sets:
+kotlin.sourceSets {
+    bitsMain { dependsOn commonMain }
+    socketsMain { dependsOn commonMain }
+
+    posixMain {
+        dependsOn bitsMain
+        dependsOn socketsMain
+    }
+}
+
+if (!project.ext.ideaActive) {
+    apply from: "$rootDir/gradle/interop-as-source-set-klib.gradle"
+    afterEvaluate {
+        def linuxX64Interops = kotlin.linuxX64().compilations.main.cinterops
+        registerInteropAsSourceSetOutput(linuxX64Interops.bits, kotlin.sourceSets.bitsMain)
+        registerInteropAsSourceSetOutput(linuxX64Interops.sockets, kotlin.sourceSets.socketsMain)
+    }
+}
