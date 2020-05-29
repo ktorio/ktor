@@ -19,6 +19,7 @@ import io.ktor.server.jetty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.junit.Ignore
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
@@ -140,6 +141,7 @@ class CIOHttpsTest : TestWithKtor() {
     }
 
     @Test
+    @Ignore
     fun external() = testWithEngine(CIO) {
         test { client ->
             client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
