@@ -4,6 +4,10 @@
 
 package io.ktor.client.features.json
 
+import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlin.test.*
 
@@ -35,5 +39,65 @@ class JsonFeatureTest {
         assertFalse { config.acceptContentTypes.contains(ContentType.Application.Json) }
         assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
         assertTrue { config.acceptContentTypes.contains(ContentType.Application.Pdf) }
+    }
+
+    @Test
+    fun testAddAcceptHeaderAlways() = testWithEngine(MockEngine) {
+        acceptConfig(AddAcceptHeader.Always)
+
+        test { client ->
+            assertEquals("application/json", client.get())
+            assertEquals("application/json", client.get {
+                accept(ContentType.Application.Json)
+            })
+            assertEquals("application/xml,application/json", client.get {
+                accept(ContentType.Application.Xml)
+            })
+        }
+    }
+
+    @Test
+    fun testAddAcceptHeaderIfMissing() = testWithEngine(MockEngine) {
+        acceptConfig(AddAcceptHeader.IfAcceptHeaderMissing)
+
+        test { client ->
+            assertEquals("application/json", client.get())
+            assertEquals("application/json", client.get {
+                accept(ContentType.Application.Json)
+            })
+            assertEquals("application/xml", client.get {
+                accept(ContentType.Application.Xml)
+            })
+        }
+    }
+
+    @Test
+    fun testAddAcceptHeaderNever() = testWithEngine(MockEngine) {
+        acceptConfig(AddAcceptHeader.Never)
+
+        test { client ->
+            assertEquals("*/*", client.get())
+            assertEquals("application/json", client.get {
+                accept(ContentType.Application.Json)
+            })
+            assertEquals("application/xml", client.get {
+                accept(ContentType.Application.Xml)
+            })
+        }
+    }
+
+    fun TestClientBuilder<MockEngineConfig>.acceptConfig(value: AddAcceptHeader) {
+        config {
+            engine {
+                addHandler { request ->
+                    respondOk(
+                        request.headers.getAll(HttpHeaders.Accept)?.joinToString(",") ?: ""
+                    )
+                }
+            }
+            install(JsonFeature) {
+                addAcceptHeader = value
+            }
+        }
     }
 }
