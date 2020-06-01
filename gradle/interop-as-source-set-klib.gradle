@@ -2,8 +2,13 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-project.ext.registerInteropAsSourceSetOutput = { interop, sourceSet ->
+project.ext.registerInteropAsSourceSetOutput = { interopName, sourceSet ->
     afterEvaluate {
+        def currentHostKotlinTarget = kotlin.targets.matching { it.platformType.name == "native" }.find {
+            it.konanTarget == hostManager.Companion.getHost()
+        }
+
+        def interop = currentHostKotlinTarget.compilations["main"].cinterops[interopName]
         def cinteropTask = tasks.named(interop.interopProcessingTaskName)
         def cinteropKlib = cinteropTask.map { it.outputFile }
         def fakeCinteropCompilation = kotlin.targets["metadata"].compilations[sourceSet.name]
