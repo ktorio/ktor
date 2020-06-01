@@ -30,7 +30,7 @@ kotlin {
             getByName("posixMain").dependsOn(utilsInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
             (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
-                linuxX64().compilations["main"].cinterops["utils"],
+                "utils",
                 utilsInterop
             )
         }

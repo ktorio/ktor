@@ -30,8 +30,7 @@ kotlin.sourceSets {
 if (!project.ext.ideaActive) {
     apply from: "$rootDir/gradle/interop-as-source-set-klib.gradle"
     afterEvaluate {
-        def linuxX64Interops = kotlin.linuxX64().compilations.main.cinterops
-        registerInteropAsSourceSetOutput(linuxX64Interops.bits, kotlin.sourceSets.bitsMain)
-        registerInteropAsSourceSetOutput(linuxX64Interops.sockets, kotlin.sourceSets.socketsMain)
+        registerInteropAsSourceSetOutput("bits", kotlin.sourceSets.bitsMain)
+        registerInteropAsSourceSetOutput("sockets", kotlin.sourceSets.socketsMain)
     }
 }

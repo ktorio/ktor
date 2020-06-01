@@ -79,7 +79,7 @@ kotlin {
             getByName("posixMain").dependsOn(libcurlInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
             (project.ext.get("registerInteropAsSourceSetOutput") as groovy.lang.Closure<*>).invoke(
-                linuxX64().compilations["main"].cinterops["libcurl"],
+                "libcurl",
                 libcurlInterop
             )
         }
