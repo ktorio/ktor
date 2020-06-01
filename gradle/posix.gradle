@@ -14,10 +14,10 @@ def getHostName() {
  * Disable cross compilation for missing cinterop.
  * @param targets
  */
-def disableCompilation(targets, disableCinterops) {
+def disableCompilation(targets) {
     configure(targets) {
         compilations.all {
-            if (disableCinterops) cinterops.all { project.tasks[interopProcessingTaskName].enabled = false }
+            cinterops.all { project.tasks[interopProcessingTaskName].enabled = false }
             compileKotlinTask.enabled = false
         }
         binaries.all { linkTask.enabled = false }
@@ -60,6 +60,9 @@ kotlin {
             def crossCompileTargets = [macosX64, mingwX64]
             def host = getHostName()
             switch (host) {
+                case 'linux':
+                    crossCompileTargets.remove(linuxX64)
+                    break
                 case 'windows':
                     crossCompileTargets.remove(mingwX64)
                     break
@@ -67,12 +70,7 @@ kotlin {
                     crossCompileTargets.remove(macosX64)
                     break
             }
-            disableCompilation(crossCompileTargets, /* disableCinterops = */ true)
-
-            // We need linux cinterops for publishing even on non-linux, so we disable it
-            // separately and only non-cinterop parts
-            if (host != 'linux') disableCompilation([linuxX64], /* disableCinterops = */ false)
-
+            disableCompilation(crossCompileTargets)
             configure([mingwX64Test]) {
                 environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
             }
