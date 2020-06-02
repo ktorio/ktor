@@ -125,19 +125,20 @@ internal class ApacheRequestProducer(
         builder.uri = url.toURI()
 
         val content = requestData.body
-        val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
-        val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()
+        var length = ""
+        var type = ""
 
         mergeHeaders(headers, content) { key, value ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@mergeHeaders
-            if (HttpHeaders.CONTENT_TYPE == key) return@mergeHeaders
-
-            builder.addHeader(key, value)
+            when(key) {
+                HttpHeaders.CONTENT_LENGTH -> length = value
+                HttpHeaders.CONTENT_TYPE -> type = value
+                else -> builder.addHeader(key, value)
+            }
         }
 
         if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {
-                if (length == null) isChunked = true else contentLength = length.toLong()
+                if (length.isBlank()) isChunked = true else contentLength = length.toLong()
                 setContentType(type)
             }
         }
