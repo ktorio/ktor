@@ -1,0 +1,70 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+allprojects {
+    apply plugin: "jacoco"
+
+    jacoco {
+        toolVersion = "0.8.5"
+        reportsDir = file("${buildDir}/jacoco-reports")
+    }
+}
+
+subprojects {
+    task testCoverage(type: JacocoReport, dependsOn: jvmTest) {
+        group = "Reporting"
+        description = "Generate Jacoco coverage reports."
+
+        def coverageSourceDirs = [
+            "common/src",
+            "jvm/src"
+        ]
+        classDirectories.from files(fileTree(dir: "${buildDir}/classes/kotlin/jvm/"))
+        sourceDirectories.from files(coverageSourceDirs)
+        additionalSourceDirs.from files(coverageSourceDirs)
+        executionData.from files("${buildDir}/jacoco/jvmTest.exec")
+
+        reports {
+            xml.enabled true
+            csv.enabled false
+            html.enabled true
+
+            html.destination file("${buildDir}/jacoco-reports/html")
+        }
+    }
+}
+
+def findSources(sourceSet) {
+    return files(subprojects.findResults {
+        it.kotlin.sourceSets.findByName("jvmMain")?.kotlin?.srcDirs
+    })
+}
+
+task testCoverage(type: JacocoReport) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports."
+    dependsOn subprojects.testCoverage
+
+    def coverageSourceDirs = (
+        findSources("commonMain") + findSources("jvmMain") + findSources("commonTest") + findSources("jvmTest")
+    )
+
+    def classes = files(subprojects.collect {
+        files(fileTree(dir: "${it.buildDir}/classes/kotlin/jvm"))
+    })
+
+    def samples = files(subprojects.testCoverage.executionData).findAll { it.exists() }
+
+    classDirectories.from files(classes)
+    sourceDirectories.from files(coverageSourceDirs)
+    additionalSourceDirs.from files(coverageSourceDirs)
+    executionData.from(samples)
+
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled true
+        html.destination file("${buildDir}/jacoco-reports/html")
+    }
+}
