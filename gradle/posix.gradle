@@ -72,7 +72,7 @@ kotlin {
             }
             disableCompilation(crossCompileTargets)
             configure([mingwX64Test]) {
-                environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin"
+                environment "PATH": "C:\\msys64\\mingw64\\bin;C:\\Tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin"
             }
         }
 
