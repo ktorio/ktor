@@ -54,7 +54,6 @@ kotlin {
         jsTest.dependencies {
             api "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
             api(npm("puppeteer", "*"))
-//            api(npm("source-map-support", source_map_support_version))
         }
     }
 }
