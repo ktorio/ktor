@@ -21,7 +21,7 @@ kotlin {
             current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("mingwX64")))
         }
 
-        val paths = listOf("C:/msys64/mingw64/include/curl", "C:/Tools/msys64/mingw64/include/curl")
+        val paths = listOf("C:/msys64/mingw64/include/curl", "C:/Tools/msys64/mingw64/include/curl", "C:/Tools/msys2/mingw64/include/curl")
         current.filterIsInstance<KotlinNativeTarget>().forEach { platform ->
             platform.compilations.getByName("main") {
                 val libcurl by cinterops.creating {
@@ -49,7 +49,7 @@ kotlin {
                     afterEvaluate {
                         if (platform.name == "mingwX64") {
                             val winTests = tasks.getByName("mingwX64Test") as KotlinNativeTest
-                            winTests.environment("PATH", "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin")
+                            winTests.environment("PATH", "c:\\msys64\\mingw64\\bin;c:\\tools\\msys64\\mingw64\\bin;C:\\Tools\\msys2\\mingw64\\bin")
                         }
                     }
                 }
