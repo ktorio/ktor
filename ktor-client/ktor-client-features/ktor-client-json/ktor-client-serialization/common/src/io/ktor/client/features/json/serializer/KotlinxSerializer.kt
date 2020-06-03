@@ -26,9 +26,10 @@ public class KotlinxSerializer(
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent {
         @Suppress("UNCHECKED_CAST")
-        val content = json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
-        return TextContent(content, contentType)
+        return TextContent(writeContent(data), contentType)
     }
+
+    internal fun writeContent(data: Any): String = json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
