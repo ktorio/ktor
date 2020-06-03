@@ -15,47 +15,37 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlin.test.*
 
-@Suppress("KDocMissingDocumentation")
-abstract class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
-        routing {
-            get("/empty") {
-                call.respondText("")
-            }
-            get("/hello") {
-                call.respondText("hello")
-            }
-        }
-    }
+class BuildersTest : ClientLoader() {
 
     @Test
-    fun getEmptyResponseTest() = testWithEngine(factory) {
+    fun getEmptyResponseTest() = clientTests {
         test { client ->
-            val response = client.get<String>(path = "/empty", port = serverPort)
+            val response = client.get<String>("$TEST_SERVER/builders/empty")
             assertEquals("", response)
         }
     }
 
     @Test
-    fun testNotFound() = testWithEngine(factory) {
+    fun testNotFound() = clientTests {
         test { client ->
             assertFailsWith<ResponseException> {
-                client.get<String>(path = "/notFound", port = serverPort)
+                client.get<String>("$TEST_SERVER/builders/notFound")
             }
         }
     }
 
     @Test
-    fun testDefaultRequest() = testWithEngine(factory) {
+    fun testDefaultRequest() = clientTests {
         test { rawClient ->
 
             val client = rawClient.config {
                 defaultRequest {
-                    port = serverPort
+                    host = "127.0.0.1"
+                    port = 8080
                 }
             }
 
-            assertEquals("hello", client.get<String>(path = "hello"))
+            assertEquals("hello", client.get<String>(path = "builders/hello"))
         }
     }
 }

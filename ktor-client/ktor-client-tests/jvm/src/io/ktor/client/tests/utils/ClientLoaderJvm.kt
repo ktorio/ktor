@@ -49,7 +49,8 @@ actual abstract class ClientLoader {
             }
         }
         if (skipEngines.map { it.toLowerCase() }.contains(engine.toString().toLowerCase())) return
-        testWithEngine(engine.factory, block)
+
+        testWithEngine(engine.factory, this, block)
     }
 
     actual fun dumpCoroutines() {
