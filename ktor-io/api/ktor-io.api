@@ -29,7 +29,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	protected final fun afterRead ()V
 	protected final fun afterWrite ()V
 	public fun await (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected final fun awaitFreeSpace (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun awaitFreeSpace (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun awaitSuspend (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun beginWriteSession ()Lio/ktor/utils/io/WriterSuspendSession;
 	public fun cancel (Ljava/lang/Throwable;)Z
@@ -101,6 +101,7 @@ public final class io/ktor/utils/io/ByteChannelSequentialJVM : io/ktor/utils/io/
 	public fun readAvailable (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun write (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun writeAvailable (ILkotlin/jvm/functions/Function1;)I
 	public fun writeAvailable (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeWhile (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -181,6 +182,7 @@ public final class io/ktor/utils/io/ByteReadChannelKt {
 }
 
 public abstract interface class io/ktor/utils/io/ByteWriteChannel {
+	public abstract fun awaitFreeSpace (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun close (Ljava/lang/Throwable;)Z
 	public abstract fun flush ()V
 	public abstract fun getAutoFlush ()Z
@@ -191,6 +193,7 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun isClosedForWrite ()Z
 	public abstract fun setWriteByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public abstract fun write (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeAvailable (ILkotlin/jvm/functions/Function1;)I
 	public abstract fun writeAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -210,6 +213,7 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 
 public final class io/ktor/utils/io/ByteWriteChannel$DefaultImpls {
 	public static synthetic fun write$default (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun writeAvailable$default (Lio/ktor/utils/io/ByteWriteChannel;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
 }
 
 public final class io/ktor/utils/io/ByteWriteChannelKt {
