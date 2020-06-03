@@ -8,8 +8,8 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * Local test server url.
@@ -49,9 +49,19 @@ private fun testWithClient(
  */
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
+    loader: ClientLoader? = null,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = testSuspend {
+
     val builder = TestClientBuilder<T>().apply { block() }
+
+    if (builder.dumpAfterDelay > 0 && loader != null) {
+        GlobalScope.launch {
+            delay(builder.dumpAfterDelay)
+            loader.dumpCoroutines()
+        }
+    }
+
     repeat(builder.repeatCount) {
         val client = HttpClient(factory, block = builder.config)
 
@@ -74,7 +84,8 @@ fun <T : HttpClientEngineConfig> testWithEngine(
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
     var test: suspend (client: HttpClient) -> Unit = {},
-    var repeatCount: Int = 1
+    var repeatCount: Int = 1,
+    var dumpAfterDelay: Long = -1
 )
 
 @InternalAPI
