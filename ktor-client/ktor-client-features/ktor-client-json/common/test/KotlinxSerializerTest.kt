@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.json
 
+import io.ktor.client.features.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -87,6 +88,10 @@ class KotlinxSerializerTest : ClientLoader() {
     fun testStringWithJsonFeature() = clientTests {
         config {
             install(JsonFeature)
+            defaultRequest {
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
+            }
         }
 
         test { client ->
@@ -105,6 +110,9 @@ class KotlinxSerializerTest : ClientLoader() {
         config {
             install(JsonFeature) {
                 serializer = testSerializer
+            }
+            defaultRequest {
+                accept(ContentType.Application.Json)
             }
         }
 
