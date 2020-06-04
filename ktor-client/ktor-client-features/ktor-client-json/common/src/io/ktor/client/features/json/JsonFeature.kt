@@ -129,8 +129,8 @@ class JsonFeature internal constructor(val config: Config) {
 
                 val contentType = context.response.contentType()
                 if (contentType == null ||
-                    config.acceptContentTypes.none { contentType.match(it) }
-                    && !config.shouldHandle(contentType)) {
+                    config.acceptContentTypes.none { contentType.match(it) } &&
+                    !config.shouldHandle(contentType)) {
                     return@intercept
                 }
 
