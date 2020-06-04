@@ -25,25 +25,6 @@ import io.ktor.utils.io.*
 expect fun defaultSerializer(): JsonSerializer
 
 /**
- * Configuration values for [JsonFeature.Config.addAcceptHeader], defining when accept header is
- * added to requests.
- */
-enum class AddAcceptHeader {
-    /** Always adds accept header(s) even if the request already has such a header. */
-    Always,
-
-    /**
-     * Only adds accept header(s) if none exists in the request.
-     *
-     * This can be used to make sure that only one accept header is ever sent to the server.
-     */
-    IfAcceptHeaderMissing,
-
-    /** Never adds accept header(s) to requests. */
-    Never
-}
-
-/**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
  * to request and from response bodies using a [serializer].
  *
@@ -53,24 +34,16 @@ enum class AddAcceptHeader {
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is one of [acceptContentTypes] list (`application/json` by default).
- *
- * @property serializer that is used to serialize and deserialize request/response bodies
- * @property acceptContentTypes that are allowed when receiving content
- * @property addAcceptHeader defines when accept headers are added to requests
  */
-class JsonFeature internal constructor(
-    val serializer: JsonSerializer,
-    @KtorExperimentalAPI val acceptContentTypes: List<ContentType>,
-    val addAcceptHeader: AddAcceptHeader
-) {
+class JsonFeature internal constructor(val config: Config) {
     @Deprecated(
         "Install feature properly instead of direct instantiation.",
         level = DeprecationLevel.ERROR
     )
     constructor(serializer: JsonSerializer) : this(
-        serializer,
-        listOf(ContentType.Application.Json),
-        AddAcceptHeader.Always
+        Config().apply {
+            this.serializer = serializer
+        }
     )
 
     /**
@@ -82,20 +55,21 @@ class JsonFeature internal constructor(
          *
          * Default value for [serializer] is [defaultSerializer].
          */
-        var serializer: JsonSerializer? = null
+        var serializer: JsonSerializer
+            get() = _serializer ?: { val result = defaultSerializer(); _serializer = result; result }()
+            set(value) { _serializer = value }
+        private var _serializer: JsonSerializer? = null
 
         /**
          * Backing field with mutable list of content types that are handled by this feature.
          */
-        private val _acceptContentTypes: MutableList<ContentType> =
-            mutableListOf(ContentType.Application.Json)
+        private val _acceptContentTypes: MutableList<ContentType> = mutableListOf(ContentType.Application.Json)
 
         /**
          * List of content types that are handled by this feature.
          * It also affects `Accept` request header value.
          * Please note that wildcard content types are supported but no quality specification provided.
          */
-        @KtorExperimentalAPI
         var acceptContentTypes: List<ContentType>
             set(value) {
                 require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
@@ -105,20 +79,19 @@ class JsonFeature internal constructor(
             get() = _acceptContentTypes
 
         /**
-         * Adds accepted content types. Be aware that [ContentType.Application.Json] accepted by default is removed from
-         * the list if you use this function to provide accepted content types.
-         * It also affects `Accept` request header value.
+         * Adds accepted content types.
          */
         fun accept(vararg contentTypes: ContentType) {
             _acceptContentTypes += contentTypes
         }
 
         /**
-         * Defines under which conditions accept headers are added to requests.
-         *
-         * Default value is [AddAcceptHeader.Always].
+         * Defines when to handle a given [ContentType] (used in addition to [accept]).
          */
-        var addAcceptHeader: AddAcceptHeader = AddAcceptHeader.Always
+        var shouldHandle: (ContentType) -> Boolean = {
+            val value = it.toString()
+            value.startsWith("application/") && value.endsWith("+json")
+        }
     }
 
     /**
@@ -127,40 +100,21 @@ class JsonFeature internal constructor(
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
-        override fun prepare(block: Config.() -> Unit): JsonFeature {
-            val config = Config().apply(block)
-            val serializer = config.serializer ?: defaultSerializer()
-            val allowedContentTypes = config.acceptContentTypes.toList()
-            val addAcceptHeader = config.addAcceptHeader
-
-            return JsonFeature(serializer, allowedContentTypes, addAcceptHeader)
-        }
+        override fun prepare(block: Config.() -> Unit): JsonFeature =
+            JsonFeature(Config().apply(block))
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
+            val config = feature.config
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
-                if (feature.addAcceptHeader == AddAcceptHeader.Always
-                    || (feature.addAcceptHeader == AddAcceptHeader.IfAcceptHeaderMissing
-                        && !context.headers.contains(HttpHeaders.Accept))
-                ) {
-                    feature.acceptContentTypes.forEach { acceptType ->
-                        // Don't add duplicate headers. Otherwise, some servers can return 400
-                        // and we might not always be in the position to fix the server.
-                        val accepted = context.headers.getAll(HttpHeaders.Accept)
-                        if (accepted?.any { acceptType.match(it) } != true) {
-                            context.accept(acceptType)
-                        }
-                    }
-                }
-
                 val contentType = context.contentType() ?: return@intercept
-                if (feature.acceptContentTypes.none { contentType.match(it) })
+                if (config.acceptContentTypes.none { contentType.match(it) } && !config.shouldHandle(contentType))
                     return@intercept
 
                 context.headers.remove(HttpHeaders.ContentType)
 
                 val serializedContent = when (payload) {
-                    is EmptyContent -> feature.serializer.write(Unit, contentType)
-                    else -> feature.serializer.write(payload, contentType)
+                    is EmptyContent -> config.serializer.write(Unit, contentType)
+                    else -> config.serializer.write(payload, contentType)
                 }
 
                 proceedWith(serializedContent)
@@ -169,13 +123,14 @@ class JsonFeature internal constructor(
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
                 if (body !is ByteReadChannel) return@intercept
 
-                if (feature.acceptContentTypes.none {
-                        context.response.contentType()?.match(it) == true
-                    }) {
+                val contentType = context.response.contentType()
+                if (contentType == null ||
+                    config.acceptContentTypes.none { contentType.match(it) }
+                    && !config.shouldHandle(contentType)) {
                     return@intercept
                 }
 
-                val parsedBody = feature.serializer.read(info, body.readRemaining())
+                val parsedBody = config.serializer.read(info, body.readRemaining())
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }
