@@ -26,11 +26,13 @@ expect fun defaultSerializer(): JsonSerializer
 
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
- * to request and from response bodies using a [serializer].
+ * to request and from response bodies using a [Config.serializer].
  *
- * The default [serializer] is [GsonSerializer].
+ * The default [Config.serializer] is [GsonSerializer].
  *
- * The default [acceptContentTypes] is a list which contains [ContentType.Application.Json]
+ * The default [Config.acceptContentTypes] is a list which contains [ContentType.Application.Json]
+ *
+ * The default [Config.shouldHandle] accepts any `application/<...>+json` pattern.
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is one of [acceptContentTypes] list (`application/json` by default).
@@ -87,6 +89,8 @@ class JsonFeature internal constructor(val config: Config) {
 
         /**
          * Defines when to handle a given [ContentType] (used in addition to [accept]).
+         *
+         * By default accepts any `application/<...>+json` pattern.
          */
         var shouldHandle: (ContentType) -> Boolean = {
             val value = it.toString()
