@@ -12,6 +12,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 
 
 /**
@@ -32,10 +33,12 @@ expect fun defaultSerializer(): JsonSerializer
  *
  * The default [Config.acceptContentTypes] is a list which contains [ContentType.Application.Json]
  *
- * The default [Config.shouldHandle] accepts any `application/<...>+json` pattern.
+ * The default [Config.contentTypeFilter] accepts any `application/...+json` pattern.
  *
- * Note: It will de-serialize the body response if the specified type is a public accessible class
- *       and the Content-Type is one of [acceptContentTypes] list (`application/json` by default).
+ * Note:
+ * The request/response body is only serialized/deserialized if the specified type is a public
+ * accessible class and the Content-Type is one of [Config.acceptContentTypes] or is matched by
+ * [Config.contentTypeFilter].
  */
 class JsonFeature internal constructor(val config: Config) {
     @Deprecated(
@@ -57,15 +60,13 @@ class JsonFeature internal constructor(val config: Config) {
          *
          * Default value for [serializer] is [defaultSerializer].
          */
-        var serializer: JsonSerializer
-            get() = _serializer ?: { val result = defaultSerializer(); _serializer = result; result }()
-            set(value) { _serializer = value }
-        private var _serializer: JsonSerializer? = null
+        var serializer: JsonSerializer by lazyVar { defaultSerializer() }
 
         /**
          * Backing field with mutable list of content types that are handled by this feature.
          */
-        private val _acceptContentTypes: MutableList<ContentType> = mutableListOf(ContentType.Application.Json)
+        private val _acceptContentTypes: MutableList<ContentType> =
+            mutableListOf(ContentType.Application.Json)
 
         /**
          * List of content types that are handled by this feature.
@@ -73,18 +74,18 @@ class JsonFeature internal constructor(val config: Config) {
          * Please note that wildcard content types are supported but no quality specification provided.
          */
         var acceptContentTypes: List<ContentType>
-            set(value) {
-                require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
-                _acceptContentTypes.clear()
-                _acceptContentTypes.addAll(value)
-            }
             get() = _acceptContentTypes
+            set(value) {
+                _acceptContentTypes.clear()
+                _acceptContentTypes.addAll(value.toSet())
+            }
 
         /**
-         * Adds accepted content types.
+         * Adds accepted content types. Existing content types will not be removed.
          */
         fun accept(vararg contentTypes: ContentType) {
-            _acceptContentTypes += contentTypes
+            val values = _acceptContentTypes.toSet() + contentTypes
+            acceptContentTypes = values.toList()
         }
 
         /**
@@ -92,10 +93,15 @@ class JsonFeature internal constructor(val config: Config) {
          *
          * By default accepts any `application/<...>+json` pattern.
          */
-        var shouldHandle: (ContentType) -> Boolean = {
+        var contentTypeFilter: (ContentType) -> Boolean = {
             val value = it.toString()
             value.startsWith("application/") && value.endsWith("+json")
         }
+
+        internal fun matchesContentType(contentType: ContentType?): Boolean =
+            contentType != null && (
+                acceptContentTypes.any { contentType.match(it) } ||
+                    contentTypeFilter(contentType))
     }
 
     /**
@@ -111,7 +117,7 @@ class JsonFeature internal constructor(val config: Config) {
             val config = feature.config
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
                 val contentType = context.contentType() ?: return@intercept
-                if (config.acceptContentTypes.none { contentType.match(it) } && !config.shouldHandle(contentType))
+                if (!config.matchesContentType(contentType))
                     return@intercept
 
                 context.headers.remove(HttpHeaders.ContentType)
@@ -125,16 +131,15 @@ class JsonFeature internal constructor(val config: Config) {
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
-                if (body !is ByteReadChannel) return@intercept
-
-                val contentType = context.response.contentType()
-                if (contentType == null ||
-                    config.acceptContentTypes.none { contentType.match(it) } &&
-                    !config.shouldHandle(contentType)) {
+                if (!config.matchesContentType(context.response.contentType()))
                     return@intercept
-                }
 
-                val parsedBody = config.serializer.read(info, body.readRemaining())
+                val data = when (body) {
+                    is ByteReadChannel -> body.readRemaining()
+                    is String -> ByteReadPacket(body.toByteArray())
+                    else -> return@intercept
+                }
+                val parsedBody = config.serializer.read(info, data)
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }

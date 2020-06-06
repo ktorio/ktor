@@ -35,11 +35,11 @@ internal fun Application.tests() {
     routing {
         post("/echo") {
             val response = call.receiveText()
-            call.respond(response)
+            call.respondBytes(response.toByteArray(), call.request.contentType())
         }
         get("/bytes") {
             val size = call.request.queryParameters["size"]!!.toInt()
-            call.respondBytes(makeArray(size))
+            call.respondBytes(makeArray(size), call.request.contentType())
         }
     }
 }
