@@ -96,6 +96,16 @@ public class CORS(configuration: Configuration) {
             return
         }
 
+        if (!allowNonSimpleContentTypes) {
+            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            if (contentType != null) {
+                if (contentType !in Configuration.CorsSimpleContentTypes) {
+                    context.respondCorsFailed()
+                    return
+                }
+            }
+        }
+
         if (call.request.httpMethod == HttpMethod.Options) {
             call.respondPreflight(origin)
             // TODO: it shouldn't be here, because something else can respond to OPTIONS
