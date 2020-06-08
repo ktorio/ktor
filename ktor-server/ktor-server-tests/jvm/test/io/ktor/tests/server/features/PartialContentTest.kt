@@ -318,7 +318,7 @@ class PartialContentTest {
         assertEquals(HttpStatusCode.PartialContent, result.response.status())
         assertNotNull(result.response.headers[HttpHeaders.LastModified])
         val contentType = ContentType.parse(result.response.headers[HttpHeaders.ContentType]!!)
-        assertTrue(contentType.match(ContentType.MultiPart.ByteRanges))
+        assertTrue(ContentType.MultiPart.ByteRanges.match(contentType))
         assertNotNull(contentType.parameter("boundary"))
 
         val parts = result.response.content!!.reader().buffered().parseMultipart(contentType.parameter("boundary")!!)

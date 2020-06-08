@@ -31,14 +31,12 @@ expect fun defaultSerializer(): JsonSerializer
  *
  * The default [Config.serializer] is [GsonSerializer].
  *
- * The default [Config.acceptContentTypes] is a list which contains [ContentType.Application.Json]
- *
- * The default [Config.contentTypeFilter] accepts any `application/...+json` pattern.
+ * The default [Config.acceptContentTypes] is a list with a [ContentTypeMatcher] accepting
+ * [ContentType.Application.Json] and any `application/...+json` pattern.
  *
  * Note:
  * The request/response body is only serialized/deserialized if the specified type is a public
- * accessible class and the Content-Type is one of [Config.acceptContentTypes] or is matched by
- * [Config.contentTypeFilter].
+ * accessible class and the Content-Type is matched by [Config.acceptContentTypes].
  */
 class JsonFeature internal constructor(val config: Config) {
     @Deprecated(
@@ -65,15 +63,15 @@ class JsonFeature internal constructor(val config: Config) {
         /**
          * Backing field with mutable list of content types that are handled by this feature.
          */
-        private val _acceptContentTypes: MutableList<ContentType> =
-            mutableListOf(ContentType.Application.Json)
+        private val _acceptContentTypes: MutableList<ContentTypeMatcher> =
+            mutableListOf(JsonContentTypeMatcher())
 
         /**
          * List of content types that are handled by this feature.
          * It also affects `Accept` request header value.
          * Please note that wildcard content types are supported but no quality specification provided.
          */
-        var acceptContentTypes: List<ContentType>
+        var acceptContentTypes: List<ContentTypeMatcher>
             get() = _acceptContentTypes
             set(value) {
                 _acceptContentTypes.clear()
@@ -83,25 +81,13 @@ class JsonFeature internal constructor(val config: Config) {
         /**
          * Adds accepted content types. Existing content types will not be removed.
          */
-        fun accept(vararg contentTypes: ContentType) {
+        fun accept(vararg contentTypes: ContentTypeMatcher) {
             val values = _acceptContentTypes.toSet() + contentTypes
             acceptContentTypes = values.toList()
         }
 
-        /**
-         * Defines when to handle a given [ContentType] (used in addition to [accept]).
-         *
-         * By default accepts any `application/<...>+json` pattern.
-         */
-        var contentTypeFilter: (ContentType) -> Boolean = {
-            val value = it.toString()
-            value.startsWith("application/") && value.endsWith("+json")
-        }
-
         internal fun matchesContentType(contentType: ContentType?): Boolean =
-            contentType != null && (
-                acceptContentTypes.any { contentType.match(it) } ||
-                    contentTypeFilter(contentType))
+            contentType != null && acceptContentTypes.any { it.match(contentType) }
     }
 
     /**
@@ -144,6 +130,16 @@ class JsonFeature internal constructor(val config: Config) {
                 proceedWith(response)
             }
         }
+    }
+}
+
+private class JsonContentTypeMatcher : ContentTypeMatcher {
+    override fun match(contentType: ContentType): Boolean {
+        if (ContentType.Application.Json.match(contentType)) {
+            return true
+        }
+        val value = contentType.withoutParameters().toString()
+        return value.startsWith("application/") && value.endsWith("+json")
     }
 }
 

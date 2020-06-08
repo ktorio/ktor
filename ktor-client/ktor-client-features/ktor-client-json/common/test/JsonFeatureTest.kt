@@ -13,7 +13,7 @@ class JsonFeatureTest {
         val config = JsonFeature.Config()
 
         assertEquals(1, config.acceptContentTypes.size)
-        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Json) }
+        assertTrue { config.matchesContentType(ContentType.Application.Json) }
 
         assertTrue { config.matchesContentType(ContentType.parse("application/json")) }
         assertTrue { config.matchesContentType(ContentType.parse("application/vnd.foo+json")) }
@@ -27,8 +27,8 @@ class JsonFeatureTest {
         config.accept(ContentType.Application.Xml)
 
         assertEquals(2, config.acceptContentTypes.size)
-        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Json) }
-        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
+        assertTrue { config.matchesContentType(ContentType.Application.Json) }
+        assertTrue { config.matchesContentType(ContentType.Application.Xml) }
     }
 
     @Test
@@ -37,16 +37,18 @@ class JsonFeatureTest {
         config.acceptContentTypes = listOf(ContentType.Application.Pdf, ContentType.Application.Xml)
 
         assertEquals(2, config.acceptContentTypes.size)
-        assertFalse { config.acceptContentTypes.contains(ContentType.Application.Json) }
-        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
-        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Pdf) }
+        assertFalse { config.matchesContentType(ContentType.Application.Json) }
+        assertTrue { config.matchesContentType(ContentType.Application.Xml) }
+        assertTrue { config.matchesContentType(ContentType.Application.Pdf) }
     }
 
     @Test
     fun testContentTypesFilter() {
         val config = JsonFeature.Config().apply {
-            acceptContentTypes = listOf()
-            contentTypeFilter = { it.match("text/json") }
+            acceptContentTypes = listOf(object : ContentTypeMatcher {
+                override fun match(contentType: ContentType): Boolean =
+                    contentType.match("text/json")
+            })
         }
 
         assertFalse { config.matchesContentType(ContentType.parse("application/json")) }

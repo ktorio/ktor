@@ -241,7 +241,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
-            assertTrue(ContentType.parse(headers[HttpHeaders.ContentType]!!).match(ContentType.Text.Plain))
+            assertTrue(ContentType.Text.Plain.match(ContentType.parse(headers[HttpHeaders.ContentType]!!)))
         }
     }
 

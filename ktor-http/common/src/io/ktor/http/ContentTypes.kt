@@ -12,7 +12,7 @@ import io.ktor.utils.io.charsets.*
  * @property contentSubtype represents a subtype part of the media type.
  */
 class ContentType private constructor(val contentType: String, val contentSubtype: String, existingContent: String, parameters: List<HeaderValueParam> = emptyList())
-    : HeaderValueWithParameters(existingContent, parameters) {
+    : HeaderValueWithParameters(existingContent, parameters), ContentTypeMatcher {
 
     constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(contentType, contentSubtype, "$contentType/$contentSubtype", parameters)
 
@@ -37,23 +37,23 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
 
     /**
-     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters. 
+     * Checks if `this` type matches a [contentType] type taking into account placeholder symbols `*` and parameters in `this`.
      */
-    fun match(pattern: ContentType): Boolean {
-        if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true))
+    override fun match(contentType: ContentType): Boolean {
+        if (this.contentType != "*" && !this.contentType.equals(contentType.contentType, ignoreCase = true))
             return false
-        if (pattern.contentSubtype != "*" && !pattern.contentSubtype.equals(contentSubtype, ignoreCase = true))
+        if (contentSubtype != "*" && !contentSubtype.equals(contentType.contentSubtype, ignoreCase = true))
             return false
-        for ((patternName, patternValue) in pattern.parameters) {
+        for ((patternName, patternValue) in parameters) {
             val matches = when (patternName) {
                 "*" -> {
                     when (patternValue) {
                         "*" -> true
-                        else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
+                        else -> contentType.parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
                     }
                 }
                 else -> {
-                    val value = parameter(patternName)
+                    val value = contentType.parameter(patternName)
                     when (patternValue) {
                         "*" -> value != null
                         else -> value.equals(patternValue, ignoreCase = true)
@@ -67,9 +67,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     }
 
     /**
-     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
+     * Checks if `this` type matches a [contentType] string taking into account placeholder symbols `*` and parameters in `this`.
      */
-    fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
+    fun match(contentType: String): Boolean = match(parse(contentType))
 
     override fun equals(other: Any?): Boolean =
             other is ContentType &&
@@ -88,7 +88,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         /**
          * Parses a string representing a `Content-Type` header into a [ContentType] instance.
          */
-        fun parse(value: String): ContentType = HeaderValueWithParameters.parse(value) { parts, parameters ->
+        fun parse(value: String): ContentType = parse(value) { parts, parameters ->
             val slash = parts.indexOf('/')
             if (slash == -1) {
                 if (parts.trim() == "*")

@@ -96,11 +96,17 @@ class KotlinxSerializerTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.post<String>("$TEST_SERVER/echo") {
+            val response = client.post<String>("$TEST_SERVER/echo-with-content-type") {
                 body = "Hello"
             }
 
             assertEquals("Hello", response)
+
+            val textResponse = client.post<String>("$TEST_SERVER/echo") {
+                body = "Hello"
+            }
+
+            assertEquals("\"Hello\"", textResponse)
         }
     }
 
