@@ -1,16 +1,15 @@
 package io.ktor.utils.io
 
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.internal.*
-import io.ktor.utils.io.bits.Memory
-import io.ktor.utils.io.bits.copyTo
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import java.io.EOFException
 import java.nio.*
 import java.util.concurrent.atomic.*
@@ -19,6 +18,7 @@ import kotlin.coroutines.intrinsics.*
 import kotlin.jvm.*
 
 internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
+private const val BYTE_BUFFER_CAPACITY = 4088
 
 // implementation for ByteChannel
 internal open class ByteBufferChannel(
@@ -1560,7 +1560,7 @@ internal open class ByteBufferChannel(
 
     override fun writeAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
         require(min > 0) { "min should be positive" }
-        require(min <= 4088) { "min should be positive" }
+        require(min <= BYTE_BUFFER_CAPACITY) { "Min($min) shouldn't be greater than $BYTE_BUFFER_CAPACITY" }
 
         var result = 0
         var written = false
@@ -1602,7 +1602,7 @@ internal open class ByteBufferChannel(
 
     override suspend fun write(min: Int, block: (ByteBuffer) -> Unit) {
         require(min > 0) { "min should be positive" }
-        require(min <= 4088) { "Min should be less than buffer size: $min" }
+        require(min <= BYTE_BUFFER_CAPACITY) { "Min($min) should'nt be greater than ($BYTE_BUFFER_CAPACITY)" }
 
         while (true) {
             val writeAvailable = writeAvailable(min, block)
@@ -2060,7 +2060,7 @@ internal open class ByteBufferChannel(
         var consumed = 0
 
         val ca = CharArray(8192)
-        val cb = CharBuffer.wrap(ca)!!
+        val cb = CharBuffer.wrap(ca)
         var eol = false
 
         lookAhead {

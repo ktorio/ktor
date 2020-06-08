@@ -43,9 +43,8 @@ class DownloadTest : ClientLoader() {
     fun testDownload8175() = clientTests {
         test { client ->
             repeat(100) {
-                val uri =
-                    "https://raw.githubusercontent.com/ssp/ktor/4f1986df68e3594714ea12949c8af8274be99d01/ktor-client/ktor-client-apache/jvm/test/io/ktor/client/engine/apache/8175.txt"
-                client.get<String>(uri)
+                val url = "$TEST_SERVER/download/8175"
+                client.get<String>(url)
             }
         }
     }
