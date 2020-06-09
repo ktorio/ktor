@@ -5,6 +5,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
 suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
@@ -714,7 +715,7 @@ abstract class ByteChannelSequentialBase(
         }
     }
 
-    protected suspend fun awaitFreeSpace() {
+    override suspend fun awaitFreeSpace() {
         afterWrite()
         notFull.await {
             flush()

@@ -67,6 +67,22 @@ actual interface ByteWriteChannel {
     suspend fun writeFully(src: ByteBuffer)
 
     /**
+     * Invokes [block] if it is possible to write at least [min] byte
+     * providing byte buffer to it so lambda can write to the buffer
+     * up to [ByteBuffer.remaining] bytes. If there are no [min] bytes spaces available then the invocation returns 0.
+     *
+     * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for write but the provided byte buffer could have only 2 remaining bytes:
+     * in this case you have to invoke write again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for write, should be positive
+     * @param block to be invoked when at least [min] bytes free capacity available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    fun writeAvailable(min: Int = 1, block: (ByteBuffer) -> Unit): Int
+
+    /**
      * Invokes [block] when it will be possible to write at least [min] bytes
      * providing byte buffer to it so lambda can write to the buffer
      * up to [ByteBuffer.remaining] bytes. If there are no [min] bytes spaces available then the invocation could
@@ -97,6 +113,7 @@ actual interface ByteWriteChannel {
      * Writes a [packet] fully or fails if channel get closed before the whole packet has been written
      */
     actual suspend fun writePacket(packet: ByteReadPacket)
+
     /**
      * Writes long number and suspends until written.
      * Crashes if channel get closed while writing.
@@ -160,5 +177,8 @@ actual interface ByteWriteChannel {
      * It does nothing when invoked on a closed channel.
      */
     actual fun flush()
+
+    @ExperimentalIoApi
+    actual suspend fun awaitFreeSpace()
 }
 

@@ -31,6 +31,8 @@ internal fun Application.tests() {
     headersTestServer()
     timeoutTest()
     cookiesTest()
+    buildersTest()
+    downloadTest()
 
     routing {
         post("/echo") {

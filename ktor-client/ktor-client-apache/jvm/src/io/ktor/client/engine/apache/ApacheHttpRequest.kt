@@ -14,14 +14,25 @@ import org.apache.http.impl.nio.client.*
 import java.net.*
 import kotlin.coroutines.*
 
+@OptIn(InternalCoroutinesApi::class)
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
     request: ApacheRequestProducer,
     callContext: CoroutineContext,
     requestData: HttpRequestData
-): HttpResponseData = suspendCancellableCoroutine { continuation ->
+): HttpResponseData {
     val requestTime = GMTDate()
 
-    val consumer = ApacheResponseConsumerDispatching(callContext, requestData) { rawResponse, body ->
+    val consumer = ApacheResponseConsumer(callContext, requestData)
+
+    val callback = object : FutureCallback<Unit> {
+        override fun failed(exception: Exception) {}
+        override fun completed(result: Unit) {}
+        override fun cancelled() {}
+    }
+
+    val future = execute(request, consumer, callback)!!
+    try {
+        val rawResponse = consumer.waitForResponse()
         val statusLine = rawResponse.statusLine
 
         val status = HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
@@ -31,43 +42,18 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
                 append(headerLine.name, headerLine.value)
             }
         }
-        val result = HttpResponseData(status, requestTime, headers, version, body, callContext)
-        continuation.resume(result)
+
+        return HttpResponseData(status, requestTime, headers, version, consumer.responseChannel, callContext)
+    } catch (cause: Exception) {
+        future.cancel(true)
+        val mappedCause = mapCause(cause, requestData)
+        callContext.cancel(CancellationException("Failed to execute request.", mappedCause))
+        throw mappedCause
     }
+}
 
-    val callback = object : FutureCallback<Unit> {
-        override fun failed(exception: Exception) {
-            val mappedCause = when {
-                exception is ConnectException && exception.isTimeoutException() -> ConnectTimeoutException(
-                    requestData, exception
-                )
-                exception is java.net.SocketTimeoutException -> SocketTimeoutException(requestData, exception)
-                else -> exception
-            }
-
-            continuation.cancel(mappedCause)
-            callContext.cancel(CancellationException("Failed to execute request", mappedCause))
-        }
-
-        override fun completed(result: Unit) {}
-
-        override fun cancelled() {
-            callContext.cancel()
-            continuation.cancel()
-        }
-    }
-
-    execute(request, consumer, callback).apply {
-        @OptIn(InternalCoroutinesApi::class)
-        callContext[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
-            if (cause != null) {
-                cancel(true)
-            }
-        }
-
-        // We need to cancel Apache future if it's not needed anymore.
-        continuation.invokeOnCancellation {
-            cancel(true)
-        }
-    }
+internal fun mapCause(exception: Exception, requestData: HttpRequestData): Exception = when {
+    exception is ConnectException && exception.isTimeoutException() -> ConnectTimeoutException(requestData, exception)
+    exception is java.net.SocketTimeoutException -> SocketTimeoutException(requestData, exception)
+    else -> exception
 }

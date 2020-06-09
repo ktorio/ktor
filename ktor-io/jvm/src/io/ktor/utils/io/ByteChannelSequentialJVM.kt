@@ -1,14 +1,13 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.core.*
-import java.nio.ByteBuffer
+import java.nio.*
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @ExperimentalIoApi
-class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
-    : ByteChannelSequentialBase(initial, autoFlush) {
+class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
 
     @Volatile
     private var attachedJob: Job? = null
@@ -38,6 +37,7 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
         awaitFreeSpace()
         return writeAvailable(src)
     }
+
 
     override suspend fun writeFully(src: ByteBuffer) {
         tryWriteAvailable(src)
@@ -158,6 +158,25 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean)
         readable.readDirect(min) { bb ->
             consumer(bb)
         }
+    }
+
+    override fun writeAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
+        if (closed) {
+            throw closedCause ?: ClosedSendChannelException("Channel closed for write")
+        }
+
+        if (availableForWrite < min) {
+            return 0
+        }
+
+        var result = 0
+        writable.writeDirect(min) {
+            val position = it.position()
+            block(it)
+            result = it.position() - position
+        }
+
+        return result
     }
 
     override suspend fun write(min: Int, block: (ByteBuffer) -> Unit) {
