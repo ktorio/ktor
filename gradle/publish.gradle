@@ -1,4 +1,3 @@
-
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
@@ -108,3 +107,31 @@ publishing {
 }
 
 publish.dependsOn publishToMavenLocal
+
+class PublishWithRetryTask extends DefaultTask {
+    private def retryCount = Integer.getInteger("io.ktor.publish.retry", 100)
+
+    String description = "Retry task until success"
+    Collection<Task> publishTasks
+
+    @TaskAction
+    void exec() {
+        def attempt = 1
+        while (attempt <= retryCount) {
+            try {
+                publishTasks.forEach { Task task -> task.publish() }
+                break
+            } catch (Throwable cause) {
+                attempt += 1
+                println("Failed to execute publish task from $attempt attempt. Retry")
+                cause.printStackTrace()
+            }
+        }
+    }
+}
+
+task publishWithRetry(type: PublishWithRetryTask) {
+    description "Publish maven publications with retry"
+    dependsOn publishToMavenLocal
+    publishTasks = tasks.withType(PublishToMavenRepository.class)
+}
