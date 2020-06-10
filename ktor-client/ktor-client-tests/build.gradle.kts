@@ -49,6 +49,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
         }
     }
     jvmMain {

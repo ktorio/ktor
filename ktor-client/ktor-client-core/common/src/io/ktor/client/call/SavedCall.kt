@@ -12,6 +12,7 @@ import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 
@@ -24,6 +25,8 @@ internal class SavedHttpRequest(
 internal class SavedHttpResponse(
     override val call: SavedHttpCall, body: ByteArray, origin: HttpResponse
 ) : HttpResponse() {
+    private val context = Job()
+
     override val status: HttpStatusCode = origin.status
 
     override val version: HttpProtocolVersion = origin.version
@@ -34,7 +37,7 @@ internal class SavedHttpResponse(
 
     override val headers: Headers = origin.headers
 
-    override val coroutineContext: CoroutineContext = origin.coroutineContext
+    override val coroutineContext: CoroutineContext = origin.coroutineContext + context
 
     override val content: ByteReadChannel = ByteReadChannel(body)
 }
