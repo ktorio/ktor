@@ -83,6 +83,8 @@ open class HttpClientCall internal constructor(
         } catch (cause: Throwable) {
             response.cancel("Receive failed", cause)
             throw cause
+        } finally {
+            response.complete()
         }
     }
 
