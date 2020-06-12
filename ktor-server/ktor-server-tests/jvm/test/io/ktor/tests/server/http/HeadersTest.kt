@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -29,6 +28,22 @@ class HeadersTest {
         handleRequest(HttpMethod.Get, "/").let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals("OK", call.response.content)
+        }
+    }
+
+    @Test
+    fun returnConnectionHeaderSetByServer(): Unit = withTestApplication {
+        application.routing {
+            get("/") {
+                call.response.header(name = HttpHeaders.Connection, value = "close")
+                call.respondText("OK")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(name = HttpHeaders.Connection, value = "keep-alive")
+        }.let {
+            assertEquals(listOf("close"), it.response.headers.values(HttpHeaders.Connection))
         }
     }
 }

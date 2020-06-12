@@ -83,7 +83,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
 
         val connection = call.request.headers[HttpHeaders.Connection]
-        if (connection != null) {
+        if (connection != null && !call.response.headers.contains(HttpHeaders.Connection)) {
             when {
                 connection.equals("close", true) -> header("Connection", "close")
                 connection.equals("keep-alive", true) -> header("Connection", "keep-alive")
