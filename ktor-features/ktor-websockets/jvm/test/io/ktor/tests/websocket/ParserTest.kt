@@ -20,6 +20,23 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertTrue { parser.fin }
+        assertFalse { parser.rsv1 }
+        assertFalse { parser.mask }
+        assertEquals(5, parser.length)
+        assertTrue { parser.bodyReady }
+
+        assertEquals("Hello", buffer.decodeString())
+    }
+
+    @Test
+    fun testParserSimpleFrameWithRsv1Set() {
+        val buffer = bufferOf("0xC1 0x05 0x48 0x65 0x6c 0x6c 0x6f")
+        val parser = FrameParser()
+        parser.frame(buffer)
+
+        assertEquals(FrameType.TEXT, parser.frameType)
+        assertTrue { parser.fin }
+        assertTrue { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(5, parser.length)
         assertTrue { parser.bodyReady }
@@ -35,6 +52,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertTrue { parser.fin }
+        assertFalse { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(6, parser.length)
         assertTrue { parser.bodyReady }
@@ -48,6 +66,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertTrue { parser.fin }
+        assertFalse { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(0x123456789aabcdef, parser.length)
         assertTrue { parser.bodyReady }
@@ -61,6 +80,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertTrue { parser.fin }
+        assertFalse { parser.rsv1 }
         assertTrue { parser.mask }
         assertEquals(5, parser.length)
         assertTrue { parser.bodyReady }
@@ -75,6 +95,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertFalse { parser.fin }
+        assertFalse { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
@@ -86,6 +107,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertFalse { parser.fin }
+        assertFalse { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
@@ -97,6 +119,7 @@ class ParserTest {
 
         assertEquals(FrameType.TEXT, parser.frameType)
         assertTrue { parser.fin }
+        assertFalse { parser.rsv1 }
         assertFalse { parser.mask }
         assertEquals(1, parser.length)
         assertTrue { parser.bodyReady }
