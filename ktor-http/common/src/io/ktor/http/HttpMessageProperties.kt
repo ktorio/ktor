@@ -27,7 +27,7 @@ fun HttpMessageBuilder.charset(charset: Charset) = contentType()?.let { contentT
 /**
  * Append `Max-Age` header value.
  */
-fun HttpMessageBuilder.maxAge(seconds: Int): Unit = headers.append(HttpHeaders.CacheControl, "max-age:$seconds")
+fun HttpMessageBuilder.maxAge(seconds: Int): Unit = headers.append(HttpHeaders.CacheControl, "max-age=$seconds")
 
 /**
  * Set `If-None-Match` header value.
