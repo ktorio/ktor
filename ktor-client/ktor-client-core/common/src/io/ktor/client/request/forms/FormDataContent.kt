@@ -86,16 +86,18 @@ class MultiPartFormDataContent(
     override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     init {
-        var rawLength = rawParts.fold<PreparedPart, Long?>(0L) { current, part ->
+        var rawLength:Long? = 0
+        for (part in rawParts) {
             val size = part.size
-            if (current != null && size != null) {
-                current + size
-            } else {
-                null
+            if (size == null) {
+                rawLength =null
+                break
             }
+
+            rawLength = rawLength?.plus(size)
         }
 
-        if (rawLength != null && rawLength != 0L) {
+        if (rawLength != null) {
             rawLength += BODY_OVERHEAD_SIZE
         }
 
@@ -104,8 +106,6 @@ class MultiPartFormDataContent(
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         try {
-            if (rawParts.isEmpty()) return
-
             channel.writeFully(RN_BYTES)
             channel.writeFully(RN_BYTES)
 

@@ -23,8 +23,9 @@ sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
      * Represents a file item
      * @property provider of content bytes
      */
-    class FileItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers) :
-        PartData(dispose, partHeaders) {
+    class FileItem(
+        val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers
+    ) : PartData(dispose, partHeaders) {
         /**
          * Original file name if present
          */
