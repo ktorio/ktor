@@ -54,10 +54,7 @@ publishing {
             if (publishLocal) {
                 url globalM2
             } else {
-                def user = 'kotlin'
-                def repo = 'ktor'
-                def name = 'ktor'
-                url = "https://maven.jetbrains.space/kotlin/ktor"
+                url = "https://packages.jetbrains.team/maven/ktor-dev"
                 credentials {
                     username = project.hasProperty('spaceUser') ? project.property('spaceUser') : System.getenv('SPACE_USER')
                     password = project.hasProperty('spaceApiKey') ? project.property('spaceApiKey') : System.getenv('SPACE_API_KEY')
