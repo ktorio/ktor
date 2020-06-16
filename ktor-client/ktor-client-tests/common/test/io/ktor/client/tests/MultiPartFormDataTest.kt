@@ -36,4 +36,12 @@ class MultiPartFormDataTest : ClientLoader() {
             assertEquals(HttpStatusCode.OK, result.status)
         }
     }
+
+    @Test
+    fun testEmptyMultiPartFormData() = clientTests {
+        test { client ->
+            val response = client.submitFormWithBinaryData<HttpResponse>("$TEST_SERVER/multipart/empty", emptyList())
+            assertTrue(response.status.isSuccess())
+        }
+    }
 }
