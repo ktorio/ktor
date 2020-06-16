@@ -14,18 +14,17 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
+    override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
                 call.respondText("")
