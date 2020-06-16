@@ -23,7 +23,6 @@ import io.ktor.response.*
 import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
 import kotlinx.serialization.*
 import kotlin.test.*
 
@@ -36,7 +35,7 @@ abstract class JsonTest : TestWithKtor() {
         User("foo", 45)
     )
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
+    override val server: ApplicationEngine = embeddedServer(io.ktor.server.cio.CIO, serverPort) {
         install(ContentNegotiation) {
             gson()
             gson(customContentType)

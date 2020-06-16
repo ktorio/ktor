@@ -4,15 +4,9 @@
 
 package io.ktor.client.tests
 
-import io.ktor.application.*
-import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import kotlin.test.*
 
 class BuildersTest : ClientLoader() {
