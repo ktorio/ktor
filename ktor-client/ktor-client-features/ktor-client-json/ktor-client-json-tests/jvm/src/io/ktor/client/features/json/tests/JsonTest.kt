@@ -70,7 +70,9 @@ abstract class JsonTest : TestWithKtor() {
     protected fun TestClientBuilder<*>.configClient() {
         config {
             install(JsonFeature) {
-                serializer = serializerImpl
+                serializerImpl?.let {
+                    serializer = it
+                }
             }
         }
     }
@@ -78,7 +80,9 @@ abstract class JsonTest : TestWithKtor() {
     private fun TestClientBuilder<*>.configCustomContentTypeClient(block: JsonFeature.Config.() -> Unit) {
         config {
             install(JsonFeature) {
-                serializer = serializerImpl
+                serializerImpl?.let {
+                    serializer = it
+                }
                 block()
             }
         }

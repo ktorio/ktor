@@ -55,11 +55,11 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
                 when {
-                    contentType.match(ContentType.Application.FormUrlEncoded) -> {
+                    ContentType.Application.FormUrlEncoded.match(contentType) -> {
                         val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
                         parseQueryString(string)
                     }
-                    contentType.match(ContentType.MultiPart.FormData) -> {
+                    ContentType.MultiPart.FormData.match(contentType) -> {
                         Parameters.build {
                             multiPartData(channel).forEachPart { part ->
                                 if (part is PartData.FormItem) {
