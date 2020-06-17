@@ -14,11 +14,15 @@ import io.ktor.utils.io.core.*
  * [JsonSerializer] using [Gson] as backend.
  */
 class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
-
     private val backend: Gson = GsonBuilder().apply(block).create()
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent =
-        TextContent(backend.toJson(data), contentType)
+        // Unit would be converted to `{}`, which may cause problems with some backends.
+        // So, we convert Unit to the empty body.
+        if (data === Unit)
+            TextContent("", contentType)
+        else
+            TextContent(backend.toJson(data), contentType)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()

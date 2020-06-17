@@ -5,8 +5,11 @@
 package io.ktor.client.features.json.tests
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -16,6 +19,7 @@ import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
@@ -69,22 +73,42 @@ abstract class JsonTest : TestWithKtor() {
 
     protected fun TestClientBuilder<*>.configClient() {
         config {
-            install(JsonFeature) {
-                serializerImpl?.let {
-                    serializer = it
-                }
+            configJsonFeature()
+        }
+    }
+
+    private fun HttpClientConfig<*>.configJsonFeature(block: JsonFeature.Config.() -> Unit = {}) {
+        install(JsonFeature) {
+            serializerImpl?.let {
+                serializer = it
             }
+            block()
         }
     }
 
     private fun TestClientBuilder<*>.configCustomContentTypeClient(block: JsonFeature.Config.() -> Unit) {
         config {
-            install(JsonFeature) {
-                serializerImpl?.let {
-                    serializer = it
+            configJsonFeature(block)
+        }
+    }
+
+    @org.junit.Test
+    fun testEmptyBody() = testWithEngine(MockEngine) {
+        config {
+                engine {
+                    addHandler { request ->
+                        respond(request.body.toByteReadPacket().readText())
+                    }
                 }
-                block()
-            }
+                defaultRequest {
+                    contentType(ContentType.Application.Json)
+                }
+                configJsonFeature()
+        }
+
+        test { client ->
+            val response: HttpResponse = client.get("https://test.com")
+            assertEquals("", response.readText())
         }
     }
 
