@@ -6,7 +6,6 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
@@ -18,7 +17,6 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.eclipse.jetty.util.ssl.*
 import org.junit.*
@@ -32,7 +30,6 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.coroutines.*
-import kotlin.io.use
 import kotlin.test.*
 
 
