@@ -6,9 +6,6 @@ kotlin.sourceSets.jvmMain.dependencies {
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.0-b07'
 }
 
-
-if (!project.ext.ideaActive) {
-    dependencies {
-        jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    }
+dependencies {
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
 }

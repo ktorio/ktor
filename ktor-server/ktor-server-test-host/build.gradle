@@ -26,8 +26,6 @@ kotlin.sourceSets.jvmMain.dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
 }
 
-if (!project.ext.ideaActive) {
-    dependencies {
-        jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    }
+dependencies {
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
 }
