@@ -18,6 +18,7 @@ import io.ktor.util.cio.bufferedWriter
 import io.ktor.utils.io.ByteWriteChannel
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
+import java.util.Locale
 
 /**
  * Represents a content handled by [Thymeleaf] feature.
@@ -26,12 +27,14 @@ import org.thymeleaf.context.Context
  * @param model to be passed during template rendering
  * @param etag value for `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
+ * @param locale to be used with template rendering (optional, Locale.getDefault() by default)
  */
 class ThymeleafContent(
     val template: String,
     val model: Map<String, Any>,
     val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8),
+    val locale: Locale = Locale.getDefault()
 )
 
 /**
@@ -63,7 +66,8 @@ class Thymeleaf(private val engine: TemplateEngine) {
             content.template,
             content.model,
             content.etag,
-            content.contentType
+            content.contentType,
+            content.locale
         )
     }
 
@@ -72,11 +76,14 @@ class Thymeleaf(private val engine: TemplateEngine) {
         val template: String,
         val model: Map<String, Any>,
         etag: String?,
-        override val contentType: ContentType
+        override val contentType: ContentType,
+        val locale: Locale
     ) : OutgoingContent.WriteChannelContent() {
         override suspend fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                val context = Context().apply { setVariables(model) }
+                val context = Context(locale).apply {
+                    setVariables(model)
+                }
                 engine.process(template, context, it)
             }
         }
