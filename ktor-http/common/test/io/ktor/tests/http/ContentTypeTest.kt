@@ -26,6 +26,11 @@ class ContentTypeTest {
     }
 
     @Test
+    fun testBlankIsAny() {
+        assertEquals(ContentType.Any, ContentType.parse(""))
+    }
+
+    @Test
     fun textPlainCharsetInQuotes() {
         val ct1 = ContentType.parse("text/plain; charset=us-ascii")
         val ct2 = ContentType.parse("text/plain; charset=\"us-ascii\"")
