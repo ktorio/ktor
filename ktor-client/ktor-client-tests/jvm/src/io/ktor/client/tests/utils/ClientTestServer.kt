@@ -33,6 +33,7 @@ internal fun Application.tests() {
     cookiesTest()
     buildersTest()
     downloadTest()
+    uploadTest()
 
     routing {
         post("/echo") {
