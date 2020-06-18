@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -109,7 +110,7 @@ class JsonFeature internal constructor(val config: Config) {
                 context.headers.remove(HttpHeaders.ContentType)
 
                 val serializedContent = when (payload) {
-                    is EmptyContent -> config.serializer.write(Unit, contentType)
+                    is EmptyContent -> EmptyContent
                     else -> config.serializer.write(payload, contentType)
                 }
 

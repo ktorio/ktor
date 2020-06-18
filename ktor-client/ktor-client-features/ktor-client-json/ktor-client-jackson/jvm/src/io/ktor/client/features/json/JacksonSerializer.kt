@@ -15,12 +15,7 @@ class JacksonSerializer(jackson: ObjectMapper = jacksonObjectMapper(), block: Ob
     private val backend = jackson.apply(block)
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent =
-        // Unit would be converted to `{}`, which may cause problems with some backends.
-        // So, we convert Unit to the empty body.
-        if (data === Unit)
-            TextContent("", contentType)
-        else
-            TextContent(backend.writeValueAsString(data), contentType)
+        TextContent(backend.writeValueAsString(data), contentType)
 
     override fun read(type: TypeInfo, body: Input): Any {
         return backend.readValue(body.readText(), backend.typeFactory.constructType(type.reifiedType))
