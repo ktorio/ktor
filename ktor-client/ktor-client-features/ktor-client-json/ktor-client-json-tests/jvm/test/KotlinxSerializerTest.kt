@@ -15,7 +15,7 @@ import kotlinx.serialization.modules.*
 import kotlin.test.*
 
 class KotlinxSerializerTest {
-    @OptIn(ImplicitReflectionSerializer::class)
+    @Suppress("EXPERIMENTAL_API_USAGE_ERROR")
     @Test
     fun testCustomDeserializer() {
         val upwrapper = indexListUnwrapper<TestEntry>()
