@@ -14,6 +14,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
@@ -97,7 +98,9 @@ abstract class JsonTest : TestWithKtor() {
         config {
                 engine {
                     addHandler { request ->
-                        respond(request.body.toByteReadPacket().readText())
+                        respond(request.body.toByteReadPacket().readText(), headers = buildHeaders {
+                            append("X-ContentType", request.body.contentType.toString())
+                        })
                     }
                 }
                 defaultRequest {
@@ -109,6 +112,7 @@ abstract class JsonTest : TestWithKtor() {
         test { client ->
             val response: HttpResponse = client.get("https://test.com")
             assertEquals("", response.readText())
+            assertEquals("null", response.headers["X-ContentType"])
         }
     }
 
