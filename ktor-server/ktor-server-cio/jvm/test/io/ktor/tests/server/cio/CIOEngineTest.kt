@@ -5,9 +5,28 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.*
-import io.ktor.server.testing.*
+import io.ktor.server.testing.suites.*
 
-class CIOEngineTest : EngineTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+class CIOCompressionTest : CompressionTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
+
+class CIOContentTest : ContentTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
+class CIOHttpServerTest : HttpServerTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
+    init {
+        enableHttp2 = false
+        enableSsl = false
+    }
+}
+class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false

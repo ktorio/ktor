@@ -4,12 +4,35 @@
 
 package io.ktor.tests.server.tomcat
 
-import io.ktor.server.testing.*
+import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
 import org.junit.*
 import java.util.logging.*
 
-class TomcatEngineTest : EngineTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+class TomcatCompressionTest :
+    CompressionTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    // silence tomcat logger
+    init {
+        listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
+            Logger.getLogger(it).apply { level = Level.WARNING }
+        }
+        enableHttp2 = false
+    }
+}
+
+class TomcatContentTest :
+    ContentTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    // silence tomcat logger
+    init {
+        listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
+            Logger.getLogger(it).apply { level = Level.WARNING }
+        }
+        enableHttp2 = false
+    }
+}
+
+class TomcatHttpServerTest :
+    HttpServerTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
     // silence tomcat logger
     init {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
@@ -22,5 +45,16 @@ class TomcatEngineTest : EngineTestSuite<TomcatApplicationEngine, TomcatApplicat
     @Test
     override fun testUpgrade() {
         super.testUpgrade()
+    }
+}
+
+class TomcatSustainabilityTestSuite :
+    SustainabilityTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+    // silence tomcat logger
+    init {
+        listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
+            Logger.getLogger(it).apply { level = Level.WARNING }
+        }
+        enableHttp2 = false
     }
 }

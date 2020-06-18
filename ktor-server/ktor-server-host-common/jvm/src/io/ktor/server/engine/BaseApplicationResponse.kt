@@ -58,8 +58,10 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                     return@forEach
                 }
             }
-            for (value in values)
+
+            for (value in values) {
                 headers.append(name, value)
+            }
         }
 
         val contentLength = content.contentLength

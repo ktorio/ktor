@@ -5,12 +5,45 @@
 package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
-import io.ktor.server.testing.*
+import io.ktor.server.testing.suites.*
 
-class NettyEngineTest : EngineTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
         enableSsl = true
     }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.shareWorkGroup = true
+    }
+}
+
+class NettyContentTest : ContentTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    init {
+        enableSsl = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.shareWorkGroup = true
+    }
+}
+
+class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+    init {
+        enableSsl = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.shareWorkGroup = true
+    }
+}
+
+class NettySustainabilityTest :
+    SustainabilityTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = true
+    }
+
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
