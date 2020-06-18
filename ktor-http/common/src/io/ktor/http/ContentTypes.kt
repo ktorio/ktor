@@ -88,20 +88,33 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         /**
          * Parses a string representing a `Content-Type` header into a [ContentType] instance.
          */
-        fun parse(value: String): ContentType = HeaderValueWithParameters.parse(value) { parts, parameters ->
-            val slash = parts.indexOf('/')
-            if (slash == -1) {
-                if (parts.trim() == "*")
-                    return Any
-                throw BadContentTypeFormatException(value)
+        fun parse(value: String): ContentType {
+            if (value.isBlank()) return Any
+
+            return parse(value) { parts, parameters ->
+                val slash = parts.indexOf('/')
+
+                if (slash == -1) {
+                    if (parts.trim() == "*")
+                        return Any
+
+                    throw BadContentTypeFormatException(value)
+                }
+
+                val type = parts.substring(0, slash).trim()
+
+                if (type.isEmpty()) {
+                    throw BadContentTypeFormatException(value)
+                }
+
+                val subtype = parts.substring(slash + 1).trim()
+
+                if (subtype.isEmpty() || subtype.contains('/')) {
+                    throw BadContentTypeFormatException(value)
+                }
+
+                ContentType(type, subtype, parameters)
             }
-            val type = parts.substring(0, slash).trim()
-            if (type.isEmpty())
-                throw BadContentTypeFormatException(value)
-            val subtype = parts.substring(slash + 1).trim()
-            if (subtype.isEmpty() || subtype.contains('/'))
-                throw BadContentTypeFormatException(value)
-            ContentType(type, subtype, parameters)
         }
 
         /**
