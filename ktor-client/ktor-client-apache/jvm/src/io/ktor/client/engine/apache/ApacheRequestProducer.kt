@@ -125,11 +125,11 @@ internal class ApacheRequestProducer(
         builder.uri = url.toURI()
 
         val content = requestData.body
-        var length = ""
-        var type = ""
+        var length: String? = null
+        var type: String? = null
 
         mergeHeaders(headers, content) { key, value ->
-            when(key) {
+            when (key) {
                 HttpHeaders.CONTENT_LENGTH -> length = value
                 HttpHeaders.CONTENT_TYPE -> type = value
                 else -> builder.addHeader(key, value)
@@ -138,7 +138,13 @@ internal class ApacheRequestProducer(
 
         if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {
-                if (length.isBlank()) isChunked = true else contentLength = length.toLong()
+                val lengthResult = length
+                if (lengthResult == null || lengthResult.isBlank()) {
+                    isChunked = true
+                } else {
+                    contentLength = lengthResult.toLong()
+                }
+
                 setContentType(type)
             }
         }
