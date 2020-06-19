@@ -29,7 +29,7 @@ public class CallLogging private constructor(
     private val formatCall: (ApplicationCall) -> String
 ) : MDCProvider {
 
-    internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
+    internal class MDCEntry(val name: String, val defer: Boolean = false, val provider: (ApplicationCall) -> String?)
 
     /**
      * Configuration for [CallLogging] plugin
@@ -59,11 +59,13 @@ public class CallLogging private constructor(
 
         /**
          * Put a diagnostic context value to [MDC] with the specified [name] and computed using [provider] function.
+         * Entries that are marked as [defer] will be null up to the point that a request is processed, and will then
+         * be computed using [provider] function.
          * A value will be available in MDC only during [ApplicationCall] lifetime and will be removed after call
          * processing.
          */
-        public fun mdc(name: String, provider: (ApplicationCall) -> String?) {
-            mdcEntries.add(MDCEntry(name, provider))
+        public fun mdc(name: String, defer: Boolean = false, provider: (ApplicationCall) -> String?) {
+            mdcEntries.add(MDCEntry(name, defer, provider))
         }
 
         /**
@@ -140,14 +142,22 @@ public class CallLogging private constructor(
         monitor.subscribe(ApplicationStopped, stopped)
     }
 
-    internal fun setupMdc(call: ApplicationCall): Map<String, String> {
-        val result = HashMap<String, String>()
+    internal fun setupMdc(call: ApplicationCall): Map<String, String?> {
+        val result = HashMap<String, String?>()
 
-        mdcEntries.forEach { entry ->
-            entry.provider(call)?.let { mdcValue ->
-                result[entry.name] = mdcValue
+        mdcEntries
+            .filter { !it.defer }
+            .forEach { entry ->
+                entry.provider(call)?.let { mdcValue ->
+                    result[entry.name] = mdcValue
+                }
             }
-        }
+
+        mdcEntries
+            .filter { it.defer }
+            .forEach { entry ->
+                result[entry.name] = null
+            }
 
         return result
     }
@@ -181,6 +191,13 @@ public class CallLogging private constructor(
                 pipeline.intercept(loggingPhase) {
                     plugin.withMDC(call) {
                         proceed()
+                        plugin.mdcEntries
+                            .filter { it.defer }
+                            .forEach { entry ->
+                                entry.provider(call)?.let { mdcValue ->
+                                    MDC.put(entry.name, mdcValue)
+                                }
+                            }
                         plugin.logSuccess(call)
                     }
                 }
@@ -227,16 +244,16 @@ public class CallLogging private constructor(
     }
 }
 
-private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
+private class MDCSurvivalElement(mdc: Map<String, String?>) : ThreadContextElement<Map<String, String?>> {
     override val key: CoroutineContext.Key<*> get() = Key
 
     private val snapshot = copyMDC() + mdc
 
-    override fun restoreThreadContext(context: CoroutineContext, oldState: Map<String, String>) {
+    override fun restoreThreadContext(context: CoroutineContext, oldState: Map<String, String?>) {
         putMDC(oldState)
     }
 
-    override fun updateThreadContext(context: CoroutineContext): Map<String, String> {
+    override fun updateThreadContext(context: CoroutineContext): Map<String, String?> {
         val mdcCopy = copyMDC()
         putMDC(snapshot)
         return mdcCopy
@@ -244,7 +261,7 @@ private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElemen
 
     private fun copyMDC() = MDC.getCopyOfContextMap()?.toMap() ?: emptyMap()
 
-    private fun putMDC(oldState: Map<String, String>) {
+    private fun putMDC(oldState: Map<String, String?>) {
         MDC.clear()
         oldState.entries.forEach { (k, v) ->
             MDC.put(k, v)
