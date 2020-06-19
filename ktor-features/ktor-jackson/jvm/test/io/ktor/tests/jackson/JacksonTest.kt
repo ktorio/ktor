@@ -121,6 +121,37 @@ class JacksonTest {
             assertEquals("{\n  \"a\" : 1,\n  \"b\" : 2\n}", response.content)
         }
     }
+
+    @Test
+    fun testGenericList() = withTestApplication {
+
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, JacksonConverter())
+        }
+        application.routing {
+            val model = listOf(MyEntity(1,"Cargo", emptyList()))
+            get("/") {
+                call.respond(model)
+            }
+            post("/") {
+                val list = call.receive<List<MyEntity>>()
+                val text = list.joinToString { it.toString() }
+                call.respond(text)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json")
+            setBody("""[{"id":1,"name":"Hello, World!", "children":[]}]""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""MyEntity(id=1, name=Hello, World!, children=[])"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
 }
 
 
