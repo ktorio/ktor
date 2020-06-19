@@ -173,7 +173,8 @@ class ThymeleafTest {
             "en" to "Hello, world!",
             "es;q=0.3,en-us;q=0.7" to "Hello, world!",
             "es" to "¡Hola, mundo!",
-            "es-419" to "¡Hola, mundo!"
+            "es-419" to "¡Hola, mundo!",
+            "default" to "Hello, world!"
         )
         withTestApplication {
             application.install(Thymeleaf) {
@@ -186,9 +187,14 @@ class ThymeleafTest {
             application.install(ConditionalHeaders)
             application.routing {
                 get("/") {
-                    val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
-                    val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
-                    call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+                    if (call.request.acceptLanguage() == "default") {
+                        Locale.setDefault(Locale("en"))
+                        call.respond(ThymeleafContent("i18n_test", mapOf()))
+                    } else {
+                        val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
+                        val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
+                        call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+                    }
                 }
             }
             testCases.forEach { (language, result) ->
