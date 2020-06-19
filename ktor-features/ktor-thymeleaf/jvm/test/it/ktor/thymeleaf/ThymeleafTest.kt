@@ -28,6 +28,7 @@ import java.util.zip.GZIPInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.shouldBe
+import java.util.Locale
 
 class ThymeleafTest {
     @Test
@@ -161,6 +162,42 @@ class ThymeleafTest {
                 val lines = response.content!!.lines()
                 assertEquals("<p>Hello, 1</p>", lines[0])
                 assertEquals("<h1>Hello, World!</h1>", lines[1])
+            }
+        }
+    }
+
+    @Test
+    fun testI18nHtmlTemplate() {
+        val testCases = mapOf(
+            "en" to "Hello, world!",
+            "es;q=0.3,en-us;q=0.7" to "Hello, world!",
+            "es" to "¡Hola, mundo!",
+            "es-419" to "¡Hola, mundo!"
+        )
+        withTestApplication {
+            application.install(Thymeleaf) {
+                val resolver = ClassLoaderTemplateResolver()
+                resolver.setTemplateMode("HTML")
+                resolver.prefix = "templates/"
+                resolver.suffix = ".html"
+                setTemplateResolver(resolver)
+            }
+            application.install(ConditionalHeaders)
+            application.routing {
+                get("/") {
+                    val languageRanges = LanguageRange.parse(call.request.acceptLanguage())
+                    val locale = Locale.lookup(languageRanges, getAvailableLocales().toList())
+                    call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
+                }
+            }
+            testCases.forEach { (language, result) ->
+                handleRequest(HttpMethod.Get, "/") {
+                    addHeader(HttpHeaders.AcceptLanguage, language)
+                }.response.let { response ->
+                    assertNotNull(response.content)
+                    val lines = response.content!!.lines()
+                    assertEquals("<h1>$result</h1>", lines[0])
+                }
             }
         }
     }
