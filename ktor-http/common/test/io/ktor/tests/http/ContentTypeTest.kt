@@ -82,4 +82,10 @@ class ContentTypeTest {
         // rendering tests are in [HeadersTest] so it is just a smoke test
         assertEquals("text/plain; p1=v1", ContentType.Text.Plain.withParameter("p1", "v1").toString())
     }
+
+    @Test
+    fun testContentTypeInvalid() {
+        val result = ContentType.parse("image/png; charset=utf-8\" but not really")
+        assertEquals(ContentType.Any, result)
+    }
 }

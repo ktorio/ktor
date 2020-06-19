@@ -69,8 +69,9 @@ fun parseHeaderValue(text: String?): List<HeaderValue> {
  * @param parametersOnly if no header value itself, only parameters
  */
 fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
-    if (text == null)
+    if (text == null) {
         return emptyList()
+    }
 
     var pos = 0
     val items = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValue>() }
