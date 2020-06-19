@@ -13,6 +13,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.withCharset
+import io.ktor.request.acceptLanguage
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -25,10 +26,10 @@ import org.junit.Test
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.StringTemplateResolver
 import java.util.zip.GZIPInputStream
+import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.shouldBe
-import java.util.Locale
 
 class ThymeleafTest {
     @Test
@@ -185,8 +186,8 @@ class ThymeleafTest {
             application.install(ConditionalHeaders)
             application.routing {
                 get("/") {
-                    val languageRanges = LanguageRange.parse(call.request.acceptLanguage())
-                    val locale = Locale.lookup(languageRanges, getAvailableLocales().toList())
+                    val languageRanges = Locale.LanguageRange.parse(call.request.acceptLanguage())
+                    val locale = Locale.lookup(languageRanges, Locale.getAvailableLocales().toList())
                     call.respond(ThymeleafContent("i18n_test", mapOf(), locale = locale))
                 }
             }
