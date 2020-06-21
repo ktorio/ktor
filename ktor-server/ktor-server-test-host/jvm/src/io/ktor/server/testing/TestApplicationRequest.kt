@@ -28,6 +28,7 @@ public class TestApplicationRequest constructor(
     closeRequest: Boolean,
     var method: HttpMethod = HttpMethod.Get,
     var uri: String = "/",
+    var port: Int? = null,
     var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
     var protocol: String = "http"
@@ -43,7 +44,7 @@ public class TestApplicationRequest constructor(
             get() = protocol
 
         override val port: Int
-            get() = header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
+            get() = this@TestApplicationRequest.port ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
 
         override val host: String
             get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"
