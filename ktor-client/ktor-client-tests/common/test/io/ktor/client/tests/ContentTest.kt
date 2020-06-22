@@ -205,7 +205,7 @@ class ContentTest : ClientLoader() {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals("{}", response)
+            assertEquals("", response)
         }
     }
 
