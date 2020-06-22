@@ -43,6 +43,14 @@ private val VALID_PATH_PART = listOf(
 @SharedImmutable
 private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.toByte() }
 
+internal val LETTERS_AND_NUMBERS = ('a'..'z').toSet() + ('A'..'Z').toSet() + ('0'..'9').toSet()
+
+/**
+ * https://tools.ietf.org/html/rfc7230#section-3.2.6
+ */
+internal val TOKENS: Set<Char> =
+    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') +  LETTERS_AND_NUMBERS
+
 /**
  * Encode url part as specified in
  * https://tools.ietf.org/html/rfc3986#section-2

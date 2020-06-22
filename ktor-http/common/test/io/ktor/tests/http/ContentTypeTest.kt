@@ -86,6 +86,6 @@ class ContentTypeTest {
     @Test
     fun testContentTypeInvalid() {
         val result = ContentType.parse("image/png; charset=utf-8\" but not really")
-        assertEquals(ContentType.Any, result)
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "utf-8\" but not really"), result)
     }
 }
