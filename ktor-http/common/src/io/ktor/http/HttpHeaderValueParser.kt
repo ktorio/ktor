@@ -155,23 +155,30 @@ private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy
 
 
 private fun parseHeaderValueParameterValue(value: String, start: Int): Pair<Int, String> {
-    var pos = start
-    while (pos <= value.lastIndex) {
-        when (value[pos]) {
-            '"' -> return parseHeaderValueParameterValueQuoted(value, pos + 1)
-            ';', ',' -> return pos to value.subtrim(start, pos)
-            else -> pos++
+    if (value.length == start) {
+        return start to ""
+    }
+
+    var position = start
+    if (value[start] == '"') {
+        return parseHeaderValueParameterValueQuoted(value, position + 1)
+    }
+
+    while (position <= value.lastIndex) {
+        when (value[position]) {
+            ';', ',' -> return position to value.subtrim(start, position)
+            else -> position++
         }
     }
-    return pos to value.subtrim(start, pos)
+    return position to value.subtrim(start, position)
 }
 
 private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pair<Int, String> {
     var pos = start
     val sb = StringBuilder()
     while (pos <= value.lastIndex) {
-        val c = value[pos]
-        when (c) {
+        val current = value[pos]
+        when (current) {
             '"' -> return pos + 1 to sb.toString()
             '\\' -> {
                 if (pos < value.lastIndex - 2) {
@@ -179,12 +186,12 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
                     pos += 2
                 } // quoted value
                 else {
-                    sb.append(c)
+                    sb.append(current)
                     pos++ // broken value, escape at the end
                 }
             }
             else -> {
-                sb.append(c)
+                sb.append(current)
                 pos++
             }
         }
