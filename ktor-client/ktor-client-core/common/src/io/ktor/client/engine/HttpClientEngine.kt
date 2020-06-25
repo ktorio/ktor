@@ -57,6 +57,8 @@ interface HttpClientEngine : CoroutineScope, Closeable {
             val requestData = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
                 body = content
+                if (!client.config.followRedirects)
+                    attributes.put(AttributeKey("redirect"), "manual")
             }.build()
 
             validateHeaders(requestData)

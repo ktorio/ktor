@@ -9,7 +9,7 @@ package io.ktor.util
  * @param T is type of the value stored in the attribute
  * @param name is a name of the attribute for diagnostic purposes
  */
-class AttributeKey<T>(val name: String) {
+data class AttributeKey<T>(val name: String) {
     override fun toString(): String = if (name.isEmpty())
         super.toString()
     else

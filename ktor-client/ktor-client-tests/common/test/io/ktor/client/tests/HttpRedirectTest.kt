@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlin.test.*
 
 @Suppress("PublicApiImplicitType")
@@ -126,7 +127,7 @@ class HttpRedirectTest : ClientLoader() {
         test { client ->
             client.get<HttpStatement>("$TEST_URL_BASE/").execute {
                 assertEquals(HttpStatusCode.Found, it.status)
-                assertNotNull(it.headers["Location"], "Location header not found.")
+                assertNotNull(it.headers[HttpHeaders.Location], "Location header not found.")
                 assertTrue(it.toString().endsWith("302 Found]"))
             }
         }

@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -35,8 +36,7 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
     return buildObject {
         method = this@toRaw.method.value
         headers = jsHeaders
-        redirect = RequestRedirect.FOLLOW
-
+        redirect = attributes.getOrNull(AttributeKey<String>("redirect")) ?: RequestRedirect.FOLLOW
         bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
     }
 }
