@@ -117,4 +117,18 @@ class HttpRedirectTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testRedirectResponse() = clientTests {
+        config {
+            followRedirects = false
+        }
+        test { client ->
+            client.get<HttpStatement>("$TEST_URL_BASE/").execute {
+                assertEquals(HttpStatusCode.Found, it.status)
+                assertNotNull(it.headers["Location"], "Location header not found.")
+                assertTrue(it.toString().endsWith("302 Found]"))
+            }
+        }
+    }
 }
