@@ -33,10 +33,9 @@ class VelocityTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, response.content!!.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -63,10 +62,9 @@ class VelocityTest {
                 addHeader(HttpHeaders.AcceptEncoding, "gzip")
             }.response.let { response ->
                 val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-                @Suppress("DEPRECATION_ERROR")
-                assert(content.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, content.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -89,11 +87,11 @@ class VelocityTest {
             }
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
-                assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                val content = response.content
+                assertNotNull(content)
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                assertEquals(expectedContent, content.lines())
+
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals(null, response.headers[HttpHeaders.ETag])
@@ -138,10 +136,12 @@ class VelocityTest {
             init() // need to call `init` before trying to retrieve string repository
 
             val repo = getApplicationAttribute(StringResourceLoader.REPOSITORY_NAME_DEFAULT) as StringResourceRepository
-            repo.putStringResource("test.vl", """
+            repo.putStringResource(
+                "test.vl", """
                         <p>Hello, ${bax}id</p>
                         <h1>${bax}title</h1>
-                    """.trimIndent())
+                    """.trimIndent()
+            )
         }
     }
 }
