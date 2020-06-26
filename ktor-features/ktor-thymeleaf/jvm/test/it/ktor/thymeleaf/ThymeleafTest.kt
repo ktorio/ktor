@@ -27,7 +27,6 @@ import org.thymeleaf.templateresolver.StringTemplateResolver
 import java.util.zip.GZIPInputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.shouldBe
 
 class ThymeleafTest {
     @Test
