@@ -92,12 +92,12 @@ class SessionAuthTest {
     }
 
     @Test
-    @Suppress("DEPRECATION_ERROR")
     fun testSessionOnlyDeprecated() {
         withTestApplication {
             application.install(Sessions) {
                 cookie<MySession>("S")
             }
+            @Suppress("DEPRECATION_ERROR")
             application.install(Authentication) {
                 session<MySession>(challenge = SessionAuthChallenge.Unauthorized)
             }
