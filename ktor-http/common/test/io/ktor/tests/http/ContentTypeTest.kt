@@ -88,4 +88,16 @@ class ContentTypeTest {
         val result = ContentType.parse("image/png; charset=utf-8\" but not really")
         assertEquals(ContentType.Image.PNG.withParameter("charset", "utf-8\" but not really"), result)
     }
+
+    @Test
+    fun testContentTypeSingleQuoteAtStart() {
+        val result = ContentType.parse("image/png; charset=\"utf-8 but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8 but not really"), result)
+    }
+
+    @Test
+    fun testContentTypeQuotedAtStartAndMiddle() {
+        val result = ContentType.parse("image/png; charset=\"utf-8\" but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8\" but not really"), result)
+    }
 }
