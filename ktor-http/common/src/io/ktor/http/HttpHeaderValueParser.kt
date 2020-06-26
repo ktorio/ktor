@@ -181,20 +181,20 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     var position = start
     val builder = StringBuilder()
     loop@ while (position <= value.lastIndex) {
-        val current = value[position]
+        val currentChar = value[position]
 
         when {
-            current == '"' && value.nextIsSemicolonOrEnd(position) -> {
+            currentChar == '"' && value.nextIsSemicolonOrEnd(position) -> {
                 return position + 1 to builder.toString()
             }
-            current == '\\' && position < value.lastIndex - 2 -> {
+            currentChar == '\\' && position < value.lastIndex - 2 -> {
                 builder.append(value[position + 1])
                 position += 2
                 continue@loop
             }
         }
 
-        builder.append(current)
+        builder.append(currentChar)
         position++
     }
 
@@ -204,17 +204,9 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
 
 private fun String.nextIsSemicolonOrEnd(start: Int): Boolean {
     var position = start + 1
-    loop@ while (position < length) {
-        when (get(position)) {
-            ';' -> return true
-            ' ' -> {
-                position += 1
-                continue@loop
-            }
-        }
-
-        return false
+    loop@ while (position < length && get(position) == ' ') {
+        position += 1
     }
 
-    return true
+    return position == length || get(position) == ';'
 }
