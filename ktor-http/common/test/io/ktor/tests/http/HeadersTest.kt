@@ -153,7 +153,7 @@ class HeadersTest {
             parseHeaderValue("justValue;x=\"\"")
         )
         assertEquals(
-            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "abc\\")))),
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "\"abc\\")))),
             parseHeaderValue("justValue;x=\"abc\\")
         )
     }
