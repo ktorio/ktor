@@ -37,10 +37,10 @@ class FormDataContent(
  *
  * @param parts: form part data
  */
-class MultiPartFormDataContent(
+open class MultiPartFormDataContent(
     parts: List<PartData>
 ) : OutgoingContent.WriteChannelContent() {
-    private val boundary: String = generateBoundary()
+    protected val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
     private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n\r\n".toByteArray()
 
