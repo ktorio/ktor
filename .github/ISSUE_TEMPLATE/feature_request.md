@@ -11,7 +11,7 @@ assignees: ''
 
 We're currently in the process of migrating issues over to [YouTrack](https://youtrack.jetbrains.com/issues/KTOR) which will not allow provide us with many benefits but also allow better management of issues. We'd really appreciate if you would log your feature directly on YouTrack. If you're not registered, do not worry, as you can log in using your GitHub account. 
 
-[Click here to report a new bug](https://youtrack.jetbrains.com/newIssue?project=KTOR)
+[Click here to request a new feature](https://youtrack.jetbrains.com/newIssue?project=KTOR)
 
 ### Reporting issues in GitHub
 
