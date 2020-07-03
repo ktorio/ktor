@@ -82,7 +82,7 @@ class DigestAuthProvider(
         val credential = makeDigest("$username:$realm:$password")
 
         val start = hex(credential)
-        val end = hex(makeDigest("$methodName:${url.encodedPath}"))
+        val end = hex(makeDigest("$methodName:${url.fullPath}"))
         val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
         val token = makeDigest(tokenSequence.joinToString(":"))
 
@@ -93,7 +93,7 @@ class DigestAuthProvider(
             this["nonce"] = nonce
             this["cnonce"] = clientNonce
             this["response"] = hex(token)
-            this["uri"] = url.encodedPath
+            this["uri"] = url.fullPath
             actualQop?.let { this["qop"] = it }
             this["nc"] = nonceCount.toString()
         })
