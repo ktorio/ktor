@@ -81,6 +81,18 @@ internal fun Application.authTestServer() {
                 call.response.header(HttpHeaders.WWWAuthenticate, "Basic realm=\"TestServer\", charset=UTF-8")
                 call.respond(HttpStatusCode.Unauthorized)
             }
+
+            route("bearer") {
+                get("test-refresh") {
+                    val token = call.request.headers["Authorization"]
+                    if (token.isNullOrEmpty() || token.contains("invalid")) {
+                        call.response.status(HttpStatusCode.Unauthorized)
+                        call.response.header(HttpHeaders.WWWAuthenticate, "Bearer realm=\"TestServer\"")
+                    } else {
+                        call.response.status(HttpStatusCode.OK)
+                    }
+                }
+            }
         }
     }
 }

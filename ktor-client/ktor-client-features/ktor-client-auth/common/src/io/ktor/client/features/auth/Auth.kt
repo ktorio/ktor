@@ -6,6 +6,7 @@ package io.ktor.client.features.auth
 
 import io.ktor.client.*
 import io.ktor.client.features.*
+import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
@@ -39,15 +40,21 @@ public class Auth(
             scope.feature(HttpSend)!!.intercept { origin, context ->
                 if (origin.response.status != HttpStatusCode.Unauthorized) return@intercept origin
                 if (origin.request.attributes.contains(circuitBreaker)) return@intercept origin
-
                 var call = origin
-                val candidateProviders = HashSet(feature.providers).apply { removeAll(feature.alwaysSend) }
+                val candidateProviders = HashSet(feature.providers).apply {
+                    removeAll(feature.alwaysSend - feature.providers.find { it is BearerAuthProvider })
+                }
                 while (call.response.status == HttpStatusCode.Unauthorized) {
-                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate] ?: return@intercept call
+                    val headerValue = call.response.headers[HttpHeaders.WWWAuthenticate]
+                    if (headerValue.isNullOrEmpty()) return@intercept call
                     val authHeader = parseAuthorizationHeader(headerValue) ?: return@intercept call
                     val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
+                    when(provider) {
+                        is BearerAuthProvider -> {
+                            provider.refreshToken() ?: return@intercept call
+                        }
+                    }
                     candidateProviders.remove(provider)
-
                     val request = HttpRequestBuilder()
                     request.takeFromWithExecutionContext(context)
                     request.attributes.put(AuthHeaderAttribute, authHeader)
@@ -59,6 +66,7 @@ public class Auth(
                 return@intercept call
             }
         }
+
     }
 }
 

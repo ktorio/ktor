@@ -82,4 +82,81 @@ class AuthTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testUnauthorizedBearerAuthWithInvalidAccessAndRefreshTokensAsNulls() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokensFun = { null }
+                    loadTokensFun = { null }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+        }
+    }
+
+    @Test
+    fun testUnauthorizedBearerAuthWithInvalidAccessAndRefreshTokens() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokensFun = { BearerTokens("invalid", "refresh") }
+                    loadTokensFun = { BearerTokens("invalid", "refresh") }
+                }
+            }
+        }
+
+        test { client ->
+
+            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+                assertEquals(HttpStatusCode.Unauthorized, it.status)
+            }
+        }
+    }
+
+    @Test
+    // The return of refreshTokenFun is null, cause it should not be called at all, if loadTokensFun returns valid tokens
+    fun testUnauthorizedBearerAuthWithValidAccessTokenAndInvalidRefreshToken() = clientTests {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokensFun = { null }
+                    loadTokensFun = { BearerTokens("valid", "refresh") }
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
+    @Test
+    // If loadTokensFun returns "invalid" tokens, than refreshTokenFun should refresh tokens and repeat the call
+    fun testUnauthorizedBearerAuthWithInvalidAccessTokenAndValidRefreshToken() = clientTests(listOf()) {
+        config {
+            install(Auth) {
+                bearer {
+                    refreshTokensFun = { BearerTokens("valid", "refresh") }
+                    loadTokensFun = { BearerTokens("invalid", "refresh") }
+                    realm = "TestServer"
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+                assertEquals(HttpStatusCode.OK, it.status)
+            }
+        }
+    }
+
 }

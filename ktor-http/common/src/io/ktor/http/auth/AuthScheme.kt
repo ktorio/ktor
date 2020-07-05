@@ -46,6 +46,13 @@ public object AuthScheme {
      */
     public const val OAuth: String = "OAuth"
 
+    /**
+     * Bearer Authentication described in the RFC-6749:
+     *
+     * see https://tools.ietf.org/html/rfc6750
+     */
+    const val Bearer = "Bearer"
+
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
     public fun getBasic(): String = Basic
@@ -57,4 +64,8 @@ public object AuthScheme {
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
     public fun getNegotiate(): String = Negotiate
+
+    @Suppress("KDocMissingDocumentation", "unused")
+    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
+    fun getBearer(): String = Bearer
 }
