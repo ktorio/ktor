@@ -14,14 +14,13 @@ import io.ktor.http.auth.*
  */
 fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        providers.add(BearerAuthProvider(refreshTokenFun, loadTokensFun, true, realm))
+        providers.add(BearerAuthProvider(refreshTokenFun, loadBearerTokenFun, true, realm))
     }
 }
 
-data class Tokens(
+data class BearerToken(
     val accessToken: String,
-    val refreshToken: String,
-    val type: String
+    val refreshToken: String
 )
 
 /**
@@ -29,8 +28,8 @@ data class Tokens(
  */
 @Suppress("KDocMissingDocumentation")
 class BearerAuthConfig {
-    var refreshTokenFun: suspend () -> Tokens? = { null }
-    var loadTokensFun: suspend () -> Tokens? = { null }
+    var refreshTokenFun: suspend () -> BearerToken? = { null }
+    var loadBearerTokenFun: suspend () -> BearerToken? = { null }
     var realm: String? = null
 }
 
@@ -39,13 +38,13 @@ class BearerAuthConfig {
  */
 @Suppress("KDocMissingDocumentation")
 class BearerAuthProvider(
-    val refreshTokenFun: suspend () -> Tokens?,
-    val loadTokensFun: suspend () -> Tokens?,
+    val refreshTokenFun: suspend () -> BearerToken?,
+    val loadBearerTokenFun: suspend () -> BearerToken?,
     override val sendWithoutRequest: Boolean = true,
     private val realm: String?
 ) : AuthProvider {
 
-    private var cachedTokens: Tokens? = null
+    private var cachedBearerToken: BearerToken? = null
 
     /**
      * Check if current provider is applicable to the request.
@@ -63,10 +62,10 @@ class BearerAuthProvider(
      * Add authentication method headers and creds.
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
-        val token = cachedTokens ?: loadTokensFun()
+        val token = cachedBearerToken ?: loadBearerTokenFun()
         request.headers {
             token?.let {
-                val tokenValue = "${it.type} ${it.accessToken}"
+                val tokenValue = "Bearer ${it.accessToken}"
                 if(contains(HttpHeaders.Authorization)) {
                     remove(HttpHeaders.Authorization)
                 }
@@ -75,9 +74,9 @@ class BearerAuthProvider(
         }
     }
 
-    suspend fun refreshToken(): Tokens? {
-        cachedTokens = refreshTokenFun()
-        return cachedTokens
+    suspend fun refreshToken(): BearerToken? {
+        cachedBearerToken = refreshTokenFun()
+        return cachedBearerToken
     }
 
 

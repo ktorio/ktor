@@ -51,8 +51,7 @@ class Auth(
                     val provider = candidateProviders.find { it.isApplicable(authHeader) } ?: return@intercept call
                     when(provider) {
                         is BearerAuthProvider -> {
-                            val token = provider.refreshToken()
-                            if (token == null) return@intercept call
+                            provider.refreshToken() ?: return@intercept call
                         }
                     }
                     candidateProviders.remove(provider)
