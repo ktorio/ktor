@@ -87,8 +87,8 @@ class AuthTest : ClientLoader() {
         config {
             install(Auth) {
                 bearer {
-                    refreshTokenFun = { null }
-                    loadBearerTokenFun = { null }
+                    refreshTokensFun = { null }
+                    loadTokensFun = { null }
                 }
             }
         }
@@ -105,8 +105,8 @@ class AuthTest : ClientLoader() {
         config {
             install(Auth) {
                 bearer {
-                    refreshTokenFun = { BearerToken("invalid", "refresh") }
-                    loadBearerTokenFun = { BearerToken("invalid", "refresh") }
+                    refreshTokensFun = { BearerTokens("invalid", "refresh") }
+                    loadTokensFun = { BearerTokens("invalid", "refresh") }
                 }
             }
         }
@@ -125,8 +125,8 @@ class AuthTest : ClientLoader() {
         config {
             install(Auth) {
                 bearer {
-                    refreshTokenFun = { null }
-                    loadBearerTokenFun = { BearerToken("valid", "refresh") }
+                    refreshTokensFun = { null }
+                    loadTokensFun = { BearerTokens("valid", "refresh") }
                 }
             }
         }
@@ -144,8 +144,8 @@ class AuthTest : ClientLoader() {
         config {
             install(Auth) {
                 bearer {
-                    refreshTokenFun = { BearerToken("valid", "refresh") }
-                    loadBearerTokenFun = { BearerToken("invalid", "refresh") }
+                    refreshTokensFun = { BearerTokens("valid", "refresh") }
+                    loadTokensFun = { BearerTokens("invalid", "refresh") }
                     realm = "TestServer"
                 }
             }

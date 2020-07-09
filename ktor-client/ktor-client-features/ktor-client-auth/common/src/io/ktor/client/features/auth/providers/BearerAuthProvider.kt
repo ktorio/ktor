@@ -14,11 +14,11 @@ import io.ktor.http.auth.*
  */
 fun Auth.bearer(block: BearerAuthConfig.() -> Unit) {
     with(BearerAuthConfig().apply(block)) {
-        providers.add(BearerAuthProvider(refreshTokenFun, loadBearerTokenFun, true, realm))
+        providers.add(BearerAuthProvider(refreshTokensFun, loadTokensFun, true, realm))
     }
 }
 
-data class BearerToken(
+data class BearerTokens(
     val accessToken: String,
     val refreshToken: String
 )
@@ -28,8 +28,8 @@ data class BearerToken(
  */
 @Suppress("KDocMissingDocumentation")
 class BearerAuthConfig {
-    var refreshTokenFun: suspend () -> BearerToken? = { null }
-    var loadBearerTokenFun: suspend () -> BearerToken? = { null }
+    var refreshTokensFun: suspend () -> BearerTokens? = { null }
+    var loadTokensFun: suspend () -> BearerTokens? = { null }
     var realm: String? = null
 }
 
@@ -38,13 +38,13 @@ class BearerAuthConfig {
  */
 @Suppress("KDocMissingDocumentation")
 class BearerAuthProvider(
-    val refreshTokenFun: suspend () -> BearerToken?,
-    val loadBearerTokenFun: suspend () -> BearerToken?,
+    val refreshTokensFun: suspend () -> BearerTokens?,
+    val loadTokensFun: suspend () -> BearerTokens?,
     override val sendWithoutRequest: Boolean = true,
     private val realm: String?
 ) : AuthProvider {
 
-    private var cachedBearerToken: BearerToken? = null
+    private var cachedBearerTokens: BearerTokens? = null
 
     /**
      * Check if current provider is applicable to the request.
@@ -62,7 +62,7 @@ class BearerAuthProvider(
      * Add authentication method headers and creds.
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder) {
-        val token = cachedBearerToken ?: loadBearerTokenFun()
+        val token = cachedBearerTokens ?: loadTokensFun()
         request.headers {
             token?.let {
                 val tokenValue = "Bearer ${it.accessToken}"
@@ -74,9 +74,9 @@ class BearerAuthProvider(
         }
     }
 
-    suspend fun refreshToken(): BearerToken? {
-        cachedBearerToken = refreshTokenFun()
-        return cachedBearerToken
+    suspend fun refreshToken(): BearerTokens? {
+        cachedBearerTokens = refreshTokensFun()
+        return cachedBearerTokens
     }
 
 
