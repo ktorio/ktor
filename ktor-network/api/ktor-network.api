@@ -212,7 +212,7 @@ public abstract class io/ktor/network/sockets/SocketOptions {
 	protected final fun getCustomOptions ()Ljava/util/Map;
 	public final fun getReuseAddress ()Z
 	public final fun getReusePort ()Z
-	public final fun getTypeOfService ()B
+	public final fun getTypeOfService-zieKYfw ()B
 	public final fun setReuseAddress (Z)V
 	public final fun setReusePort (Z)V
 	public final fun setTypeOfService-SNCuOGA (B)V
@@ -284,7 +284,7 @@ public final class io/ktor/network/sockets/TypeOfService {
 	public static fun equals-impl (BLjava/lang/Object;)Z
 	public static final fun equals-impl0 (BB)Z
 	public static final fun getIntValue-impl (B)I
-	public final fun getValue ()B
+	public final fun getValue-w2LRezQ ()B
 	public fun hashCode ()I
 	public static fun hashCode-impl (B)I
 	public fun toString ()Ljava/lang/String;
@@ -293,11 +293,11 @@ public final class io/ktor/network/sockets/TypeOfService {
 }
 
 public final class io/ktor/network/sockets/TypeOfService$Companion {
-	public final fun getIPTOS_LOWCOST ()B
-	public final fun getIPTOS_LOWDELAY ()B
-	public final fun getIPTOS_RELIABILITY ()B
-	public final fun getIPTOS_THROUGHPUT ()B
-	public final fun getUNDEFINED ()B
+	public final fun getIPTOS_LOWCOST-zieKYfw ()B
+	public final fun getIPTOS_LOWDELAY-zieKYfw ()B
+	public final fun getIPTOS_RELIABILITY-zieKYfw ()B
+	public final fun getIPTOS_THROUGHPUT-zieKYfw ()B
+	public final fun getUNDEFINED-zieKYfw ()B
 }
 
 public final class io/ktor/network/sockets/UDPSocketBuilder : io/ktor/network/sockets/Configurable {
