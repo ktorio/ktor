@@ -37,7 +37,7 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
+@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 internal fun serializerForSending(value: Any, module: SerialModule): KSerializer<*> = when (value) {
     is JsonElement -> JsonElementSerializer
     is List<*> -> ListSerializer(value.elementSerializer(module))
@@ -61,17 +61,15 @@ internal fun serializerForSending(value: Any, module: SerialModule): KSerializer
     else -> module.getContextual(value::class) ?: value::class.serializer()
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
+@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
-    @Suppress("DEPRECATION_ERROR")
     val serializers = mapNotNull { value ->
         value?.let { serializerForSending(it, module) }
-    }.distinctBy { it.descriptor.name }
+    }.distinctBy { it.descriptor.serialName }
 
     if (serializers.size > 1) {
-        @Suppress("DEPRECATION_ERROR")
         val message = "Serializing collections of different element types is not yet supported. " +
-            "Selected serializers: ${serializers.map { it.descriptor.name }}"
+            "Selected serializers: ${serializers.map { it.descriptor.serialName }}"
         error(message)
     }
 

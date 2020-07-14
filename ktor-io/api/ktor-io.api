@@ -403,8 +403,8 @@ public final class io/ktor/utils/io/bits/ByteOrderKt {
 
 public final class io/ktor/utils/io/bits/DefaultAllocator : io/ktor/utils/io/bits/Allocator {
 	public static final field INSTANCE Lio/ktor/utils/io/bits/DefaultAllocator;
-	public fun alloc (I)Ljava/nio/ByteBuffer;
-	public fun alloc (J)Ljava/nio/ByteBuffer;
+	public fun alloc-SK3TCg8 (I)Ljava/nio/ByteBuffer;
+	public fun alloc-SK3TCg8 (J)Ljava/nio/ByteBuffer;
 	public fun free-3GNKZMM (Ljava/nio/ByteBuffer;)V
 }
 
@@ -424,8 +424,8 @@ public final class io/ktor/utils/io/bits/Memory {
 	public static fun hashCode-impl (Ljava/nio/ByteBuffer;)I
 	public static final fun loadAt-impl (Ljava/nio/ByteBuffer;I)B
 	public static final fun loadAt-impl (Ljava/nio/ByteBuffer;J)B
-	public static final fun slice-impl (Ljava/nio/ByteBuffer;II)Ljava/nio/ByteBuffer;
-	public static final fun slice-impl (Ljava/nio/ByteBuffer;JJ)Ljava/nio/ByteBuffer;
+	public static final fun slice-SK3TCg8 (Ljava/nio/ByteBuffer;II)Ljava/nio/ByteBuffer;
+	public static final fun slice-SK3TCg8 (Ljava/nio/ByteBuffer;JJ)Ljava/nio/ByteBuffer;
 	public static final fun storeAt-impl (Ljava/nio/ByteBuffer;IB)V
 	public static final fun storeAt-impl (Ljava/nio/ByteBuffer;JB)V
 	public fun toString ()Ljava/lang/String;
@@ -434,7 +434,7 @@ public final class io/ktor/utils/io/bits/Memory {
 }
 
 public final class io/ktor/utils/io/bits/Memory$Companion {
-	public final fun getEmpty ()Ljava/nio/ByteBuffer;
+	public final fun getEmpty-SK3TCg8 ()Ljava/nio/ByteBuffer;
 }
 
 public final class io/ktor/utils/io/bits/MemoryFactoryJvmKt {
@@ -767,7 +767,7 @@ public class io/ktor/utils/io/core/Buffer {
 	public final fun getCapacity ()I
 	public final fun getEndGap ()I
 	public final fun getLimit ()I
-	public final fun getMemory ()Ljava/nio/ByteBuffer;
+	public final fun getMemory-SK3TCg8 ()Ljava/nio/ByteBuffer;
 	public final fun getReadPosition ()I
 	public final fun getReadRemaining ()I
 	public final fun getStartGap ()I

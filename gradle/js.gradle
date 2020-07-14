@@ -6,7 +6,6 @@ def skipModules = [
 
 if (skipModules.contains(project.name)) return
 
-
 kotlin {
     js {
         nodejs {
@@ -17,6 +16,7 @@ kotlin {
                 debug = false
             }
         }
+
         browser {
             testTask {
                 useKarma {
@@ -45,10 +45,6 @@ kotlin {
     sourceSets {
         jsMain.dependencies {
             api "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
-
-            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
-            api group: 'org.jetbrains.kotlinx', name: 'atomicfu-js', version: atomicfu_version
-
             api(npm("text-encoding", text_encoding_version))
         }
         jsTest.dependencies {
@@ -59,4 +55,6 @@ kotlin {
 }
 
 def shouldRunJsBrowserTest = !project.hasProperty("teamcity") || project.hasProperty("enable-js-tests")
-jsBrowserTest.onlyIf { shouldRunJsBrowserTest }
+
+jsLegacyBrowserTest.onlyIf { shouldRunJsBrowserTest }
+jsIrBrowserTest.onlyIf { shouldRunJsBrowserTest }

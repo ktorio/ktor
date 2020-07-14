@@ -17,10 +17,8 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-@OptIn(
-    ImplicitReflectionSerializer::class, UnstableDefault::class
-)
-public class KotlinxSerializer(
+@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
+class KotlinxSerializer(
     private val json: Json = Json(DefaultJsonConfiguration)
 ) : JsonSerializer {
 
@@ -29,7 +27,8 @@ public class KotlinxSerializer(
         return TextContent(writeContent(data), contentType)
     }
 
-    internal fun writeContent(data: Any): String = json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
+    internal fun writeContent(data: Any): String =
+        json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
@@ -38,11 +37,11 @@ public class KotlinxSerializer(
         return json.parse(mapper, text)!!
     }
 
-    public companion object {
+    companion object {
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */
-        public val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration(
+        val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration(
             isLenient = false,
             ignoreUnknownKeys = false,
             serializeSpecialFloatingPointValues = true,
@@ -51,8 +50,7 @@ public class KotlinxSerializer(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-@OptIn(ImplicitReflectionSerializer::class)
+@Suppress("UNCHECKED_CAST", "EXPERIMENTAL_API_USAGE_ERROR")
 private fun buildSerializer(value: Any, module: SerialModule): KSerializer<*> = when (value) {
     is JsonElement -> JsonElementSerializer
     is List<*> -> value.elementSerializer(module).list
@@ -66,7 +64,7 @@ private fun buildSerializer(value: Any, module: SerialModule): KSerializer<*> = 
     else -> module.getContextual(value::class) ?: value::class.serializer()
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
+@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { buildSerializer(it, module) }.distinctBy { it.descriptor.serialName }

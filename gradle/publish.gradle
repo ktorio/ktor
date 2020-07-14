@@ -1,4 +1,3 @@
-
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
@@ -16,11 +15,11 @@ def selectArtifactId(project, type, defaultName) {
     switch (type) {
         case 'metadata':
             if (!isCommon) return "$name-$type"
-            return commonIsRoot ? "$name" : "$name-common"
+            return "$name-metadata"
             break
         case 'kotlinMultiplatform':
             if (!hasNative) return "$name-kotlinMultiplatform"
-            return isCommon ? "$name-native" : "$name"
+            return name
             break
         case 'jvm':
             return commonIsRoot ? "$name-jvm" : "$name"
@@ -36,7 +35,7 @@ def isAvailableForPublication(publication) {
     if (name in ['maven']) return true
 
     def result = false
-    result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'metadata', 'kotlinMultiplatform'])
+    result = result | (name in ['jvm', 'androidRelease', 'androidDebug', 'js', 'jsLegacy', 'metadata', 'kotlinMultiplatform'])
     result = result | (project.ext.isLinuxHost && name == 'linuxX64')
     result = result | (project.ext.isWinHost && name == 'mingwX64')
     result = result | (project.ext.isMacosHost && name in ['iosX64', 'iosArm32', 'iosArm64', 'macosX64', 'watchosArm32', 'watchosArm64', 'watchosX86', 'tvosArm64', 'tvosX64'])
@@ -57,7 +56,7 @@ publishing {
                 def user = 'kotlin'
                 def repo = 'ktor'
                 def name = 'ktor'
-                url = "https://api.bintray.com/maven/$user/$repo/$name/;publish=0"
+                url = "https://api.bintray.com/maven/$user/$repo/$name/;publish=0;override=1"
                 credentials {
                     username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
                     password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
@@ -73,7 +72,7 @@ publishing {
         def id = selectArtifactId(project, type, it.artifactId)
         it.artifactId = id
 
-        if (id.endsWith('native')) {
+        if (name == "kotlinMultiplatform") {
             it.artifact(emptyJar) { classifier 'javadoc' }
             it.artifact(emptyJar) { classifier 'kdoc' }
             it.artifact emptyJar
@@ -100,20 +99,39 @@ publishing {
                 }
             }
 
-            if (target.platformType.name != 'native') {
-                publication.moduleDescriptorGenerator = null
-            } else {
+            if (target.platformType.name == 'native') {
                 publication.artifact emptyJar
             }
         }
     }
-
-    // Disable gradle metadata in root jvm modules
-    def hasNative = project.ext.has("hasNative") && project.ext.hasNative
-    if (!hasNative) {
-        def rootPublication = publishing.publications.findByName('kotlinMultiplatform')
-        rootPublication.moduleDescriptorGenerator = null
-    }
 }
 
 publish.dependsOn publishToMavenLocal
+
+class PublishWithRetryTask extends DefaultTask {
+    private def retryCount = Integer.getInteger("io.ktor.publish.retry", 100)
+
+    String description = "Retry task until success"
+    Collection<Task> publishTasks
+
+    @TaskAction
+    void exec() {
+        def attempt = 1
+        while (attempt <= retryCount) {
+            try {
+                publishTasks.forEach { Task task -> task.publish() }
+                break
+            } catch (Throwable cause) {
+                attempt += 1
+                println("Failed to execute publish task from $attempt attempt. Retry")
+                cause.printStackTrace()
+            }
+        }
+    }
+}
+
+task publishWithRetry(type: PublishWithRetryTask) {
+    description "Publish maven publications with retry"
+    dependsOn publishToMavenLocal
+    publishTasks = tasks.withType(PublishToMavenRepository.class)
+}
