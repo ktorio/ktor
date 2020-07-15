@@ -40,7 +40,7 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
  */
 fun ContentNegotiation.Configuration.json(
     json: JsonConfiguration = DefaultJsonConfiguration,
-    module: SerialModule = EmptyModule,
+    module: SerializersModule = EmptySerializersModule,
     contentType: ContentType = ContentType.Application.Json
 ) {
     json(Json(json, module), contentType)

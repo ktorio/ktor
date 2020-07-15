@@ -17,10 +17,10 @@ class JsonTest : AbstractSerializationTest() {
     }
 
     override fun simpleDeserialize(t: ByteArray): TestEntity {
-        return Json(DefaultJsonConfiguration).parse(serializer, String(t))
+        return Json(DefaultJsonConfiguration).decodeFromString(serializer, String(t))
     }
 
     override fun simpleSerialize(any: TestEntity): ByteArray {
-        return Json(DefaultJsonConfiguration).stringify(serializer, any).toByteArray()
+        return Json(DefaultJsonConfiguration).encodeToString(serializer, any).toByteArray()
     }
 }
