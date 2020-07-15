@@ -111,15 +111,15 @@ class SerializationConverter private constructor(
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(value, format.context) as KSerializer<Any>
+        val serializer = serializerForSending(value, format.serializersModule) as KSerializer<Any>
 
         return when (format) {
             is StringFormat -> {
-                val content = format.stringify(serializer, value)
+                val content = format.encodeToString(serializer, value)
                 TextContent(content, contentType.withCharset(context.call.suitableCharset()))
             }
             is BinaryFormat -> {
-                val content = format.dump(serializer, value)
+                val content = format.encodeToByteArray(serializer, value)
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")
@@ -131,12 +131,12 @@ class SerializationConverter private constructor(
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val serializer = format.context.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
+        val serializer = format.serializersModule.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
         val contentPacket = channel.readRemaining()
 
         return when (format) {
-            is StringFormat -> format.parse(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.load(serializer, contentPacket.readBytes())
+            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
             else -> {
                 contentPacket.discard()
                 error("Unsupported format $format")

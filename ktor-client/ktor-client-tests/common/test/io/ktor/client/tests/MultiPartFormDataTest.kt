@@ -9,8 +9,6 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.io.*
-import kotlinx.serialization.internal.*
 import kotlin.test.*
 
 /**
