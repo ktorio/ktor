@@ -110,7 +110,7 @@ class SerializationConverter private constructor(
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(value, format.context) as KSerializer<Any>
+        val serializer = serializerForSending(value, format.serializersModule) as KSerializer<Any>
 
         return when (format) {
             is StringFormat -> {
@@ -130,7 +130,7 @@ class SerializationConverter private constructor(
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val serializer = format.context.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
+        val serializer = format.serializersModule.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
         val contentPacket = channel.readRemaining()
 
         return when (format) {

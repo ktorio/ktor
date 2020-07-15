@@ -15,22 +15,22 @@ class CollectionsSerializationTest {
 
     @Test
     fun testJsonElements() {
-        testSerializer.testWrite(json {
-            "a" to "1"
-            "b" to json {
-                "c" to 3
-            }
-            "x" to JsonNull
+        testSerializer.testWrite(buildJsonObject {
+            put("a", "1")
+            put("b", buildJsonObject {
+                put("c", 3)
+            })
+            put("x", JsonNull)
         }).let { result ->
             assertEquals("""{"a":"1","b":{"c":3},"x":null}""", result)
         }
 
-        testSerializer.testWrite(json {
-            "a" to "1"
-            "b" to jsonArray {
-                +"c"
-                +JsonPrimitive(2)
-            }
+        testSerializer.testWrite(buildJsonObject {
+            put("a", "1")
+            put("b", buildJsonArray {
+                add("c")
+                add(JsonPrimitive(2))
+            })
         }).let { result ->
             assertEquals("""{"a":"1","b":["c",2]}""", result)
         }

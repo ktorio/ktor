@@ -28,11 +28,11 @@ class KotlinxSerializer(
     }
 
     internal fun writeContent(data: Any): String =
-        json.encodeToString(buildSerializer(data, json.context) as KSerializer<Any>, data)
+        json.encodeToString(buildSerializer(data, json.serializersModule) as KSerializer<Any>, data)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
-        val deserializationStrategy = json.context.getContextual(type.type)
+        val deserializationStrategy = json.serializersModule.getContextual(type.type)
         val mapper = deserializationStrategy ?: (type.kotlinType?.let { serializer(it) } ?: type.type.serializer())
         return json.decodeFromString(mapper, text)!!
     }
@@ -51,11 +51,11 @@ class KotlinxSerializer(
 }
 
 @Suppress("UNCHECKED_CAST", "EXPERIMENTAL_API_USAGE_ERROR")
-private fun buildSerializer(value: Any, module: SerialModule): KSerializer<*> = when (value) {
+private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<*> = when (value) {
     is JsonElement -> JsonElementSerializer
-    is List<*> -> value.elementSerializer(module).list
-    is Array<*> -> value.firstOrNull()?.let { buildSerializer(it, module) } ?: String.serializer().list
-    is Set<*> -> value.elementSerializer(module).set
+    is List<*> -> ListSerializer(value.elementSerializer(module))
+    is Array<*> -> value.firstOrNull()?.let { buildSerializer(it, module) } ?: ListSerializer(String.serializer())
+    is Set<*> -> SetSerializer(value.elementSerializer(module))
     is Map<*, *> -> {
         val keySerializer = value.keys.elementSerializer(module) as KSerializer<Any>
         val valueSerializer = value.values.elementSerializer(module) as KSerializer<Any>
@@ -65,7 +65,7 @@ private fun buildSerializer(value: Any, module: SerialModule): KSerializer<*> = 
 }
 
 @Suppress("EXPERIMENTAL_API_USAGE_ERROR")
-private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
+private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { buildSerializer(it, module) }.distinctBy { it.descriptor.serialName }
 

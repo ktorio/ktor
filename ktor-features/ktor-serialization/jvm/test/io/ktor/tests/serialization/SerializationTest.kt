@@ -344,7 +344,7 @@ class SerializationTest {
             post("/") {
                 val result = try {
                     call.receive<NullValues>().toString()
-                } catch (expected: JsonDecodingException) {
+                } catch (expected: SerializationException) { // JsonDecodingException is internal
                     "OK"
                 }
                 call.respondText(result)
@@ -367,21 +367,21 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(json {
-                    "a" to "1"
-                    "b" to json {
-                        "c" to 3
-                    }
-                    "x" to JsonNull
+                call.respond(buildJsonObject {
+                    put("a", "1")
+                    put("b", buildJsonObject {
+                        put("c", 3)
+                    })
+                    put("x", JsonNull)
                 })
             }
             get("/array") {
-                call.respond(json {
-                    "a" to "1"
-                    "b" to jsonArray {
-                        +"c"
-                        +JsonPrimitive(2)
-                    }
+                call.respond(buildJsonObject {
+                    put("a", "1")
+                    put("b", buildJsonArray {
+                        add("c")
+                        add(JsonPrimitive(2))
+                    })
                 })
             }
         }
