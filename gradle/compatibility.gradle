@@ -9,9 +9,9 @@ apiValidation {
         'ktor-client-curl',
         'ktor-client-ios',
         'ktor-client',
-        'ktor-client-features',
-        'ktor-client-benchmarks',
-        'ktor-server-benchmarks'
+        'ktor-client-features'
+//        'ktor-client-benchmarks',
+//        'ktor-server-benchmarks'
     ].toSet()
 
     def projects = [].toSet()
