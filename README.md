@@ -67,13 +67,19 @@ Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations
 * Getting started with [Maven](http://ktor.io/quickstart/maven.html) 
 * Getting started with [IDEA](http://ktor.io/quickstart/intellij-idea.html) 
 
+## Reporting Issues / Support
+
+Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommmend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
+
+There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
+
 ## Inspirations
 
 Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
 
 ## Reporting Security Vulnerabilities
 
-If you find a security vulnerability in Ktor, we kindly request that instead of using our public issue tracker, you instead reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
+If you find a security vulnerability in Ktor, we kindly request that you reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
 
 ## Contributing
 
