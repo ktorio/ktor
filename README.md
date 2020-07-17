@@ -73,13 +73,13 @@ Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for f
 
 There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
 
-## Inspirations
-
-Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
-
 ## Reporting Security Vulnerabilities
 
 If you find a security vulnerability in Ktor, we kindly request that you reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
+
+## Inspirations
+
+Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
 
 ## Contributing
 
