@@ -13,8 +13,11 @@ public final class io/ktor/client/features/json/JsonFeature$Config {
 	public fun <init> ()V
 	public final fun accept ([Lio/ktor/http/ContentType;)V
 	public final fun getAcceptContentTypes ()Ljava/util/List;
+	public final fun getReceiveContentTypeMatchers ()Ljava/util/List;
 	public final fun getSerializer ()Lio/ktor/client/features/json/JsonSerializer;
+	public final fun receive (Lio/ktor/http/ContentTypeMatcher;)V
 	public final fun setAcceptContentTypes (Ljava/util/List;)V
+	public final fun setReceiveContentTypeMatchers (Ljava/util/List;)V
 	public final fun setSerializer (Lio/ktor/client/features/json/JsonSerializer;)V
 }
 
