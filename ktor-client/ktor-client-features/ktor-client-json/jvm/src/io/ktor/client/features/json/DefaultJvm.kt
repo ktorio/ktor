@@ -17,5 +17,5 @@ actual fun defaultSerializer(): JsonSerializer {
             " - ktor-client-serialization"
     )
 
-    return serializers.maxBy { it::javaClass.name }!!
+    return serializers.maxByOrNull { it::javaClass.name }!!
 }

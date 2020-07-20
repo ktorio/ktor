@@ -373,7 +373,10 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
-            assertTrue(ContentType.Text.Plain.match(ContentType.parse(headers[HttpHeaders.ContentType]!!)))
+
+            val contentType = ContentType.parse(headers[HttpHeaders.ContentType]!!)
+            val pattern = ContentType.Text.Plain
+            assertTrue(contentType.match(pattern))
         }
     }
 

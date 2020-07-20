@@ -11,5 +11,5 @@ interface ContentTypeMatcher {
     /**
      * Checks if `this` type matches a [contentType] type.
      */
-    fun match(contentType: ContentType): Boolean
+    fun contains(contentType: ContentType): Boolean
 }

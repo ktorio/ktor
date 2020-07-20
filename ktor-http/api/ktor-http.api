@@ -128,7 +128,7 @@ public final class io/ktor/http/ContentRangeKt {
 	public static synthetic fun contentRangeHeaderValue$default (Lkotlin/ranges/LongRange;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 }
 
-public final class io/ktor/http/ContentType : io/ktor/http/HeaderValueWithParameters, io/ktor/http/ContentTypeMatcher {
+public final class io/ktor/http/ContentType : io/ktor/http/HeaderValueWithParameters {
 	public static final field Companion Lio/ktor/http/ContentType$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -136,7 +136,7 @@ public final class io/ktor/http/ContentType : io/ktor/http/HeaderValueWithParame
 	public final fun getContentSubtype ()Ljava/lang/String;
 	public final fun getContentType ()Ljava/lang/String;
 	public fun hashCode ()I
-	public fun match (Lio/ktor/http/ContentType;)Z
+	public final fun match (Lio/ktor/http/ContentType;)Z
 	public final fun match (Ljava/lang/String;)Z
 	public final fun withParameter (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/http/ContentType;
 	public final fun withoutParameters ()Lio/ktor/http/ContentType;
@@ -226,10 +226,6 @@ public final class io/ktor/http/ContentType$Video {
 	public final fun getMPEG ()Lio/ktor/http/ContentType;
 	public final fun getOGG ()Lio/ktor/http/ContentType;
 	public final fun getQuickTime ()Lio/ktor/http/ContentType;
-}
-
-public abstract interface class io/ktor/http/ContentTypeMatcher {
-	public abstract fun match (Lio/ktor/http/ContentType;)Z
 }
 
 public final class io/ktor/http/ContentTypesKt {
