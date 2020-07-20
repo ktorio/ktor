@@ -2503,6 +2503,8 @@ internal open class ByteBufferChannel(
         return bytesCopied.toLong()
     }
 
+    override fun toString(): String = "ByteBufferChannel(${hashCode()}, $state)"
+
     companion object {
 
         private const val ReservedLongIndex = -8

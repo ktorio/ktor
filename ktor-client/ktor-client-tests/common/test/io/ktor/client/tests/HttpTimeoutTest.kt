@@ -210,6 +210,7 @@ class HttpTimeoutTest : ClientLoader() {
                 method = HttpMethod.Get
                 parameter("delay", 500)
             }
+
             assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }

@@ -115,13 +115,24 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
     attachJob: Boolean,
     block: suspend S.() -> Unit
 ): ChannelJob {
-
+    val originJob = coroutineContext[Job]
     val job = launch(context) {
         if (attachJob) {
             channel.attachJob(coroutineContext[Job]!!)
         }
+
         @Suppress("UNCHECKED_CAST")
-        block(ChannelScope(this, channel) as S)
+        val scope = ChannelScope(this, channel) as S
+
+        try {
+            block(scope)
+        } catch (cause: Throwable) {
+            if (originJob != null) {
+                throw cause
+            } else {
+                channel.cancel(cause)
+            }
+        }
     }
 
     job.invokeOnCompletion { cause ->
