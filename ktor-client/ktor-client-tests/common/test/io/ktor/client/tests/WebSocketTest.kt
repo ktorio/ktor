@@ -77,9 +77,8 @@ class WebSocketTest : ClientLoader() {
             client.webSocket("wss://echo.websocket.org") {
                 outgoing.send(Frame.Text("PING"))
                 val frame = incoming.receive()
-                if (frame is Frame.Text) {
-                    assertEquals("PING", frame.readText())
-                }
+                assertTrue(frame is Frame.Text)
+                assertEquals("PING", frame.readText())
             }
         }
     }
