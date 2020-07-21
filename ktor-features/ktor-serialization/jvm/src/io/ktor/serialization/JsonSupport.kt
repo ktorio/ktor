@@ -20,7 +20,32 @@ import kotlinx.serialization.modules.*
  *
  * See [JsonConfiguration] for more details.
  */
+@Deprecated(
+    level = DeprecationLevel.ERROR,
+    message = "JsonConfiguration is deprecated, consider using DefaultJson instead.",
+    replaceWith = ReplaceWith("DefaultJson")
+)
+@Suppress("DEPRECATION_ERROR")
 val DefaultJsonConfiguration: Json = Json {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
+    useArrayPolymorphism = true
+}
+
+/**
+ * The default json configuration used in [SerializationConverter]. The settings are:
+ * - defaults are serialized
+ * - mode is not strict so extra json fields are ignored
+ * - pretty printing is disabled
+ * - array polymorphism is enabled
+ * - keys and values are quoted, non-quoted are not allowed
+ *
+ * See [JsonConfiguration] for more details.
+ */
+val DefaultJson: Json = Json {
     encodeDefaults = true
     isLenient = true
     allowSpecialFloatingPointValues = true
@@ -37,12 +62,18 @@ val DefaultJsonConfiguration: Json = Json {
  * @param module is used for serialization (optional)
  * @param contentType to register with, application/json by default
  */
+@Deprecated(
+    level = DeprecationLevel.ERROR,
+    message = "JsonConfiguration is deprecated, consider using `Json { serializersModule = module }` instead.",
+    replaceWith = ReplaceWith("json(Json { serializersModule = module }, contentType)")
+)
+@Suppress("DEPRECATION_ERROR")
 fun ContentNegotiation.Configuration.json(
     json: Json = Json.Default,
     module: SerializersModule = EmptySerializersModule,
     contentType: ContentType = ContentType.Application.Json
 ) {
-    json(Json(json) { serializersModule = module }, contentType)
+    TODO()
 }
 
 /**
@@ -53,7 +84,7 @@ fun ContentNegotiation.Configuration.json(
  * @param contentType to register with, application/json by default
  */
 fun ContentNegotiation.Configuration.json(
-    json: Json = DefaultJsonConfiguration,
+    json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
 ) {
     serialization(contentType, json as StringFormat)

@@ -344,7 +344,7 @@ class SerializationTest {
             post("/") {
                 val result = try {
                     call.receive<NullValues>().toString()
-                } catch (expected: SerializationException) { // JsonDecodingException is internal
+                } catch (expected: SerializationException) {
                     "OK"
                 }
                 call.respondText(result)
@@ -378,7 +378,7 @@ class SerializationTest {
             get("/array") {
                 call.respond(buildJsonObject {
                     put("a", "1")
-                    put("b", buildJsonArray {
+                    put("b",  buildJsonArray {
                         add("c")
                         add(JsonPrimitive(2))
                     })
@@ -425,4 +425,4 @@ data class MyEntity(val id: Int, val name: String, val children: List<ChildEntit
 data class ChildEntity(val item: String, val quantity: Int)
 
 private fun SerializationConverter(): SerializationConverter =
-    SerializationConverter(DefaultJsonConfiguration)
+    SerializationConverter(DefaultJson)

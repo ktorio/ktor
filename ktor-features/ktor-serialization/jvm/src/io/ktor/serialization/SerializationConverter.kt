@@ -40,7 +40,7 @@ import kotlin.text.Charsets
     )
 )
 fun SerializationConverter(): SerializationConverter =
-    SerializationConverter(DefaultJsonConfiguration)
+    SerializationConverter(DefaultJson)
 
 /**
  * [ContentConverter] with kotlinx.serialization.
@@ -77,7 +77,7 @@ class SerializationConverter private constructor(
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(json: Json = DefaultJsonConfiguration) : this(json as StringFormat)
+    constructor(json: Json = DefaultJson) : this(json as StringFormat)
 
     /**
      * This is no longer supported. Instead, specify format explicitly or
@@ -96,7 +96,7 @@ class SerializationConverter private constructor(
         "Specify format explicitly. E.g SerializationConverter(Json(...))",
         level = DeprecationLevel.HIDDEN
     )
-    constructor() : this(DefaultJsonConfiguration)
+    constructor() : this(DefaultJson)
 
     init {
         require(format is BinaryFormat || format is StringFormat) {
@@ -149,7 +149,7 @@ class SerializationConverter private constructor(
 @Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
 fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType = ContentType.Application.Json,
-    json: Json = DefaultJsonConfiguration
+    json: Json = DefaultJson
 ) {
     json(json, contentType)
 }
