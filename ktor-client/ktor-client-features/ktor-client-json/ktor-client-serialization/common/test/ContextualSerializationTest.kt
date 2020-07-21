@@ -9,8 +9,6 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
-import kotlin.reflect.*
-import kotlin.reflect.typeOf
 import kotlin.test.*
 
 
@@ -48,7 +46,7 @@ class ContextualSerializationTest {
         assertEquals("\"1\"\"kotlin\"", contextualString)
         assertEquals("{\"id\":1,\"name\":\"kotlin\"}", simpleString)
 
-        val makeInput =  { text: String ->
+        val makeInput = { text: String ->
             buildPacket { writeText(text) }
         }
 
