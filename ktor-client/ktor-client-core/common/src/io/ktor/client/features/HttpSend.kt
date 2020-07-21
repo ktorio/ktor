@@ -71,7 +71,10 @@ class HttpSend(
             // default send scenario
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { content ->
                 check(content is OutgoingContent) {
-                    "Fail to send body. Content has type: ${content::class}, but OutgoingContent expected."
+                    """
+|Fail to serialize body. Content has type: ${content::class}, but OutgoingContent expected.
+|If you expect serialized body, please check that you have installed the corresponding feature(like `Json`) and set `Content-Type` header."""
+                        .trimMargin()
                 }
                 context.body = content
 
