@@ -324,6 +324,7 @@ public final class io/ktor/client/features/HttpClientFeature$DefaultImpls {
 
 public final class io/ktor/client/features/HttpClientFeatureKt {
 	public static final fun feature (Lio/ktor/client/HttpClient;Lio/ktor/client/features/HttpClientFeature;)Ljava/lang/Object;
+	public static final fun get (Lio/ktor/client/HttpClient;Lio/ktor/client/features/HttpClientFeature;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/features/HttpPlainText {
@@ -616,6 +617,7 @@ public final class io/ktor/client/features/observer/ResponseObserverKt {
 }
 
 public final class io/ktor/client/features/websocket/BuildersKt {
+	public static final fun WebSockets (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 	public static final fun webSocket (Lio/ktor/client/HttpClient;Lio/ktor/http/HttpMethod;Ljava/lang/String;ILjava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun webSocket (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun webSocket (Lio/ktor/client/HttpClient;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -675,6 +677,14 @@ public final class io/ktor/client/features/websocket/WebSockets {
 	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getMaxFrameSize ()J
 	public final fun getPingInterval ()J
+}
+
+public final class io/ktor/client/features/websocket/WebSockets$Config {
+	public fun <init> ()V
+	public final fun getMaxFrameSize ()J
+	public final fun getPingInterval ()J
+	public final fun setMaxFrameSize (J)V
+	public final fun setPingInterval (J)V
 }
 
 public final class io/ktor/client/features/websocket/WebSockets$Feature : io/ktor/client/features/HttpClientFeature {
