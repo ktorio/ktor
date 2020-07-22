@@ -31,6 +31,9 @@ class FormDataContent(
     override fun bytes(): ByteArray = content
 }
 
+private val buildFormDataContentType = { boundary: String ->
+    ContentType.MultiPart.FormData.withParameter("boundary", boundary)
+}
 
 /**
  * [OutgoingContent] for multipart/form-data formatted request.
@@ -38,7 +41,8 @@ class FormDataContent(
  * @param parts: form part data
  */
 class MultiPartFormDataContent(
-    parts: List<PartData>
+    parts: List<PartData>,
+    buildContentType: (boundary: String) -> ContentType = buildFormDataContentType
 ) : OutgoingContent.WriteChannelContent() {
     private val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
@@ -83,7 +87,7 @@ class MultiPartFormDataContent(
 
     override val contentLength: Long?
 
-    override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
+    override val contentType: ContentType = buildContentType(boundary)
 
     init {
         var rawLength:Long? = 0
