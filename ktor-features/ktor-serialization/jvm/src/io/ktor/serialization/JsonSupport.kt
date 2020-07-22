@@ -20,15 +20,14 @@ import kotlinx.serialization.modules.*
  *
  * See [JsonConfiguration] for more details.
  */
-val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
-    encodeDefaults = true,
-    isLenient = true,
-    serializeSpecialFloatingPointValues = true,
-    allowStructuredMapKeys = true,
-    unquotedPrint = false,
-    prettyPrint = false,
+val DefaultJsonConfiguration: Json = Json {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
     useArrayPolymorphism = true
-)
+}
 
 /**
  * Register `application/json` (or another specified [contentType]) content type
@@ -39,11 +38,11 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
  * @param contentType to register with, application/json by default
  */
 fun ContentNegotiation.Configuration.json(
-    json: JsonConfiguration = DefaultJsonConfiguration,
+    json: Json = Json.Default,
     module: SerializersModule = EmptySerializersModule,
     contentType: ContentType = ContentType.Application.Json
 ) {
-    json(Json(json, module), contentType)
+    json(Json(json) { serializersModule = module }, contentType)
 }
 
 /**
@@ -54,7 +53,7 @@ fun ContentNegotiation.Configuration.json(
  * @param contentType to register with, application/json by default
  */
 fun ContentNegotiation.Configuration.json(
-    json: Json = Json(DefaultJsonConfiguration),
+    json: Json = DefaultJsonConfiguration,
     contentType: ContentType = ContentType.Application.Json
 ) {
     serialization(contentType, json as StringFormat)
