@@ -9,6 +9,6 @@ public final class io/ktor/client/features/json/serializer/KotlinxSerializer : i
 }
 
 public final class io/ktor/client/features/json/serializer/KotlinxSerializer$Companion {
-	public final fun getDefaultJsonConfiguration ()Lkotlinx/serialization/json/JsonConfiguration;
+	public final fun getDefaultJsonConfiguration ()Lkotlinx/serialization/json/Json;
 }
 

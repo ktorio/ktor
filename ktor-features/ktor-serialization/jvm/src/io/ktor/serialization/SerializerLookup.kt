@@ -13,7 +13,7 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 @OptIn(
-    ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class
+    ExperimentalStdlibApi::class
 )
 internal fun serializerByTypeInfo(type: KType): KSerializer<*> {
     val classifierClass = type.classifier as? KClass<*>
