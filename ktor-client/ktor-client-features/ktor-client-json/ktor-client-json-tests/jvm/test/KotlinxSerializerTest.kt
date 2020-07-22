@@ -20,10 +20,9 @@ class KotlinxSerializerTest {
     fun testCustomDeserializer() {
         val upwrapper = indexListUnwrapper<TestEntry>()
 
-        @OptIn(UnstableDefault::class)
         val serializer = Json {
             ignoreUnknownKeys = true
-            serialModule = serializersModuleOf(upwrapper)
+            serializersModule = serializersModuleOf(upwrapper)
         }
 
         val kotlinxSerializer = KotlinxSerializer(serializer)
@@ -49,7 +48,6 @@ class KotlinxSerializerTest {
 @Serializable
 data class TestEntry(val a: String, val b: Int)
 
-@ImplicitReflectionSerializer
 inline fun <reified T> indexListUnwrapper() =
     object : JsonTransformingSerializer<List<T>>(ListSerializer<T>(serializer<T>())) {
         override fun transformDeserialize(element: JsonElement): JsonElement {

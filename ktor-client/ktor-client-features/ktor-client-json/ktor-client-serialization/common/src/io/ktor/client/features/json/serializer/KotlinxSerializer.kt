@@ -19,7 +19,7 @@ import kotlinx.serialization.modules.*
  */
 @Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 class KotlinxSerializer(
-    private val json: Json = Json(DefaultJsonConfiguration)
+    private val json: Json = DefaultJsonConfiguration
 ) : JsonSerializer {
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent {
@@ -41,12 +41,12 @@ class KotlinxSerializer(
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */
-        val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration(
-            isLenient = false,
-            ignoreUnknownKeys = false,
-            serializeSpecialFloatingPointValues = true,
+        val DefaultJsonConfiguration: Json = Json {
+            isLenient = false
+            ignoreUnknownKeys = false
+            allowSpecialFloatingPointValues = true
             useArrayPolymorphism = false
-        )
+        }
     }
 }
 
