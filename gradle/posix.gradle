@@ -104,3 +104,22 @@ kotlin {
 }
 
 project.ext.set("hasNative", true)
+
+
+// hack for 1.4-M2, remove after
+// see https://youtrack.jetbrains.com/issue/KT-39302
+afterEvaluate {
+    def metadataTarget = kotlin.targets.getByName("metadata")
+
+    def currentHostKonanTarget = hostManager.Companion.getHost()
+
+    if (metadataTarget != null) {
+        metadataTarget.compilations.forEach {
+            if (it.class.name == "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinSharedNativeCompilation"
+                && it.konanTargets.any { it == currentHostKonanTarget }
+            ) {
+                it.kotlinOptions.freeCompilerArgs += ["-target", currentHostKonanTarget.name]
+            }
+        }
+    }
+}
