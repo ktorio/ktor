@@ -28,7 +28,7 @@ internal class Http2LocalConnectionPoint(
         get() = nettyHeaders.authority()?.toString() ?: "localhost"
 
     override val port: Int
-        get() = nettyHeaders.authority()?.toString()?.substringAfter(":")?.toInt()
+        get() = nettyHeaders.authority()?.toString()?.substringAfter(":")?.toIntOrNull()
                 ?: localAddress?.port
                 ?: 80
 
