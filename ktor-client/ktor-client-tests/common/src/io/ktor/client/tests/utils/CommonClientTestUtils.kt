@@ -35,10 +35,12 @@ private fun testWithClient(
 ) = testSuspend {
     val builder = TestClientBuilder<HttpClientEngineConfig>().also { it.block() }
 
-    repeat(builder.repeatCount) {
-        @Suppress("UNCHECKED_CAST")
-        client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
-            .use { client -> builder.test(client) }
+    concurrency(builder.concurrency) { threadId ->
+        repeat(builder.repeatCount) { attempt ->
+            @Suppress("UNCHECKED_CAST")
+            client.config { builder.config(this as HttpClientConfig<HttpClientEngineConfig>) }
+                .use { client -> builder.test(TestInfo(threadId, attempt), client) }
+        }
     }
 
     client.engine.close()
@@ -62,20 +64,32 @@ fun <T : HttpClientEngineConfig> testWithEngine(
         }
     }
 
-    repeat(builder.repeatCount) {
-        val client = HttpClient(factory, block = builder.config)
+    concurrency(builder.concurrency) {  threadId ->
+        repeat(builder.repeatCount) { attempt ->
+            val client = HttpClient(factory, block = builder.config)
 
-        client.use {
-            builder.test(it)
-        }
+            client.use {
+                builder.test(TestInfo(threadId, attempt), it)
+            }
 
-        try {
-            val job = client.coroutineContext[Job]!!
-            job.join()
-        } catch (cause: Throwable) {
-            client.cancel("Test failed", cause)
-            throw cause
+            try {
+                val job = client.coroutineContext[Job]!!
+                job.join()
+            } catch (cause: Throwable) {
+                client.cancel("Test failed", cause)
+                throw cause
+            }
         }
+    }
+}
+
+private suspend fun concurrency(level: Int, block: suspend (Int) -> Unit) {
+    coroutineScope {
+        List(level) {
+            async {
+                block(it)
+            }
+        }.awaitAll()
     }
 }
 
@@ -83,9 +97,10 @@ fun <T : HttpClientEngineConfig> testWithEngine(
 @Suppress("KDocMissingDocumentation")
 class TestClientBuilder<T : HttpClientEngineConfig>(
     var config: HttpClientConfig<T>.() -> Unit = {},
-    var test: suspend (client: HttpClient) -> Unit = {},
+    var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
     var repeatCount: Int = 1,
-    var dumpAfterDelay: Long = -1
+    var dumpAfterDelay: Long = -1,
+    var concurrency: Int = 1
 )
 
 @InternalAPI
@@ -96,6 +111,6 @@ fun <T : HttpClientEngineConfig> TestClientBuilder<T>.config(block: HttpClientCo
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-fun TestClientBuilder<*>.test(block: suspend (client: HttpClient) -> Unit): Unit {
+fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient) -> Unit): Unit {
     test = block
 }
