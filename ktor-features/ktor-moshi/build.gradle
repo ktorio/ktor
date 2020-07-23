@@ -1,0 +1,9 @@
+description = ''
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-utils')
+    api group: 'com.squareup.moshi', name: 'moshi', version: moshi_version
+    api group: 'com.squareup.okio', name: 'okio', version: okio_version
+}
+kotlin.sourceSets.jvmTest.dependencies {
+    api group: 'com.squareup.moshi', name: 'moshi-kotlin', version: moshi_version
+}
