@@ -5,7 +5,6 @@
 package io.ktor.gson
 
 import com.google.gson.*
-import com.google.gson.stream.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.features.ContentTransformationException
@@ -41,9 +40,9 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
             throw ExcludedTypeGsonException(type)
         }
 
-        return try{
+        return try {
             gson.fromJson(reader, type.javaObjectType) ?: throw UnsupportedNullValuesException()
-        }catch (e: JsonSyntaxException) {
+        } catch (e: JsonSyntaxException) {
             throw BadRequestException("Invalid Json")
         }
     }
