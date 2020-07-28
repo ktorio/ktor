@@ -28,13 +28,13 @@ class KotlinxSerializer(
     }
 
     internal fun writeContent(data: Any): String =
-        json.stringify(buildSerializer(data, json.context) as KSerializer<Any>, data)
+        json.encodeToString(buildSerializer(data, json.context) as KSerializer<Any>, data)
 
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
         val deserializationStrategy = json.context.getContextual(type.type)
         val mapper = deserializationStrategy ?: (type.kotlinType?.let { serializer(it) } ?: type.type.serializer())
-        return json.parse(mapper, text)!!
+        return json.decodeFromString(mapper, text)!!
     }
 
     companion object {

@@ -15,7 +15,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.*
 import kotlin.text.Charsets
 
 /**
@@ -115,11 +114,11 @@ class SerializationConverter private constructor(
 
         return when (format) {
             is StringFormat -> {
-                val content = format.stringify(serializer, value)
+                val content = format.encodeToString(serializer, value)
                 TextContent(content, contentType.withCharset(context.call.suitableCharset()))
             }
             is BinaryFormat -> {
-                val content = format.dump(serializer, value)
+                val content = format.encodeToByteArray(serializer, value)
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")
@@ -135,8 +134,8 @@ class SerializationConverter private constructor(
         val contentPacket = channel.readRemaining()
 
         return when (format) {
-            is StringFormat -> format.parse(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.load(serializer, contentPacket.readBytes())
+            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
             else -> {
                 contentPacket.discard()
                 error("Unsupported format $format")
