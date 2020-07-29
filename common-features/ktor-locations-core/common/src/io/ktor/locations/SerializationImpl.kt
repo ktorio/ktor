@@ -5,7 +5,6 @@
 package io.ktor.locations
 
 import io.ktor.http.*
-import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
@@ -25,12 +24,12 @@ internal class SerializationImpl(
 
     private val cache = HashMap<SerialDescriptor, LocationInfo>()
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    @OptIn(UnsafeSerializationApi::class)
     override fun createInfo(locationClass: KClass<*>): LocationInfo = info.getOrPut(locationClass) {
         createInfo(locationClass.serializer().descriptor, locationClass)
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    @OptIn(UnsafeSerializationApi::class)
     private fun createInfo(
         locationDescriptor: SerialDescriptor,
         locationClass: KClass<*>?
@@ -56,21 +55,16 @@ internal class SerializationImpl(
             .filter { it.kind == RoutingPathSegmentKind.Parameter }
             .map { parseRoutingParameterName(it.value) }
 
-        val parent = parentParameter?.let { property ->
-            val type = propertyType(locationClass, property.name)
-            createInfo(property.propertyDescriptor, type)
-        } ?: locationClass?.let { backwardCompatibleParentClass(locationClass) }?.let { parentClass ->
-            routeService.findRoute(parentClass)?.let {
-                createInfo(parentClass)
-            }
-        }
+        val parent = computeParent(parentParameter, locationClass)
 
         if (parent != null && parentParameter == null) {
             checkInfo(logger, locationDescriptor.toString(), parent)
         }
 
+        // do not inline the variable: it is here to avoid resolution issue
+        val type: KClass<*> = locationClass ?: Any::class
         return LocationInfo(
-            locationClass ?: Any::class,
+            type,
             parent,
             parentParameter,
             path,
@@ -80,7 +74,29 @@ internal class SerializationImpl(
         )
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    private fun computeParent(
+        parentParameter: LocationPropertyInfoImplSerialization?,
+        locationClass: KClass<*>?
+    ): LocationInfo? {
+        parentParameter?.let { property ->
+            val type = propertyType(locationClass, property.name)
+            createInfo(property.propertyDescriptor, type)
+        }?.let { return it }
+
+        if (locationClass == null) {
+            return null
+        }
+
+        val backwardCompatibleParent: KClass<*>? =  backwardCompatibleParentClass(locationClass)
+
+        return backwardCompatibleParent?.let { parentClass: KClass<*> ->
+            routeService.findRoute(parentClass)?.let { _ ->
+                createInfo(parentClass)
+            }
+        }
+    }
+
+    @OptIn(UnsafeSerializationApi::class)
     override fun <T : Any> instantiate(
         info: LocationInfo,
         allParameters: Parameters,
@@ -105,7 +121,7 @@ internal class SerializationImpl(
         return builder.urlPathAndQuery()
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    @OptIn(UnsafeSerializationApi::class)
     override fun href(location: Any, builder: URLBuilder) {
         @Suppress("UNCHECKED_CAST")
         val clazz = location::class as KClass<Any>

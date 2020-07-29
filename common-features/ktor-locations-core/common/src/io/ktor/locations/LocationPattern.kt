@@ -5,7 +5,6 @@
 package io.ktor.locations
 
 import io.ktor.http.*
-import io.ktor.routing.*
 import io.ktor.util.*
 
 @InternalAPI

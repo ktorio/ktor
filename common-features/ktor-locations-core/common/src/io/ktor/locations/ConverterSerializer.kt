@@ -34,7 +34,7 @@ public class ConverterSerializer<T>(
         val converted = conversionService.toValues(value)
         val elementSerializer = String.serializer()
 
-        encoder.beginCollection(descriptor, converted.size, elementSerializer).apply {
+        encoder.beginCollection(descriptor, converted.size).apply {
             converted.forEachIndexed { index, component ->
                 encodeSerializableElement(descriptor, index, elementSerializer, component)
             }

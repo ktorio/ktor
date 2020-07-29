@@ -5,7 +5,6 @@
 package io.ktor.locations
 
 import io.ktor.http.*
-import io.ktor.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlin.collections.*
@@ -170,7 +169,7 @@ internal class BackwardCompatibleImpl(
 
             val path = routeService.findRoute(locationClass) ?: ""
             if (locationClass.objectInstance != null) {
-                @OptIn(ImplicitReflectionSerializer::class)
+                @OptIn(UnsafeSerializationApi::class)
                 return@getOrPut LocationInfo(
                     locationClass,
                     parentInfo,
@@ -223,7 +222,7 @@ internal class BackwardCompatibleImpl(
             val queryParameters =
                 declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
 
-            @OptIn(ImplicitReflectionSerializer::class)
+            @OptIn(UnsafeSerializationApi::class)
             LocationInfo(
                 locationClass,
                 parentInfo, parentParameter,

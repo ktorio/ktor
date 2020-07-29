@@ -19,7 +19,7 @@ internal expect fun createImpl(
 
 internal expect fun backwardCompatibleParentClass(locationClass: KClass<*>): KClass<*>?
 
-@OptIn(ImplicitReflectionSerializer::class)
+@OptIn(UnsafeSerializationApi::class)
 internal fun backwardCompatibleParent(locationClass: KClass<*>): LocationPattern? {
     val parentClass = backwardCompatibleParentClass(locationClass) ?: return null
     val descriptor = parentClass.serializerOrNull()?.descriptor ?: return null

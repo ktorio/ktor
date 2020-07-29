@@ -14,20 +14,18 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-utils"))
             api(project(":ktor-http"))
-            api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version")
+            api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version")
         }
     }
 
     val jvmMain by getting {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version")
             api(kotlin("reflect"))
         }
     }
 
     val jsMain by getting {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version")
         }
     }
 
@@ -36,7 +34,6 @@ kotlin.sourceSets {
 
     val posixMain by getting {
         dependencies {
-            api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version")
         }
     }
 
