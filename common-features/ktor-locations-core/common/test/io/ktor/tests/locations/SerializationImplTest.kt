@@ -10,7 +10,7 @@ import kotlinx.serialization.modules.*
 import kotlin.test.*
 
 class SerializationImplTest {
-    private val impl = SerializationImpl(EmptyModule, {null}, LocationAttributeRouteService(), {})
+    private val impl = SerializationImpl(EmptySerializersModule, {null}, LocationAttributeRouteService(), {})
 
     @Test
     fun smokeTest() {
@@ -40,7 +40,7 @@ class SerializationImplTest {
         assertEquals("222", instance.p2)
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    @OptIn(UnsafeSerializationApi::class)
     @Test
     fun childClass() {
         impl.getOrCreateInfo(Root2::class).let { result ->

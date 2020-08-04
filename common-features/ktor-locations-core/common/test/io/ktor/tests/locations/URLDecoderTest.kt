@@ -61,9 +61,9 @@ class URLDecoderTest {
         }
     }
 
-    @OptIn(ImplicitReflectionSerializer::class)
+    @OptIn(UnsafeSerializationApi::class)
     private inline fun <reified T> test(actualPath: String, block: T.() -> Unit) {
-        val decoder = URLDecoder(EmptyModule, Url("http://localhost$actualPath"), T::class)
+        val decoder = URLDecoder(EmptySerializersModule, Url("http://localhost$actualPath"), T::class)
         block(serializer<T>().deserialize(decoder))
     }
 

@@ -6,6 +6,7 @@ package io.ktor.locations
 
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
@@ -13,7 +14,7 @@ internal actual fun createImpl(
     conversionServiceProvider: () -> ConversionService?,
     routeService: LocationRouteService,
     logger: (String) -> Unit,
-    module: SerialModule,
+    module: SerializersModule,
     compatibilityMode: Boolean
 ): LocationsImpl = SerializationImpl(module, conversionServiceProvider, routeService, logger)
 
@@ -29,5 +30,5 @@ public actual fun SerialDescriptor.guessKClass(): KClass<*>? {
     return null
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
+@OptIn(UnsafeSerializationApi::class)
 internal actual fun KClass<*>.annotationsList(): List<Annotation>? = serializerOrNull()?.descriptor?.annotations

@@ -11,7 +11,7 @@ internal class StandaloneLocationsService(
     routeService: LocationRouteService,
     conversionService: () -> ConversionService?,
     logger: (String) -> Unit,
-    module: SerialModule,
+    module: SerializersModule,
     compatibilityMode: Boolean
 ) : LocationsService(routeService, conversionService, logger, module, compatibilityMode)
 

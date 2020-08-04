@@ -13,13 +13,13 @@ import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 import kotlin.test.*
 
-@OptIn(ImplicitReflectionSerializer::class)
+@OptIn(UnsafeSerializationApi::class)
 class ConversionServiceSerializerTest {
 
     @Location("/path/{uuid}")
     @Serializable
     class Parent(
-        @ContextualSerialization
+        @Contextual
         val inner: C
     )
 
@@ -33,7 +33,7 @@ class ConversionServiceSerializerTest {
 
     @Serializable
     class UUID(
-        @ContextualSerialization
+        @Contextual
         val text: String
     )
 
@@ -68,7 +68,7 @@ class ConversionServiceSerializerTest {
         instance: P,
         conversionService: ConversionService
     ): String {
-        return Json(context = moduleFor<T>(conversionService)).stringify(instance)
+        return Json { serializersModule = moduleFor<T>(conversionService) }.encodeToString(instance)
     }
 
     private inline fun <reified T : Any, reified P : Any> url(
@@ -76,7 +76,7 @@ class ConversionServiceSerializerTest {
         conversionService: ConversionService
     ): String {
         val encoder = URLEncoder(moduleFor<T>(conversionService), P::class)
-        val serializer = encoder.context.getContextualOrDefault(P::class)
+        val serializer = encoder.serializersModule.getContextual(P::class) ?: P::class.serializer()
 
         serializer.serialize(encoder, instance)
 
@@ -86,11 +86,11 @@ class ConversionServiceSerializerTest {
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private inline fun <reified T> moduleFor(conversionService: ConversionService): SerialModule {
+    private inline fun <reified T> moduleFor(conversionService: ConversionService): SerializersModule {
         return moduleFor(typeOf<T>(), conversionService)
     }
 
-    private fun moduleFor(type: KType, conversionService: ConversionService): SerialModule {
+    private fun moduleFor(type: KType, conversionService: ConversionService): SerializersModule {
         return SerializersModule {
             conversionService(type, conversionService)
         }

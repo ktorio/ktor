@@ -9,7 +9,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
 
-@OptIn(ImplicitReflectionSerializer::class)
+@OptIn(UnsafeSerializationApi::class)
 class URLEncoderTest {
     @Test
     fun urlParameter() {
@@ -37,7 +37,7 @@ class URLEncoderTest {
     }
 
     private inline fun <reified T> serialize(instance: T): String {
-        val encoder = URLEncoder(EmptyModule, T::class)
+        val encoder = URLEncoder(EmptySerializersModule, T::class)
         serializer<T>().serialize(encoder, instance)
         return encoder.build().toString()
     }

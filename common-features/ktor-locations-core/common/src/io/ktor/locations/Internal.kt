@@ -4,7 +4,7 @@
 
 package io.ktor.locations
 
-import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 
 internal fun checkInfo(logger: (String) -> Unit, locationName: String, parentInfo: LocationInfo) {
     if (parentInfo.parentParameter != null) {

@@ -7,17 +7,19 @@ package io.ktor.locations
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
 @InternalAPI
 public class URLDecoder(
-    override val context: SerialModule,
+    public override val serializersModule: SerializersModule,
     private val encodedPath: String?,
     private val queryParameters: Parameters,
     private val rootClass: KClass<*>?
 ) : Decoder, CompositeDecoder {
-    public constructor(context: SerialModule, url: Url, rootClass: KClass<*>?) : this(
+    public constructor(context: SerializersModule, url: Url, rootClass: KClass<*>?) : this(
         context,
         url.encodedPath,
         url.parameters,
@@ -161,10 +163,6 @@ public class URLDecoder(
         throw ParameterConversionException(parameterName ?: "", "String", null)
     }
 
-    override fun decodeUnit() {
-        decodeOrFail("Unit") {}
-    }
-
     override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
         return decodeElementOrFail(descriptor, index) { it == "" || it == "true" }
     }
@@ -205,7 +203,7 @@ public class URLDecoder(
             iteratorIndexMap[descriptor] = index
             return index
         }
-        return CompositeDecoder.READ_DONE
+        return CompositeDecoder.DECODE_DONE
     }
 
     override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float {
@@ -262,10 +260,6 @@ public class URLDecoder(
 
     override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String {
         return decodeElementOrFail(descriptor, index) { it }
-    }
-
-    override fun decodeUnitElement(descriptor: SerialDescriptor, index: Int) {
-        decodeElementOrFail(descriptor, index) {}
     }
 
     private fun decodeElement(desc: SerialDescriptor, index: Int): String {

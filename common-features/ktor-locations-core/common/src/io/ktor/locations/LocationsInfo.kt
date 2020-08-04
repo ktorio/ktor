@@ -6,6 +6,7 @@ package io.ktor.locations
 
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlin.reflect.*
 
 /**

@@ -7,6 +7,7 @@ package io.ktor.locations
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlin.collections.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
@@ -242,6 +243,7 @@ internal class BackwardCompatibleImpl(
         get() = isFinal && objectInstance != null
 }
 
+@OptIn(InternalSerializationApi::class)
 private fun createSerialDescriptor(
     locationClass: KClass<*>,
     parameters: List<KParameter>
@@ -252,7 +254,7 @@ private fun createSerialDescriptor(
     }
     val name = locationClass.qualifiedName ?: locationClass.jvmName
 
-    return SerialDescriptor(name, kind) {
+    return buildSerialDescriptor(name, kind) {
         annotations = locationClass.annotations
 
         parameters.forEach { parameter ->

@@ -7,11 +7,12 @@ package io.ktor.locations
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
 internal class SerializationImpl(
-    private val initialModule: SerialModule,
+    private val initialModule: SerializersModule,
     private val conversionServiceProvider: () -> ConversionService?,
     routeService: LocationRouteService,
     private val logger: (String) -> Unit
@@ -34,8 +35,8 @@ internal class SerializationImpl(
         locationDescriptor: SerialDescriptor,
         locationClass: KClass<*>?
     ): LocationInfo = cache.getOrPut(locationDescriptor) {
-        val elements = locationDescriptor.elementDescriptors()
-        val names = locationDescriptor.elementNames()
+        val elements = locationDescriptor.elementDescriptors.toList()
+        val names = locationDescriptor.elementNames.toList()
         val parentIndex = elements.indexOfFirst {
             it.kind.isClassOrObject() && it.location != null
         }
@@ -131,7 +132,7 @@ internal class SerializationImpl(
         encoder.buildTo(builder)
     }
 
-    private val module: SerialModule
+    private val module: SerializersModule
         get() {
             val conversionService = conversionServiceProvider() ?: return initialModule
             val types = conversionService.supportedTypes()

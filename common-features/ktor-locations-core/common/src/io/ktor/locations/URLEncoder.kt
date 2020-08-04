@@ -7,13 +7,15 @@ package io.ktor.locations
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.serialization.*
-import kotlinx.serialization.Encoder
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
 @InternalAPI
 public class URLEncoder(
-    override val context: SerialModule,
+    override val serializersModule: SerializersModule,
     private val rootClass: KClass<*>?
 ) : Encoder, CompositeEncoder {
     private val pathParameters = ParametersBuilder()
@@ -22,7 +24,7 @@ public class URLEncoder(
     private var pattern: LocationPattern? = null
     private var currentElementName: String? = null
 
-    override fun beginStructure(descriptor: SerialDescriptor, vararg typeSerializers: KSerializer<*>): CompositeEncoder {
+    public override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         if (descriptor.kind.isClassOrObject() && this.pattern == null) {
             this.pattern = buildLocationPattern(descriptor, rootClass)
         }
@@ -84,10 +86,6 @@ public class URLEncoder(
         } else {
             queryParameters.append(name, value)
         }
-    }
-
-    override fun encodeUnit() {
-        encodeString("Unit")
     }
 
     override fun encodeBooleanElement(descriptor: SerialDescriptor, index: Int, value: Boolean) {
@@ -155,10 +153,6 @@ public class URLEncoder(
 
     override fun encodeStringElement(descriptor: SerialDescriptor, index: Int, value: String) {
         encodeElement(descriptor, index, value)
-    }
-
-    override fun encodeUnitElement(descriptor: SerialDescriptor, index: Int) {
-        encodeElement(descriptor, index, "")
     }
 
     private fun encodeElement(desc: SerialDescriptor, index: Int, stringified: String) {

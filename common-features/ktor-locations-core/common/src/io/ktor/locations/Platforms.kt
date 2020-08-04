@@ -6,6 +6,7 @@ package io.ktor.locations
 
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
@@ -13,7 +14,7 @@ internal expect fun createImpl(
     conversionServiceProvider: () -> ConversionService?,
     routeService: LocationRouteService,
     logger: (String) -> Unit,
-    module: SerialModule,
+    module: SerializersModule,
     compatibilityMode: Boolean
 ): LocationsImpl
 
@@ -40,7 +41,7 @@ public expect fun SerialDescriptor.guessKClass(): KClass<*>?
 internal fun buildLocationPattern(desc: SerialDescriptor, locationClass: KClass<*>?): LocationPattern {
     require(desc.kind.isClassOrObject())
 
-    val children = desc.elementDescriptors().mapIndexedNotNull { index, child ->
+    val children = desc.elementDescriptors.mapIndexedNotNull { index, child ->
         val name = desc.getElementName(index)
         val type = propertyType(locationClass, name)
 

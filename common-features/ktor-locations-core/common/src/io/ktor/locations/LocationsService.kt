@@ -15,7 +15,7 @@ constructor(
     routeService: LocationRouteService,
     conversionService: () -> ConversionService?,
     logger: (String) -> Unit,
-    module: SerialModule,
+    module: SerializersModule,
     compatibilityMode: Boolean
 ) {
 
@@ -69,6 +69,6 @@ constructor(
          * [SerializersModule] to be used in URL serialization
          */
         @KtorExperimentalLocationsAPI
-        public var module: SerialModule = EmptyModule
+        public var module: SerializersModule = EmptySerializersModule
     }
 }

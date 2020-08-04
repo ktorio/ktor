@@ -6,6 +6,7 @@ package io.ktor.locations
 
 import io.ktor.util.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
@@ -15,7 +16,7 @@ internal actual fun createImpl(
     conversionServiceProvider: () -> ConversionService?,
     routeService: LocationRouteService,
     logger: (String) -> Unit,
-    module: SerialModule,
+    module: SerializersModule,
     compatibilityMode: Boolean
 ): LocationsImpl = when (compatibilityMode) {
     true -> BackwardCompatibleImpl(

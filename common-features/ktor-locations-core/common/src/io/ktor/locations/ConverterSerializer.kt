@@ -6,8 +6,10 @@ package io.ktor.locations
 
 import io.ktor.util.*
 import kotlinx.serialization.*
-import kotlinx.serialization.Encoder
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.Encoder
 import kotlin.reflect.*
 
 public class ConverterSerializer<T>(
