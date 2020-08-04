@@ -556,9 +556,9 @@ class LocationsTest {
     @Serializable
     @Location("/")
     class LocationWithBigNumbers(
-        @ContextualSerialization
+        @Contextual
         val bi: BigInteger,
-        @ContextualSerialization
+        @Contextual
         val bd: BigDecimal
     )
 

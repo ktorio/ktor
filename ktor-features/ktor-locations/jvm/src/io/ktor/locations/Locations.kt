@@ -6,10 +6,8 @@ package io.ktor.locations
 
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.util.*
-import kotlinx.serialization.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
@@ -33,7 +31,7 @@ constructor(
     routeService,
     application::conversionService,
     { application.log.warn(it) },
-    EmptyModule,
+    EmptySerializersModule,
     compatibilityMode
 ) {
     @Deprecated(
