@@ -68,7 +68,8 @@ class ConversionServiceSerializerTest {
         instance: P,
         conversionService: ConversionService
     ): String {
-        return Json { serializersModule = moduleFor<T>(conversionService) }.encodeToString(instance)
+        val module = moduleFor<T>(conversionService)
+        return Json { serializersModule = module }.encodeToString(instance)
     }
 
     private inline fun <reified T : Any, reified P : Any> url(
