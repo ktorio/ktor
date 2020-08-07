@@ -9,7 +9,7 @@ private const val MAX_CHARACTERS_COUNT = Int.MAX_VALUE / MAX_CHARACTERS_SIZE_IN_
 
 internal data class DecodeBufferResult(val charactersDecoded: String, val bytesConsumed: Int)
 
-internal fun Int8Array.decodeBufferImpl(nativeDecoder: TextDecoder, maxCharacters: Int): DecodeBufferResult {
+internal fun Int8Array.decodeBufferImpl(nativeDecoder: Decoder, maxCharacters: Int): DecodeBufferResult {
     if (maxCharacters == 0) {
         return DecodeBufferResult("", 0)
     }
@@ -27,7 +27,7 @@ internal fun Int8Array.decodeBufferImpl(nativeDecoder: TextDecoder, maxCharacter
     return decodeBufferImplSlow(nativeDecoder, maxCharacters)
 }
 
-private fun Int8Array.decodeBufferImplSlow(nativeDecoder: TextDecoder, maxCharacters: Int): DecodeBufferResult {
+private fun Int8Array.decodeBufferImplSlow(nativeDecoder: Decoder, maxCharacters: Int): DecodeBufferResult {
     val maxBytes = when {
         maxCharacters >= MAX_CHARACTERS_COUNT -> Int.MAX_VALUE
         else -> maxCharacters * MAX_CHARACTERS_SIZE_IN_BYTES

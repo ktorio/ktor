@@ -41,7 +41,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
     require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
-    val encoder = TextEncoderCtor() // Only UTF-8 is supported so we know that at most 6 bytes per character is used
+    val encoder = TextEncoder() // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
     var dstRemaining = dst.writeRemaining
 
@@ -88,7 +88,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 ): Int {
     if (max == 0) return 0
 
-    val decoder = TextDecoderFatal(charset.name)
+    val decoder = Decoder(charset.name)
     val copied: Int
 
     input.readDirectInt8Array { view ->
@@ -103,7 +103,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
 }
 
 public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
-    val decoder = TextDecoderFatal(charset.name, true)
+    val decoder = Decoder(charset.name, true)
     var charactersCopied = 0
 
     // use decode stream while we have remaining characters count > buffer size in bytes
@@ -167,7 +167,7 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
 public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
     if (input is AbstractInput && input.headRemaining >= inputLength) {
-        val decoder = TextDecoderFatal(charset._name, true)
+        val decoder = Decoder(charset._name, true)
 
         val head = input.head
         val view = input.headMemory.view
@@ -203,7 +203,7 @@ private data class CharsetImpl(val name: String) : Charset(name) {
 public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
-    val decoder = TextDecoderFatal(charset.name, true)
+    val decoder = Decoder(charset.name, true)
     var inputRemaining = inputLength
     val sb = StringBuilder(inputLength)
 
