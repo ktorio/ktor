@@ -19,7 +19,12 @@ kotlin {
     }
 }
 
+def boot_version = project.ext.jetty_alpn_boot_version
+
 dependencies {
     jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: project.ext.jetty_alpn_boot_version
+
+    if (boot_version != null) {
+        boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: boot_version
+    }
 }
