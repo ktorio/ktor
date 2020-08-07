@@ -142,7 +142,7 @@ class CIOHttpsTest : TestWithKtor() {
 
     @Test
     @Ignore
-    fun external() = testWithEngine(CIO) {
+    fun testExternal() = testWithEngine(CIO) {
         test { client ->
             client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
