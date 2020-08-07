@@ -1005,7 +1005,7 @@ public final class io/ktor/client/utils/ByteBufferPool : io/ktor/utils/io/pool/D
 }
 
 public final class io/ktor/client/utils/CIOJvmKt {
-	public static final fun getHttpClientDefaultPool ()Lio/ktor/client/utils/ByteBufferPool;
+	public static final fun getHttpClientDefaultPool ()Lio/ktor/utils/io/pool/ByteBufferPool;
 }
 
 public final class io/ktor/client/utils/CIOKt {

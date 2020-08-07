@@ -1827,6 +1827,16 @@ public final class io/ktor/utils/io/nio/OutputKt {
 	public static synthetic fun asOutput$default (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/core/Output;
 }
 
+public final class io/ktor/utils/io/pool/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
+	public fun <init> ()V
+	public fun <init> (II)V
+	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun getBufferSize ()I
+	public synthetic fun produceInstance ()Ljava/lang/Object;
+	public synthetic fun validateInstance (Ljava/lang/Object;)V
+}
+
 public abstract class io/ktor/utils/io/pool/DefaultPool : io/ktor/utils/io/pool/ObjectPool {
 	public static final field Companion Lio/ktor/utils/io/pool/DefaultPool$Companion;
 	public fun <init> (I)V
@@ -1842,6 +1852,16 @@ public abstract class io/ktor/utils/io/pool/DefaultPool : io/ktor/utils/io/pool/
 }
 
 public final class io/ktor/utils/io/pool/DefaultPool$Companion {
+}
+
+public final class io/ktor/utils/io/pool/DirectByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
+	public fun <init> ()V
+	public fun <init> (II)V
+	public synthetic fun <init> (IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun getBufferSize ()I
+	public synthetic fun produceInstance ()Ljava/lang/Object;
+	public synthetic fun validateInstance (Ljava/lang/Object;)V
 }
 
 public abstract class io/ktor/utils/io/pool/NoPoolImpl : io/ktor/utils/io/pool/ObjectPool {

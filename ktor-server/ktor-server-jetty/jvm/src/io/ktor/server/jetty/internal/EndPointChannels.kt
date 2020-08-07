@@ -8,6 +8,7 @@ import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import io.ktor.utils.io.pool.ByteBufferPool
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*
@@ -22,11 +23,7 @@ private val EndpointReaderCoroutineName = CoroutineName("jetty-upgrade-endpoint-
 
 private val EndpointWriterCoroutineName = CoroutineName("jetty-upgrade-endpoint-writer")
 
-private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL_SIZE) {
-    override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(4096)!!
-
-    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
-}
+private val JettyWebSocketPool = ByteBufferPool(JETTY_WEBSOCKET_POOL_SIZE, 4096)
 
 internal class EndPointReader(
     endpoint: EndPoint,
