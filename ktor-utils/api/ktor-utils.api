@@ -200,10 +200,6 @@ public abstract interface annotation class io/ktor/util/InternalAPI : java/lang/
 public abstract interface annotation class io/ktor/util/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
-public final class io/ktor/util/LazyVarKt {
-	public static final fun lazyVar (Lkotlin/jvm/functions/Function0;)Lkotlin/properties/ReadWriteProperty;
-}
-
 public final class io/ktor/util/Lock {
 	public fun <init> ()V
 	public final fun close ()V
@@ -457,6 +453,15 @@ public final class io/ktor/util/cio/ReadersKt {
 	public static final fun toByteArray (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun toByteArray$default (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun use (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/util/cio/Semaphore {
+	public fun <init> (I)V
+	public final fun acquire (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun enter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getLimit ()I
+	public final fun leave ()V
+	public final fun release ()V
 }
 
 public class io/ktor/util/collections/ConcurrentCollection : java/util/Collection, kotlin/jvm/internal/markers/KMutableCollection {

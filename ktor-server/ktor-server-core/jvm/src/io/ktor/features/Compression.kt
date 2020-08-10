@@ -391,7 +391,7 @@ fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
 fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
     condition { content ->
         val contentType = content.contentType ?: return@condition false
-        mimeTypes.any { it.match(contentType) }
+        mimeTypes.any { contentType.match(it) }
     }
 }
 
@@ -404,6 +404,6 @@ fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
             ?: response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
             ?: return@condition true
 
-        mimeTypes.none { excludePattern -> excludePattern.match(contentType) }
+        mimeTypes.none { excludePattern -> contentType.match(excludePattern) }
     }
 }

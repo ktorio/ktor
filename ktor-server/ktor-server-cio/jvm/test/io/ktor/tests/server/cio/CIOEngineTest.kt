@@ -20,12 +20,14 @@ class CIOContentTest : ContentTestSuite<CIOApplicationEngine, CIOApplicationEngi
         enableSsl = false
     }
 }
+
 class CIOHttpServerTest : HttpServerTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false
         enableSsl = false
     }
 }
+
 class CIOSustainabilityTest : SustainabilityTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableHttp2 = false

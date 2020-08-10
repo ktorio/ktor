@@ -134,7 +134,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
                 } else {
                     // select converters that match specified Accept header, in order of quality
                     acceptItems.flatMap { (contentType, _) ->
-                        feature.registrations.filter { contentType.match(it.contentType) }
+                        feature.registrations.filter { it.contentType.match(contentType) }
                     }.distinct()
                 }
 
@@ -163,7 +163,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
                     )
                 }
                 val suitableConverter =
-                    feature.registrations.firstOrNull { converter -> converter.contentType.match(requestContentType) }
+                    feature.registrations.firstOrNull { converter -> requestContentType.match(converter.contentType) }
                         ?: throw UnsupportedMediaTypeException(requestContentType)
 
                 val converted = suitableConverter.converter.convertForReceive(this)

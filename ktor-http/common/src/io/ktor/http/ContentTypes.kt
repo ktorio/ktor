@@ -11,10 +11,19 @@ import io.ktor.utils.io.charsets.*
  * @property contentType represents a type part of the media type.
  * @property contentSubtype represents a subtype part of the media type.
  */
-class ContentType private constructor(val contentType: String, val contentSubtype: String, existingContent: String, parameters: List<HeaderValueParam> = emptyList())
-    : HeaderValueWithParameters(existingContent, parameters), ContentTypeMatcher {
+class ContentType private constructor(
+    val contentType: String,
+    val contentSubtype: String,
+    existingContent: String,
+    parameters: List<HeaderValueParam> = emptyList()
+) : HeaderValueWithParameters(existingContent, parameters) {
 
-    constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(contentType, contentSubtype, "$contentType/$contentSubtype", parameters)
+    constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(
+        contentType,
+        contentSubtype,
+        "$contentType/$contentSubtype",
+        parameters
+    )
 
     /**
      * Creates a copy of `this` type with the added parameter with the [name] and [value].
@@ -37,45 +46,51 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
 
     /**
-     * Checks if `this` type matches a [contentType] type taking into account placeholder symbols `*` and parameters in `this`.
+     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
      */
-    override fun match(contentType: ContentType): Boolean {
-        if (this.contentType != "*" && !this.contentType.equals(contentType.contentType, ignoreCase = true))
+    fun match(pattern: ContentType): Boolean {
+        if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
             return false
-        if (contentSubtype != "*" && !contentSubtype.equals(contentType.contentSubtype, ignoreCase = true))
+        }
+
+        if (pattern.contentSubtype != "*" && !pattern.contentSubtype.equals(contentSubtype, ignoreCase = true)) {
             return false
-        for ((patternName, patternValue) in parameters) {
+        }
+
+        for ((patternName, patternValue) in pattern.parameters) {
             val matches = when (patternName) {
                 "*" -> {
                     when (patternValue) {
                         "*" -> true
-                        else -> contentType.parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
+                        else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
                     }
                 }
                 else -> {
-                    val value = contentType.parameter(patternName)
+                    val value = parameter(patternName)
                     when (patternValue) {
                         "*" -> value != null
                         else -> value.equals(patternValue, ignoreCase = true)
                     }
                 }
             }
-            if (!matches)
+
+            if (!matches) {
                 return false
+            }
         }
         return true
     }
 
     /**
-     * Checks if `this` type matches a [contentType] string taking into account placeholder symbols `*` and parameters in `this`.
+     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
      */
-    fun match(contentType: String): Boolean = match(parse(contentType))
+    fun match(pattern: String): Boolean = match(parse(pattern))
 
     override fun equals(other: Any?): Boolean =
-            other is ContentType &&
-                    contentType.equals(other.contentType, ignoreCase = true) &&
-                    contentSubtype.equals(other.contentSubtype, ignoreCase = true) &&
-                    parameters == other.parameters
+        other is ContentType &&
+            contentType.equals(other.contentType, ignoreCase = true) &&
+            contentSubtype.equals(other.contentSubtype, ignoreCase = true) &&
+            parameters == other.parameters
 
     override fun hashCode(): Int {
         var result = contentType.toLowerCase().hashCode()
@@ -241,6 +256,6 @@ class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type
 fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
 
 /**
- * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.  
+ * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
  */
 fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let { Charset.forName(it) }

@@ -99,7 +99,7 @@ fun ApplicationRequest.isChunked(): Boolean = header(HttpHeaders.TransferEncodin
 /**
  * Check if request body is multipart-encoded
  */
-fun ApplicationRequest.isMultipart(): Boolean = ContentType.MultiPart.Any.match(contentType())
+fun ApplicationRequest.isMultipart(): Boolean = contentType().match(ContentType.MultiPart.Any)
 
 /**
  * Request's `User-Agent` header value
