@@ -32,39 +32,38 @@ class DigestProviderTest {
 
     @BeforeTest
     fun setup() {
-        if (PlatformUtils.IS_NATIVE) return
+        if (!PlatformUtils.IS_JVM) return
         val params = ParametersBuilder(1)
         params.append(paramName, paramValue)
-        requestBuilder =
-            HttpRequestBuilder { takeFrom(URLBuilder(encodedPath = path, parameters = params, trailingQuery = true)) }
+
+        val url = URLBuilder(encodedPath = path, parameters = params, trailingQuery = true)
+        requestBuilder = HttpRequestBuilder {
+            takeFrom(url)
+        }
     }
 
     @Test
-    fun addRequestHeadersSetsExpectedAuthHeaderFields() {
-        if (PlatformUtils.IS_NATIVE) return
+    fun addRequestHeadersSetsExpectedAuthHeaderFields() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
 
         runIsApplicable(authAllFields)
-        testSuspend {
-            val authHeader = addRequestHeaders()
+        val authHeader = addRequestHeaders()
 
-            assertTrue(authHeader.contains("qop=qop"))
-            assertTrue(authHeader.contains("opaque=opaque"))
-            checkStandardFields(authHeader)
-        }
+        assertTrue(authHeader.contains("qop=qop"))
+        assertTrue(authHeader.contains("opaque=opaque"))
+        checkStandardFields(authHeader)
     }
 
     @Test
-    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() {
-        if (PlatformUtils.IS_NATIVE) return
+    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
 
         runIsApplicable(authMissingQopAndOpaque)
-        testSuspend {
-            val authHeader = addRequestHeaders()
+        val authHeader = addRequestHeaders()
 
-            assertFalse(authHeader.contains("opaque="))
-            assertFalse(authHeader.contains("qop="))
-            checkStandardFields(authHeader)
-        }
+        assertFalse(authHeader.contains("opaque="))
+        assertFalse(authHeader.contains("qop="))
+        checkStandardFields(authHeader)
     }
 
     private fun runIsApplicable(headerValue: String) =
@@ -79,6 +78,8 @@ class DigestProviderTest {
         assertTrue(authHeader.contains("realm=realm"))
         assertTrue(authHeader.contains("username=username"))
         assertTrue(authHeader.contains("nonce=nonce"))
-        assertTrue(authHeader.contains("uri=\"/$path?$paramName=$paramValue\""))
+
+        val uriPattern = "uri=\"/$path?$paramName=$paramValue\""
+        assertTrue(authHeader.contains(uriPattern))
     }
 }
