@@ -87,7 +87,7 @@ internal fun HashAndSign(hashValue: Byte, signValue: Byte, oidValue: String? = n
     val sign = SignatureAlgorithm.byCode(signValue) ?: return null
     val oid = oidValue?.let{ OID(it) }
 
-    return HashAndSign(hash, sign)
+    return HashAndSign(hash, sign, oid)
 }
 
 /**

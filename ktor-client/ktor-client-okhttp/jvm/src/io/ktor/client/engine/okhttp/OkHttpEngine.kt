@@ -44,6 +44,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
      * Cache that keeps least recently used [OkHttpClient] instances.
      */
     private val clientCache = createLRUCache(::createOkHttpClient, {}, config.clientCacheSize)
+
     init {
         val parent = super.coroutineContext[Job]!!
         requestsJob = SilentSupervisor(parent)
@@ -55,6 +56,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
             } finally {
                 clientCache.forEach { (_, client) ->
                     client.connectionPool.evictAll()
+                    client.dispatcher.executorService.shutdown()
                 }
                 (dispatcher as Closeable).close()
             }
@@ -131,6 +133,7 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("kt
     private fun createOkHttpClient(timeoutExtension: HttpTimeout.HttpTimeoutCapabilityConfiguration?): OkHttpClient {
         val builder = (config.preconfigured ?: okHttpClientPrototype).newBuilder()
 
+        builder.dispatcher(Dispatcher())
         builder.apply(config.config)
         config.proxy?.let { builder.proxy(it) }
         timeoutExtension?.let {
