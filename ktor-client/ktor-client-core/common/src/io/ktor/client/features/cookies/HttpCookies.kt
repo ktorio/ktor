@@ -71,7 +71,9 @@ class HttpCookies(
                 val cookies = feature.get(context.url.clone().build())
 
                 with(context) {
-                    headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+                    if (cookies.isNotEmpty()) {
+                        headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+                    }
                 }
             }
 
