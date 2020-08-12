@@ -10,7 +10,7 @@ import kotlin.coroutines.*
 /**
  * Test runner for js suspend tests.
  */
-actual fun testSuspend(
+public actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): dynamic = GlobalScope.promise(block = block, context = context)
