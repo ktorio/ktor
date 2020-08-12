@@ -20,15 +20,39 @@ import kotlinx.serialization.modules.*
  *
  * See [JsonConfiguration] for more details.
  */
-val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
-    encodeDefaults = true,
-    isLenient = true,
-    serializeSpecialFloatingPointValues = true,
-    allowStructuredMapKeys = true,
-    unquotedPrint = false,
-    prettyPrint = false,
-    useArrayPolymorphism = true
+@Deprecated(
+    level = DeprecationLevel.ERROR,
+    message = "JsonConfiguration is deprecated, consider using DefaultJson instead.",
+    replaceWith = ReplaceWith("DefaultJson")
 )
+@Suppress("DEPRECATION_ERROR")
+val DefaultJsonConfiguration: Json = Json {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
+    useArrayPolymorphism = true
+}
+
+/**
+ * The default json configuration used in [SerializationConverter]. The settings are:
+ * - defaults are serialized
+ * - mode is not strict so extra json fields are ignored
+ * - pretty printing is disabled
+ * - array polymorphism is enabled
+ * - keys and values are quoted, non-quoted are not allowed
+ *
+ * See [JsonConfiguration] for more details.
+ */
+val DefaultJson: Json = Json {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
+    useArrayPolymorphism = true
+}
 
 /**
  * Register `application/json` (or another specified [contentType]) content type
@@ -38,12 +62,18 @@ val DefaultJsonConfiguration: JsonConfiguration = JsonConfiguration.Stable.copy(
  * @param module is used for serialization (optional)
  * @param contentType to register with, application/json by default
  */
+@Deprecated(
+    level = DeprecationLevel.ERROR,
+    message = "JsonConfiguration is deprecated, consider using `Json { serializersModule = module }` instead.",
+    replaceWith = ReplaceWith("json(Json { serializersModule = module }, contentType)")
+)
+@Suppress("DEPRECATION_ERROR")
 fun ContentNegotiation.Configuration.json(
-    json: JsonConfiguration = DefaultJsonConfiguration,
-    module: SerialModule = EmptyModule,
+    json: Json = Json.Default,
+    module: SerializersModule = EmptySerializersModule,
     contentType: ContentType = ContentType.Application.Json
 ) {
-    json(Json(json, module), contentType)
+    TODO()
 }
 
 /**
@@ -54,7 +84,7 @@ fun ContentNegotiation.Configuration.json(
  * @param contentType to register with, application/json by default
  */
 fun ContentNegotiation.Configuration.json(
-    json: Json = Json(DefaultJsonConfiguration),
+    json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
 ) {
     serialization(contentType, json as StringFormat)

@@ -40,7 +40,7 @@ import kotlin.text.Charsets
     )
 )
 fun SerializationConverter(): SerializationConverter =
-    SerializationConverter(Json(DefaultJsonConfiguration))
+    SerializationConverter(DefaultJson)
 
 /**
  * [ContentConverter] with kotlinx.serialization.
@@ -77,7 +77,7 @@ class SerializationConverter private constructor(
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(json: Json = Json(DefaultJsonConfiguration)) : this(json as StringFormat)
+    constructor(json: Json = DefaultJson) : this(json as StringFormat)
 
     /**
      * This is no longer supported. Instead, specify format explicitly or
@@ -96,7 +96,7 @@ class SerializationConverter private constructor(
         "Specify format explicitly. E.g SerializationConverter(Json(...))",
         level = DeprecationLevel.HIDDEN
     )
-    constructor() : this(Json(DefaultJsonConfiguration))
+    constructor() : this(DefaultJson)
 
     init {
         require(format is BinaryFormat || format is StringFormat) {
@@ -111,15 +111,15 @@ class SerializationConverter private constructor(
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(value, format.context) as KSerializer<Any>
+        val serializer = serializerForSending(value, format.serializersModule) as KSerializer<Any>
 
         return when (format) {
             is StringFormat -> {
-                val content = format.stringify(serializer, value)
+                val content = format.encodeToString(serializer, value)
                 TextContent(content, contentType.withCharset(context.call.suitableCharset()))
             }
             is BinaryFormat -> {
-                val content = format.dump(serializer, value)
+                val content = format.encodeToByteArray(serializer, value)
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")
@@ -131,12 +131,12 @@ class SerializationConverter private constructor(
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val serializer = format.context.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
+        val serializer = format.serializersModule.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
         val contentPacket = channel.readRemaining()
 
         return when (format) {
-            is StringFormat -> format.parse(serializer, contentPacket.readText(charset))
-            is BinaryFormat -> format.load(serializer, contentPacket.readBytes())
+            is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+            is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readBytes())
             else -> {
                 contentPacket.discard()
                 error("Unsupported format $format")
@@ -149,11 +149,7 @@ class SerializationConverter private constructor(
 @Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
 fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType = ContentType.Application.Json,
-    json: Json = Json(DefaultJsonConfiguration)
+    json: Json = DefaultJson
 ) {
     json(json, contentType)
 }
-
-@Suppress("unused")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun getDefaultJsonConfiguration(): JsonConfiguration = DefaultJsonConfiguration
