@@ -3,7 +3,8 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.core.internal.DangerousInternalIoApi
+import io.ktor.utils.io.concurrent.*
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.EOFException
 import kotlin.contracts.*
 
@@ -21,7 +22,7 @@ open class Buffer(val memory: Memory) {
      * This position is affected by [discard], [rewind], [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    var readPosition = 0
+    var readPosition by shared(0)
         private set
 
     /**
@@ -30,14 +31,14 @@ open class Buffer(val memory: Memory) {
      * * This position is affected by [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    var writePosition = 0
+    var writePosition: Int by shared(0)
         private set
 
     /**
      * Start gap is a reserved space in the beginning. The reserved space is usually used to write a packet length
      * in the case when it's not known before the packet constructed.
      */
-    var startGap: Int = 0
+    var startGap: Int by shared(0)
         private set
 
     /**
@@ -47,7 +48,7 @@ open class Buffer(val memory: Memory) {
      * primitive value (e.g. `kotlin.Int`) is separated into two chunks so bytes from the second chain could be copied
      * to the reserved space of the first chunk and then the whole value could be read at once.
      */
-    var limit: Int = memory.size32
+    var limit: Int by shared(memory.size32)
         private set
 
     /**
@@ -75,7 +76,7 @@ open class Buffer(val memory: Memory) {
      */
     @Deprecated("Will be removed. Inherit Buffer and add required fields instead.")
     @ExperimentalIoApi
-    var attachment: Any? = null
+    var attachment: Any? by shared(null)
 
     /**
      * Discard [count] readable bytes.

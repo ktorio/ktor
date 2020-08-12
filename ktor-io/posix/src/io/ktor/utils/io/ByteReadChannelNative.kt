@@ -1,8 +1,8 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
-import io.ktor.utils.io.bits.Memory
 
 /**
  * Channel for asynchronous reading of sequences of bytes.
@@ -23,6 +23,10 @@ actual interface ByteReadChannel {
      */
     actual val isClosedForRead: Boolean
 
+    /**
+     * Returns `true` if the channel is closed from the writer side.
+     * The [availableForRead] can be > 0.
+     */
     actual val isClosedForWrite: Boolean
 
     /**
@@ -39,7 +43,6 @@ actual interface ByteReadChannel {
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
-    @Deprecated("Don't use byte count")
     actual val totalBytesRead: Long
 
     /**
@@ -144,7 +147,6 @@ actual interface ByteReadChannel {
      */
     actual suspend fun readFloat(): Float
 
-
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.
@@ -228,6 +230,9 @@ actual interface ByteReadChannel {
     ): Long
 
     actual companion object {
+        /**
+         * Empty closed [ByteReadChannel].
+         */
         actual val Empty: ByteReadChannel = ByteChannelNative(
             IoBuffer.Empty, false,
             io.ktor.utils.io.core.internal.ChunkBuffer.EmptyPool

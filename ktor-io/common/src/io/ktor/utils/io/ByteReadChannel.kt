@@ -1,6 +1,6 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -38,7 +38,6 @@ expect interface ByteReadChannel {
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
-    @Deprecated("Don't use byte count")
     val totalBytesRead: Long
 
     /**

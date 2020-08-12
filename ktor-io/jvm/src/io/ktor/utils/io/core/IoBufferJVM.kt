@@ -525,7 +525,6 @@ fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     return size
 }
 
-@Deprecated("Work with Memory instead.")
 inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
@@ -540,7 +539,6 @@ inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     }
 }
 
-@Deprecated("Work with Memory instead.")
 inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)

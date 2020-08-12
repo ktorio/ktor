@@ -1,5 +1,6 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.*
 
@@ -169,4 +170,8 @@ actual interface ByteWriteChannel {
      * It does nothing when invoked on a closed channel.
      */
     actual fun flush()
+
+    actual suspend fun writeFully(src: Buffer)
+
+    actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 }

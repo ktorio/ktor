@@ -1,5 +1,6 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -41,7 +42,6 @@ actual interface ByteWriteChannel {
      * Number of bytes written to the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of write operation.
      */
-    @Deprecated("Counter is no longer supported")
     actual val totalBytesWritten: Long
 
     /**
@@ -63,6 +63,10 @@ actual interface ByteWriteChannel {
     actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
 
     actual suspend fun writeFully(src: IoBuffer)
+
+    actual suspend fun writeFully(src: Buffer)
+
+    actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 
     @Suppress("DEPRECATION")
     @Deprecated("Use write { } instead.")

@@ -6,6 +6,7 @@ import kotlinx.atomicfu.update
 import kotlinx.atomicfu.updateAndGet
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.bits.DefaultAllocator
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 
@@ -21,7 +22,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
     /**
      * Reference to an origin buffer view this was copied from
      */
-    var origin: ChunkBuffer? = origin
+    var origin: ChunkBuffer? by shared(origin)
         private set
 
     /**

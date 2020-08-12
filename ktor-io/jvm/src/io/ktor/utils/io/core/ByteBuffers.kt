@@ -52,29 +52,43 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
-@Suppress("DEPRECATION")
-@Deprecated("Use write {} instead.")
 inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    write(size) { buffer: Buffer ->
-        buffer.writeDirect(size, block)
+    writeByteBufferDirect(size, block)
+}
+
+/**
+ * Write bytes directly to packet builder's segment. Generally shouldn't be used in user's code and useful for
+ * efficient integration.
+ *
+ * Invokes [block] lambda with one byte buffer. [block] lambda should change provided's position accordingly but
+ * shouldn't change any other pointers.
+ *
+ * @param size minimal number of bytes should be available in a buffer provided to the lambda. Should be as small as
+ * possible. If [size] is too large then the function may fail because the segments size is not guaranteed to be fixed
+ * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
+ * is at least 8 bytes long (long integer bytes length)
+ */
+inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
+    return write(size) {
+        it.writeDirect(size, block)
     }
 }
 
-@Suppress("DEPRECATION")
-@Deprecated("Use read {} instead.")
 inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 
-    read(size) { view ->
-        view.readDirect {
-            block(it)
-        }
+    read(size) {
+        it.readDirect(block)
     }
 }
 

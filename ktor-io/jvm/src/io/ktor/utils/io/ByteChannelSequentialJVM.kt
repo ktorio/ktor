@@ -34,7 +34,7 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
     }
 
     private suspend fun writeAvailableSuspend(src: ByteBuffer): Int {
-        awaitFreeSpace()
+        awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)
     }
 
@@ -48,8 +48,9 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
 
     private suspend fun writeFullySuspend(src: ByteBuffer) {
         while (src.hasRemaining()) {
-            awaitFreeSpace()
-            tryWriteAvailable(src)
+            awaitAtLeastNBytesAvailableForWrite(1)
+            val count = tryWriteAvailable(src)
+            afterWrite(count)
         }
     }
 
@@ -115,9 +116,16 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         return when {
             closedCause != null -> throw closedCause
             closed -> {
-                readable.readAvailable(dst).takeIf { it != 0 }.also { afterRead() } ?: -1
+                val count = readable.readAvailable(dst)
+
+                if (count != 0) {
+                    afterRead(count)
+                    count
+                } else {
+                    -1
+                }
             }
-            else -> readable.readAvailable(dst).also { afterRead() }
+            else -> readable.readAvailable(dst).also { afterRead(it) }
         }
     }
 
@@ -183,8 +191,10 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
         if (closed) {
             throw closedCause ?: ClosedSendChannelException("Channel closed for write")
         }
-        writable.writeDirect(min) { block(it) }
-        awaitFreeSpace()
+
+        awaitAtLeastNBytesAvailableForWrite(min)
+        val count = writable.writeByteBufferDirect(min) { block(it) }
+        afterWrite(count)
     }
 
     override suspend fun writeWhile(block: (ByteBuffer) -> Boolean) {
@@ -193,15 +203,16 @@ class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChan
                 throw closedCause ?: ClosedSendChannelException("Channel closed for write")
             }
 
-            var cont = false
-            writable.writeDirect(1) {
-                cont = block(it)
+            var shouldContinue: Boolean = false
+            awaitAtLeastNBytesAvailableForWrite(1)
+            val result = writable.writeByteBufferDirect(1) {
+                shouldContinue = block(it)
             }
 
-            awaitFreeSpace()
-
-            if (!cont) break
+            afterWrite(result)
+            if (!shouldContinue) break
         }
     }
+
 }
 
