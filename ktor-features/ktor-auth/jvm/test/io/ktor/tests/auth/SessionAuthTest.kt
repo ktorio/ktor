@@ -6,7 +6,6 @@ package io.ktor.tests.auth
 
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
@@ -15,7 +14,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.server.testing.client.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -28,7 +26,7 @@ class SessionAuthTest {
                 cookie<MySession>("S")
             }
             application.install(Authentication) {
-                session<MySession>() {
+                session<MySession> {
                     validate { it }
                     challenge {
                         call.respond(UnauthorizedResponse())
