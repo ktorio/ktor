@@ -73,6 +73,8 @@ class HttpCookies(
                 with(context) {
                     if (cookies.isNotEmpty()) {
                         headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+                    } else {
+                        headers.remove(HttpHeaders.Cookie)
                     }
                 }
             }
