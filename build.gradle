@@ -194,7 +194,6 @@ allprojects {
     }
 }
 
-
 task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport) {
     def rootAllTest = it
     destinationDir = new File(project.buildDir, "reports/tests/rootAllTest")
