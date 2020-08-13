@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
@@ -124,26 +125,20 @@ suspend fun encodeChunked(
  * Chunked stream encoding loop
  */
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
-    val view = IoBuffer.Pool.borrow()
-
     try {
-        input.readSuspendableSession {
-            while (await(DEFAULT_BYTE_BUFFER_SIZE)) {
-                val content = request() ?: return@readSuspendableSession
-                output.writeChunk(content, view)
-            }
-
-            request()?.let { lastChunk ->
-                output.writeChunk(lastChunk, view)
+        while (!input.isClosedForRead) {
+            input.read { source, startIndex, endIndex ->
+                if (endIndex == startIndex) return@read 0
+                output.writeChunk(source, startIndex.toInt(), endIndex.toInt())
             }
         }
 
         output.writeFully(LastChunkBytes)
     } catch (cause: Throwable) {
         output.close(cause)
+        input.cancel(cause)
     } finally {
         output.flush()
-        view.release(IoBuffer.Pool)
     }
 }
 
@@ -156,15 +151,14 @@ private val CrLf = "\r\n".toByteArray()
 @ThreadLocal
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()
 
-private suspend inline fun ByteWriteChannel.writeChunk(chunk: IoBuffer, tempBuffer: IoBuffer) {
-    val size = chunk.readRemaining
+private suspend fun ByteWriteChannel.writeChunk(memory: Memory, startIndex: Int, endIndex: Int): Int {
+    val size = endIndex - startIndex
+    writeIntHex(size)
+    writeShort(CrLfShort)
 
-    tempBuffer.resetForWrite()
-    tempBuffer.writeIntHex(size)
-    tempBuffer.writeShort(CrLfShort)
-
-    writeFully(tempBuffer)
-    writeFully(chunk)
+    writeFully(memory, startIndex, endIndex)
     writeFully(CrLf)
     flush()
+
+    return size
 }

@@ -5,6 +5,7 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
+import io.ktor.http.content.PartData.*
 import io.ktor.utils.io.core.*
 
 /**
