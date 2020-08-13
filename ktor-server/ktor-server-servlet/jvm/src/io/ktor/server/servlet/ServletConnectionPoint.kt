@@ -7,7 +7,7 @@ package io.ktor.server.servlet
 import io.ktor.http.*
 import javax.servlet.http.*
 
-internal class ServletConnectionPoint(val servletRequest: HttpServletRequest) : RequestConnectionPoint {
+internal class ServletConnectionPoint(servletRequest: HttpServletRequest) : RequestConnectionPoint {
     override val uri = servletRequest.queryString.let { query ->
         if (query == null) {
             servletRequest.requestURI!!
@@ -16,21 +16,15 @@ internal class ServletConnectionPoint(val servletRequest: HttpServletRequest) : 
         }
     }
 
-    override val version: String
-        get() = servletRequest.protocol
+    override val version: String = servletRequest.protocol
 
-    override val method: HttpMethod
-        get() = HttpMethod.parse(servletRequest.method)
+    override val method: HttpMethod = HttpMethod.parse(servletRequest.method)
 
-    override val scheme: String
-        get() = servletRequest.scheme ?: "http"
+    override val scheme: String = servletRequest.scheme ?: "http"
 
-    override val port: Int
-        get() = servletRequest.serverPort
+    override val port: Int = servletRequest.serverPort
 
-    override val host: String
-        get() = servletRequest.serverName ?: "localhost"
+    override val host: String = servletRequest.serverName ?: "localhost"
 
-    override val remoteHost: String
-        get() = servletRequest.remoteHost
+    override val remoteHost: String = servletRequest.remoteHost
 }
