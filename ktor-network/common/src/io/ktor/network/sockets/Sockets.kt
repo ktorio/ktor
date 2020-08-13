@@ -4,11 +4,12 @@
 
 package io.ktor.network.sockets
 
+import io.ktor.network.util.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import java.io.*
-import java.net.*
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
+import kotlinx.coroutines.*
 
 /**
  * Base type for all async sockets
@@ -50,7 +51,7 @@ interface AConnectedSocket : AWritable {
     /**
      * Remote socket address. Could throw an exception if the peer is not yet connected or already disconnected.
      */
-    val remoteAddress: SocketAddress
+    val remoteAddress: NetworkAddress
 }
 
 /**
@@ -60,7 +61,7 @@ interface ABoundSocket {
     /**
      * Local socket address. Could throw an exception if no address bound yet.
      */
-    val localAddress: SocketAddress
+    val localAddress: NetworkAddress
 }
 
 /**
@@ -125,3 +126,6 @@ interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket
  * Represents a server bound socket ready for accepting connections
  */
 interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
+
+@Suppress("EXPECT_WITHOUT_ACTUAL", "KDocMissingDocumentation")
+public expect class SocketTimeoutException(message: String) : IOException

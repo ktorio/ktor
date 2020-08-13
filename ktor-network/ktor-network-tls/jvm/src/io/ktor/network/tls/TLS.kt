@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-suspend fun Socket.tls(
+actual suspend fun Socket.tls(
     coroutineContext: CoroutineContext, config: TLSConfig
 ): Socket {
     val reader = openReadChannel()
@@ -47,5 +47,5 @@ suspend fun Socket.tls(
 /**
  * Make [Socket] connection secure with TLS configured with [block].
  */
-suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit = {}): Socket =
+actual suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())

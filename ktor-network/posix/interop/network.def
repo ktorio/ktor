@@ -1,0 +1,19 @@
+package=io.ktor.network.interop
+---
+#include <sys/select.h>
+
+static inline void select_fd_remove(int descriptor, fd_set *set) {
+    FD_CLR(descriptor, set);
+}
+
+static inline void select_fd_add(int descriptor, fd_set* set) {
+    FD_SET(descriptor, set);
+}
+
+static inline void select_fd_clear(fd_set *set) {
+    FD_ZERO(set);
+}
+
+static inline int select_fd_isset(int descriptor, fd_set* set) {
+    return FD_ISSET(descriptor, set);
+}

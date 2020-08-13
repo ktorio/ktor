@@ -5,8 +5,7 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
-import io.ktor.network.tls.platform.*
-
+import io.ktor.utils.io.errors.*
 
 /**
  * TLS secret key exchange type.
@@ -153,7 +152,6 @@ object CIOCipherSuites {
     ).filter { it.isSupported() }
 }
 
-internal fun CipherSuite.isSupported(): Boolean = when (platformVersion.major) {
-    "1.8.0" -> platformVersion.minor >= 161 || keyStrength <= 128
-    else -> keyStrength <= 128
-}
+internal expect fun CipherSuite.isSupported(): Boolean
+
+internal class TLSException(message: String, cause: Throwable? = null) : IOException(message, cause)

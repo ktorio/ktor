@@ -14,7 +14,7 @@ import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.coroutines.*
 
-internal suspend fun openTLSSession(
+internal actual suspend fun openTLSSession(
     socket: Socket,
     input: ByteReadChannel, output: ByteWriteChannel,
     config: TLSConfig,

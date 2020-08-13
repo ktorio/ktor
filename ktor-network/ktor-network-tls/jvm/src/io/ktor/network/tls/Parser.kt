@@ -82,8 +82,8 @@ internal fun ByteReadPacket.readCurveParams(): NamedCurve {
 
             return NamedCurve.fromCode(curveId) ?: throw TLSException("Unknown EC id")
         }
-        ServerKeyExchangeType.ExplicitPrime -> TODO("ExplicitPrime server key exchange type is not yet supported")
-        ServerKeyExchangeType.ExplicitChar -> TODO("ExplicitChar server key exchange type is not yet supported")
+        ServerKeyExchangeType.ExplicitPrime -> error("ExplicitPrime server key exchange type is not yet supported")
+        ServerKeyExchangeType.ExplicitChar -> error("ExplicitChar server key exchange type is not yet supported")
     }
 }
 
@@ -123,8 +123,6 @@ internal fun ByteReadPacket.readECPoint(fieldSize: Int): ECPoint {
         BigInteger(1, readBytes(componentLength))
     )
 }
-
-internal class TLSException(message: String, cause: Throwable? = null) : IOException(message, cause)
 
 private suspend fun ByteReadChannel.readTLSVersion() =
     TLSVersion.byCode(readShortCompatible() and 0xffff)

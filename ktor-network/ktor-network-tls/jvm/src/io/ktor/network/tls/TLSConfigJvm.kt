@@ -16,7 +16,7 @@ import javax.net.ssl.*
  * @property cipherSuites: list of allowed [CipherSuite]s.
  * @property serverName: custom server name for TLS server name extension.
  */
-class TLSConfig(
+actual class TLSConfig(
     val random: SecureRandom,
     val certificates: List<CertificateAndKey>,
     val trustManager: X509TrustManager,
