@@ -4,12 +4,22 @@
 
 package io.ktor.util
 
+import platform.posix.*
+
 
 /**
- * Generates a nonce string. Could block if the system's entropy source is empty
+ * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @InternalAPI
-actual fun generateNonce(): String = error("[generateNonce] is not supported on iOS")
+actual fun generateNonce(): String {
+    val builder = StringBuilder()
+    repeat(16) {
+        builder.append(random().toChar())
+    }
+
+    return builder.toString()
+}
+
 
 /**
  * Create [Digest] from specified hash [name].

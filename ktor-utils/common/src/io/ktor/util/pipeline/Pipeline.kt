@@ -5,12 +5,16 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlin.jvm.*
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
 open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase) {
+    init {
+        preventFreeze()
+    }
     /**
      * Provides common place to store pipeline attributes
      */

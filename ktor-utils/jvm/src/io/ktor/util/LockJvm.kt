@@ -6,9 +6,7 @@
 
 package io.ktor.util
 
-import io.ktor.utils.io.core.*
 import java.util.concurrent.locks.*
-import java.util.concurrent.locks.Lock
 
 @InternalAPI
 actual class Lock {
