@@ -29,7 +29,7 @@ class KotlinxSerializer(
     internal fun writeContent(data: Any): String =
         json.encodeToString(buildSerializer(data, json.serializersModule), data)
 
-    @OptIn(UnsafeSerializationApi::class)
+    @OptIn(InternalSerializationApi::class)
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
         val deserializationStrategy = json.serializersModule.getContextual(type.type)
@@ -63,9 +63,9 @@ class KotlinxSerializer(
 }
 
 @Suppress("UNCHECKED_CAST")
-@OptIn(UnsafeSerializationApi::class)
+@OptIn(InternalSerializationApi::class)
 private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
-    is JsonElement -> JsonElementSerializer
+    is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
     is Array<*> -> value.firstOrNull()?.let { buildSerializer(it, module) } ?: ListSerializer(String.serializer())
     is Set<*> -> SetSerializer(value.elementSerializer(module))

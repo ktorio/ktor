@@ -2,7 +2,6 @@
 kotlin.sourceSets {
     commonMain.dependencies {
         api "org.jetbrains.kotlin:kotlin-stdlib-common"
-        api group: "org.jetbrains.kotlin", name: "kotlin-stdlib-common", version: kotlin_version
         api group: "org.jetbrains.kotlinx", name: "kotlinx-coroutines-core", version: coroutines_version
     }
     commonTest.dependencies {
