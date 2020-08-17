@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -22,7 +22,7 @@ import kotlinx.coroutines.sync.*
 import java.nio.channels.*
 import kotlin.coroutines.*
 
-internal class ConnectionPipeline(
+internal actual class ConnectionPipeline actual constructor(
     keepAliveTime: Long,
     pipelineMaxSize: Int,
     socket: Socket,
@@ -37,7 +37,7 @@ internal class ConnectionPipeline(
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
-    val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
+    actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
                 val task = withTimeoutOrNull(keepAliveTime) {
@@ -48,7 +48,7 @@ internal class ConnectionPipeline(
                     requestLimit.acquire()
                     responseChannel.send(ConnectionResponseTask(GMTDate(), task))
                 } catch (cause: Throwable) {
-                    task.response.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
 
@@ -114,7 +114,7 @@ internal class ConnectionPipeline(
                     }
 
                     val response = HttpResponseData(status, requestTime, headers, version, body, callContext)
-                    task.response.resume(response)
+                    task.response.complete(response)
 
                     responseChannel?.use {
                         parseHttpBody(
@@ -128,7 +128,7 @@ internal class ConnectionPipeline(
 
                     skipTask?.join()
                 } catch (cause: Throwable) {
-                    task.response.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                 }
 
                 task.context[Job]?.join()

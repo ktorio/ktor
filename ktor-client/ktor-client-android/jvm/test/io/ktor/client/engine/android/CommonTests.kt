@@ -6,6 +6,4 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.tests.*
 
-class AndroidMultithreadedTest : MultithreadedTest(Android)
-
 class AndroidHttpClientTest : HttpClientTest(Android)

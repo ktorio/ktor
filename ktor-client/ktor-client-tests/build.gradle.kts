@@ -80,6 +80,11 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-js"))
         }
     }
+    posixTest {
+        dependencies {
+            api(project(":ktor-client:ktor-client-cio"))
+        }
+    }
 
     if (!ideaActive) {
         listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {

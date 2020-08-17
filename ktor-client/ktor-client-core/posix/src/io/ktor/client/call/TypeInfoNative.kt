@@ -7,9 +7,7 @@ package io.ktor.client.call
 import kotlin.reflect.*
 
 
-actual interface Type
-
-object IosType : Type
+actual typealias Type = KType
 
 @PublishedApi
 internal open class TypeBase<T>
@@ -17,7 +15,8 @@ internal open class TypeBase<T>
 @OptIn(ExperimentalStdlibApi::class)
 actual inline fun <reified T> typeInfo(): TypeInfo {
     val kClass = T::class
-    return TypeInfo(kClass, IosType, typeOf<T>())
+    val kotlinType = typeOf<T>()
+    return TypeInfo(kClass, kotlinType, kotlinType)
 }
 
 /**

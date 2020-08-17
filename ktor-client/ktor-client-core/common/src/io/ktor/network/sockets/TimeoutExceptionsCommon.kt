@@ -8,35 +8,32 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
-import java.net.*
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class ConnectTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
-) : ConnectException(message) {
-}
+expect class ConnectTimeoutException(message: String, cause: Throwable? = null) : IOException
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class SocketTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
-) : java.net.SocketTimeoutException(message)
+expect class SocketTimeoutException(message: String, cause: Throwable? = null) : IOException
 
 /**
  * Returns [ByteReadChannel] with [ByteChannel.close] handler that returns [SocketTimeoutException] instead of
  * [SocketTimeoutException].
  */
 @InternalAPI
-fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: HttpRequestData): ByteReadChannel {
+public fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: HttpRequestData): ByteReadChannel {
+    if (PlatformUtils.IS_NATIVE) {
+        return input
+    }
+
     val replacementChannel = ByteChannelWithMappedExceptions(request)
 
-    writer(coroutineContext, replacementChannel) {
+    writer(channel = replacementChannel) {
         try {
             input.joinTo(replacementChannel, closeOnEnd = true)
         } catch (cause: Throwable) {
@@ -52,12 +49,16 @@ fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: HttpRequ
  * [SocketTimeoutException].
  */
 @InternalAPI
-fun CoroutineScope.mapEngineExceptions(input: ByteWriteChannel, request: HttpRequestData): ByteWriteChannel {
+public fun CoroutineScope.mapEngineExceptions(output: ByteWriteChannel, request: HttpRequestData): ByteWriteChannel {
+    if (PlatformUtils.IS_NATIVE) {
+        return output
+    }
+
     val replacementChannel = ByteChannelWithMappedExceptions(request)
 
-    writer(coroutineContext, replacementChannel) {
+    writer(channel = replacementChannel) {
         try {
-            replacementChannel.joinTo(input, closeOnEnd = true)
+            replacementChannel.joinTo(output, closeOnEnd = true)
         } catch (cause: Throwable) {
             replacementChannel.close(cause)
         }
@@ -70,9 +71,4 @@ fun CoroutineScope.mapEngineExceptions(input: ByteWriteChannel, request: HttpReq
  * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to
  * close it with [SocketTimeoutException]).
  */
-private fun ByteChannelWithMappedExceptions(request: HttpRequestData) = ByteChannel { cause ->
-    when (cause?.rootCause) {
-        is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)
-        else -> cause
-    }
-}
+internal expect fun ByteChannelWithMappedExceptions(request: HttpRequestData): ByteChannel

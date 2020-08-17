@@ -1,6 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.http.*
+import io.ktor.network.util.*
 
 /**
  * Proxy configuration.
@@ -27,3 +28,18 @@ actual object ProxyBuilder {
         error("Proxy unsupported in js client engine.")
     }
 }
+
+/**
+ * Resolve remote address of [ProxyConfig].
+ *
+ * This operations can block.
+ */
+public actual fun ProxyConfig.resolveAddress(): NetworkAddress {
+    error("Proxy unsupported in js client engine.")
+}
+
+/**
+ * Type of configured proxy.
+ */
+public actual val ProxyConfig.type: ProxyType
+    get() = error("Proxy unsupported in js client engine.")

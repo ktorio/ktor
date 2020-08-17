@@ -1,6 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.http.*
+import io.ktor.network.util.*
 import java.net.*
 
 /**
@@ -24,3 +25,20 @@ actual object ProxyBuilder {
      */
     actual fun socks(host: String, port: Int): ProxyConfig = Proxy(Proxy.Type.SOCKS, InetSocketAddress(host, port))
 }
+
+/**
+ * Resolve remote address of [ProxyConfig].
+ *
+ * This operations can block.
+ */
+public actual fun ProxyConfig.resolveAddress(): NetworkAddress = address()
+
+/**
+ * Type of configured proxy.
+ */
+public actual val ProxyConfig.type: ProxyType
+    get() = when (type()) {
+        Proxy.Type.DIRECT -> ProxyType.SOCKS
+        Proxy.Type.HTTP -> ProxyType.HTTP
+        else -> ProxyType.UNKNOWN
+    }

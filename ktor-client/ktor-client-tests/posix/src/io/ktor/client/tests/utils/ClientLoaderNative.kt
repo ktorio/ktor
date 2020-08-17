@@ -29,8 +29,13 @@ actual abstract class ClientLoader {
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
-        val filteredEngines = engines.filter { !skipEnginesLowerCase.contains(it.toString().toLowerCase()) }
+        if (skipEngines.contains("native")) return
+
+        val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }.toSet()
+        val filteredEngines = engines.filter {
+            val name = it.toString().toLowerCase()
+            !skipEnginesLowerCase.contains(name) && !skipEnginesLowerCase.contains("native:$name")
+        }
 
         val failures = mutableListOf<TestFailure>()
         for (engine in filteredEngines) {

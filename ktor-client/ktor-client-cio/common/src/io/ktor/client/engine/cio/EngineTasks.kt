@@ -13,13 +13,13 @@ import kotlin.coroutines.*
 
 internal data class RequestTask(
     val request: HttpRequestData,
-    val response: CancellableContinuation<HttpResponseData>,
+    val response: CompletableDeferred<HttpResponseData>,
     val context: CoroutineContext
 )
 
-internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.body.headers).any {
+internal fun HttpRequestData.requiresDedicatedConnection(): Boolean = listOf(headers, body.headers).any {
     it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
-} || request.method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts()
+} || method !in listOf(HttpMethod.Get, HttpMethod.Head) || containsCustomTimeouts()
 
 internal data class ConnectionResponseTask(
     val requestTime: GMTDate,
@@ -29,7 +29,6 @@ internal data class ConnectionResponseTask(
 /**
  * Return true if request task contains timeout attributes specified using [HttpTimeout] feature.
  */
-private fun RequestTask.containsCustomTimeouts() =
-    request.getCapabilityOrNull(HttpTimeout)?.let {
-        it.connectTimeoutMillis != null || it.socketTimeoutMillis != null
-    } == true
+private fun HttpRequestData.containsCustomTimeouts() = getCapabilityOrNull(HttpTimeout)?.let {
+    it.connectTimeoutMillis != null || it.socketTimeoutMillis != null
+} == true

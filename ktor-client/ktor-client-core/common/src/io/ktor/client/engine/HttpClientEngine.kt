@@ -10,13 +10,14 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
-private val CALL_COROUTINE = CoroutineName("call-context")
+internal val CALL_COROUTINE = CoroutineName("call-context")
 
 /**
  * Base interface use to define engines for [HttpClient].
@@ -74,8 +75,10 @@ interface HttpClientEngine : CoroutineScope, Closeable {
      */
     private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
         val callContext = createCallContext(requestData.executionContext)
+        callContext.makeShared()
 
-        return async(callContext + KtorCallContextElement(callContext)) {
+        val context = callContext + KtorCallContextElement(callContext)
+        return async(context) {
             if (closed) {
                 throw ClientEngineClosedException()
             }
@@ -88,20 +91,6 @@ interface HttpClientEngine : CoroutineScope, Closeable {
         for (requestedExtension in requestData.requiredCapabilities) {
             require(supportedCapabilities.contains(requestedExtension)) { "Engine doesn't support $requestedExtension" }
         }
-    }
-
-    /**
-     * Create call context with the specified [parentJob] to be used during call execution in the engine. Call context
-     * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
-     * call coroutine's name is "call-context".
-     */
-    private suspend fun createCallContext(parentJob: Job): CoroutineContext {
-        val callJob = Job(parentJob)
-        val callContext = this@HttpClientEngine.coroutineContext + callJob + CALL_COROUTINE
-
-        attachToUserJob(callJob)
-
-        return callContext
     }
 }
 
@@ -129,6 +118,13 @@ fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() 
         }
     }
 }
+
+/**
+ * Create call context with the specified [parentJob] to be used during call execution in the engine. Call context
+ * inherits [coroutineContext], but overrides job and coroutine name so that call job's parent is [parentJob] and
+ * call coroutine's name is "call-context".
+ */
+internal expect suspend fun HttpClientEngine.createCallContext(parentJob: Job): CoroutineContext
 
 /**
  * Validates request headers and fails if there are unsafe headers supplied

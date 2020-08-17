@@ -13,7 +13,7 @@ import kotlin.test.*
 
 @Suppress("PublicApiImplicitType")
 class WebSocketTest : ClientLoader() {
-    private val skipForWebsockets = listOf("Apache", "Android", "iOS", "Curl")
+    private val skipForWebsockets = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
 
     @Test
     fun testEcho() = clientTests(skipForWebsockets) {
@@ -71,7 +71,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testEchoWSS() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
+    fun testEchoWSS() = clientTests(listOf("Apache", "Android", "Js", "iOS", "Curl", "native:CIO")) {
         config {
             install(WebSockets)
         }

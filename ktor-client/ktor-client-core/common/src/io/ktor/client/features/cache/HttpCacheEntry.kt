@@ -34,7 +34,8 @@ class HttpCacheEntry internal constructor(
     }
 
     internal fun produceResponse(): HttpResponse {
-        val call = SavedHttpCall(response.call.client)
+        val currentClient = response.call.client ?: error("Failed to save response in cache in different thread.")
+        val call = SavedHttpCall(currentClient)
         call.response = SavedHttpResponse(call, body, response)
         call.request = SavedHttpRequest(call, response.call.request)
 

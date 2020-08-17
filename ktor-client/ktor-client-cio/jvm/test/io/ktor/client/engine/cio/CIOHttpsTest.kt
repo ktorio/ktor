@@ -132,7 +132,7 @@ class CIOHttpsTest : TestWithKtor() {
                         assertEquals("Hello, world", actual)
                     } catch (cause: Throwable) {
                         println("${suite.name}: $cause")
-                        client.cancel()
+                        client.cancel("Failed with: $cause")
                         fail("${suite.name}: $cause")
                     }
                 }

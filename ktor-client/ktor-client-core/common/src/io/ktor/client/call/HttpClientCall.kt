@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -34,9 +35,11 @@ internal fun HttpClientCall(
  * @property client: client that executed the call.
  */
 open class HttpClientCall internal constructor(
-    val client: HttpClient
+    client: HttpClient
 ) : CoroutineScope {
     private val received = atomic(false)
+
+    public val client: HttpClient? by threadLocal(client)
 
     override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
@@ -72,7 +75,9 @@ open class HttpClientCall internal constructor(
             val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
             val subject = HttpResponseContainer(info, responseData)
-            val result = client.responsePipeline.execute(this, subject).response
+            val currentClient = client ?: error("Failed to receive call($this) in different native thread.")
+
+            val result = currentClient.responsePipeline.execute(this, subject).response
             if (!result.instanceOf(info.type)) {
                 val from = result::class
                 val to = info.type

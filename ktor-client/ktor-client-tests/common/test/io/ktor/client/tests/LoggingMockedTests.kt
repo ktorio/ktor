@@ -12,6 +12,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
@@ -103,6 +104,8 @@ class LoggingMockedTests {
         }
 
         test { client ->
+            if (PlatformUtils.IS_NATIVE) return@test
+
             var failed = false
             client.get<HttpStatement>().execute {
                 try {
@@ -116,6 +119,8 @@ class LoggingMockedTests {
         }
 
         after {
+            if (PlatformUtils.IS_NATIVE) return@after
+
             testLogger.verify()
         }
     }
