@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.network.sockets.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * Client HTTP timeout feature. There are no default values, so default timeouts will be taken from engine configuration

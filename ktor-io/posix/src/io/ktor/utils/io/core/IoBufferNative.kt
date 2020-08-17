@@ -3,6 +3,7 @@ package io.ktor.utils.io.core
 
 import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import platform.posix.*
@@ -19,7 +20,7 @@ actual class IoBuffer actual constructor(
     memory: Memory,
     origin: ChunkBuffer?
 ) : Input, Output, ChunkBuffer(memory, origin) {
-    internal var refCount = 1
+    internal var refCount by shared(1)
 
     private val contentCapacity: Int get() = memory.size32
 

@@ -3,9 +3,10 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
-import io.ktor.utils.io.pool.ObjectPool
+import io.ktor.utils.io.pool.*
 
 /**
  * The default [Output] implementation.
@@ -34,8 +35,8 @@ internal constructor(
      */
     protected abstract fun closeDestination()
 
-    private var _head: ChunkBuffer? = null
-    private var _tail: ChunkBuffer? = null
+    private var _head: ChunkBuffer? by shared(null)
+    private var _tail: ChunkBuffer? by shared(null)
 
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
@@ -54,17 +55,17 @@ internal constructor(
             appendChain(newValue)
         }
 
-    internal var tailMemory: Memory = Memory.Empty
-    internal var tailPosition = 0
-    internal var tailEndExclusive = 0
+    internal var tailMemory: Memory by shared(Memory.Empty)
+    internal var tailPosition by shared(0)
+    internal var tailEndExclusive by shared(0)
         private set
 
-    private var tailInitialPosition = 0
+    private var tailInitialPosition by shared(0)
 
     /**
      * Number of bytes buffered in the chain except the tail chunk
      */
-    private var chainedSize: Int = 0
+    private var chainedSize: Int by shared(0)
 
     internal inline val tailRemaining: Int get() = tailEndExclusive - tailPosition
 
@@ -272,10 +273,23 @@ internal constructor(
             return
         }
 
-        writePacketMerging(_tail, foreignStolen, p)
+        writePacketMerging(_tail, foreignStolen, p.pool)
     }
 
-    private fun writePacketMerging(tail: ChunkBuffer, foreignStolen: ChunkBuffer, p: ByteReadPacket) {
+    /**
+     * Write chunk buffer to current [Output]. Assuming that chunk buffer is from current pool.
+     */
+    internal fun writeChunkBuffer(chunkBuffer: ChunkBuffer) {
+        val _tail = _tail
+        if (_tail == null) {
+            appendChain(chunkBuffer)
+            return
+        }
+
+        writePacketMerging(_tail, chunkBuffer, pool)
+    }
+
+    private fun writePacketMerging(tail: ChunkBuffer, foreignStolen: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) {
         tail.commitWrittenUntilIndex(tailPosition)
 
         val lastSize = tail.readRemaining
@@ -303,7 +317,7 @@ internal constructor(
                 appendChain(next)
             }
 
-            foreignStolen.release(p.pool)
+            foreignStolen.release(pool)
         } else if (appendSize == -1 || prependSize < appendSize) {
             writePacketSlowPrepend(foreignStolen, tail)
         } else {
@@ -458,10 +472,13 @@ internal constructor(
     }
 
     @PublishedApi
-    internal inline fun write(size: Int, block: (Buffer) -> Int) {
+    internal inline fun write(size: Int, block: (Buffer) -> Int): Int {
         val buffer = prepareWriteHead(size)
         try {
-            check(block(buffer) >= 0) { "The returned value shouldn't be negative" }
+            val result = block(buffer)
+            check(result >= 0) { "The returned value shouldn't be negative" }
+
+            return result
         } finally {
             afterHeadWrite()
         }

@@ -10,6 +10,7 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -162,6 +163,9 @@ class HttpClient(
             config += this
             config.install(this@HttpClient)
         }
+
+        coroutineContext.makeShared()
+        preventFreeze()
     }
 
     /**

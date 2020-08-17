@@ -18,7 +18,8 @@ actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): Unit = runBlocking {
-    val loop = coroutineContext[ContinuationInterceptor] as EventLoop
+//    val loop = coroutineContext[ContinuationInterceptor] as ShareableEventLoop
+    val loop = ThreadLocalEventLoop.currentOrNull()!!
 
     val task = launch { block() }
     while (!task.isCompleted) {

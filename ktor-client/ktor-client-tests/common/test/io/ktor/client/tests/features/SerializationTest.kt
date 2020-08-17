@@ -17,7 +17,7 @@ class MyCustomObject(val message: String)
 
 class SerializationTest : ClientLoader() {
     @Test
-    fun testSendCustomObject() = clientTests {
+    fun testSendCustomObject() = clientTests(listOf("native:CIO")) {
         config {
             install(JsonFeature)
         }
@@ -34,7 +34,7 @@ class SerializationTest : ClientLoader() {
     }
 
     @Test
-    fun testSendStringWithSerialization() = clientTests {
+    fun testSendStringWithSerialization() = clientTests(listOf("native:CIO")) {
         config {
             install(JsonFeature)
         }

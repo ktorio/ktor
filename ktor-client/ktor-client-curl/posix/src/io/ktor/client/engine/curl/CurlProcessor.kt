@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.internal.*
+import io.ktor.util.collections.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
@@ -21,7 +22,7 @@ internal class CurlProcessor(
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     private val worker: Worker = Worker.start()
-    private val responseConsumers: MutableMap<CurlRequestData, CompletableDeferred<CurlSuccess>> = mutableMapOf()
+    private val responseConsumers: ConcurrentMap<CurlRequestData, CompletableDeferred<CurlSuccess>> = ConcurrentMap()
     private val activeRequests = atomic(0)
 
     init {

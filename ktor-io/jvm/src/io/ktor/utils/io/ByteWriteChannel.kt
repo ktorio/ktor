@@ -1,6 +1,8 @@
 package io.ktor.utils.io
 
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.ByteOrder
 import java.nio.*
 
@@ -180,5 +182,9 @@ actual interface ByteWriteChannel {
 
     @ExperimentalIoApi
     actual suspend fun awaitFreeSpace()
+
+    public actual suspend fun writeFully(src: Buffer)
+
+    public actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 }
 

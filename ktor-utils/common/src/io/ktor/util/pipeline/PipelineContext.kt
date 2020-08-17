@@ -5,6 +5,7 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
@@ -69,6 +70,10 @@ private class SuspendFunctionGun<TSubject : Any, TContext : Any>(
     override val context: TContext,
     private val blocks: List<PipelineInterceptor<TSubject, TContext>>
 ) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject>, CoroutineScope {
+
+    init {
+        preventFreeze()
+    }
 
     override val coroutineContext: CoroutineContext get() = continuation.context
 

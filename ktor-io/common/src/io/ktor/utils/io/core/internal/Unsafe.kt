@@ -29,6 +29,20 @@ fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
     append(builderHead)
 }
 
+internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
+    val builderSize = builder.size
+    val builderHead = builder.stealAll() ?: return 0
+
+    if (builderSize <= PACKET_MAX_COPY_SIZE && builderHead.next == null && tryWriteAppend(builderHead)) {
+        builder.afterBytesStolen()
+        return builderSize
+    }
+
+    append(builderHead)
+    return builderSize
+}
+
+
 @Suppress("DEPRECATION", "UNUSED")
 @JvmName("prepareReadFirstHead")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)

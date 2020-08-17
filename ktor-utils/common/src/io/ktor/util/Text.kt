@@ -68,7 +68,7 @@ fun String.toLowerCasePreservingASCIIRules(): String {
  * so latin characters are converted by the original english rules.
  */
 @InternalAPI
-fun String.toUpperCasePreservingASCIIRules(): String {
+public fun String.toUpperCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {
         toUpperCasePreservingASCII(it) != it
     }

@@ -23,13 +23,18 @@ fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = InputAdapt
 fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
 
 private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) : InputStream() {
+    private val context = Job(parent)
+
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
             var rc = 0
             while (true) {
                 val buffer = rendezvous(rc) as ByteArray
                 rc = channel.readAvailable(buffer, offset, length)
-                if (rc == -1) break
+                if (rc == -1) {
+                    context.complete()
+                    break
+                }
             }
             finish(rc)
         }
@@ -59,6 +64,9 @@ private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) :
     override fun close() {
         super.close()
         channel.cancel()
+        if (!context.isCompleted) {
+            context.cancel()
+        }
         loop.shutdown()
     }
 }

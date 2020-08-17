@@ -1,6 +1,4 @@
 def skipModules = [
-    "ktor-network",
-    "ktor-network-tls",
     "ktor-client-cio"
 ]
 

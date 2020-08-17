@@ -17,7 +17,7 @@ class TextContent(
     override val contentType: ContentType,
     override val status: HttpStatusCode? = null
 ) : OutgoingContent.ByteArrayContent() {
-    private val bytes by lazy(LazyThreadSafetyMode.NONE) { text.toByteArray(contentType.charset() ?: Charsets.UTF_8) }
+    private val bytes = text.toByteArray(contentType.charset() ?: Charsets.UTF_8)
 
     override val contentLength: Long
         get() = bytes.size.toLong()

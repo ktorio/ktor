@@ -26,6 +26,8 @@ internal fun startServer(): Closeable {
         benchmarks()
     }.start()
 
+    Thread.sleep(1000)
+
     return Closeable {
         proxyServer.close()
         server.stop(0L, 0L, TimeUnit.MILLISECONDS)

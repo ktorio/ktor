@@ -20,10 +20,10 @@ class JvmContentTest : ClientLoader() {
 
     @Test
     fun inputStreamTest() = clientTests {
-        testSize.forEach { size ->
-            val content = makeArray(size)
+        test { client ->
+            testSize.forEach { size ->
+                val content = makeArray(size)
 
-            test { client ->
                 val responseData = client.echo<InputStream, ByteArray>(content) { response ->
                     response.readBytes()
                 }

@@ -109,7 +109,7 @@ class ChunkedTest {
 
     @Test
     fun testEncodeChunks() = runBlocking {
-        val output = ByteChannel(true)
+        val output = ByteChannel(false)
         val encoded = ByteChannel()
 
         launch {

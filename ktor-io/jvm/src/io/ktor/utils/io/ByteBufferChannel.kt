@@ -209,7 +209,7 @@ internal open class ByteBufferChannel(
                 }
                 closed != null -> {
                     _allocated?.let { releaseBuffer(it) }
-                    throw closed!!.sendException
+                    rethrowClosed(closed!!.sendException)
                 }
                 state === ReadWriteBufferState.IdleEmpty -> {
                     val allocated = _allocated ?: newBuffer().also { _allocated = it }
@@ -218,7 +218,7 @@ internal open class ByteBufferChannel(
                 state === ReadWriteBufferState.Terminated -> {
                     _allocated?.let { releaseBuffer(it) }
                     if (joining != null) return null
-                    throw closed!!.sendException
+                    rethrowClosed(closed!!.sendException)
                 }
                 else -> state.startWriting()
             }
@@ -228,7 +228,7 @@ internal open class ByteBufferChannel(
             restoreStateAfterWrite()
             tryTerminate()
 
-            throw closed!!.sendException
+            rethrowClosed(closed!!.sendException)
         }
 
         val buffer = newState.writeBuffer
@@ -265,8 +265,8 @@ internal open class ByteBufferChannel(
     private fun setupStateForRead(): ByteBuffer? {
         val newState = updateStateAndGet { state ->
             when (state) {
-                ReadWriteBufferState.Terminated -> closed?.cause?.let { throw it } ?: return null
-                ReadWriteBufferState.IdleEmpty -> closed?.cause?.let { throw it } ?: return null
+                ReadWriteBufferState.Terminated -> closed?.cause?.let { rethrowClosed(it) } ?: return null
+                ReadWriteBufferState.IdleEmpty -> closed?.cause?.let { rethrowClosed(it) } ?: return null
                 else -> {
                     if (state.capacity.availableForRead == 0) return null
                     state.startReading()
@@ -412,7 +412,7 @@ internal open class ByteBufferChannel(
         val before = @Suppress("DEPRECATION") current.totalBytesWritten
 
         try {
-            current.closed?.let { throw it.sendException }
+            current.closed?.let { rethrowClosed(it.sendException) }
             block(current, buffer, capacity)
         } finally {
             if (capacity.isFull() || current.autoFlush) current.flush()
@@ -659,7 +659,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
-        closed?.cause?.let { throw it }
+        closed?.cause?.let { rethrowClosed(it) }
 
         if (size == 0) return ByteReadPacket.Empty
 
@@ -1237,6 +1237,19 @@ internal open class ByteBufferChannel(
         return writeFullySuspend(src)
     }
 
+    override suspend fun writeFully(src: Buffer) {
+        while (src.readRemaining > 0) {
+            write { buffer ->
+                src.readAvailable(buffer)
+            }
+        }
+    }
+
+    override suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int) {
+        val slice = memory.slice(startIndex, endIndex - startIndex)
+        writeFully(slice.buffer)
+    }
+
     override suspend fun writeFully(src: IoBuffer) {
         writeAsMuchAsPossible(src)
         if (!src.canRead()) return
@@ -1281,7 +1294,7 @@ internal open class ByteBufferChannel(
             return
         }
         closed?.let { closed ->
-            if (src.closed == null) throw closed.sendException
+            if (src.closed == null) rethrowClosed(closed.sendException)
             return
         }
 
@@ -1620,7 +1633,7 @@ internal open class ByteBufferChannel(
 
     override suspend fun writeWhile(block: (ByteBuffer) -> Boolean) {
         if (!writeWhileNoSuspend(block)) return
-        closed?.let { throw it.sendException }
+        closed?.let { rethrowClosed(it.sendException) }
         return writeWhileSuspend(block)
     }
 
@@ -1650,7 +1663,7 @@ internal open class ByteBufferChannel(
         }
 
         if (!continueWriting) return
-        closed?.let { throw it.sendException }
+        closed?.let { rethrowClosed(it.sendException) }
         joining?.let { return writeWhile(block) }
     }
 
@@ -2265,10 +2278,11 @@ internal open class ByteBufferChannel(
         val capacity = state.capacity
         if (capacity.availableForRead >= size) return true
 
-        closed?.let { c ->
-            if (c.cause != null) throw c.cause
+        closed?.let { closedValue ->
+            closedValue.cause?.let { rethrowClosed(it) }
             val afterCapacity = state.capacity
             val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
+
             if (readOp != null) throw IllegalStateException("Read operation is already in progress")
             return result
         }
@@ -2281,8 +2295,8 @@ internal open class ByteBufferChannel(
         val capacity = state.capacity
         if (capacity.availableForRead >= size) return true
 
-        closed?.let { c ->
-            if (c.cause != null) throw c.cause
+        closed?.let { value ->
+            if (value.cause != null) rethrowClosed(value.cause)
             val afterCapacity = state.capacity
             val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
             if (readOp != null) throw IllegalStateException("Read operation is already in progress")
@@ -2361,7 +2375,7 @@ internal open class ByteBufferChannel(
         val size = writeSuspensionSize
 
         do {
-            closed?.sendException?.let { throw it }
+            closed?.sendException?.let { rethrowClosed(it) }
             if (!writeSuspendPredicate(size)) {
                 ucont.resume(Unit)
                 break
@@ -2379,7 +2393,7 @@ internal open class ByteBufferChannel(
 
     internal suspend fun tryWriteSuspend(size: Int) {
         if (!writeSuspendPredicate(size)) {
-            closed?.sendException?.let { throw it }
+            closed?.sendException?.let { rethrowClosed(it) }
             return
         }
 
@@ -2399,7 +2413,7 @@ internal open class ByteBufferChannel(
         while (writeSuspendPredicate(size)) {
             suspendCancellableCoroutine<Unit> { c ->
                 do {
-                    closed?.sendException?.let { throw it }
+                    closed?.sendException?.let { rethrowClosed(it) }
                     if (!writeSuspendPredicate(size)) {
                         c.resume(Unit)
                         break
@@ -2414,7 +2428,7 @@ internal open class ByteBufferChannel(
             }
         }
 
-        closed?.sendException?.let { throw it }
+        closed?.sendException?.let { rethrowClosed(it) }
     }
 
     private inline fun <T, C : Continuation<T>> setContinuation(
@@ -2540,6 +2554,8 @@ internal open class ByteBufferChannel(
         val sendException: Throwable
             get() = cause ?: ClosedWriteChannelException("The channel was closed")
 
+        override fun toString(): String = "Closed[$sendException]"
+
         companion object {
             val EmptyCause = ClosedElement(null)
         }
@@ -2572,4 +2588,8 @@ internal open class ByteBufferChannel(
             return closeWaitJob.join()
         }
     }
+}
+
+private fun rethrowClosed(cause: Throwable): Nothing {
+    throw tryCopyException(cause, cause) ?: cause
 }

@@ -109,13 +109,14 @@ fun writer(
 /**
  * @param S not exactly safe (unchecked cast is used) so should be [ReaderScope] or [WriterScope]
  */
+@OptIn(ExperimentalStdlibApi::class)
 private fun <S : CoroutineScope> CoroutineScope.launchChannel(
     context: CoroutineContext,
     channel: ByteChannel,
     attachJob: Boolean,
     block: suspend S.() -> Unit
 ): ChannelJob {
-    val originJob = coroutineContext[Job]
+    val dispatcher = coroutineContext[CoroutineDispatcher]
     val job = launch(context) {
         if (attachJob) {
             channel.attachJob(coroutineContext[Job]!!)
@@ -127,11 +128,11 @@ private fun <S : CoroutineScope> CoroutineScope.launchChannel(
         try {
             block(scope)
         } catch (cause: Throwable) {
-            if (originJob != null) {
+            if (dispatcher != Dispatchers.Unconfined && dispatcher != null) {
                 throw cause
-            } else {
-                channel.cancel(cause)
             }
+
+            channel.cancel(cause)
         }
     }
 

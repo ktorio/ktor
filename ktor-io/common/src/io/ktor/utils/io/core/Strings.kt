@@ -251,6 +251,10 @@ fun Input.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE):
     return charset.newDecoder().decode(this, max)
 }
 
+/**
+ * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
+ * @return a decoded string
+ */
 fun Buffer.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String = buildString {
     charset.newDecoder().decodeBuffer(this@readText, this, true, max)
 }

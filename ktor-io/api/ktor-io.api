@@ -27,7 +27,9 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun <init> (Lio/ktor/utils/io/core/IoBuffer;ZLio/ktor/utils/io/pool/ObjectPool;)V
 	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;ZLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	protected final fun afterRead ()V
+	protected final fun afterRead (I)V
 	protected final fun afterWrite ()V
+	protected final fun afterWrite (I)V
 	public fun await (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun awaitFreeSpace (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun awaitSuspend (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -82,8 +84,10 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun writeByte (BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeDouble (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFloat (FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeInt (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeLong (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writePacket (Lio/ktor/utils/io/core/ByteReadPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -200,9 +204,11 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun writeByte (BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeDouble (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFloat (FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeInt (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeLong (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writePacket (Lio/ktor/utils/io/core/ByteReadPacket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -291,6 +297,11 @@ public final class io/ktor/utils/io/DelimitedKt {
 	public static final fun skipDelimiter (Lio/ktor/utils/io/ByteReadChannel;Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/utils/io/ExceptionUtilsJvmKt {
+	public static final fun printStack (Ljava/lang/Throwable;)V
+	public static final fun tryCopyException (Ljava/lang/Throwable;Ljava/lang/Throwable;)Ljava/lang/Throwable;
+}
+
 public abstract interface class io/ktor/utils/io/LookAheadSession {
 	public abstract fun consumed (I)V
 	public abstract fun request (II)Ljava/nio/ByteBuffer;
@@ -303,6 +314,11 @@ public final class io/ktor/utils/io/LookAheadSessionKt {
 
 public abstract interface class io/ktor/utils/io/LookAheadSuspendSession : io/ktor/utils/io/LookAheadSession {
 	public abstract fun awaitAtLeast (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/utils/io/NativeUtilsJvmKt {
+	public static final fun makeShared (Ljava/lang/Object;)V
+	public static final fun preventFreeze (Ljava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/utils/io/ReadSession {
@@ -635,6 +651,11 @@ public final class io/ktor/utils/io/charsets/UTFKt {
 	public static final fun decodeUtf8ResultCombine (JJ)J
 }
 
+public final class io/ktor/utils/io/concurrent/SharedJvmKt {
+	public static final fun shared (Ljava/lang/Object;)Lkotlin/properties/ReadWriteProperty;
+	public static final fun threadLocal (Ljava/lang/Object;)Lkotlin/properties/ReadOnlyProperty;
+}
+
 public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/core/Input {
 	public static final field Companion Lio/ktor/utils/io/core/AbstractInput$Companion;
 	public fun <init> ()V
@@ -733,7 +754,7 @@ public abstract class io/ktor/utils/io/core/AbstractOutput : io/ktor/utils/io/co
 	public final fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	protected final fun setCurrentTail (Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
 	protected final fun set_size (I)V
-	public final fun write (ILkotlin/jvm/functions/Function1;)V
+	public final fun write (ILkotlin/jvm/functions/Function1;)I
 	public final fun writeByte (B)V
 	public synthetic fun writeDouble (D)V
 	public synthetic fun writeFloat (F)V
@@ -981,6 +1002,7 @@ public final class io/ktor/utils/io/core/ByteBuffersKt {
 	public static final fun readDirect (Lio/ktor/utils/io/core/ByteReadPacket;ILkotlin/jvm/functions/Function1;)V
 	public static final synthetic fun readDirect (Lio/ktor/utils/io/core/ByteReadPacketBase;ILkotlin/jvm/functions/Function1;)V
 	public static final fun readFully (Lio/ktor/utils/io/core/ByteReadPacket;Ljava/nio/ByteBuffer;)I
+	public static final fun writeByteBufferDirect (Lio/ktor/utils/io/core/BytePacketBuilder;ILkotlin/jvm/functions/Function1;)I
 	public static final fun writeDirect (Lio/ktor/utils/io/core/BytePacketBuilder;ILkotlin/jvm/functions/Function1;)V
 	public static final synthetic fun writeFully (Lio/ktor/utils/io/core/BytePacketBuilder;Ljava/nio/ByteBuffer;)V
 }

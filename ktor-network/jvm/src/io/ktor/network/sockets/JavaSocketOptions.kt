@@ -102,6 +102,10 @@ internal object SocketOptionsPlatformCapabilities {
         standardSocketOptions[name]?.get(null) ?: throw IOException("Socket option $name is not supported")
 }
 
+internal fun SelectableChannel.nonBlocking() {
+    configureBlocking(false)
+}
+
 internal fun SelectableChannel.assignOptions(options: SocketOptions) {
     if (this is SocketChannel) {
         val socket = socket()!!

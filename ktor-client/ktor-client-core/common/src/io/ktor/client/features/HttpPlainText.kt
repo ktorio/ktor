@@ -127,7 +127,9 @@ class HttpPlainText internal constructor(
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->
                 feature.addCharsetHeaders(context)
 
-                if (content !is String) return@intercept
+                if (content !is String) {
+                    return@intercept
+                }
 
                 val contentType = context.contentType()
                 if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) return@intercept
@@ -138,7 +140,9 @@ class HttpPlainText internal constructor(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
                 if (info.type != String::class || body !is ByteReadChannel) return@intercept
-                val content = feature.read(context, body.readRemaining())
+
+                val bodyBytes = body.readRemaining()
+                val content = feature.read(context, bodyBytes)
                 proceedWith(HttpResponseContainer(info, content))
             }
         }
