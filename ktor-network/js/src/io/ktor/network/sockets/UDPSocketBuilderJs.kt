@@ -5,7 +5,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
+import io.ktor.util.network.NetworkAddress
 
 internal actual fun UDPSocketBuilder.Companion.connectUDP(
     selector: SelectorManager,

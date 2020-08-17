@@ -1,7 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.http.*
-import io.ktor.network.util.*
+import io.ktor.util.network.*
 
 /**
  * Proxy configuration.
@@ -34,7 +34,7 @@ actual class ProxyConfig(val url: Url) {
  *
  * This operations can block.
  */
-public actual fun ProxyConfig.resolveAddress(): NetworkAddress = NetworkAddress(url.host, url.port)
+public actual fun ProxyConfig.resolveAddress(): io.ktor.util.network.NetworkAddress = NetworkAddress(url.host, url.port)
 
 /**
  * [ProxyConfig] factory.

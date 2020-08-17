@@ -22,7 +22,7 @@ kotlin {
             }
         }
 
-        if (!ideaActive) {
+        if (!ideaActive && findByName("posixMain") != null) {
             val networkInterop by creating
             getByName("posixMain").dependsOn(networkInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")

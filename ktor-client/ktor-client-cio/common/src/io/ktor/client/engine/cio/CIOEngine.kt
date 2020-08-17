@@ -10,9 +10,9 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
+import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*

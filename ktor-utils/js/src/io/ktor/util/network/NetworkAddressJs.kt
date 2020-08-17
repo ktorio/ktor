@@ -2,7 +2,7 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.network.util
+package io.ktor.util.network
 
 public actual class NetworkAddress internal constructor(
     internal val hostname: String,
@@ -18,4 +18,5 @@ public actual val NetworkAddress.port: Int
 
 public actual class UnresolvedAddressException : IllegalArgumentException()
 
-actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress = NetworkAddress(hostname, port, hostname)
+actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
+    io.ktor.util.network.NetworkAddress(hostname, port, hostname)

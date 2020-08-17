@@ -5,8 +5,8 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
 import io.ktor.util.*
+import io.ktor.util.network.NetworkAddress
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*

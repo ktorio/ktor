@@ -6,7 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.network.util.*
+import io.ktor.util.network.*
 import kotlinx.coroutines.sync.*
 
 internal class ConnectionFactory(

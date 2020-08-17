@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.network.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -30,7 +31,11 @@ internal actual suspend fun connect(
 
             return TCPSocketNative(
                 descriptor, selector,
-                remoteAddress = NetworkAddress(networkAddress.hostname, networkAddress.port, remote),
+                remoteAddress = NetworkAddress(
+                    networkAddress.hostname,
+                    networkAddress.port,
+                    remote
+                ),
                 localAddress = NetworkAddress("0.0.0.0", localAddress.port, localAddress)
             )
         } catch (_: Throwable) {

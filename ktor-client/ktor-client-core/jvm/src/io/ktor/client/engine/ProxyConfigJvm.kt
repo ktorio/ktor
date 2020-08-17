@@ -1,7 +1,7 @@
 package io.ktor.client.engine
 
 import io.ktor.http.*
-import io.ktor.network.util.*
+import io.ktor.util.network.*
 import java.net.*
 
 /**

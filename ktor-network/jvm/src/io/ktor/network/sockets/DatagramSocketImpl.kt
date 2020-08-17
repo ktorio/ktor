@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.core.*

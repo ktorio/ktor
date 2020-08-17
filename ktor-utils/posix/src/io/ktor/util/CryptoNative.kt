@@ -14,7 +14,7 @@ import platform.posix.*
 actual fun generateNonce(): String {
     val builder = StringBuilder()
     repeat(16) {
-        builder.append(random().toChar())
+        builder.append(rand().toChar())
     }
 
     return builder.toString()

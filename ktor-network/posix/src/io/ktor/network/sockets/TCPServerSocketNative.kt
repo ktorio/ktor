@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.network.NetworkAddress
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
@@ -61,8 +62,8 @@ internal class TCPServerSocketNative(
 
         TCPSocketNative(
             clientDescriptor, selectorManager,
-            remoteAddress = NetworkAddress("", remoteAddress.port, remoteAddress),
-            localAddress = NetworkAddress("", localAddress.port, localAddress),
+            remoteAddress = io.ktor.util.network.NetworkAddress("", remoteAddress.port, remoteAddress),
+            localAddress = io.ktor.util.network.NetworkAddress("", localAddress.port, localAddress),
             parent = selfContext() + coroutineContext
         )
     }

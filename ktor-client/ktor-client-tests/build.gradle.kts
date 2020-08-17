@@ -33,8 +33,9 @@ open class KtorTestServer : DefaultTask() {
         } catch (cause: Throwable) {
         }
     }
-
 }
+
+val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
     commonMain {
@@ -80,16 +81,19 @@ kotlin.sourceSets {
             api(project(":ktor-client:ktor-client-js"))
         }
     }
-    posixTest {
-        dependencies {
-            api(project(":ktor-client:ktor-client-cio"))
-        }
-    }
 
     if (!ideaActive) {
         listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
                 api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+
+        if (!osName.startsWith("Windows")) {
+            listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
+                it.dependencies {
+                    api(project(":ktor-client:ktor-client-cio"))
+                }
             }
         }
         listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
