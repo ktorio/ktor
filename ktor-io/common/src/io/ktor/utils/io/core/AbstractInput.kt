@@ -53,7 +53,7 @@ abstract class AbstractInput(
 
     @PublishedApi
     @Suppress("CanBePrimaryConstructorProperty")
-    internal var head: ChunkBuffer
+    internal final var head: ChunkBuffer
         get() = _head.also { it.discardUntilIndex(headPosition) }
         @Deprecated("Binary compatibility.", level = DeprecationLevel.ERROR)
         set(newHead) {
@@ -342,7 +342,7 @@ abstract class AbstractInput(
      */
     final fun discard(n: Int): Int {
         require(n >= 0) { "Negative discard is not allowed: $n" }
-        return discardAsMuchAsPossible(n, 0)
+        return discardAsMuchAsPossible(n)
     }
 
     /**
@@ -391,10 +391,11 @@ abstract class AbstractInput(
 
     final override fun discard(n: Long): Long {
         if (n <= 0) return 0L
-        return discardAsMuchAsPossible(n, 0)
+        if (n < Int.MAX_VALUE) return discardAsMuchAsPossible(n.toInt()).toLong()
+        return discardAsMuchAsPossible(n)
     }
 
-    internal fun readAvailableCharacters(destination: CharArray, off: Int, len: Int): Int {
+    internal final fun readAvailableCharacters(destination: CharArray, off: Int, len: Int): Int {
         if (endOfInput) return -1
 
         val out = object : Appendable {
@@ -538,26 +539,86 @@ abstract class AbstractInput(
         return copied
     }
 
-    private tailrec fun discardAsMuchAsPossible(n: Long, skipped: Long): Long {
-        if (n == 0L) return skipped
-        val current = prepareRead(1) ?: return skipped
-        val size = minOf(current.readRemaining.toLong(), n).toInt()
-        current.discardExact(size)
-        headPosition += size
-        afterRead(current)
+    private fun discardAsMuchAsPossible(discardLimit: Long): Long {
+        require(discardLimit > 0L)
+        var discarded = 0L
+        var remainingLimit = discardLimit
 
-        return discardAsMuchAsPossible(n - size, skipped + size)
+        do {
+            var current = prepareRead(1) ?: return discarded
+            var newTailRemaining = tailRemaining
+
+            do {
+                val size = minOf(current.readRemaining.toLong(), remainingLimit).toInt()
+                val next = current.next
+
+                discarded += size
+                remainingLimit -= size
+
+                if (current.readRemaining == size) {
+                    current.cleanNext()
+                    current.release(pool)
+                } else {
+                    current.discardExact(size)
+                    break
+                }
+
+                if (next == null) {
+                    current = ChunkBuffer.Empty
+                    newTailRemaining = 0L
+                    break
+                }
+
+                newTailRemaining -= next.readRemaining
+                current = next
+            } while (remainingLimit > 0)
+
+            _head = current
+            tailRemaining = newTailRemaining
+        } while (remainingLimit > 0)
+
+        return discarded
     }
 
-    private tailrec fun discardAsMuchAsPossible(n: Int, skipped: Int): Int {
-        if (n == 0) return skipped
-        val current = prepareRead(1) ?: return skipped
-        val size = minOf(current.readRemaining, n)
-        current.discardExact(size)
-        headPosition += size
-        afterRead(current)
+    private fun discardAsMuchAsPossible(discardLimit: Int): Int {
+        require(discardLimit > 0)
+        var discarded = 0
+        var remainingLimit = discardLimit
 
-        return discardAsMuchAsPossible(n - size, skipped + size)
+        do {
+            var current = prepareRead(1) ?: return discarded
+            var newTailRemaining = tailRemaining
+
+            do {
+                val size = minOf(current.readRemaining, remainingLimit)
+                val next = current.next
+
+                discarded += size
+                remainingLimit -= size
+
+                if (current.readRemaining == size) {
+                    current.cleanNext()
+                    current.release(pool)
+                } else {
+                    current.discardExact(size)
+                    break
+                }
+
+                if (next == null) {
+                    current = ChunkBuffer.Empty
+                    newTailRemaining = 0L
+                    break
+                }
+
+                newTailRemaining -= next.readRemaining
+                current = next
+            } while (remainingLimit > 0)
+
+            _head = current
+            tailRemaining = newTailRemaining
+        } while (remainingLimit > 0)
+
+        return discarded
     }
 
     private tailrec fun readAsMuchAsPossible(array: ByteArray, offset: Int, length: Int, copied: Int): Int {
@@ -594,19 +655,37 @@ abstract class AbstractInput(
     }
 
     @DangerousInternalIoApi
-    fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareReadLoop(minSize, head)
+    fun prepareReadHead(minSize: Int): ChunkBuffer? = prepareRead(minSize)
 
     @DangerousInternalIoApi
-    fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
+    final fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
 
     @PublishedApi
-    internal fun ensureNext(current: ChunkBuffer) = ensureNext(
-        current,
-        ChunkBuffer.Empty
-    )
+    internal final fun ensureNext(current: ChunkBuffer): ChunkBuffer? {
+        if (current === ChunkBuffer.Empty) {
+            return doFill()
+        }
+
+        val next = current.cleanNext()
+        current.release(pool)
+
+        return when {
+            next == null -> {
+                this._head = ChunkBuffer.Empty
+                this.tailRemaining = 0L
+                doFill()
+            }
+            next.canRead() -> {
+                _head = next
+                tailRemaining -= next.readRemaining
+                next
+            }
+            else -> ensureNext(next, ChunkBuffer.Empty)
+        }
+    }
 
     @DangerousInternalIoApi
-    fun fixGapAfterRead(current: ChunkBuffer) {
+    final fun fixGapAfterRead(current: ChunkBuffer) {
         val next = current.next ?: return fixGapAfterReadFallback(current)
 
         val remaining = current.readRemaining
@@ -686,7 +765,7 @@ abstract class AbstractInput(
             next == null -> {
                 this._head = empty
                 this.tailRemaining = 0L
-                ensureNext(empty, empty)
+                doFill()
             }
             next.canRead() -> {
                 _head = next
@@ -761,11 +840,7 @@ abstract class AbstractInput(
     }
 
     @PublishedApi
-    internal fun prepareRead(minSize: Int): ChunkBuffer? {
-        val head = head
-        if (headEndExclusive - headPosition >= minSize) return head
-        return prepareReadLoop(minSize, head)
-    }
+    internal final fun prepareRead(minSize: Int): ChunkBuffer? = prepareRead(minSize, head)
 
     @PublishedApi
     internal final fun prepareRead(minSize: Int, head: ChunkBuffer): ChunkBuffer? {

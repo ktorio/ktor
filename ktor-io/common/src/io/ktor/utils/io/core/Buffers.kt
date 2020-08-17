@@ -94,11 +94,14 @@ internal object EmptyBufferPoolImpl : NoPoolImpl<IoBuffer>() {
     override fun borrow() = IoBuffer.Empty
 }
 
-internal tailrec fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
-    if (this == null) return
-    val next = cleanNext()
-    release(pool)
-    next.releaseAll(pool)
+internal fun ChunkBuffer?.releaseAll(pool: ObjectPool<ChunkBuffer>) {
+    var current = this ?: return
+
+    do {
+        val next = current.cleanNext()
+        current.release(pool)
+        current = next ?: break
+    } while (true)
 }
 
 internal inline fun ChunkBuffer.forEachChunk(block: (ChunkBuffer) -> Unit) {
@@ -131,9 +134,11 @@ private tailrec fun ChunkBuffer.copyAll(head: ChunkBuffer, prev: ChunkBuffer): C
     return next.copyAll(head, copied)
 }
 
-internal tailrec fun ChunkBuffer.findTail(): ChunkBuffer {
-    val next = this.next ?: return this
-    return next.findTail()
+internal fun ChunkBuffer.findTail(): ChunkBuffer {
+    var current = next ?: return this
+    do {
+        current = current.next ?: return current
+    } while (true)
 }
 
 /**
@@ -146,17 +151,24 @@ fun ChunkBuffer.remainingAll(): Long = remainingAll(0L)
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 fun remainingAll(buffer: IoBuffer): Long = buffer.remainingAll()
 
-private tailrec fun ChunkBuffer.remainingAll(n: Long): Long {
-    val rem = readRemaining.toLong() + n
-    val next = this.next ?: return rem
+private fun ChunkBuffer.remainingAll(n: Long): Long {
+    var total = n
+    var current = this
 
-    return next.remainingAll(rem)
+    do {
+        total += current.readRemaining.toLong()
+        current = current.next ?: break
+    } while (true)
+
+    return total
 }
 
-internal tailrec fun ChunkBuffer.isEmpty(): Boolean {
-    if (readRemaining > 0) return false
-    val next = this.next ?: return true
-    return next.isEmpty()
+internal fun ChunkBuffer.isEmpty(): Boolean {
+    var current = this
+    do {
+        if (current.readRemaining > 0) return false
+        current = current.next ?: return true
+    } while (true)
 }
 
 @Suppress("NOTHING_TO_INLINE")
