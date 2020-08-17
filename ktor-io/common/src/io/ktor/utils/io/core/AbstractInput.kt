@@ -85,20 +85,7 @@ abstract class AbstractInput(
     private var tailRemaining: Long
         get() = _tailRemaining
         set(newValue) {
-            if (newValue < 0) {
-                error("tailRemaining is negative: $newValue")
-            }
-            if (newValue == 0L) {
-                val tail = _head.next?.remainingAll() ?: 0L
-                if (tail != 0L) {
-                    error("tailRemaining is set 0 while there is a tail of size $tail")
-                }
-            }
-            val tailSize = _head.next?.remainingAll() ?: 0L
-            if (newValue != tailSize) {
-                error("tailRemaining is set to a value that is not consistent with the actual tail: $newValue != $tailSize")
-            }
-
+            require(newValue >= 0) { "tailRemaining shouldn't be negative: $newValue" }
             _tailRemaining = newValue
         }
 
