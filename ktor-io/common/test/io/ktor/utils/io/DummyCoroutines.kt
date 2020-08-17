@@ -1,15 +1,17 @@
 package io.ktor.utils.io
 
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-class DummyCoroutines {
+class DummyCoroutines : ContinuationInterceptor, @OptIn(InternalCoroutinesApi::class) Delay {
     private var failure: Throwable? = null
     private val queue = ArrayList<Task<*>>()
+    private val timeoutQueue = ArrayList<Task<*>>()
     private var liveCoroutines = 0
 
     private inner class Completion : Continuation<Unit> {
         override val context: CoroutineContext
-            get() = EmptyCoroutineContext
+            get() = this@DummyCoroutines
 
         override fun resumeWith(result: Result<Unit>) {
             liveCoroutines--
@@ -20,12 +22,29 @@ class DummyCoroutines {
         }
     }
 
+    override val key: CoroutineContext.Key<*>
+        get() = ContinuationInterceptor.Key
+
     private val completion = Completion()
 
     fun schedule(c: Continuation<Unit>) {
         ensureNotFailed()
         liveCoroutines++
         queue += Task.Resume(c, Unit)
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        timeoutQueue += Task.Resume(continuation, Unit)
+    }
+
+    @OptIn(InternalCoroutinesApi::class)
+    override fun invokeOnTimeout(timeMillis: Long, block: Runnable): DisposableHandle {
+        val task = Task.Resume(Continuation(this@DummyCoroutines, { block.run() }), Unit)
+        timeoutQueue += task
+        return DisposableHandle {
+            timeoutQueue.remove(task)
+        }
     }
 
     fun schedule(block: suspend () -> Unit) {
@@ -37,6 +56,10 @@ class DummyCoroutines {
             ensureNotFailed()
             queue += Task.Resume(c, Unit)
         }
+    }
+
+    override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> {
+        return continuation
     }
 
     fun run() {
@@ -53,8 +76,12 @@ class DummyCoroutines {
     private fun process() {
         ensureNotFailed()
 
-        while (queue.isNotEmpty()) {
-            queue.removeAt(0).run()
+        while (queue.isNotEmpty() || timeoutQueue.isNotEmpty()) {
+            if (queue.isNotEmpty()) {
+                queue.removeAt(0).run()
+            } else if (timeoutQueue.isNotEmpty()) {
+                timeoutQueue.removeAt(0).run()
+            }
             ensureNotFailed()
         }
     }
