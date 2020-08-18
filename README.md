@@ -2,7 +2,6 @@
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
-[![TeamCity Build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_Ktor_BuildGradle.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_Ktor_BuildGradle&branch_KotlinTools_Ktor=%3Cdefault%3E&tab=buildTypeStatusDiv)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
 Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
