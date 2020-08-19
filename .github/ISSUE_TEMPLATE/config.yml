@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Create
+    url: https://youtrack.jetbrains.com/newIssue?draftId=25-2930636
+    about: Please report any new issue using youtrack
