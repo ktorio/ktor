@@ -13,6 +13,11 @@ import kotlinx.coroutines.channels.*
  */
 expect interface WebSocketSession : CoroutineScope {
     /**
+     * Specifies frame size limit. Connection will be closed if violated
+     */
+    var maxFrameSize: Long
+
+    /**
      * Incoming frames channel
      */
     val incoming: ReceiveChannel<Frame>
