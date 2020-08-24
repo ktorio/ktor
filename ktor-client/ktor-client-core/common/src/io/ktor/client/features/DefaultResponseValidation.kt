@@ -47,7 +47,8 @@ fun HttpClientConfig<*>.addDefaultResponseValidation() {
 open class ResponseException(
     response: HttpResponse
 ) : IllegalStateException("Bad response: $response") {
-    public val response: HttpResponse? by threadLocal(response)
+    private val _response: HttpResponse? by threadLocal(response)
+    public val response: HttpResponse get() = _response ?: error("Failed to access response from a different native thread")
 }
 
 /**
