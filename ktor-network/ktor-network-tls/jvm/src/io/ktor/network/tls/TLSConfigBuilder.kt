@@ -88,7 +88,7 @@ fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: St
     keyManagerFactory.init(store, password)
     val managers = keyManagerFactory.keyManagers.filterIsInstance<X509KeyManager>()
 
-    val aliases = alias?.let { listOf(it) } ?: store.aliases()!!
+    val aliases = alias?.let { listOf(it) } ?: store.aliases()!!.toList()
     loop@ for (alias in aliases) {
         val chain = store.getCertificateChain(alias)
 
