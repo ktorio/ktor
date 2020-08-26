@@ -87,12 +87,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
+    @OptIn(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
-            @Suppress("DEPRECATION")
             val e = incoming.receiveOrNull()
 
             if (e != null && e.ensureRunning()) {
