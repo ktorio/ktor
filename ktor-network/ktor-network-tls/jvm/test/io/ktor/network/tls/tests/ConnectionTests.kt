@@ -6,11 +6,12 @@ package io.ktor.network.tls.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import io.ktor.utils.io.*
 import org.junit.*
 import java.io.*
 import java.net.*
@@ -65,5 +66,38 @@ class ConnectionTests {
         val output = socket.openWriteChannel(autoFlush = true)
         output.close()
         socket.close()
+    }
+
+
+    @Test
+    fun tlsHandshakeClientRequestSize(): Unit = runBlocking {
+        val keyStore = generateCertificate(
+            File.createTempFile("test", "certificate"),
+            algorithm = "SHA256withRSA",
+            keySizeInBits = 4096
+        )
+
+        val factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+        val password: CharArray? = null
+        factory.init(keyStore, password)
+
+        val server: ServerSocket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp().configure {
+
+        }
+            .bind()
+            .tls(Dispatchers.IO) {
+                addKeyStore(keyStore, "changeit".toCharArray())
+            }
+
+        val client = server.accept()
+            .tls(Dispatchers.IO) {
+                addKeyStore(keyStore, "changeit".toCharArray())
+            }
+
+        val input = client.openReadChannel()
+        val output = client.openWriteChannel(autoFlush = true)
+        output.close()
+        client.close()
+        server.close()
     }
 }
