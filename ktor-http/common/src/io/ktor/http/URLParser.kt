@@ -157,7 +157,7 @@ private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
                 throw IllegalArgumentException("Illegal character in scheme at position $incorrectSchemePosition")
             }
 
-            return current
+            return current - startIndex
         }
 
         // If character '/' or '?' or '#' found this is not a scheme.
