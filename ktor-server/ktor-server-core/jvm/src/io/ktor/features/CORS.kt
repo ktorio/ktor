@@ -30,6 +30,11 @@ class CORS(configuration: Configuration) {
     val allowsAnyHost: Boolean = "*" in configuration.hosts
 
     /**
+     * Allow requests with any headers
+     */
+    val allowsAnyHeader: Boolean = "*" in configuration.headers
+
+    /**
      * Allow to pass credentials
      */
     val allowCredentials: Boolean = configuration.allowCredentials
@@ -117,7 +122,7 @@ class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-        if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
+        if (!corsCheckRequestMethod() || (!allowsAnyHeader && !corsCheckRequestHeaders())) {
             respond(HttpStatusCode.Forbidden)
             return
         }
@@ -127,7 +132,11 @@ class CORS(configuration: Configuration) {
         if (methodsListHeaderValue.isNotEmpty()) {
             response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         }
-        if (headersListHeaderValue.isNotEmpty()) {
+        if (allowsAnyHeader) {
+            request.header(HttpHeaders.AccessControlRequestHeaders)?.let { value: String ->
+                response.header(HttpHeaders.AccessControlAllowHeaders, value)
+            }
+        } else if (headersListHeaderValue.isNotEmpty()) {
             response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
         }
         accessControlMaxAge()
@@ -432,6 +441,13 @@ class CORS(configuration: Configuration) {
         @Suppress("unused")
         fun allowXHttpMethodOverride() {
             header(HttpHeaders.XHttpMethodOverride)
+        }
+
+        /**
+         * Allow to send any header
+         */
+        fun anyHeader() {
+            headers.add("*")
         }
 
         /**

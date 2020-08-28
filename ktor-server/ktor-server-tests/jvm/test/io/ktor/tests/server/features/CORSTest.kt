@@ -670,4 +670,29 @@ class CORSTest {
             }
         }
     }
+
+    @Test
+    fun testAnyHeader() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+                anyHeader()
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+                addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-header1, custom-header2")
+            }.let { call ->
+                assertEquals("custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
 }
