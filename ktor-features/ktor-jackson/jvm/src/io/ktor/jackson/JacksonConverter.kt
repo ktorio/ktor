@@ -33,7 +33,19 @@ import io.ktor.utils.io.jvm.javaio.*
  */
 class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
     override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
-        return TextContent(objectmapper.writeValueAsString(value), contentType.withCharset(context.call.suitableCharset()))
+        val charset = context.call.suitableCharset()
+        return OutputStreamContent({
+            if(charset == Charsets.UTF_8) {
+                /*
+                Jackson internally does special casing on UTF-8, presumably for performance reasons. Thus we pass an
+                InputStream instead of a writer to let Jackson do it's thing.
+                 */
+                objectmapper.writeValue(this, value)
+            } else {
+                objectmapper.writeValue(this.writer(charset = charset), value)
+            }
+            }, contentType.withCharset(charset)
+        )
     }
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
