@@ -29,6 +29,12 @@ class OkHttpConfig : HttpClientEngineConfig() {
     var clientCacheSize: Int = 10
 
     /**
+     * If provided, this [WebSocket.Factory] will be used to create [WebSocket] instances.
+     * Otherwise, [OkHttpClient] is used directly.
+     */
+    var webSocketFactory: WebSocket.Factory? = null
+
+    /**
      * Configure [OkHttpClient] using [OkHttpClient.Builder].
      */
     fun config(block: OkHttpClient.Builder.() -> Unit) {

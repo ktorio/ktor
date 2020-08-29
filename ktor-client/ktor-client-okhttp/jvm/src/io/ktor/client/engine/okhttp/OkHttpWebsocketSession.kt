@@ -16,6 +16,7 @@ import kotlin.coroutines.*
 @OptIn(ObsoleteCoroutinesApi::class)
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
+    private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext
 ) : DefaultWebSocketSession, WebSocketListener() {
@@ -50,7 +51,7 @@ internal class OkHttpWebsocketSession(
         get() = _closeReason
 
     override val outgoing: SendChannel<Frame> = actor {
-        val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
+        val websocket: WebSocket = webSocketFactory.newWebSocket(engineRequest, self.await())
 
         try {
             for (frame in channel) {
