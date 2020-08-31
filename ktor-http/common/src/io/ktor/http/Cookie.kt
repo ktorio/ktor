@@ -24,7 +24,7 @@ import kotlin.native.concurrent.*
  * @property httpOnly only transfer cookie over HTTP, no access from JavaScript
  * @property extensions additional cookie extensions
  */
-data class Cookie(
+public data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
@@ -39,13 +39,13 @@ data class Cookie(
 ) {
     @Suppress("unused", "KDocMissingDocumentation")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun getMaxAge(): Int = maxAge
+    public fun getMaxAge(): Int = maxAge
 }
 
 /**
  * Cooke encoding strategy
  */
-enum class CookieEncoding {
+public enum class CookieEncoding {
     /**
      * No encoding (could be dangerous)
      */
@@ -73,7 +73,7 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
  * Parse server's `Set-Cookie` header value
  */
 @KtorExperimentalAPI
-fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
+public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
@@ -102,7 +102,7 @@ private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+
  * Parse client's `Cookie` header value
  */
 @KtorExperimentalAPI
-fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
+public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
         .filter { !skipEscaped || !it.first.startsWith("$") }
@@ -117,7 +117,7 @@ fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true)
  * Format `Set-Cookie` header value
  */
 @KtorExperimentalAPI
-fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
+public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
         value,
@@ -136,7 +136,7 @@ fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
  * Format `Set-Cookie` header value
  */
 @KtorExperimentalAPI
-fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
+public fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
         name,
         value,
@@ -156,7 +156,7 @@ fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
  * Format `Set-Cookie` header value
  */
 @KtorExperimentalAPI
-fun renderSetCookieHeader(
+public fun renderSetCookieHeader(
     name: String, value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
     maxAge: Int = 0, expires: GMTDate? = null, domain: String? = null,
@@ -184,7 +184,7 @@ fun renderSetCookieHeader(
  * Encode cookie value using the specified [encoding]
  */
 @KtorExperimentalAPI
-fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
+public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
         else -> value
@@ -202,7 +202,7 @@ fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (e
  * Decode cookie value using the specified [encoding]
  */
 @KtorExperimentalAPI
-fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
+public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
             encodedValue.trim().removeSurrounding("\"")

@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
  * cookies when installing.
  */
-class HttpCookies(
+public class HttpCookies(
     private val storage: CookiesStorage,
     private val defaults: MutableList<suspend CookiesStorage.() -> Unit>
 ) : Closeable {
@@ -32,7 +32,7 @@ class HttpCookies(
     /**
      * Find all cookies by [requestUrl].
      */
-    suspend fun get(requestUrl: Url): List<Cookie> {
+    public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
         return storage.get(requestUrl)
     }
@@ -41,27 +41,30 @@ class HttpCookies(
         storage.close()
     }
 
-    class Config {
+    /**
+     * [HttpCookies] configuration.
+     */
+    public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
          * [CookiesStorage] that will be used at this feature.
          * By default it just uses an initially empty in-memory [AcceptAllCookiesStorage].
          */
-        var storage: CookiesStorage = AcceptAllCookiesStorage()
+        public var storage: CookiesStorage = AcceptAllCookiesStorage()
 
         /**
          * Registers a [block] that will be called when the configuration is complete the specified [storage].
          * The [block] can potentially add new cookies by calling [CookiesStorage.addCookie].
          */
-        fun default(block: suspend CookiesStorage.() -> Unit) {
+        public fun default(block: suspend CookiesStorage.() -> Unit) {
             defaults.add(block)
         }
 
         internal fun build(): HttpCookies = HttpCookies(storage, defaults)
     }
 
-    companion object : HttpClientFeature<Config, HttpCookies> {
+    public companion object : HttpClientFeature<Config, HttpCookies> {
         override fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
@@ -101,15 +104,15 @@ private fun renderClientCookies(cookies: List<Cookie>): String = buildString {
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
  */
-suspend fun HttpClient.cookies(url: Url): List<Cookie> = feature(HttpCookies)?.get(url) ?: emptyList()
+public suspend fun HttpClient.cookies(url: Url): List<Cookie> = feature(HttpCookies)?.get(url) ?: emptyList()
 
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
  */
-suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
+public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
     feature(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
  * Find the [Cookie] by [name]
  */
-operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }
+public operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }
