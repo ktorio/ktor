@@ -76,7 +76,7 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
-    val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
+    val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.RAW
     val loweredMap = asMap.mapKeys { it.key.toLowerCasePreservingASCIIRules() }
 
     return Cookie(
