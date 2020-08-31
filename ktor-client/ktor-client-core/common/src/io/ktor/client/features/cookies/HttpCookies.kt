@@ -23,7 +23,7 @@ import kotlinx.coroutines.*
  */
 public class HttpCookies(
     private val storage: CookiesStorage,
-    private val defaults: MutableList<suspend CookiesStorage.() -> Unit>
+    private val defaults: List<suspend CookiesStorage.() -> Unit>
 ) : Closeable {
     private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
         defaults.forEach { it(storage) }
@@ -35,6 +35,25 @@ public class HttpCookies(
     public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
         return storage.get(requestUrl)
+    }
+
+    internal suspend fun sendCookiesWith(builder: HttpRequestBuilder) {
+        val cookies = get(builder.url.clone().build())
+
+        with(builder) {
+            if (cookies.isNotEmpty()) {
+                headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+            } else {
+                headers.remove(HttpHeaders.Cookie)
+            }
+        }
+    }
+
+    internal suspend fun saveCookiesFrom(response: HttpResponse) {
+        val url = response.request.url
+        response.setCookie().forEach {
+            storage.addCookie(url, it)
+        }
     }
 
     override fun close() {
@@ -71,22 +90,11 @@ public class HttpCookies(
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
-                val cookies = feature.get(context.url.clone().build())
-
-                with(context) {
-                    if (cookies.isNotEmpty()) {
-                        headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
-                    } else {
-                        headers.remove(HttpHeaders.Cookie)
-                    }
-                }
+                feature.sendCookiesWith(context)
             }
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                val url = context.request.url
-                response.setCookie().forEach {
-                    feature.storage.addCookie(url, it)
-                }
+                feature.saveCookiesFrom(response)
             }
         }
     }
