@@ -74,46 +74,63 @@ public class NettyApplicationEngine(
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
-    private val connectionEventGroup = EventLoopGroupProxy.create(configuration.connectionGroupSize)
+    private val connectionEventGroup: EventLoopGroupProxy by lazy {
+        EventLoopGroupProxy.create(configuration.connectionGroupSize)
+    }
+
 
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
-    private val workerEventGroup = if (configuration.shareWorkGroup)
-        EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
-    else
-        EventLoopGroupProxy.create(configuration.workerGroupSize)
+    private val workerEventGroup: EventLoopGroupProxy by lazy {
+        if (configuration.shareWorkGroup) {
+            EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
+        } else {
+            EventLoopGroupProxy.create(configuration.workerGroupSize)
+        }
+    }
 
     /**
      * [EventLoopGroupProxy] for processing [ApplicationCall] instances
      */
-    private val callEventGroup = if (configuration.shareWorkGroup)
-        workerEventGroup
-    else
-        EventLoopGroupProxy.create(configuration.callGroupSize)
+    private val callEventGroup: EventLoopGroupProxy by lazy {
+        if (configuration.shareWorkGroup) {
+            workerEventGroup
+        } else {
+            EventLoopGroupProxy.create(configuration.callGroupSize)
+        }
+    }
 
-    private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
-    private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    private val dispatcherWithShutdown: DispatcherWithShutdown by lazy {
+        DispatcherWithShutdown(NettyDispatcher)
+    }
+
+    private val engineDispatcherWithShutdown by lazy {
+        DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    }
+
     private var cancellationDeferred: CompletableJob? = null
 
     private var channels: List<Channel>? = null
-    private val bootstraps = environment.connectors.map { connector ->
-        ServerBootstrap().apply {
-            configuration.configureBootstrap(this)
-            group(connectionEventGroup, workerEventGroup)
-            channel(connectionEventGroup.channel.java)
-            childHandler(
-                NettyChannelInitializer(
-                    pipeline, environment,
-                    callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector,
-                    configuration.requestQueueLimit,
-                    configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds,
-                    configuration.requestReadTimeoutSeconds,
-                    configuration.httpServerCodec
+    private val bootstraps: List<ServerBootstrap> by lazy {
+        environment.connectors.map { connector ->
+            ServerBootstrap().apply {
+                configuration.configureBootstrap(this)
+                group(connectionEventGroup, workerEventGroup)
+                channel(connectionEventGroup.channel.java)
+                childHandler(
+                    NettyChannelInitializer(
+                        pipeline, environment,
+                        callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
+                        connector,
+                        configuration.requestQueueLimit,
+                        configuration.runningLimit,
+                        configuration.responseWriteTimeoutSeconds,
+                        configuration.requestReadTimeoutSeconds,
+                        configuration.httpServerCodec
+                    )
                 )
-            )
+            }
         }
     }
 
