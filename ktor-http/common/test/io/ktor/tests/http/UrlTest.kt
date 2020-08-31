@@ -27,6 +27,16 @@ class UrlTest {
     }
 
     @Test
+    fun testUrlWithSpaceAtStart() {
+        val urlString = " http://google.com"
+        val url = Url(urlString)
+
+        assertEquals("http", url.protocol.name)
+        assertEquals("google.com", url.host)
+        assertEquals("", url.fullPath)
+    }
+
+    @Test
     fun testOtherPort() {
         val urlString = "http://user:password@ktor.io:8080/"
         val url = Url(urlString)
