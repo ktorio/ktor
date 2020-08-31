@@ -6,7 +6,7 @@ package io.ktor.tests.server.netty
 
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import org.junit.*
+import kotlin.test.*
 
 class NettySpecificTest {
 
