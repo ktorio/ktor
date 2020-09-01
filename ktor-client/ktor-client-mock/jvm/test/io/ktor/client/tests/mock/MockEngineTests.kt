@@ -5,18 +5,15 @@
 package io.ktor.client.tests.mock
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
-import io.ktor.client.response.readText
 import io.ktor.client.statement.*
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class MockEngineTests {
@@ -29,7 +26,10 @@ class MockEngineTests {
                         byteArrayOf(1, 2, 3), headers = headersOf("X-MyHeader", "My Value")
                     )
 
-                    return@addHandler respondError(HttpStatusCode.NotFound, "Not Found ${request.url.encodedPath}")
+                    return@addHandler respondError(
+                        HttpStatusCode.NotFound,
+                        "Not Found ${request.url.encodedPath}"
+                    )
                 }
             }
             expectSuccess = false
@@ -54,10 +54,11 @@ class MockEngineTests {
             expectSuccess = false
         }
 
-        client.request<HttpStatement> { url("http://127.0.0.1/normal-request") }.execute { response ->
-            assertEquals("http://127.0.0.1/normal-request", response.readText())
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
+        client.request<HttpStatement> { url("http://127.0.0.1/normal-request") }
+            .execute { response ->
+                assertEquals("http://127.0.0.1/normal-request", response.readText())
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
 
         client.request<HttpStatement> { url("http://127.0.0.1/fail") }.execute { response ->
             assertEquals("Bad Request", response.readText())
@@ -84,6 +85,33 @@ class MockEngineTests {
         assertEquals("{\"name\":\"admin\"}", response)
     }
 
-    private fun testBlocking(callback: suspend () -> Unit): Unit = run { runBlocking { callback() } }
+    @Test
+    fun testWithJsonFeatureAndPassingAnyTypeAsResponse() = runBlocking {
+        val client = HttpClient(MockEngine {
+            respondOk(User(name = "admin"))
+        }) {
+            install(JsonFeature)
+        }
+
+        val response = client.get<User>()
+
+        assertEquals(expected = User(name = "admin"), actual = response)
+    }
+
+    @Test
+    fun testWithJsonFeaturePassingRawAndExpectingSerialized() = runBlocking {
+        val client = HttpClient(MockEngine {
+            respondOk(content = Json.decodeFromString<User>("{\"name\":\"admin\"}"))
+        }) {
+            install(JsonFeature)
+        }
+
+        val response = client.get<User>()
+
+        assertEquals(expected = User(name = "admin"), actual = response)
+    }
+
+    private fun testBlocking(callback: suspend () -> Unit): Unit =
+        run { runBlocking { callback() } }
 
 }

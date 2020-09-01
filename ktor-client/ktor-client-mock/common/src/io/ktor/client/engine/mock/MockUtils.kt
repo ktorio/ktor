@@ -51,6 +51,13 @@ fun MockRequestHandleScope.respondOk(
     content: String = ""
 ): HttpResponseData = respond(content, HttpStatusCode.OK)
 
+/**
+ * Send ok response with any type of [content].
+ */
+fun MockRequestHandleScope.respondOk(
+    content: Any,
+): HttpResponseData = respond(content, HttpStatusCode.OK)
+
 
 /**
  * Send [HttpStatusCode.BadRequest] response.
@@ -81,6 +88,17 @@ fun MockRequestHandleScope.respond(
  */
 fun MockRequestHandleScope.respond(
     content: ByteReadChannel,
+    status: HttpStatusCode = HttpStatusCode.OK,
+    headers: Headers = headersOf()
+): HttpResponseData = HttpResponseData(
+    status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, callContext
+)
+
+/**
+ * Send respond with specified [content] as any type, [status] and [headers].
+ */
+fun MockRequestHandleScope.respond(
+    content: Any,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
 ): HttpResponseData = HttpResponseData(
