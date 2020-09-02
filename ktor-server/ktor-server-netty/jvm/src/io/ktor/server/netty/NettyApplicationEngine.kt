@@ -8,62 +8,65 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.netty.bootstrap.ServerBootstrap
+import io.netty.bootstrap.*
 import io.netty.channel.*
+import io.netty.channel.epoll.*
+import io.netty.channel.kqueue.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
-import io.netty.channel.epoll.*
-import io.netty.channel.kqueue.*
-import kotlinx.coroutines.*
 import io.netty.handler.codec.http.*
+import kotlinx.coroutines.*
 import java.util.concurrent.*
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
-class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit = {}) :
+public class NettyApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit = {}
+) :
     BaseApplicationEngine(environment) {
 
     /**
      * Configuration for the [NettyApplicationEngine]
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Size of the queue to store [ApplicationCall] instances that cannot be immediately processed
          */
-        var requestQueueLimit: Int = 16
+        public var requestQueueLimit: Int = 16
 
         /**
          * Number of concurrently running requests from the same http pipeline
          */
-        var runningLimit: Int = 10
+        public var runningLimit: Int = 10
 
         /**
          * Do not create separate call event group and reuse worker group for processing calls
          */
-        var shareWorkGroup: Boolean = false
+        public var shareWorkGroup: Boolean = false
 
         /**
          * User-provided function to configure Netty's [ServerBootstrap]
          */
-        var configureBootstrap: ServerBootstrap.() -> Unit = {}
+        public var configureBootstrap: ServerBootstrap.() -> Unit = {}
 
         /**
          * Timeout in seconds for sending responses to client
          */
-        var responseWriteTimeoutSeconds: Int = 10
+        public var responseWriteTimeoutSeconds: Int = 10
 
         /**
          * Timeout in seconds for reading requests from client, "0" is infinite.
          */
-        var requestReadTimeoutSeconds: Int = 0
+        public var requestReadTimeoutSeconds: Int = 0
 
         /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
-        var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
+        public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
     }
 
     private val configuration = Configuration().apply(configure)
@@ -71,46 +74,63 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
-    private val connectionEventGroup = EventLoopGroupProxy.create(configuration.connectionGroupSize)
+    private val connectionEventGroup: EventLoopGroupProxy by lazy {
+        EventLoopGroupProxy.create(configuration.connectionGroupSize)
+    }
+
 
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
-    private val workerEventGroup = if (configuration.shareWorkGroup)
-        EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
-    else
-        EventLoopGroupProxy.create(configuration.workerGroupSize)
+    private val workerEventGroup: EventLoopGroupProxy by lazy {
+        if (configuration.shareWorkGroup) {
+            EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
+        } else {
+            EventLoopGroupProxy.create(configuration.workerGroupSize)
+        }
+    }
 
     /**
      * [EventLoopGroupProxy] for processing [ApplicationCall] instances
      */
-    private val callEventGroup = if (configuration.shareWorkGroup)
-        workerEventGroup
-    else
-        EventLoopGroupProxy.create(configuration.callGroupSize)
+    private val callEventGroup: EventLoopGroupProxy by lazy {
+        if (configuration.shareWorkGroup) {
+            workerEventGroup
+        } else {
+            EventLoopGroupProxy.create(configuration.callGroupSize)
+        }
+    }
 
-    private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
-    private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    private val dispatcherWithShutdown: DispatcherWithShutdown by lazy {
+        DispatcherWithShutdown(NettyDispatcher)
+    }
+
+    private val engineDispatcherWithShutdown by lazy {
+        DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    }
+
     private var cancellationDeferred: CompletableJob? = null
 
     private var channels: List<Channel>? = null
-    private val bootstraps = environment.connectors.map { connector ->
-        ServerBootstrap().apply {
-            configuration.configureBootstrap(this)
-            group(connectionEventGroup, workerEventGroup)
-            channel(connectionEventGroup.channel.java)
-            childHandler(
-                NettyChannelInitializer(
-                    pipeline, environment,
-                    callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector,
-                    configuration.requestQueueLimit,
-                    configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds,
-                    configuration.requestReadTimeoutSeconds,
-                    configuration.httpServerCodec
+    private val bootstraps: List<ServerBootstrap> by lazy {
+        environment.connectors.map { connector ->
+            ServerBootstrap().apply {
+                configuration.configureBootstrap(this)
+                group(connectionEventGroup, workerEventGroup)
+                channel(connectionEventGroup.channel.java)
+                childHandler(
+                    NettyChannelInitializer(
+                        pipeline, environment,
+                        callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
+                        connector,
+                        configuration.requestQueueLimit,
+                        configuration.runningLimit,
+                        configuration.responseWriteTimeoutSeconds,
+                        configuration.requestReadTimeoutSeconds,
+                        configuration.httpServerCodec
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -179,16 +199,21 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
  * Transparently allows for the creation of [EventLoopGroup]'s utilising the optimal implementation for
  * a given operating system, subject to availability, or falling back to [NioEventLoopGroup] if none is available.
  */
-class EventLoopGroupProxy(val channel: KClass<out ServerSocketChannel>, group: EventLoopGroup) : EventLoopGroup by group {
+public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChannel>, group: EventLoopGroup) :
+    EventLoopGroup by group {
 
-    companion object {
+    public companion object {
 
-        fun create(parallelism: Int): EventLoopGroupProxy {
-            return when {
-                KQueue.isAvailable() -> EventLoopGroupProxy(KQueueServerSocketChannel::class, KQueueEventLoopGroup(parallelism))
-                Epoll.isAvailable() -> EventLoopGroupProxy(EpollServerSocketChannel::class, EpollEventLoopGroup(parallelism))
-                else -> EventLoopGroupProxy(NioServerSocketChannel::class, NioEventLoopGroup(parallelism))
-            }
+        public fun create(parallelism: Int): EventLoopGroupProxy = when {
+            KQueue.isAvailable() -> EventLoopGroupProxy(
+                KQueueServerSocketChannel::class,
+                KQueueEventLoopGroup(parallelism)
+            )
+            Epoll.isAvailable() -> EventLoopGroupProxy(
+                EpollServerSocketChannel::class,
+                EpollEventLoopGroup(parallelism)
+            )
+            else -> EventLoopGroupProxy(NioServerSocketChannel::class, NioEventLoopGroup(parallelism))
         }
     }
 }
