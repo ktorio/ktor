@@ -9,30 +9,30 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
+import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.CancellationException
-import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
-internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
-                                             context: ChannelHandlerContext,
-                                             engineContext: CoroutineContext,
-                                             userContext: CoroutineContext,
-                                             val protocol: HttpVersion)
-
-    : NettyApplicationResponse(call, context, engineContext, userContext) {
+internal class NettyHttp1ApplicationResponse(
+    call: NettyApplicationCall,
+    context: ChannelHandlerContext,
+    engineContext: CoroutineContext,
+    userContext: CoroutineContext,
+    val protocol: HttpVersion
+) : NettyApplicationResponse(call, context, engineContext, userContext) {
 
     private var responseStatus: HttpResponseStatus = HttpResponseStatus.OK
-    private val responseHeaders = io.netty.handler.codec.http.DefaultHttpHeaders()
+    private val responseHeaders = DefaultHttpHeaders()
 
     override fun setStatus(statusCode: HttpStatusCode) {
         val statusCodeInt = statusCode.value
         val cached = if (statusCodeInt in 1..responseStatusCache.lastIndex) responseStatusCache[statusCodeInt] else null
 
         responseStatus = cached?.takeIf { cached.reasonPhrase() == statusCode.description }
-                ?: HttpResponseStatus(statusCode.value, statusCode.description)
+            ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
@@ -59,7 +59,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
 
     override fun responseMessage(chunked: Boolean, data: ByteArray): Any {
         val responseMessage = DefaultFullHttpResponse(
-                protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE
+            protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE
         )
         if (chunked) {
             setChunked(responseMessage)

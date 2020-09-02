@@ -491,4 +491,48 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             e.shutdownNow()
         }
     }
+
+    @Test
+    open fun testChunkedWithVSpace() {
+        createAndStartServer {
+            post("/") {
+                try {
+                    val post = call.receiveParameters()
+                    call.respond("$post")
+                    call.respond(HttpStatusCode.BadRequest, "")
+                } catch (cause: Throwable) {
+                    throw cause
+                }
+            }
+        }
+
+        val messages = listOf(
+            "POST / HTTP/1.1\r\n",
+            "Host:localhost\r\n",
+            "Connection: close\r\n",
+            "Content-Type: application/x-www-form-urlencoded\r\n",
+            "Content-Length: 1\r\n",
+            "Transfer-Encoding:\u000bchunked\r\n",
+            "\r\n",
+            "3\r\n",
+            "a=1\r\n",
+            "0\r\n",
+            "\r\n",
+        )
+
+        socket {
+            getOutputStream().writer().also { writer ->
+                messages.forEach { writer.write(it) }
+                writer.flush()
+            }
+
+            val result = getInputStream().reader().readLines().joinToString("\n")
+            val expected = listOf(
+                "HTTP/1.1 400",
+                "HTTP/1.0 400"
+            )
+
+            assertTrue(expected.any { result.startsWith(it) },"Invalid response: $result")
+        }
+    }
 }

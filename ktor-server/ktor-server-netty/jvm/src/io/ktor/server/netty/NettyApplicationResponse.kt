@@ -9,18 +9,20 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.content.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-abstract class NettyApplicationResponse(call: NettyApplicationCall,
-                                                 protected val context: ChannelHandlerContext,
-                                                 protected val engineContext: CoroutineContext,
-                                                 protected val userContext: CoroutineContext) : BaseApplicationResponse(call) {
+abstract class NettyApplicationResponse(
+    call: NettyApplicationCall,
+    protected val context: ChannelHandlerContext,
+    protected val engineContext: CoroutineContext,
+    protected val userContext: CoroutineContext
+) : BaseApplicationResponse(call) {
 
     val responseMessage = CompletableDeferred<Any>()
 
@@ -107,10 +109,11 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     companion object {
         private val EmptyByteArray = ByteArray(0)
 
-        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes.associateBy { it.value }.let { codes ->
-            Array(1000) {
-                if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes
+            .associateBy { it.value }.let { codes ->
+                Array(1000) {
+                    if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
+                }
             }
-        }
     }
 }
