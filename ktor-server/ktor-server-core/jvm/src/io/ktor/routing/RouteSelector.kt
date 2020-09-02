@@ -227,7 +227,7 @@ public data class PathSegmentParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
@@ -252,7 +252,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
@@ -368,7 +368,7 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
  * @param method is an instance of [HttpMethod]
  */
 public data class HttpMethodRouteSelector(val method: HttpMethod) :
-    RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+    RouteSelector(RouteSelectorEvaluation.qualityMethodParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.request.httpMethod == method)
             return RouteSelectorEvaluation.Constant
@@ -454,7 +454,7 @@ internal fun evaluatePathSegmentParameter(
     val values = parametersOf(name, suffixChecked)
     return RouteSelectorEvaluation(
         succeeded = true,
-        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityPathParameter
         else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
         parameters = values,
         segmentIncrement = 1
