@@ -32,18 +32,23 @@ public data class RouteSelectorEvaluation(
 
         /**
          * Quality of [RouteSelectorEvaluation] when a query parameter has matched
-         */
-        internal const val qualityQueryParameter = 1.0
+        */
+        public const val qualityQueryParameter = 1.0
 
         /**
-         * Quality of [RouteSelectorEvaluation] when a parameter with prefix or suffix has matched
+         * Generic quality of [RouteSelectorEvaluation] to use as reference when some specific parameter has matched
          */
-        internal const val qualityParameterWithPrefixOrSuffix = 0.9
+        public const val qualityParameter = 0.8
 
         /**
-         * Quality of [RouteSelectorEvaluation] when a parameter has matched
+         * Quality of [RouteSelectorEvaluation] when a path parameter has matched
          */
-        public const val qualityParameter: Double = 0.8
+        public const val qualityPathParameter = qualityParameter
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a HTTP method parameter has matched
+         */
+        public const val qualityMethodParameter = qualityParameter
 
         /**
          * Quality of [RouteSelectorEvaluation] when a wildcard has matched
