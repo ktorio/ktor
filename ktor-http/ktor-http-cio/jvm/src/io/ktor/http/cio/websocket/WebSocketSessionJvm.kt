@@ -21,7 +21,7 @@ actual interface WebSocketSession : CoroutineScope {
     /**
      * Specifies frame size limit. Connection will be closed if violated
      */
-    var maxFrameSize: Long
+    actual var maxFrameSize: Long
 
     /**
      * Incoming frames channel

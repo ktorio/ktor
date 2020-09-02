@@ -48,4 +48,9 @@ actual interface WebSocketSession : CoroutineScope {
         ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
     )
     actual fun terminate()
+
+    /**
+     * Specifies frame size limit. Connection will be closed if violated
+     */
+    actual var maxFrameSize: Long
 }

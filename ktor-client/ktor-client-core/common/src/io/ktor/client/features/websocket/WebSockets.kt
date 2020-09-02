@@ -77,9 +77,12 @@ public class WebSockets(
         }
     }
 
-    private fun WebSocketSession.asDefault(): DefaultWebSocketSession {
+    internal fun WebSocketSession.asDefault(): DefaultWebSocketSession {
         if (this is DefaultWebSocketSession) return this
-        return DefaultWebSocketSession(this, pingInterval, maxFrameSize)
+
+        return DefaultWebSocketSession(this, pingInterval, timeoutMillis = pingInterval * 2).also {
+            it.maxFrameSize = this@WebSockets.maxFrameSize
+        }
     }
 }
 

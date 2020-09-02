@@ -25,6 +25,10 @@ internal class JsWebSocketSession(
 
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
+    override var maxFrameSize: Long
+        get() = Long.MAX_VALUE
+        set(value) {}
+
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
 
