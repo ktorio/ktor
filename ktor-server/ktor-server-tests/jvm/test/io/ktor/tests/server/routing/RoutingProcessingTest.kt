@@ -89,6 +89,77 @@ class RoutingProcessingTest {
 
     }
 
+    enum class SelectedRoute { Get, Param, None }
+    @Test fun `routing on param route`() = withTestApplication {
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("test") {
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                get {
+                    selectedRoute = SelectedRoute.Get
+                }
+            }
+        }
+        on("making get request to /test with `param` query parameter") {
+            handleRequest {
+                uri = "/test?param=value"
+                method = HttpMethod.Get
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making get request to /test without `param` query parameter") {
+            handleRequest {
+                uri = "/test"
+                method = HttpMethod.Get
+            }
+            it("should choose get routing") {
+                assertEquals(selectedRoute, SelectedRoute.Get)
+            }
+        }
+    }
+
+    @Test fun `routing on optional param route`() = withTestApplication {
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("test") {
+                optionalParam("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                get {
+                    selectedRoute = SelectedRoute.Get
+                }
+            }
+        }
+        on("making get request to /test with `param` query parameter") {
+            handleRequest {
+                uri = "/test?param=value"
+                method = HttpMethod.Get
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making get request to /test without `param` query parameter") {
+            handleRequest {
+                uri = "/test"
+                method = HttpMethod.Get
+            }
+            it("should choose get routing") {
+                assertEquals(selectedRoute, SelectedRoute.Get)
+            }
+        }
+    }
+
     @Test fun `verify most specific selected`() = withTestApplication {
         var path = ""
         application.routing {
