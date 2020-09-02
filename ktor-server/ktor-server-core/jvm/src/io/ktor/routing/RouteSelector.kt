@@ -29,6 +29,11 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
         const val qualityConstant = 1.0
 
         /**
+         * Quality of [RouteSelectorEvaluation] when a query parameter has matched
+         */
+        internal const val qualityQueryParameter = 1.0
+
+        /**
          * Quality of [RouteSelectorEvaluation] when a parameter has matched
          */
         const val qualityParameter = 0.8
@@ -146,11 +151,11 @@ data class ConstantParameterRouteSelector(val name: String, val value: String) :
  * Evaluates a route against a query parameter value and captures its value
  * @param name is a name of the query parameter
  */
-data class ParameterRouteSelector(val name: String) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+data class ParameterRouteSelector(val name: String) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, parametersOf(name, param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityQueryParameter, parametersOf(name, param))
         return RouteSelectorEvaluation.Failed
     }
 
@@ -161,11 +166,11 @@ data class ParameterRouteSelector(val name: String) : RouteSelector(RouteSelecto
  * Evaluates a route against an optional query parameter value and captures its value, if found
  * @param name is a name of the query parameter
  */
-data class OptionalParameterRouteSelector(val name: String) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+data class OptionalParameterRouteSelector(val name: String) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, parametersOf(name, param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityQueryParameter, parametersOf(name, param))
         return RouteSelectorEvaluation.Missing
     }
 
