@@ -41,7 +41,8 @@ public class AcceptAllCookiesStorage : CookiesStorage {
         }
     }
 
-    override fun close() {}
+    override fun close() {
+    }
 
     private fun cleanup(timestamp: Long) {
         container.removeAll { cookie ->
