@@ -180,6 +180,4 @@ public class RoutingResolveContext(
         trace?.finish(entry, segmentIndex, result)
         return result
     }
-
 }
-
