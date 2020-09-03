@@ -4,7 +4,9 @@
 
 package io.ktor.tests.server.routing
 
+import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
@@ -632,4 +634,34 @@ class RoutingResolveTest {
         }
     }
 
+    @Test
+    fun testRoutingTrailingSlash() = withTestApplication {
+        application.routing {
+            get("foo/") {
+                call.respondText("foo/")
+            }
+            get("foo") {
+                call.respondText("foo")
+            }
+        }
+
+        on ("making /foo request") {
+            val result = handleRequest {
+                uri = "/foo"
+                method = HttpMethod.Get
+            }
+            it("/foo should be called") {
+                assertEquals("foo", result.response.content)
+            }
+        }
+        on ("making /foo/ request") {
+            val result = handleRequest {
+                uri = "/foo/"
+                method = HttpMethod.Get
+            }
+            it("/foo/ should be called") {
+                assertEquals("foo/", result.response.content)
+            }
+        }
+    }
 }
