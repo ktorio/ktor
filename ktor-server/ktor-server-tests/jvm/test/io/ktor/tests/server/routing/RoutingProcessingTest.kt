@@ -92,7 +92,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `routing on param route`() = withTestApplication {
+    fun testRoutingOnParamRoute() = withTestApplication {
         var selectedRoute = SelectedRoute.None
         application.routing {
             route("test") {
@@ -128,7 +128,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `routing on optional param route`() = withTestApplication {
+    fun testRoutingOnOptionalParamRoute() = withTestApplication {
         var selectedRoute = SelectedRoute.None
         application.routing {
             route("test") {
@@ -164,11 +164,11 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `routing on route with same quality should be based on order`() = withTestApplication {
-        // `header {}` and `param {}` use quality = 1.0
+    fun testRoutingOnRoutesWithSameQualityShouldBeBasedOnOrder() = withTestApplication {
+        // `accept {}` and `param {}` use quality = 1.0
         var selectedRoute = SelectedRoute.None
         application.routing {
-            route("param") {
+            route("paramFirst") {
                 param("param") {
                     handle {
                         selectedRoute = SelectedRoute.Param
@@ -181,7 +181,7 @@ class RoutingProcessingTest {
                     }
                 }
             }
-            route("header") {
+            route("headerFirst") {
                 accept(ContentType.Text.Plain) {
                     handle {
                         selectedRoute = SelectedRoute.Header
@@ -195,18 +195,18 @@ class RoutingProcessingTest {
                 }
             }
         }
-        on("making request to /param with `param` query parameter and accept header") {
+        on("making request to /paramFirst with `param` query parameter and accept header") {
             handleRequest {
-                uri = "/param?param=value"
+                uri = "/paramFirst?param=value"
                 addHeader(HttpHeaders.Accept, "text/plain")
             }
             it("should choose param routing") {
                 assertEquals(selectedRoute, SelectedRoute.Param)
             }
         }
-        on("making request to /header with `param` query parameter and accept header") {
+        on("making request to /headerFirst with `param` query parameter and accept header") {
             handleRequest {
-                uri = "/header?param=value"
+                uri = "/headerFirst?param=value"
                 addHeader(HttpHeaders.Accept, "text/plain")
             }
             it("should choose header routing") {
