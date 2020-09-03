@@ -13,16 +13,16 @@ import io.ktor.request.*
  *
  * @property route specifies a routing node for successful resolution, or nearest one for failed.
  */
-sealed class RoutingResolveResult(val route: Route) {
+public sealed class RoutingResolveResult(public val route: Route) {
     /**
      * Provides all captured values for this result.
      */
-    abstract val parameters: Parameters
+    public abstract val parameters: Parameters
 
     /**
      * Represents a successful result
      */
-    class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
+    public class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route)"
     }
 
@@ -30,7 +30,7 @@ sealed class RoutingResolveResult(val route: Route) {
      * Represents a failed result
      * @param reason provides information on reason of a failure
      */
-    class Failure(route: Route, val reason: String) : RoutingResolveResult(route) {
+    public class Failure(route: Route, public val reason: String) : RoutingResolveResult(route) {
         override val parameters: Nothing get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
         override fun toString(): String = "FAILURE \"$reason\" @ $route)"
     }
@@ -41,12 +41,16 @@ sealed class RoutingResolveResult(val route: Route) {
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
  */
-class RoutingResolveContext(val routing: Route, val call: ApplicationCall, private val tracers: List<(RoutingResolveTrace) -> Unit>) {
+public class RoutingResolveContext(
+    public val routing: Route,
+    public val call: ApplicationCall,
+    private val tracers: List<(RoutingResolveTrace) -> Unit>
+) {
 
     /**
      * List of path segments parsed out of a [call]
      */
-    val segments: List<String> = parse(call.request.path())
+    public val segments: List<String> = parse(call.request.path())
 
     private val trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
 
@@ -78,7 +82,7 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
     /**
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
      */
-    fun resolve(): RoutingResolveResult {
+    public fun resolve(): RoutingResolveResult {
         val root = routing
         val rootResult = root.selector.evaluate(this, 0)
         if (!rootResult.succeeded) {
@@ -175,6 +179,4 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
         trace?.finish(entry, segmentIndex, result)
         return result
     }
-
 }
-
