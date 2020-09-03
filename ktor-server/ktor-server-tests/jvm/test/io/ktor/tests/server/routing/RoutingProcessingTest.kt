@@ -13,6 +13,8 @@ import io.ktor.server.testing.*
 import org.junit.Test
 import kotlin.test.*
 
+private enum class SelectedRoute { Get, Param, Header, None }
+
 class RoutingProcessingTest {
     @Test fun `routing on GET foo-bar`() = withTestApplication {
         application.routing {
@@ -89,8 +91,8 @@ class RoutingProcessingTest {
 
     }
 
-    enum class SelectedRoute { Get, Param, None }
-    @Test fun `routing on param route`() = withTestApplication {
+    @Test
+    fun `routing on param route`() = withTestApplication {
         var selectedRoute = SelectedRoute.None
         application.routing {
             route("test") {
@@ -125,7 +127,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `routing on optional param route`() = withTestApplication {
+    @Test
+    fun `routing on optional param route`() = withTestApplication {
         var selectedRoute = SelectedRoute.None
         application.routing {
             route("test") {
@@ -156,6 +159,58 @@ class RoutingProcessingTest {
             }
             it("should choose get routing") {
                 assertEquals(selectedRoute, SelectedRoute.Get)
+            }
+        }
+    }
+
+    @Test
+    fun `routing on route with same quality should be based on order`() = withTestApplication {
+        // `header {}` and `param {}` use quality = 1.0
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("param") {
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                accept(ContentType.Text.Plain) {
+                    handle {
+                        selectedRoute = SelectedRoute.Header
+                    }
+                }
+            }
+            route("header") {
+                accept(ContentType.Text.Plain) {
+                    handle {
+                        selectedRoute = SelectedRoute.Header
+                    }
+                }
+
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+            }
+        }
+        on("making request to /param with `param` query parameter and accept header") {
+            handleRequest {
+                uri = "/param?param=value"
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making request to /header with `param` query parameter and accept header") {
+            handleRequest {
+                uri = "/header?param=value"
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }
+            it("should choose header routing") {
+                assertEquals(selectedRoute, SelectedRoute.Header)
             }
         }
     }
