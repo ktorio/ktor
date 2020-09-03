@@ -71,6 +71,7 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
+        if (path.endsWith('/')) segments.add("")
         return segments
     }
 

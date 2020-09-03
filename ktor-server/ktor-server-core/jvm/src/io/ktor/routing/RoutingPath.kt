@@ -31,7 +31,10 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
                 }
             }
 
-            return RoutingPath(segments.toList())
+            val hasTrailingSlash = path.endsWith('/')
+            val parts = if (hasTrailingSlash) segments.toList() + RoutingPathSegment("", RoutingPathSegmentKind.Constant)
+            else segments.toList()
+            return RoutingPath(parts)
         }
     }
 
