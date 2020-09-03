@@ -75,6 +75,7 @@ public class RoutingResolveContext(
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
+        if (path.endsWith('/')) segments.add("")
         return segments
     }
 
