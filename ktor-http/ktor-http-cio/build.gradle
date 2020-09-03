@@ -10,4 +10,8 @@ kotlin.sourceSets {
     jvmMain.dependencies {
         api project(':ktor-network')
     }
+
+    jvmTest.dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+    }
 }
