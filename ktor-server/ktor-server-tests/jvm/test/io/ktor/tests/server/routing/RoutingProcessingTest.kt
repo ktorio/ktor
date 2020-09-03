@@ -14,9 +14,12 @@ import org.junit.Test
 import kotlin.test.*
 
 private enum class SelectedRoute { Get, Param, Header, None }
+private class Foo
 
 class RoutingProcessingTest {
-    @Test fun `routing on GET foo-bar`() = withTestApplication {
+
+    @Test
+    fun testRoutingOnGETFooBar() = withTestApplication {
         application.routing {
             get("/foo/bar") {
                 call.respond(HttpStatusCode.OK)
@@ -47,7 +50,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `routing on GET user with parameter`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserWithParameter() = withTestApplication {
         var username = ""
         application.routing {
             route("user") {
@@ -72,7 +76,8 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `routing on GET user with surrounded parameter`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserWithSurroundedParameter() = withTestApplication {
         var username = ""
         application.routing {
             get("/user-{name}-get") {
@@ -215,7 +220,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify most specific selected`() = withTestApplication {
+    @Test
+    fun testMostSpecificSelected() = withTestApplication {
         var path = ""
         application.routing {
             get("{path...}") {
@@ -245,7 +251,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `routing on GET -user-username with interceptors`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserUsernameWithInterceptors() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -278,7 +285,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be after`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeAfter() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -316,7 +324,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of phase`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfPhase() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -354,7 +363,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of order`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfOrder() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -392,8 +402,8 @@ class RoutingProcessingTest {
         }
     }
 
-    class Foo
-    @Test fun `intercept receive pipeline`() = withTestApplication {
+    @Test
+    fun testInterceptReceivePipeline() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -434,7 +444,8 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `verify accept header processing`() = withTestApplication {
+    @Test
+    fun testAcceptHeaderProcessing() = withTestApplication {
         application.routing {
             route("/") {
                 accept(ContentType.Text.Plain) {
@@ -484,7 +495,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `host and port routing processing`(): Unit = withTestApplication {
+    fun testHostAndPortRoutingProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
                 host("my-host", 8080) {
@@ -580,7 +591,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `local port route processing`(): Unit = withTestApplication {
+    fun testLocalPortRouteProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
                 // TestApplicationRequest.local defaults to 80 in the absence of headers
@@ -619,7 +630,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `routing with tracing`() = withTestApplication {
+    fun testRoutingWithTracing() = withTestApplication {
         var trace: RoutingResolveTrace? = null
         application.routing {
             trace {
