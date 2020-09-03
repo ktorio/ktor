@@ -199,9 +199,12 @@ public suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel
 
 /**
  * Skip multipart boundary
+ * @return `true` if end channel encountered
  */
 private suspend fun skipBoundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
-    input.skipDelimiter(boundaryPrefixed)
+    if (!input.skipDelimiterOrEof(boundaryPrefixed)) {
+        return true
+    }
 
     var result = false
     @Suppress("DEPRECATION")
@@ -554,4 +557,106 @@ public fun parseBoundary(contentType: CharSequence): ByteBuffer {
     }
 
     return boundaryBytes
+}
+
+/**
+ * Tries to skip the specified [delimiter] or fails if encounters bytes differs from the required.
+ * @return `true` if the delimiter was found and skipped or `false` when EOF.
+ */
+internal suspend fun ByteReadChannel.skipDelimiterOrEof(delimiter: ByteBuffer): Boolean {
+    require(delimiter.hasRemaining())
+    require(delimiter.remaining() <= DEFAULT_BUFFER_SIZE) {
+        "Delimiter of ${delimiter.remaining()} bytes is too long: at most $DEFAULT_BUFFER_SIZE bytes could be checked"
+    }
+
+    var found = false
+
+    lookAhead {
+        found = tryEnsureDelimiter(delimiter) == delimiter.remaining()
+    }
+
+    if (found) {
+        return true
+    }
+
+    return trySkipDelimiterSuspend(delimiter)
+}
+
+private suspend fun ByteReadChannel.trySkipDelimiterSuspend(delimiter: ByteBuffer): Boolean {
+    var result = true
+
+    lookAheadSuspend {
+        if (!awaitAtLeast(delimiter.remaining()) && !awaitAtLeast(1)) {
+            result = false
+            return@lookAheadSuspend
+        }
+        if (tryEnsureDelimiter(delimiter) != delimiter.remaining()) throw IOException("Broken delimiter occurred")
+    }
+
+    return result
+}
+
+@Suppress("DEPRECATION")
+private fun LookAheadSession.tryEnsureDelimiter(delimiter: ByteBuffer): Int {
+    val found = startsWithDelimiter(delimiter)
+    if (found == -1) throw IOException("Failed to skip delimiter: actual bytes differ from delimiter bytes")
+    if (found < delimiter.remaining()) return found
+
+    consumed(delimiter.remaining())
+    return delimiter.remaining()
+}
+
+@Suppress("LoopToCallChain")
+private fun ByteBuffer.startsWith(prefix: ByteBuffer, prefixSkip: Int = 0): Boolean {
+    val size = minOf(remaining(), prefix.remaining() - prefixSkip)
+    if (size <= 0) return false
+
+    val position = position()
+    val prefixPosition = prefix.position() + prefixSkip
+
+    for (i in 0 until size) {
+        if (get(position + i) != prefix.get(prefixPosition + i)) return false
+    }
+
+    return true
+}
+
+/**
+ * @return Number of bytes of the delimiter found (possibly 0 if no bytes available yet) or -1 if it doesn't start
+ */
+@Suppress("DEPRECATION")
+private fun LookAheadSession.startsWithDelimiter(delimiter: ByteBuffer): Int {
+    val buffer = request(0, 1) ?: return 0
+    val index = buffer.indexOfPartial(delimiter)
+    if (index != 0) return -1
+
+    val found = minOf(buffer.remaining() - index, delimiter.remaining())
+    val notKnown = delimiter.remaining() - found
+
+    if (notKnown > 0) {
+        val next = request(index + found, notKnown) ?: return found
+        if (!next.startsWith(delimiter, found)) return -1
+    }
+
+    return delimiter.remaining()
+}
+
+@Suppress("LoopToCallChain")
+private fun ByteBuffer.indexOfPartial(sub: ByteBuffer): Int {
+    val subPosition = sub.position()
+    val subSize = sub.remaining()
+    val first = sub[subPosition]
+    val limit = limit()
+
+    outer@for (idx in position() until limit) {
+        if (get(idx) == first) {
+            for (j in 1 until subSize) {
+                if (idx + j == limit) break
+                if (get(idx + j) != sub.get(subPosition + j)) continue@outer
+            }
+            return idx - position()
+        }
+    }
+
+    return -1
 }
