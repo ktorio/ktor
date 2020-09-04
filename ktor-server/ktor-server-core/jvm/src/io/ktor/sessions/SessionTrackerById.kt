@@ -36,7 +36,7 @@ class SessionTrackerById<S : Any>(
                 serializer.deserialize(text)
             }
         } catch (notFound: NoSuchElementException) {
-            call.application.log.debug("Failed to lookup session: $notFound")
+            call.application.log.debug("Failed to lookup session: ${notFound.message ?: notFound.toString()}")
         }
 
         // we remove the wrong session identifier if no related session found
