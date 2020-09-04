@@ -51,6 +51,7 @@ public class RoutingResolveContext(
      * List of path segments parsed out of a [call]
      */
     public val segments: List<String> = parse(call.request.path())
+    public val hasTrailingSlash: Boolean = call.request.path().endsWith('/')
 
     private val trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
 
@@ -75,7 +76,6 @@ public class RoutingResolveContext(
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
-        if (path.endsWith('/')) segments.add("")
         return segments
     }
 
