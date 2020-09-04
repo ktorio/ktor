@@ -107,6 +107,7 @@ class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelectorEval
         true, RouteSelectorEvaluation.qualityConstant,
         segmentIncrement = parts.size
     )
+    private val hasTrailingSlash = rootPath.endsWith('/')
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         check(segmentIndex == 0) { "Root selector should be evaluated first." }
@@ -117,6 +118,9 @@ class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelectorEval
         val parts = parts
         val segments = context.segments
         if (segments.size < parts.size) {
+            return RouteSelectorEvaluation.Failed
+        }
+        if (hasTrailingSlash != context.hasTrailingSlash) {
             return RouteSelectorEvaluation.Failed
         }
 
@@ -181,8 +185,12 @@ data class OptionalParameterRouteSelector(val name: String) : RouteSelector(Rout
  * Evaluates a route against a constant path segment
  * @param value is a value of the path segment
  */
-data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+data class PathSegmentConstantRouteSelector(val value: String, private val hasTrailingSlash: Boolean) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        if (segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash) {
+            return RouteSelectorEvaluation.Failed
+        }
         if (segmentIndex < context.segments.size && context.segments[segmentIndex] == value)
             return RouteSelectorEvaluation.ConstantPath
         return RouteSelectorEvaluation.Failed
@@ -197,8 +205,17 @@ data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(R
  * @param prefix is an optional suffix
  * @param suffix is an optional prefix
  */
-data class PathSegmentParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+data class PathSegmentParameterRouteSelector(
+    val name: String,
+    val prefix: String? = null,
+    val suffix: String? = null,
+    private val hasTrailingSlash: Boolean
+) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        if (segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash) {
+            return RouteSelectorEvaluation.Failed
+        }
         if (segmentIndex < context.segments.size) {
             val part = context.segments[segmentIndex]
             val prefixChecked = if (prefix == null)
@@ -232,8 +249,17 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
  * @param prefix is an optional suffix
  * @param suffix is an optional prefix
  */
-data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+data class PathSegmentOptionalParameterRouteSelector(
+    val name: String,
+    val prefix: String? = null,
+    val suffix: String? = null,
+    private val hasTrailingSlash: Boolean
+) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        if (segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash) {
+            return RouteSelectorEvaluation.Failed
+        }
         if (segmentIndex < context.segments.size) {
             val part = context.segments[segmentIndex]
             val prefixChecked = if (prefix == null)
@@ -279,7 +305,11 @@ object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.
  * @param name is the name of the parameter to capture values to
  * @property prefix before the tailcard (static text)
  */
-data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+data class PathSegmentTailcardRouteSelector(
+    val name: String = "",
+    val prefix: String = "",
+    private val hasTrailingSlash: Boolean
+) : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
     init {
         require(prefix.none { it == '/' }) { "Multisegment prefix is not supported"}
     }
@@ -301,6 +331,9 @@ data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: S
         val quality = when {
             segmentIndex < context.segments.size -> RouteSelectorEvaluation.qualityTailcard
             else -> RouteSelectorEvaluation.qualityMissing
+        }
+        if (hasTrailingSlash != context.hasTrailingSlash) {
+            return RouteSelectorEvaluation.Failed
         }
         return RouteSelectorEvaluation(
             true, quality, values,
