@@ -203,7 +203,8 @@ private data class SessionData(val sessions: Sessions,
 private suspend fun <S : Any> SessionProvider<S>.receiveSessionData(call: ApplicationCall): SessionProviderData<S> {
     val receivedValue = transport.receive(call)
     val unwrapped = tracker.load(call, receivedValue)
-    return SessionProviderData(unwrapped, unwrapped != null, this)
+    val incoming = receivedValue != null || unwrapped != null
+    return SessionProviderData(unwrapped, incoming, this)
 }
 
 private suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: ApplicationCall) {
