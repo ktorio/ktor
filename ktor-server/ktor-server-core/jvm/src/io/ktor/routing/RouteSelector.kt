@@ -34,6 +34,11 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
         internal const val qualityQueryParameter = 1.0
 
         /**
+         * Quality of [RouteSelectorEvaluation] when a parameter with prefix or suffix has matched
+         */
+        internal const val qualityParameterWithPrefixOrSuffix = 0.9
+
+        /**
          * Quality of [RouteSelectorEvaluation] when a parameter has matched
          */
         const val qualityParameter = 0.8
@@ -218,7 +223,13 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
                     return RouteSelectorEvaluation.Failed
 
             val values = parametersOf(name, suffixChecked)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
+            return RouteSelectorEvaluation(
+                true,
+                if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+                else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
+                values,
+                segmentIncrement = 1
+            )
         }
         return RouteSelectorEvaluation.Failed
     }
@@ -253,7 +264,13 @@ data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefi
                     return RouteSelectorEvaluation.Missing
 
             val values = parametersOf(name, suffixChecked)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
+            return RouteSelectorEvaluation(
+                true,
+                if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+                else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
+                values,
+                segmentIncrement = 1
+            )
         }
         return RouteSelectorEvaluation.Missing
     }

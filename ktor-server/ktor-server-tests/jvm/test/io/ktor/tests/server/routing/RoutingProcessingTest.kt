@@ -796,5 +796,35 @@ class RoutingProcessingTest {
         }
     }
 
+    @Test
+    fun testRouteWithParamaterPrefixAndSuffixHasMorePriority() = withTestApplication {
+        application.routing {
+            get("/foo:{baz}") {
+                call.respondText("foo")
+            }
+            get("/{baz}") {
+                call.respondText("baz")
+            }
+            get("/{baz}:bar") {
+                call.respondText("bar")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/foo:bar").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "foo")
+        }
+
+        handleRequest(HttpMethod.Get, "/baz").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "baz")
+        }
+
+        handleRequest(HttpMethod.Get, "/baz:bar").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "bar")
+        }
+    }
+
     private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
 }
