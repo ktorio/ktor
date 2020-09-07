@@ -221,12 +221,13 @@ data class PathSegmentConstantRouteSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash) {
-            return RouteSelectorEvaluation.Failed
+        return when {
+            segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash ->
+                RouteSelectorEvaluation.Failed
+            segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
+                RouteSelectorEvaluation.ConstantPath
+            else -> RouteSelectorEvaluation.Failed
         }
-        if (segmentIndex < context.segments.size && context.segments[segmentIndex] == value)
-            return RouteSelectorEvaluation.ConstantPath
-        return RouteSelectorEvaluation.Failed
     }
 
     override fun toString(): String = value
