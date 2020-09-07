@@ -29,3 +29,6 @@ fun Dispatchers.fixedThreadPoolDispatcher(
 ): CoroutineDispatcher {
     return clientDispatcher(threadCount, dispatcherName)
 }
+
+internal actual fun checkCoroutinesVersion() {
+}

@@ -6,6 +6,7 @@ package io.ktor.client.utils
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlin.native.concurrent.*
 
 /**
  * Creates [CoroutineDispatcher] for client with fixed [threadCount] and specified [dispatcherName].
@@ -15,3 +16,16 @@ public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
 ): CoroutineDispatcher = Unconfined
+
+internal actual fun checkCoroutinesVersion() {
+    try {
+        val parent = Job()
+        parent.freeze()
+        Job(parent)
+    } catch (cause: Throwable) {
+        val message = "Invalid coroutines version. " +
+            "Consider using version with suffix `-native-mt`, like `1.3.9-native-mt` for native."
+
+        error(message)
+    }
+}
