@@ -4,7 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 
 /**
@@ -44,8 +43,7 @@ public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
         val key = it.first.encodeURLParameter(spaceToPlus = true)
         if (it.second == null) {
             key
-        }
-        else {
+        } else {
             val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
             "$key=$value"
         }
@@ -63,7 +61,15 @@ public fun Parameters.formUrlEncode(): String = entries()
  * Encode form parameters to the specified [out] appendable
  */
 public fun Parameters.formUrlEncodeTo(out: Appendable) {
-    entries()
-        .flatMap { e -> if (e.value.isEmpty()) listOf(e.key to null) else e.value.map { e.key to it } }
-        .formUrlEncodeTo(out)
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun ParametersBuilder.formUrlEncodeTo(out: Appendable) {
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun Set<Map.Entry<String, List<String>>>.formUrlEncodeTo(out: Appendable) {
+    flatMap { (key, value) ->
+        if (value.isEmpty()) listOf(key to null) else value.map { key to it }
+    }.formUrlEncodeTo(out)
 }

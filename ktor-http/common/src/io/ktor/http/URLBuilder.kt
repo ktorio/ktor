@@ -64,7 +64,7 @@ public class URLBuilder(
         out.append("://")
         out.append(authority)
 
-        out.appendUrlFullPath(encodedPath, parameters.build(), trailingQuery)
+        out.appendUrlFullPath(encodedPath, parameters, trailingQuery)
 
         if (fragment.isNotEmpty()) {
             out.append('#')

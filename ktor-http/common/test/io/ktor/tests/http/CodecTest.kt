@@ -110,6 +110,19 @@ class CodecTest {
         assertEquals("Gr%C3%BCezi_z%C3%A4m%C3%A4", swissAndGerman.encodeURLPath())
     }
 
+    @Test
+    fun testFormUrlEncode() {
+        val result = StringBuilder()
+
+        val source = mapOf<String, List<String>>(
+            "a" to listOf("b", "c", "d"),
+            "1" to listOf("2"),
+            "x" to listOf("y", "z"),
+        ).entries.formUrlEncodeTo(result)
+
+        assertEquals("a=b&a=c&a=d&1=2&x=y&x=z", result.toString())
+    }
+
     private fun encodeAndDecodeTest(text: String) {
         val encode1 = text.encodeURLQueryComponent()
         val decode1 = encode1.decodeURLQueryComponent()
