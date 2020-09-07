@@ -71,7 +71,7 @@ class EndpointConfig {
     /**
      * Socket timeout in millis.
      */
-    var socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+    val socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
 
     /**
      * Maximum number of connection attempts.
