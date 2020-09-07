@@ -214,7 +214,7 @@ public data class OptionalParameterRouteSelector(val name: String) :
  */
 data class PathSegmentConstantRouteSelector(
     val value: String,
-    private val hasTrailingSlash: Boolean
+    private val hasTrailingSlash: Boolean = false
 ) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
@@ -238,7 +238,7 @@ data class PathSegmentParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null,
-    private val hasTrailingSlash: Boolean
+    private val hasTrailingSlash: Boolean = false
 ) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
@@ -265,7 +265,7 @@ data class PathSegmentOptionalParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null,
-    private val hasTrailingSlash: Boolean
+    private val hasTrailingSlash: Boolean = false
 ) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
@@ -303,7 +303,7 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEval
 data class PathSegmentTailcardRouteSelector(
     val name: String = "",
     val prefix: String = "",
-    private val hasTrailingSlash: Boolean
+    private val hasTrailingSlash: Boolean = false
 ) : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
 
     init {

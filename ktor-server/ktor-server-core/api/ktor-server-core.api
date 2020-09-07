@@ -1253,6 +1253,7 @@ public final class io/ktor/routing/ParameterRouteSelector : io/ktor/routing/Rout
 
 public final class io/ktor/routing/PathSegmentConstantRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;Z)Lio/ktor/routing/PathSegmentConstantRouteSelector;
 	public static synthetic fun copy$default (Lio/ktor/routing/PathSegmentConstantRouteSelector;Ljava/lang/String;ZILjava/lang/Object;)Lio/ktor/routing/PathSegmentConstantRouteSelector;
@@ -1305,6 +1306,7 @@ public final class io/ktor/routing/PathSegmentSelectorBuilder {
 }
 
 public final class io/ktor/routing/PathSegmentTailcardRouteSelector : io/ktor/routing/RouteSelector {
+	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
