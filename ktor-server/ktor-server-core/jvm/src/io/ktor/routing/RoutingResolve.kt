@@ -13,16 +13,16 @@ import io.ktor.request.*
  *
  * @property route specifies a routing node for successful resolution, or nearest one for failed.
  */
-public sealed class RoutingResolveResult(public val route: Route) {
+sealed class RoutingResolveResult(val route: Route) {
     /**
      * Provides all captured values for this result.
      */
-    public abstract val parameters: Parameters
+    abstract val parameters: Parameters
 
     /**
      * Represents a successful result
      */
-    public class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
+    class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route)"
     }
 
@@ -30,7 +30,7 @@ public sealed class RoutingResolveResult(public val route: Route) {
      * Represents a failed result
      * @param reason provides information on reason of a failure
      */
-    public class Failure(route: Route, public val reason: String) : RoutingResolveResult(route) {
+    class Failure(route: Route, val reason: String) : RoutingResolveResult(route) {
         override val parameters: Nothing get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
         override fun toString(): String = "FAILURE \"$reason\" @ $route)"
     }
@@ -41,11 +41,7 @@ public sealed class RoutingResolveResult(public val route: Route) {
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
  */
-public class RoutingResolveContext(
-    public val routing: Route,
-    public val call: ApplicationCall,
-    private val tracers: List<(RoutingResolveTrace) -> Unit>
-) {
+class RoutingResolveContext(val routing: Route, val call: ApplicationCall, private val tracers: List<(RoutingResolveTrace) -> Unit>) {
 
     /**
      * List of path segments parsed out of a [call]
@@ -82,7 +78,7 @@ public class RoutingResolveContext(
     /**
      * Executes resolution procedure in this context and returns [RoutingResolveResult]
      */
-    public fun resolve(): RoutingResolveResult {
+    fun resolve(): RoutingResolveResult {
         val root = routing
         val rootResult = root.selector.evaluate(this, 0)
         if (!rootResult.succeeded) {
@@ -180,4 +176,6 @@ public class RoutingResolveContext(
         trace?.finish(entry, segmentIndex, result)
         return result
     }
+
 }
+

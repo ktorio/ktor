@@ -32,7 +32,7 @@ fun Route.handle(selector: RouteSelector) = createChild(selector).apply { handle
 
 class RoutingResolveTest {
     @Test
-    fun testEmptyRouting() {
+    fun `empty routing`() {
         val root = routing()
         val result = resolve(root, "/foo/bar")
         assertTrue(result is RoutingResolveResult.Failure)
@@ -40,7 +40,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testCustomRootPath() {
+    fun `custom root path`() {
         val root = routing("context/path")
         root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
 
@@ -77,7 +77,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingWithFoo() {
+    fun `routing with foo`() {
         val root = routing()
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
 
@@ -102,7 +102,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingWithFooBar() {
+    fun `routing with foo-bar`() {
         val root = routing()
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
         val barEntry = fooEntry.handle(PathSegmentConstantRouteSelector("bar", hasTrailingSlash = false))
@@ -139,7 +139,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithParameter() {
+    fun `routing foo with parameter`() {
         val root = routing()
         val paramEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentParameterRouteSelector("param", hasTrailingSlash = false))
@@ -160,7 +160,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithSurroundedParameter() {
+    fun `routing foo with surrounded parameter`() {
         val root = routing()
         val paramEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentParameterRouteSelector("param", "a", "b", hasTrailingSlash = false))
@@ -181,7 +181,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithMultiplyParameters() {
+    fun `routing foo with multiply parameters`() {
         val root = routing()
         root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentParameterRouteSelector("param1", hasTrailingSlash = false))
@@ -201,7 +201,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithMultivalueParameter() {
+    fun `routing foo with multivalue parameter`() {
         val root = routing()
         root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentParameterRouteSelector("param", hasTrailingSlash = false))
@@ -220,7 +220,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithOptionalParameter() {
+    fun `routing foo with optional parameter`() {
         val root = routing()
         val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentOptionalParameterRouteSelector("param", hasTrailingSlash = false))
@@ -255,7 +255,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithWildcard() {
+    fun `routing foo with wildcard`() {
         val root = routing()
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
         val paramEntry = fooEntry.handle(PathSegmentWildcardRouteSelector)
@@ -284,7 +284,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithAnonymousTailcard() {
+    fun `routing foo with anonymous tailcard`() {
         val root = routing()
         val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentTailcardRouteSelector(hasTrailingSlash = false))
@@ -324,7 +324,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithNamedTailcard() {
+    fun `routing foo with named tailcard`() {
         val root = routing()
         val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
             .handle(PathSegmentTailcardRouteSelector("items", hasTrailingSlash = false))
@@ -373,7 +373,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithParameterEntry() {
+    fun `routing foo with parameter entry`() {
         val root = routing()
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
         val paramEntry = fooEntry.handle(ParameterRouteSelector("name"))
@@ -422,7 +422,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithQuality() {
+    fun `routing foo with quality`() {
         val root = routing()
         val fooEntry = root.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
         val paramEntry = fooEntry.handle(PathSegmentParameterRouteSelector("name", hasTrailingSlash = false))
@@ -459,7 +459,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingFooWithQualityAndHeaders() {
+    fun `routing foo with quality and headers`() {
         val root = routing()
         val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
         val plainEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/plain"))
@@ -511,7 +511,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testSelectMostSpecificRouteWithRoot() {
+    fun `select most specific route with root`() {
         val routing = routing()
         val rootEntry = routing.createRouteFromPath("/").apply { handle {} }
         val varargEntry = routing.createRouteFromPath("/{...}").apply { handle {} }
@@ -540,7 +540,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testSelectMostSpecificRouteWithOptionalParam() {
+    fun `select most specific route with optional param`() {
         val routing = routing()
         val dateEntry = routing.createRouteFromPath("/sessions/{date}").apply { handle {} }
         val currentEntry = routing.createRouteFromPath("/sessions/current/{date?}").apply { handle {} }
@@ -579,7 +579,7 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testDecodingRouting() {
+    fun `decoding routing`() {
         val routing = routing()
         val spaceEntry = routing.createRouteFromPath("/a%20b").apply { handle {} }
         val plusEntry = routing.createRouteFromPath("/a+b").apply { handle {} }
