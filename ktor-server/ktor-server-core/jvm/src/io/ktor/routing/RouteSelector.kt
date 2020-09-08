@@ -204,23 +204,23 @@ data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(R
  */
 data class PathSegmentParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size) {
-            val part = context.segments[segmentIndex]
-            val prefixChecked = if (prefix == null)
-                part
-            else
-                if (part.startsWith(prefix))
-                    part.drop(prefix.length)
-                else
-                    return RouteSelectorEvaluation.Failed
+        return evaluate(context.segments, segmentIndex)
+    }
 
-            val suffixChecked = if (suffix == null)
-                prefixChecked
-            else
-                if (prefixChecked.endsWith(suffix))
-                    prefixChecked.dropLast(suffix.length)
-                else
-                    return RouteSelectorEvaluation.Failed
+    internal fun evaluate(segments: List<String>, segmentIndex: Int): RouteSelectorEvaluation {
+        if (segmentIndex < segments.size) {
+            val part = segments[segmentIndex]
+            val prefixChecked = when {
+                prefix == null -> part
+                part.startsWith(prefix) -> part.drop(prefix.length)
+                else -> return RouteSelectorEvaluation.Failed
+            }
+
+            val suffixChecked = when {
+                suffix == null -> prefixChecked
+                prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
+                else -> return RouteSelectorEvaluation.Failed
+            }
 
             val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(
@@ -244,24 +244,25 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
  * @param suffix is an optional prefix
  */
 data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size) {
-            val part = context.segments[segmentIndex]
-            val prefixChecked = if (prefix == null)
-                part
-            else
-                if (part.startsWith(prefix))
-                    part.drop(prefix.length)
-                else
-                    return RouteSelectorEvaluation.Missing
 
-            val suffixChecked = if (suffix == null)
-                prefixChecked
-            else
-                if (prefixChecked.endsWith(suffix))
-                    prefixChecked.dropLast(suffix.length)
-                else
-                    return RouteSelectorEvaluation.Missing
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        return evaluate(context.segments, segmentIndex)
+    }
+
+    internal fun evaluate(segments: List<String>, segmentIndex: Int): RouteSelectorEvaluation {
+        if (segmentIndex < segments.size) {
+            val part = segments[segmentIndex]
+            val prefixChecked = when {
+                prefix == null -> part
+                part.startsWith(prefix) -> part.drop(prefix.length)
+                else -> return RouteSelectorEvaluation.Missing
+            }
+
+            val suffixChecked = when {
+                suffix == null -> prefixChecked
+                prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
+                else -> return RouteSelectorEvaluation.Missing
+            }
 
             val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(
