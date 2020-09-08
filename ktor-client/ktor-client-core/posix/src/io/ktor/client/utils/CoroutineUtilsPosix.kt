@@ -24,7 +24,7 @@ internal actual fun checkCoroutinesVersion() {
         Job(parent)
     } catch (cause: Throwable) {
         val message = "Ktor native HttpClient requires kotlinx.coroutines version with `native-mt` suffix" +
-            "(like `1.3.9-native-mt`). Consider checking the dependencies."
+            " (like `1.3.9-native-mt`). Consider checking the dependencies."
 
         throw Error(message)
     }
