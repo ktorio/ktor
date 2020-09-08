@@ -548,6 +548,48 @@ class AuthBuildersTest {
         }
     }
 
+    @Test
+    fun testAuthDoesntChangeRoutePriority(): Unit = withTestApplication<Unit> {
+        application.apply {
+            application.install(Authentication) {
+                form { validate { c -> UserIdPrincipal(c.name) } }
+            }
+
+            routing {
+                get("/bar:{baz}") {
+                    call.respondText("bar")
+                }
+                authenticate {
+                    get("/{baz}") {
+                        call.respondText("baz")
+                    }
+                }
+                get("/foo:{baz}") {
+                    call.respondText("foo")
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/foo:asd"){
+            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=username&password=p")
+        }.let { call ->
+            assertEquals("foo", call.response.content)
+        }
+        handleRequest(HttpMethod.Get, "/bar:asd"){
+            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=username&password=p")
+        }.let { call ->
+            assertEquals("bar", call.response.content)
+        }
+        handleRequest(HttpMethod.Get, "/baz") {
+            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=username&password=p")
+        }.let { call ->
+            assertEquals("baz", call.response.content)
+        }
+    }
+
     private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
         addHeader(
             HttpHeaders.Authorization,

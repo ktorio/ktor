@@ -495,6 +495,22 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testTransparentSelectorWithHandler() = withTestApplication {
+        application.routing {
+            route("") {
+                transparent {
+                    handle { call.respond("OK") }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertTrue(call.requestHandled)
+            assertEquals("OK", call.response.content)
+        }
+    }
+
+    @Test
     fun testHostAndPortRoutingProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
@@ -827,4 +843,14 @@ class RoutingProcessingTest {
     }
 
     private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
+
+    private fun Route.transparent(build: Route.() -> Unit): Route {
+        val route = createChild(object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+            override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+            }
+        })
+        route.build()
+        return route
+    }
 }
