@@ -224,10 +224,10 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
 
             val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(
-                true,
-                if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+                succeeded = true,
+                quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
                 else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
-                values,
+                parameters = values,
                 segmentIncrement = 1
             )
         }
@@ -265,10 +265,10 @@ data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefi
 
             val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(
-                true,
-                if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+                succeeded = true,
+                quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
                 else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
-                values,
+                parameters = values,
                 segmentIncrement = 1
             )
         }
