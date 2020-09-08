@@ -15,3 +15,6 @@ public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
 ): CoroutineDispatcher = Unconfined
+
+internal actual fun checkCoroutinesVersion() {
+}
