@@ -394,28 +394,29 @@ internal fun evaluatePathSegmentParameter(
         return if (isOptional) RouteSelectorEvaluation.Missing else RouteSelectorEvaluation.Failed
     }
 
-    if (segmentIndex < segments.size) {
-        val part = segments[segmentIndex]
-        val prefixChecked = when {
-            prefix == null -> part
-            part.startsWith(prefix) -> part.drop(prefix.length)
-            else -> return failedEvaluation()
-        }
-
-        val suffixChecked = when {
-            suffix == null -> prefixChecked
-            prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
-            else -> return failedEvaluation()
-        }
-
-        val values = parametersOf(name, suffixChecked)
-        return RouteSelectorEvaluation(
-            succeeded = true,
-            quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
-            else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
-            parameters = values,
-            segmentIncrement = 1
-        )
+    if (segmentIndex >= segments.size) {
+        return failedEvaluation()
     }
-    return failedEvaluation()
+
+    val part = segments[segmentIndex]
+    val prefixChecked = when {
+        prefix == null -> part
+        part.startsWith(prefix) -> part.drop(prefix.length)
+        else -> return failedEvaluation()
+    }
+
+    val suffixChecked = when {
+        suffix == null -> prefixChecked
+        prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
+        else -> return failedEvaluation()
+    }
+
+    val values = parametersOf(name, suffixChecked)
+    return RouteSelectorEvaluation(
+        succeeded = true,
+        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+        else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
+        parameters = values,
+        segmentIncrement = 1
+    )
 }
