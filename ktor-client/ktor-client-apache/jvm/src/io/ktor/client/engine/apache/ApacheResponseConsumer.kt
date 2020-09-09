@@ -99,5 +99,5 @@ internal class ApacheResponseConsumer(
         responseDeferred.complete(response)
     }
 
-    suspend fun waitForResponse(): HttpResponse = responseDeferred.await()
+    public suspend fun waitForResponse(): HttpResponse = responseDeferred.await()
 }

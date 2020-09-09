@@ -28,20 +28,20 @@ internal object CacheControl {
  *
  * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
  */
-class HttpCache(
-    val publicStorage: HttpCacheStorage,
-    val privateStorage: HttpCacheStorage
+public class HttpCache(
+    public val publicStorage: HttpCacheStorage,
+    public val privateStorage: HttpCacheStorage
 ) {
     /**
      * [HttpCache] configuration.
      */
-    class Config {
+    public class Config {
         /**
          * Storage for public cache entries.
          *
          * Use [HttpCacheStorage.Unlimited] by default.
          */
-        var publicStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
+        public var publicStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
 
         /**
          * Storage for private cache entries.
@@ -50,10 +50,10 @@ class HttpCache(
          *
          * Consider using [HttpCacheStorage.Disabled] if the client used as intermediate.
          */
-        var privateStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
+        public var privateStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
     }
 
-    companion object : HttpClientFeature<Config, HttpCache> {
+    public companion object : HttpClientFeature<Config, HttpCache> {
         override val key: AttributeKey<HttpCache> = AttributeKey("HttpCache")
 
         override fun prepare(block: Config.() -> Unit): HttpCache {
@@ -168,7 +168,7 @@ private fun mergedHeadersLookup(
 }
 
 @Suppress("KDocMissingDocumentation")
-class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(
+public class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(
     "The entry for url: $requestUrl was removed from cache"
 )
 

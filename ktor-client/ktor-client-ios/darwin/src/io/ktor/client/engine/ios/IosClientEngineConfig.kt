@@ -10,7 +10,7 @@ import platform.Foundation.*
 /**
  * Challenge handler type for [NSURLSession].
  */
-typealias ChallengeHandler = (
+public typealias ChallengeHandler = (
     session: NSURLSession,
     task: NSURLSessionTask,
     challenge: NSURLAuthenticationChallenge,
@@ -20,7 +20,7 @@ typealias ChallengeHandler = (
 /**
  * Custom [IosClientEngine] config.
  */
-class IosClientEngineConfig : HttpClientEngineConfig() {
+public class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Request configuration.
      */
@@ -54,7 +54,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Appends block with [NSMutableURLRequest] configuration to [requestConfig].
      */
-    fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
+    public fun configureRequest(block: NSMutableURLRequest.() -> Unit) {
         val old = requestConfig
 
         @Suppress("DEPRECATION")
@@ -67,7 +67,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Appends block with [NSURLSessionConfiguration] configuration to [sessionConfig].
      */
-    fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
+    public fun configureSession(block: NSURLSessionConfiguration.() -> Unit) {
         val old = sessionConfig
 
         @Suppress("DEPRECATION")
@@ -80,7 +80,7 @@ class IosClientEngineConfig : HttpClientEngineConfig() {
     /**
      * Sets the [block] as an HTTP request challenge handler replacing the old one.
      */
-    fun handleChallenge(block: ChallengeHandler) {
+    public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
     }
 }

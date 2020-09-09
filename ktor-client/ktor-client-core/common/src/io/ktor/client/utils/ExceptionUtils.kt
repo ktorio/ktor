@@ -11,4 +11,4 @@ import io.ktor.utils.io.*
  * If the exception contains cause that differs from [CancellationException] returns it otherwise returns itself.
  */
 @InternalAPI
-expect fun Throwable.unwrapCancellationException(): Throwable
+public expect fun Throwable.unwrapCancellationException(): Throwable

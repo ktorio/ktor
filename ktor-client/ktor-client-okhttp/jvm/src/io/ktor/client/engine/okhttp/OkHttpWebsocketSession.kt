@@ -122,7 +122,7 @@ internal class OkHttpWebsocketSession(
     /**
      * Creates a new web socket and starts the session.
      */
-    fun start() {
+    public fun start() {
         self.complete(this)
     }
 
@@ -136,7 +136,7 @@ internal class OkHttpWebsocketSession(
 }
 
 @Suppress("KDocMissingDocumentation")
-class UnsupportedFrameTypeException(
+public class UnsupportedFrameTypeException(
     private val frame: Frame
 ) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
     override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {

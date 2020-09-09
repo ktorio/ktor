@@ -22,7 +22,7 @@ import io.ktor.utils.io.*
  * - ktor-client-gson
  * - ktor-client-json
  */
-expect fun defaultSerializer(): JsonSerializer
+public expect fun defaultSerializer(): JsonSerializer
 
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
@@ -38,13 +38,13 @@ expect fun defaultSerializer(): JsonSerializer
  * @property serializer that is used to serialize and deserialize request/response bodies
  * @property acceptContentTypes that are allowed when receiving content
  */
-class JsonFeature internal constructor(
-    val serializer: JsonSerializer,
-    val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
+public class JsonFeature internal constructor(
+    public val serializer: JsonSerializer,
+    public val acceptContentTypes: List<ContentType> = listOf(ContentType.Application.Json),
     private val receiveContentTypeMatchers: List<ContentTypeMatcher> = listOf(JsonContentTypeMatcher()),
 ) {
     @Deprecated("Install feature properly instead of direct instantiation.", level = DeprecationLevel.ERROR)
-    constructor(serializer: JsonSerializer) : this(serializer, listOf(ContentType.Application.Json))
+    public constructor(serializer: JsonSerializer) : this(serializer, listOf(ContentType.Application.Json))
 
     internal constructor(config: Config) : this(
         config.serializer ?: defaultSerializer(),
@@ -55,13 +55,13 @@ class JsonFeature internal constructor(
     /**
      * [JsonFeature] configuration that is used during installation
      */
-    class Config {
+    public class Config {
         /**
          * Serializer that will be used for serializing requests and deserializing response bodies.
          *
          * Default value for [serializer] is [defaultSerializer].
          */
-        var serializer: JsonSerializer? = null
+        public var serializer: JsonSerializer? = null
 
         /**
          * Backing field with mutable list of content types that are handled by this feature.
@@ -76,7 +76,7 @@ class JsonFeature internal constructor(
          * Please note that wildcard content types are supported but no quality specification provided.
          */
         @KtorExperimentalAPI
-        var acceptContentTypes: List<ContentType>
+        public var acceptContentTypes: List<ContentType>
             set(value) {
                 require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
 
@@ -90,7 +90,7 @@ class JsonFeature internal constructor(
          * Please note that wildcard content types are supported but no quality specification provided.
          */
         @KtorExperimentalAPI
-        var receiveContentTypeMatchers: List<ContentTypeMatcher>
+        public var receiveContentTypeMatchers: List<ContentTypeMatcher>
             set(value) {
                 require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
                 _receiveContentTypeMatchers.clear()
@@ -103,14 +103,14 @@ class JsonFeature internal constructor(
          * the list if you use this function to provide accepted content types.
          * It also affects `Accept` request header value.
          */
-        fun accept(vararg contentTypes: ContentType) {
+        public fun accept(vararg contentTypes: ContentType) {
             _acceptContentTypes += contentTypes
         }
 
         /**
          * Adds accepted content types. Existing content types will not be removed.
          */
-        fun receive(matcher: ContentTypeMatcher) {
+        public fun receive(matcher: ContentTypeMatcher) {
             _receiveContentTypeMatchers += matcher
         }
     }
@@ -125,7 +125,7 @@ class JsonFeature internal constructor(
     /**
      * Companion object for feature installation
      */
-    companion object Feature : HttpClientFeature<Config, JsonFeature> {
+    public companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
         override fun prepare(block: Config.() -> Unit): JsonFeature {
@@ -172,6 +172,6 @@ class JsonFeature internal constructor(
 /**
  * Install [JsonFeature].
  */
-fun HttpClientConfig<*>.Json(block: JsonFeature.Config.() -> Unit) {
+public fun HttpClientConfig<*>.Json(block: JsonFeature.Config.() -> Unit) {
     install(JsonFeature, block)
 }

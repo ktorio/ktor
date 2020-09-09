@@ -23,6 +23,6 @@ internal actual class ConnectionPipeline actual constructor(
         error("Pipelining is not supported in native CIO")
     }
 
-    actual val pipelineContext: Job
+    public actual val pipelineContext: Job
         get() = error("Pipelining is not supported in native CIO")
 }

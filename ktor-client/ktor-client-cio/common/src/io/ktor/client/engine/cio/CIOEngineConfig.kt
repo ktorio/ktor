@@ -11,77 +11,77 @@ import io.ktor.network.tls.*
 /**
  * Configuration for [CIO] client engine.
  */
-class CIOEngineConfig : HttpClientEngineConfig() {
+public class CIOEngineConfig : HttpClientEngineConfig() {
     /**
      * [Endpoint] settings.
      */
-    val endpoint: EndpointConfig = EndpointConfig()
+    public val endpoint: EndpointConfig = EndpointConfig()
     /**
      * [https] settings.
      */
-    val https: TLSConfigBuilder = TLSConfigBuilder()
+    public val https: TLSConfigBuilder = TLSConfigBuilder()
 
     /**
      * Maximum allowed connections count.
      */
-    var maxConnectionsCount: Int = 1000
+    public var maxConnectionsCount: Int = 1000
 
     /**
      * Timeout to get send request headers and get first response bytes(in millis).
      *
      * Use 0 to disable.
      */
-    var requestTimeout: Long = 15000
+    public var requestTimeout: Long = 15000
 
     /**
      * [https] settings.
      */
-    fun https(block: TLSConfigBuilder.() -> Unit): TLSConfigBuilder = https.apply(block)
+    public fun https(block: TLSConfigBuilder.() -> Unit): TLSConfigBuilder = https.apply(block)
 }
 
 /**
  * Configure [endpoint] settings.
  */
-fun CIOEngineConfig.endpoint(block: EndpointConfig.() -> Unit): EndpointConfig = endpoint.apply(block)
+public fun CIOEngineConfig.endpoint(block: EndpointConfig.() -> Unit): EndpointConfig = endpoint.apply(block)
 
 /**
  * [Endpoint] settings.
  */
-class EndpointConfig {
+public class EndpointConfig {
     /**
      * Maximum connections  per single route.
      */
-    var maxConnectionsPerRoute: Int = 100
+    public var maxConnectionsPerRoute: Int = 100
 
     /**
      * Connection keep-alive time in millis.
      */
-    var keepAliveTime: Long = 5000
+    public var keepAliveTime: Long = 5000
 
     /**
      * Maximum number of requests per single pipeline.
      */
-    var pipelineMaxSize: Int = 20
+    public var pipelineMaxSize: Int = 20
 
     /**
      * Connect timeout in millis.
      */
-    var connectTimeout: Long = 5000
+    public var connectTimeout: Long = 5000
 
     /**
      * Socket timeout in millis.
      */
-    val socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
+    public val socketTimeout: Long = HttpTimeout.INFINITE_TIMEOUT_MS
 
     /**
      * Maximum number of connection attempts.
      */
-    var connectRetryAttempts: Int = 1
+    public var connectRetryAttempts: Int = 1
 
     /**
      * Allow socket to close output channel immediately on writing completion (TCP connection half close).
      */
-    var allowHalfClose: Boolean = false
+    public var allowHalfClose: Boolean = false
         @Deprecated("Half closed TCP connection is not supported by all servers, use it at your own risk.")
         set
 }

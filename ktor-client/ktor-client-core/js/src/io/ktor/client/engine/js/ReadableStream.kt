@@ -10,7 +10,7 @@ import kotlin.coroutines.*
 import kotlin.js.*
 
 internal external interface ReadableStream {
-    fun getReader(): ReadableStreamReader
+    public fun getReader(): ReadableStreamReader
 }
 
 internal external interface ReadResult {
@@ -19,8 +19,8 @@ internal external interface ReadResult {
 }
 
 internal external interface ReadableStreamReader {
-    fun cancel(reason: dynamic): Promise<dynamic>
-    fun read(): Promise<ReadResult>
+    public fun cancel(reason: dynamic): Promise<dynamic>
+    public fun read(): Promise<ReadResult>
 }
 
 internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCancellableCoroutine { continuation ->

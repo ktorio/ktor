@@ -7,13 +7,13 @@ package io.ktor.client.call
 import kotlin.reflect.*
 
 
-actual typealias Type = KType
+public actual typealias Type = KType
 
 @PublishedApi
 internal open class TypeBase<T>
 
 @OptIn(ExperimentalStdlibApi::class)
-actual inline fun <reified T> typeInfo(): TypeInfo {
+public actual inline fun <reified T> typeInfo(): TypeInfo {
     val kClass = T::class
     val kotlinType = typeOf<T>()
     return TypeInfo(kClass, kotlinType, kotlinType)

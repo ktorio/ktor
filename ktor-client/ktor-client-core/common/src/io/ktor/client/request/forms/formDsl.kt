@@ -17,12 +17,12 @@ import kotlin.contracts.*
  * @param value content, could be [String], [Number] or [Input]
  * @param headers part headers, note that some servers may fail if an unknown header provided
  */
-data class FormPart<T : Any>(val key: String, val value: T, val headers: Headers = Headers.Empty)
+public data class FormPart<T : Any>(val key: String, val value: T, val headers: Headers = Headers.Empty)
 
 /**
  * Build multipart form from [values].
  */
-fun formData(vararg values: FormPart<*>): List<PartData> {
+public fun formData(vararg values: FormPart<*>): List<PartData> {
     val result = mutableListOf<PartData>()
 
     values.forEach { (key, value, headers) ->
@@ -61,62 +61,62 @@ fun formData(vararg values: FormPart<*>): List<PartData> {
 /**
  * Build multipart form using [block] function.
  */
-fun formData(block: FormBuilder.() -> Unit): List<PartData> =
+public fun formData(block: FormBuilder.() -> Unit): List<PartData> =
     formData(*FormBuilder().apply(block).build().toTypedArray())
 
 /**
  * Form builder type used in [formData] builder function.
  */
-class FormBuilder internal constructor() {
+public class FormBuilder internal constructor() {
     private val parts = mutableListOf<FormPart<*>>()
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
     @InternalAPI
-    fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
+    public fun <T : Any> append(key: String, value: T, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
-    fun append(key: String, value: String, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: String, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
-    fun append(key: String, value: Number, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: Number, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
-    fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: ByteArray, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
-    fun append(key: String, value: InputProvider, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: InputProvider, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
     /**
      * Append a pair [key]:[InputProvider(block)] with optional [headers].
      */
-    fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
+    public fun appendInput(key: String, headers: Headers = Headers.Empty, size: Long? = null, block: () -> Input) {
         parts += FormPart(key, InputProvider(size, block), headers)
     }
 
     /**
      * Append a pair [key]:[value] with optional [headers].
      */
-    fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: ByteReadPacket, headers: Headers = Headers.Empty) {
         parts += FormPart(key, value, headers)
     }
 
@@ -129,14 +129,14 @@ class FormBuilder internal constructor() {
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith("appendInput(key, headers) { /* create fresh input here */ }")
     )
-    fun append(key: String, value: Input, headers: Headers = Headers.Empty) {
+    public fun append(key: String, value: Input, headers: Headers = Headers.Empty) {
         error("Input is not reusable. Please use [InputProvider] instead.")
     }
 
     /**
      * Append a form [part].
      */
-    fun <T : Any> append(part: FormPart<T>) {
+    public fun <T : Any> append(part: FormPart<T>) {
         parts += part
     }
 
@@ -147,7 +147,7 @@ class FormBuilder internal constructor() {
  * Append a form part with the specified [key] using [bodyBuilder] for it's body.
  */
 @OptIn(ExperimentalContracts::class)
-inline fun FormBuilder.append(
+public inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
     size: Long? = null,
@@ -166,14 +166,14 @@ inline fun FormBuilder.append(
  * @param block: content generator
  */
 @KtorExperimentalAPI
-class InputProvider(val size: Long? = null, val block: () -> Input)
+public class InputProvider(public val size: Long? = null, public val block: () -> Input)
 
 
 /**
  * Append a form part with the specified [key], [filename] and optional [contentType] using [bodyBuilder] for it's body.
  */
 @OptIn(ExperimentalContracts::class)
-fun FormBuilder.append(
+public fun FormBuilder.append(
     key: String,
     filename: String,
     contentType: ContentType? = null,

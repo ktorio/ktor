@@ -10,7 +10,7 @@ import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import kotlin.text.*
 
-suspend fun proxyHandler(socket: Socket) {
+public suspend fun proxyHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 

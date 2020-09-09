@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  * Default [HttpRequest] implementation.
  */
 @InternalAPI
-open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
+public open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
     override val coroutineContext: CoroutineContext get() = call.coroutineContext
 
     override val method: HttpMethod = data.method

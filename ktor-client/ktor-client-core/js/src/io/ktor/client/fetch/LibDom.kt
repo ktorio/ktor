@@ -8,254 +8,255 @@ import kotlin.js.Promise
 
 //external fun fetch(input: Request, init: RequestInit? = definedExternally): Promise<Response>
 
-external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<Response>
+public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<Response>
 
-external interface Request : Body {
+public external interface Request : Body {
     /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
-    var cache: dynamic
+    public var cache: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "omit" | "same-origin" | "include" */
-    var credentials: dynamic
+    public var credentials: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "" | "audio" | "audioworklet" | "document" | "embed" | "font" | "image" | "manifest" | "object" | "paintworklet" | "report" | "script" | "sharedworker" | "style" | "track" | "video" | "worker" | "xslt" */
-    var destination: dynamic
+    public var destination: dynamic
         get() = definedExternally
         set(value) = definedExternally
-    var headers: Headers
-    var integrity: String
-    var isHistoryNavigation: Boolean
-    var isReloadNavigation: Boolean
-    var keepalive: Boolean
-    var method: String
+    public var headers: Headers
+    public var integrity: String
+    public var isHistoryNavigation: Boolean
+    public var isReloadNavigation: Boolean
+    public var keepalive: Boolean
+    public var method: String
 
     /* "navigate" | "same-origin" | "no-cors" | "cors" */
-    var mode: dynamic
+    public var mode: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "follow" | "error" | "manual" */
-    var redirect: dynamic
+    public var redirect: dynamic
         get() = definedExternally
         set(value) = definedExternally
-    var referrer: String
+    public var referrer: String
 
     /* "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url" */
-    var referrerPolicy: dynamic
+    public var referrerPolicy: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    var signal: AbortSignal
+    public var signal: AbortSignal
 
-    var url: String
+    public var url: String
 
-    fun clone(): Request
+    public fun clone(): Request
 }
 
-external interface Response : Body {
-    var headers: Headers
-    var ok: Boolean
-    var redirected: Boolean
-    var status: Number
-    var statusText: String
-    var trailer: Promise<Headers>
+public external interface Response : Body {
+    public var headers: Headers
+    public var ok: Boolean
+    public var redirected: Boolean
+    public var status: Number
+    public var statusText: String
+    public var trailer: Promise<Headers>
 
     /* "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect" */
-    var type: dynamic
+    public var type: dynamic
         get() = definedExternally
         set(value) = definedExternally
-    var url: String
-    fun clone(): Response
+
+    public var url: String
+    public fun clone(): Response
 }
 
-external interface Body {
-    var body: ReadableStream<Uint8Array>?
+public external interface Body {
+    public var body: ReadableStream<Uint8Array>?
         get() = definedExternally
         set(value) = definedExternally
-    var bodyUsed: Boolean
-    fun arrayBuffer(): Promise<ArrayBuffer>
-    fun blob(): Promise<Blob>
-    fun formData(): Promise<FormData>
-    fun json(): Promise<Any>
-    fun text(): Promise<String>
+    public var bodyUsed: Boolean
+    public fun arrayBuffer(): Promise<ArrayBuffer>
+    public fun blob(): Promise<Blob>
+    public fun formData(): Promise<FormData>
+    public fun json(): Promise<Any>
+    public fun text(): Promise<String>
 }
 
-external interface FormData {
-    fun append(name: String, value: String, fileName: String? = definedExternally)
-    fun append(name: String, value: Blob, fileName: String? = definedExternally)
-    fun delete(name: String)
+public external interface FormData {
+    public fun append(name: String, value: String, fileName: String? = definedExternally)
+    public fun append(name: String, value: Blob, fileName: String? = definedExternally)
+    public fun delete(name: String)
 
     /* File | String */
-    fun get(name: String): dynamic
-    fun getAll(name: String): Array<dynamic /* File | String */>
-    fun has(name: String): Boolean
-    fun set(name: String, value: String, fileName: String? = definedExternally)
-    fun set(name: String, value: Blob, fileName: String? = definedExternally)
-    fun forEach(callbackfn: (value: dynamic /* File | String */, key: String, parent: FormData) -> Unit, thisArg: Any? = definedExternally)
+    public fun get(name: String): dynamic
+    public fun getAll(name: String): Array<dynamic /* File | String */>
+    public fun has(name: String): Boolean
+    public fun set(name: String, value: String, fileName: String? = definedExternally)
+    public fun set(name: String, value: Blob, fileName: String? = definedExternally)
+    public fun forEach(callbackfn: (value: dynamic /* File | String */, key: String, parent: FormData) -> Unit, thisArg: Any? = definedExternally)
 }
 
-external interface Blob {
-    var size: Number
-    var type: String
-    fun slice(start: Number? = definedExternally, end: Number? = definedExternally, contentType: String? = definedExternally): Blob
+public external interface Blob {
+    public var size: Number
+    public var type: String
+    public fun slice(start: Number? = definedExternally, end: Number? = definedExternally, contentType: String? = definedExternally): Blob
 }
 
-external interface ReadableStream<R> {
-    var locked: Boolean
-    fun cancel(reason: Any? = definedExternally): Promise<Unit>
-    fun getReader(options: dynamic): ReadableStreamBYOBReader
-    fun getReader(): ReadableStreamDefaultReader<R>
+public external interface ReadableStream<R> {
+    public var locked: Boolean
+    public fun cancel(reason: Any? = definedExternally): Promise<Unit>
+    public fun getReader(options: dynamic): ReadableStreamBYOBReader
+    public fun getReader(): ReadableStreamDefaultReader<R>
 
 //    fun <T> pipeThrough(__0: `T$1`, options: PipeOptions? = definedExternally): ReadableStream<T>
 
-    fun pipeTo(dest: WritableStream<R>, options: PipeOptions? = definedExternally): Promise<Unit>
+    public fun pipeTo(dest: WritableStream<R>, options: PipeOptions? = definedExternally): Promise<Unit>
 
     /* JsTuple<ReadableStream<R>, ReadableStream<R>> */
-    fun tee(): dynamic
+    public fun tee(): dynamic
 }
 
-external interface PipeOptions {
-    var preventAbort: Boolean?
+public external interface PipeOptions {
+    public var preventAbort: Boolean?
         get() = definedExternally
         set(value) = definedExternally
-    var preventCancel: Boolean?
+    public var preventCancel: Boolean?
         get() = definedExternally
         set(value) = definedExternally
-    var preventClose: Boolean?
+    public var preventClose: Boolean?
         get() = definedExternally
         set(value) = definedExternally
-    var signal: AbortSignal?
+    public var signal: AbortSignal?
         get() = definedExternally
         set(value) = definedExternally
 }
 
-external interface WritableStream<W> {
-    var locked: Boolean
-    fun abort(reason: Any? = definedExternally): Promise<Unit>
-    fun getWriter(): WritableStreamDefaultWriter<W>
+public external interface WritableStream<W> {
+    public var locked: Boolean
+    public fun abort(reason: Any? = definedExternally): Promise<Unit>
+    public fun getWriter(): WritableStreamDefaultWriter<W>
 }
 
-external interface WritableStreamDefaultWriter<W> {
-    var closed: Promise<Unit>
-    var desiredSize: Number?
+public external interface WritableStreamDefaultWriter<W> {
+    public var closed: Promise<Unit>
+    public var desiredSize: Number?
         get() = definedExternally
         set(value) = definedExternally
-    var ready: Promise<Unit>
-    fun abort(reason: Any? = definedExternally): Promise<Unit>
-    fun close(): Promise<Unit>
-    fun releaseLock()
-    fun write(chunk: W): Promise<Unit>
+    public var ready: Promise<Unit>
+    public fun abort(reason: Any? = definedExternally): Promise<Unit>
+    public fun close(): Promise<Unit>
+    public fun releaseLock()
+    public fun write(chunk: W): Promise<Unit>
 }
 
-external interface ReadableStreamBYOBReader {
-    var closed: Promise<Unit>
-    fun cancel(reason: Any? = definedExternally): Promise<Unit>
-    fun <T : ArrayBufferView> read(view: T): Promise<ReadableStreamReadResult<T>>
-    fun releaseLock()
+public external interface ReadableStreamBYOBReader {
+    public var closed: Promise<Unit>
+    public fun cancel(reason: Any? = definedExternally): Promise<Unit>
+    public fun <T : ArrayBufferView> read(view: T): Promise<ReadableStreamReadResult<T>>
+    public fun releaseLock()
 }
 
-external interface ReadableStreamDefaultReader<R> {
-    var closed: Promise<Unit>
-    fun cancel(reason: Any? = definedExternally): Promise<Unit>
-    fun read(): Promise<ReadableStreamReadResult<R>>
-    fun releaseLock()
+public external interface ReadableStreamDefaultReader<R> {
+    public var closed: Promise<Unit>
+    public fun cancel(reason: Any? = definedExternally): Promise<Unit>
+    public fun read(): Promise<ReadableStreamReadResult<R>>
+    public fun releaseLock()
 }
 
-external interface ReadableStreamReadResult<T> {
-    var done: Boolean
-    var value: T
+public external interface ReadableStreamReadResult<T> {
+    public var done: Boolean
+    public var value: T
 }
 
-external interface Headers {
-    fun append(name: String, value: String)
-    fun delete(name: String)
-    fun get(name: String): String?
-    fun has(name: String): Boolean
-    fun set(name: String, value: String)
-    fun forEach(callbackfn: (value: String, key: String, parent: Headers) -> Unit, thisArg: Any? = definedExternally)
+public external interface Headers {
+    public fun append(name: String, value: String)
+    public fun delete(name: String)
+    public fun get(name: String): String?
+    public fun has(name: String): Boolean
+    public fun set(name: String, value: String)
+    public fun forEach(callbackfn: (value: String, key: String, parent: Headers) -> Unit, thisArg: Any? = definedExternally)
 }
 
-external interface RequestInit {
+public external interface RequestInit {
     /* Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array> | String */
-    var body: dynamic
+    public var body: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
-    var cache: dynamic
+    public var cache: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "omit" | "same-origin" | "include" */
-    var credentials: dynamic
+    public var credentials: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* Headers | Array<Array<String>> | Record<String, String> */
-    var headers: dynamic
+    public var headers: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    var integrity: String?
+    public var integrity: String?
         get() = definedExternally
         set(value) = definedExternally
 
-    var keepalive: Boolean?
+    public var keepalive: Boolean?
         get() = definedExternally
         set(value) = definedExternally
 
-    var method: String?
+    public var method: String?
         get() = definedExternally
         set(value) = definedExternally
 
     /* "navigate" | "same-origin" | "no-cors" | "cors" */
-    var mode: dynamic
+    public var mode: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
     /* "follow" | "error" | "manual" */
-    var redirect: dynamic
+    public var redirect: dynamic
         get() = definedExternally
         set(value) = definedExternally
-    var referrer: String?
+    public var referrer: String?
         get() = definedExternally
         set(value) = definedExternally
 
     /* "" | "no-referrer" | "no-referrer-when-downgrade" | "same-origin" | "origin" | "strict-origin" | "origin-when-cross-origin" | "strict-origin-when-cross-origin" | "unsafe-url" */
-    var referrerPolicy: dynamic
+    public var referrerPolicy: dynamic
         get() = definedExternally
         set(value) = definedExternally
 
-    var signal: AbortSignal?
+    public var signal: AbortSignal?
         get() = definedExternally
         set(value) = definedExternally
 
-    var window: Any?
+    public var window: Any?
         get() = definedExternally
         set(value) = definedExternally
 }
 
-external interface AbortController {
-    var signal: AbortSignal
-    fun abort()
+public external interface AbortController {
+    public var signal: AbortSignal
+    public fun abort()
 }
 
-external interface AbortSignal : EventTarget {
-    var aborted: Boolean
-    var onabort: ((AbortSignal, ev: Event) -> Any)?
+public external interface AbortSignal : EventTarget {
+    public var aborted: Boolean
+    public var onabort: ((AbortSignal, ev: Event) -> Any)?
         get() = definedExternally
         set(value) = definedExternally
 
-    fun <K : Any> addEventListener(
+    public fun <K : Any> addEventListener(
         type: K,
         listener: (AbortSignal, ev: Any) -> Any,
         options: Boolean? = definedExternally
     )
 
-    fun <K : Any> addEventListener(
+    public fun <K : Any> addEventListener(
         type: K,
         listener: (AbortSignal, ev: Any) -> Any,
         options: AddEventListenerOptions? = definedExternally
@@ -265,13 +266,13 @@ external interface AbortSignal : EventTarget {
     override fun addEventListener(type: String, listener: EventListener, options: AddEventListenerOptions?)
     override fun addEventListener(type: String, listener: EventListenerObject, options: Boolean?)
     override fun addEventListener(type: String, listener: EventListenerObject, options: AddEventListenerOptions?)
-    fun <K : Any> removeEventListener(
+    public fun <K : Any> removeEventListener(
         type: K,
         listener: (AbortSignal, ev: Any) -> Any,
         options: Boolean? = definedExternally
     )
 
-    fun <K : Any> removeEventListener(
+    public fun <K : Any> removeEventListener(
         type: K,
         listener: (AbortSignal, ev: Any) -> Any,
         options: EventListenerOptions? = definedExternally
@@ -281,91 +282,91 @@ external interface AbortSignal : EventTarget {
     override fun removeEventListener(type: String, listener: EventListener, options: EventListenerOptions?)
     override fun removeEventListener(type: String, listener: EventListenerObject, options: Boolean?)
     override fun removeEventListener(type: String, listener: EventListenerObject, options: EventListenerOptions?)
-    fun <K : Any> addEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
+    public fun <K : Any> addEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
     override fun addEventListener(type: String, listener: EventListener)
     override fun addEventListener(type: String, listener: EventListenerObject)
-    fun <K : Any> removeEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
+    public fun <K : Any> removeEventListener(type: K, listener: (AbortSignal, ev: Any) -> Any)
     override fun removeEventListener(type: String, listener: EventListener)
     override fun removeEventListener(type: String, listener: EventListenerObject)
 }
 
-external interface EventTarget {
-    fun addEventListener(type: String, listener: EventListener, options: Boolean? = definedExternally)
-    fun addEventListener(type: String, listener: EventListener, options: AddEventListenerOptions? = definedExternally)
-    fun addEventListener(type: String, listener: EventListenerObject, options: Boolean? = definedExternally)
-    fun addEventListener(
+public external interface EventTarget {
+    public fun addEventListener(type: String, listener: EventListener, options: Boolean? = definedExternally)
+    public fun addEventListener(type: String, listener: EventListener, options: AddEventListenerOptions? = definedExternally)
+    public fun addEventListener(type: String, listener: EventListenerObject, options: Boolean? = definedExternally)
+    public fun addEventListener(
         type: String,
         listener: EventListenerObject,
         options: AddEventListenerOptions? = definedExternally
     )
 
-    fun dispatchEvent(event: Event): Boolean
-    fun removeEventListener(type: String, callback: EventListener, options: EventListenerOptions? = definedExternally)
-    fun removeEventListener(type: String, callback: EventListener, options: Boolean? = definedExternally)
-    fun removeEventListener(
+    public fun dispatchEvent(event: Event): Boolean
+    public fun removeEventListener(type: String, callback: EventListener, options: EventListenerOptions? = definedExternally)
+    public fun removeEventListener(type: String, callback: EventListener, options: Boolean? = definedExternally)
+    public fun removeEventListener(
         type: String,
         callback: EventListenerObject,
         options: EventListenerOptions? = definedExternally
     )
 
-    fun removeEventListener(type: String, callback: EventListenerObject, options: Boolean? = definedExternally)
-    fun addEventListener(type: String, listener: EventListener)
-    fun addEventListener(type: String, listener: EventListenerObject)
-    fun removeEventListener(type: String, callback: EventListener)
-    fun removeEventListener(type: String, callback: EventListenerObject)
+    public fun removeEventListener(type: String, callback: EventListenerObject, options: Boolean? = definedExternally)
+    public fun addEventListener(type: String, listener: EventListener)
+    public fun addEventListener(type: String, listener: EventListenerObject)
+    public fun removeEventListener(type: String, callback: EventListener)
+    public fun removeEventListener(type: String, callback: EventListenerObject)
 }
 
-external interface EventListener {
+public external interface EventListener {
     @nativeInvoke
-    operator fun invoke(evt: Event)
+    public operator fun invoke(evt: Event)
 }
 
-external interface AddEventListenerOptions : EventListenerOptions {
-    var once: Boolean?
+public external interface AddEventListenerOptions : EventListenerOptions {
+    public var once: Boolean?
         get() = definedExternally
         set(value) = definedExternally
-    var passive: Boolean?
-        get() = definedExternally
-        set(value) = definedExternally
-}
-
-external interface EventListenerOptions {
-    var capture: Boolean?
+    public var passive: Boolean?
         get() = definedExternally
         set(value) = definedExternally
 }
 
-external interface EventListenerObject {
-    fun handleEvent(evt: Event)
+public external interface EventListenerOptions {
+    public var capture: Boolean?
+        get() = definedExternally
+        set(value) = definedExternally
 }
 
-external interface Event {
-    var bubbles: Boolean
-    var cancelBubble: Boolean
-    var cancelable: Boolean
-    var composed: Boolean
-    var currentTarget: EventTarget?
+public external interface EventListenerObject {
+    public fun handleEvent(evt: Event)
+}
+
+public external interface Event {
+    public var bubbles: Boolean
+    public var cancelBubble: Boolean
+    public var cancelable: Boolean
+    public var composed: Boolean
+    public var currentTarget: EventTarget?
         get() = definedExternally
         set(value) = definedExternally
-    var defaultPrevented: Boolean
-    var eventPhase: Number
-    var isTrusted: Boolean
-    var returnValue: Boolean
-    var srcElement: EventTarget?
+    public var defaultPrevented: Boolean
+    public var eventPhase: Number
+    public var isTrusted: Boolean
+    public var returnValue: Boolean
+    public var srcElement: EventTarget?
         get() = definedExternally
         set(value) = definedExternally
-    var target: EventTarget?
+    public var target: EventTarget?
         get() = definedExternally
         set(value) = definedExternally
-    var timeStamp: Number
-    var type: String
-    fun composedPath(): Array<EventTarget>
-    fun initEvent(type: String, bubbles: Boolean? = definedExternally, cancelable: Boolean? = definedExternally)
-    fun preventDefault()
-    fun stopImmediatePropagation()
-    fun stopPropagation()
-    var AT_TARGET: Number
-    var BUBBLING_PHASE: Number
-    var CAPTURING_PHASE: Number
-    var NONE: Number
+    public var timeStamp: Number
+    public var type: String
+    public fun composedPath(): Array<EventTarget>
+    public fun initEvent(type: String, bubbles: Boolean? = definedExternally, cancelable: Boolean? = definedExternally)
+    public fun preventDefault()
+    public fun stopImmediatePropagation()
+    public fun stopPropagation()
+    public var AT_TARGET: Number
+    public var BUBBLING_PHASE: Number
+    public var CAPTURING_PHASE: Number
+    public var NONE: Number
 }

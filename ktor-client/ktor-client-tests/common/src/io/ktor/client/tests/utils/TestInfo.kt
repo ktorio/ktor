@@ -4,4 +4,4 @@
 
 package io.ktor.client.tests.utils
 
-class TestInfo(val threadId: Int, val attempt: Int)
+public class TestInfo(public val threadId: Int, public val attempt: Int)

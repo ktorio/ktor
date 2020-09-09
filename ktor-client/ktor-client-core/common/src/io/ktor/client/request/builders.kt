@@ -14,7 +14,7 @@ import io.ktor.http.*
  * Executes a [HttpClient] request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.request(
+public suspend inline fun <reified T> HttpClient.request(
     builder: HttpRequestBuilder = HttpRequestBuilder()
 ): T = HttpStatement(builder, this).receive()
 
@@ -22,14 +22,14 @@ suspend inline fun <reified T> HttpClient.request(
  * Executes a [HttpClient] request, with the information configured in [builder] block
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -> Unit): T =
+public suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -> Unit): T =
     request(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] request, with the [urlString] and the information configured in builder [block]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.request(
+public suspend inline fun <reified T> HttpClient.request(
     urlString: String, block: HttpRequestBuilder.() -> Unit = {}
 ): T = request(HttpRequestBuilder().apply {
     url(urlString)
@@ -40,7 +40,7 @@ suspend inline fun <reified T> HttpClient.request(
  * Executes a [HttpClient] request, with the [url] and the information configured in builder [block]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.request(
+public suspend inline fun <reified T> HttpClient.request(
     url: Url, block: HttpRequestBuilder.() -> Unit = {}
 ): T = request(HttpRequestBuilder().apply {
     url(url)
@@ -51,7 +51,7 @@ suspend inline fun <reified T> HttpClient.request(
  * Executes a [HttpClient] GET request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Get
     return request(builder)
 }
@@ -60,7 +60,7 @@ suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
  * Executes a [HttpClient] POST request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Post
     return request(builder)
 }
@@ -69,7 +69,7 @@ suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
  * Executes a [HttpClient] PUT request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.put(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.put(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Put
     return request(builder)
 }
@@ -78,7 +78,7 @@ suspend inline fun <reified T> HttpClient.put(builder: HttpRequestBuilder): T {
  * Executes a [HttpClient] DELETE request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.delete(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.delete(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Delete
     return request(builder)
 }
@@ -87,7 +87,7 @@ suspend inline fun <reified T> HttpClient.delete(builder: HttpRequestBuilder): T
  * Executes a [HttpClient] OPTIONS request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.options(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.options(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Options
     return request(builder)
 }
@@ -96,7 +96,7 @@ suspend inline fun <reified T> HttpClient.options(builder: HttpRequestBuilder): 
  * Executes a [HttpClient] PATCH request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.patch(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.patch(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Patch
     return request(builder)
 }
@@ -105,7 +105,7 @@ suspend inline fun <reified T> HttpClient.patch(builder: HttpRequestBuilder): T 
  * Executes a [HttpClient] HEAD request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilder): T {
+public suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Head
     return request(builder)
 }
@@ -116,7 +116,7 @@ suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilder): T {
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.get(
+public suspend inline fun <reified T> HttpClient.get(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -134,7 +134,7 @@ suspend inline fun <reified T> HttpClient.get(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.post(
+public suspend inline fun <reified T> HttpClient.post(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -152,7 +152,7 @@ suspend inline fun <reified T> HttpClient.post(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.put(
+public suspend inline fun <reified T> HttpClient.put(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -170,7 +170,7 @@ suspend inline fun <reified T> HttpClient.put(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.delete(
+public suspend inline fun <reified T> HttpClient.delete(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -188,7 +188,7 @@ suspend inline fun <reified T> HttpClient.delete(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.patch(
+public suspend inline fun <reified T> HttpClient.patch(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -206,7 +206,7 @@ suspend inline fun <reified T> HttpClient.patch(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.head(
+public suspend inline fun <reified T> HttpClient.head(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -224,7 +224,7 @@ suspend inline fun <reified T> HttpClient.head(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.options(
+public suspend inline fun <reified T> HttpClient.options(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
@@ -239,7 +239,7 @@ suspend inline fun <reified T> HttpClient.options(
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.
  */
-fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequestBuilder().apply(block)
+public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequestBuilder().apply(block)
 
 /**
  * Executes a [HttpClient] GET request, with the specified [url] as URL and
@@ -247,7 +247,7 @@ fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequ
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.get(
+public suspend inline fun <reified T> HttpClient.get(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = get {
@@ -261,7 +261,7 @@ suspend inline fun <reified T> HttpClient.get(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.post(
+public suspend inline fun <reified T> HttpClient.post(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = post {
@@ -275,7 +275,7 @@ suspend inline fun <reified T> HttpClient.post(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.put(
+public suspend inline fun <reified T> HttpClient.put(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = put {
@@ -289,7 +289,7 @@ suspend inline fun <reified T> HttpClient.put(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.delete(
+public suspend inline fun <reified T> HttpClient.delete(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = delete {
@@ -303,7 +303,7 @@ suspend inline fun <reified T> HttpClient.delete(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.options(
+public suspend inline fun <reified T> HttpClient.options(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = options {
@@ -317,7 +317,7 @@ suspend inline fun <reified T> HttpClient.options(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.patch(
+public suspend inline fun <reified T> HttpClient.patch(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = patch {
@@ -331,7 +331,7 @@ suspend inline fun <reified T> HttpClient.patch(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.head(
+public suspend inline fun <reified T> HttpClient.head(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = head {

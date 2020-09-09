@@ -13,7 +13,7 @@ import io.ktor.util.*
     DeprecationLevel.ERROR
 )
 @Suppress("KDocMissingDocumentation")
-typealias BadResponseStatusException = ResponseException
+public typealias BadResponseStatusException = ResponseException
 
 @Deprecated(
     "Use [HttpCallValidator] instead.",
@@ -21,9 +21,9 @@ typealias BadResponseStatusException = ResponseException
     DeprecationLevel.ERROR
 )
 @Suppress("KDocMissingDocumentation")
-class ExpectSuccess {
+public class ExpectSuccess {
     @Suppress("DEPRECATION_ERROR")
-    companion object : HttpClientFeature<Unit, ExpectSuccess> {
+    public companion object : HttpClientFeature<Unit, ExpectSuccess> {
 
         override val key: AttributeKey<ExpectSuccess>
             get() = error("Deprecated")

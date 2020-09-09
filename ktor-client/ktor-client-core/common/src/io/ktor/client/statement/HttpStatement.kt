@@ -21,7 +21,7 @@ import kotlinx.coroutines.*
  *
  * [HttpStatement] is safe to execute multiple times.
  */
-class HttpStatement(
+public class HttpStatement(
     private val builder: HttpRequestBuilder,
     private val client: HttpClient
 ) {
@@ -39,7 +39,7 @@ class HttpStatement(
      *
      * Please note: the [response] instance will be canceled and shouldn't be passed outside of [block].
      */
-    suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T {
+    public suspend fun <T> execute(block: suspend (response: HttpResponse) -> T): T {
         val response: HttpResponse = executeUnsafe()
 
         try {
@@ -55,7 +55,7 @@ class HttpStatement(
      *
      * To receive exact type you consider using [receive<T>()] method.
      */
-    suspend fun execute(): HttpResponse = execute {
+    public suspend fun execute(): HttpResponse = execute {
         val savedCall = it.call.save()
         savedCall.response
     }
@@ -66,7 +66,7 @@ class HttpStatement(
      * Note if T is a streaming type, you should manage how to close it manually.
      */
     @OptIn(ExperimentalStdlibApi::class)
-    suspend inline fun <reified T> receive(): T = when (T::class) {
+    public suspend inline fun <reified T> receive(): T = when (T::class) {
         HttpStatement::class -> this as T
         HttpResponse::class -> execute() as T
         else -> {
@@ -84,7 +84,7 @@ class HttpStatement(
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
-    suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R {
+    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R {
         val response: HttpResponse = executeUnsafe()
         try {
             val result = response.receive<T>()
@@ -144,7 +144,7 @@ class HttpStatement(
     replaceWith = ReplaceWith("this.execute<T>(block)")
 )
 @Suppress("unused", "KDocMissingDocumentation", "UNUSED_PARAMETER")
-fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
+public fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
 }
 
 
@@ -153,7 +153,7 @@ fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
     level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("this.execute()")
 )
 @Suppress("KDocMissingDocumentation", "unused")
-val HttpStatement.response: HttpResponse
+public val HttpStatement.response: HttpResponse
     get() = error("Unbound [HttpClientCall] is deprecated. Consider using [HttpResponse] instead.")
 
 /**
@@ -165,7 +165,7 @@ val HttpStatement.response: HttpResponse
  * Note that [fallbackCharset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.
  */
-suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): String {
+public suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): String {
     val originCharset = charset() ?: fallbackCharset ?: Charsets.UTF_8
     val decoder = originCharset.newDecoder()
     val input = receive<Input>()

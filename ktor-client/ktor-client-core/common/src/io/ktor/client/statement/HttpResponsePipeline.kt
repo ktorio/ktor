@@ -11,64 +11,64 @@ import io.ktor.util.pipeline.*
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
  */
-class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(
+public class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(
     Receive,
     Parse,
     Transform,
     State,
     After
 ) {
-    companion object Phases {
+    public companion object Phases {
         /**
          * The earliest phase that happens before any other
          */
-        val Receive = PipelinePhase("Receive")
+        public val Receive: PipelinePhase = PipelinePhase("Receive")
 
         /**
          * Decode response body
          */
-        val Parse = PipelinePhase("Parse")
+        public val Parse: PipelinePhase = PipelinePhase("Parse")
 
         /**
          * Transform response body to expected format
          */
-        val Transform = PipelinePhase("Transform")
+        public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Use this phase to store request shared state
          */
-        val State = PipelinePhase("State")
+        public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Latest response pipeline phase
          */
-        val After = PipelinePhase("After")
+        public val After: PipelinePhase = PipelinePhase("After")
     }
 }
 
 /**
  * [HttpClient] Pipeline used for receiving [HttpResponse] without any processing.
  */
-class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(
+public class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(
     Before,
     State,
     After
 ) {
-    companion object Phases {
+    public companion object Phases {
         /**
          * The earliest phase that happens before any other
          */
-        val Before = PipelinePhase("Before")
+        public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Use this phase to store request shared state
          */
-        val State = PipelinePhase("State")
+        public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Latest response pipeline phase
          */
-        val After = PipelinePhase("After")
+        public val After: PipelinePhase = PipelinePhase("After")
     }
 }
 
@@ -77,4 +77,4 @@ class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(
  * @param expectedType: information about expected type.
  * @param response: current response state.
  */
-data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)
+public data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)
