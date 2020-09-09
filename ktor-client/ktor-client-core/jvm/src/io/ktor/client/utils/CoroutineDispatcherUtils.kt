@@ -13,7 +13,7 @@ import kotlinx.coroutines.scheduling.*
  */
 @OptIn(InternalCoroutinesApi::class)
 @InternalAPI
-actual fun Dispatchers.clientDispatcher(
+public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
 ): CoroutineDispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)
@@ -23,7 +23,7 @@ actual fun Dispatchers.clientDispatcher(
  */
 @Suppress("unused")
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-fun Dispatchers.fixedThreadPoolDispatcher(
+public fun Dispatchers.fixedThreadPoolDispatcher(
     threadCount: Int,
     dispatcherName: String = "client-dispatcher"
 ): CoroutineDispatcher {

@@ -14,50 +14,50 @@ import kotlin.coroutines.intrinsics.*
  * Represents running execution of a pipeline
  */
 @ContextDsl
-interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScope {
+public interface PipelineContext<TSubject : Any, TContext : Any> : CoroutineScope {
     /**
      * Object representing context in which pipeline executes
      */
-    val context: TContext
+    public val context: TContext
 
     /**
      * Subject of this pipeline execution that goes along the pipeline
      */
-    val subject: TSubject
+    public val subject: TSubject
 
     /**
      * Finishes current pipeline execution
      */
-    fun finish()
+    public fun finish()
 
     /**
      * Continues execution of the pipeline with the given subject
      */
-    suspend fun proceedWith(subject: TSubject): TSubject
+    public suspend fun proceedWith(subject: TSubject): TSubject
 
     /**
      * Continues execution of the pipeline with the same subject
      */
-    suspend fun proceed(): TSubject
+    public suspend fun proceed(): TSubject
 }
 
 /**
  * Represent an object that launches pipeline execution
  */
 @Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
-interface PipelineExecutor<R> {
+public interface PipelineExecutor<R> {
     /**
      * Start pipeline execution or fail if already running and not yet completed.
      * It should not be invoked concurrently.
      */
-    suspend fun execute(initial: R): R
+    public suspend fun execute(initial: R): R
 }
 
 /**
  * Build a pipeline of the specified [interceptors] and create executor
  */
 @Deprecated("This is going to become internal. Use Pipeline.execute() instead.")
-fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
+public fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
     context: TContext,
     interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject

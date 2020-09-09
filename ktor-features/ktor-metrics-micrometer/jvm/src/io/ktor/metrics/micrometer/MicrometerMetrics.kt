@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.*
  *     <li>
  *  <ul>
  */
-class MicrometerMetrics(
+public class MicrometerMetrics(
     private val registry: MeterRegistry,
     timerDistributionConfig: DistributionStatisticConfig,
     private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
@@ -74,14 +74,14 @@ class MicrometerMetrics(
      * percentiles cannot be aggregated.
      * @property timers can be used to configure each timer to add custom tags or configure individual SLAs etc
      * */
-    class Configuration {
+    public class Configuration {
 
-        lateinit var registry: MeterRegistry
+        public lateinit var registry: MeterRegistry
 
         internal fun isRegistryInitialized() = this::registry.isInitialized
 
 
-        var meterBinders: List<MeterBinder> = listOf(
+        public var meterBinders: List<MeterBinder> = listOf(
             ClassLoaderMetrics(),
             JvmMemoryMetrics(),
             JvmGcMetrics(),
@@ -90,7 +90,7 @@ class MicrometerMetrics(
             FileDescriptorMetrics()
         )
 
-        var distributionStatisticConfig: DistributionStatisticConfig =
+        public var distributionStatisticConfig: DistributionStatisticConfig =
             DistributionStatisticConfig.Builder()
                 .percentiles(0.5, 0.9, 0.95, 0.99)
                 .build()
@@ -100,7 +100,7 @@ class MicrometerMetrics(
         /**
          * Configure micrometer timers
          */
-        fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
+        public fun timers(block: Timer.Builder.(ApplicationCall, Throwable?) -> Unit) {
             timerBuilder = block
         }
     }
@@ -152,18 +152,18 @@ class MicrometerMetrics(
     /**
      * Micrometer feature installation object
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
         private const val baseName: String = "ktor.http.server"
 
         /**
          * Request time timer name
          */
-        const val requestTimerName: String = "$baseName.requests"
+        public const val requestTimerName: String = "$baseName.requests"
 
         /**
          * Active requests gauge name
          */
-        const val activeGaugeName: String = "$baseName.requests.active"
+        public const val activeGaugeName: String = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 

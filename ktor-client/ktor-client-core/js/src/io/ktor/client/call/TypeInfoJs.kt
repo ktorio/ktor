@@ -7,12 +7,12 @@ package io.ktor.client.call
 import kotlin.reflect.*
 
 
-actual interface Type
+public actual interface Type
 
-object JsType : Type
+public object JsType : Type
 
 @OptIn(ExperimentalStdlibApi::class)
-actual inline fun <reified T> typeInfo(): TypeInfo = try {
+public actual inline fun <reified T> typeInfo(): TypeInfo = try {
     TypeInfo(T::class, JsType, typeOf<T>())
 } catch (_: dynamic) {
     TypeInfo(T::class, JsType)

@@ -11,13 +11,13 @@ import kotlinx.atomicfu.*
  * It is very limited since it is not intended as general purpose implementation.
  */
 @InternalAPI
-class CopyOnWriteHashMap<K : Any, V : Any> {
+public class CopyOnWriteHashMap<K : Any, V : Any> {
     private val current = atomic(emptyMap<K, V>())
 
     /**
      * @see MutableMap.put
      */
-    fun put(key: K, value: V): V? {
+    public fun put(key: K, value: V): V? {
         do {
             val old = current.value
             if (old[key] === value) return value
@@ -31,19 +31,19 @@ class CopyOnWriteHashMap<K : Any, V : Any> {
     /**
      * @see Map.get
      */
-    operator fun get(key: K): V? = current.value[key]
+    public operator fun get(key: K): V? = current.value[key]
 
     /**
      * Operator function for array access syntax
      */
-    operator fun set(key: K, value: V) {
+    public operator fun set(key: K, value: V) {
         put(key, value)
     }
 
     /**
      * @see MutableMap.remove
      */
-    fun remove(key: K): V? {
+    public fun remove(key: K): V? {
         do {
             val old = current.value
             if (old[key] == null) return null
@@ -57,7 +57,7 @@ class CopyOnWriteHashMap<K : Any, V : Any> {
     /**
      * @see MutableMap.computeIfAbsent
      */
-    fun computeIfAbsent(key: K, producer: (key: K) -> V): V {
+    public fun computeIfAbsent(key: K, producer: (key: K) -> V): V {
         do {
             val old = current.value
             old[key]?.let { return it }

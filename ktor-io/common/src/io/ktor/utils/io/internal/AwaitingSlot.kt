@@ -24,7 +24,7 @@ internal class AwaitingSlot {
     /**
      * Wait for other [sleep] or resume.
      */
-    suspend fun sleep() {
+    public suspend fun sleep() {
         if (trySuspend()) {
             return
         }
@@ -35,14 +35,14 @@ internal class AwaitingSlot {
     /**
      * Resume waiter.
      */
-    fun resume() {
+    public fun resume() {
         suspension.getAndSet(null)?.complete()
     }
 
     /**
      * Cancel waiter.
      */
-    fun cancel(cause: Throwable?) {
+    public fun cancel(cause: Throwable?) {
         val continuation = suspension.getAndSet(null) ?: return
 
         if (cause != null) {

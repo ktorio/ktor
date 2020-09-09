@@ -65,8 +65,8 @@ internal class CurlClientEngine(
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated("This exception will be removed in a future release in favor of a better error handling.")
-class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
+public class CurlIllegalStateException(cause: String) : IllegalStateException(cause)
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated("This exception will be removed in a future release in favor of a better error handling.")
-class CurlRuntimeException(cause: String) : RuntimeException(cause)
+public class CurlRuntimeException(cause: String) : RuntimeException(cause)

@@ -22,22 +22,22 @@ internal val CALL_COROUTINE = CoroutineName("call-context")
 /**
  * Base interface use to define engines for [HttpClient].
  */
-interface HttpClientEngine : CoroutineScope, Closeable {
+public interface HttpClientEngine : CoroutineScope, Closeable {
     /**
      * [CoroutineDispatcher] specified for io operations.
      */
-    val dispatcher: CoroutineDispatcher
+    public val dispatcher: CoroutineDispatcher
 
     /**
      * Engine configuration
      */
-    val config: HttpClientEngineConfig
+    public val config: HttpClientEngineConfig
 
     /**
      * Set of supported engine extensions.
      */
     @KtorExperimentalAPI
-    val supportedCapabilities: Set<HttpClientEngineCapability<*>>
+    public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
 
     private val closed: Boolean
@@ -47,13 +47,13 @@ interface HttpClientEngine : CoroutineScope, Closeable {
      * Creates a new [HttpClientCall] specific for this engine, using a request [data].
      */
     @InternalAPI
-    suspend fun execute(data: HttpRequestData): HttpResponseData
+    public suspend fun execute(data: HttpRequestData): HttpResponseData
 
     /**
      * Install engine into [HttpClient].
      */
     @InternalAPI
-    fun install(client: HttpClient) {
+    public fun install(client: HttpClient) {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
             val requestData = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
@@ -97,18 +97,18 @@ interface HttpClientEngine : CoroutineScope, Closeable {
 /**
  * Factory of [HttpClientEngine] with a specific [T] of [HttpClientEngineConfig].
  */
-interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
+public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
     /**
      * Creates a new [HttpClientEngine] optionally specifying a [block] configuring [T].
      */
-    fun create(block: T.() -> Unit = {}): HttpClientEngine
+    public fun create(block: T.() -> Unit = {}): HttpClientEngine
 }
 
 /**
  * Creates a new [HttpClientEngineFactory] based on this one
  * with further configurations from the [nested] block.
  */
-fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> {
+public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> {
     val parent = this
 
     return object : HttpClientEngineFactory<T> {

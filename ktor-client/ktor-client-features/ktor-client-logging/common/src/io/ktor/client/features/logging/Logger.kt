@@ -8,29 +8,29 @@ package io.ktor.client.features.logging
 /**
  * [HttpClient] Logger.
  */
-interface Logger {
+public interface Logger {
     /**
      * Add [message] to log.
      */
-    fun log(message: String)
+    public fun log(message: String)
 
-    companion object
+    public companion object
 }
 
 /**
  * Default logger to use.
  */
-expect val Logger.Companion.DEFAULT: Logger
+public expect val Logger.Companion.DEFAULT: Logger
 
 /**
  * [Logger] using [println].
  */
-val Logger.Companion.SIMPLE: Logger get() = SimpleLogger()
+public val Logger.Companion.SIMPLE: Logger get() = SimpleLogger()
 
 /**
  * Empty [Logger] for test purpose.
  */
-val Logger.Companion.EMPTY: Logger
+public val Logger.Companion.EMPTY: Logger
     get() = object : Logger {
         override fun log(message: String) {}
     }

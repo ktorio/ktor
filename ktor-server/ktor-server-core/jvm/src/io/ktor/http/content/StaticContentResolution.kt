@@ -17,7 +17,7 @@ import java.net.*
  *
  * @return [LocalFileContent] or [JarFileContent] or `null`
  */
-fun ApplicationCall.resolveResource(
+public fun ApplicationCall.resolveResource(
     path: String,
     resourcePackage: String? = null,
     classLoader: ClassLoader = application.environment.classLoader,
@@ -46,7 +46,7 @@ fun ApplicationCall.resolveResource(
  * to improve performance and unnecessary [java.io.InputStream] creation.
  */
 @InternalAPI
-fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
+public fun resourceClasspathResource(url: URL, path: String, mimeResolve: (String) -> ContentType): OutgoingContent? {
     return when (url.protocol) {
         "file" -> {
             val file = File(url.path.decodeURLPart())

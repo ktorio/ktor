@@ -28,33 +28,33 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
 /**
  * Decoder job type
  */
-typealias DecoderJob = WriterJob
+public typealias DecoderJob = WriterJob
 
 /**
  * Start a chunked stream decoder coroutine
  */
 @Deprecated("Specify content length if known or pass -1L",
     ReplaceWith("decodeChunked(input, -1L)"))
-fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
+public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
     decodeChunked(input, -1L)
 
 /**
  * Start a chunked stream decoder coroutine
  */
-fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob = writer(coroutineContext) {
+public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob = writer(coroutineContext) {
     decodeChunked(input, channel, contentLength)
 }
 
 @Deprecated("Specify contentLength if provided or pass -1L",
     ReplaceWith("decodeChunked(input, out, -1L)"))
-suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
+public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     return decodeChunked(input, out, -1L)
 }
 
 /**
  * Chunked stream decoding loop
  */
-suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
+public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
 
@@ -109,12 +109,12 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, content
 /**
  * Encoder job type
  */
-typealias EncoderJob = ReaderJob
+public typealias EncoderJob = ReaderJob
 
 /**
  * Start chunked stream encoding coroutine
  */
-suspend fun encodeChunked(
+public suspend fun encodeChunked(
     output: ByteWriteChannel,
     coroutineContext: CoroutineContext
 ): EncoderJob = GlobalScope.reader(coroutineContext, autoFlush = false) {
@@ -124,7 +124,7 @@ suspend fun encodeChunked(
 /**
  * Chunked stream encoding loop
  */
-suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
+public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     try {
         while (!input.isClosedForRead) {
             input.read { source, startIndex, endIndex ->

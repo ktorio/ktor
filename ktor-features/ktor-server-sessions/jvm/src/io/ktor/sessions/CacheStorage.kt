@@ -10,7 +10,7 @@ import io.ktor.utils.io.jvm.javaio.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class CacheStorage(val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
+public class CacheStorage(public val delegate: SessionStorage, idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
         delegate.read(id) { input -> input.toInputStream().readBytes() }
     }

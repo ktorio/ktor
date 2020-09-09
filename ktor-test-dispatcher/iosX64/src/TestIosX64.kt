@@ -14,7 +14,7 @@ private const val TIME_QUANTUM = 0.01
 /**
  * Test runner for native suspend tests.
  */
-actual fun testSuspend(
+public actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): Unit = runBlocking {

@@ -16,18 +16,18 @@ import java.net.*
 /**
  * Engine that based on CIO backend
  */
-class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
+public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
 
     /**
      * CIO-based server configuration
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Number of seconds that the server will keep HTTP IDLE connections open.
          * A connection is IDLE if there are no active requests running.
          */
-        var connectionIdleTimeoutSeconds: Int = 45
+        public var connectionIdleTimeoutSeconds: Int = 45
     }
 
     private val configuration = Configuration().apply(configure)

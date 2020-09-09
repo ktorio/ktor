@@ -6,47 +6,47 @@ import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
 @Suppress("ACTUAL_WITHOUT_EXPECT", "EXPERIMENTAL_FEATURE_WARNING")
-actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteBuffer) {
+public actual inline class Memory @DangerousInternalIoApi constructor(public val buffer: ByteBuffer) {
 
     /**
      * Size of memory range in bytes.
      */
-    actual inline val size: Long get() = buffer.limit().toLong()
+    public actual inline val size: Long get() = buffer.limit().toLong()
 
     /**
      * Size of memory range in bytes represented as signed 32bit integer
      * @throws IllegalStateException when size doesn't fit into a signed 32bit integer
      */
-    actual inline val size32: Int get() = buffer.limit()
+    public actual inline val size32: Int get() = buffer.limit()
 
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun loadAt(index: Int): Byte = buffer.get(index)
+    public actual inline fun loadAt(index: Int): Byte = buffer.get(index)
 
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun loadAt(index: Long): Byte = buffer.get(index.toIntOrFail("index"))
+    public actual inline fun loadAt(index: Long): Byte = buffer.get(index.toIntOrFail("index"))
 
     /**
      * Write [value] at the specified [index].
      */
-    actual inline fun storeAt(index: Int, value: Byte) {
+    public actual inline fun storeAt(index: Int, value: Byte) {
         buffer.put(index, value)
     }
 
     /**
      * Write [value] at the specified [index]
      */
-    actual inline fun storeAt(index: Long, value: Byte) {
+    public actual inline fun storeAt(index: Long, value: Byte) {
         buffer.put(index.toIntOrFail("index"), value)
     }
 
-    actual fun slice(offset: Int, length: Int): Memory =
+    public actual fun slice(offset: Int, length: Int): Memory =
         Memory(buffer.sliceSafe(offset, length))
 
-    actual fun slice(offset: Long, length: Long): Memory {
+    public actual fun slice(offset: Long, length: Long): Memory {
         return slice(offset.toIntOrFail("offset"), length.toIntOrFail("length"))
     }
 
@@ -55,7 +55,7 @@ actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteB
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
-    actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    public actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
         if (buffer.hasArray() && destination.buffer.hasArray() &&
             !buffer.isReadOnly && !destination.buffer.isReadOnly
         ) {
@@ -86,7 +86,7 @@ actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteB
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
-    actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
+    public actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
         copyTo(
             destination, offset.toIntOrFail("offset"),
             length.toIntOrFail("length"),
@@ -94,8 +94,8 @@ actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteB
         )
     }
 
-    actual companion object {
-        actual val Empty: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
+    public actual companion object {
+        public actual val Empty: Memory = Memory(ByteBuffer.allocate(0).order(ByteOrder.BIG_ENDIAN))
     }
 }
 
@@ -103,7 +103,7 @@ actual inline class Memory @DangerousInternalIoApi constructor(val buffer: ByteB
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+public actual fun Memory.copyTo(
     destination: ByteArray,
     offset: Int,
     length: Int,
@@ -125,7 +125,7 @@ actual fun Memory.copyTo(
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+public actual fun Memory.copyTo(
     destination: ByteArray,
     offset: Long,
     length: Int,
@@ -138,7 +138,7 @@ actual fun Memory.copyTo(
  * Copies bytes from this memory range from the specified [offset]
  * to the [destination] buffer.
  */
-fun Memory.copyTo(
+public fun Memory.copyTo(
     destination: ByteBuffer,
     offset: Int
 ) {
@@ -169,14 +169,14 @@ fun Memory.copyTo(
  * Copies bytes from this memory range from the specified [offset]
  * to the [destination] buffer.
  */
-fun Memory.copyTo(destination: ByteBuffer, offset: Long) {
+public fun Memory.copyTo(destination: ByteBuffer, offset: Long) {
     copyTo(destination, offset.toIntOrFail("offset"))
 }
 
 /**
  * Copy byte from this buffer moving it's position to the [destination] at [offset].
  */
-fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
+public fun ByteBuffer.copyTo(destination: Memory, offset: Int) {
     if (hasArray() && !isReadOnly) {
         destination.storeByteArray(offset, array(), arrayOffset() + position(), remaining())
         position(limit())
@@ -205,14 +205,14 @@ internal fun ByteBuffer.sliceSafe(offset: Int, length: Int): ByteBuffer {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+public actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
     fill(offset.toIntOrFail("offset"), count.toIntOrFail("count"), value)
 }
 
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+public actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
     for (index in offset until offset + count) {
         buffer.put(index, value)
     }

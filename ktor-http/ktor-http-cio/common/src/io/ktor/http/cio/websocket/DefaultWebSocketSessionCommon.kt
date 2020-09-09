@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
  * Create [DefaultWebSocketSession] from session.
  */
 @OptIn(WebSocketInternalAPI::class)
-expect fun DefaultWebSocketSession(
+public expect fun DefaultWebSocketSession(
     session: WebSocketSession,
     pingInterval: Long,
     timeoutMillis: Long
@@ -19,10 +19,10 @@ expect fun DefaultWebSocketSession(
 /**
  * Default websocket session with ping-pong and timeout processing and built-in [closeReason] population
  */
-expect interface DefaultWebSocketSession : WebSocketSession {
+public expect interface DefaultWebSocketSession : WebSocketSession {
     /**
      * A close reason for this session. It could be `null` if a session is terminated with no close reason
      * (for example due to connection failure).
      */
-    val closeReason: Deferred<CloseReason?>
+    public val closeReason: Deferred<CloseReason?>
 }

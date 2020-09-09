@@ -24,21 +24,21 @@ import java.util.*
  * @param etag value for `E-Tag` header (optional)
  * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
  */
-class PebbleContent(
-    val template: String,
-    val model: Map<String, Any>,
-    val locale: Locale? = null,
-    val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+public class PebbleContent(
+    public val template: String,
+    public val model: Map<String, Any>,
+    public val locale: Locale? = null,
+    public val etag: String? = null,
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
 /**
  * Feature for providing Pebble templates as [PebbleContent]
  */
-class Pebble(private val engine: PebbleEngine) {
+public class Pebble(private val engine: PebbleEngine) {
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
-        override val key = AttributeKey<Pebble>("pebble")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, PebbleEngine.Builder, Pebble> {
+        override val key: AttributeKey<Pebble> = AttributeKey<Pebble>("pebble")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: PebbleEngine.Builder.() -> Unit): Pebble {
             val builder = PebbleEngine.Builder().apply {

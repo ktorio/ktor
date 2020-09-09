@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
  * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websockets
  * it is important to perform close sequence properly.
  */
-fun Route.webSocketRaw(
+public fun Route.webSocketRaw(
     path: String, protocol: String? = null,
     handler: suspend WebSocketServerSession.() -> Unit
 ) {
@@ -47,7 +47,7 @@ fun Route.webSocketRaw(
  * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
  * it is important to perform close sequence properly.
  */
-fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
+public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServerSession.() -> Unit) {
     application.feature(WebSockets) // early require
 
     header(HttpHeaders.Connection, "Upgrade") {
@@ -79,7 +79,7 @@ fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketServe
     "Use webSocketRaw(protocol = protocol, handler = handler) instead.",
     ReplaceWith("webSocketRaw(protocol = webSocketProtocol, handler = webSocketHandler)")
 )
-fun Route.webSocketRaw(
+public fun Route.webSocketRaw(
     webSocketProtocol: String,
     webSocketHandler: suspend WebSocketServerSession.() -> Unit,
     nothing: Nothing? = null
@@ -99,7 +99,7 @@ fun Route.webSocketRaw(
  * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
  * a timeout exceeds
  */
-fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
+public fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     webSocketRaw(protocol) {
         proceedWebSocket(handler)
     }
@@ -121,7 +121,7 @@ fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketS
     "Use webSocket(protocol = protocol, handler = handler) instead.",
     ReplaceWith("webSocket(protocol = webSocketProtocol, handler = webSocketHandler)")
 )
-fun Route.webSocket(
+public fun Route.webSocket(
     webSocketProtocol: String,
     webSocketHandler: suspend DefaultWebSocketServerSession.() -> Unit,
     @Suppress("UNUSED_PARAMETER")
@@ -142,7 +142,7 @@ fun Route.webSocket(
  * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
  * a timeout exceeds
  */
-fun Route.webSocket(path: String, protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
+public fun Route.webSocket(path: String, protocol: String? = null, handler: suspend DefaultWebSocketServerSession.() -> Unit) {
     webSocketRaw(path, protocol) {
         proceedWebSocket(handler)
     }

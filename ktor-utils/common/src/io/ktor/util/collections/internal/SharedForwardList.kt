@@ -15,7 +15,7 @@ internal class SharedForwardList<T : Any> : MutableIterable<T> {
         makeShared()
     }
 
-    fun appendHead(item: T) {
+    public fun appendHead(item: T) {
         while (true) {
             val value = head.value
             val update = ListItem(value, item)

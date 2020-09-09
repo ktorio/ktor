@@ -15,7 +15,7 @@ internal class ConnectionFactory(
 ) {
     private val semaphore = Semaphore(maxConnectionsCount)
 
-    suspend fun connect(
+    public suspend fun connect(
         address: NetworkAddress,
         configuration: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
     ): Socket {
@@ -29,7 +29,7 @@ internal class ConnectionFactory(
         }
     }
 
-    fun release() {
+    public fun release() {
         semaphore.release()
     }
 }

@@ -19,11 +19,11 @@ import kotlin.coroutines.*
  * Servlet upgrade processing
  */
 @EngineAPI
-interface ServletUpgrade {
+public interface ServletUpgrade {
     /**
      * Perform HTTP upgrade using engine's native API
      */
-    suspend fun performUpgrade(
+    public suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse,
@@ -37,7 +37,7 @@ interface ServletUpgrade {
  * Please note that some servlet containers may not support it or it may be broken.
  */
 @EngineAPI
-object DefaultServletUpgrade : ServletUpgrade {
+public object DefaultServletUpgrade : ServletUpgrade {
     override suspend fun performUpgrade(
         upgrade: OutgoingContent.ProtocolUpgrade,
         servletRequest: HttpServletRequest,
@@ -60,12 +60,12 @@ object DefaultServletUpgrade : ServletUpgrade {
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class UpgradeRequest(
-    val response: HttpServletResponse,
-    val upgradeMessage: OutgoingContent.ProtocolUpgrade,
-    val engineContext: CoroutineContext,
-    val userContext: CoroutineContext,
-    val disableAsyncInput: Boolean
+public class UpgradeRequest(
+    public val response: HttpServletResponse,
+    public val upgradeMessage: OutgoingContent.ProtocolUpgrade,
+    public val engineContext: CoroutineContext,
+    public val userContext: CoroutineContext,
+    public val disableAsyncInput: Boolean
 )
 
 private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
@@ -76,12 +76,12 @@ private val ServletUpgradeCoroutineName = CoroutineName("servlet-upgrade")
 @InternalAPI
 @EngineAPI
 @Suppress("KDocMissingDocumentation")
-class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
+public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
-    lateinit var up: UpgradeRequest
+    public lateinit var up: UpgradeRequest
 
     @Volatile
-    lateinit var upgradeJob: CompletableJob
+    public lateinit var upgradeJob: CompletableJob
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 

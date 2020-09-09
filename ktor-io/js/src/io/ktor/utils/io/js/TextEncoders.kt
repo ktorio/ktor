@@ -5,7 +5,7 @@ import org.khronos.webgl.*
 internal external class TextEncoder() {
     val encoding: String
 
-    fun encode(input: String): Uint8Array
+    public fun encode(input: String): Uint8Array
 }
 
 internal fun TextEncoderCtor(): TextEncoder {

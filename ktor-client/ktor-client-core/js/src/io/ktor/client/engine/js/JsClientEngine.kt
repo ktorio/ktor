@@ -129,4 +129,4 @@ private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
  * Wrapper for javascript `error` objects.
  * @property origin: fail reason
  */
-class JsError(val origin: dynamic) : Throwable("Error from javascript[$origin].")
+public class JsError(public val origin: dynamic) : Throwable("Error from javascript[$origin].")

@@ -15,13 +15,13 @@ import kotlin.coroutines.*
  * Default user agent to use in ktor client.
  */
 @InternalAPI
-val KTOR_DEFAULT_USER_AGENT = "Ktor client"
+public val KTOR_DEFAULT_USER_AGENT: String = "Ktor client"
 
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
  */
 @InternalAPI
-fun mergeHeaders(
+public fun mergeHeaders(
     requestHeaders: Headers,
     content: OutgoingContent,
     block: (key: String, value: String) -> Unit
@@ -53,7 +53,7 @@ fun mergeHeaders(
  * Returns current call context if exists, otherwise null.
  */
 @InternalAPI
-suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
+public suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
 
 /**
  * Coroutine context element containing call job.
@@ -62,7 +62,7 @@ internal class KtorCallContextElement(val callContext: CoroutineContext) : Corou
     override val key: CoroutineContext.Key<*>
         get() = KtorCallContextElement
 
-    companion object : CoroutineContext.Key<KtorCallContextElement>
+    public companion object : CoroutineContext.Key<KtorCallContextElement>
 }
 
 /**

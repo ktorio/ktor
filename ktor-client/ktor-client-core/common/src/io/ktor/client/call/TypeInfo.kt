@@ -9,7 +9,7 @@ import kotlin.reflect.*
 /**
  * Information about type.
  */
-expect interface Type
+public expect interface Type
 
 /**
  * Ktor type information.
@@ -17,7 +17,7 @@ expect interface Type
  * @param reifiedType: type with substituted generics
  * @param kotlinType: kotlin reified type with all generic type parameters.
  */
-data class TypeInfo(
+public data class TypeInfo(
     val type: KClass<*>,
     val reifiedType: Type,
     val kotlinType: KType? = null
@@ -26,7 +26,7 @@ data class TypeInfo(
 /**
  * Returns [TypeInfo] for the specified type [T]
  */
-expect inline fun <reified T> typeInfo(): TypeInfo
+public expect inline fun <reified T> typeInfo(): TypeInfo
 
 /**
  * Check [this] is instance of [type].

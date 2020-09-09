@@ -16,15 +16,15 @@ import io.ktor.application.*
  * @param pipeline pipeline to use with this engine
  */
 @EngineAPI
-abstract class BaseApplicationEngine(
-    final override val environment: ApplicationEngineEnvironment,
-    val pipeline: EnginePipeline = defaultEnginePipeline(environment)
+public abstract class BaseApplicationEngine(
+    public final override val environment: ApplicationEngineEnvironment,
+    public val pipeline: EnginePipeline = defaultEnginePipeline(environment)
 ) : ApplicationEngine {
 
     /**
      * Configuration for the [BaseApplicationEngine]
      */
-    open class Configuration : ApplicationEngine.Configuration()
+    public open class Configuration : ApplicationEngine.Configuration()
 
     init {
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)

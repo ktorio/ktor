@@ -12,7 +12,7 @@ import java.security.*
  * Returns Java's JAAS Principal
  */
 @KtorExperimentalAPI
-val ApplicationRequest.javaSecurityPrincipal: Principal?
+public val ApplicationRequest.javaSecurityPrincipal: Principal?
     get() = when (this) {
         is ServletApplicationRequest -> servletRequest.userPrincipal
         else -> null

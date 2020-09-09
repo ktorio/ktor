@@ -10,7 +10,7 @@ import java.nio.*
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadShortArray(
+public actual fun Memory.loadShortArray(
     offset: Int,
     destination: ShortArray,
     destinationOffset: Int,
@@ -24,7 +24,7 @@ actual fun Memory.loadShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadShortArray(
+public actual fun Memory.loadShortArray(
     offset: Long,
     destination: ShortArray,
     destinationOffset: Int,
@@ -38,7 +38,7 @@ actual fun Memory.loadShortArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadIntArray(
+public actual fun Memory.loadIntArray(
     offset: Int,
     destination: IntArray,
     destinationOffset: Int,
@@ -52,7 +52,7 @@ actual fun Memory.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadIntArray(
+public actual fun Memory.loadIntArray(
     offset: Long,
     destination: IntArray,
     destinationOffset: Int,
@@ -66,7 +66,7 @@ actual fun Memory.loadIntArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadLongArray(
+public actual fun Memory.loadLongArray(
     offset: Int,
     destination: LongArray,
     destinationOffset: Int,
@@ -80,7 +80,7 @@ actual fun Memory.loadLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadLongArray(
+public actual fun Memory.loadLongArray(
     offset: Long,
     destination: LongArray,
     destinationOffset: Int,
@@ -94,7 +94,7 @@ actual fun Memory.loadLongArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadFloatArray(
+public actual fun Memory.loadFloatArray(
     offset: Int,
     destination: FloatArray,
     destinationOffset: Int,
@@ -108,7 +108,7 @@ actual fun Memory.loadFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadFloatArray(
+public actual fun Memory.loadFloatArray(
     offset: Long,
     destination: FloatArray,
     destinationOffset: Int,
@@ -122,7 +122,7 @@ actual fun Memory.loadFloatArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadDoubleArray(
+public actual fun Memory.loadDoubleArray(
     offset: Int,
     destination: DoubleArray,
     destinationOffset: Int,
@@ -136,7 +136,7 @@ actual fun Memory.loadDoubleArray(
  * to the [destination] at [destinationOffset] interpreting numbers in the network order (Big Endian).
  * @param destinationOffset items
  */
-actual fun Memory.loadDoubleArray(
+public actual fun Memory.loadDoubleArray(
     offset: Long,
     destination: DoubleArray,
     destinationOffset: Int,
@@ -150,7 +150,7 @@ actual fun Memory.loadDoubleArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeShortArray(
+public actual fun Memory.storeShortArray(
     offset: Int,
     source: ShortArray,
     sourceOffset: Int,
@@ -164,7 +164,7 @@ actual fun Memory.storeShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeShortArray(
+public actual fun Memory.storeShortArray(
     offset: Long,
     source: ShortArray,
     sourceOffset: Int,
@@ -178,7 +178,7 @@ actual fun Memory.storeShortArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeIntArray(
+public actual fun Memory.storeIntArray(
     offset: Int,
     source: IntArray,
     sourceOffset: Int,
@@ -192,7 +192,7 @@ actual fun Memory.storeIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeIntArray(
+public actual fun Memory.storeIntArray(
     offset: Long,
     source: IntArray,
     sourceOffset: Int,
@@ -206,7 +206,7 @@ actual fun Memory.storeIntArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeLongArray(
+public actual fun Memory.storeLongArray(
     offset: Int,
     source: LongArray,
     sourceOffset: Int,
@@ -220,7 +220,7 @@ actual fun Memory.storeLongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeLongArray(
+public actual fun Memory.storeLongArray(
     offset: Long,
     source: LongArray,
     sourceOffset: Int,
@@ -234,7 +234,7 @@ actual fun Memory.storeLongArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeFloatArray(
+public actual fun Memory.storeFloatArray(
     offset: Int,
     source: FloatArray,
     sourceOffset: Int,
@@ -248,7 +248,7 @@ actual fun Memory.storeFloatArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeFloatArray(
+public actual fun Memory.storeFloatArray(
     offset: Long,
     source: FloatArray,
     sourceOffset: Int,
@@ -262,7 +262,7 @@ actual fun Memory.storeFloatArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeDoubleArray(
+public actual fun Memory.storeDoubleArray(
     offset: Int,
     source: DoubleArray,
     sourceOffset: Int,
@@ -276,7 +276,7 @@ actual fun Memory.storeDoubleArray(
  * interpreting numbers in the network order (Big Endian).
  * @param sourceOffset items
  */
-actual fun Memory.storeDoubleArray(
+public actual fun Memory.storeDoubleArray(
     offset: Long,
     source: DoubleArray,
     sourceOffset: Int,

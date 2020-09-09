@@ -16,7 +16,7 @@ import io.ktor.utils.io.core.*
 /**
  * Install client [DigestAuthProvider].
  */
-fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
+public fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
     val config = DigestAuthConfig().apply(block)
     with(config) {
         providers += DigestAuthProvider(username, password, realm, algorithmName)
@@ -27,22 +27,22 @@ fun Auth.digest(block: DigestAuthConfig.() -> Unit) {
  * [DigestAuthProvider] configuration.
  */
 @Suppress("KDocMissingDocumentation")
-class DigestAuthConfig {
-    var username: String = ""
-    var password: String = ""
-    var realm: String? = null
-    var algorithmName: String = "MD5"
+public class DigestAuthConfig {
+    public var username: String = ""
+    public var password: String = ""
+    public var realm: String? = null
+    public var algorithmName: String = "MD5"
 }
 
 /**
  * Client digest [AuthProvider].
  */
 @Suppress("KDocMissingDocumentation")
-class DigestAuthProvider(
-    val username: String,
-    val password: String,
-    val realm: String?,
-    val algorithmName: String = "MD5"
+public class DigestAuthProvider(
+    public val username: String,
+    public val password: String,
+    public val realm: String?,
+    public val algorithmName: String = "MD5"
 ) : AuthProvider {
     override val sendWithoutRequest: Boolean = false
 

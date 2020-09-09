@@ -12,14 +12,16 @@ import kotlinx.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-abstract class NettyApplicationCall(application: Application,
-                                    val context: ChannelHandlerContext,
-                                    private val requestMessage: Any) : BaseApplicationCall(application) {
+public abstract class NettyApplicationCall(
+    application: Application,
+    public val context: ChannelHandlerContext,
+    private val requestMessage: Any
+) : BaseApplicationCall(application) {
 
-    abstract override val request: NettyApplicationRequest
-    abstract override val response: NettyApplicationResponse
+    public abstract override val request: NettyApplicationRequest
+    public abstract override val response: NettyApplicationResponse
 
-    val responseWriteJob: Job = Job()
+    public val responseWriteJob: Job = Job()
 
     internal suspend fun finish() {
         try {

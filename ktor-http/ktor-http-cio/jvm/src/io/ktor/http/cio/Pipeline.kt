@@ -11,14 +11,14 @@ import kotlinx.coroutines.*
 
 @Deprecated("This is going to become private", level = DeprecationLevel.HIDDEN)
 @Suppress("KDocMissingDocumentation", "unused")
-fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+public fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return isLastHttpRequest(http11, connectionOptions)
 }
 
 /**
  * HTTP request handler function
  */
-typealias HttpRequestHandler = suspend ServerRequestScope.(
+public typealias HttpRequestHandler = suspend ServerRequestScope.(
     request: Request
 ) -> Unit
 
@@ -26,19 +26,19 @@ typealias HttpRequestHandler = suspend ServerRequestScope.(
  * HTTP pipeline coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
+public val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
 /**
  * HTTP pipeline writer coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
+public val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
 
 /**
  * HTTP request handler coroutine name
  */
 @Deprecated("This is an implementation detail and will become internal in future releases.")
-val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
+public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 
 /**
  * Start connection HTTP pipeline invoking [handler] for every request.
@@ -58,7 +58,7 @@ val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
 @OptIn(
     ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
 )
-fun CoroutineScope.startConnectionPipeline(
+public fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
     output: ByteWriteChannel,
     timeout: WeakTimeoutQueue,

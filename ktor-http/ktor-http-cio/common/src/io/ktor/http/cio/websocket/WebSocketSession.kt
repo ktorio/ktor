@@ -11,22 +11,22 @@ import kotlinx.coroutines.channels.*
 /**
  * Represents a web socket session between two peers
  */
-expect interface WebSocketSession : CoroutineScope {
+public expect interface WebSocketSession : CoroutineScope {
     /**
      * Specifies frame size limit. Connection will be closed if violated
      */
-    var maxFrameSize: Long
+    public var maxFrameSize: Long
 
     /**
      * Incoming frames channel
      */
-    val incoming: ReceiveChannel<Frame>
+    public val incoming: ReceiveChannel<Frame>
 
     /**
      * Outgoing frames channel. It could have limited capacity so sending too much frames may lead to suspension at
      * corresponding send invocations. It also may suspend if a peer doesn't read frames for some reason.
      */
-    val outgoing: SendChannel<Frame>
+    public val outgoing: SendChannel<Frame>
 
     /**
      * Enqueue frame, may suspend if outgoing queue is full. May throw an exception if outgoing channel is already
@@ -34,7 +34,7 @@ expect interface WebSocketSession : CoroutineScope {
      * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
      * raw websocket session.
      */
-    suspend fun send(frame: Frame)
+    public suspend fun send(frame: Frame)
 
     /**
      * Flush all outstanding messages and suspend until all earlier sent messages will be written. Could be called
@@ -42,7 +42,7 @@ expect interface WebSocketSession : CoroutineScope {
      * However it may also fail with an exception (or cancellation) at any point due to session failure.
      * Please note that [flush] doesn't guarantee that frames were actually delivered.
      */
-    suspend fun flush()
+    public suspend fun flush()
 
     /**
      * Initiate connection termination immediately. Termination may complete asynchronously.
@@ -51,7 +51,7 @@ expect interface WebSocketSession : CoroutineScope {
         "Use cancel() instead.",
         ReplaceWith("cancel()", "kotlinx.coroutines.cancel")
     )
-    fun terminate()
+    public fun terminate()
 }
 
 /**
@@ -59,14 +59,14 @@ expect interface WebSocketSession : CoroutineScope {
  *
  * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
  */
-suspend fun WebSocketSession.send(content: String): Unit = send(Frame.Text(content))
+public suspend fun WebSocketSession.send(content: String): Unit = send(Frame.Text(content))
 
 /**
  * Enqueues a final binary frame for sending with the specified [content].
  *
  * May suspend if the outgoing queue is full, and throw an exception if the channel is already closed.
  */
-suspend fun WebSocketSession.send(content: ByteArray): Unit = send(Frame.Binary(true, content))
+public suspend fun WebSocketSession.send(content: ByteArray): Unit = send(Frame.Binary(true, content))
 
 /**
  * Send a close frame with the specified [reason]. May suspend if outgoing channel is full.
@@ -74,7 +74,7 @@ suspend fun WebSocketSession.send(content: ByteArray): Unit = send(Frame.Binary(
  * close frame sent (for example in reply to a peer close frame). It also may do nothing when a session or an outgoing
  * channel is already closed due to any reason.
  */
-suspend fun WebSocketSession.close(reason: CloseReason = CloseReason(CloseReason.Codes.NORMAL, "")) {
+public suspend fun WebSocketSession.close(reason: CloseReason = CloseReason(CloseReason.Codes.NORMAL, "")) {
     try {
         send(Frame.Close(reason))
         flush()
@@ -87,7 +87,7 @@ suspend fun WebSocketSession.close(reason: CloseReason = CloseReason(CloseReason
  * This is going to be removed. Close with a particular reason or terminate instead.
  */
 @Deprecated("Close with reason or terminate instead.")
-suspend fun WebSocketSession.close(cause: Throwable?) {
+public suspend fun WebSocketSession.close(cause: Throwable?) {
     if (cause == null) {
         close()
     } else {
@@ -99,7 +99,7 @@ suspend fun WebSocketSession.close(cause: Throwable?) {
  * Closes session with normal or error close reason, depending on whether [cause] is cancellation or not.
  */
 @InternalAPI
-suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
+public suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
     val reason = when (cause) {
         is CancellationException -> CloseReason(CloseReason.Codes.NORMAL, "")
         else -> CloseReason(CloseReason.Codes.INTERNAL_ERROR, cause.toString())

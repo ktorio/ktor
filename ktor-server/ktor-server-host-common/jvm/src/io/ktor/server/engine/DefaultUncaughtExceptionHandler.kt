@@ -15,10 +15,10 @@ import kotlin.coroutines.*
  * ignoring [CancellationException] and [IOException].
  */
 @EngineAPI
-class DefaultUncaughtExceptionHandler(
+public class DefaultUncaughtExceptionHandler(
     private val logger: () -> Logger
 ) : CoroutineExceptionHandler {
-    constructor(logger: Logger) : this({ logger })
+    public constructor(logger: Logger) : this({ logger })
 
     override val key: CoroutineContext.Key<*>
         get() = CoroutineExceptionHandler.Key

@@ -10,22 +10,21 @@ import io.ktor.util.date.*
 /**
  * Server's response cookies
  */
-class ResponseCookies(
+public class ResponseCookies(
     private val response: ApplicationResponse, private val secureTransport: Boolean
 ) {
     /**
      * Get cookie from response HTTP headers (from `Set-Cookie` header)
      */
-    operator fun get(name: String): Cookie? =
-        response.headers
-            .values("Set-Cookie")
-            .map { parseServerSetCookieHeader(it) }
-            .firstOrNull { it.name == name }
+    public operator fun get(name: String): Cookie? = response.headers
+        .values("Set-Cookie")
+        .map { parseServerSetCookieHeader(it) }
+        .firstOrNull { it.name == name }
 
     /**
      * Append cookie [item] using `Set-Cookie` HTTP response header
      */
-    fun append(item: Cookie) {
+    public fun append(item: Cookie) {
         if (item.secure && !secureTransport) {
             throw IllegalArgumentException("You should set secure cookie only via secure transport (HTTPS)")
         }
@@ -36,7 +35,7 @@ class ResponseCookies(
      * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
      */
     @Deprecated("Convert maxAge to Long")
-    fun append(
+    public fun append(
         name: String,
         value: String,
         encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
@@ -54,7 +53,7 @@ class ResponseCookies(
     /**
      * Append a cookie using `Set-Cookie` HTTP response header from the specified parameters
      */
-    fun append(
+    public fun append(
         name: String,
         value: String,
         encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
@@ -85,7 +84,7 @@ class ResponseCookies(
     /**
      * Append already expired cookie: useful to remove client cookies
      */
-    fun appendExpired(name: String, domain: String? = null, path: String? = null) {
+    public fun appendExpired(name: String, domain: String? = null, path: String? = null) {
         append(name, "", domain = domain, path = path, expires = GMTDate.START)
     }
 }

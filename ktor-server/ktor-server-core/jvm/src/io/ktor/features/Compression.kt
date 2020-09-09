@@ -20,7 +20,7 @@ import kotlin.coroutines.*
 /**
  * Compression feature configuration
  */
-data class CompressionOptions(
+public data class CompressionOptions(
     /**
      * Map of encoder configurations
      */
@@ -34,7 +34,7 @@ data class CompressionOptions(
 /**
  * Configuration for an encoder
  */
-data class CompressionEncoderConfig(
+public data class CompressionEncoderConfig(
     /**
      * Name of the encoder, matched against entry in `Accept-Encoding` header
      */
@@ -56,7 +56,7 @@ data class CompressionEncoderConfig(
 /**
  * Feature to compress a response based on conditions and ability of client to decompress it
  */
-class Compression(compression: Configuration) {
+public class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
         { it.second.quality }, { it.first.priority }
@@ -168,11 +168,11 @@ class Compression(compression: Configuration) {
     /**
      * `ApplicationFeature` implementation for [Compression]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Compression> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Compression> {
         /**
          * Attribute that could be added to an application call to prevent it's response from being compressed
          */
-        val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
+        public val SuppressionAttribute: AttributeKey<Boolean> = AttributeKey("preventCompression")
 
         override val key: AttributeKey<Compression> = AttributeKey("Compression")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {
@@ -191,18 +191,18 @@ class Compression(compression: Configuration) {
     /**
      * Configuration builder for Compression feature
      */
-    class Configuration : ConditionsHolderBuilder {
+    public class Configuration : ConditionsHolderBuilder {
         /**
          * Encoders map by names
          */
-        val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
+        public val encoders: MutableMap<String, CompressionEncoderBuilder> = hashMapOf()
 
         override val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean> = arrayListOf()
 
         /**
          * Appends an encoder to the configuration
          */
-        fun encoder(name: String, encoder: CompressionEncoder, block: CompressionEncoderBuilder.() -> Unit = {}) {
+        public fun encoder(name: String, encoder: CompressionEncoder, block: CompressionEncoderBuilder.() -> Unit = {}) {
             require(name.isNotBlank()) { "encoder name couldn't be blank" }
             if (name in encoders) {
                 throw IllegalArgumentException("Encoder $name is already registered")
@@ -214,7 +214,7 @@ class Compression(compression: Configuration) {
         /**
          * Appends default configuration
          */
-        fun default() {
+        public fun default() {
             gzip()
             deflate()
             identity()
@@ -231,7 +231,7 @@ class Compression(compression: Configuration) {
         /**
          * Builds `CompressionOptions`
          */
-        fun build(): CompressionOptions = CompressionOptions(
+        public fun build(): CompressionOptions = CompressionOptions(
             encoders = encoders.mapValues { it.value.build() },
             conditions = conditions.toList()
         )
@@ -245,16 +245,16 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
  * Represents a Compression encoder
  */
 @KtorExperimentalAPI
-interface CompressionEncoder {
+public interface CompressionEncoder {
     /**
      * May predict compressed length based on the [originalLength] or return `null` if it is impossible.
      */
-    fun predictCompressedLength(originalLength: Long): Long? = null
+    public fun predictCompressedLength(originalLength: Long): Long? = null
 
     /**
      * Wraps [readChannel] into a compressing [ByteReadChannel]
      */
-    fun compress(
+    public fun compress(
         readChannel: ByteReadChannel,
         coroutineContext: CoroutineContext = Dispatchers.Unconfined
     ): ByteReadChannel
@@ -262,7 +262,7 @@ interface CompressionEncoder {
     /**
      * Wraps [writeChannel] into a compressing [ByteWriteChannel]
      */
-    fun compress(
+    public fun compress(
         writeChannel: ByteWriteChannel,
         coroutineContext: CoroutineContext = Dispatchers.Unconfined
     ): ByteWriteChannel
@@ -271,7 +271,7 @@ interface CompressionEncoder {
 /**
  * Implementation of the gzip encoder
  */
-object GzipEncoder : CompressionEncoder {
+public object GzipEncoder : CompressionEncoder {
     override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         readChannel.deflated(true, coroutineContext = coroutineContext)
 
@@ -282,7 +282,7 @@ object GzipEncoder : CompressionEncoder {
 /**
  * Implementation of the deflate encoder
  */
-object DeflateEncoder : CompressionEncoder {
+public object DeflateEncoder : CompressionEncoder {
     override fun compress(readChannel: ByteReadChannel, coroutineContext: CoroutineContext): ByteReadChannel =
         readChannel.deflated(false, coroutineContext = coroutineContext)
 
@@ -293,7 +293,7 @@ object DeflateEncoder : CompressionEncoder {
 /**
  *  Implementation of the identity encoder
  */
-object IdentityEncoder : CompressionEncoder {
+public object IdentityEncoder : CompressionEncoder {
     override fun predictCompressedLength(originalLength: Long): Long? = originalLength
 
     override fun compress(
@@ -310,11 +310,11 @@ object IdentityEncoder : CompressionEncoder {
 /**
  * Represents a builder for conditions
  */
-interface ConditionsHolderBuilder {
+public interface ConditionsHolderBuilder {
     /**
      * Preconditions applied to every response object to check if it should be compressed
      */
-    val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
+    public val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
 }
 
 /**
@@ -323,8 +323,8 @@ interface ConditionsHolderBuilder {
  * @property encoder instance
  */
 @Suppress("MemberVisibilityCanBePrivate")
-class CompressionEncoderBuilder internal constructor(
-    val name: String, val encoder: CompressionEncoder
+public class CompressionEncoderBuilder internal constructor(
+    public val name: String, public val encoder: CompressionEncoder
 ) : ConditionsHolderBuilder {
     /**
      * List of conditions for this encoder
@@ -334,12 +334,12 @@ class CompressionEncoderBuilder internal constructor(
     /**
      * Priority for this encoder
      */
-    var priority: Double = 1.0
+    public var priority: Double = 1.0
 
     /**
      * Builds [CompressionEncoderConfig] instance
      */
-    fun build(): CompressionEncoderConfig {
+    public fun build(): CompressionEncoderConfig {
         return CompressionEncoderConfig(name, encoder, conditions.toList(), priority)
     }
 }
@@ -348,14 +348,14 @@ class CompressionEncoderBuilder internal constructor(
 /**
  * Appends `gzip` encoder
  */
-fun Compression.Configuration.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
+public fun Compression.Configuration.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("gzip", GzipEncoder, block)
 }
 
 /**
  * Appends `deflate` encoder with default priority of 0.9
  */
-fun Compression.Configuration.deflate(block: CompressionEncoderBuilder.() -> Unit = {}) {
+public fun Compression.Configuration.deflate(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("deflate", DeflateEncoder) {
         priority = 0.9
         block()
@@ -365,7 +365,7 @@ fun Compression.Configuration.deflate(block: CompressionEncoderBuilder.() -> Uni
 /**
  * Appends `identity` encoder
  */
-fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Unit = {}) {
+public fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Unit = {}) {
     encoder("identity", IdentityEncoder, block)
 }
 
@@ -374,21 +374,21 @@ fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Un
  * A predicate returns `true` when a response need to be compressed.
  * If at least one condition is not met then the response compression is skipped.
  */
-fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
+public fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
 }
 
 /**
  * Appends a minimum size condition to the encoder or Compression configuration
  */
-fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
+public fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
     condition { content -> content.contentLength?.let { it >= minSize } ?: true }
 }
 
 /**
  * Appends a content type condition to the encoder or Compression configuration
  */
-fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
+public fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
     condition { content ->
         val contentType = content.contentType ?: return@condition false
         mimeTypes.any { contentType.match(it) }
@@ -398,7 +398,7 @@ fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
 /**
  * Appends a content type exclusion condition to the encoder or Compression configuration
  */
-fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
+public fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
     condition { content ->
         val contentType = content.contentType
             ?: response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }

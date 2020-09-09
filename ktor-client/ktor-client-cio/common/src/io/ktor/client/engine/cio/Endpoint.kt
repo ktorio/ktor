@@ -61,7 +61,7 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(
+    public suspend fun execute(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
@@ -247,10 +247,10 @@ private suspend fun <T> CoroutineScope.handleTimeout(
     "Binary compatibility.",
     level = DeprecationLevel.HIDDEN, replaceWith = ReplaceWith("FailToConnectException")
 )
-open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
+public open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
+public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable

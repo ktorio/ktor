@@ -15,14 +15,14 @@ import kotlinx.coroutines.*
 /**
  * [HttpClientEngine] for writing tests without network.
  */
-class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
-    override val dispatcher = Dispatchers.Unconfined
-    override val supportedCapabilities = setOf(HttpTimeout)
+public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
+    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
+    override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
     private val mutex = Lock()
     private val contextState: CompletableJob = Job()
 
-     private val _requestsHistory: MutableList<HttpRequestData> = ConcurrentList()
-     private val _responseHistory: MutableList<HttpResponseData> = ConcurrentList()
+    private val _requestsHistory: MutableList<HttpRequestData> = ConcurrentList()
+    private val _responseHistory: MutableList<HttpResponseData> = ConcurrentList()
 
     private var invocationCount: Int by shared(0)
 
@@ -76,16 +76,17 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("
         }
     }
 
-    companion object : HttpClientEngineFactory<MockEngineConfig> {
+    public companion object : HttpClientEngineFactory<MockEngineConfig> {
         override fun create(block: MockEngineConfig.() -> Unit): HttpClientEngine =
             MockEngine(MockEngineConfig().apply(block))
 
         /**
          * Create [MockEngine] instance with single request handler.
          */
-        operator fun invoke(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): MockEngine =
-            MockEngine(MockEngineConfig().apply {
-                requestHandlers.add(handler)
-            })
+        public operator fun invoke(
+            handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData
+        ): MockEngine = MockEngine(MockEngineConfig().apply {
+            requestHandlers.add(handler)
+        })
     }
 }

@@ -14,14 +14,14 @@ import io.ktor.utils.io.pool.*
  * @see closeDestination
  */
 @ExperimentalIoApi
-abstract class AbstractOutput
+public abstract class AbstractOutput
 internal constructor(
     private val headerSizeHint: Int,
     protected val pool: ObjectPool<ChunkBuffer>
 ) : Appendable, Output {
-    constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
+    public constructor(pool: ObjectPool<ChunkBuffer>) : this(0, pool)
 
-    constructor() : this(ChunkBuffer.Pool)
+    public constructor() : this(ChunkBuffer.Pool)
 
     /**
      * An implementation should write [source] to the destination exactly [length] bytes.
@@ -260,7 +260,7 @@ internal constructor(
     /**
      * Writes another packet to the end. Please note that the instance [p] gets consumed so you don't need to release it
      */
-    fun writePacket(p: ByteReadPacket) {
+    public fun writePacket(p: ByteReadPacket) {
         val foreignStolen = p.stealAll()
         if (foreignStolen == null) {
             p.release()
@@ -355,7 +355,7 @@ internal constructor(
     /**
      * Write exact [n] bytes from packet to the builder
      */
-    fun writePacket(p: ByteReadPacket, n: Int) {
+    public fun writePacket(p: ByteReadPacket, n: Int) {
         var remaining = n
 
         while (remaining > 0) {
@@ -375,7 +375,7 @@ internal constructor(
     /**
      * Write exact [n] bytes from packet to the builder
      */
-    fun writePacket(p: ByteReadPacket, n: Long) {
+    public fun writePacket(p: ByteReadPacket, n: Long) {
         var remaining = n
 
         while (remaining > 0L) {
@@ -416,12 +416,12 @@ internal constructor(
     }
 
     @Deprecated("Use writeText instead", ReplaceWith("writeText(s)"))
-    fun writeStringUtf8(s: String) {
+    public fun writeStringUtf8(s: String) {
         writeText(s)
     }
 
     @Deprecated("Use writeText instead", ReplaceWith("this.writeText(cs)"))
-    fun writeStringUtf8(cs: CharSequence) {
+    public fun writeStringUtf8(cs: CharSequence) {
         writeText(cs)
     }
 
@@ -451,12 +451,12 @@ internal constructor(
     /**
      * Release any resources that the builder holds. Builder shouldn't be used after release
      */
-    final fun release() {
+    public final fun release() {
         close()
     }
 
     @DangerousInternalIoApi
-    fun prepareWriteHead(n: Int): ChunkBuffer {
+    public fun prepareWriteHead(n: Int): ChunkBuffer {
         if (tailRemaining >= n) {
             _tail?.let {
                 it.commitWrittenUntilIndex(tailPosition)
@@ -467,7 +467,7 @@ internal constructor(
     }
 
     @DangerousInternalIoApi
-    fun afterHeadWrite() {
+    public fun afterHeadWrite() {
         _tail?.let { tailPosition = it.writePosition }
     }
 
@@ -504,9 +504,9 @@ internal constructor(
     @Deprecated("Use appendNewChunk instead",
         replaceWith = ReplaceWith("appendNewChunk()"),
         level = DeprecationLevel.HIDDEN)
-    fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
+    public fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    open fun reset() {
+    public open fun reset() {
     }
 }

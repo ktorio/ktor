@@ -18,7 +18,7 @@ internal actual fun <T> runBenchmark(block: suspend CoroutineScope.() -> T): Uni
     Unit
 }
 
-actual fun findEngine(name: String): HttpClientEngineFactory<HttpClientEngineConfig> = when (name) {
+public actual fun findEngine(name: String): HttpClientEngineFactory<HttpClientEngineConfig> = when (name) {
     "Apache" -> Apache
     "OkHttp" -> OkHttp
     "Android" -> Android

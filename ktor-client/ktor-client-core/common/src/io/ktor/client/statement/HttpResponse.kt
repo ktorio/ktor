@@ -16,38 +16,38 @@ import kotlinx.coroutines.*
 /**
  * A response for [HttpClient], second part of [HttpClientCall].
  */
-abstract class HttpResponse : HttpMessage, CoroutineScope {
+public abstract class HttpResponse : HttpMessage, CoroutineScope {
     /**
      * The associated [HttpClientCall] containing both
      * the underlying [HttpClientCall.request] and [HttpClientCall.response].
      */
-    abstract val call: HttpClientCall
+    public abstract val call: HttpClientCall
 
     /**
      * The [HttpStatusCode] returned by the server. It includes both,
      * the [HttpStatusCode.description] and the [HttpStatusCode.value] (code).
      */
-    abstract val status: HttpStatusCode
+    public abstract val status: HttpStatusCode
 
     /**
      * HTTP version. Usually [HttpProtocolVersion.HTTP_1_1] or [HttpProtocolVersion.HTTP_2_0].
      */
-    abstract val version: HttpProtocolVersion
+    public abstract val version: HttpProtocolVersion
 
     /**
      * [GMTDate] of the request start.
      */
-    abstract val requestTime: GMTDate
+    public abstract val requestTime: GMTDate
 
     /**
      * [GMTDate] of the response start.
      */
-    abstract val responseTime: GMTDate
+    public abstract val responseTime: GMTDate
 
     /**
      * [ByteReadChannel] with the payload of the response.
      */
-    abstract val content: ByteReadChannel
+    public abstract val content: ByteReadChannel
 
     override fun toString(): String = "HttpResponse[${request.url}, $status]"
 }
@@ -55,21 +55,21 @@ abstract class HttpResponse : HttpMessage, CoroutineScope {
 /**
  * [HttpRequest] associated with this response.
  */
-val HttpResponse.request: HttpRequest get() = call.request
+public val HttpResponse.request: HttpRequest get() = call.request
 
 @Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("Close is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
-fun HttpResponse.close() {
+public fun HttpResponse.close() {
 }
 
 @Suppress("UNUSED_PARAMETER", "KDocMissingDocumentation", "unused")
 @Deprecated("Use is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this.also(block)"))
-fun HttpResponse.use(block: () -> Unit) {
+public fun HttpResponse.use(block: () -> Unit) {
 }
 
 @Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("[response] is obsolete for [HttpResponse]", replaceWith = ReplaceWith("this"))
-val HttpResponse.response: HttpResponse
+public val HttpResponse.response: HttpResponse
     get() = this
 
 

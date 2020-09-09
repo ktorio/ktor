@@ -9,9 +9,9 @@ package io.ktor.http
  * @property unit range units, usually bytes
  * @property ranges a list of requested ranges (could be open or closed ranges)
  */
-data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ranges: List<ContentRange>) {
+public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ranges: List<ContentRange>) {
 
-    constructor(unit: RangeUnits, ranges: List<ContentRange>) : this(unit.unitToken, ranges)
+    public constructor(unit: RangeUnits, ranges: List<ContentRange>) : this(unit.unitToken, ranges)
 
     init {
         require(ranges.isNotEmpty()) { "It should be at least one range" }
@@ -20,7 +20,7 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
     /**
      * Verify ranges
      */
-    fun isValid(rangeUnitPredicate: (String) -> Boolean = { it == RangeUnits.Bytes.unitToken }): Boolean =
+    public fun isValid(rangeUnitPredicate: (String) -> Boolean = { it == RangeUnits.Bytes.unitToken }): Boolean =
         rangeUnitPredicate(unit) && ranges.none {
             when (it) {
                 is ContentRange.Bounded -> it.from < 0 || it.to < it.from
@@ -34,7 +34,7 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
      * @param length content length
      * @return a list of absolute long ranges
      */
-    fun merge(length: Long, maxRangeCount: Int = 50): List<LongRange> {
+    public fun merge(length: Long, maxRangeCount: Int = 50): List<LongRange> {
         if (ranges.size > maxRangeCount) {
             return mergeToSingle(length).toList()
         }
@@ -46,13 +46,13 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
     /**
      * Merges all overlapping and neighbours ranges. Currently gaps collapse is not supported but should be, one day.
      */
-    fun merge(length: Long): List<LongRange> = ranges.toLongRanges(length).mergeRangesKeepOrder()
+    public fun merge(length: Long): List<LongRange> = ranges.toLongRanges(length).mergeRangesKeepOrder()
 
     /**
      * Merge all ranges into a single absolute long range
      * @param length content length
      */
-    fun mergeToSingle(length: Long): LongRange? {
+    public fun mergeToSingle(length: Long): LongRange? {
         val mapped = ranges.toLongRanges(length)
 
         if (mapped.isEmpty()) {

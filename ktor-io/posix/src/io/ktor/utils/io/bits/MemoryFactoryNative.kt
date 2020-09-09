@@ -12,7 +12,7 @@ import kotlin.contracts.*
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
-actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
+public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -31,7 +31,7 @@ actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memo
  * Create an instance of [Memory] view for memory region starting at
  * the specified [pointer] and having the specified [size] in bytes.
  */
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memory {
+public inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memory {
     require(size.convert<ULong>() <= Long.MAX_VALUE.convert<ULong>()) {
         "At most ${Long.MAX_VALUE} (kotlin.Long.MAX_VALUE) bytes range is supported."
     }
@@ -43,7 +43,7 @@ inline fun Memory.Companion.of(pointer: CPointer<*>, size: size_t): Memory {
  * Create an instance of [Memory] view for memory region starting at
  * the specified [pointer] and having the specified [size] in bytes.
  */
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
+public inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
     return Memory(pointer.reinterpret(), size.toLong())
 }
 
@@ -51,7 +51,7 @@ inline fun Memory.Companion.of(pointer: CPointer<*>, size: Int): Memory {
  * Create an instance of [Memory] view for memory region starting at
  * the specified [pointer] and having the specified [size] in bytes.
  */
-inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
+public inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
     return Memory(pointer.reinterpret(), size)
 }
 
@@ -63,7 +63,7 @@ inline fun Memory.Companion.of(pointer: CPointer<*>, size: Long): Memory {
  * once the scope is leaved, all produced instances should be discarded and should be never used after the scope.
  * On the contrary instances created using [nativeHeap] do require release via [nativeHeap.free].
  */
-fun NativePlacement.allocMemory(size: Int): Memory {
+public fun NativePlacement.allocMemory(size: Int): Memory {
     return allocMemory(size.toLong())
 }
 
@@ -75,7 +75,7 @@ fun NativePlacement.allocMemory(size: Int): Memory {
  * once the scope is leaved, all produced instances should be discarded and should be never used after the scope.
  * On the contrary instances created using [nativeHeap] do require release via [nativeHeap.free].
  */
-fun NativePlacement.allocMemory(size: Long): Memory {
+public fun NativePlacement.allocMemory(size: Long): Memory {
     return Memory(allocArray(size), size)
 }
 
@@ -84,7 +84,7 @@ fun NativePlacement.allocMemory(size: Long): Memory {
  * This function should be only used for memory instances that are produced by [allocMemory] function
  * otherwise an undefined behaviour may occur including crash or data corruption.
  */
-fun NativeFreeablePlacement.free(memory: Memory) {
+public fun NativeFreeablePlacement.free(memory: Memory) {
     free(memory.pointer)
 }
 

@@ -18,7 +18,7 @@ import kotlin.coroutines.intrinsics.*
  */
 @Suppress("BlockingMethodInNonBlockingContext")
 @KtorExperimentalAPI
-class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
+public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
     private var selectorRef: Selector? = null
 
@@ -181,7 +181,7 @@ class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSupport()
     private class ContinuationHolder<R, C : Continuation<R>> {
         private val ref = AtomicReference<C?>(null)
 
-        fun resume(value: R): Boolean {
+        public fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null)
             if (continuation != null) {
                 continuation.resume(value)

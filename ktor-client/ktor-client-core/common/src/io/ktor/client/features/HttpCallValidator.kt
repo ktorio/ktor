@@ -17,19 +17,19 @@ import io.ktor.utils.io.*
  *
  * You could throw an exception to fail the response.
  */
-typealias ResponseValidator = suspend (response: HttpResponse) -> Unit
+public typealias ResponseValidator = suspend (response: HttpResponse) -> Unit
 
 /**
  * Response exception handler method.
  */
-typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
+public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
 
 /**
  * Response validator feature is used for validate response and handle response exceptions.
  *
  * See also [Config] for additional details.
  */
-class HttpCallValidator(
+public class HttpCallValidator(
     private val responseValidators: List<ResponseValidator>,
     private val callExceptionHandlers: List<CallExceptionHandler>
 ) {
@@ -44,7 +44,7 @@ class HttpCallValidator(
     /**
      * [HttpCallValidator] configuration.
      */
-    class Config {
+    public class Config {
         internal val responseValidators: MutableList<ResponseValidator> = mutableListOf()
         internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()
 
@@ -52,7 +52,7 @@ class HttpCallValidator(
          * Add [CallExceptionHandler].
          * Last added handler executes first.
          */
-        fun handleResponseException(block: CallExceptionHandler) {
+        public fun handleResponseException(block: CallExceptionHandler) {
             responseExceptionHandlers += block
         }
 
@@ -60,12 +60,12 @@ class HttpCallValidator(
          * Add [ResponseValidator].
          * Last added validator executes first.
          */
-        fun validateResponse(block: ResponseValidator) {
+        public fun validateResponse(block: ResponseValidator) {
             responseValidators += block
         }
     }
 
-    companion object : HttpClientFeature<Config, HttpCallValidator> {
+    public companion object : HttpClientFeature<Config, HttpCallValidator> {
         override val key: AttributeKey<HttpCallValidator> = AttributeKey("HttpResponseValidator")
 
         override fun prepare(block: Config.() -> Unit): HttpCallValidator {
@@ -108,6 +108,6 @@ class HttpCallValidator(
 /**
  * Install [HttpCallValidator] with [block] configuration.
  */
-fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Config.() -> Unit) {
+public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Config.() -> Unit) {
     install(HttpCallValidator, block)
 }

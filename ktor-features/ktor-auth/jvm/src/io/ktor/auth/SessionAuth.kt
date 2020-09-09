@@ -18,10 +18,10 @@ import kotlin.reflect.*
  * @property challenge to be used if there is no session
  * @property validator applied to an application all and session providing a [Principal]
  */
-class SessionAuthenticationProvider<T : Any> private constructor(
+public class SessionAuthenticationProvider<T : Any> private constructor(
     config: Configuration<T>
 ) : AuthenticationProvider(config) {
-    val type: KClass<T> = config.type
+    public val type: KClass<T> = config.type
 
     @PublishedApi
     internal val challenge: SessionAuthChallengeFunction<T> = config.challengeFunction
@@ -32,7 +32,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     /**
      * Session auth configuration
      */
-    class Configuration<T : Any> @PublishedApi internal constructor(
+    public class Configuration<T : Any> @PublishedApi internal constructor(
         name: String?,
         internal val type: KClass<T>
     ) : AuthenticationProvider.Configuration(name) {
@@ -49,7 +49,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
          */
         @Suppress("DEPRECATION_ERROR")
         @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-        var challenge: SessionAuthChallenge<T>
+        public var challenge: SessionAuthChallenge<T>
             get() = _challenge ?: error("Challenge is already configured via challenge {} function.")
             set(value) {
                 _challenge = value
@@ -61,7 +61,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         /**
          * A response to send back if authentication failed
          */
-        fun challenge(block: SessionAuthChallengeFunction<T>) {
+        public fun challenge(block: SessionAuthChallengeFunction<T>) {
             _challenge = null
             challengeFunction = block
         }
@@ -69,7 +69,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         /**
          * A response to send back if authentication failed
          */
-        fun challenge(redirectUrl: String) {
+        public fun challenge(redirectUrl: String) {
             challenge {
                 call.respondRedirect(redirectUrl)
             }
@@ -78,7 +78,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         /**
          * A response to send back if authentication failed
          */
-        fun challenge(redirect: Url) {
+        public fun challenge(redirect: Url) {
             challenge(redirect.toString())
         }
 
@@ -86,7 +86,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
          * Sets a validation function that will check given [T] session instance and return [Principal],
          * or null if the session does not correspond to an authenticated principal
          */
-        fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
+        public fun validate(block: suspend ApplicationCall.(T) -> Principal?) {
             check(validator === UninitializedValidator) { "Only one validator could be registered" }
             validator = block
         }
@@ -102,7 +102,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
         }
     }
 
-    companion object {
+    public companion object {
         private val UninitializedValidator: suspend ApplicationCall.(Any) -> Principal? = {
             error("It should be a validator supplied to a session auth provider")
         }
@@ -120,7 +120,7 @@ class SessionAuthenticationProvider<T : Any> private constructor(
     level = DeprecationLevel.ERROR
 )
 @Suppress("DEPRECATION_ERROR")
-inline fun <reified T : Principal> Authentication.Configuration.session(
+public inline fun <reified T : Principal> Authentication.Configuration.session(
     name: String? = null,
     challenge: SessionAuthChallenge<T>
 ) {
@@ -134,7 +134,7 @@ inline fun <reified T : Principal> Authentication.Configuration.session(
  * Provides ability to authenticate users via sessions. It only works if [T] session type denotes [Principal] as well
  * otherwise use full [session] with lambda function with [SessionAuthenticationProvider.Configuration.validate] configuration
  */
-inline fun <reified T : Principal> Authentication.Configuration.session(
+public inline fun <reified T : Principal> Authentication.Configuration.session(
     name: String? = null
 ) {
     session<T>(name) {
@@ -148,7 +148,7 @@ inline fun <reified T : Principal> Authentication.Configuration.session(
  * [SessionAuthenticationProvider.Configuration.challenge] in the lambda
  * to get it work property
  */
-inline fun <reified T : Any> Authentication.Configuration.session(
+public inline fun <reified T : Any> Authentication.Configuration.session(
     name: String? = null,
     configure: SessionAuthenticationProvider.Configuration<T>.() -> Unit
 ) {
@@ -180,47 +180,47 @@ inline fun <reified T : Any> Authentication.Configuration.session(
 /**
  * Specifies what to send back if session authentication fails.
  */
-typealias SessionAuthChallengeFunction<T> = suspend PipelineContext<*, ApplicationCall>.(T?) -> Unit
+public typealias SessionAuthChallengeFunction<T> = suspend PipelineContext<*, ApplicationCall>.(T?) -> Unit
 
 /**
  * Specifies what to send back if authentication fails.
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-sealed class SessionAuthChallenge<in T : Any> {
+public sealed class SessionAuthChallenge<in T : Any> {
     /**
      * Redirect to an URL provided by the given function.
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
     @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    class Redirect<in T : Any>(val url: ApplicationCall.(T?) -> String) : SessionAuthChallenge<T>()
+    public class Redirect<in T : Any>(public val url: ApplicationCall.(T?) -> String) : SessionAuthChallenge<T>()
 
     /**
      * Respond with [HttpStatusCode.Unauthorized].
      */
     @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    object Unauthorized : SessionAuthChallenge<Any>()
+    public object Unauthorized : SessionAuthChallenge<Any>()
 
     /**
      * Does nothing so other authentication methods could provide their challenges.
      * This is the  default and recommended way
      */
     @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    object Ignore : SessionAuthChallenge<Any>()
+    public object Ignore : SessionAuthChallenge<Any>()
 
-    companion object {
+    public companion object {
         /**
          * The default session auth challenge kind
          */
         @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-        val Default: SessionAuthChallenge<Any> = Ignore
+        public val Default: SessionAuthChallenge<Any> = Ignore
     }
 }
 
 /**
  * A key used to register auth challenge
  */
-const val SessionAuthChallengeKey: String = "SessionAuth"
+public const val SessionAuthChallengeKey: String = "SessionAuth"
 
 @Suppress("DEPRECATION_ERROR")
 private suspend fun <T : Any> PipelineContext<*, ApplicationCall>.sessionAuthChallengeCompatibility(

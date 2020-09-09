@@ -7,13 +7,13 @@ package io.ktor.client.call
 import java.lang.reflect.*
 import kotlin.reflect.*
 
-actual typealias Type = java.lang.reflect.Type
+public actual typealias Type = java.lang.reflect.Type
 
 @PublishedApi
 internal open class TypeBase<T>
 
 @OptIn(ExperimentalStdlibApi::class)
-actual inline fun <reified T> typeInfo(): TypeInfo {
+public actual inline fun <reified T> typeInfo(): TypeInfo {
     val base = object : TypeBase<T>() {}
     val superType = base::class.java.genericSuperclass!!
 

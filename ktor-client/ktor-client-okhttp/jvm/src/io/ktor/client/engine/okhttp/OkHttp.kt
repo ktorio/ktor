@@ -11,13 +11,13 @@ import io.ktor.client.engine.*
  * [HttpClientEngineFactory] using a [OkHttp] based backend implementation
  * with the the associated configuration [OkHttpConfig].
  */
-object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
+public object OkHttp : HttpClientEngineFactory<OkHttpConfig> {
     override fun create(block: OkHttpConfig.() -> Unit): HttpClientEngine =
         OkHttpEngine(OkHttpConfig().apply(block))
 }
 
 @Suppress("KDocMissingDocumentation")
-class OkHttpEngineContainer : HttpClientEngineContainer {
+public class OkHttpEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = OkHttp
 
     override fun toString(): String = "OkHttp"

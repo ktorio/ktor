@@ -14,13 +14,13 @@ import kotlin.properties.*
  * Represents an authentication context for the call
  * @param call instance of [ApplicationCall] this context is for
  */
-class AuthenticationContext(val call: ApplicationCall) {
+public class AuthenticationContext(public val call: ApplicationCall) {
     private val _errors = HashMap<Any, AuthenticationFailedCause>()
 
     /**
      * Retrieves authenticated principal, or returns null if no user was authenticated
      */
-    var principal: Principal? by Delegates.vetoable<Principal?>(null) { _, old, _ ->
+    public var principal: Principal? by Delegates.vetoable(null) { _, old, _ ->
         require(old == null) { "Principal can be only assigned once" }
         true
     }
@@ -30,50 +30,50 @@ class AuthenticationContext(val call: ApplicationCall) {
      */
     @Suppress("unused")
     @Deprecated("Use allErrors, allFailures or error() function instead")
-    val errors: HashMap<Any, AuthenticationFailedCause> get() = _errors
+    public val errors: HashMap<Any, AuthenticationFailedCause> get() = _errors
 
     /**
      * All registered errors during auth procedure (only [AuthenticationFailedCause.Error]).
      */
-    val allErrors: List<AuthenticationFailedCause.Error>
+    public val allErrors: List<AuthenticationFailedCause.Error>
         get() = _errors.values.filterIsInstance<AuthenticationFailedCause.Error>()
 
     /**
      * All authentication failures during auth procedure including missing or invalid credentials
      */
-    val allFailures: List<AuthenticationFailedCause>
+    public val allFailures: List<AuthenticationFailedCause>
         get() = _errors.values.toList()
 
     /**
      * Appends an error to the errors list. Overwrites if already registered for the same [key].
      */
-    fun error(key: Any, cause: AuthenticationFailedCause) {
+    public fun error(key: Any, cause: AuthenticationFailedCause) {
         _errors[key] = cause
     }
 
     /**
      * Gets an [AuthenticationProcedureChallenge] for this context
      */
-    val challenge: AuthenticationProcedureChallenge = AuthenticationProcedureChallenge()
+    public val challenge: AuthenticationProcedureChallenge = AuthenticationProcedureChallenge()
 
     /**
      * Sets an authenticated principal for this context.
      *
      * This method may be called only once per context
      */
-    fun principal(principal: Principal) {
+    public fun principal(principal: Principal) {
         this.principal = principal
     }
 
     /**
      * Retrieves a principal of type [T], if any
      */
-    inline fun <reified T : Principal> principal(): T? = principal as? T
+    public inline fun <reified T : Principal> principal(): T? = principal as? T
 
     /**
      * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user
      */
-    fun challenge(
+    public fun challenge(
         key: Any,
         cause: AuthenticationFailedCause,
         function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>
@@ -82,7 +82,7 @@ class AuthenticationContext(val call: ApplicationCall) {
         challenge.register.add(cause to function)
     }
 
-    companion object {
+    public companion object {
         private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
         internal fun from(call: ApplicationCall) =

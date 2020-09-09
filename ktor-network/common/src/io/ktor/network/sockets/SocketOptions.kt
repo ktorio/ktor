@@ -10,7 +10,7 @@ internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
  * Socket options builder
  */
 @OptIn(ExperimentalUnsignedTypes::class)
-sealed class SocketOptions(
+public sealed class SocketOptions(
     @Suppress("KDocMissingDocumentation") protected val customOptions: MutableMap<Any, Any?>
 ) {
     /**
@@ -47,22 +47,22 @@ sealed class SocketOptions(
     /**
      * ToS value, [TypeOfService.UNDEFINED] by default, may not work with old JDK (will be silently ignored)
      */
-    var typeOfService: TypeOfService = TypeOfService.UNDEFINED
+    public var typeOfService: TypeOfService = TypeOfService.UNDEFINED
 
     /**
      * SO_REUSEADDR option
      */
-    var reuseAddress: Boolean = false
+    public var reuseAddress: Boolean = false
 
     /**
      * SO_REUSEPORT option, may not work with old JDK (will be silently ignored)
      */
-    var reusePort: Boolean = false
+    public var reusePort: Boolean = false
 
     /**
      * TCP server socket options
      */
-    class AcceptorOptions internal constructor(customOptions: MutableMap<Any, Any?>) : SocketOptions(customOptions) {
+    public class AcceptorOptions internal constructor(customOptions: MutableMap<Any, Any?>) : SocketOptions(customOptions) {
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
                 copyCommon(this@AcceptorOptions)
@@ -73,18 +73,18 @@ sealed class SocketOptions(
     /**
      * Represents TCP client or UDP socket options
      */
-    open class PeerSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
+    public open class PeerSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
         SocketOptions(customOptions) {
 
         /**
          * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
          */
-        var sendBufferSize: Int = -1
+        public var sendBufferSize: Int = -1
 
         /**
          * Socket incoming buffer size (SO_RCVBUF), `-1` or `0` to make system decide
          */
-        var receiveBufferSize: Int = -1
+        public var receiveBufferSize: Int = -1
 
         @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {
@@ -117,7 +117,7 @@ sealed class SocketOptions(
     /**
      * Represents UDP socket options
      */
-    class UDPSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
+    public class UDPSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
         PeerSocketOptions(customOptions) {
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
@@ -129,28 +129,28 @@ sealed class SocketOptions(
     /**
      * Represents TCP client socket options
      */
-    class TCPClientSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
+    public class TCPClientSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
         PeerSocketOptions(customOptions) {
         /**
          * TCP_NODELAY socket option, useful to disable Nagle
          */
-        var noDelay: Boolean = true
+        public var noDelay: Boolean = true
 
         /**
          * SO_LINGER option applied at socket close, not recommended to set to 0 however useful for debugging
          * Value of `-1` is the default and means that it is not set and system-dependant
          */
-        var lingerSeconds: Int = -1
+        public var lingerSeconds: Int = -1
 
         /**
          * SO_KEEPALIVE option is to enable/disable TCP keep-alive
          */
-        var keepAlive: Boolean? = null
+        public var keepAlive: Boolean? = null
 
         /**
          * Socket timeout (read and write).
          */
-        var socketTimeout: Long = INFINITE_TIMEOUT_MS
+        public var socketTimeout: Long = INFINITE_TIMEOUT_MS
 
         @Suppress("KDocMissingDocumentation")
         override fun copyCommon(from: SocketOptions) {
@@ -169,7 +169,7 @@ sealed class SocketOptions(
         }
     }
 
-    companion object {
+    public companion object {
         internal fun create(): SocketOptions = GeneralSocketOptions(HashMap())
     }
 }

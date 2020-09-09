@@ -46,7 +46,7 @@ internal class NettyApplicationCallHandler(
         }
     }
 
-    companion object {
+    public companion object {
         private val CallHandlerCoroutineName = CoroutineName("call-handler")
     }
 }

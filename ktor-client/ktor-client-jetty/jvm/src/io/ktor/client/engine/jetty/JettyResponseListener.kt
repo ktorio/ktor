@@ -95,7 +95,7 @@ internal class JettyResponseListener(
         })
     }
 
-    suspend fun awaitHeaders(): StatusWithHeaders {
+    public suspend fun awaitHeaders(): StatusWithHeaders {
         onHeadersReceived.await()
         val statusCode = onHeadersReceived.getCompleted() ?: throw IOException("Connection reset")
         return StatusWithHeaders(statusCode, headersBuilder.build())
@@ -126,7 +126,7 @@ internal class JettyResponseListener(
         GlobalScope.launch { backendChannel.consumeEach { it.callback.succeeded() } }
     }
 
-    companion object {
+    public companion object {
         private val Ignore = Stream.Listener.Adapter()
     }
 }

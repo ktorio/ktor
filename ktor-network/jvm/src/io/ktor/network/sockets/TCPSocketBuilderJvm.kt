@@ -6,7 +6,7 @@ package io.ktor.network.sockets
 
 import java.net.*
 
-suspend fun TcpSocketBuilder.connect(
+public suspend fun TcpSocketBuilder.connect(
     remoteAddress: SocketAddress,
     configure: SocketOptions.TCPClientSocketOptions.() -> Unit = {}
 ): Socket = connect(remoteAddress, configure)
