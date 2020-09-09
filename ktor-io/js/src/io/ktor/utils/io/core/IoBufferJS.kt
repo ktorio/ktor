@@ -10,7 +10,7 @@ import kotlin.contracts.*
 
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-actual class IoBuffer actual constructor(
+public actual class IoBuffer actual constructor(
     memory: Memory,
     origin: ChunkBuffer?
 ) : Input, Output, ChunkBuffer(memory, origin) {
@@ -285,7 +285,7 @@ actual class IoBuffer actual constructor(
     }
 
     @Deprecated("Use writeFully instead", ReplaceWith("writeFully(src, length)"), level = DeprecationLevel.ERROR)
-    fun writeBuffer(src: IoBuffer, length: Int): Int {
+    public fun writeBuffer(src: IoBuffer, length: Int): Int {
         (this as Buffer).writeFully(src, length)
         return length
     }
@@ -323,7 +323,7 @@ actual class IoBuffer actual constructor(
      * @return number of bytes consumed
      */
     @ExperimentalIoApi
-    inline fun readDirect(block: (DataView) -> Int): Int {
+    public inline fun readDirect(block: (DataView) -> Int): Int {
         val view = readableView()
         val rc = block(view)
         check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc" }
@@ -337,7 +337,7 @@ actual class IoBuffer actual constructor(
      * @return number of bytes written
      */
     @ExperimentalIoApi
-    inline fun writeDirect(block: (DataView) -> Int): Int {
+    public inline fun writeDirect(block: (DataView) -> Int): Int {
         val view = writableView()
         val rc = block(view)
         check(rc >= 0) { "The returned value from block function shouldn't be negative: $rc" }
@@ -346,7 +346,7 @@ actual class IoBuffer actual constructor(
         return rc
     }
 
-    actual fun release(pool: ObjectPool<IoBuffer>) {
+    public actual fun release(pool: ObjectPool<IoBuffer>) {
         releaseImpl(pool)
     }
 
@@ -357,25 +357,25 @@ actual class IoBuffer actual constructor(
     override fun toString(): String =
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
-    actual companion object {
+    public actual companion object {
         /**
          * Number of bytes usually reserved in the end of chunk
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        actual val ReservedSize: Int
+        public actual val ReservedSize: Int
             get() = Buffer.ReservedSize
 
         private val EmptyBuffer = ArrayBuffer(0)
         private val EmptyDataView = DataView(EmptyBuffer)
 
-        actual val Empty = IoBuffer(Memory.Empty, null)
+        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
          */
-        actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
+        public actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(BUFFER_VIEW_POOL_SIZE) {
             override fun produceInstance(): IoBuffer {
                 return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
             }
@@ -400,7 +400,7 @@ actual class IoBuffer actual constructor(
             }
         }
 
-        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+        public actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
                 return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
             }
@@ -410,11 +410,11 @@ actual class IoBuffer actual constructor(
             }
         }
 
-        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
+        public actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
     }
 }
 
-fun Buffer.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
+public fun Buffer.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
     read { memory, start, endExclusive ->
         if (endExclusive - start < length) {
             throw EOFException("Not enough bytes available to read $length bytes")
@@ -425,7 +425,7 @@ fun Buffer.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLe
     }
 }
 
-fun Buffer.readFully(dst: ArrayBufferView, offset: Int = 0, length: Int = dst.byteLength - offset) {
+public fun Buffer.readFully(dst: ArrayBufferView, offset: Int = 0, length: Int = dst.byteLength - offset) {
     read { memory, start, endExclusive ->
         if (endExclusive - start < length) {
             throw EOFException("Not enough bytes available to read $length bytes")
@@ -436,21 +436,21 @@ fun Buffer.readFully(dst: ArrayBufferView, offset: Int = 0, length: Int = dst.by
     }
 }
 
-fun Buffer.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
+public fun Buffer.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
     if (!canRead()) return -1
     val readSize = minOf(length, readRemaining)
     readFully(dst, offset, readSize)
     return readSize
 }
 
-fun Buffer.readAvailable(dst: ArrayBufferView, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
+public fun Buffer.readAvailable(dst: ArrayBufferView, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
     if (!canRead()) return -1
     val readSize = minOf(length, readRemaining)
     readFully(dst, offset, readSize)
     return readSize
 }
 
-fun Buffer.writeFully(src: ArrayBuffer, offset: Int = 0, length: Int = src.byteLength) {
+public fun Buffer.writeFully(src: ArrayBuffer, offset: Int = 0, length: Int = src.byteLength) {
     write { memory, start, endExclusive ->
         if (endExclusive - start < length) {
             throw InsufficientSpaceException("Not enough free space to write $length bytes")
@@ -461,7 +461,7 @@ fun Buffer.writeFully(src: ArrayBuffer, offset: Int = 0, length: Int = src.byteL
     }
 }
 
-fun Buffer.writeFully(src: ArrayBufferView, offset: Int = 0, length: Int = src.byteLength - offset) {
+public fun Buffer.writeFully(src: ArrayBufferView, offset: Int = 0, length: Int = src.byteLength - offset) {
     write { memory, dstOffset, endExclusive ->
         if (endExclusive - dstOffset < length) {
             throw InsufficientSpaceException("Not enough free space to write $length bytes")
@@ -472,7 +472,7 @@ fun Buffer.writeFully(src: ArrayBufferView, offset: Int = 0, length: Int = src.b
     }
 }
 
-inline fun Buffer.writeDirect(block: (DataView) -> Int): Int {
+public inline fun Buffer.writeDirect(block: (DataView) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -482,7 +482,7 @@ inline fun Buffer.writeDirect(block: (DataView) -> Int): Int {
     }
 }
 
-inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
+public inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -493,7 +493,7 @@ inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
 }
 
 
-inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
+public inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -503,7 +503,7 @@ inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     }
 }
 
-inline fun Buffer.readDirectInt8Array(block: (Int8Array) -> Int): Int {
+public inline fun Buffer.readDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

@@ -15,7 +15,7 @@ import kotlin.coroutines.*
  *
  * @return number of bytes copied
  */
-suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
+public suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
     require(limit >= 0) { "Limit shouldn't be negative: $limit" }
     val buffer = ByteArrayPool.borrow()
 
@@ -44,7 +44,7 @@ suspend fun InputStream.copyTo(channel: ByteWriteChannel, limit: Long = Long.MAX
  */
 @ExperimentalIoApi
 @Suppress("BlockingMethodInNonBlockingContext")
-fun InputStream.toByteReadChannel(
+public fun InputStream.toByteReadChannel(
     context: CoroutineContext = Dispatchers.IO,
     pool: ObjectPool<ByteBuffer>
 ): ByteReadChannel = GlobalScope.writer(context, autoFlush = true) {
@@ -76,7 +76,7 @@ fun InputStream.toByteReadChannel(
 @ExperimentalIoApi
 @Suppress("BlockingMethodInNonBlockingContext")
 @JvmName("toByteReadChannelWithArrayPool")
-fun InputStream.toByteReadChannel(
+public fun InputStream.toByteReadChannel(
     context: CoroutineContext = Dispatchers.IO,
     pool: ObjectPool<ByteArray> = ByteArrayPool
 ): ByteReadChannel = GlobalScope.writer(context, autoFlush = true) {

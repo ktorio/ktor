@@ -28,23 +28,23 @@ import io.ktor.utils.io.core.*
  * cannot be invoked concurrently with themselves. Exceptions are [close] and [flush] which can be invoked
  * concurrently with any other operations and between themselves at any time.
  */
-interface ByteChannel : ByteReadChannel, ByteWriteChannel {
-    fun attachJob(job: Job)
+public interface ByteChannel : ByteReadChannel, ByteWriteChannel {
+    public fun attachJob(job: Job)
 }
 
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
-expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
+public expect fun ByteChannel(autoFlush: Boolean = false): ByteChannel
 
 
 /**
  * Creates channel for reading from the specified byte array. Please note that it could use [content] directly
  * or copy it's bytes depending on the platform
  */
-expect fun ByteReadChannel(content: ByteArray, offset: Int = 0, length: Int = content.size): ByteReadChannel
+public expect fun ByteReadChannel(content: ByteArray, offset: Int = 0, length: Int = content.size): ByteReadChannel
 
-fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
+public fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
     ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
 
 
@@ -55,6 +55,6 @@ fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadCh
     "Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"),
     level = DeprecationLevel.ERROR
 )
-val EmptyByteReadChannel: ByteReadChannel
+public val EmptyByteReadChannel: ByteReadChannel
     get() = ByteReadChannel.Empty
 

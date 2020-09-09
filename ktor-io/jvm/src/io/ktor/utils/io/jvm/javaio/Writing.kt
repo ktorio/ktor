@@ -9,7 +9,7 @@ import java.io.*
  *
  * @return number of bytes copied
  */
-suspend fun ByteReadChannel.copyTo(out: OutputStream, limit: Long = Long.MAX_VALUE): Long {
+public suspend fun ByteReadChannel.copyTo(out: OutputStream, limit: Long = Long.MAX_VALUE): Long {
     require(limit >= 0) { "Limit shouldn't be negative: $limit" }
 
     val buffer = ByteArrayPool.borrow()

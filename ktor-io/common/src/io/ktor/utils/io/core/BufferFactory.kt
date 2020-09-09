@@ -14,7 +14,7 @@ internal const val DEFAULT_BUFFER_SIZE: Int = 4096
  * may occur including crash and/or data corruption.
  */
 @ExperimentalIoApi
-inline fun <R> withBuffer(size: Int, block: Buffer.() -> R): R {
+public inline fun <R> withBuffer(size: Int, block: Buffer.() -> R): R {
     return with(Buffer(DefaultAllocator.alloc(size)), block)
 }
 
@@ -24,7 +24,7 @@ inline fun <R> withBuffer(size: Int, block: Buffer.() -> R): R {
  * Usually it is always recommended to NOT capture an instance outside.
  */
 @ExperimentalIoApi
-inline fun <R> withBuffer(pool: ObjectPool<Buffer>, block: Buffer.() -> R): R {
+public inline fun <R> withBuffer(pool: ObjectPool<Buffer>, block: Buffer.() -> R): R {
     val instance = pool.borrow()
     return try {
         block(instance)

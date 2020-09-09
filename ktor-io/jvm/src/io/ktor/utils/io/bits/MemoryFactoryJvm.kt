@@ -12,7 +12,7 @@ import kotlin.contracts.*
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
-actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
+public actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -22,7 +22,7 @@ actual inline fun <R> ByteArray.useMemory(offset: Int, length: Int, block: (Memo
 /**
  * Create [Memory] view for the specified [array] range starting at [offset] and the specified bytes [length].
  */
-inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
+public inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = array.size - offset): Memory {
     return Memory(ByteBuffer.wrap(array, offset, length).slice().order(ByteOrder.BIG_ENDIAN))
 }
 
@@ -31,7 +31,7 @@ inline fun Memory.Companion.of(array: ByteArray, offset: Int = 0, length: Int = 
  * starting at [ByteBuffer.position] and ending at [ByteBuffer.limit].
  * Changing the original buffer's position/limit will not affect previously created Memory instances.
  */
-inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
+public inline fun Memory.Companion.of(buffer: ByteBuffer): Memory {
     return Memory(buffer.slice().order(ByteOrder.BIG_ENDIAN))
 }
 

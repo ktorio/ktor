@@ -15,7 +15,7 @@ import io.ktor.utils.io.core.internal.ChunkBuffer
  * due to internal implementation reasons.
  */
 @ExperimentalIoApi
-suspend inline fun ByteWriteChannel.write(
+public suspend inline fun ByteWriteChannel.write(
     desiredSpace: Int = 1,
     block: (freeSpace: Memory, startOffset: Long, endExclusive: Long) -> Int
 ): Int {
@@ -32,22 +32,22 @@ suspend inline fun ByteWriteChannel.write(
 
 @Suppress("DEPRECATION")
 @Deprecated("Use writeMemory instead.")
-interface WriterSession {
-    fun request(min: Int): IoBuffer?
-    fun written(n: Int)
-    fun flush()
+public interface WriterSession {
+    public fun request(min: Int): IoBuffer?
+    public fun written(n: Int)
+    public fun flush()
 }
 
 @Suppress("DEPRECATION")
 @Deprecated("Use writeMemory instead.")
-interface WriterSuspendSession : WriterSession {
-    suspend fun tryAwait(n: Int)
+public interface WriterSuspendSession : WriterSession {
+    public suspend fun tryAwait(n: Int)
 }
 
 @Suppress("DEPRECATION")
 internal interface HasWriteSession {
-    fun beginWriteSession(): WriterSuspendSession?
-    fun endWriteSession(written: Int)
+    public fun beginWriteSession(): WriterSuspendSession?
+    public fun endWriteSession(written: Int)
 }
 
 @PublishedApi

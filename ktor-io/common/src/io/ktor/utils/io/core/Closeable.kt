@@ -1,10 +1,10 @@
 package io.ktor.utils.io.core
 
-expect interface Closeable {
-    fun close()
+public expect interface Closeable {
+    public fun close()
 }
 
-inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
+public inline fun <C : Closeable, R> C.use(block: (C) -> R): R {
     var closed = false
 
     return try {

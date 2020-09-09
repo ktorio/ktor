@@ -9,13 +9,13 @@ import kotlin.contracts.contract
  * Read at most `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
  * @return number of bytes copied
  */
-fun ByteReadPacket.readAvailable(dst: ByteBuffer) = readAsMuchAsPossible(dst, 0)
+public fun ByteReadPacket.readAvailable(dst: ByteBuffer): Int = readAsMuchAsPossible(dst, 0)
 
 /**
  * Read exactly `dst.remaining()` bytes to the specified [dst] byte buffer and change it's position accordingly
  * @return number of bytes copied
  */
-fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
+public fun ByteReadPacket.readFully(dst: ByteBuffer): Int {
     val rc = readAsMuchAsPossible(dst, 0)
     if (dst.hasRemaining()) throw EOFException("Not enough data in packet to fill buffer: ${dst.remaining()} more bytes required")
     return rc
@@ -52,7 +52,7 @@ private tailrec fun ByteReadPacket.readAsMuchAsPossible(bb: ByteBuffer, copied: 
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
-inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -72,7 +72,7 @@ inline fun BytePacketBuilder.writeDirect(size: Int, block: (ByteBuffer) -> Unit)
  * and not guaranteed that is will be big enough to keep [size] bytes. However it is guaranteed that the segment size
  * is at least 8 bytes long (long integer bytes length)
  */
-inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
+public inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -82,7 +82,7 @@ inline fun BytePacketBuilder.writeByteBufferDirect(size: Int, block: (ByteBuffer
     }
 }
 
-inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -94,7 +94,7 @@ inline fun ByteReadPacket.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
 
 @Suppress("DEPRECATION")
 @Deprecated("Use read {} instead.")
-inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -108,7 +108,7 @@ inline fun AbstractInput.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
 
 @Suppress("unused", "DEPRECATION")
 @Deprecated("Removed", level = DeprecationLevel.HIDDEN)
-inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
+public inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit) {
     read(size) { view ->
         view.readDirect {
             block(it)
@@ -121,7 +121,7 @@ inline fun ByteReadPacketBase.readDirect(size: Int, block: (ByteBuffer) -> Unit)
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Should be resolved to member function instead", level = DeprecationLevel.HIDDEN)
-fun BytePacketBuilder.writeFully(src: ByteBuffer) {
+public fun BytePacketBuilder.writeFully(src: ByteBuffer) {
     writeFully(src)
 }
 

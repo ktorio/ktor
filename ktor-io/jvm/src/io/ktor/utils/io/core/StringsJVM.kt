@@ -7,7 +7,7 @@ import io.ktor.utils.io.charsets.*
  * interpreting characters in the specified [charset].
  */
 @Suppress("NOTHING_TO_INLINE", "FunctionName")
-actual inline fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String =
+public actual inline fun String(bytes: ByteArray, offset: Int, length: Int, charset: Charset): String =
         java.lang.String(bytes, offset, length, charset) as String
 
 

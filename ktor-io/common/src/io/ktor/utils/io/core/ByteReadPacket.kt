@@ -11,13 +11,14 @@ import io.ktor.utils.io.pool.*
  * but creates a new view instead. Once packet created it should be either completely read (consumed) or released
  * via [release].
  */
-class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
-    @Suppress("DEPRECATION_ERROR") ByteReadPacketPlatformBase(head, remaining, pool), Input {
-    constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
+public class ByteReadPacket internal constructor(
+    head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>
+) : @Suppress("DEPRECATION_ERROR") ByteReadPacketPlatformBase(head, remaining, pool), Input {
+    public constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
 
     @Suppress("DEPRECATION", "UNUSED")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(head: IoBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
+    public constructor(head: IoBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
 
     init {
         markNoMoreChunksAvailable()
@@ -27,9 +28,9 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
      * Returns a copy of the packet. The original packet and the copy could be used concurrently. Both need to be
      * either completely consumed or released via [release]
      */
-    final fun copy(): ByteReadPacket = ByteReadPacket(head.copyAll(), remaining, pool)
+    public final fun copy(): ByteReadPacket = ByteReadPacket(head.copyAll(), remaining, pool)
 
-    final override fun fill() = null
+    final override fun fill(): ChunkBuffer? = null
 
     final override fun fill(destination: Memory, offset: Int, length: Int): Int {
         return 0
@@ -42,11 +43,11 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
         return "ByteReadPacket($remaining bytes remaining)"
     }
 
-    companion object {
-        val Empty: ByteReadPacket = ByteReadPacket(ChunkBuffer.Empty, 0L, ChunkBuffer.EmptyPool)
+    public companion object {
+        public val Empty: ByteReadPacket = ByteReadPacket(ChunkBuffer.Empty, 0L, ChunkBuffer.EmptyPool)
 
         @DangerousInternalIoApi
-        val ReservedSize: Int
+        public val ReservedSize: Int
             get() = Buffer.ReservedSize
     }
 }
@@ -58,23 +59,23 @@ class ByteReadPacket internal constructor(head: ChunkBuffer, remaining: Long, po
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
 )
-abstract class ByteReadPacketPlatformBase protected constructor(
+public abstract class ByteReadPacketPlatformBase protected constructor(
     head: ChunkBuffer,
     remaining: Long,
     pool: ObjectPool<ChunkBuffer>
 ) : ByteReadPacketBase(head, remaining, pool) {
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(head: IoBuffer,
+    public constructor(head: IoBuffer,
                 remaining: Long,
                 pool: ObjectPool<ChunkBuffer>) : this(head as ChunkBuffer, remaining, pool)
 }
 
-expect fun ByteReadPacket(
+public expect fun ByteReadPacket(
     array: ByteArray, offset: Int = 0, length: Int = array.size,
     block: (ByteArray) -> Unit
 ): ByteReadPacket
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun ByteReadPacket(array: ByteArray, offset: Int = 0, length: Int = array.size): ByteReadPacket {
+public inline fun ByteReadPacket(array: ByteArray, offset: Int = 0, length: Int = array.size): ByteReadPacket {
     return ByteReadPacket(array, offset, length) {}
 }

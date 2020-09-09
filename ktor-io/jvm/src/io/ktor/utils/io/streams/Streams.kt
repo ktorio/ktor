@@ -7,14 +7,14 @@ import java.io.EOFException
 /**
  * Write the whole packet to the stream once it is built via [builder] lambda
  */
-fun OutputStream.writePacket(builder: BytePacketBuilder.() -> Unit) {
+public fun OutputStream.writePacket(builder: BytePacketBuilder.() -> Unit) {
     writePacket(buildPacket(block = builder))
 }
 
 /**
  * Write the whole [packet] to the stream
  */
-fun OutputStream.writePacket(packet: ByteReadPacket) {
+public fun OutputStream.writePacket(packet: ByteReadPacket) {
     val s = packet.remaining
     if (s == 0L) return
     val buffer = ByteArray(s.coerceAtMost(4096L).toInt())
@@ -32,18 +32,18 @@ fun OutputStream.writePacket(packet: ByteReadPacket) {
 /**
  * Read a packet of exactly [n] bytes
  */
-fun InputStream.readPacketExact(n: Long): ByteReadPacket = readPacketImpl(n, n)
+public fun InputStream.readPacketExact(n: Long): ByteReadPacket = readPacketImpl(n, n)
 
 /**
  * Read a packet of at least [n] bytes or all remaining. Does fail if not enough bytes remaining.
  */
-fun InputStream.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
+public fun InputStream.readPacketAtLeast(n: Long): ByteReadPacket = readPacketImpl(n, Long.MAX_VALUE)
 
 /**
  * Read a packet of at most [n] bytes. Resulting packet could be empty however this function does always reads
  * as much bytes as possible.
  */
-fun InputStream.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
+public fun InputStream.readPacketAtMost(n: Long): ByteReadPacket = readPacketImpl(1L, n)
 
 private fun InputStream.readPacketImpl(min: Long, max: Long): ByteReadPacket {
     require(min >= 0L) { "min shouldn't be negative" }
@@ -75,7 +75,7 @@ private val SkipBuffer = CharArray(8192)
 /**
  * Creates [InputStream] adapter to the packet
  */
-fun ByteReadPacket.inputStream(): InputStream {
+public fun ByteReadPacket.inputStream(): InputStream {
     return object : InputStream() {
         override fun read(): Int {
             if (isEmpty) return -1
@@ -93,7 +93,7 @@ fun ByteReadPacket.inputStream(): InputStream {
 /**
  * Creates [Reader] from the byte packet that decodes UTF-8 characters
  */
-fun ByteReadPacket.readerUTF8(): Reader {
+public fun ByteReadPacket.readerUTF8(): Reader {
     return object : Reader() {
         override fun close() {
             release()
@@ -122,7 +122,7 @@ fun ByteReadPacket.readerUTF8(): Reader {
 /**
  * Creates [OutputStream] adapter to the builder
  */
-fun BytePacketBuilder.outputStream(): OutputStream {
+public fun BytePacketBuilder.outputStream(): OutputStream {
     return object : OutputStream() {
         override fun write(b: Int) {
             writeByte(b.toByte())
@@ -140,7 +140,7 @@ fun BytePacketBuilder.outputStream(): OutputStream {
 /**
  * Creates [Writer] that encodes all characters in UTF-8 encoding
  */
-fun BytePacketBuilder.writerUTF8(): Writer {
+public fun BytePacketBuilder.writerUTF8(): Writer {
     return object : Writer() {
         override fun write(cbuf: CharArray, off: Int, len: Int) {
             append(cbuf, off, off + len)
