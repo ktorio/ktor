@@ -68,12 +68,12 @@ internal class RequestBodyHandler(
         }
     }
 
-    fun upgrade(): ByteReadChannel {
+    public fun upgrade(): ByteReadChannel {
         tryOfferChannelOrToken(Upgrade)
         return newChannel()
     }
 
-    fun newChannel(): ByteReadChannel {
+    public fun newChannel(): ByteReadChannel {
         val bc = ByteChannel()
         tryOfferChannelOrToken(bc)
         return bc
@@ -89,7 +89,7 @@ internal class RequestBodyHandler(
         }
     }
 
-    fun close() {
+    public fun close() {
         queue.close()
     }
 

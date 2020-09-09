@@ -11,17 +11,17 @@ import java.util.*
  * Creates [LocalDateTime] from this [Date]
  */
 @InternalAPI
-fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+public fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
 
 /**
  * Creates [ZonedDateTime] from this [Date]
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-fun Date.toZonedDateTime(): ZonedDateTime = ZonedDateTime.ofInstant(toInstant(), GreenwichMeanTime)
+public fun Date.toZonedDateTime(): ZonedDateTime = ZonedDateTime.ofInstant(toInstant(), GreenwichMeanTime)
 
 /**
  * [ZoneId] for GMT
  */
 @InternalAPI
-val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
+public val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")

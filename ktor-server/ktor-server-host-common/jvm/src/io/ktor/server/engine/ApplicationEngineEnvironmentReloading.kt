@@ -30,7 +30,7 @@ import kotlin.reflect.jvm.*
  * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
  */
 @EngineAPI
-class ApplicationEngineEnvironmentReloading(
+public class ApplicationEngineEnvironmentReloading(
     override val classLoader: ClassLoader,
     override val log: Logger,
     override val config: ApplicationConfig,
@@ -69,7 +69,7 @@ class ApplicationEngineEnvironmentReloading(
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
-    override val monitor = ApplicationEvents()
+    override val monitor: ApplicationEvents = ApplicationEvents()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
@@ -78,7 +78,7 @@ class ApplicationEngineEnvironmentReloading(
     /**
      * Reload application: destroy it first and then create again
      */
-    fun reload() {
+    public fun reload() {
         applicationInstanceLock.write {
             destroyApplication()
             val (application, classLoader) = createApplication()
@@ -421,7 +421,7 @@ class ApplicationEngineEnvironmentReloading(
         null
     }
 
-    companion object {
+    public companion object {
         private val currentStartupModules = ThreadLocal<MutableList<String>>()
 
         private fun isParameterOfType(p: KParameter, type: Class<*>) =

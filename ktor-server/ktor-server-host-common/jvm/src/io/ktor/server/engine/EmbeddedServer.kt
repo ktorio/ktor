@@ -12,11 +12,11 @@ import kotlin.coroutines.*
 /**
  * Factory interface for creating [ApplicationEngine] instances
  */
-interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> {
+public interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration> {
     /**
      * Creates an engine from the given [environment] and [configure] script
      */
-    fun create(environment: ApplicationEngineEnvironment, configure: TConfiguration.() -> Unit): TEngine
+    public fun create(environment: ApplicationEngineEnvironment, configure: TConfiguration.() -> Unit): TEngine
 }
 
 /**
@@ -25,7 +25,7 @@ interface ApplicationEngineFactory<out TEngine : ApplicationEngine, TConfigurati
  * @param configure configuration script for the engine
  * @param module application module function
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -42,7 +42,7 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
  * @param parentCoroutineContext specifies a coroutine context to be used for server jobs
  * @param module application module function
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
@@ -70,7 +70,7 @@ fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configurati
 /**
  * Creates an embedded server with the given [factory], [environment] and [configure] script
  */
-fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
+public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     environment: ApplicationEngineEnvironment,

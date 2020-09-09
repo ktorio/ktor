@@ -26,11 +26,11 @@ import kotlin.reflect.*
  * not triggered (except when [Configuration.receiveEntireContent] = `true`).
  */
 @KtorExperimentalAPI
-class DoubleReceive internal constructor(private val config: Configuration) {
+public class DoubleReceive internal constructor(private val config: Configuration) {
     /**
      * [DoubleReceive] Feature configuration.
      */
-    class Configuration {
+    public class Configuration {
 
         /**
          * When enabled, for every request the whole content will be received and stored as a byte array.
@@ -38,14 +38,14 @@ class DoubleReceive internal constructor(private val config: Configuration) {
          * You also can receive streams and channels.
          * Note that enabling this causes the whole receive pipeline to be executed for every further receive pipeline.
          */
-        var receiveEntireContent: Boolean = false
+        public var receiveEntireContent: Boolean = false
     }
 
     /**
      * [DoubleReceive] feature's installation object.
      */
     @OptIn(ExperimentalStdlibApi::class)
-    companion object Feature : ApplicationFeature<Application, Configuration, DoubleReceive> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, DoubleReceive> {
         override val key: AttributeKey<DoubleReceive> = AttributeKey("DoubleReceive")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DoubleReceive {
@@ -113,18 +113,18 @@ class DoubleReceive internal constructor(private val config: Configuration) {
  * @property type requested by the corresponding [ApplicationCall.receive] invocation
  */
 @KtorExperimentalAPI
-sealed class CachedTransformationResult<T : Any>(val type: KType) {
+public sealed class CachedTransformationResult<T : Any>(public val type: KType) {
     /**
      * Holds a transformation result [value] after a successful transformation.
      * @property value
      */
-    class Success<T : Any>(type: KType, val value: T) : CachedTransformationResult<T>(type)
+    public class Success<T : Any>(type: KType, public val value: T) : CachedTransformationResult<T>(type)
 
     /**
      * Holds a transformation failure [cause]
      * @property cause describes transformation failure
      */
-    open class Failure(type: KType, val cause: Throwable) : CachedTransformationResult<Nothing>(type)
+    public open class Failure(type: KType, public val cause: Throwable) : CachedTransformationResult<Nothing>(type)
 }
 
 /**
@@ -132,7 +132,7 @@ sealed class CachedTransformationResult<T : Any>(val type: KType) {
  * receive attempt is simply replaying the previous exception cause.
  */
 @KtorExperimentalAPI
-class RequestReceiveAlreadyFailedException internal constructor(
+public class RequestReceiveAlreadyFailedException internal constructor(
     cause: Throwable
 ) : Exception("Request body consumption was failed", cause, false, true)
 

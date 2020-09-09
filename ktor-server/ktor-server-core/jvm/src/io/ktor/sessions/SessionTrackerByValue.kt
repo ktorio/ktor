@@ -14,7 +14,10 @@ import kotlin.reflect.*
  * @property type is a session instance type
  * @property serializer session serializer
  */
-class SessionTrackerByValue<S : Any>(val type: KClass<S>, val serializer: SessionSerializer<S>) : SessionTracker<S> {
+public class SessionTrackerByValue<S : Any>(
+    public val type: KClass<S>,
+    public val serializer: SessionSerializer<S>
+) : SessionTracker<S> {
     override suspend fun load(call: ApplicationCall, transport: String?): S? {
         return transport?.let { serialized ->
             try {

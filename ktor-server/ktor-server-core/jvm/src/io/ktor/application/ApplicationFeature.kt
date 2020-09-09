@@ -4,10 +4,10 @@
 
 package io.ktor.application
 
-import io.ktor.util.pipeline.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * Defines an installable Application Feature
@@ -16,16 +16,16 @@ import io.ktor.utils.io.core.*
  * @param TFeature is the type for the instance of the Feature object
  */
 @Suppress("AddVarianceModifier")
-interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TConfiguration : Any, TFeature : Any> {
+public interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TConfiguration : Any, TFeature : Any> {
     /**
      * Unique key that identifies a feature
      */
-    val key: AttributeKey<TFeature>
+    public val key: AttributeKey<TFeature>
 
     /**
      * Feature installation script
      */
-    fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TFeature
+    public fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TFeature
 }
 
 private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
@@ -36,22 +36,22 @@ private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureReg
  * @param feature application feature to lookup
  * @return an instance of feature
  */
-fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
     return attributes[featureRegistryKey].getOrNull(feature.key)
-            ?: throw MissingApplicationFeatureException(feature.key)
+        ?: throw MissingApplicationFeatureException(feature.key)
 }
 
 /**
  * Returns feature instance for this pipeline, or null if feature is not installed
  */
-fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
     return attributes.getOrNull(featureRegistryKey)?.getOrNull(feature.key)
 }
 
 /**
  * Installs [feature] into this pipeline, if it is not yet installed
  */
-fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
+public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     feature: ApplicationFeature<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
@@ -83,7 +83,7 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
 /**
  * Uninstalls all features from the pipeline
  */
-fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
+public fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
     val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes(true) }
     registry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST")
@@ -94,13 +94,14 @@ fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
 /**
  * Uninstalls [feature] from the pipeline
  */
-fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<A, B, F>) =
-    uninstallFeature(feature.key)
+public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
+    feature: ApplicationFeature<A, B, F>
+): Unit = uninstallFeature(feature.key)
 
 /**
  * Uninstalls feature specified by [key] from the pipeline
  */
-fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
+public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
     if (instance is Closeable)
@@ -111,14 +112,14 @@ fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: Attribut
 /**
  * Thrown when Application Feature has been attempted to be installed with the same key as already installed Feature
  */
-class DuplicateApplicationFeatureException(message: String) : Exception(message)
+public class DuplicateApplicationFeatureException(message: String) : Exception(message)
 
 /**
  * Thrown when Application Feature has been attempted to be accessed but has not been installed before
  * @param key application feature's attribute key
  */
-class MissingApplicationFeatureException(
-    val key: AttributeKey<*>
+public class MissingApplicationFeatureException(
+    public val key: AttributeKey<*>
 ) : IllegalStateException(), CopyableThrowable<MissingApplicationFeatureException> {
     override val message: String get() = "Application feature ${key.name} is not installed"
 

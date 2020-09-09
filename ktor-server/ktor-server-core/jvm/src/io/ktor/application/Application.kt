@@ -5,6 +5,8 @@
 package io.ktor.application
 
 import kotlinx.coroutines.*
+import org.slf4j.*
+import kotlin.coroutines.*
 
 /**
  * Represents configured and running web application, capable of handling requests.
@@ -13,16 +15,16 @@ import kotlinx.coroutines.*
  *
  * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
-class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline(), CoroutineScope {
+public class Application(public val environment: ApplicationEnvironment) : ApplicationCallPipeline(), CoroutineScope {
 
     private val applicationJob = SupervisorJob(environment.parentCoroutineContext[Job])
 
-    override val coroutineContext = environment.parentCoroutineContext + applicationJob
+    override val coroutineContext: CoroutineContext = environment.parentCoroutineContext + applicationJob
 
     /**
      * Called by [ApplicationEngine] when [Application] is terminated
      */
-    fun dispose() {
+    public fun dispose() {
         applicationJob.cancel()
         uninstallAllFeatures()
     }
@@ -31,4 +33,4 @@ class Application(val environment: ApplicationEnvironment) : ApplicationCallPipe
 /**
  * Convenience property to access log from application
  */
-val Application.log get() = environment.log
+public val Application.log: Logger get() = environment.log

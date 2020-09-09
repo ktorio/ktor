@@ -16,7 +16,7 @@ import java.util.*
  * Adds standard HTTP headers `Date` and `Server` and provides ability to specify other headers
  * that are included in responses.
  */
-class DefaultHeaders(config: Configuration) {
+public class DefaultHeaders(config: Configuration) {
     private val headers = config.headers.build()
     private val clock = config.clock
 
@@ -26,7 +26,7 @@ class DefaultHeaders(config: Configuration) {
     /**
      * Configuration for [DefaultHeaders] feature.
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Provides a builder to append any custom headers to be sent with each request
          */
@@ -35,13 +35,13 @@ class DefaultHeaders(config: Configuration) {
         /**
          * Adds standard header property [name] with the specified [value].
          */
-        fun header(name: String, value: String) = headers.append(name, value)
+        public fun header(name: String, value: String): Unit = headers.append(name, value)
 
         /**
          * Provides time source. Useful for testing.
          */
         @InternalAPI
-        var clock: () -> Long = { System.currentTimeMillis() }
+        public var clock: () -> Long = { System.currentTimeMillis() }
     }
 
     private fun intercept(call: ApplicationCall) {
@@ -66,7 +66,7 @@ class DefaultHeaders(config: Configuration) {
     /**
      * Installable feature for [DefaultHeaders].
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
         private const val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
 
         private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")!!
@@ -77,7 +77,7 @@ class DefaultHeaders(config: Configuration) {
             }
         }
 
-        override val key = AttributeKey<DefaultHeaders>("Default Headers")
+        override val key: AttributeKey<DefaultHeaders> = AttributeKey("Default Headers")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
             val config = Configuration().apply(configure)

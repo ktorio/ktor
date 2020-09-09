@@ -52,7 +52,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
 
-    fun ensureRunning() {
+    public fun ensureRunning() {
         responses.start()
     }
 
@@ -329,13 +329,13 @@ private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-sealed class WriterEncapsulation {
-    open val requiresContextClose: Boolean get() = true
-    abstract fun transform(buf: ByteBuf, last: Boolean): Any
-    abstract fun endOfStream(lastTransformed: Boolean): Any?
-    abstract fun upgrade(dst: ChannelHandlerContext)
+public sealed class WriterEncapsulation {
+    public open val requiresContextClose: Boolean get() = true
+    public abstract fun transform(buf: ByteBuf, last: Boolean): Any
+    public abstract fun endOfStream(lastTransformed: Boolean): Any?
+    public abstract fun upgrade(dst: ChannelHandlerContext)
 
-    object Http1 : WriterEncapsulation() {
+    public object Http1 : WriterEncapsulation() {
         override fun transform(buf: ByteBuf, last: Boolean): Any {
             return DefaultHttpContent(buf)
         }
@@ -351,7 +351,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Http2 : WriterEncapsulation() {
+    public object Http2 : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {
@@ -367,7 +367,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Raw : WriterEncapsulation() {
+    public object Raw : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {

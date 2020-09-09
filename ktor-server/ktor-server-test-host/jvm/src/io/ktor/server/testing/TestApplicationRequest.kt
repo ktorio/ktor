@@ -23,7 +23,7 @@ import io.ktor.utils.io.core.*
  * @property version HTTP version to sent or executed
  * @property protocol HTTP protocol to be used or was used
  */
-class TestApplicationRequest constructor(
+public class TestApplicationRequest constructor(
         call: TestApplicationCall,
         closeRequest: Boolean,
         var method: HttpMethod = HttpMethod.Get,
@@ -70,7 +70,7 @@ class TestApplicationRequest constructor(
     /**
      * Add HTTP request header
      */
-    fun addHeader(name: String, value: String) {
+    public fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         map.getOrPut(name, { arrayListOf() }).add(value)
     }
@@ -91,21 +91,21 @@ class TestApplicationRequest constructor(
 /**
  * Set HTTP request body text content
  */
-fun TestApplicationRequest.setBody(value: String) {
+public fun TestApplicationRequest.setBody(value: String) {
     setBody(value.toByteArray())
 }
 
 /**
  * Set HTTP request body bytes
  */
-fun TestApplicationRequest.setBody(value: ByteArray) {
+public fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
 }
 
 /**
  * Set multipart HTTP request body
  */
-fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
+public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>) {
     bodyChannel = writer(Dispatchers.IO) {
         if (parts.isEmpty()) return@writer
 

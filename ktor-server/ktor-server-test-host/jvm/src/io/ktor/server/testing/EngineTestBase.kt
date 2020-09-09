@@ -34,30 +34,32 @@ import kotlin.test.*
 
 
 @Suppress("KDocMissingDocumentation")
-abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    public val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
 
     @OptIn(ObsoleteCoroutinesApi::class)
-    protected val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
+    protected val testDispatcher: ExecutorCoroutineDispatcher by lazy {
+        newFixedThreadPoolContext(32, "dispatcher-${test.methodName}")
+    }
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
             .any { "-agentlib:jdwp" in it }
 
-    protected var port = findFreePort()
-    protected var sslPort = findFreePort()
+    protected var port: Int = findFreePort()
+    protected var sslPort: Int = findFreePort()
     protected var server: TEngine? = null
-    protected var callGroupSize = -1
+    protected var callGroupSize: Int = -1
         private set
-    protected val exceptions = ArrayList<Throwable>()
+    protected val exceptions: ArrayList<Throwable> = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
-    val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
+    public val testLog: Logger = LoggerFactory.getLogger("EngineTestBase")
 
     @Target(AnnotationTarget.FUNCTION)
     @Retention
@@ -71,21 +73,21 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         get() = testJob + testDispatcher
 
     @get:Rule
-    val test = TestName()
+    public val test: TestName = TestName()
 
-    open val timeout = if (isUnderDebugger) {
+    public open val timeout: Long = if (isUnderDebugger) {
         1000000
     } else {
         (System.getProperty("host.test.timeout.seconds")?.toLong() ?: TimeUnit.MINUTES.toSeconds(4))
     }
 
     @get:Rule
-    val timeoutRule by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
+    public val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(timeout.toInt()) }
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
     @Before
-    fun setUpBase() {
+    public fun setUpBase() {
         val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
 
         if (method.isAnnotationPresent(Http2Only::class.java)) {
@@ -105,7 +107,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     @After
-    fun tearDownBase() {
+    public fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
             testLog.trace("Disposing server on port $port (SSL $sslPort)")
@@ -328,15 +330,15 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    companion object {
-        val keyStoreFile = File("build/temp.jks")
-        lateinit var keyStore: KeyStore
-        lateinit var sslContext: SSLContext
-        lateinit var trustManager: X509TrustManager
+    public companion object {
+        public val keyStoreFile: File = File("build/temp.jks")
+        public lateinit var keyStore: KeyStore
+        public lateinit var sslContext: SSLContext
+        public lateinit var trustManager: X509TrustManager
 
         @BeforeClass
         @JvmStatic
-        fun setupAll() {
+        public fun setupAll() {
             keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withECDSA", keySizeInBits = 256)
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)

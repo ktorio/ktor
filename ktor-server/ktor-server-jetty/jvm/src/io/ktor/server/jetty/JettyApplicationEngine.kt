@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Jetty
  */
-class JettyApplicationEngine(
+public class JettyApplicationEngine(
     environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit
 ) : JettyApplicationEngineBase(environment, configure) {
 
