@@ -17,7 +17,7 @@ import kotlin.reflect.*
  * Then you can register sub-routes and handlers for those locations and create links to them
  * using [Locations.href].
  */
-open class Locations @KtorExperimentalLocationsAPI constructor(
+public open class Locations @KtorExperimentalLocationsAPI constructor(
     application: Application,
     routeService: LocationRouteService
 ) {
@@ -25,7 +25,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * Creates Locations service extracting path information from @Location annotation
      */
     @OptIn(KtorExperimentalLocationsAPI::class)
-    constructor(application: Application) : this(application, LocationAttributeRouteService())
+    public constructor(application: Application) : this(application, LocationAttributeRouteService())
 
     private val implementation: LocationsImpl = BackwardCompatibleImpl(application, routeService)
 
@@ -33,14 +33,14 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * All locations registered at the moment (Immutable list).
      */
     @KtorExperimentalLocationsAPI
-    val registeredLocations: List<LocationInfo>
+    public val registeredLocations: List<LocationInfo>
         get() = implementation.registeredLocations
 
     /**
      * Resolves parameters in a [call] to an instance of specified [locationClass].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(locationClass: KClass<*>, call: ApplicationCall): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, call: ApplicationCall): T {
         return resolve(locationClass, call.parameters)
     }
 
@@ -48,7 +48,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * Resolves [parameters] to an instance of specified [locationClass].
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
+    public fun <T : Any> resolve(locationClass: KClass<*>, parameters: Parameters): T {
         val info = implementation.getOrCreateInfo(locationClass)
         return implementation.instantiate(info, parameters) as T
     }
@@ -57,7 +57,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * Resolves [parameters] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    inline fun <reified T : Any> resolve(parameters: Parameters): T {
+    public inline fun <reified T : Any> resolve(parameters: Parameters): T {
         return resolve(T::class, parameters) as T
     }
 
@@ -65,7 +65,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      * Resolves parameters in a [call] to an instance of specified [T].
      */
     @KtorExperimentalLocationsAPI
-    inline fun <reified T : Any> resolve(call: ApplicationCall): T {
+    public inline fun <reified T : Any> resolve(call: ApplicationCall): T {
         return resolve(T::class, call)
     }
 
@@ -74,7 +74,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
      *
      * The class of [location] instance **must** be annotated with [Location].
      */
-    fun href(location: Any): String = implementation.href(location)
+    public fun href(location: Any): String = implementation.href(location)
 
     internal fun href(location: Any, builder: URLBuilder) {
         implementation.href(location, builder)
@@ -89,7 +89,7 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Creates all necessary routing entries to match specified [locationClass].
      */
-    fun createEntry(parent: Route, locationClass: KClass<*>): Route {
+    public fun createEntry(parent: Route, locationClass: KClass<*>): Route {
         val info = implementation.getOrCreateInfo(locationClass)
         val pathRoute = createEntry(parent, info)
 
@@ -106,18 +106,18 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
     /**
      * Configuration for [Locations].
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Specifies an alternative routing service. Default is [LocationAttributeRouteService].
          */
         @KtorExperimentalLocationsAPI
-        var routeService: LocationRouteService? = null
+        public var routeService: LocationRouteService? = null
     }
 
     /**
      * Installable feature for [Locations].
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
         @OptIn(KtorExperimentalLocationsAPI::class)
@@ -133,19 +133,19 @@ open class Locations @KtorExperimentalLocationsAPI constructor(
  * Provides services for extracting routing information from a location class.
  */
 @KtorExperimentalLocationsAPI
-interface LocationRouteService {
+public interface LocationRouteService {
     /**
      * Retrieves routing information from a given [locationClass].
      * @return routing pattern, or null if a given class doesn't represent a route.
      */
-    fun findRoute(locationClass: KClass<*>): String?
+    public fun findRoute(locationClass: KClass<*>): String?
 }
 
 /**
  * Implements [LocationRouteService] by extracting routing information from a [Location] annotation.
  */
 @KtorExperimentalLocationsAPI
-class LocationAttributeRouteService : LocationRouteService {
+public class LocationAttributeRouteService : LocationRouteService {
     private inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
         return annotations.singleOrNull { it.annotationClass == T::class } as T?
     }
@@ -157,7 +157,7 @@ class LocationAttributeRouteService : LocationRouteService {
  * Exception indicating that route parameters in curly brackets do not match class properties.
  */
 @KtorExperimentalLocationsAPI
-class LocationRoutingException(message: String) : Exception(message)
+public class LocationRoutingException(message: String) : Exception(message)
 
 @KtorExperimentalLocationsAPI
 internal class LocationPropertyInfoImpl(

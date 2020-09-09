@@ -16,14 +16,14 @@ import java.security.*
  * @property realm specifies value to be passed in `WWW-Authenticate` header
  * @property algorithmName Message digest algorithm to be used. Usually only `MD5` is supported by clients.
  */
-class DigestAuthenticationProvider internal constructor(
+public class DigestAuthenticationProvider internal constructor(
     config: Configuration
 ) : AuthenticationProvider(config) {
 
-    val realm: String = config.realm
+    public val realm: String = config.realm
 
     @KtorExperimentalAPI
-    val algorithmName: String = config.algorithmName
+    public val algorithmName: String = config.algorithmName
 
     @KtorExperimentalAPI
     internal val nonceManager: NonceManager = config.nonceManager
@@ -34,7 +34,7 @@ class DigestAuthenticationProvider internal constructor(
     /**
      * Digest auth configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
         internal var digestProvider : DigestProviderFunction = { userName, realm ->
             MessageDigest.getInstance(algorithmName).let { digester ->
                 digester.reset()
@@ -46,25 +46,25 @@ class DigestAuthenticationProvider internal constructor(
         /**
          * Specifies realm to be passed in `WWW-Authenticate` header
          */
-        var realm: String = "Ktor Server"
+        public var realm: String = "Ktor Server"
 
         /**
          * Message digest algorithm to be used. Usually only `MD5` is supported by clients.
          */
-        var algorithmName: String = "MD5"
+        public var algorithmName: String = "MD5"
 
         /**
          * [NonceManager] to be used to generate nonce values
          */
         @KtorExperimentalAPI
-        var nonceManager: NonceManager = GenerateOnlyNonceManager
+        public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
          * username and password digest function
          */
         @Suppress("unused")
         @Deprecated("Use digestProvider { } function instead.", level = DeprecationLevel.ERROR)
-        var userNameRealmPasswordDigestProvider: DigestProviderFunction
+        public var userNameRealmPasswordDigestProvider: DigestProviderFunction
             get() = digestProvider
             set(newProvider) {
                 digestProvider = newProvider
@@ -76,7 +76,7 @@ class DigestAuthenticationProvider internal constructor(
          * concatenated with colon character ':'. For example `"$userName:$realm:$password"`.
          */
         @KtorExperimentalAPI
-        fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
+        public fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
             digestProvider = digest
         }
     }
@@ -86,12 +86,12 @@ class DigestAuthenticationProvider internal constructor(
  * Provides message digest for the specified username and realm or returns `null` if the user is missing.
  * This function could fetch digest from a database or compute it instead.
  */
-typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
+public typealias DigestProviderFunction = suspend (userName: String, realm: String) -> ByteArray?
 
 /**
  * Installs Digest Authentication mechanism
  */
-fun Authentication.Configuration.digest(
+public fun Authentication.Configuration.digest(
     name: String? = null,
     configure: DigestAuthenticationProvider.Configuration.() -> Unit
 ) {
@@ -163,7 +163,7 @@ fun Authentication.Configuration.digest(
  * @property cnonce must be sent if [qop] is specified and must be `null` otherwise. Should be passed through unchanged.
  * @property qop quality of protection sign
  */
-data class DigestCredential(
+public data class DigestCredential(
     val realm: String,
     val userName: String,
     val digestUri: String,
@@ -179,7 +179,7 @@ data class DigestCredential(
 /**
  * Retrieves [DigestCredential] from this call
  */
-fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? {
+public fun ApplicationCall.digestAuthenticationCredentials(): DigestCredential? {
     return request.parseAuthorizationHeader()?.let { authHeader ->
         if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
             return authHeader.toDigestCredential()
@@ -194,7 +194,7 @@ private val digestAuthenticationChallengeKey: Any = "DigestAuth"
 /**
  * Converts [HttpAuthHeader] to [DigestCredential]
  */
-fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
+public fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = DigestCredential(
     parameter("realm")!!,
     parameter("username")!!,
     parameter("uri")!!,
@@ -210,7 +210,7 @@ fun HttpAuthHeader.Parameterized.toDigestCredential(): DigestCredential = Digest
 /**
  * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
  */
-suspend fun DigestCredential.verifier(
+public suspend fun DigestCredential.verifier(
     method: HttpMethod,
     digester: MessageDigest,
     userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?
@@ -231,7 +231,7 @@ suspend fun DigestCredential.verifier(
 /**
  * Calculates expected digest bytes for this [DigestCredential]
  */
-fun DigestCredential.expectedDigest(
+public fun DigestCredential.expectedDigest(
     method: HttpMethod,
     digester: MessageDigest,
     userNameRealmPasswordDigest: ByteArray

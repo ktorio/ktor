@@ -30,13 +30,13 @@ internal abstract class LocationsImpl(
     val registeredLocations: List<LocationInfo>
         get() = Collections.unmodifiableList(info.values.toList())
 
-    abstract fun getOrCreateInfo(locationClass: KClass<*>): LocationInfo
+    public abstract fun getOrCreateInfo(locationClass: KClass<*>): LocationInfo
 
-    abstract fun instantiate(info: LocationInfo, allParameters: Parameters): Any
+    public abstract fun instantiate(info: LocationInfo, allParameters: Parameters): Any
 
-    abstract fun href(instance: Any): String
+    public abstract fun href(instance: Any): String
 
-    abstract fun href(location: Any, builder: URLBuilder)
+    public abstract fun href(location: Any, builder: URLBuilder)
 }
 
 @OptIn(KtorExperimentalLocationsAPI::class)
