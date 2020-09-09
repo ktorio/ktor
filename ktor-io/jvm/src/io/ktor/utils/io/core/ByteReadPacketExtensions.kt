@@ -6,7 +6,7 @@ import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import java.nio.*
 
-actual inline fun ByteReadPacket(
+public actual inline fun ByteReadPacket(
     array: ByteArray,
     offset: Int,
     length: Int,
@@ -15,7 +15,7 @@ actual inline fun ByteReadPacket(
     return ByteReadPacket(ByteBuffer.wrap(array, offset, length)) { block(array) }
 }
 
-fun ByteReadPacket(bb: ByteBuffer, release: (ByteBuffer) -> Unit = {}): ByteReadPacket {
+public fun ByteReadPacket(bb: ByteBuffer, release: (ByteBuffer) -> Unit = {}): ByteReadPacket {
     val pool = poolFor(bb, release)
     val view = pool.borrow().apply { resetForRead() }
     return ByteReadPacket(view, pool)

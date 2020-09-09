@@ -12,9 +12,9 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-abstract class ServletApplicationRequest(
+public abstract class ServletApplicationRequest(
     call: ApplicationCall,
-    val servletRequest: HttpServletRequest
+    public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
 
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)

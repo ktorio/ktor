@@ -22,7 +22,7 @@ private val BASE64_INVERSE_ALPHABET = IntArray(256) {
  * Encode [String] in base64 format and UTF-8 character encoding.
  */
 @InternalAPI
-fun String.encodeBase64(): String = buildPacket {
+public fun String.encodeBase64(): String = buildPacket {
     writeText(this@encodeBase64)
 }.encodeBase64()
 
@@ -30,7 +30,7 @@ fun String.encodeBase64(): String = buildPacket {
  * Encode [ByteArray] in base64 format
  */
 @InternalAPI
-fun ByteArray.encodeBase64(): String = buildPacket {
+public fun ByteArray.encodeBase64(): String = buildPacket {
     writeFully(this@encodeBase64)
 }.encodeBase64()
 
@@ -38,7 +38,7 @@ fun ByteArray.encodeBase64(): String = buildPacket {
  * Encode [ByteReadPacket] in base64 format
  */
 @InternalAPI
-fun ByteReadPacket.encodeBase64(): String = buildString {
+public fun ByteReadPacket.encodeBase64(): String = buildString {
     val data = ByteArray(3)
     while (remaining > 0) {
         val read = readAvailable(data)
@@ -62,13 +62,13 @@ fun ByteReadPacket.encodeBase64(): String = buildString {
  * Decode [String] from base64 format encoded in UTF-8.
  */
 @InternalAPI
-fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = Charsets.UTF_8)
+public fun String.decodeBase64String(): String = String(decodeBase64Bytes(), charset = Charsets.UTF_8)
 
 /**
  * Decode [String] from base64 format
  */
 @InternalAPI
-fun String.decodeBase64Bytes(): ByteArray = buildPacket {
+public fun String.decodeBase64Bytes(): ByteArray = buildPacket {
     writeText(dropLastWhile { it == BASE64_PAD })
 }.decodeBase64Bytes().readBytes()
 
@@ -76,7 +76,7 @@ fun String.decodeBase64Bytes(): ByteArray = buildPacket {
  * Decode [ByteReadPacket] from base64 format
  */
 @InternalAPI
-fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
+public fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
     val data = ByteArray(4)
 
     while (remaining > 0) {
@@ -95,11 +95,11 @@ fun ByteReadPacket.decodeBase64Bytes(): Input = buildPacket {
 
 @Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun String.decodeBase64(): String = decodeBase64String()
+public fun String.decodeBase64(): String = decodeBase64String()
 
 @Suppress("unused", "KDocMissingDocumentation")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun ByteReadPacket.decodeBase64(): String = decodeBase64Bytes().readText()
+public fun ByteReadPacket.decodeBase64(): String = decodeBase64Bytes().readText()
 
 internal fun ByteArray.clearFrom(from: Int) {
     (from until size).forEach { this[it] = 0 }

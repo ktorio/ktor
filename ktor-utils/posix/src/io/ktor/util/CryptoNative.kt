@@ -11,7 +11,7 @@ import platform.posix.*
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @InternalAPI
-actual fun generateNonce(): String {
+public actual fun generateNonce(): String {
     val builder = StringBuilder()
     repeat(16) {
         builder.append(rand().toChar())
@@ -25,10 +25,10 @@ actual fun generateNonce(): String {
  * Create [Digest] from specified hash [name].
  */
 @InternalAPI
-actual fun Digest(name: String): Digest = error("[Digest] is not supported on iOS")
+public actual fun Digest(name: String): Digest = error("[Digest] is not supported on iOS")
 
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
 @KtorExperimentalAPI
-actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-native")
+public actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-native")

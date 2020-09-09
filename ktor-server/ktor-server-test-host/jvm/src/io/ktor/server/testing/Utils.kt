@@ -12,24 +12,24 @@ import kotlin.test.*
 /**
  * [on] function receiver object
  */
-object On
+public object On
 
 /**
  * [it] function receiver object
  */
-object It
+public object It
 
 /**
  * DSL for creating a test case
  */
 @Suppress("UNUSED_PARAMETER")
-fun on(comment: String, body: On.() -> Unit) = On.body()
+public fun on(comment: String, body: On.() -> Unit) = On.body()
 
 /**
  * DSL function for test test case assertions
  */
 @Suppress("UNUSED_PARAMETER")
-inline fun On.it(description: String, body: It.() -> Unit) = It.body()
+public inline fun On.it(description: String, body: It.() -> Unit) = It.body()
 
 internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     var exception: Throwable? = null
@@ -46,7 +46,7 @@ internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
 /**
  * Return parsed content type from the test response
  */
-fun TestApplicationResponse.contentType(): ContentType {
+public fun TestApplicationResponse.contentType(): ContentType {
     val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])
     return ContentType.parse(contentTypeHeader)
 }

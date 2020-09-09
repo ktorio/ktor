@@ -18,7 +18,7 @@ private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMe
 /**
  * [HttpClient] feature that handles http redirect
  */
-class HttpRedirect {
+public class HttpRedirect {
     /**
      * Check if the HTTP method is allowed for redirect.
      * Only [HttpMethod.Get] and [HttpMethod.Head] is allowed for implicit redirect.
@@ -27,16 +27,16 @@ class HttpRedirect {
      */
     @KtorExperimentalAPI
     @Volatile
-    var checkHttpMethod: Boolean = true
+    public var checkHttpMethod: Boolean = true
 
     /**
      * `true` value allows client redirect with downgrade from https to plain http.
      */
     @KtorExperimentalAPI
     @Volatile
-    var allowHttpsDowngrade: Boolean = false
+    public var allowHttpsDowngrade: Boolean = false
 
-    companion object Feature : HttpClientFeature<HttpRedirect, HttpRedirect> {
+    public companion object Feature : HttpClientFeature<HttpRedirect, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
 
         override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)

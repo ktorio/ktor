@@ -7,10 +7,10 @@ import io.ktor.client.features.json.serializer.*
 import io.ktor.util.*
 
 @InternalAPI
-val initializer = SerializerInitializer
+public val initializer: SerializerInitializer = SerializerInitializer
 
 @InternalAPI
-object SerializerInitializer  {
+public object SerializerInitializer  {
     init {
         serializersStore += KotlinxSerializer()
     }

@@ -10,11 +10,11 @@ import io.ktor.http.cio.websocket.*
 /**
  * Represents a server-side web socket session
  */
-interface WebSocketServerSession : WebSocketSession {
+public interface WebSocketServerSession : WebSocketSession {
     /**
      * Associated received [call] that originating this session
      */
-    val call: ApplicationCall
+    public val call: ApplicationCall
 }
 
 /**
@@ -22,12 +22,12 @@ interface WebSocketServerSession : WebSocketSession {
  *
  * @see DefaultWebSocketSession
  */
-interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSocketServerSession
+public interface DefaultWebSocketServerSession : DefaultWebSocketSession, WebSocketServerSession
 
 /**
  * An application that started this web socket session
  */
-val WebSocketServerSession.application: Application get() = call.application
+public val WebSocketServerSession.application: Application get() = call.application
 
 internal fun WebSocketSession.toServerSession(call: ApplicationCall): WebSocketServerSession =
     DelegatedWebSocketServerSession(call, this)

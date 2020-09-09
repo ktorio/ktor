@@ -17,7 +17,7 @@ internal const val DEFAULT_KTOR_POOL_SIZE = 2048
  * The default ktor byte buffer pool
  */
 @KtorExperimentalAPI
-val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR_POOL_SIZE, DEFAULT_BUFFER_SIZE)
+public val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR_POOL_SIZE, DEFAULT_BUFFER_SIZE)
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
@@ -26,7 +26,7 @@ val KtorDefaultPool: ObjectPool<ByteBuffer> = ByteBufferPool(DEFAULT_KTOR_POOL_S
     message = "ByteBufferPool is moved to `io` module",
     replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
 )
-class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_KTOR_POOL_SIZE) {
+public class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_KTOR_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }

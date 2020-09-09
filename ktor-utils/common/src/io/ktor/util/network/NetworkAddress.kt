@@ -13,6 +13,13 @@ package io.ktor.util.network
  */
 public expect class NetworkAddress
 
+/**
+ * Represents remote endpoint with [hostname] and [port].
+ *
+ * The address will be resolved after construction.
+ *
+ * @throws UnresolvedAddressException if the [hostname] cannot be resolved.
+ */
 public expect fun NetworkAddress(hostname: String, port: Int): NetworkAddress
 
 /**

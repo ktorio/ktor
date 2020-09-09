@@ -24,17 +24,17 @@ import javax.servlet.*
 /**
  * Tomcat application engine that runs it in embedded mode
  */
-class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
+public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
     /**
      * Tomcat engine specific configuration builder
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property to provide a lambda that will be called
          * during Tomcat server initialization with the server instance as argument.
          */
-        var configureTomcat: Tomcat.() -> Unit = {}
+        public var configureTomcat: Tomcat.() -> Unit = {}
     }
 
     private val configuration = Configuration().apply(configure)
@@ -133,7 +133,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
         }
     }
 
-    companion object {
+    public companion object {
         private val nativeNames = listOf(
 //            "netty-tcnative",
 //            "libnetty-tcnative",

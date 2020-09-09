@@ -17,11 +17,11 @@ import kotlin.contracts.*
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-actual class IoBuffer actual constructor(
+public actual class IoBuffer actual constructor(
     memory: Memory,
     origin: ChunkBuffer?
 ) : Input, Output, ChunkBuffer(memory, origin) {
-    constructor(external: ByteBuffer) : this(Memory.of(external), null)
+    public constructor(external: ByteBuffer) : this(Memory.of(external), null)
 
     @PublishedApi
     @Deprecated("")
@@ -45,54 +45,54 @@ actual class IoBuffer actual constructor(
      */
     @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun canRead(): Boolean = canRead()
+    public fun canRead(): Boolean = canRead()
 
     /**
      * @return `true` if there is free room to for write
      */
     @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun canWrite(): Boolean = canWrite()
+    public fun canWrite(): Boolean = canWrite()
 
 //    public final fun getNext ()Lkotlinx/io/core/IoBuffer;
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun getNext(): IoBuffer? = next as IoBuffer?
+    public fun getNext(): IoBuffer? = next as IoBuffer?
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun setNext(newNext: IoBuffer?): Unit {
+    public fun setNext(newNext: IoBuffer?): Unit {
         next = newNext
     }
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun read(dst: ByteBuffer, size: Int) {
+    public fun read(dst: ByteBuffer, size: Int) {
         (this as Buffer).readFully(dst, size)
     }
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun read(dst: ByteArray, offset: Int, length: Int) {
+    public fun read(dst: ByteArray, offset: Int, length: Int) {
         (this as Buffer).readFully(dst, offset, length)
     }
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun write(src: ByteBuffer) {
+    public fun write(src: ByteBuffer) {
         (this as Buffer).writeFully(src)
     }
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun write(src: ByteArray, offset: Int, length: Int) {
+    public fun write(src: ByteArray, offset: Int, length: Int) {
         (this as Buffer).writeFully(src, offset, length)
     }
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun writeBuffer(src: IoBuffer, length: Int): Int {
+    public fun writeBuffer(src: IoBuffer, length: Int): Int {
         (this as Buffer).writeFully(src, length)
         return length
     }
@@ -221,12 +221,12 @@ actual class IoBuffer actual constructor(
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun appendChars(csq: CharArray, start: Int, end: Int): Int {
+    public fun appendChars(csq: CharArray, start: Int, end: Int): Int {
         return (this as Buffer).appendChars(csq, start, end)
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
+    public fun appendChars(csq: CharSequence, start: Int, end: Int): Int {
         return (this as Buffer).appendChars(csq, start, end)
     }
 
@@ -240,7 +240,7 @@ actual class IoBuffer actual constructor(
      * The [block] function should return number of consumed bytes.
      * @return number of bytes consumed
      */
-    inline fun readDirect(block: (ByteBuffer) -> Unit): Int {
+    public inline fun readDirect(block: (ByteBuffer) -> Unit): Int {
         val readPosition = readPosition
         val writePosition = writePosition
         val bb = memory.buffer.duplicate()!!
@@ -262,7 +262,7 @@ actual class IoBuffer actual constructor(
      * The [block] function should return number of written bytes.
      * @return number of bytes written
      */
-    inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
+    public inline fun writeDirect(size: Int, block: (ByteBuffer) -> Unit): Int {
         val rem = writeRemaining
         require(size <= rem) { "size $size is greater than buffer's remaining capacity $rem" }
         val buffer = memory.buffer.duplicate()!!
@@ -282,19 +282,19 @@ actual class IoBuffer actual constructor(
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readShort() = (this as Input).readShort()
+    final override fun readShort(): Short = (this as Input).readShort()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readInt() = (this as Input).readInt()
+    final override fun readInt(): Int = (this as Input).readInt()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readLong() = (this as Input).readLong()
+    final override fun readLong(): Long = (this as Input).readLong()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readFloat() = (this as Input).readFloat()
+    final override fun readFloat(): Float = (this as Input).readFloat()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    final override fun readDouble() = (this as Input).readDouble()
+    final override fun readDouble(): Double = (this as Input).readDouble()
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
@@ -385,7 +385,7 @@ actual class IoBuffer actual constructor(
      * Push back [n] bytes: only possible if there were at least [n] bytes read before this operation.
      */
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun pushBack(n: Int) {
+    public fun pushBack(n: Int) {
         rewind(n)
     }
 
@@ -393,7 +393,7 @@ actual class IoBuffer actual constructor(
      * Reset read/write position to original's content pos/limit. May not work due to slicing.
      */
     @DangerousInternalIoApi
-    fun resetFromContentToWrite(child: ByteBuffer) {
+    public fun resetFromContentToWrite(child: ByteBuffer) {
         resetForWrite(child.limit())
         commitWrittenUntilIndex(child.position())
     }
@@ -406,13 +406,13 @@ actual class IoBuffer actual constructor(
      */
     @Suppress("unused")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun isExclusivelyOwned(): Boolean = (this as ChunkBuffer).isExclusivelyOwned()
+    public fun isExclusivelyOwned(): Boolean = (this as ChunkBuffer).isExclusivelyOwned()
 
     /**
      * Creates a new view to the same actual buffer with independent read and write positions and gaps
      */
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun makeView(): IoBuffer {
+    public fun makeView(): IoBuffer {
         return duplicate()
     }
 
@@ -428,7 +428,7 @@ actual class IoBuffer actual constructor(
     }
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    fun readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+    public fun readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
         return (this as Buffer).readText(decoder, out, lastBuffer, max)
     }
 
@@ -441,32 +441,32 @@ actual class IoBuffer actual constructor(
     }
 
     @Suppress("ACCIDENTAL_OVERRIDE")
-    actual fun release(pool: ObjectPool<IoBuffer>) {
+    public actual fun release(pool: ObjectPool<IoBuffer>) {
         releaseImpl(pool)
     }
 
     override fun toString(): String =
         "Buffer[readable = $readRemaining, writable = $writeRemaining, startGap = $startGap, endGap = $endGap]"
 
-    actual companion object {
+    public actual companion object {
         /**
          * Number of bytes usually reserved in the end of chunk
          * when several instances of [IoBuffer] are connected into a chain (usually inside of [ByteReadPacket]
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        actual val ReservedSize: Int get() = Buffer.ReservedSize
+        public actual val ReservedSize: Int get() = Buffer.ReservedSize
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
         private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
-        actual val Empty = IoBuffer(Memory.Empty, null)
+        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null)
 
         /**
          * The default buffer pool
          */
-        actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(DEFAULT_BUFFER_POOL_SIZE) {
+        public actual val Pool: ObjectPool<IoBuffer> = object : DefaultPool<IoBuffer>(DEFAULT_BUFFER_POOL_SIZE) {
             override fun produceInstance(): IoBuffer {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
@@ -492,7 +492,7 @@ actual class IoBuffer actual constructor(
             }
         }
 
-        actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
+        public actual val NoPool: ObjectPool<IoBuffer> = object : NoPoolImpl<IoBuffer>() {
             override fun borrow(): IoBuffer {
                 val buffer = when (DEFAULT_BUFFER_POOL_DIRECT) {
                     0 -> ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
@@ -502,11 +502,11 @@ actual class IoBuffer actual constructor(
             }
         }
 
-        actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
+        public actual val EmptyPool: ObjectPool<IoBuffer> = EmptyBufferPoolImpl
     }
 }
 
-fun Buffer.readFully(dst: ByteBuffer, length: Int) {
+public fun Buffer.readFully(dst: ByteBuffer, length: Int) {
     readExact(length, "buffer content") { memory, offset ->
         val limit = dst.limit()
         try {
@@ -518,14 +518,14 @@ fun Buffer.readFully(dst: ByteBuffer, length: Int) {
     }
 }
 
-fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
+public fun Buffer.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     if (!canRead()) return -1
     val size = minOf(readRemaining, length)
     readFully(dst, size)
     return size
 }
 
-inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
+public inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -539,7 +539,7 @@ inline fun Buffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     }
 }
 
-inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
+public inline fun Buffer.writeDirect(size: Int = 1, block: (ByteBuffer) -> Unit): Int {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

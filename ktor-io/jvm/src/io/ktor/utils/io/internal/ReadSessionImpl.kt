@@ -10,7 +10,7 @@ internal class ReadSessionImpl(private val channel: ByteBufferChannel) : Suspend
     private var lastAvailable = 0
     private var lastView: IoBuffer = IoBuffer.Empty
 
-    fun completed() {
+    public fun completed() {
         completed(IoBuffer.Empty)
     }
 

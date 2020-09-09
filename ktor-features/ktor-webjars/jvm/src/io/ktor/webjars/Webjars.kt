@@ -23,14 +23,14 @@ import java.time.*
  * This feature listens to requests starting with the specified path prefix and responding with static content
  * packaged into webjars. A [WebJarAssetLocator] is used to look for static files.
  */
-class Webjars internal constructor(private val webjarsPrefix: String) {
+public class Webjars internal constructor(private val webjarsPrefix: String) {
     init {
         require(webjarsPrefix.startsWith("/"))
         require(webjarsPrefix.endsWith("/"))
     }
 
     @Deprecated("Use install(Webjars), there is no need to instantiate it directly.")
-    constructor(configuration: Configuration) : this(configuration.path)
+    public constructor(configuration: Configuration) : this(configuration.path)
 
     private val locator = WebJarAssetLocator()
     private val knownWebJars = locator.webJars?.keys?.toSet() ?: emptySet()
@@ -50,11 +50,11 @@ class Webjars internal constructor(private val webjarsPrefix: String) {
     /**
      * Feature configuration.
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Path prefix at which the installed feature responds.
          */
-        var path: String = "/webjars/"
+        public var path: String = "/webjars/"
             set(value) {
                 field = buildString(value.length + 2) {
                     if (!value.startsWith('/')) {
@@ -72,7 +72,7 @@ class Webjars internal constructor(private val webjarsPrefix: String) {
          */
         @Suppress("unused")
         @Deprecated("This is no longer used and will be dropped in future releases.")
-        var zone: ZoneId = ZoneId.systemDefault()
+        public var zone: ZoneId = ZoneId.systemDefault()
     }
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
@@ -102,7 +102,7 @@ class Webjars internal constructor(private val webjarsPrefix: String) {
     /**
      * Feature installation companion.
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Webjars> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Webjars> {
 
         override val key: AttributeKey<Webjars> = AttributeKey("Webjars")
 

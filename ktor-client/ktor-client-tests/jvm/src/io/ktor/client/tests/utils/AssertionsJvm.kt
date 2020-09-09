@@ -11,7 +11,7 @@ import kotlin.test.*
  * Check that [block] completed with given type of root cause.
  */
 @InternalAPI
-actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit) {
+public actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () -> Unit) {
     var cause = assertFails(block)
 
     while (true) {
@@ -26,6 +26,6 @@ actual inline fun <reified T : Throwable> assertFailsAndContainsCause(block: () 
  * Asserts that a [block] fails with a specific exception of type [T] being thrown.
  */
 @InternalAPI
-actual inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
+public actual inline fun <reified T : Throwable> assertFailsWith(block: () -> Unit) {
     kotlin.test.assertFailsWith<T> { block() }
 }

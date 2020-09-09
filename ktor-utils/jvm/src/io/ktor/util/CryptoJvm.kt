@@ -16,7 +16,8 @@ import java.security.*
  */
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated("Use getDigestFunction with non-constant salt.", level = DeprecationLevel.ERROR)
-fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = getDigestFunction(algorithm) { salt }
+public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray =
+    getDigestFunction(algorithm) { salt }
 
 /**
  * Create a digest function with the specified [algorithm] and [salt] provider.
@@ -24,7 +25,7 @@ fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = 
  * @param salt a function computing a salt for a particular hash input value
  */
 @KtorExperimentalAPI
-fun getDigestFunction(algorithm: String, salt: (value: String) -> String): (String) -> ByteArray = { e ->
+public fun getDigestFunction(algorithm: String, salt: (value: String) -> String): (String) -> ByteArray = { e ->
     getDigest(e, algorithm, salt)
 }
 
@@ -38,7 +39,7 @@ private fun getDigest(text: String, algorithm: String, salt: (String) -> String)
  * Compute SHA-1 hash for the specified [bytes]
  */
 @KtorExperimentalAPI
-actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
+public actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
     Digest("SHA1").also { it += bytes }.build()
 }
 
@@ -46,7 +47,7 @@ actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
  * Create [Digest] from specified hash [name].
  */
 @KtorExperimentalAPI
-actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
+public actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
 
 @KtorExperimentalAPI
 private inline class DigestImpl(val delegate: MessageDigest) : Digest {
@@ -65,7 +66,7 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
 @KtorExperimentalAPI
-actual fun generateNonce(): String {
+public actual fun generateNonce(): String {
     val nonce = seedChannel.poll()
     if (nonce != null) return nonce
 

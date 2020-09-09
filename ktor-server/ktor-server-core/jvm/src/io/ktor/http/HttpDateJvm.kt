@@ -14,14 +14,14 @@ import java.util.*
  * Format as HTTP date (GMT)
  */
 @Suppress("CONFLICTING_OVERLOADS", "REDECLARATION")
-fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
+public fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
 
 /**
  * Parse HTTP date to [ZonedDateTime]
  */
 @KtorExperimentalAPI
 @Suppress("CONFLICTING_OVERLOADS", "REDECLARATION", "unused")
-fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
+public fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
 
 private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
 
@@ -30,7 +30,7 @@ private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")
  */
 @KtorExperimentalAPI
 @Suppress("CONFLICTING_OVERLOADS", "REDECLARATION")
-val httpDateFormat: DateTimeFormatter = DateTimeFormatter
+public val httpDateFormat: DateTimeFormatter = DateTimeFormatter
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")
     .withLocale(Locale.US)
     .withZone(GreenwichMeanTime)!!

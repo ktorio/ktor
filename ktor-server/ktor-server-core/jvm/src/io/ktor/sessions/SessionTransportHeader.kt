@@ -15,8 +15,9 @@ import io.ktor.response.*
  * @property name is a header name
  * @property transformers is a list of registered session transformers
  */
-class SessionTransportHeader(val name: String,
-                             val transformers: List<SessionTransportTransformer>
+public class SessionTransportHeader(
+    public val name: String,
+    public val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
     init {
         HttpHeaders.checkHeaderName(name)

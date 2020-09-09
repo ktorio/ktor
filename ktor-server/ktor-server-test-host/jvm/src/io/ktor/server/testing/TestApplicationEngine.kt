@@ -25,7 +25,7 @@ import kotlin.coroutines.*
  * ktor test engine that provides way to simulate application calls to existing application module(s)
  * without actual HTTP connection
  */
-class TestApplicationEngine(
+public class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
@@ -40,7 +40,7 @@ class TestApplicationEngine(
      * Test application engine configuration
      * @property dispatcher to run handlers and interceptors on
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = Dispatchers.IO
     }
 
@@ -111,7 +111,7 @@ class TestApplicationEngine(
      * Install a hook for test requests
      */
     @KtorExperimentalAPI
-    fun hookRequests(
+    public fun hookRequests(
         processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
         processResponse: TestApplicationCall.() -> Unit,
         block: () -> Unit
@@ -139,7 +139,7 @@ class TestApplicationEngine(
      * Make a test request
      */
     @OptIn(InternalAPI::class)
-    fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+    public fun handleRequest(closeRequest: Boolean = true, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, closeRequest = closeRequest, setup = { processRequest(setup) })
 
         val context = configuration.dispatcher + SupervisorJob() + CoroutineName("request")
@@ -170,7 +170,7 @@ class TestApplicationEngine(
     /**
      * Make a test request that setup a websocket session and wait for completion
      */
-    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+    public fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createWebSocketCall(uri, setup)
 
         // we can't simply do runBlocking here because runBlocking is not completing
@@ -196,7 +196,7 @@ class TestApplicationEngine(
      * that does conversation with server
      */
     @OptIn(WebSocketInternalAPI::class)
-    fun handleWebSocketConversation(
+    public fun handleWebSocketConversation(
         uri: String,
         setup: TestApplicationRequest.() -> Unit = {},
         callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
@@ -256,7 +256,7 @@ class TestApplicationEngine(
     /**
      * Creates an instance of test call but doesn't start request processing
      */
-    fun createCall(
+    public fun createCall(
         readResponse: Boolean = false,
         closeRequest: Boolean = true,
         setup: TestApplicationRequest.() -> Unit
@@ -269,7 +269,7 @@ class TestApplicationEngine(
  *
  * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
  */
-fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
+public fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
     var trackedCookies: List<Cookie> = listOf()
 
     hookRequests(

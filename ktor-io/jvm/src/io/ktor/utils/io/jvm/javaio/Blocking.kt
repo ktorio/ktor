@@ -1,10 +1,10 @@
 package io.ktor.utils.io.jvm.javaio
 
+import io.ktor.utils.io.*
+import io.ktor.utils.io.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import io.ktor.utils.io.*
-import io.ktor.utils.io.internal.*
 import java.io.*
 import java.util.concurrent.locks.*
 import kotlin.coroutines.*
@@ -14,13 +14,13 @@ import kotlin.coroutines.intrinsics.*
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
  */
-fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = InputAdapter(parent, this)
+public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = InputAdapter(parent, this)
 
 /**
  * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write
  * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
  */
-fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
+public fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
 
 private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) : InputStream() {
     private val context = Job(parent)
@@ -82,12 +82,10 @@ private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel)
                     val task = rendezvous(0)
                     if (task === CloseToken) {
                         break
-                    }
-                    else if (task === FlushToken) {
+                    } else if (task === FlushToken) {
                         channel.flush()
                         channel.closedCause?.let { throw it }
-                    }
-                    else if (task is ByteArray) channel.writeFully(task, offset, length)
+                    } else if (task is ByteArray) channel.writeFully(task, offset, length)
                 }
             } catch (t: Throwable) {
                 if (t !is CancellationException) {
@@ -162,7 +160,8 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     }
 
     @Suppress("LeakingThis")
-    private val state: AtomicRef<Any> = atomic(this) // could be a thread, a continuation, Unit, an exception or this if not yet started
+    private val state: AtomicRef<Any> =
+        atomic(this) // could be a thread, a continuation, Unit, an exception or this if not yet started
     private val result = atomic(0)
     private val disposable: DisposableHandle? = parent?.invokeOnCompletion { cause ->
         if (cause != null) {
@@ -195,7 +194,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
     }
 
     fun submitAndAwait(jobToken: Any): Int {
-        val thread = Thread.currentThread()!!
+        val thread = Thread.currentThread()
 
         var cont: Continuation<Any>? = null
 

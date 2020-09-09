@@ -16,8 +16,8 @@ import java.nio.file.*
  *
  * @param file specifies the File to be served to a client
  */
-class LocalFileContent(
-    val file: File,
+public class LocalFileContent(
+    public val file: File,
     override val contentType: ContentType = ContentType.defaultForFile(file)
 ) : OutgoingContent.ReadChannelContent() {
 
@@ -37,7 +37,7 @@ class LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(
+public fun LocalFileContent(
     baseDir: File, relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent =
@@ -46,7 +46,7 @@ fun LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(
+public fun LocalFileContent(
     baseDir: Path, relativePath: Path,
     contentType: ContentType = ContentType.defaultForFile(relativePath)
 ): LocalFileContent =

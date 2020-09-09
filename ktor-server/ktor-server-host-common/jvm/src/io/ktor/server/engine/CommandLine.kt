@@ -15,7 +15,7 @@ import java.security.*
 /**
  * Creates an [ApplicationEngineEnvironment] instance from command line arguments
  */
-fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
+public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let {
@@ -150,7 +150,7 @@ private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let 
 /**
  * Load engine's configuration suitable for all engines from [deploymentConfig]
  */
-fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
+public fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
     deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
         callGroupSize = it
     }

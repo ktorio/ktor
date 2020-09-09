@@ -11,13 +11,13 @@ import java.util.concurrent.*
 /**
  * Netty engine
  */
-object EngineMain {
+public object EngineMain {
     /**
      * Main function for starting EngineMain with Netty
      * Creates an embedded Netty application with an environment built from command line arguments.
      */
     @JvmStatic
-    fun main(args: Array<String>) {
+    public fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = NettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
@@ -47,7 +47,7 @@ object EngineMain {
     replaceWith = ReplaceWith("EngineMain"),
     level = DeprecationLevel.HIDDEN
 )
-object DevelopmentEngine {
+public object DevelopmentEngine {
     @JvmStatic
-    fun main(args: Array<String>): Unit = EngineMain.main(args)
+    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

@@ -22,8 +22,9 @@ private const val delimiter = '/'
         " Use SessionTransportTransformerMessageAuthentication instead or ensure you are using secure enough hash.",
     level = DeprecationLevel.ERROR
 )
-class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-384") :
-    SessionTransportTransformer {
+public class SessionTransportTransformerDigest(
+    public val salt: String = "ktor", public val algorithm: String = "SHA-384"
+) : SessionTransportTransformer {
 
     override fun transformRead(transportValue: String): String? {
         val providedSignature = transportValue.substringAfterLast(delimiter, "")

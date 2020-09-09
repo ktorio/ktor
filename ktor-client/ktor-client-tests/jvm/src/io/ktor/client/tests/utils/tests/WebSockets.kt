@@ -5,7 +5,7 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 
-fun Application.webSockets() {
+public fun Application.webSockets() {
     routing {
         route("websockets") {
             webSocket("echo") {

@@ -8,14 +8,14 @@ import org.khronos.webgl.*
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
-actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
+public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
     return ByteChannelJS(IoBuffer.Empty, autoFlush)
 }
 
 /**
  * Creates channel for reading from the specified byte array.
  */
-actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
+public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
     val head = IoBuffer.Pool.borrow()
     var tail = head
@@ -40,7 +40,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
 /**
  * Creates channel for reading from the specified [ArrayBufferView]
  */
-fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
+public fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
     if (content.byteLength == 0) return ByteReadChannel.Empty
     val head = IoBuffer.Pool.borrow()
     var tail = head
@@ -61,7 +61,7 @@ fun ByteReadChannel(content: ArrayBufferView): ByteReadChannel {
     return ByteChannelJS(head, false).apply { close() }
 }
 
-actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
+public actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
     (this as ByteChannelSequentialBase).joinToImpl((dst as ByteChannelSequentialBase), closeOnEnd)
 }
 
@@ -70,7 +70,7 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
  * Closes [dst] channel if fails to read or write with cause exception.
  * @return a number of copied bytes
  */
-actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
+public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
     return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), limit)
 }
 

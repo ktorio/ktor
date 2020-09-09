@@ -7,9 +7,9 @@ package io.ktor.metrics.dropwizard
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
 import io.ktor.application.*
-import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import java.util.concurrent.*
 
 /**
@@ -17,7 +17,10 @@ import java.util.concurrent.*
  * @property registry dropwizard metrics registry
  * @property baseName metrics base name (prefix)
  */
-class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = MetricRegistry.name("ktor.calls")) {
+public class DropwizardMetrics(
+    public val registry: MetricRegistry,
+    public val baseName: String = MetricRegistry.name("ktor.calls")
+) {
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
     private val active = registry.counter(MetricRegistry.name(baseName, "active"))
     private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
@@ -26,23 +29,23 @@ class DropwizardMetrics(val registry: MetricRegistry, val baseName: String = Met
     /**
      * Metrics feature configuration object that is used during feature installation.
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Dropwizard metrics base name (prefix)
          */
-        var baseName: String = MetricRegistry.name("ktor.calls")
+        public var baseName: String = MetricRegistry.name("ktor.calls")
 
         /**
          * Dropwizard metric registry.
          */
-        var registry: MetricRegistry = MetricRegistry()
+        public var registry: MetricRegistry = MetricRegistry()
     }
 
     /**
      * Metrics feature companion
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
-        override val key = AttributeKey<DropwizardMetrics>("metrics")
+    public companion object Feature : ApplicationFeature<Application, Configuration, DropwizardMetrics> {
+        override val key: AttributeKey<DropwizardMetrics> = AttributeKey("metrics")
 
         private class RoutingMetrics(val name: String, val context: Timer.Context)
 

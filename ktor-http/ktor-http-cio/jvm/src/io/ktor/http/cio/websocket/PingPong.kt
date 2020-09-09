@@ -25,7 +25,7 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
 @OptIn(
     ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
 )
-fun CoroutineScope.ponger(
+public fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
@@ -49,7 +49,7 @@ fun CoroutineScope.ponger(
 @OptIn(
     ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
 )
-fun CoroutineScope.pinger(
+public fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
     timeoutMillis: Long,

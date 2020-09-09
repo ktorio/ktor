@@ -9,10 +9,10 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
 
-class BuildersTest : ClientLoader() {
+public class BuildersTest : ClientLoader() {
 
     @Test
-    fun getEmptyResponseTest() = clientTests {
+    public fun getEmptyResponseTest() = clientTests {
         test { client ->
             val response = client.get<String>("$TEST_SERVER/builders/empty")
             assertEquals("", response)
@@ -20,7 +20,7 @@ class BuildersTest : ClientLoader() {
     }
 
     @Test
-    fun testNotFound() = clientTests {
+    public fun testNotFound() = clientTests {
         test { client ->
             assertFailsWith<ResponseException> {
                 client.get<String>("$TEST_SERVER/builders/notFound")
@@ -29,7 +29,7 @@ class BuildersTest : ClientLoader() {
     }
 
     @Test
-    fun testDefaultRequest() = clientTests {
+    public fun testDefaultRequest() = clientTests {
         test { rawClient ->
 
             val client = rawClient.config {

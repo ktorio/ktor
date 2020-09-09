@@ -11,7 +11,7 @@ import io.ktor.util.*
  * An adapter from CIO low-level headers map to ktor [Headers] interface
  */
 @InternalAPI
-class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
+public class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
     private val names: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
         LinkedHashSet<String>(headers.size).apply {
             for (i in 0 until headers.size) {
@@ -27,7 +27,7 @@ class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
 
     override fun getAll(name: String): List<String>? = headers.getAll(name).map { it.toString() }.toList().takeIf { it.isNotEmpty() }
 
-    override fun isEmpty() = headers.size == 0
+    override fun isEmpty(): Boolean = headers.size == 0
     override fun entries(): Set<Map.Entry<String, List<String>>> {
         return (0 until headers.size).map { idx -> Entry(idx) }.toSet()
     }

@@ -34,7 +34,7 @@ import kotlin.jvm.JvmName
  * }
  * ```
  */
-class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<ChunkBuffer>) :
+public class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<ChunkBuffer>) :
     @Suppress("DEPRECATION_ERROR") BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
@@ -43,19 +43,19 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
     /**
      * Number of bytes written to the builder after the creation or the last reset.
      */
-    val size: Int
+    public val size: Int
         get() = _size
 
     /**
      * If no bytes were written or the builder has been reset.
      */
-    val isEmpty: Boolean
+    public val isEmpty: Boolean
         get() = _size == 0
 
     /**
      * If at least one byte was written after the creation or the last reset.
      */
-    val isNotEmpty: Boolean
+    public val isNotEmpty: Boolean
         get() = _size > 0
 
     @PublishedApi
@@ -89,17 +89,17 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
     @Suppress("DEPRECATION_ERROR", "UNUSED")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     @JvmName("append")
-    fun appendOld(c: Char): BytePacketBuilderBase = append(c)
+    public fun appendOld(c: Char): BytePacketBuilderBase = append(c)
 
     @Suppress("DEPRECATION_ERROR", "UNUSED")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     @JvmName("append")
-    fun appendOld(csq: CharSequence?): BytePacketBuilderBase = append(csq)
+    public fun appendOld(csq: CharSequence?): BytePacketBuilderBase = append(csq)
 
     @Suppress("DEPRECATION_ERROR", "UNUSED")
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
     @JvmName("append")
-    fun appendOld(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase = append(csq, start, end)
+    public fun appendOld(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase = append(csq, start, end)
 
     /**
      * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
@@ -109,14 +109,14 @@ class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<Ch
      */
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
+    public fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
         return preview(block)
     }
 
     /**
      * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
      */
-    fun build(): ByteReadPacket {
+    public fun build(): ByteReadPacket {
         val size = size
         val head = stealAll()
 

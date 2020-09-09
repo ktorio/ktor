@@ -10,7 +10,7 @@ import io.ktor.utils.io.errors.*
 /**
  * TLS secret key exchange type.
  */
-enum class SecretExchangeType(val jvmName: String) {
+public enum class SecretExchangeType(public val jvmName: String) {
     /**
      * Elliptic Curve Diffie-Hellman Exchange.
      */
@@ -25,7 +25,7 @@ enum class SecretExchangeType(val jvmName: String) {
 /**
  * Cipher type.
  */
-enum class CipherType {
+public enum class CipherType {
     /**
      * Galois/Counter Mode.
      * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
@@ -58,7 +58,7 @@ enum class CipherType {
  * @property macStrengthInBytes message authentication algorithm strength in bytes ( = `[macStrength] / 8`)
  * @property cipherType type of cipher to use
  */
-data class CipherSuite(
+public data class CipherSuite(
     val code: Short,
     val name: String,
     val openSSLName: String,
@@ -85,8 +85,8 @@ data class CipherSuite(
  * https://tools.ietf.org/html/rfc5288#section-3
  */
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
-object CIOCipherSuites {
-    val TLS_RSA_WITH_AES_128_GCM_SHA256 = CipherSuite(
+public object CIOCipherSuites {
+    public val TLS_RSA_WITH_AES_128_GCM_SHA256: CipherSuite = CipherSuite(
         0x009c, "TLS_RSA_WITH_AES_128_GCM_SHA256", "AES128-GCM-SHA256",
         SecretExchangeType.RSA, "AES/GCM/NoPadding",
         128, 4, 12, 16,
@@ -94,35 +94,35 @@ object CIOCipherSuites {
         HashAlgorithm.SHA256, SignatureAlgorithm.RSA
     )
 
-    val ECDHE_ECDSA_AES256_SHA384 = CipherSuite(
+    public val ECDHE_ECDSA_AES256_SHA384: CipherSuite = CipherSuite(
         0xc02c.toShort(), "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "ECDHE-ECDSA-AES256-GCM-SHA384",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
         256, 4, 12, 16, "AEAD", 0,
         HashAlgorithm.SHA384, SignatureAlgorithm.ECDSA
     )
 
-    val ECDHE_ECDSA_AES128_SHA256 = CipherSuite(
+    public val ECDHE_ECDSA_AES128_SHA256: CipherSuite = CipherSuite(
         0xc02b.toShort(), "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "ECDHE-ECDSA-AES128-GCM-SHA256",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
         128, 4, 12, 16, "AEAD", 0,
         HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA
     )
 
-    val ECDHE_RSA_AES256_SHA384 = CipherSuite(
+    public val ECDHE_RSA_AES256_SHA384: CipherSuite = CipherSuite(
         0xc030.toShort(), "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "ECDHE-RSA-AES256-GCM-SHA384",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
         256, 4, 12, 16, "AEAD", 0,
         HashAlgorithm.SHA384, SignatureAlgorithm.RSA
     )
 
-    val ECDHE_RSA_AES128_SHA256 = CipherSuite(
+    public val ECDHE_RSA_AES128_SHA256: CipherSuite = CipherSuite(
         0xc02f.toShort(), "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "ECDHE-RSA-AES128-GCM-SHA256",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
         128, 4, 12, 16, "AEAD", 0,
         HashAlgorithm.SHA256, SignatureAlgorithm.RSA
     )
 
-    val TLS_RSA_WITH_AES256_CBC_SHA = CipherSuite(
+    public val TLS_RSA_WITH_AES256_CBC_SHA: CipherSuite = CipherSuite(
         0x0035, "TLS_RSA_WITH_AES_256_CBC_SHA", "AES-256-CBC-SHA",
         SecretExchangeType.RSA, "AES/CBC/NoPadding",
         256, 16, 32 + 16, 20,
@@ -130,7 +130,7 @@ object CIOCipherSuites {
         HashAlgorithm.SHA256, SignatureAlgorithm.RSA, CipherType.CBC
     )
 
-    val TLS_RSA_WITH_AES128_CBC_SHA = CipherSuite(
+    public val TLS_RSA_WITH_AES128_CBC_SHA: CipherSuite = CipherSuite(
         0x002F, "TLS_RSA_WITH_AES_128_CBC_SHA", "AES-128-CBC-SHA",
         SecretExchangeType.RSA, "AES/CBC/NoPadding",
         128, 16, 32 + 16, 20,
@@ -141,7 +141,7 @@ object CIOCipherSuites {
     /**
      * List of suites supported by current platform
      */
-    val SupportedSuites: List<CipherSuite> = listOf(
+    public val SupportedSuites: List<CipherSuite> = listOf(
         ECDHE_ECDSA_AES256_SHA384,
         ECDHE_RSA_AES256_SHA384,
         ECDHE_ECDSA_AES128_SHA256,

@@ -2,16 +2,17 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+
 package io.ktor.util
 
 /**
  * Create ES specific [Attributes] instance.
  */
 @JsName("AttributesJsFn")
-actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
+public actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
 
 @Suppress("KDocMissingDocumentation")
-class AttributesJs : Attributes {
+public class AttributesJs : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")

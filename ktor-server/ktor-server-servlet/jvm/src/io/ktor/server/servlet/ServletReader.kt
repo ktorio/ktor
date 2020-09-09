@@ -24,7 +24,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
-    suspend fun run() {
+    public suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             input.setReadListener(this)

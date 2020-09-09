@@ -46,7 +46,7 @@ internal class SavedHttpResponse(
  * Fetch data for [HttpClientCall] and close the origin.
  */
 @KtorExperimentalAPI
-suspend fun HttpClientCall.save(): HttpClientCall {
+public suspend fun HttpClientCall.save(): HttpClientCall {
     val currentClient = client ?: error("Failed to save call in different native thread.")
 
     return SavedHttpCall(currentClient).also { result ->

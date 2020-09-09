@@ -27,22 +27,22 @@ import org.thymeleaf.context.Context
  * @param etag value for `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
  */
-class ThymeleafContent(
-    val template: String,
-    val model: Map<String, Any>,
-    val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+public class ThymeleafContent(
+    public val template: String,
+    public val model: Map<String, Any>,
+    public val etag: String? = null,
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
 /**
  * Thymeleaf support feature. Provides ability to respond with [Thymeleaf]
  */
-class Thymeleaf(private val engine: TemplateEngine) {
+public class Thymeleaf(private val engine: TemplateEngine) {
     /**
      * A feature installing companion object
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
-        override val key = AttributeKey<Thymeleaf>("thymeleaf")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
+        override val key: AttributeKey<Thymeleaf> = AttributeKey<Thymeleaf>("thymeleaf")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: TemplateEngine.() -> Unit): Thymeleaf {
             val config = TemplateEngine().apply(configure)

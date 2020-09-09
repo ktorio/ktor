@@ -14,18 +14,18 @@ import kotlinx.coroutines.*
  * Base configuration for [HttpClientEngine].
  */
 @HttpClientDsl
-open class HttpClientEngineConfig {
+public open class HttpClientEngineConfig {
     /**
      * Network threads count advice.
      */
     @KtorExperimentalAPI
-    var threadsCount: Int = 4
+    public var threadsCount: Int = 4
 
     /**
      * Enable http pipelining advice.
      */
     @KtorExperimentalAPI
-    var pipelining: Boolean = false
+    public var pipelining: Boolean = false
 
     /**
      * Proxy address to use. Use system proxy by default.
@@ -33,12 +33,12 @@ open class HttpClientEngineConfig {
      * See [ProxyBuilder] to create proxy.
      */
     @KtorExperimentalAPI
-    var proxy: ProxyConfig? = null
+    public var proxy: ProxyConfig? = null
 
     @Deprecated(
         "Response config is deprecated. See [HttpPlainText] feature for charset configuration",
         level = DeprecationLevel.ERROR
     )
-    val response: Nothing get() =
+    public val response: Nothing get() =
         error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 }

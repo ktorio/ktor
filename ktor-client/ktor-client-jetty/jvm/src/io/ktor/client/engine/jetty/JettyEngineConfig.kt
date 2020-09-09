@@ -11,14 +11,14 @@ import org.eclipse.jetty.util.ssl.*
 /**
  * Configuration for [Jetty] implementation of [HttpClientEngineFactory].
  */
-class JettyEngineConfig : HttpClientEngineConfig() {
+public class JettyEngineConfig : HttpClientEngineConfig() {
     /**
      * A Jetty's [SslContextFactory]. By default it trusts all the certificates.
      */
-    var sslContextFactory: SslContextFactory = SslContextFactory.Client()
+    public var sslContextFactory: SslContextFactory = SslContextFactory.Client()
 
     /**
      * Size of the cache that keeps least recently used [JettyHttp2Engine] instances.
      */
-    var clientCacheSize: Int = 10
+    public var clientCacheSize: Int = 10
 }

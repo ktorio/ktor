@@ -26,8 +26,8 @@ import kotlin.coroutines.intrinsics.*
  */
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class WeakTimeoutQueue(
-    val timeoutMillis: Long,
+public class WeakTimeoutQueue(
+    public val timeoutMillis: Long,
     private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val head = LockFreeLinkedListHead()
@@ -38,7 +38,7 @@ class WeakTimeoutQueue(
     /**
      * Register [job] in this queue. It will be cancelled if doesn't complete in time.
      */
-    fun register(job: Job): Registration {
+    public fun register(job: Job): Registration {
         val now = clock()
         val head = head
         if (cancelled) throw CancellationException()
@@ -58,7 +58,7 @@ class WeakTimeoutQueue(
     /**
      * Cancel all registered timeouts
      */
-    fun cancel() {
+    public fun cancel() {
         cancelled = true
         process()
     }
@@ -66,14 +66,14 @@ class WeakTimeoutQueue(
     /**
      * Process and cancel all jobs that are timed out
      */
-    fun process() {
+    public fun process() {
         process(clock(), head, cancelled)
     }
 
     /**
      * Execute [block] and cancel if doesn't complete in time.
      */
-    suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
+    public suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
             val continuation = rawContinuation.intercepted()
 
@@ -115,7 +115,7 @@ class WeakTimeoutQueue(
     /**
      * [register] function result
      */
-    interface Registration : CompletionHandler, DisposableHandle {
+    public interface Registration : CompletionHandler, DisposableHandle {
         override fun invoke(cause: Throwable?) {
             dispose()
         }

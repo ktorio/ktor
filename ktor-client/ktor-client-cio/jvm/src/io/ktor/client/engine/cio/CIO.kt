@@ -10,7 +10,7 @@ import io.ktor.util.*
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class CIOEngineContainer : HttpClientEngineContainer {
+public class CIOEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = CIO
 
     override fun toString(): String = "CIO"

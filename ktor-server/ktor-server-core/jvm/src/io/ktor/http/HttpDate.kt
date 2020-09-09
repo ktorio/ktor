@@ -14,26 +14,26 @@ import java.time.temporal.*
  * Format epoch milliseconds as HTTP date (GMT)
  */
 @KtorExperimentalAPI
-fun Long.toHttpDateString(): String = GMTDate(this).toHttpDate()
+public fun Long.toHttpDateString(): String = GMTDate(this).toHttpDate()
 
 /**
  * Format as HTTP date (GMT)
  */
 @Suppress("CONFLICTING_OVERLOADS", "unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Temporal.toHttpDateString(): String = toHttpDateString()
+public fun Temporal.toHttpDateString(): String = toHttpDateString()
 
 /**
  * Parse HTTP date to [ZonedDateTime]
  */
 @Suppress("CONFLICTING_OVERLOADS", "unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
+public fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
 
 /**
  * Default HTTP date format
  */
 @Suppress("CONFLICTING_OVERLOADS", "REDECLARATION", "unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-val httpDateFormat: DateTimeFormatter
+public val httpDateFormat: DateTimeFormatter
     get() = httpDateFormat

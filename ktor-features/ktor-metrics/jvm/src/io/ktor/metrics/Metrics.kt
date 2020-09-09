@@ -15,5 +15,5 @@ import io.ktor.metrics.dropwizard.*
         expression = "DropwizardMetrics",
         imports = arrayOf("io.ktor.metrics.dropwizard.DropwizardMetrics")),
     level = DeprecationLevel.ERROR)
-typealias Metrics = DropwizardMetrics
+public typealias Metrics = DropwizardMetrics
 

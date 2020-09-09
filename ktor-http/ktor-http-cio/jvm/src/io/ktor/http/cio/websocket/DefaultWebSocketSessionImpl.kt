@@ -24,7 +24,7 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
  */
 @WebSocketInternalAPI
-class DefaultWebSocketSessionImpl(
+public class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Long = -1L,
     override var timeoutMillis: Long = 15000L,
@@ -71,7 +71,7 @@ class DefaultWebSocketSessionImpl(
     /**
      * Close session with GOING_AWAY reason
      */
-    suspend fun goingAway(message: String = "Server is going down") {
+    public suspend fun goingAway(message: String = "Server is going down") {
         sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
@@ -227,14 +227,14 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
-    companion object {
+    public companion object {
         private val EmptyPong = Frame.Pong(ByteArray(0))
     }
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
+public suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
     try {
         val me: DefaultWebSocketSession = this@run
         me.handler()

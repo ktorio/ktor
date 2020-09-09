@@ -14,14 +14,14 @@ import kotlinx.coroutines.*
 /**
  * Base type for all async sockets
  */
-interface ASocket : Closeable, DisposableHandle {
+public interface ASocket : Closeable, DisposableHandle {
     /**
      * Represents a socket lifetime, completes at socket closure
      */
     @KtorExperimentalAPI
-    val socketContext: Job
+    public val socketContext: Job
 
-    override fun dispose() {
+    public override fun dispose() {
         try {
             close()
         } catch (ignore: Throwable) {
@@ -32,12 +32,12 @@ interface ASocket : Closeable, DisposableHandle {
 /**
  * Check if the socket is closed
  */
-val ASocket.isClosed: Boolean get() = socketContext.isCompleted
+public val ASocket.isClosed: Boolean get() = socketContext.isCompleted
 
 /**
  * Await until socket close
  */
-suspend fun ASocket.awaitClosed(): Unit {
+public suspend fun ASocket.awaitClosed(): Unit {
     socketContext.join()
 
     @OptIn(InternalCoroutinesApi::class)
@@ -47,85 +47,85 @@ suspend fun ASocket.awaitClosed(): Unit {
 /**
  * Represent a connected socket
  */
-interface AConnectedSocket : AWritable {
+public interface AConnectedSocket : AWritable {
     /**
      * Remote socket address. Could throw an exception if the peer is not yet connected or already disconnected.
      */
-    val remoteAddress: NetworkAddress
+    public val remoteAddress: NetworkAddress
 }
 
 /**
  * Represents a bound socket
  */
-interface ABoundSocket {
+public interface ABoundSocket {
     /**
      * Local socket address. Could throw an exception if no address bound yet.
      */
-    val localAddress: NetworkAddress
+    public val localAddress: NetworkAddress
 }
 
 /**
  * Represents a socket source, for example server socket
  */
-interface Acceptable<out S : ASocket> : ASocket {
+public interface Acceptable<out S : ASocket> : ASocket {
     /**
      * accepts socket connection or suspends if none yet available.
      * @return accepted socket
      */
-    suspend fun accept(): S
+    public suspend fun accept(): S
 }
 
 /**
  * Represent a readable socket
  */
-interface AReadable {
+public interface AReadable {
     /**
      * Attach [channel] for reading so incoming bytes appears in the attached channel.
      * Only one channel could be attached
      * @return a job that does supply data
      */
     @KtorExperimentalAPI
-    fun attachForReading(channel: ByteChannel): WriterJob
+    public fun attachForReading(channel: ByteChannel): WriterJob
 }
 
 /**
  * Represents a writable socket
  */
-interface AWritable {
+public interface AWritable {
     /**
      * Attach [channel] for writing so bytes written to the attached channel will be transmitted
      * Only one channel could be attached
      * @return a job that does transmit data from the channel
      */
     @KtorExperimentalAPI
-    fun attachForWriting(channel: ByteChannel): ReaderJob
+    public fun attachForWriting(channel: ByteChannel): ReaderJob
 }
 
 /**
  * Represents both readable and writable socket
  */
-interface ReadWriteSocket : ASocket, AReadable, AWritable
+public interface ReadWriteSocket : ASocket, AReadable, AWritable
 
 /**
  * Open a read channel, could be done only once
  */
-fun AReadable.openReadChannel(): ByteReadChannel = ByteChannel(false).also { attachForReading(it) }
+public fun AReadable.openReadChannel(): ByteReadChannel = ByteChannel(false).also { attachForReading(it) }
 
 /**
  * Open a write channel, could be opened only once
  * @param autoFlush whether returned channel do flush for every write operation
  */
-fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChannel = ByteChannel(autoFlush).also { attachForWriting(it) }
+public fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChannel = ByteChannel(autoFlush).also { attachForWriting(it) }
 
 /**
  * Represents a connected socket
  */
-interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket
+public interface Socket : ReadWriteSocket, ABoundSocket, AConnectedSocket
 
 /**
  * Represents a server bound socket ready for accepting connections
  */
-interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
+public interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
 
 @Suppress("EXPECT_WITHOUT_ACTUAL", "KDocMissingDocumentation")
 public expect class SocketTimeoutException(message: String) : IOException

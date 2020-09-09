@@ -8,7 +8,7 @@ package io.ktor.network.tls
  * TLS alert level
  * @property code alert numeric code
  */
-enum class TLSAlertLevel(val code: Int) {
+public enum class TLSAlertLevel(public val code: Int) {
     /**
      * alert warning level
      */
@@ -19,13 +19,13 @@ enum class TLSAlertLevel(val code: Int) {
      */
     FATAL(2);
 
-    companion object {
-        private val byCode = Array(256) { idx -> TLSAlertLevel.values().firstOrNull { it.code == idx } }
+    public companion object {
+        private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find alert level by it's numeric [code] or fail
          */
-        fun byCode(code: Int): TLSAlertLevel = when (code) {
+        public fun byCode(code: Int): TLSAlertLevel = when (code) {
             in 0..255 -> byCode[code]
             else -> null
         } ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
@@ -37,7 +37,7 @@ enum class TLSAlertLevel(val code: Int) {
  * @property code numeric alert code
  */
 @Suppress("KDocMissingDocumentation", "EnumEntryName")
-enum class TLSAlertType(val code: Int) {
+public enum class TLSAlertType(public val code: Int) {
     DecryptionFailed_RESERVED(21),
     CloseNotify(0),
     UnexpectedMessage(10),
@@ -65,13 +65,13 @@ enum class TLSAlertType(val code: Int) {
     NoRenegotiation(100),
     UnsupportedExtension(110);
 
-    companion object {
+    public companion object {
         private val byCode = Array(256) { idx -> TLSAlertType.values().firstOrNull { it.code == idx } }
 
         /**
          * Find TLS alert instance by it's numeric [code] or fail
          */
-        fun byCode(code: Int): TLSAlertType = when (code) {
+        public fun byCode(code: Int): TLSAlertType = when (code) {
             in 0..255 -> byCode[code]
             else -> null
         } ?: throw IllegalArgumentException("Invalid TLS record type code: $code")

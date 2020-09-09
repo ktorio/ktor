@@ -10,24 +10,24 @@ import java.util.concurrent.*
 
 @Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
-class Serializer {
+public class Serializer {
     private val q = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
 
-    var masking: Boolean = false
+    public var masking: Boolean = false
 
-    val hasOutstandingBytes: Boolean
+    public val hasOutstandingBytes: Boolean
         get() = q.isNotEmpty() || frameBody != null
 
-    val remainingCapacity: Int get() = q.remainingCapacity()
+    public val remainingCapacity: Int get() = q.remainingCapacity()
 
-    fun enqueue(f: Frame) {
+    public fun enqueue(f: Frame) {
         q.put(f)
     }
 
-    fun serialize(buffer: ByteBuffer) {
+    public fun serialize(buffer: ByteBuffer) {
         while (writeCurrentPayload(buffer)) {
             val frame = q.peek() ?: break
             val mask = masking

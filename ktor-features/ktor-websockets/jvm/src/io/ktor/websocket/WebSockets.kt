@@ -30,11 +30,11 @@ import kotlin.coroutines.*
  * @param maxFrameSize maximum frame that could be received or sent
  * @param masking whether masking need to be enabled (useful for security)
  */
-class WebSockets(
-    val pingIntervalMillis: Long,
-    val timeoutMillis: Long,
-    val maxFrameSize: Long,
-    val masking: Boolean
+public class WebSockets(
+    public val pingIntervalMillis: Long,
+    public val timeoutMillis: Long,
+    public val maxFrameSize: Long,
+    public val masking: Boolean
 ) : CoroutineScope {
     private val parent: CompletableJob = Job()
 
@@ -54,13 +54,13 @@ class WebSockets(
     /**
      * Websockets configuration options
      */
-    class WebSocketOptions {
+    public class WebSocketOptions {
         /**
          * Duration between pings or `null` to disable pings
          */
         @Suppress("unused")
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        var pingPeriod: Duration?
+        public var pingPeriod: Duration?
             get() = pingPeriod
             set(new) {
                 pingPeriod = new
@@ -69,14 +69,14 @@ class WebSockets(
         /**
          * Duration between pings or `0` to disable pings
          */
-        var pingPeriodMillis: Long = 0
+        public var pingPeriodMillis: Long = 0
 
         /**
          * write/ping timeout after that a connection will be closed
          */
         @Suppress("unused")
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-        var timeout: Duration
+        public var timeout: Duration
             get() = timeout
             set(new) {
                 timeout = new
@@ -85,24 +85,24 @@ class WebSockets(
         /**
          * write/ping timeout after that a connection will be closed
          */
-        var timeoutMillis: Long = 15000L
+        public var timeoutMillis: Long = 15000L
 
         /**
          * Maximum frame that could be received or sent
          */
-        var maxFrameSize: Long = Long.MAX_VALUE
+        public var maxFrameSize: Long = Long.MAX_VALUE
 
         /**
          * Whether masking need to be enabled (useful for security)
          */
-        var masking: Boolean = false
+        public var masking: Boolean = false
     }
 
     /**
      * Feature installation object
      */
-    companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
-        override val key = AttributeKey<WebSockets>("WebSockets")
+    public companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
+        override val key: AttributeKey<WebSockets> = AttributeKey("WebSockets")
 
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
             val config = WebSocketOptions().also(configure)

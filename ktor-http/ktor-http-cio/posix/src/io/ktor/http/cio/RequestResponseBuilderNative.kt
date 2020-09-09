@@ -11,13 +11,13 @@ import io.ktor.utils.io.core.*
 /**
  * Builds an HTTP request or response
  */
-actual class RequestResponseBuilder actual constructor() {
+public actual class RequestResponseBuilder actual constructor() {
     private val packet = BytePacketBuilder()
 
     /**
      * Append response status line
      */
-    actual fun responseLine(version: CharSequence, status: Int, statusText: CharSequence) {
+    public actual fun responseLine(version: CharSequence, status: Int, statusText: CharSequence) {
         packet.writeText(version)
         packet.writeByte(SP)
         packet.writeText(status.toString())
@@ -30,7 +30,7 @@ actual class RequestResponseBuilder actual constructor() {
     /**
      * Append request line
      */
-    actual fun requestLine(method: HttpMethod, uri: CharSequence, version: CharSequence) {
+    public actual fun requestLine(method: HttpMethod, uri: CharSequence, version: CharSequence) {
         packet.writeText(method.value)
         packet.writeByte(SP)
         packet.writeText(uri)
@@ -43,7 +43,7 @@ actual class RequestResponseBuilder actual constructor() {
     /**
      * Append a line
      */
-    actual fun line(line: CharSequence) {
+    public actual fun line(line: CharSequence) {
         packet.append(line)
         packet.writeByte(CR)
         packet.writeByte(LF)
@@ -52,14 +52,14 @@ actual class RequestResponseBuilder actual constructor() {
     /**
      * Append raw bytes
      */
-    actual fun bytes(content: ByteArray, offset: Int, length: Int) {
+    public actual fun bytes(content: ByteArray, offset: Int, length: Int) {
         packet.writeFully(content, offset, length)
     }
 
     /**
      * Append header line
      */
-    actual fun headerLine(name: CharSequence, value: CharSequence) {
+    public actual fun headerLine(name: CharSequence, value: CharSequence) {
         packet.append(name)
         packet.append(": ")
         packet.append(value)
@@ -70,7 +70,7 @@ actual class RequestResponseBuilder actual constructor() {
     /**
      * Append an empty line (CR + LF in fact)
      */
-    actual fun emptyLine() {
+    public actual fun emptyLine() {
         packet.writeByte(CR)
         packet.writeByte(LF)
     }
@@ -78,12 +78,12 @@ actual class RequestResponseBuilder actual constructor() {
     /**
      * Build a packet of request/response
      */
-    actual fun build(): ByteReadPacket = packet.build()
+    public actual fun build(): ByteReadPacket = packet.build()
 
     /**
      * Release all resources hold by the builder
      */
-    actual fun release() {
+    public actual fun release() {
         packet.release()
     }
 }

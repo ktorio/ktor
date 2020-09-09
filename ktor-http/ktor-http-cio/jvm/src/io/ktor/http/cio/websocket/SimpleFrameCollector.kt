@@ -9,15 +9,15 @@ import java.nio.*
 
 @Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
-class SimpleFrameCollector {
+public class SimpleFrameCollector {
     private var remaining: Int = 0
     private var buffer: ByteBuffer? = null
     private val maskBuffer = ByteBuffer.allocate(4)
 
-    val hasRemaining: Boolean
+    public val hasRemaining: Boolean
         get() = remaining > 0
 
-    fun start(length: Int, bb: ByteBuffer) {
+    public fun start(length: Int, bb: ByteBuffer) {
         require(remaining == 0) { throw IllegalStateException("remaining should be 0") }
 
         remaining = length
@@ -29,11 +29,11 @@ class SimpleFrameCollector {
         handle(bb)
     }
 
-    fun handle(bb: ByteBuffer) {
+    public fun handle(bb: ByteBuffer) {
         remaining -= bb.moveTo(buffer!!, remaining)
     }
 
-    fun take(maskKey: Int?): ByteBuffer = buffer!!.run {
+    public fun take(maskKey: Int?): ByteBuffer = buffer!!.run {
         flip()
 
         val view = slice()

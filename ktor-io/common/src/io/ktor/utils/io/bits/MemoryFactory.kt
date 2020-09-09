@@ -13,7 +13,7 @@ import kotlin.contracts.contract
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
 @ExperimentalIoApi
-expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
+public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
 
 /**
  * Invoke [block] function with a temporary [Memory] instance of the specified [size] in bytes.
@@ -21,7 +21,7 @@ expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory)
  * may occur including crash and/or data corruption.
  */
 @ExperimentalIoApi
-inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
+public inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -35,7 +35,7 @@ inline fun <R> withMemory(size: Int, block: (Memory) -> R): R {
  * may occur including crash and/or data corruption.
  */
 @ExperimentalIoApi
-inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
+public inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

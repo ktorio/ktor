@@ -21,7 +21,7 @@ internal inline fun Buffer.decodeASCII(consumer: (Char) -> Boolean): Boolean {
 }
 
 @DangerousInternalIoApi
-suspend fun decodeUTF8LineLoopSuspend(
+public suspend fun decodeUTF8LineLoopSuspend(
     out: Appendable,
     limit: Int,
     nextChunk: suspend (Int) -> AbstractInput?
@@ -108,7 +108,7 @@ internal fun byteCountUtf8(firstByte: Int): Int {
 
 @Suppress("DEPRECATION")
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+public inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     return (this as Buffer).decodeUTF8(consumer)
 }
 
@@ -120,7 +120,7 @@ inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
  * or -1 if consumer rejected loop
  */
 @DangerousInternalIoApi
-inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
+public inline fun Buffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
     var byteCount = 0
     var value = 0
     var lastByteCount = 0
@@ -414,4 +414,4 @@ internal fun codePoint(high: Char, low: Char): Int {
     return highValue shl 10 or lowValue
 }
 
-class MalformedUTF8InputException(message: String) : Exception(message)
+public class MalformedUTF8InputException(message: String) : Exception(message)
