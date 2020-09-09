@@ -204,34 +204,14 @@ data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(R
  */
 data class PathSegmentParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return evaluate(context.segments, segmentIndex)
-    }
-
-    internal fun evaluate(segments: List<String>, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < segments.size) {
-            val part = segments[segmentIndex]
-            val prefixChecked = when {
-                prefix == null -> part
-                part.startsWith(prefix) -> part.drop(prefix.length)
-                else -> return RouteSelectorEvaluation.Failed
-            }
-
-            val suffixChecked = when {
-                suffix == null -> prefixChecked
-                prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
-                else -> return RouteSelectorEvaluation.Failed
-            }
-
-            val values = parametersOf(name, suffixChecked)
-            return RouteSelectorEvaluation(
-                succeeded = true,
-                quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
-                else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
-                parameters = values,
-                segmentIncrement = 1
-            )
-        }
-        return RouteSelectorEvaluation.Failed
+        return evaluatePathSegmentParameter(
+            segments = context.segments,
+            segmentIndex = segmentIndex,
+            name = name,
+            prefix = prefix,
+            suffix = suffix,
+            isOptional = false
+        )
     }
 
     override fun toString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
@@ -246,34 +226,14 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
 data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return evaluate(context.segments, segmentIndex)
-    }
-
-    internal fun evaluate(segments: List<String>, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < segments.size) {
-            val part = segments[segmentIndex]
-            val prefixChecked = when {
-                prefix == null -> part
-                part.startsWith(prefix) -> part.drop(prefix.length)
-                else -> return RouteSelectorEvaluation.Missing
-            }
-
-            val suffixChecked = when {
-                suffix == null -> prefixChecked
-                prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
-                else -> return RouteSelectorEvaluation.Missing
-            }
-
-            val values = parametersOf(name, suffixChecked)
-            return RouteSelectorEvaluation(
-                succeeded = true,
-                quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
-                else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
-                parameters = values,
-                segmentIncrement = 1
-            )
-        }
-        return RouteSelectorEvaluation.Missing
+        return evaluatePathSegmentParameter(
+            segments = context.segments,
+            segmentIndex = segmentIndex,
+            name = name,
+            prefix = prefix,
+            suffix = suffix,
+            isOptional = true
+        )
     }
 
     override fun toString(): String = "${prefix ?: ""}{$name?}${suffix ?: ""}"
@@ -420,4 +380,42 @@ data class HttpAcceptRouteSelector(val contentType: ContentType) : RouteSelector
     }
 
     override fun toString(): String = "(contentType:$contentType)"
+}
+
+internal fun evaluatePathSegmentParameter(
+    segments: List<String>,
+    segmentIndex: Int,
+    name: String,
+    prefix: String?,
+    suffix: String?,
+    isOptional: Boolean
+): RouteSelectorEvaluation {
+    fun failedEvaluation(): RouteSelectorEvaluation {
+        return if (isOptional) RouteSelectorEvaluation.Missing else RouteSelectorEvaluation.Failed
+    }
+
+    if (segmentIndex < segments.size) {
+        val part = segments[segmentIndex]
+        val prefixChecked = when {
+            prefix == null -> part
+            part.startsWith(prefix) -> part.drop(prefix.length)
+            else -> return failedEvaluation()
+        }
+
+        val suffixChecked = when {
+            suffix == null -> prefixChecked
+            prefixChecked.endsWith(suffix) -> prefixChecked.dropLast(suffix.length)
+            else -> return failedEvaluation()
+        }
+
+        val values = parametersOf(name, suffixChecked)
+        return RouteSelectorEvaluation(
+            succeeded = true,
+            quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+            else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
+            parameters = values,
+            segmentIncrement = 1
+        )
+    }
+    return failedEvaluation()
 }
