@@ -16,12 +16,12 @@ import javax.net.ssl.*
  * @property cipherSuites: list of allowed [CipherSuite]s.
  * @property serverName: custom server name for TLS server name extension.
  */
-actual class TLSConfig(
-    val random: SecureRandom,
-    val certificates: List<CertificateAndKey>,
-    val trustManager: X509TrustManager,
-    val cipherSuites: List<CipherSuite>,
-    val serverName: String?
+public actual class TLSConfig(
+    public val random: SecureRandom,
+    public val certificates: List<CertificateAndKey>,
+    public val trustManager: X509TrustManager,
+    public val cipherSuites: List<CipherSuite>,
+    public val serverName: String?
 )
 
 /**
@@ -29,4 +29,4 @@ actual class TLSConfig(
  * @property certificateChain: client certificate chain.
  * @property key: [PrivateKey] for certificate chain.
  */
-class CertificateAndKey(val certificateChain: Array<X509Certificate>, val key: PrivateKey)
+public class CertificateAndKey(public val certificateChain: Array<X509Certificate>, public val key: PrivateKey)

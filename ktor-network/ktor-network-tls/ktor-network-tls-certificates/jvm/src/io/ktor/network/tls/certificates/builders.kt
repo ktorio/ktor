@@ -22,31 +22,31 @@ internal data class CertificateInfo(val certificate: Certificate, val keys: KeyP
  * Builder for certificate
  */
 @KtorExperimentalAPI
-class CertificateBuilder internal constructor() {
+public class CertificateBuilder internal constructor() {
     /**
      * Certificate hash algorithm (required)
      */
-    lateinit var hash: HashAlgorithm
+    public lateinit var hash: HashAlgorithm
 
     /**
      * Certificate signature algorithm (required)
      */
-    lateinit var sign: SignatureAlgorithm
+    public lateinit var sign: SignatureAlgorithm
 
     /**
      * Certificate password
      */
-    lateinit var password: String
+    public lateinit var password: String
 
     /**
      * Number of days the certificate is valid
      */
-    var daysValid: Long = 3
+    public var daysValid: Long = 3
 
     /**
      * Certificate key size in bits
      */
-    var keySizeInBits: Int = 1024
+    public var keySizeInBits: Int = 1024
 
     internal fun build(): CertificateInfo {
         val algorithm = HashAndSign(hash, sign)
@@ -81,14 +81,14 @@ class CertificateBuilder internal constructor() {
 /**
  * Builder for key store
  */
-class KeyStoreBuilder internal constructor() {
+public class KeyStoreBuilder internal constructor() {
     private val certificates = mutableMapOf<String, CertificateInfo>()
 
     /**
      * Generate a certificate and append to the key store.
      * If there is a certificate with the same [alias] then it will be replaced
      */
-    fun certificate(alias: String, block: CertificateBuilder.() -> Unit) {
+    public fun certificate(alias: String, block: CertificateBuilder.() -> Unit) {
         certificates[alias] = CertificateBuilder().apply(block).build()
     }
 
@@ -109,13 +109,13 @@ class KeyStoreBuilder internal constructor() {
 /**
  * Create a keystore and configure it in [block] function
  */
-fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStoreBuilder().apply(block).build()
+public fun buildKeyStore(block: KeyStoreBuilder.() -> Unit): KeyStore = KeyStoreBuilder().apply(block).build()
 
 /**
  * Save [KeyStore] to [output] file with the specified [password]
  */
 @KtorExperimentalAPI
-fun KeyStore.saveToFile(output: File, password: String) {
+public fun KeyStore.saveToFile(output: File, password: String) {
     output.parentFile?.mkdirs()
 
     output.outputStream().use {

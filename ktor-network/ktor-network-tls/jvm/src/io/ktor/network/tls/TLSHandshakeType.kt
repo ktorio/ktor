@@ -11,7 +11,7 @@ import io.ktor.network.tls.extensions.*
  * @property code numeric type code
  */
 @Suppress("KDocMissingDocumentation")
-enum class TLSHandshakeType(val code: Int) {
+public enum class TLSHandshakeType(public val code: Int) {
     HelloRequest(0x00),
     ClientHello(0x01),
     ServerHello(0x02),
@@ -23,13 +23,13 @@ enum class TLSHandshakeType(val code: Int) {
     ClientKeyExchange(0x10),
     Finished(0x14);
 
-    companion object {
+    public companion object {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find handshake type instance by it's numeric [code] or fail
          */
-        fun byCode(code: Int): TLSHandshakeType = when (code) {
+        public fun byCode(code: Int): TLSHandshakeType = when (code) {
             in 0..0xff -> byCode[code]
             else -> null
         } ?: throw IllegalArgumentException("Invalid TLS handshake type code: $code")
@@ -41,18 +41,18 @@ enum class TLSHandshakeType(val code: Int) {
  * @property code numeric exchange type code
  */
 @Suppress("KDocMissingDocumentation")
-enum class ServerKeyExchangeType(val code: Int) {
+public enum class ServerKeyExchangeType(public val code: Int) {
     ExplicitPrime(1),
     ExplicitChar(2),
     NamedCurve(3);
 
-    companion object {
+    public companion object {
         private val byCode = Array(256) { idx -> values().firstOrNull { it.code == idx } }
 
         /**
          * Find an instance of [ServerKeyExchangeType] by it's numeric code or fail
          */
-        fun byCode(code: Int): ServerKeyExchangeType {
+        public fun byCode(code: Int): ServerKeyExchangeType {
             val result = if (code in 0..0xff) byCode[code] else null
             return result ?: throw IllegalArgumentException("Invalid TLS ServerKeyExchange type code: $code")
         }
