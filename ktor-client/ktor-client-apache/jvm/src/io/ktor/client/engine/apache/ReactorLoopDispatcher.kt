@@ -36,7 +36,7 @@ internal class ReactorLoopDispatcher(
     /**
      * This should be only invoked from a reactor thread.
      */
-    fun processLoop() {
+    public fun processLoop() {
         while (true) {
             queue.poll()?.run() ?: break
         }
@@ -45,5 +45,5 @@ internal class ReactorLoopDispatcher(
     /**
      * Check if there are queued tasks.
      */
-    fun hasTasks(): Boolean = queue.isNotEmpty()
+    public fun hasTasks(): Boolean = queue.isNotEmpty()
 }

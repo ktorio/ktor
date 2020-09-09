@@ -19,12 +19,14 @@ import java.nio.*
 /**
  * Base class for implementing an [ApplicationResponse]
  */
-abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
+public abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
 
-    override val cookies by lazy { ResponseCookies(this, call.request.origin.scheme == "https") }
+    override val cookies: ResponseCookies by lazy {
+        ResponseCookies(this, call.request.origin.scheme == "https")
+    }
 
-    override fun status() = _status
+    override fun status(): HttpStatusCode? = _status
     override fun status(value: HttpStatusCode) {
         _status = value
         setStatus(value)
@@ -32,7 +34,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     private var responded = false
 
-    final override val pipeline = ApplicationSendPipeline().apply {
+    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline().apply {
         merge(call.application.sendPipeline)
     }
 
@@ -242,13 +244,13 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * Thrown when there was already response sent but we are trying to respond again
      */
-    class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
+    public class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 
     /**
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
      */
-    class InvalidHeaderForContent(
+    public class InvalidHeaderForContent(
         private val name: String, private val content: String
     ) : IllegalStateException("Header $name is not allowed for $content"),
         CopyableThrowable<InvalidHeaderForContent> {
@@ -261,7 +263,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooSmall(
+    public class BodyLengthIsTooSmall(
         private val expected: Long, private val actual: Long
     ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
         CopyableThrowable<BodyLengthIsTooSmall> {
@@ -273,7 +275,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
-    class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
+    public class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
         "Body.size is too long. Expected $expected"
     ), CopyableThrowable<BodyLengthIsTooLong> {
         override fun createCopy(): BodyLengthIsTooLong? = BodyLengthIsTooLong(expected).also {
@@ -282,21 +284,21 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     }
 
-    companion object {
+    public companion object {
         /**
          * Attribute key to access engine's response instance.
          * This is engine internal API and should be never used by end-users
          * unless you are writing your own engine implementation
          */
         @EngineAPI
-        val EngineResponseAtributeKey = AttributeKey<BaseApplicationResponse>("EngineResponse")
+        public val EngineResponseAtributeKey: AttributeKey<BaseApplicationResponse> = AttributeKey<BaseApplicationResponse>("EngineResponse")
 
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
          * to start response object processing via [respondOutgoingContent]
          */
         @EngineAPI
-        fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
+        public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
                     throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")

@@ -15,12 +15,12 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-interface Cache<in K : Any, V : Any> {
-    suspend fun getOrCompute(key: K): V
-    fun peek(key: K): V?
-    fun invalidate(key: K): V?
-    fun invalidate(key: K, value: V): Boolean
-    fun invalidateAll()
+public interface Cache<in K : Any, V : Any> {
+    public suspend fun getOrCompute(key: K): V
+    public fun peek(key: K): V?
+    public fun invalidate(key: K): V?
+    public fun invalidate(key: K, value: V): Boolean
+    public fun invalidateAll()
 }
 
 internal interface CacheReference<out K> {
@@ -223,11 +223,11 @@ private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>(
     val key: WeakReference<K> = WeakReference(key)
     var lastAccess = System.currentTimeMillis()
 
-    fun touch() {
+    public fun touch() {
         lastAccess = System.currentTimeMillis()
     }
 
-    fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
+    public fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
 }
 
 private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: ReentrantLock, val cond: Condition, val items: PullableLinkedList<KeyState<K>>) : Runnable {
@@ -273,11 +273,11 @@ private class PullableLinkedList<E : ListElement<E>> {
     private var head: E? = null
     private var tail: E? = null
 
-    fun isEmpty() = head == null
-    fun take(): E = head().apply { remove(this) }
-    fun head(): E = head ?: throw NoSuchElementException()
+    public fun isEmpty() = head == null
+    public fun take(): E = head().apply { remove(this) }
+    public fun head(): E = head ?: throw NoSuchElementException()
 
-    fun add(element: E) {
+    public fun add(element: E) {
         require(element.next == null)
         require(element.prev == null)
 
@@ -292,7 +292,7 @@ private class PullableLinkedList<E : ListElement<E>> {
         }
     }
 
-    fun remove(element: E) {
+    public fun remove(element: E) {
         if (element == head) {
             head = null
         }
@@ -305,12 +305,12 @@ private class PullableLinkedList<E : ListElement<E>> {
         element.prev = null
     }
 
-    fun clear() {
+    public fun clear() {
         head = null
         tail = null
     }
 
-    fun pull(element: E) {
+    public fun pull(element: E) {
         if (element !== head) {
             remove(element)
             add(element)

@@ -28,10 +28,10 @@ import kotlin.coroutines.*
  * @param protocol web socket negotiated protocol name (optional)
  * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
  */
-class WebSocketUpgrade(
-    val call: ApplicationCall,
-    val protocol: String? = null,
-    val handle: suspend WebSocketSession.() -> Unit
+public class WebSocketUpgrade(
+    public val call: ApplicationCall,
+    public val protocol: String? = null,
+    public val handle: suspend WebSocketSession.() -> Unit
 ) : OutgoingContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey)
 
@@ -71,7 +71,7 @@ class WebSocketUpgrade(
         return webSocket.coroutineContext[Job]!!
     }
 
-    companion object {
+    public companion object {
         private val WebSocketHandlerCoroutineName = CoroutineName("raw-ws-handler")
     }
 }

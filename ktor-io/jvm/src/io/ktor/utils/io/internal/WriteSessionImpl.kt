@@ -2,11 +2,10 @@
 
 package io.ktor.utils.io.internal
 
-import io.ktor.utils.io.ByteBufferChannel
-import io.ktor.utils.io.WriterSuspendSession
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.ByteOrder
-import io.ktor.utils.io.core.IoBuffer
-import java.nio.ByteBuffer
+import java.nio.*
 
 internal class WriteSessionImpl(channel: ByteBufferChannel) : WriterSuspendSession {
     private var locked = 0

@@ -14,10 +14,10 @@ import io.ktor.util.*
 /**
  * A feature that automatically respond to HEAD requests
  */
-object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
+public object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     private val HeadPhase = PipelinePhase("HEAD")
 
-    override val key = AttributeKey<Unit>("Automatic Head Response")
+    override val key: AttributeKey<Unit> = AttributeKey<Unit>("Automatic Head Response")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         Unit.configure()

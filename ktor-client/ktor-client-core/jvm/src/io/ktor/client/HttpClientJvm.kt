@@ -16,7 +16,7 @@ import java.util.*
  *
  * See https://ktor.io/clients/http-client/engines.html
  */
-actual fun HttpClient(
+public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(FACTORY, block)
 
@@ -28,8 +28,8 @@ actual fun HttpClient(
  *
  * @property factory that produces HTTP client instances
  */
-interface HttpClientEngineContainer {
-    val factory: HttpClientEngineFactory<*>
+public interface HttpClientEngineContainer {
+    public val factory: HttpClientEngineFactory<*>
 }
 
 /**

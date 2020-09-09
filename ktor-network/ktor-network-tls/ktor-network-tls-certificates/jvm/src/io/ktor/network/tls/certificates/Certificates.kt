@@ -25,7 +25,7 @@ import java.util.*
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
  */
-fun generateCertificate(
+public fun generateCertificate(
     file: File,
     algorithm: String = "SHA1withRSA",
     keyAlias: String = "mykey",

@@ -8,20 +8,20 @@ package io.ktor.http
  * A message either from the client or the server,
  * that has [headers] associated.
  */
-interface HttpMessage {
+public interface HttpMessage {
     /**
      * Message [Headers]
      */
-    val headers: Headers
+    public val headers: Headers
 }
 
 /**
  * A builder message either for the client or the server,
  * that has a [headers] builder associated.
  */
-interface HttpMessageBuilder {
+public interface HttpMessageBuilder {
     /**
      * MessageBuilder [HeadersBuilder]
      */
-    val headers: HeadersBuilder
+    public val headers: HeadersBuilder
 }

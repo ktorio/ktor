@@ -13,11 +13,11 @@ import java.time.*
 /**
  * Construct [LastModifiedVersion] version from a [ZonedDateTime] instance
  */
-fun LastModifiedVersion(lastModified: ZonedDateTime) : LastModifiedVersion = LastModifiedVersion(lastModified.toGMTDate())
+public fun LastModifiedVersion(lastModified: ZonedDateTime) : LastModifiedVersion = LastModifiedVersion(lastModified.toGMTDate())
 
 /**
  * Construct [LastModifiedVersion] version from a [FileTime] instance
  */
-fun LastModifiedVersion(lastModified: FileTime) : LastModifiedVersion =
+public fun LastModifiedVersion(lastModified: FileTime) : LastModifiedVersion =
     LastModifiedVersion(GMTDate(lastModified.toMillis()))
 

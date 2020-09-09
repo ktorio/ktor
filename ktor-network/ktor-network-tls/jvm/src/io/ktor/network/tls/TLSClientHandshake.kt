@@ -146,7 +146,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    suspend fun negotiate() {
+    public suspend fun negotiate() {
         digest.use {
             sendClientHello()
             serverHello = receiveServerHello()

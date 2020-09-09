@@ -50,7 +50,7 @@ public actual enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
 
     public actual companion object {
-        actual val AllInterests: Array<SelectInterest>
+        public actual val AllInterests: Array<SelectInterest>
             get() = values()
     }
 }

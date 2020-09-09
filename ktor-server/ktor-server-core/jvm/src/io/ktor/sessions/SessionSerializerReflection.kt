@@ -20,20 +20,20 @@ import kotlin.reflect.jvm.*
  */
 @Suppress("DEPRECATION", "UNUSED")
 @Deprecated("Use defaultSessionSerializer instead.", ReplaceWith("defaultSessionSerializer<T>()"))
-inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
 
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
 @Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
-fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
+public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
 
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
 @KtorExperimentalAPI
 @Suppress("DEPRECATION")
-inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
+public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
 
 /**
  * Default reflection-based session serializer that does it via reflection.
@@ -42,7 +42,7 @@ inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = 
  * @property type is a session instance class handled by this serializer
  */
 @KtorExperimentalAPI
-class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
+public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : SessionSerializer<T> {
     private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(text: String): T {

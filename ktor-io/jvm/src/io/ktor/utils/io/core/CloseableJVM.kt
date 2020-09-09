@@ -2,7 +2,7 @@ package io.ktor.utils.io.core
 
 import java.lang.reflect.*
 
-actual typealias Closeable = java.io.Closeable
+public actual typealias Closeable = java.io.Closeable
 
 @PublishedApi
 internal actual fun Throwable.addSuppressedInternal(other: Throwable) {

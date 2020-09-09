@@ -26,7 +26,7 @@ private val escapeRegex: Regex = "\\\\.".toRegex()
 /**
  * Parses an authorization header [headerValue] into a [HttpAuthHeader].
  */
-fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
+public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     val schemeRegion = authSchemePattern.find(headerValue) ?: return null
     val authScheme = schemeRegion.value
     val remaining = headerValue.substringAfterMatch(schemeRegion).trimStart()
@@ -52,7 +52,7 @@ fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
  *
  * @property authScheme auth scheme, usually one of [AuthScheme]
  */
-sealed class HttpAuthHeader(val authScheme: String) {
+public sealed class HttpAuthHeader(public val authScheme: String) {
     init {
         require(authScheme.matches(token68Pattern)) { "invalid authScheme value: it should be token" }
     }
@@ -61,7 +61,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
      * Describes an authentication header that is represented by a single [blob].
      * @property blob contains single token 68, should consist from digits, letters and one of the following: `-._~+/`
      */
-    class Single(authScheme: String, val blob: String) : HttpAuthHeader(authScheme) {
+    public class Single(authScheme: String, public val blob: String) : HttpAuthHeader(authScheme) {
         init {
             require(blob.matches(token68Pattern)) { "invalid blob value: it should be token68 but it is $blob" }
         }
@@ -85,12 +85,12 @@ sealed class HttpAuthHeader(val authScheme: String) {
      * @property parameters a list of auth parameters
      * @property encoding parameters encoding method, one of [HeaderValueEncoding]
      */
-    class Parameterized(
+    public class Parameterized(
         authScheme: String,
-        val parameters: List<HeaderValueParam>,
-        val encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED
+        public val parameters: List<HeaderValueParam>,
+        public val encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED
     ) : HttpAuthHeader(authScheme) {
-        constructor(
+        public constructor(
             authScheme: String,
             parameters: Map<String, String>,
             encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED
@@ -105,7 +105,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Copies this [Parameterized] appending a new parameter [name] [value].
          */
-        fun withParameter(name: String, value: String): Parameterized =
+        public fun withParameter(name: String, value: String): Parameterized =
             Parameterized(authScheme, this.parameters + HeaderValueParam(name, value), encoding)
 
         /**
@@ -114,7 +114,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
          * If there were several pairs they will be reduced into a single pair
          * at position of first occurrence discarding following pairs with this [name].
          */
-        fun withReplacedParameter(name: String, value: String): Parameterized {
+        public fun withReplacedParameter(name: String, value: String): Parameterized {
             val firstIndex = parameters.indexOfFirst { it.name == name }
             if (firstIndex == -1) return withParameter(name, value)
 
@@ -139,7 +139,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Tries to extract the first value of a parameter [name]. Returns null when not found.
          */
-        fun parameter(name: String): String? = parameters.firstOrNull { it.name == name }?.value
+        public fun parameter(name: String): String? = parameters.firstOrNull { it.name == name }?.value
 
         private fun String.encode(encoding: HeaderValueEncoding) = when (encoding) {
             HeaderValueEncoding.QUOTED_WHEN_REQUIRED -> escapeIfNeeded()
@@ -163,12 +163,12 @@ sealed class HttpAuthHeader(val authScheme: String) {
     /**
      * Encodes the header with a specified [encoding].
      */
-    abstract fun render(encoding: HeaderValueEncoding): String
+    public abstract fun render(encoding: HeaderValueEncoding): String
 
     /**
      * Encodes the header with the default [HeaderValueEncoding] for this header.
      */
-    abstract fun render(): String
+    public abstract fun render(): String
 
     /**
      * Encodes the header with the default [HeaderValueEncoding] for this header.
@@ -177,11 +177,11 @@ sealed class HttpAuthHeader(val authScheme: String) {
         return render()
     }
 
-    companion object {
+    public companion object {
         /**
          * Generates an [AuthScheme.Basic] challenge as a [HttpAuthHeader].
          */
-        fun basicAuthChallenge(realm: String, charset: Charset?): Parameterized = Parameterized(
+        public fun basicAuthChallenge(realm: String, charset: Charset?): Parameterized = Parameterized(
             AuthScheme.Basic, LinkedHashMap<String, String>().apply {
                 put(Parameters.Realm, realm)
                 if (charset != null) {
@@ -193,7 +193,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Generates an [AuthScheme.Digest] challenge as a [HttpAuthHeader].
          */
-        fun digestAuthChallenge(
+        public fun digestAuthChallenge(
             realm: String,
             nonce: String = generateNonce(),
             domain: List<String> = emptyList(),
@@ -220,21 +220,21 @@ sealed class HttpAuthHeader(val authScheme: String) {
      * Standard parameters for [Parameterized] [HttpAuthHeader].
      */
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
-    object Parameters {
-        const val Realm = "realm"
-        const val Charset = "charset"
+    public object Parameters {
+        public const val Realm: String = "realm"
+        public const val Charset: String = "charset"
 
-        const val OAuthCallback = "oauth_callback"
-        const val OAuthConsumerKey = "oauth_consumer_key"
-        const val OAuthNonce = "oauth_nonce"
-        const val OAuthToken = "oauth_token"
-        const val OAuthTokenSecret = "oauth_token_secret"
-        const val OAuthVerifier = "oauth_verifier"
-        const val OAuthSignatureMethod = "oauth_signature_method"
-        const val OAuthTimestamp = "oauth_timestamp"
-        const val OAuthVersion = "oauth_version"
-        const val OAuthSignature = "oauth_signature"
-        const val OAuthCallbackConfirmed = "oauth_callback_confirmed"
+        public const val OAuthCallback: String = "oauth_callback"
+        public const val OAuthConsumerKey: String = "oauth_consumer_key"
+        public const val OAuthNonce: String = "oauth_nonce"
+        public const val OAuthToken: String = "oauth_token"
+        public const val OAuthTokenSecret: String = "oauth_token_secret"
+        public const val OAuthVerifier: String = "oauth_verifier"
+        public const val OAuthSignatureMethod: String = "oauth_signature_method"
+        public const val OAuthTimestamp: String = "oauth_timestamp"
+        public const val OAuthVersion: String = "oauth_version"
+        public const val OAuthSignature: String = "oauth_signature"
+        public const val OAuthCallbackConfirmed: String = "oauth_callback_confirmed"
     }
 }
 

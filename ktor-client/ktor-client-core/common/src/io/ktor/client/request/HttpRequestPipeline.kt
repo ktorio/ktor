@@ -11,68 +11,68 @@ import io.ktor.util.pipeline.*
 /**
  * [HttpClient] Pipeline used for executing [HttpRequest].
  */
-class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
+public class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
     /**
      * All interceptors accept payload as [subject] and try to convert it to [OutgoingContent]
      * Last phase should proceed with [HttpClientCall]
      */
-    companion object Phases {
+    public companion object Phases {
         /**
          * The earliest phase that happens before any other
          */
-        val Before = PipelinePhase("Before")
+        public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Use this phase to modify request with shared state
          */
-        val State = PipelinePhase("State")
+        public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Transform request body to supported render format
          */
-        val Transform = PipelinePhase("Transform")
+        public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Encode request body to [OutgoingContent]
          */
-        val Render = PipelinePhase("Render")
+        public val Render: PipelinePhase = PipelinePhase("Render")
 
         /**
          * Phase for [HttpSend] feature
          */
-        val Send = PipelinePhase("Send")
+        public val Send: PipelinePhase = PipelinePhase("Send")
     }
 }
 
 /**
  * [HttpClient] Pipeline used for sending [HttpRequest] to remote server.
  */
-class HttpSendPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Monitoring, Engine, Receive) {
+public class HttpSendPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Monitoring, Engine, Receive) {
 
-    companion object Phases {
+    public companion object Phases {
         /**
          * The earliest phase that happens before any other.
          */
-        val Before = PipelinePhase("Before")
+        public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Use this phase to modify request with shared state.
          */
-        val State = PipelinePhase("State")
+        public val State: PipelinePhase = PipelinePhase("State")
 
         /**
          * Use this phase for logging and other actions that don't modify request or shared data.
          */
-        val Monitoring = PipelinePhase("Monitoring")
+        public val Monitoring: PipelinePhase = PipelinePhase("Monitoring")
 
         /**
          * Send request to remote server.
          */
-        val Engine = PipelinePhase("Engine")
+        public val Engine: PipelinePhase = PipelinePhase("Engine")
 
         /**
          * Receive pipeline execution phase.
          */
-        val Receive = PipelinePhase("Receive")
+        public val Receive: PipelinePhase = PipelinePhase("Receive")
     }
 }

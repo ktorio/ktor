@@ -34,7 +34,7 @@ internal fun HttpClientCall(
  *
  * @property client: client that executed the call.
  */
-open class HttpClientCall internal constructor(
+public open class HttpClientCall internal constructor(
     client: HttpClient
 ) : CoroutineScope {
     private val received = atomic(false)
@@ -46,18 +46,18 @@ open class HttpClientCall internal constructor(
     /**
      * Typed [Attributes] associated to this call serving as a lightweight container.
      */
-    val attributes: Attributes get() = request.attributes
+    public val attributes: Attributes get() = request.attributes
 
     /**
      * Represents the [request] sent by the client
      */
-    lateinit var request: HttpRequest
+    public lateinit var request: HttpRequest
         internal set
 
     /**
      * Represents the [response] sent by the server.
      */
-    lateinit var response: HttpResponse
+    public lateinit var response: HttpResponse
         internal set
 
     /**
@@ -67,7 +67,7 @@ open class HttpClientCall internal constructor(
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
      * @throws DoubleReceiveException If already called [receive].
      */
-    suspend fun receive(info: TypeInfo): Any {
+    public suspend fun receive(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
             if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
@@ -95,7 +95,7 @@ open class HttpClientCall internal constructor(
 
     override fun toString(): String = "HttpClientCall[${request.url}, ${response.status}]"
 
-    companion object {
+    public companion object {
         /**
          * [CustomResponse] key used to process the response of custom type in case of [HttpClientEngine] can't return body bytes directly.
          * If present, attribute value will be an initial value for [HttpResponseContainer] in [HttpClient.responsePipeline].
@@ -103,7 +103,7 @@ open class HttpClientCall internal constructor(
          * Example: [WebSocketSession]
          */
         @KtorExperimentalAPI
-        val CustomResponse: AttributeKey<Any> = AttributeKey<Any>("CustomResponse")
+        public val CustomResponse: AttributeKey<Any> = AttributeKey<Any>("CustomResponse")
     }
 }
 
@@ -119,7 +119,7 @@ open class HttpClientCall internal constructor(
     replaceWith = ReplaceWith("HttpResponseData")
 )
 @InternalAPI
-data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
+public data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
@@ -135,7 +135,7 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
     )
 )
 @Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
-suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
     error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
 
 /**
@@ -144,7 +144,7 @@ suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): 
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -152,13 +152,13 @@ suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.
  */
 @Suppress("KDocMissingDocumentation")
-class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
+public class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
     override val message: String = "Response already received: $call"
 }
 
@@ -167,9 +167,9 @@ class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
  * [cause] contains origin pipeline exception
  */
 @Suppress("KDocMissingDocumentation", "unused")
-class ReceivePipelineException(
-    val request: HttpClientCall,
-    val info: TypeInfo,
+public class ReceivePipelineException(
+    public val request: HttpClientCall,
+    public val info: TypeInfo,
     override val cause: Throwable
 ) : IllegalStateException("Fail to run receive pipeline: $cause")
 
@@ -178,7 +178,7 @@ class ReceivePipelineException(
  * It includes the received type and the expected type as part of the message.
  */
 @Suppress("KDocMissingDocumentation")
-class NoTransformationFoundException(
+public class NoTransformationFoundException(
     response: HttpResponse,
     from: KClass<*>, to: KClass<*>
 ) : UnsupportedOperationException() {

@@ -13,7 +13,7 @@ import io.ktor.client.engine.*
  * https://ktor.io/clients/http-client/engines.html
  */
 @HttpClientDsl
-actual fun HttpClient(
+public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = engines.firstOrNull()?.let { HttpClient(it, block) } ?: error(
     "Failed to find HttpClientEngineContainer. Consider adding [HttpClientEngine] implementation in dependencies."

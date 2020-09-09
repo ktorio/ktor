@@ -286,7 +286,7 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-suspend fun verifyWithOAuth2(
+public suspend fun verifyWithOAuth2(
     credential: UserPasswordCredential,
     client: HttpClient,
     settings: OAuthServerSettings.OAuth2ServerSettings
@@ -315,30 +315,30 @@ suspend fun verifyWithOAuth2(
  * List of OAuth2 request parameters for both peers
  */
 @Suppress("KDocMissingDocumentation")
-object OAuth2RequestParameters {
-    const val ClientId = "client_id"
-    const val Scope = "scope"
-    const val ClientSecret = "client_secret"
-    const val GrantType = "grant_type"
-    const val Code = "code"
-    const val State = "state"
-    const val RedirectUri = "redirect_uri"
-    const val ResponseType = "response_type"
-    const val UserName = "username"
-    const val Password = "password"
+public object OAuth2RequestParameters {
+    public const val ClientId: String = "client_id"
+    public const val Scope: String = "scope"
+    public const val ClientSecret: String = "client_secret"
+    public const val GrantType: String = "grant_type"
+    public const val Code: String = "code"
+    public const val State: String = "state"
+    public const val RedirectUri: String = "redirect_uri"
+    public const val ResponseType: String = "response_type"
+    public const val UserName: String = "username"
+    public const val Password: String = "password"
 }
 
 /**
  * List of OAuth2 server response parameters
  */
 @Suppress("KDocMissingDocumentation")
-object OAuth2ResponseParameters {
-    const val AccessToken = "access_token"
-    const val TokenType = "token_type"
-    const val ExpiresIn = "expires_in"
-    const val RefreshToken = "refresh_token"
-    const val Error = "error"
-    const val ErrorDescription = "error_description"
+public object OAuth2ResponseParameters {
+    public const val AccessToken: String = "access_token"
+    public const val TokenType: String = "token_type"
+    public const val ExpiresIn: String = "expires_in"
+    public const val RefreshToken: String = "refresh_token"
+    public const val Error: String = "error"
+    public const val ErrorDescription: String = "error_description"
 }
 
 private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing {
@@ -355,19 +355,19 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
  * @property errorCode OAuth2 server replied with
  */
 @KtorExperimentalAPI
-sealed class OAuth2Exception(message: String, val errorCode: String?) : Exception(message) {
+public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
      * OAuth2 server responded error="invalid_grant"
      */
     @KtorExperimentalAPI
-    class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
+    public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
 
     /**
      * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
      * decoded but the response doesn't contain error code nor access token
      */
     @KtorExperimentalAPI
-    class MissingAccessToken : OAuth2Exception(
+    public class MissingAccessToken : OAuth2Exception(
         "OAuth2 server response is OK neither error nor access token provided", null
     )
 
@@ -376,7 +376,7 @@ sealed class OAuth2Exception(message: String, val errorCode: String?) : Exceptio
      * @param grantType that was passed to the server
      */
     @KtorExperimentalAPI
-    class UnsupportedGrantType(val grantType: String) : OAuth2Exception(
+    public class UnsupportedGrantType(public val grantType: String) : OAuth2Exception(
         "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
     ), CopyableThrowable<UnsupportedGrantType> {
         override fun createCopy(): UnsupportedGrantType = UnsupportedGrantType(grantType).also {
@@ -389,7 +389,7 @@ sealed class OAuth2Exception(message: String, val errorCode: String?) : Exceptio
      * @param errorCode the OAuth2 server replied with
      */
     @KtorExperimentalAPI
-    class UnknownException(
+    public class UnknownException(
         private val details: String, errorCode: String
     ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {
         override fun createCopy(): UnknownException = UnknownException(details, errorCode!!).also {

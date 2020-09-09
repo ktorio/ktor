@@ -11,7 +11,7 @@ import kotlin.math.*
  * Possible content range units: bytes and none
  * @property unitToken Lower-case unit name
  */
-enum class RangeUnits(val unitToken: String) {
+public enum class RangeUnits(public val unitToken: String) {
     /**
      * Range unit `bytes`
      */
@@ -26,13 +26,13 @@ enum class RangeUnits(val unitToken: String) {
 /**
  * Represents a `Range` header's particular range
  */
-sealed class ContentRange {
+public sealed class ContentRange {
     /**
      * Represents a `Content-Range` bounded from both sides
      * @property from index from which the content should begin
      * @property to the last index the content should end at (inclusive)
      */
-    data class Bounded(val from: Long, val to: Long) : ContentRange() {
+    public data class Bounded(val from: Long, val to: Long) : ContentRange() {
         override fun toString(): String = "$from-$to"
     }
 
@@ -40,7 +40,7 @@ sealed class ContentRange {
      * Represents a `Content-Range` bounded at the beginning (skip first bytes, show tail)
      * @property from index from which the content should begin
      */
-    data class TailFrom(val from: Long) : ContentRange() {
+    public data class TailFrom(val from: Long) : ContentRange() {
         override fun toString(): String = "$from-"
     }
 
@@ -48,7 +48,7 @@ sealed class ContentRange {
      * Represents a `Content-Range` bounded by tail size
      * @property lastCount number of tail bytes
      */
-    data class Suffix(val lastCount: Long) : ContentRange() {
+    public data class Suffix(val lastCount: Long) : ContentRange() {
         override fun toString(): String = "-$lastCount"
     }
 }
@@ -56,7 +56,7 @@ sealed class ContentRange {
 /**
  * Parse `Range` header value
  */
-fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
+public fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     try {
         val (unit, allRangesString) = rangeSpec.chomp("=") { return null }
         val allRanges = allRangesString.split(',').map {

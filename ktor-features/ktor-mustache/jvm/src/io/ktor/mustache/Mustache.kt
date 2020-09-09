@@ -21,26 +21,26 @@ import io.ktor.utils.io.*
  * @param etag value for `E-Tag` header (optional)
  * @param contentType response's content type which is set to `text/html;charset=utf-8` by default
  */
-class MustacheContent(
-    val template: String,
-    val model: Any?,
-    val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+public class MustacheContent(
+    public val template: String,
+    public val model: Any?,
+    public val etag: String? = null,
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
 /**
  * Feature for providing Mustache templates as [MustacheContent]
  */
-class Mustache(configuration: Configuration) {
+public class Mustache(configuration: Configuration) {
 
     private val mustacheFactory = configuration.mustacheFactory
 
-    class Configuration {
-        var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
+    public class Configuration {
+        public var mustacheFactory: MustacheFactory = DefaultMustacheFactory()
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Mustache> {
-        override val key = AttributeKey<Mustache>("mustache")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Mustache> {
+        override val key: AttributeKey<Mustache> = AttributeKey<Mustache>("mustache")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Mustache {
             val configuration = Configuration().apply(configure)

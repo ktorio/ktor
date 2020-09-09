@@ -20,8 +20,8 @@ private val RN_BYTES = "\r\n".toByteArray()
  *
  * @param formData: data to send.
  */
-class FormDataContent(
-    val formData: Parameters
+public class FormDataContent(
+    public val formData: Parameters
 ) : OutgoingContent.ByteArrayContent() {
     private val content = formData.formUrlEncode().toByteArray()
 
@@ -37,7 +37,7 @@ class FormDataContent(
  *
  * @param parts: form part data
  */
-class MultiPartFormDataContent(
+public class MultiPartFormDataContent(
     parts: List<PartData>
 ) : OutgoingContent.WriteChannelContent() {
     private val boundary: String = generateBoundary()

@@ -1,9 +1,6 @@
 package io.ktor.utils.io.core.internal
 
-import kotlinx.atomicfu.AtomicRef
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
+import kotlinx.atomicfu.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.bits.DefaultAllocator
 import io.ktor.utils.io.concurrent.*
@@ -11,7 +8,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 
 @DangerousInternalIoApi
-open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?) : Buffer(memory) {
+public open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?) : Buffer(memory) {
     init {
         require(origin !== this) { "A chunk couldn't be a view of itself." }
     }
@@ -22,7 +19,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
     /**
      * Reference to an origin buffer view this was copied from
      */
-    var origin: ChunkBuffer? by shared(origin)
+    public var origin: ChunkBuffer? by shared(origin)
         private set
 
     /**
@@ -30,7 +27,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
      * @see appendNext
      * @see cleanNext
      */
-    var next: ChunkBuffer? get() = nextRef.value
+    public var next: ChunkBuffer? get() = nextRef.value
         set(newValue) {
             if (newValue == null) {
                 cleanNext()
@@ -39,7 +36,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
             }
         }
 
-    val referenceCount: Int get() = refCount.value
+    public val referenceCount: Int get() = refCount.value
 
     private fun appendNext(chunk: ChunkBuffer) {
         if (!nextRef.compareAndSet(null, chunk)) {
@@ -47,7 +44,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         }
     }
 
-    fun cleanNext(): ChunkBuffer? {
+    public fun cleanNext(): ChunkBuffer? {
         return nextRef.getAndSet(null)
     }
 
@@ -58,7 +55,7 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         }
     }
 
-    open fun release(pool: ObjectPool<ChunkBuffer>) {
+    public open fun release(pool: ObjectPool<ChunkBuffer>) {
         if (release()) {
             val origin = origin
             if (origin != null) {
@@ -125,8 +122,8 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         nextRef.value = null
     }
 
-    companion object {
-        val Pool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
+    public companion object {
+        public val Pool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
             override val capacity: Int
                 get() = DefaultChunkedBufferPool.capacity
 
@@ -149,12 +146,12 @@ open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?
         }
 
         @Suppress("DEPRECATION")
-        val Empty: ChunkBuffer get() = IoBuffer.Empty
+        public val Empty: ChunkBuffer get() = IoBuffer.Empty
 
         /**
          * A pool that always returns [ChunkBuffer.Empty]
          */
-        val EmptyPool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
+        public val EmptyPool: ObjectPool<ChunkBuffer> = object : ObjectPool<ChunkBuffer> {
             override val capacity: Int get() = 1
 
             override fun borrow() = Empty

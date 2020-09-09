@@ -19,57 +19,57 @@ import kotlin.coroutines.*
 /**
  * A request for [HttpClient], first part of [HttpClientCall].
  */
-interface HttpRequest : HttpMessage, CoroutineScope {
+public interface HttpRequest : HttpMessage, CoroutineScope {
     /**
      * The associated [HttpClientCall] containing both
      * the underlying [HttpClientCall.request] and [HttpClientCall.response].
      */
-    val call: HttpClientCall
+    public val call: HttpClientCall
 
     override val coroutineContext: CoroutineContext get() = call.coroutineContext
 
     /**
      * The [HttpMethod] or HTTP VERB used for this request.
      */
-    val method: HttpMethod
+    public val method: HttpMethod
 
     /**
      * The [Url] representing the endpoint and the uri for this request.
      */
-    val url: Url
+    public val url: Url
 
     /**
      * Typed [Attributes] associated to this call serving as a lightweight container.
      */
-    val attributes: Attributes
+    public val attributes: Attributes
 
     @Deprecated(
         "Binary compatibility.",
         level = DeprecationLevel.HIDDEN
     )
     @Suppress("unused", "KDocMissingDocumentation")
-    val executionContext: Job
+    public val executionContext: Job
         get() = coroutineContext[Job]!!
 
     /**
      * An [OutgoingContent] representing the request body
      */
-    val content: OutgoingContent
+    public val content: OutgoingContent
 }
 
 /**
  * Class for building [HttpRequestData].
  */
-class HttpRequestBuilder : HttpMessageBuilder {
+public class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
      */
-    val url: URLBuilder = URLBuilder()
+    public val url: URLBuilder = URLBuilder()
 
     /**
      * [HttpMethod] used by this request. [HttpMethod.Get] by default.
      */
-    var method: HttpMethod = HttpMethod.Get
+    public var method: HttpMethod = HttpMethod.Get
 
     /**
      * [HeadersBuilder] to configure the headers for this request.
@@ -79,7 +79,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * The [body] for this request. Initially [EmptyContent].
      */
-    var body: Any = EmptyContent
+    public var body: Any = EmptyContent
 
     /**
      * A deferred used to control the execution of this request.
@@ -95,17 +95,17 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Call specific attributes.
      */
-    val attributes: Attributes = Attributes(concurrent = true)
+    public val attributes: Attributes = Attributes(concurrent = true)
 
     /**
      * Executes a [block] that configures the [URLBuilder] associated to this request.
      */
-    fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
+    public fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
 
     /**
      * Create immutable [HttpRequestData]
      */
-    fun build(): HttpRequestData = HttpRequestData(
+    public fun build(): HttpRequestData = HttpRequestData(
         url.build(), method, headers.build(),
         body as? OutgoingContent ?: error("No request transformation found: $body"),
         executionContext, attributes
@@ -114,7 +114,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Set request specific attributes specified by [block].
      */
-    fun setAttributes(block: Attributes.() -> Unit) {
+    public fun setAttributes(block: Attributes.() -> Unit) {
         attributes.apply(block)
     }
 
@@ -122,7 +122,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Mutates [this] copying all the data from another [builder] using it as base.
      */
     @InternalAPI
-    fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
+    public fun takeFromWithExecutionContext(builder: HttpRequestBuilder): HttpRequestBuilder {
         executionContext = builder.executionContext
         return takeFrom(builder)
     }
@@ -130,7 +130,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * Mutates [this] copying all the data but execution context from another [builder] using it as base.
      */
-    fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
+    public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
         url.takeFrom(builder.url)
@@ -148,7 +148,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Set capability configuration.
      */
     @KtorExperimentalAPI
-    fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
+    public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
         val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
         capabilities[key] = capability
     }
@@ -157,31 +157,31 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Retrieve capability by key.
      */
     @KtorExperimentalAPI
-    fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
+    public fun <T : Any> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
     }
 
-    companion object
+    public companion object
 }
 
 /**
  * Actual data of the [HttpRequest], including [url], [method], [headers], [body] and [executionContext].
  * Built by [HttpRequestBuilder].
  */
-class HttpRequestData @InternalAPI constructor(
-    val url: Url,
-    val method: HttpMethod,
-    val headers: Headers,
-    val body: OutgoingContent,
-    val executionContext: Job,
-    val attributes: Attributes
+public class HttpRequestData @InternalAPI constructor(
+    public val url: Url,
+    public val method: HttpMethod,
+    public val headers: Headers,
+    public val body: OutgoingContent,
+    public val executionContext: Job,
+    public val attributes: Attributes
 ) {
     /**
      * Retrieve extension by it's key.
      */
     @KtorExperimentalAPI
-    fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
+    public fun <T> getCapabilityOrNull(key: HttpClientEngineCapability<T>): T? {
         @Suppress("UNCHECKED_CAST")
         return attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.get(key) as T?
     }
@@ -199,15 +199,15 @@ class HttpRequestData @InternalAPI constructor(
 /**
  * Data prepared for [HttpResponse].
  */
-class HttpResponseData constructor(
-    val statusCode: HttpStatusCode,
-    val requestTime: GMTDate,
-    val headers: Headers,
-    val version: HttpProtocolVersion,
-    val body: Any,
-    val callContext: CoroutineContext
+public class HttpResponseData constructor(
+    public val statusCode: HttpStatusCode,
+    public val requestTime: GMTDate,
+    public val headers: Headers,
+    public val version: HttpProtocolVersion,
+    public val body: Any,
+    public val callContext: CoroutineContext
 ) {
-    val responseTime: GMTDate = GMTDate()
+    public val responseTime: GMTDate = GMTDate()
 
     override fun toString(): String = "HttpResponseData=(statusCode=$statusCode)"
 }
@@ -215,13 +215,13 @@ class HttpResponseData constructor(
 /**
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
  */
-fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
+public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
 
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
  */
-fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
+public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
     url.takeFrom(request.url)
@@ -233,12 +233,12 @@ fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
 /**
  * Executes a [block] that configures the [URLBuilder] associated to this request.
  */
-fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(url)
+public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(url)
 
 /**
  * Sets the [HttpRequestBuilder] from [request].
  */
-fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
+public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
     url.takeFrom(request.url)
@@ -250,13 +250,13 @@ fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
 /**
  * Executes a [block] that configures the [URLBuilder] associated to thisrequest.
  */
-operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
+public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
     HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
  */
-fun HttpRequestBuilder.url(
+public fun HttpRequestBuilder.url(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): Unit {
@@ -273,7 +273,7 @@ fun HttpRequestBuilder.url(
  * Constructs a [HttpRequestBuilder] from URL information: [scheme], [host], [port] and [path]
  * and optionally further configures it using [block].
  */
-operator fun HttpRequestBuilder.Companion.invoke(
+public operator fun HttpRequestBuilder.Companion.invoke(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
@@ -281,13 +281,13 @@ operator fun HttpRequestBuilder.Companion.invoke(
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-fun HttpRequestBuilder.url(urlString: String): Unit {
+public fun HttpRequestBuilder.url(urlString: String): Unit {
     url.takeFrom(urlString)
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-fun HttpRequestData.isUpgradeRequest(): Boolean {
+public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
 

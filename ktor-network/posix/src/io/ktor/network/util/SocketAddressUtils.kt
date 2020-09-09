@@ -6,7 +6,7 @@ package io.ktor.network.util
 
 import io.ktor.util.network.*
 
-val NetworkAddress.address: SocketAddress get() {
+public val NetworkAddress.address: SocketAddress get() {
     if (explicitAddress.value == null) {
         explicitAddress.value  = resolve().first()
     }
@@ -14,4 +14,4 @@ val NetworkAddress.address: SocketAddress get() {
     return explicitAddress.value  as? SocketAddress ?: error("Failed to resolve address for $this")
 }
 
-fun NetworkAddress.resolve(): List<SocketAddress> = getAddressInfo(hostname, port)
+public fun NetworkAddress.resolve(): List<SocketAddress> = getAddressInfo(hostname, port)

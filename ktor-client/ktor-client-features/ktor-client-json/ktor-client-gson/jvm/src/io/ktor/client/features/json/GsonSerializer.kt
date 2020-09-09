@@ -13,7 +13,7 @@ import io.ktor.utils.io.core.*
 /**
  * [JsonSerializer] using [Gson] as backend.
  */
-class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
+public class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
     private val backend: Gson = GsonBuilder().apply(block).create()
 
     override fun write(data: Any, contentType: ContentType): OutgoingContent =

@@ -111,8 +111,8 @@ public class TestClientBuilder<T : HttpClientEngineConfig>(
     public var test: suspend TestInfo.(client: HttpClient) -> Unit = {},
     public var after: suspend (client: HttpClient) -> Unit = {},
     public var repeatCount: Int = 1,
-    var dumpAfterDelay: Long = -1,
-    var concurrency: Int = 1
+    public var dumpAfterDelay: Long = -1,
+    public var concurrency: Int = 1
 )
 
 @InternalAPI

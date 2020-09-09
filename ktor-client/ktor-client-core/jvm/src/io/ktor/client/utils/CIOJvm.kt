@@ -13,7 +13,7 @@ import java.nio.*
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
 @InternalAPI
-val HttpClientDefaultPool = ByteBufferPool()
+public val HttpClientDefaultPool: ByteBufferPool = ByteBufferPool()
 
 @InternalAPI
 @Deprecated(
@@ -21,7 +21,7 @@ val HttpClientDefaultPool = ByteBufferPool()
     message = "ByteBufferPool is moved to `io` module",
     replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
 )
-class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
+public class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_HTTP_BUFFER_SIZE)!!
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply {

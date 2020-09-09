@@ -9,12 +9,12 @@ package io.ktor.http
  *
  * @param visibility specifies an optional visibility such as private or public
  */
-sealed class CacheControl(val visibility: Visibility?) {
+public sealed class CacheControl(public val visibility: Visibility?) {
 
     /**
      * Controls caching by proxies
      */
-    enum class Visibility(internal val headerValue: String) {
+    public enum class Visibility(internal val headerValue: String) {
         /**
          * Specifies that the response is cacheable by clients and shared (proxy) caches.
          */
@@ -29,7 +29,7 @@ sealed class CacheControl(val visibility: Visibility?) {
     /**
      * Represents a no-cache cache control value
      */
-    class NoCache(visibility: Visibility?) : CacheControl(visibility) {
+    public class NoCache(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString(): String = if (visibility == null) {
             "no-cache"
         } else {
@@ -40,7 +40,7 @@ sealed class CacheControl(val visibility: Visibility?) {
     /**
      * Represents a no-store cache control value
      */
-    class NoStore(visibility: Visibility?) : CacheControl(visibility) {
+    public class NoStore(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString(): String = if (visibility == null) {
             "no-store"
         } else {
@@ -55,11 +55,11 @@ sealed class CacheControl(val visibility: Visibility?) {
      * @property mustRevalidate `true` if a client must validate in spite of age
      * @property proxyRevalidate `true` if a caching proxy must revalidate in spite of age
      */
-    class MaxAge(
-        val maxAgeSeconds: Int,
-        val proxyMaxAgeSeconds: Int? = null,
-        val mustRevalidate: Boolean = false,
-        val proxyRevalidate: Boolean = false,
+    public class MaxAge(
+        public val maxAgeSeconds: Int,
+        public val proxyMaxAgeSeconds: Int? = null,
+        public val mustRevalidate: Boolean = false,
+        public val proxyRevalidate: Boolean = false,
         visibility: Visibility? = null
     ) : CacheControl(visibility) {
         override fun toString(): String {

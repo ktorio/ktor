@@ -15,12 +15,12 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
     private val state = atomic<Any?>(null)
     private val jobCancellationHandler = atomic<JobRelation?>(null)
 
-    fun close(value: T) {
+    public fun close(value: T) {
         resume(value)
         jobCancellationHandler.getAndSet(null)?.dispose()
     }
 
-    fun close(cause: Throwable) {
+    public fun close(cause: Throwable) {
         resumeWithException(cause)
         jobCancellationHandler.getAndSet(null)?.dispose()
     }
@@ -29,7 +29,7 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
      * Remember [actual] continuation or return resumed value
      * @return `COROUTINE_SUSPENDED` when remembered or return value if already resumed
      */
-    fun completeSuspendBlock(actual: Continuation<T>): Any {
+    public fun completeSuspendBlock(actual: Continuation<T>): Any {
         loop@while (true) {
             val before = state.value
 
@@ -126,7 +126,7 @@ internal class CancellableReusableContinuation<T : Any> : Continuation<T> {
             }
         }
 
-        fun dispose() {
+        public fun dispose() {
             handler?.let {
                 this.handler = null
                 it.dispose()

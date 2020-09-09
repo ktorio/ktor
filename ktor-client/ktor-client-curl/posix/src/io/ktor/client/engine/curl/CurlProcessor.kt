@@ -31,7 +31,7 @@ internal class CurlProcessor(
         }
     }
 
-    suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
+    public suspend fun executeRequest(request: CurlRequestData, callContext: CoroutineContext): CurlSuccess {
         val deferred = CompletableDeferred<CurlSuccess>()
         responseConsumers[request] = deferred
 
@@ -58,7 +58,7 @@ internal class CurlProcessor(
         }
     }
 
-    fun close() {
+    public fun close() {
         worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
     }
 

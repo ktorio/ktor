@@ -18,7 +18,7 @@ import kotlinx.coroutines.*
  *
  * See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
  */
-class ContentEncoding(
+public class ContentEncoding(
     private val encoders: Map<String, ContentEncoder>,
     private val qualityValues: Map<String, Float>
 ) {
@@ -60,7 +60,7 @@ class ContentEncoding(
     /**
      * [ContentEncoding] configuration.
      */
-    class Config {
+    public class Config {
         internal val encoders: MutableMap<String, ContentEncoder> = CaseInsensitiveMap()
 
         internal val qualityValues: MutableMap<String, Float> = CaseInsensitiveMap()
@@ -70,7 +70,7 @@ class ContentEncoding(
          *
          * @param quality: priority value to use in Accept-Encoding header.
          */
-        fun gzip(quality: Float? = null) {
+        public fun gzip(quality: Float? = null) {
             customEncoder(GZipEncoder, quality)
         }
 
@@ -79,7 +79,7 @@ class ContentEncoding(
          *
          * @param quality: priority value to use in Accept-Encoding header.
          */
-        fun deflate(quality: Float? = null) {
+        public fun deflate(quality: Float? = null) {
             customEncoder(DeflateEncoder, quality)
         }
 
@@ -87,7 +87,7 @@ class ContentEncoding(
          * Install identity encoder.
          * @param quality: priority value to use in Accept-Encoding header.
          */
-        fun identity(quality: Float? = null) {
+        public fun identity(quality: Float? = null) {
             customEncoder(IdentityEncoder, quality)
         }
 
@@ -97,7 +97,7 @@ class ContentEncoding(
          * @param encoder: custom encoder to use.
          * @param quality: priority value to use in Accept-Encoding header.
          */
-        fun customEncoder(encoder: ContentEncoder, quality: Float? = null) {
+        public fun customEncoder(encoder: ContentEncoder, quality: Float? = null) {
             val name = encoder.name
             encoders[name.toLowerCase()] = encoder
 
@@ -109,7 +109,7 @@ class ContentEncoding(
         }
     }
 
-    companion object : HttpClientFeature<Config, ContentEncoding> {
+    public companion object : HttpClientFeature<Config, ContentEncoding> {
         override val key: AttributeKey<ContentEncoding> = AttributeKey("HttpEncoding")
 
         override fun prepare(block: Config.() -> Unit): ContentEncoding {
@@ -143,7 +143,7 @@ class ContentEncoding(
  *
  * @param block: [ContentEncoding] configuration.
  */
-fun HttpClientConfig<*>.ContentEncoding(
+public fun HttpClientConfig<*>.ContentEncoding(
     block: ContentEncoding.Config.() -> Unit = {
         gzip()
         deflate()
@@ -154,5 +154,5 @@ fun HttpClientConfig<*>.ContentEncoding(
 }
 
 @Suppress("KDocMissingDocumentation")
-class UnsupportedContentEncodingException(encoding: String) :
+public class UnsupportedContentEncodingException(encoding: String) :
     IllegalStateException("Content-Encoding: $encoding unsupported.")

@@ -13,7 +13,7 @@ import java.io.*
  * [OutgoingContent] to respond with [OutputStream].
  * The stream would be automatically closed after [body] finish.
  */
-class OutputStreamContent(
+public class OutputStreamContent(
     private val body: suspend OutputStream.() -> Unit,
     override val contentType: ContentType,
     override val status: HttpStatusCode? = null

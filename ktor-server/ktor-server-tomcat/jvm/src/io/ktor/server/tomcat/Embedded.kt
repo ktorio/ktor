@@ -9,7 +9,7 @@ import io.ktor.server.engine.*
 /**
  * An [ApplicationEngineFactory] providing a Tomcat-based [ApplicationEngine]
  */
-object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
+public object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
     override fun create(
         environment: ApplicationEngineEnvironment,
         configure: TomcatApplicationEngine.Configuration.() -> Unit

@@ -4,7 +4,7 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 
-fun Output.writeShort(value: Short) {
+public fun Output.writeShort(value: Short) {
     if (!writePrimitiveTemplate(2) { memory, index -> memory.storeShortAt(index, value) }) {
         writeShortFallback(value)
     }
@@ -17,7 +17,7 @@ private fun Output.writeShortFallback(value: Short) {
     }
 }
 
-fun Output.writeInt(value: Int) {
+public fun Output.writeInt(value: Int) {
     if (!writePrimitiveTemplate(4) { memory, index -> memory.storeIntAt(index, value) }) {
         writeIntFallback(value)
     }
@@ -40,7 +40,7 @@ private fun Output.writeIntByteByByte(value: Int) {
     }
 }
 
-fun Output.writeLong(value: Long) {
+public fun Output.writeLong(value: Long) {
     if (!writePrimitiveTemplate(8) { memory, index -> memory.storeLongAt(index, value) }) {
         writeLongFallback(value)
     }
@@ -53,13 +53,13 @@ private fun Output.writeLongFallback(value: Long) {
     }
 }
 
-fun Output.writeFloat(value: Float) {
+public fun Output.writeFloat(value: Float) {
     if (!writePrimitiveTemplate(4) { memory, index -> memory.storeFloatAt(index, value) }) {
         writeIntFallback(value.toRawBits())
     }
 }
 
-fun Output.writeDouble(value: Double) {
+public fun Output.writeDouble(value: Double) {
     if (!writePrimitiveTemplate(8) { memory, index -> memory.storeDoubleAt(index, value) }) {
         writeLongFallback(value.toRawBits())
     }

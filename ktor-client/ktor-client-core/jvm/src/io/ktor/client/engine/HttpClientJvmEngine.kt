@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  */
 @Suppress("KDocMissingDocumentation")
 @Deprecated("Use HttpClientEngineBase instead.", replaceWith = ReplaceWith("HttpClientEngineBase"))
-abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
+public abstract class HttpClientJvmEngine(engineName: String) : HttpClientEngine {
     private val clientContext = SilentSupervisor()
     private val _dispatcher by lazy {
         Executors.newFixedThreadPool(config.threadsCount) {

@@ -29,7 +29,7 @@ import kotlin.reflect.jvm.*
  * @throws ParameterConversionException when conversion from String to [R] fails
  */
 @KtorExperimentalAPI
-inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
+public inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R {
     return getOrFail<R>(property.name)
 }
 
@@ -39,7 +39,7 @@ inline operator fun <reified R : Any> Parameters.getValue(thisRef: Any?, propert
  */
 @KtorExperimentalAPI
 @Suppress("NOTHING_TO_INLINE")
-inline fun Parameters.getOrFail(name: String): String {
+public inline fun Parameters.getOrFail(name: String): String {
     return get(name) ?: throw MissingRequestParameterException(name)
 }
 
@@ -51,7 +51,7 @@ inline fun Parameters.getOrFail(name: String): String {
  */
 @KtorExperimentalAPI
 @OptIn(ExperimentalStdlibApi::class)
-inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
+public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
     return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
 }
 

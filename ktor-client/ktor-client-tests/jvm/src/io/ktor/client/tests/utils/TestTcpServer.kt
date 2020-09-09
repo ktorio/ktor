@@ -34,7 +34,7 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
         }
     }
 
-    fun close() {
+    public fun close() {
         coroutineContext.cancel()
     }
 }

@@ -7,7 +7,7 @@ package io.ktor.http.auth
 /**
  * Describes how a header should be encoded.
  */
-enum class HeaderValueEncoding {
+public enum class HeaderValueEncoding {
     /**
      * The header will be quoted only when required.
      */

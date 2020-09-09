@@ -17,7 +17,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-class KotlinxSerializer(
+public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {
 
@@ -37,7 +37,7 @@ class KotlinxSerializer(
         return json.decodeFromString(mapper, text)!!
     }
 
-    companion object {
+    public companion object {
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */
@@ -46,14 +46,14 @@ class KotlinxSerializer(
             message = "DefaultJsonConfiguration is deprecated. Consider using DefaultJson instead."
         )
         @Suppress("DEPRECATION_ERROR")
-        val DefaultJsonConfiguration: Json = Json {
+        public val DefaultJsonConfiguration: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
             allowSpecialFloatingPointValues = true
             useArrayPolymorphism = false
         }
 
-        val DefaultJson: Json = Json {
+        public val DefaultJson: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
             allowSpecialFloatingPointValues = true

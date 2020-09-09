@@ -7,14 +7,14 @@ package io.ktor.sessions
 /**
  * Serializes session from and to [String]
  */
-interface SessionSerializer<T> {
+public interface SessionSerializer<T> {
     /**
      * Serializes a complex arbitrary object into a [String].
      */
-    fun serialize(session: T): String
+    public fun serialize(session: T): String
 
     /**
      * Deserializes a complex arbitrary object from a [String].
      */
-    fun deserialize(text: String): T
+    public fun deserialize(text: String): T
 }

@@ -12,7 +12,7 @@ import kotlin.coroutines.*
  * Specialized dispatcher useful for graceful shutdown
  */
 @InternalAPI
-class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatcher() {
+public class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatcher() {
     private var delegate: CoroutineDispatcher? = delegate
 
     @Volatile
@@ -23,7 +23,7 @@ class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatche
      * Prepare for shutdown so we will not dispatch on [delegate] anymore. It is still possible to
      * dispatch coroutines.
      */
-    fun prepareShutdown() {
+    public fun prepareShutdown() {
         shutdownPhase = ShutdownPhase.Graceful
         delegate = null
     }
@@ -31,7 +31,7 @@ class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatche
     /**
      * Complete shutdown. Any further attempts to dispatch anything will fail with [RejectedExecutionException]
      */
-    fun completeShutdown() {
+    public fun completeShutdown() {
         shutdownPhase = ShutdownPhase.Completed
         if (shutdownPool.isInitialized()) shutdownPool.value.shutdown()
     }

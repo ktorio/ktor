@@ -27,14 +27,14 @@ internal class LockFreeMPSCQueue<E : Any> {
     // Note: it is not atomic w.r.t. remove operation (remove can transiently fail when isEmpty is false)
     val isEmpty: Boolean get() = _cur.value.isEmpty
 
-    fun close() {
+    public fun close() {
         _cur.loop { cur ->
             if (cur.close()) return // closed this copy
             _cur.compareAndSet(cur, cur.next()) // move to next
         }
     }
 
-    fun addLast(element: E): Boolean {
+    public fun addLast(element: E): Boolean {
         _cur.loop { cur ->
             when (cur.addLast(element)) {
                 Core.ADD_SUCCESS -> return true
@@ -45,7 +45,7 @@ internal class LockFreeMPSCQueue<E : Any> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun removeFirstOrNull(): E? {
+    public fun removeFirstOrNull(): E? {
         _cur.loop { cur ->
             val result = cur.removeFirstOrNull()
             if (result !== Core.REMOVE_FROZEN) return result as E?
@@ -74,7 +74,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     // Note: it is not atomic w.r.t. remove operation (remove can transiently fail when isEmpty is false)
     val isEmpty: Boolean get() = _state.value.withState { head, tail -> head == tail }
 
-    fun close(): Boolean {
+    public fun close(): Boolean {
         _state.update { state ->
             if (state and CLOSED_MASK != 0L) return true // ok - already closed
             if (state and FROZEN_MASK != 0L) return false // frozen -- try next
@@ -84,7 +84,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     }
 
     // ADD_CLOSED | ADD_FROZEN | ADD_SUCCESS
-    fun addLast(element: E): Int {
+    public fun addLast(element: E): Int {
         _state.loop { state ->
             if (state and (FROZEN_MASK or CLOSED_MASK) != 0L) return state.addFailReason() // cannot add
             state.withState { head, tail ->
@@ -130,7 +130,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
 
     // SINGLE CONSUMER
     // REMOVE_FROZEN | null (EMPTY) | E (SUCCESS)
-    fun removeFirstOrNull(): Any? {
+    public fun removeFirstOrNull(): Any? {
         _state.loop { state ->
             if (state and FROZEN_MASK != 0L) return REMOVE_FROZEN // frozen -- cannot modify
             state.withState { head, tail ->
@@ -170,7 +170,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
         }
     }
 
-    fun next(): LockFreeMPSCQueueCore<E> = allocateOrGetNextCopy(markFrozen())
+    public fun next(): LockFreeMPSCQueueCore<E> = allocateOrGetNextCopy(markFrozen())
 
     private fun markFrozen(): Long =
         _state.updateAndGet { state ->

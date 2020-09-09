@@ -34,7 +34,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     private val events = Channel<Unit>(2)
 
-    suspend fun run() {
+    public suspend fun run() {
         val buffer = ArrayPool.borrow()
         try {
             output.setWriteListener(this)

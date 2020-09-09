@@ -12,6 +12,6 @@ import io.ktor.util.*
  * @param end points to the next character after the last one
  */
 @InternalAPI
-class MutableRange(var start: Int, var end: Int) {
+public class MutableRange(public var start: Int, public var end: Int) {
     override fun toString(): String = "MutableRange(start=$start, end=$end)"
 }

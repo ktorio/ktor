@@ -25,7 +25,7 @@ package io.ktor.util
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR
 )
-annotation class InternalAPI
+public annotation class InternalAPI
 
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
@@ -45,4 +45,4 @@ annotation class InternalAPI
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR
 )
-annotation class KtorExperimentalAPI
+public annotation class KtorExperimentalAPI

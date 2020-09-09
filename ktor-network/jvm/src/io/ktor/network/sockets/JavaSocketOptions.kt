@@ -83,17 +83,17 @@ internal object SocketOptionsPlatformCapabilities {
         null
     }
 
-    fun setReusePort(channel: SocketChannel) {
+    public fun setReusePort(channel: SocketChannel) {
         val option = socketOption(SO_REUSEPORT)
         channelSetOption!!.invoke(channel, option, true)
     }
 
-    fun setReusePort(channel: ServerSocketChannel) {
+    public fun setReusePort(channel: ServerSocketChannel) {
         val option = socketOption(SO_REUSEPORT)
         serverChannelSetOption!!.invoke(channel, option, true)
     }
 
-    fun setReusePort(channel: DatagramChannel) {
+    public fun setReusePort(channel: DatagramChannel) {
         val option = socketOption(SO_REUSEPORT)
         datagramSetOption!!.invoke(channel, option, true)
     }

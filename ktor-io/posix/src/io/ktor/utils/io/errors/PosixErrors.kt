@@ -37,56 +37,56 @@ private val KnownPosixErrors = mapOf<Int, String>(
  * @property message error text
  */
 @ExperimentalIoApi
-sealed class PosixException(val errno: Int, message: String) : Exception(message) {
+public sealed class PosixException(public val errno: Int, message: String) : Exception(message) {
     @ExperimentalIoApi
-    class BadFileDescriptorException(message: String) : PosixException(EBADF, message)
+    public class BadFileDescriptorException(message: String) : PosixException(EBADF, message)
 
     @ExperimentalIoApi
-    class TryAgainException(errno: Int = EAGAIN, message: String) : PosixException(errno, message)
+    public class TryAgainException(errno: Int = EAGAIN, message: String) : PosixException(errno, message)
 
     @ExperimentalIoApi
-    class BadMessageException(message: String) : PosixException(EBADMSG, message)
+    public class BadMessageException(message: String) : PosixException(EBADMSG, message)
 
     @ExperimentalIoApi
-    class InterruptedException(message: String) : PosixException(EINTR, message)
+    public class InterruptedException(message: String) : PosixException(EINTR, message)
 
     @ExperimentalIoApi
-    class InvalidArgumentException(message: String) : PosixException(EINVAL, message)
+    public class InvalidArgumentException(message: String) : PosixException(EINVAL, message)
 
     @ExperimentalIoApi
-    class ConnectionResetException(message: String) : PosixException(ECONNRESET, message)
+    public class ConnectionResetException(message: String) : PosixException(ECONNRESET, message)
 
     @ExperimentalIoApi
-    class ConnectionRefusedException(message: String) : PosixException(ECONNREFUSED, message)
+    public class ConnectionRefusedException(message: String) : PosixException(ECONNREFUSED, message)
 
     @ExperimentalIoApi
-    class ConnectionAbortedException(message: String) : PosixException(ECONNABORTED, message)
+    public class ConnectionAbortedException(message: String) : PosixException(ECONNABORTED, message)
 
     @ExperimentalIoApi
-    class NotConnectedException(message: String) : PosixException(ENOTCONN, message)
+    public class NotConnectedException(message: String) : PosixException(ENOTCONN, message)
 
     @ExperimentalIoApi
-    class TimeoutIOException(message: String) : PosixException(ETIMEDOUT, message)
+    public class TimeoutIOException(message: String) : PosixException(ETIMEDOUT, message)
 
     @ExperimentalIoApi
-    class NotSocketException(message: String) : PosixException(ENOTSOCK, message)
+    public class NotSocketException(message: String) : PosixException(ENOTSOCK, message)
 
     @ExperimentalIoApi
-    class AddressAlreadyInUseException(message: String) : PosixException(EADDRINUSE, message)
+    public class AddressAlreadyInUseException(message: String) : PosixException(EADDRINUSE, message)
 
     @ExperimentalIoApi
-    class NoSuchFileException(message: String) : PosixException(ENOENT, message)
+    public class NoSuchFileException(message: String) : PosixException(ENOENT, message)
 
     @ExperimentalIoApi
-    class OverflowException(message: String) : PosixException(EOVERFLOW, message)
+    public class OverflowException(message: String) : PosixException(EOVERFLOW, message)
 
     @ExperimentalIoApi
-    class NoMemoryException(message: String) : PosixException(ENOMEM, message)
+    public class NoMemoryException(message: String) : PosixException(ENOMEM, message)
 
     @ExperimentalIoApi
-    class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
+    public class PosixErrnoException(errno: Int, message: String) : PosixException(errno, "$message ($errno)")
 
-    companion object {
+    public companion object {
         /**
          * Create the corresponding instance of PosixException
          * with error message provided by the underlying POSIX implementation.
@@ -96,7 +96,7 @@ sealed class PosixException(val errno: Int, message: String) : Exception(message
          * @return an instance of [PosixException] or it's subtype
          */
         @ExperimentalIoApi
-        fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
+        public fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
             val posixConstantName = KnownPosixErrors[errno]
             val posixErrorCodeMessage = when {
                 posixConstantName == null -> "POSIX error $errno"

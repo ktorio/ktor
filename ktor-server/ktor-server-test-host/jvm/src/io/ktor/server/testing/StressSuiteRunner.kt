@@ -9,7 +9,7 @@ import org.junit.runner.manipulation.*
 import org.junit.runner.notification.*
 import org.junit.runners.*
 
-class StressSuiteRunner(klass: Class<*>) : Runner(), Filterable, Sortable {
+public class StressSuiteRunner(klass: Class<*>) : Runner(), Filterable, Sortable {
     private val delegate = JUnit4(klass)
 
     override fun run(notifier: RunNotifier?) {

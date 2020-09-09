@@ -4,11 +4,11 @@ package io.ktor.utils.io.core
 
 import kotlinx.cinterop.*
 
-fun Output.writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
+public fun Output.writeFully(src: CPointer<ByteVar>, offset: Int, length: Int) {
     writeFully(src, offset.toLong(), length.toLong())
 }
 
-fun Output.writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
+public fun Output.writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
     require(length >= 0L)
     require(offset >= 0L)
 

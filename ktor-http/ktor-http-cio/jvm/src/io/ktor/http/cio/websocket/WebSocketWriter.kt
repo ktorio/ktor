@@ -23,11 +23,11 @@ import kotlin.coroutines.*
 @OptIn(
     ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
 )
-class WebSocketWriter(
+public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
-    var masking: Boolean = false,
-    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    public var masking: Boolean = false,
+    public val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
     private val queue = Channel<Any>(capacity = 8)
@@ -37,7 +37,7 @@ class WebSocketWriter(
     /**
      * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
      */
-    val outgoing: SendChannel<Frame> get() = queue
+    public val outgoing: SendChannel<Frame> get() = queue
 
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
     private val writeLoopJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
@@ -145,12 +145,12 @@ class WebSocketWriter(
     /**
      * Send a frame and write it and all outstanding frames in the queue
      */
-    suspend fun send(frame: Frame): Unit = queue.send(frame)
+    public suspend fun send(frame: Frame): Unit = queue.send(frame)
 
     /**
      * Ensures all enqueued messages has been written
      */
-    suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
+    public suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
         try {
             queue.send(it)
         } catch (closed: ClosedSendChannelException) {
@@ -166,13 +166,13 @@ class WebSocketWriter(
      * Closes the message queue
      */
     @Deprecated("Will be removed")
-    fun close() {
+    public fun close() {
         queue.close()
     }
 
     private class FlushRequest(parent: Job?) {
         private val done: CompletableJob = Job(parent)
-        fun complete(): Boolean = done.complete()
+        public fun complete(): Boolean = done.complete()
         suspend fun await(): Unit = done.join()
     }
 }

@@ -12,27 +12,27 @@ import javax.net.ssl.*
 /**
  * Configuration for [Android] client engine.
  */
-class AndroidEngineConfig : HttpClientEngineConfig() {
+public class AndroidEngineConfig : HttpClientEngineConfig() {
     /**
      * Max milliseconds to establish an HTTP connection - default 100 seconds.
      * A value of 0 represents infinite.
      */
-    var connectTimeout: Int = 100_000
+    public var connectTimeout: Int = 100_000
 
     /**
      * Max milliseconds between TCP packets - default 100 seconds.
      * A value of 0 represents infinite.
      */
-    var socketTimeout: Int = 100_000
+    public var socketTimeout: Int = 100_000
 
 
     /**
      * Https connection manipulator. inherited methods are not permitted.
      */
-    var sslManager: (HttpsURLConnection) -> Unit = {}
+    public var sslManager: (HttpsURLConnection) -> Unit = {}
 
     /**
      * Engine specific request configuration.
      */
-    var requestConfig: HttpURLConnection.() -> Unit = {}
+    public var requestConfig: HttpURLConnection.() -> Unit = {}
 }

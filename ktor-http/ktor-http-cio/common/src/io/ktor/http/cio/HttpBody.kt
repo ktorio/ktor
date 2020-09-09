@@ -14,7 +14,7 @@ import io.ktor.utils.io.*
  * parsed [connectionOptions]
  */
 @KtorExperimentalAPI
-fun expectHttpUpgrade(
+public fun expectHttpUpgrade(
     method: HttpMethod,
     upgrade: CharSequence?,
     connectionOptions: ConnectionOptions?
@@ -26,7 +26,7 @@ fun expectHttpUpgrade(
  * @return `true` if an http upgrade is expected according to [request]
  */
 @KtorExperimentalAPI
-fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
+public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
     request.method,
     request.headers["Upgrade"],
     ConnectionOptions.parse(request.headers["Connection"])
@@ -36,7 +36,7 @@ fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
  * @return `true` if request or response with the specified parameters could have a body
  */
 @KtorExperimentalAPI
-fun expectHttpBody(
+public fun expectHttpBody(
     method: HttpMethod,
     contentLength: Long,
     transferEncoding: CharSequence?,
@@ -57,7 +57,7 @@ fun expectHttpBody(
  * @return `true` if request or response with the specified parameters could have a body
  */
 @KtorExperimentalAPI
-fun expectHttpBody(request: Request): Boolean = expectHttpBody(
+public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
     request.method,
     request.headers["Content-Length"]?.parseDecLong() ?: -1,
     request.headers["Transfer-Encoding"],
@@ -74,7 +74,7 @@ fun expectHttpBody(request: Request): Boolean = expectHttpBody(
  * @param
  */
 @KtorExperimentalAPI
-suspend fun parseHttpBody(
+public suspend fun parseHttpBody(
     contentLength: Long,
     transferEncoding: CharSequence?,
     connectionOptions: ConnectionOptions?,
@@ -117,7 +117,7 @@ suspend fun parseHttpBody(
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  */
 @KtorExperimentalAPI
-suspend fun parseHttpBody(
+public suspend fun parseHttpBody(
     headers: HttpHeadersMap,
     input: ByteReadChannel,
     out: ByteWriteChannel

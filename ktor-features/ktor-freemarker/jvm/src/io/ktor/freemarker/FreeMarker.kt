@@ -21,21 +21,21 @@ import io.ktor.utils.io.*
  * @param etag value for `E-Tag` header (optional)
  * @param contentType of response (optional, `text/html` with UTF-8 character encoding by default)
  */
-class FreeMarkerContent(
-    val template: String,
-    val model: Any?,
-    val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+public class FreeMarkerContent(
+    public val template: String,
+    public val model: Any?,
+    public val etag: String? = null,
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
 /**
  * Freemarker support feature. Provides ability to respond with [FreeMarkerContent]
  */
-class FreeMarker(private val config: Configuration) {
+public class FreeMarker(private val config: Configuration) {
     /**
      * A feature installing companion object
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, FreeMarker> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, FreeMarker> {
         override val key: AttributeKey<FreeMarker> = AttributeKey("freemarker")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {

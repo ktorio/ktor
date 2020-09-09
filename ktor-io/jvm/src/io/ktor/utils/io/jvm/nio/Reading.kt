@@ -10,7 +10,7 @@ import java.nio.channels.*
  *
  * @return number of bytes were copied
  */
-suspend fun ReadableByteChannel.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
+public suspend fun ReadableByteChannel.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long {
     require(limit >= 0L) { "Limit shouldn't be negative: $limit" }
     if (this is SelectableChannel && !isBlocking) {
         throw IllegalArgumentException("Non-blocking channels are not supported")
@@ -50,4 +50,4 @@ suspend fun ReadableByteChannel.copyTo(ch: ByteWriteChannel, limit: Long = Long.
  *
  * @return number of bytes copied
  */
-suspend fun Pipe.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long = source().copyTo(ch, limit)
+public suspend fun Pipe.copyTo(ch: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Long = source().copyTo(ch, limit)

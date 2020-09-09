@@ -5,26 +5,25 @@
 package io.ktor.request
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.collections.*
 
 /**
  * Server request's cookies
  * @property request application request to fetch cookies from
  */
-open class RequestCookies(protected val request: ApplicationRequest) {
+public open class RequestCookies(protected val request: ApplicationRequest) {
     private val map = ConcurrentMap<Pair<CookieEncoding, String>, String>()
 
     /**
      * RAW cookie values, not decoded so could have percent encoded values, quotes, escape characters and so on.
      * It is recommended to use [get] instead
      */
-    val rawCookies: Map<String, String> by lazy { fetchCookies() }
+    public val rawCookies: Map<String, String> by lazy { fetchCookies() }
 
     /**
      * Get cookie [name] value decoding cookies using [encoding] strategy
      */
-    operator fun get(name: String, encoding: CookieEncoding = CookieEncoding.URI_ENCODING): String? {
+    public operator fun get(name: String, encoding: CookieEncoding = CookieEncoding.URI_ENCODING): String? {
         val rawValue = rawCookies[name] ?: return null
         return map.computeIfAbsent(encoding to name) { decodeCookieValue(rawValue, encoding) }
     }

@@ -12,7 +12,7 @@ import io.ktor.http.cio.websocket.*
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
-suspend fun HttpClient.webSocketRawSession(
+public suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     block: HttpRequestBuilder.() -> Unit = {}
 ): ClientWebSocketSession = request {
@@ -24,7 +24,7 @@ suspend fun HttpClient.webSocketRawSession(
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
-suspend fun HttpClient.webSocketRaw(
+public suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit {
@@ -47,7 +47,7 @@ suspend fun HttpClient.webSocketRaw(
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
-suspend fun HttpClient.wsRaw(
+public suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
@@ -56,7 +56,7 @@ suspend fun HttpClient.wsRaw(
 /**
  * Open [DefaultClientWebSocketSession].
  */
-suspend fun HttpClient.ws(
+public suspend fun HttpClient.ws(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend DefaultClientWebSocketSession.() -> Unit
@@ -68,7 +68,7 @@ suspend fun HttpClient.ws(
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
  */
-suspend fun HttpClient.wssRaw(
+public suspend fun HttpClient.wssRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request = {

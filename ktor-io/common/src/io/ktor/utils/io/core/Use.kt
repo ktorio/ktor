@@ -1,6 +1,6 @@
 package io.ktor.utils.io.core
 
-inline fun <I : Input, R> I.use(block: (I) -> R): R {
+public inline fun <I : Input, R> I.use(block: (I) -> R): R {
     return try {
         block(this)
     } finally {
@@ -8,7 +8,7 @@ inline fun <I : Input, R> I.use(block: (I) -> R): R {
     }
 }
 
-inline fun <O : Output, R> O.use(block: (O) -> R): R {
+public inline fun <O : Output, R> O.use(block: (O) -> R): R {
     return try {
         block(this)
     } finally {

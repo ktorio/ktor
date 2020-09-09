@@ -297,6 +297,6 @@ open class BytePacketBuildTest {
     }
 
     companion object {
-        const val PACKET_BUFFER_SIZE: Int = 4096
+        public const val PACKET_BUFFER_SIZE: Int = 4096
     }
 }

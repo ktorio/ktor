@@ -9,18 +9,18 @@ import io.ktor.util.network.*
  *
  * See [ProxyBuilder] to create proxy.
  */
-expect class ProxyConfig
+public expect class ProxyConfig
 
 /**
  * Type of configured proxy.
  */
-expect val ProxyConfig.type: ProxyType
+public expect val ProxyConfig.type: ProxyType
 
 /**
  * Types of proxy
  */
 @Suppress("NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING", "KDocMissingDocumentation")
-enum class ProxyType {
+public enum class ProxyType {
     SOCKS,
     HTTP,
     UNKNOWN
@@ -31,24 +31,24 @@ enum class ProxyType {
  *
  * This operations can block.
  */
-expect fun ProxyConfig.resolveAddress(): NetworkAddress
+public expect fun ProxyConfig.resolveAddress(): NetworkAddress
 
 /**
  * [ProxyConfig] factory.
  */
-expect object ProxyBuilder {
+public expect object ProxyBuilder {
     /**
      * Create http proxy from [url].
      */
-    fun http(url: Url): ProxyConfig
+    public fun http(url: Url): ProxyConfig
 
     /**
      * Create socks proxy from [host] and [port].
      */
-    fun socks(host: String, port: Int): ProxyConfig
+    public fun socks(host: String, port: Int): ProxyConfig
 }
 
 /**
  * Create http proxy from [urlString].
  */
-fun ProxyBuilder.http(urlString: String): ProxyConfig = http(Url(urlString))
+public fun ProxyBuilder.http(urlString: String): ProxyConfig = http(Url(urlString))

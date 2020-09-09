@@ -9,7 +9,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Application.uploadTest() {
+public fun Application.uploadTest() {
     routing {
         route("upload") {
             post("content") {

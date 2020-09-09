@@ -17,17 +17,17 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-abstract class NettyApplicationResponse(
+public abstract class NettyApplicationResponse(
     call: NettyApplicationCall,
     protected val context: ChannelHandlerContext,
     protected val engineContext: CoroutineContext,
     protected val userContext: CoroutineContext
 ) : BaseApplicationResponse(call) {
 
-    val responseMessage = CompletableDeferred<Any>()
+    public val responseMessage: CompletableDeferred<Any> = CompletableDeferred<Any>()
 
     @Volatile
-    protected var responseMessageSent = false
+    protected var responseMessageSent: Boolean = false
 
     internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
@@ -98,7 +98,7 @@ abstract class NettyApplicationResponse(
         // while close only does flush() and doesn't terminate connection
     }
 
-    fun cancel() {
+    public fun cancel() {
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
             responseMessage.cancel()
@@ -106,10 +106,10 @@ abstract class NettyApplicationResponse(
         }
     }
 
-    companion object {
+    public companion object {
         private val EmptyByteArray = ByteArray(0)
 
-        val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes
+        public val responseStatusCache: Array<HttpResponseStatus?> = HttpStatusCode.allStatusCodes
             .associateBy { it.value }.let { codes ->
                 Array(1000) {
                     if (it in codes.keys) HttpResponseStatus(it, codes[it]!!.description) else null
