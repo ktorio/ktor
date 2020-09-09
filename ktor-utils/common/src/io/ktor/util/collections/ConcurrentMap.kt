@@ -23,7 +23,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     initialCapacity: Int = INITIAL_CAPACITY
 ) : MutableMap<Key, Value> {
 
-    constructor(lock: Lock, map: Map<Key, Value>) : this(lock, map.size) {
+    public constructor(lock: Lock, map: Map<Key, Value>) : this(lock, map.size) {
         putAll(map)
     }
 
@@ -138,8 +138,8 @@ public class ConcurrentMap<Key : Any, Value : Any>(
                 locked {
                     table.forEach {
                         it ?: return@forEach
-                        it.forEach {
-                            items.add(it)
+                        it.forEach { item ->
+                            items.add(item)
                         }
                     }
                 }
@@ -164,7 +164,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         "This is accidentally does insert instead of get. Use computeIfAbsent or getOrElse instead.",
         level = DeprecationLevel.ERROR
     )
-    fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
+    public fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
         return@withLock computeIfAbsent(key, block)
     }
 

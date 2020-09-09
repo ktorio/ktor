@@ -15,7 +15,7 @@ private const val CHUNK_BUFFER_SIZE = 4096L
  * Cancel of one channel in split(input or both outputs) cancels other channels.
  */
 @KtorExperimentalAPI
-fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
+public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)
 
@@ -46,7 +46,7 @@ fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel,
  * Copy source channel to both output channels chunk by chunk.
  */
 @InternalAPI
-fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {
+public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel) {
     GlobalScope.launch(Dispatchers.Unconfined) {
         try {
             while (!isClosedForRead && (!first.isClosedForWrite || !second.isClosedForWrite)) {
@@ -75,4 +75,4 @@ fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWriteChannel
 /**
  * Read channel to byte array.
  */
-suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()
+public suspend fun ByteReadChannel.toByteArray(): ByteArray = readRemaining().readBytes()

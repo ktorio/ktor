@@ -4,10 +4,10 @@
 package io.ktor.util
 
 @InternalAPI
-class CaseInsensitiveSet() : MutableSet<String> {
+public class CaseInsensitiveSet() : MutableSet<String> {
     private val backingMap = CaseInsensitiveMap<Boolean>()
 
-    constructor(initial: Iterable<String>) : this() {
+    public constructor(initial: Iterable<String>) : this() {
         addAll(initial)
     }
 

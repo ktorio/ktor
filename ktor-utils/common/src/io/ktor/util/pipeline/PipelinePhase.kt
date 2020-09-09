@@ -9,11 +9,11 @@ package io.ktor.util.pipeline
  *
  * @param name a name for this phase
  */
-class PipelinePhase(val name: String) {
-    override fun toString() = "Phase('$name')"
+public class PipelinePhase(public val name: String) {
+    override fun toString(): String = "Phase('$name')"
 }
 
 /**
  * An exception about misconfigured phases in a pipeline
  */
-class InvalidPhaseException(message: String) : Throwable(message)
+public class InvalidPhaseException(message: String) : Throwable(message)
