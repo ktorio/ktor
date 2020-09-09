@@ -11,14 +11,18 @@ import io.ktor.utils.io.charsets.*
  * @property contentType represents a type part of the media type.
  * @property contentSubtype represents a subtype part of the media type.
  */
-class ContentType private constructor(
-    val contentType: String,
-    val contentSubtype: String,
+public class ContentType private constructor(
+    public val contentType: String,
+    public val contentSubtype: String,
     existingContent: String,
     parameters: List<HeaderValueParam> = emptyList()
 ) : HeaderValueWithParameters(existingContent, parameters) {
 
-    constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(
+    public constructor(
+        contentType: String,
+        contentSubtype: String,
+        parameters: List<HeaderValueParam> = emptyList()
+    ) : this(
         contentType,
         contentSubtype,
         "$contentType/$contentSubtype",
@@ -28,7 +32,7 @@ class ContentType private constructor(
     /**
      * Creates a copy of `this` type with the added parameter with the [name] and [value].
      */
-    fun withParameter(name: String, value: String): ContentType {
+    public fun withParameter(name: String, value: String): ContentType {
         if (hasParameter(name, value)) return this
 
         return ContentType(contentType, contentSubtype, content, parameters + HeaderValueParam(name, value))
@@ -43,12 +47,12 @@ class ContentType private constructor(
     /**
      * Creates a copy of `this` type without any parameters
      */
-    fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
+    public fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
      */
-    fun match(pattern: ContentType): Boolean {
+    public fun match(pattern: ContentType): Boolean {
         if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true)) {
             return false
         }
@@ -84,7 +88,7 @@ class ContentType private constructor(
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
      */
-    fun match(pattern: String): Boolean = match(parse(pattern))
+    public fun match(pattern: String): Boolean = match(parse(pattern))
 
     override fun equals(other: Any?): Boolean =
         other is ContentType &&
@@ -99,11 +103,11 @@ class ContentType private constructor(
         return result
     }
 
-    companion object {
+    public companion object {
         /**
          * Parses a string representing a `Content-Type` header into a [ContentType] instance.
          */
-        fun parse(value: String): ContentType {
+        public fun parse(value: String): ContentType {
             if (value.isBlank()) return Any
 
             return parse(value) { parts, parameters ->
@@ -136,126 +140,129 @@ class ContentType private constructor(
         /**
          * Represents a pattern `* / *` to match any content type.
          */
-        val Any: ContentType = ContentType("*", "*")
+        public val Any: ContentType = ContentType("*", "*")
     }
 
     /**
      * Provides a list of standard subtypes of an `application` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Application {
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Application {
         /**
          * Represents a pattern `application / *` to match any application content type.
          */
-        val Any = ContentType("application", "*")
-        val Atom = ContentType("application", "atom+xml")
-        val Cbor = ContentType("application", "cbor")
-        val Json = ContentType("application", "json")
-        val HalJson = ContentType("application", "hal+json")
-        val JavaScript = ContentType("application", "javascript")
-        val OctetStream = ContentType("application", "octet-stream")
-        val FontWoff = ContentType("application", "font-woff")
-        val Rss = ContentType("application", "rss+xml")
-        val Xml = ContentType("application", "xml")
-        val Xml_Dtd = ContentType("application", "xml-dtd")
-        val Zip = ContentType("application", "zip")
-        val GZip = ContentType("application", "gzip")
-        val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
-        val Pdf = ContentType("application", "pdf")
-        val ProtoBuf = ContentType("application", "protobuf")
-        val Wasm = ContentType("application", "wasm")
-        val ProblemJson = ContentType("application", "problem+json")
-        val ProblemXml = ContentType("application", "problem+xml")
+        public val Any: ContentType = ContentType("application", "*")
+        public val Atom: ContentType = ContentType("application", "atom+xml")
+        public val Cbor: ContentType = ContentType("application", "cbor")
+        public val Json: ContentType = ContentType("application", "json")
+        public val HalJson: ContentType = ContentType("application", "hal+json")
+        public val JavaScript: ContentType = ContentType("application", "javascript")
+        public val OctetStream: ContentType = ContentType("application", "octet-stream")
+        public val FontWoff: ContentType = ContentType("application", "font-woff")
+        public val Rss: ContentType = ContentType("application", "rss+xml")
+        public val Xml: ContentType = ContentType("application", "xml")
+        public val Xml_Dtd: ContentType = ContentType("application", "xml-dtd")
+        public val Zip: ContentType = ContentType("application", "zip")
+        public val GZip: ContentType = ContentType("application", "gzip")
+
+        public val FormUrlEncoded: ContentType =
+            ContentType("application", "x-www-form-urlencoded")
+
+        public val Pdf: ContentType = ContentType("application", "pdf")
+        public val ProtoBuf: ContentType = ContentType("application", "protobuf")
+        public val Wasm: ContentType = ContentType("application", "wasm")
+        public val ProblemJson: ContentType = ContentType("application", "problem+json")
+        public val ProblemXml: ContentType = ContentType("application", "problem+xml")
     }
 
     /**
      * Provides a list of standard subtypes of an `audio` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Audio {
-        val Any = ContentType("audio", "*")
-        val MP4 = ContentType("audio", "mp4")
-        val MPEG = ContentType("audio", "mpeg")
-        val OGG = ContentType("audio", "ogg")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Audio {
+        public val Any: ContentType = ContentType("audio", "*")
+        public val MP4: ContentType = ContentType("audio", "mp4")
+        public val MPEG: ContentType = ContentType("audio", "mpeg")
+        public val OGG: ContentType = ContentType("audio", "ogg")
     }
 
     /**
      * Provides a list of standard subtypes of an `image` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Image {
-        val Any = ContentType("image", "*")
-        val GIF = ContentType("image", "gif")
-        val JPEG = ContentType("image", "jpeg")
-        val PNG = ContentType("image", "png")
-        val SVG = ContentType("image", "svg+xml")
-        val XIcon = ContentType("image", "x-icon")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Image {
+        public val Any: ContentType = ContentType("image", "*")
+        public val GIF: ContentType = ContentType("image", "gif")
+        public val JPEG: ContentType = ContentType("image", "jpeg")
+        public val PNG: ContentType = ContentType("image", "png")
+        public val SVG: ContentType = ContentType("image", "svg+xml")
+        public val XIcon: ContentType = ContentType("image", "x-icon")
     }
 
     /**
      * Provides a list of standard subtypes of a `message` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Message {
-        val Any = ContentType("message", "*")
-        val Http = ContentType("message", "http")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Message {
+        public val Any: ContentType = ContentType("message", "*")
+        public val Http: ContentType = ContentType("message", "http")
     }
 
     /**
      * Provides a list of standard subtypes of a `multipart` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object MultiPart {
-        val Any = ContentType("multipart", "*")
-        val Mixed = ContentType("multipart", "mixed")
-        val Alternative = ContentType("multipart", "alternative")
-        val Related = ContentType("multipart", "related")
-        val FormData = ContentType("multipart", "form-data")
-        val Signed = ContentType("multipart", "signed")
-        val Encrypted = ContentType("multipart", "encrypted")
-        val ByteRanges = ContentType("multipart", "byteranges")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object MultiPart {
+        public val Any: ContentType = ContentType("multipart", "*")
+        public val Mixed: ContentType = ContentType("multipart", "mixed")
+        public val Alternative: ContentType = ContentType("multipart", "alternative")
+        public val Related: ContentType = ContentType("multipart", "related")
+        public val FormData: ContentType = ContentType("multipart", "form-data")
+        public val Signed: ContentType = ContentType("multipart", "signed")
+        public val Encrypted: ContentType = ContentType("multipart", "encrypted")
+        public val ByteRanges: ContentType = ContentType("multipart", "byteranges")
     }
 
     /**
      * Provides a list of standard subtypes of a `text` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Text {
-        val Any = ContentType("text", "*")
-        val Plain = ContentType("text", "plain")
-        val CSS = ContentType("text", "css")
-        val CSV = ContentType("text", "csv")
-        val Html = ContentType("text", "html")
-        val JavaScript = ContentType("text", "javascript")
-        val VCard = ContentType("text", "vcard")
-        val Xml = ContentType("text", "xml")
-        val EventStream = ContentType("text", "event-stream")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Text {
+        public val Any: ContentType = ContentType("text", "*")
+        public val Plain: ContentType = ContentType("text", "plain")
+        public val CSS: ContentType = ContentType("text", "css")
+        public val CSV: ContentType = ContentType("text", "csv")
+        public val Html: ContentType = ContentType("text", "html")
+        public val JavaScript: ContentType = ContentType("text", "javascript")
+        public val VCard: ContentType = ContentType("text", "vcard")
+        public val Xml: ContentType = ContentType("text", "xml")
+        public val EventStream: ContentType = ContentType("text", "event-stream")
     }
 
     /**
      * Provides a list of standard subtypes of a `video` content type.
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Video {
-        val Any = ContentType("video", "*")
-        val MPEG = ContentType("video", "mpeg")
-        val MP4 = ContentType("video", "mp4")
-        val OGG = ContentType("video", "ogg")
-        val QuickTime = ContentType("video", "quicktime")
+    @Suppress("KDocMissingDocumentation", "unused")
+    public object Video {
+        public val Any: ContentType = ContentType("video", "*")
+        public val MPEG: ContentType = ContentType("video", "mpeg")
+        public val MP4: ContentType = ContentType("video", "mp4")
+        public val OGG: ContentType = ContentType("video", "ogg")
+        public val QuickTime: ContentType = ContentType("video", "quicktime")
     }
 }
 
 /**
  * Exception thrown when a content type string is malformed.
  */
-class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
+public class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
 
 /**
  * Creates a copy of `this` type with the added charset parameter with [charset] value.
  */
-fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
+public fun ContentType.withCharset(charset: Charset): ContentType = withParameter("charset", charset.name)
 
 /**
  * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.
  */
-fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let { Charset.forName(it) }
+public fun HeaderValueWithParameters.charset(): Charset? = parameter("charset")?.let { Charset.forName(it) }

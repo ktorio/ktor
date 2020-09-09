@@ -83,7 +83,7 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         return append(csq, 0, csq.length)
     }
 
-    fun release() {
+    public fun release() {
         val list = buffers
 
         if (list != null) {

@@ -29,7 +29,7 @@ import java.io.*
 @OptIn(
     ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
 )
-fun CoroutineScope.startServerConnectionPipeline(
+public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler

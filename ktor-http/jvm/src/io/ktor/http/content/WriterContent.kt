@@ -12,7 +12,7 @@ import java.io.*
 /**
  * Represents a content that is produced by [body] function
  */
-class WriterContent(
+public class WriterContent(
     private val body: suspend Writer.() -> Unit,
     override val contentType: ContentType,
     override val status: HttpStatusCode? = null

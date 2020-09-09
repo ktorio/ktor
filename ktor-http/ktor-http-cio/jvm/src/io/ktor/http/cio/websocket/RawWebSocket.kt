@@ -19,7 +19,7 @@ import kotlin.properties.*
  * Represents a RAW web socket session
  */
 @OptIn(WebSocketInternalAPI::class)
-class RawWebSocket(
+public class RawWebSocket(
     input: ByteReadChannel, output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
@@ -81,7 +81,7 @@ class RawWebSocket(
 @Suppress("KDocMissingDocumentation")
 @OptIn(WebSocketInternalAPI::class)
 @InternalAPI
-suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
+public suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     try {
         handler()
         writer.flush()

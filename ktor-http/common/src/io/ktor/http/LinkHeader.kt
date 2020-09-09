@@ -7,50 +7,60 @@ package io.ktor.http
 /**
  * Represents a `Link` header value as per RFC 5988
  */
-class LinkHeader(uri: String, params: List<HeaderValueParam>) : HeaderValueWithParameters("<$uri>", params) {
-    @Suppress("unused")
-    constructor(uri: String, rel: String) : this(uri, listOf(HeaderValueParam(Parameters.Rel, rel)))
-
-    constructor(uri: String, vararg rel: String) : this(uri, listOf(HeaderValueParam(Parameters.Rel, rel.joinToString(" "))))
+public class LinkHeader(
+    uri: String, params: List<HeaderValueParam>
+) : HeaderValueWithParameters("<$uri>", params) {
 
     @Suppress("unused")
-    constructor(uri: String, rel: List<String>, type: ContentType)
-    : this(uri, listOf(
+    public constructor(uri: String, rel: String) : this(uri, listOf(HeaderValueParam(Parameters.Rel, rel)))
+
+    public constructor(uri: String, vararg rel: String) : this(
+        uri,
+        listOf(HeaderValueParam(Parameters.Rel, rel.joinToString(" ")))
+    )
+
+    @Suppress("unused")
+    public constructor(
+        uri: String, rel: List<String>, type: ContentType
+    ) : this(
+        uri, listOf(
             HeaderValueParam(Parameters.Rel, rel.joinToString(" ")),
-            HeaderValueParam(Parameters.Type, type.toString())))
+            HeaderValueParam(Parameters.Type, type.toString())
+        )
+    )
 
     /**
      * Link URI part
      */
-    val uri: String
+    public val uri: String
         get() = content.removePrefix("<").removeSuffix(">")
 
     /**
      * Known Link header parameters
      */
     @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType")
-    object Parameters {
-        const val Rel = "rel"
-        const val Anchor = "anchor"
-        const val Rev = "Rev"
-        const val HrefLang = "hreflang"
-        const val Media = "media"
-        const val Title = "title"
-        const val Type = "type"
+    public object Parameters {
+        public const val Rel: String = "rel"
+        public const val Anchor: String = "anchor"
+        public const val Rev: String = "Rev"
+        public const val HrefLang: String = "hreflang"
+        public const val Media: String = "media"
+        public const val Title: String = "title"
+        public const val Type: String = "type"
     }
 
     /**
      * Known rel parameter values
      */
     @Suppress("unused", "KDocMissingDocumentation", "PublicApiImplicitType")
-    object Rel {
-        const val Stylesheet = "stylesheet"
+    public object Rel {
+        public const val Stylesheet: String = "stylesheet"
 
-        const val Prefetch = "prefetch"
-        const val DnsPrefetch = "dns-prefetch"
-        const val PreConnect = "preconnect"
-        const val PreLoad = "preload"
-        const val PreRender = "prerender"
-        const val Next = "next"
+        public const val Prefetch: String = "prefetch"
+        public const val DnsPrefetch: String = "dns-prefetch"
+        public const val PreConnect: String = "preconnect"
+        public const val PreLoad: String = "preload"
+        public const val PreRender: String = "prerender"
+        public const val Next: String = "next"
     }
 }
