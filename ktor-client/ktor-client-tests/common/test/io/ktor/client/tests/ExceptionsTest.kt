@@ -4,18 +4,18 @@
 
 package io.ktor.client.tests
 
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import kotlin.test.*
 
 
-class ExceptionsTest {
+class ExceptionsTest : ClientLoader() {
+
     @Test
     fun testReadResponseFromException() = testSuspend {
         if (PlatformUtils.IS_NATIVE) return@testSuspend
@@ -33,6 +33,30 @@ class ExceptionsTest {
         } catch (exception: ResponseException) {
             val text = exception.response?.readText()
             assertEquals(HttpStatusCode.BadRequest.description, text)
+        }
+    }
+
+    @Test
+    fun testErrorOnResponseCoroutine() = clientTests {
+        config {
+            test { client ->
+                val requestBuilder = HttpRequestBuilder()
+                requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
+
+                assertFailsWith<IllegalStateException> {
+                    client.get<HttpStatement>(requestBuilder).execute { response ->
+                        try {
+                            CoroutineScope(response.coroutineContext)
+                                .launch { throw IllegalStateException("failed on receive") }
+                                .join()
+                        } catch (e: Exception) {
+                        }
+                        response.content.toByteArray()
+                    }
+                }
+
+                assertTrue(requestBuilder.executionContext[Job]!!.isActive)
+            }
         }
     }
 }

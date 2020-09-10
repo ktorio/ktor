@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.*
 
 private val content: String = buildString {
     repeat(1875) {
@@ -21,6 +22,14 @@ internal fun Application.downloadTest() {
         route("download") {
             get("8175") {
                 call.respond(TextContent(content, ContentType.Text.Plain))
+            }
+            get("infinite") {
+                call.respondOutputStream {
+                    while (true) {
+                        write(1)
+                        delay(1)
+                    }
+                }
             }
         }
     }
