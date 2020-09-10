@@ -55,8 +55,8 @@ class RequestTests : TestWithKtor() {
 
     @Test
     fun testReusingRequestBuilderOnMultipleClients() {
-        val rb = HttpRequestBuilder()
-        rb.url.takeFrom("http://0.0.0.0:$serverPort/delay?delay=500")
+        val requestBuilder = HttpRequestBuilder()
+        requestBuilder.url.takeFrom("$testUrl/delay?delay=500")
 
         val clientFail = HttpClient(OkHttp) {
             engine {
@@ -74,9 +74,9 @@ class RequestTests : TestWithKtor() {
         }
 
         runBlocking {
-            assertFailsWith<SocketTimeoutException> { clientFail.get<HttpResponseData>(rb) }
+            assertFailsWith<SocketTimeoutException> { clientFail.get<HttpResponseData>(requestBuilder) }
 
-            val response = clientSuccess.get<String>(rb)
+            val response = clientSuccess.get<String>(requestBuilder)
             assertEquals("OK", response)
         }
     }
