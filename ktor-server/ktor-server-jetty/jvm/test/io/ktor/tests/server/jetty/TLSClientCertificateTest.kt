@@ -22,10 +22,10 @@ import javax.net.ssl.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
-class HelloWorldTest {
+class TLSClientCertificateTest {
 
     @Test
-    fun helloWorld() = runBlocking {
+    fun `Jetty Server requesting Client Certificate from CIO Client`() = runBlocking {
         val keyStore = generateCertificateChain(File.createTempFile("test", "certificate"))
 
         val server = embeddedServer(
