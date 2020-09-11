@@ -16,9 +16,11 @@ import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
+import java.io.*
 import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
+import javax.net.ssl.*
 import kotlin.coroutines.*
 
 /**
@@ -68,6 +70,7 @@ public class NettyChannelInitializer(
                             ApplicationProtocolNames.HTTP_1_1
                         )
                     )
+                    connector.trustManagerFactory()?.let { this.trustManager(it) }
                 }
             }
                 .build()
@@ -78,7 +81,13 @@ public class NettyChannelInitializer(
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
             if (connector is EngineSSLConnectorConfig) {
-                addLast("ssl", sslContext!!.newHandler(ch.alloc()))
+                val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
+                    if (connector.hasTrustStore()) {
+                        useClientMode = false
+                        needClientAuth = true
+                    }
+                }
+                addLast("ssl", SslHandler(sslEngine))
 
                 if (alpnProvider != null) {
                     addLast(NegotiatedPipelineInitializer())
@@ -129,6 +138,19 @@ public class NettyChannelInitializer(
                 environment.log.error("Unsupported protocol $protocol")
                 pipeline.close()
             }
+        }
+    }
+
+    private fun EngineSSLConnectorConfig.hasTrustStore() = trustStore != null || trustStorePath != null
+
+    private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
+        val trustStore = trustStore ?: trustStorePath?.let { file ->
+            FileInputStream(file).use { fis ->
+                KeyStore.getInstance(KeyStore.getDefaultType()).also { it.load(fis, null) }
+            }
+        }
+        return trustStore?.let { store ->
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(store) }
         }
     }
 

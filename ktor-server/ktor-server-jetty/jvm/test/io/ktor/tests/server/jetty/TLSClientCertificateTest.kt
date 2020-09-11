@@ -35,10 +35,10 @@ class TLSClientCertificateTest {
                     keyStore = keyStore,
                     keyStorePassword = { "changeit".toCharArray() },
                     privateKeyPassword = { "changeit".toCharArray() },
-                    requiredClientCACertificates = listOf(keyStore.getCertificate("myKey-CA") as X509Certificate)
                 ).apply {
                     this.host = "0.0.0.0"
                     this.port = 443
+                    trustStore = keyStore
                 })
         ) {
             routing {
