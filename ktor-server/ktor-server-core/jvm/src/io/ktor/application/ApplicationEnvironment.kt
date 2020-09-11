@@ -12,37 +12,37 @@ import kotlin.coroutines.*
 /**
  * Represents an environment in which [Application] runs
  */
-interface ApplicationEnvironment {
+public interface ApplicationEnvironment {
     /**
      * Parent coroutine context for an application
      */
-    val parentCoroutineContext: CoroutineContext
+    public val parentCoroutineContext: CoroutineContext
 
     /**
      * [ClassLoader] used to load application.
      *
      * Useful for various reflection-based services, like dependency injection.
      */
-    val classLoader: ClassLoader
+    public val classLoader: ClassLoader
 
     /**
      * Instance of [Logger] to be used for logging.
      */
-    val log: Logger
+    public val log: Logger
 
     /**
      * Configuration for the [Application]
      */
-    val config: ApplicationConfig
+    public val config: ApplicationConfig
 
     /**
      * Provides events on Application lifecycle
      */
-    val monitor: ApplicationEvents
+    public val monitor: ApplicationEvents
 
     /**
      * Application's root path (prefix, context path in servlet container).
      */
     @KtorExperimentalAPI
-    val rootPath: String
+    public val rootPath: String
 }

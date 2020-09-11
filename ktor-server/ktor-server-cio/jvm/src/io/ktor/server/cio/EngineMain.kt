@@ -10,12 +10,12 @@ import io.ktor.server.engine.*
 /**
  * Default engine with main function that starts CIO engine using application.conf
  */
-object EngineMain {
+public object EngineMain {
     /**
      * CIO engine entry point
      */
     @JvmStatic
-    fun main(args: Array<String>) {
+    public fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = CIOApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
@@ -39,7 +39,7 @@ object EngineMain {
     replaceWith = ReplaceWith("EngineMain"),
     level = DeprecationLevel.HIDDEN
 )
-object DevelopmentEngine {
+public object DevelopmentEngine {
     @JvmStatic
-    fun main(args: Array<String>): Unit = EngineMain.main(args)
+    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

@@ -31,13 +31,15 @@ import kotlin.text.toByteArray
  * RPS is much higher (up to 10x higher) in this mode
  * but load generator provides absolutely no diagnostics.
  */
-class HighLoadHttpGenerator(
-    val host: String, port: Int,
-    val numberOfConnections: Int, val queueSize: Int, val highPressure: Boolean,
+public class HighLoadHttpGenerator(
+    public val host: String, port: Int,
+    public val numberOfConnections: Int,
+    public val queueSize: Int,
+    public val highPressure: Boolean,
     builder: RequestResponseBuilder.() -> Unit
 ) {
 
-    constructor(
+    public constructor(
         url: String, host: String, port: Int,
         numberConnections: Int, queueSize: Int, highPressure: Boolean
     )
@@ -89,7 +91,7 @@ class HighLoadHttpGenerator(
         var readPending: Boolean = false
         var currentOps = 0
 
-        fun calcOps(): Int {
+        public fun calcOps(): Int {
             var ops = 0
             if (writePending) {
                 ops = ops or SelectionKey.OP_WRITE
@@ -101,7 +103,7 @@ class HighLoadHttpGenerator(
             return ops
         }
 
-        fun interest(selector: Selector) {
+        public fun interest(selector: Selector) {
             val ops = calcOps()
             val key = key
 
@@ -118,7 +120,7 @@ class HighLoadHttpGenerator(
             }
         }
 
-        fun send(qty: Int = 1) {
+        public fun send(qty: Int = 1) {
             require(qty > 0)
             if (!shutdown) {
                 remaining += qty
@@ -128,7 +130,7 @@ class HighLoadHttpGenerator(
             }
         }
 
-        fun close() {
+        public fun close() {
             key?.cancel()
             key = null
             readPending = false
@@ -398,15 +400,15 @@ class HighLoadHttpGenerator(
         */
     }
 
-    fun shutdown() {
+    public fun shutdown() {
         shutdown = true
     }
 
-    fun stop() {
+    public fun stop() {
         cancelled = true
     }
 
-    fun mainLoop() {
+    public fun mainLoop() {
         val provider = SelectorProvider.provider()!!
         val selector = provider.openSelector()!!
 
@@ -567,7 +569,7 @@ class HighLoadHttpGenerator(
         }
     }
 
-    companion object {
+    public companion object {
         private val HTTP11 = "HTTP/1.1".toByteArray()
         private const val HTTP11Long = 0x485454502f312e31L
         private const val HTTP1_length = 8
@@ -578,7 +580,7 @@ class HighLoadHttpGenerator(
         private const val N = '\n'.toByte()
         private const val S = 0x20.toByte()
 
-        fun doRun(
+        public fun doRun(
             url: String,
             host: String,
             port: Int,
@@ -605,7 +607,7 @@ class HighLoadHttpGenerator(
             )
         }
 
-        fun doRun(
+        public fun doRun(
             host: String,
             port: Int,
             numberOfThreads: Int,
@@ -666,7 +668,7 @@ class HighLoadHttpGenerator(
         }
 
         @JvmStatic
-        fun main(args: Array<String>) {
+        public fun main(args: Array<String>) {
             val debug = false
 
             val url = URL("http://localhost:8081/")

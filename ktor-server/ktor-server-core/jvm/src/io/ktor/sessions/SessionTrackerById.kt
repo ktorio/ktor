@@ -18,11 +18,11 @@ import kotlin.reflect.*
  * @property storage session storage to store session
  * @property sessionIdProvider is a function that generates session IDs
  */
-class SessionTrackerById<S : Any>(
-    val type: KClass<S>,
-    val serializer: SessionSerializer<S>,
-    val storage: SessionStorage,
-    val sessionIdProvider: () -> String
+public class SessionTrackerById<S : Any>(
+    public val type: KClass<S>,
+    public val serializer: SessionSerializer<S>,
+    public val storage: SessionStorage,
+    public val sessionIdProvider: () -> String
 ) : SessionTracker<S> {
     private val SessionIdKey = AttributeKey<String>("SessionId")
 

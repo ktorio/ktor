@@ -15,11 +15,11 @@ import io.ktor.util.*
  * Feature that set [CachingOptions] headers for every response.
  * It invokes [optionsProviders] for every response and use first non null caching options
  */
-class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>) {
+public class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> CachingOptions?>) {
     /**
      * Configuration for [CachingHeaders] feature
      */
-    class Configuration {
+    public class Configuration {
         internal val optionsProviders = mutableListOf<(OutgoingContent) -> CachingOptions?>()
 
         init {
@@ -29,7 +29,7 @@ class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> Cac
         /**
          * Registers a function that can provide caching options for a given [OutgoingContent]
          */
-        fun options(provider: (OutgoingContent) -> CachingOptions?) {
+        public fun options(provider: (OutgoingContent) -> CachingOptions?) {
             optionsProviders.add(provider)
         }
     }
@@ -57,14 +57,14 @@ class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> Cac
     /**
      * Retrieves caching options for a given content
      */
-    fun optionsFor(content: OutgoingContent): List<CachingOptions> {
+    public fun optionsFor(content: OutgoingContent): List<CachingOptions> {
         return optionsProviders.mapNotNullTo(ArrayList(optionsProviders.size)) { it(content) }
     }
 
     /**
      * `ApplicationFeature` implementation for [ConditionalHeaders]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CachingHeaders> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, CachingHeaders> {
         override val key: AttributeKey<CachingHeaders> = AttributeKey("Conditional Headers")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CachingHeaders {
             val configuration = Configuration().apply(configure)

@@ -18,7 +18,7 @@ import kotlin.coroutines.*
  * Represents test call response received from server
  * @property readResponse if response channel need to be consumed into byteContent
  */
-class TestApplicationResponse(
+public class TestApplicationResponse(
     call: TestApplicationCall, private val readResponse: Boolean = false
 ) : BaseApplicationResponse(call), CoroutineScope by call {
 
@@ -111,14 +111,14 @@ class TestApplicationResponse(
     /**
      * Response body content channel
      */
-    fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
+    public fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
 
     /**
      * Await for response job completion
      */
     @Suppress("DeprecatedCallableAddReplaceWith", "unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    suspend fun flush() {
+    public suspend fun flush() {
         awaitForResponseCompletion()
     }
 
@@ -143,7 +143,7 @@ class TestApplicationResponse(
     /**
      * Wait for websocket session completion
      */
-    fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
+    public fun awaitWebSocket(durationMillis: Long): Unit = runBlocking {
         withTimeout(durationMillis) {
             responseChannelDeferred.join()
             responseJob?.join()
@@ -155,10 +155,10 @@ class TestApplicationResponse(
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    fun awaitWebSocket(duration: java.time.Duration): Unit = awaitWebSocket(duration)
+    public fun awaitWebSocket(duration: java.time.Duration): Unit = awaitWebSocket(duration)
 
     /**
      * Websocket session's channel
      */
-    fun websocketChannel(): ByteReadChannel? = responseChannel
+    public fun websocketChannel(): ByteReadChannel? = responseChannel
 }

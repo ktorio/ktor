@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.*
  * So [stop] block will be called once or never.
  */
 @KtorExperimentalAPI
-fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
+public fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
     val hook = ShutdownHook(stop)
     environment.monitor.subscribe(ApplicationStarting) {
         environment.monitor.subscribe(ApplicationStopping) {

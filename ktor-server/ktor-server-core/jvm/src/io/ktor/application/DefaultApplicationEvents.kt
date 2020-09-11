@@ -3,6 +3,7 @@
  */
 
 @file:Suppress("PublicApiImplicitType")
+
 package io.ktor.application
 
 /**
@@ -11,24 +12,24 @@ package io.ktor.application
  * Note, that application itself cannot receive this event because it fires before application is created
  * It is meant to be used by engines.
  */
-val ApplicationStarting = EventDefinition<Application>()
+public val ApplicationStarting: EventDefinition<Application> = EventDefinition<Application>()
 
 /**
  * Event definition for Application Started event
  */
-val ApplicationStarted = EventDefinition<Application>()
+public val ApplicationStarted: EventDefinition<Application> = EventDefinition<Application>()
 
 /**
  * Event definition for an event that is fired when the application is going to stop
  */
-val ApplicationStopPreparing = EventDefinition<ApplicationEnvironment>()
+public val ApplicationStopPreparing: EventDefinition<ApplicationEnvironment> = EventDefinition<ApplicationEnvironment>()
 
 /**
  * Event definition for Application Stopping event
  */
-val ApplicationStopping = EventDefinition<Application>()
+public val ApplicationStopping: EventDefinition<Application> = EventDefinition<Application>()
 
 /**
  * Event definition for Application Stopped event
  */
-val ApplicationStopped = EventDefinition<Application>()
+public val ApplicationStopped: EventDefinition<Application> = EventDefinition()
