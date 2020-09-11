@@ -224,32 +224,7 @@ internal class TLSClientHandshake(
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
                 TLSHandshakeType.CertificateRequest -> {
-                    val typeCount = packet.readByte().toInt() and 0xFF
-                    val types = packet.readBytes(typeCount)
-
-                    val hashAndSignCount = packet.readShort().toInt() and 0xFFFF
-                    val hashAndSign = mutableListOf<HashAndSign>()
-
-                    repeat(hashAndSignCount / 2) {
-                        val hash = packet.readByte()
-                        val sign = packet.readByte()
-                        hashAndSign += HashAndSign.byCode(hash, sign) ?: return@repeat
-                    }
-
-                    val authoritiesSize = packet.readShort().toInt() and 0xFFFF
-                    val authorities = mutableSetOf<Principal>()
-
-                    var position = 0
-                    while (position < authoritiesSize) {
-                        val size = packet.readShort().toInt() and 0xFFFF
-                        position += size
-
-                        val authority = packet.readBytes(size)
-                        authorities += X500Principal(authority)
-                    }
-
-                    certificateInfo = CertificateInfo(types, hashAndSign.toTypedArray(), authorities)
-                    check(packet.isEmpty)
+                    certificateInfo = clientCertificateRequest(packet)
                 }
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
@@ -487,4 +462,35 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
     val serverPublic = factory.generatePublic(ECPublicKeySpec(serverPoint, publicKey.params!!))!!
 
     return EncryptionInfo(serverPublic, clientKeys.public, clientKeys.private)
+}
+
+internal fun clientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
+
+    val typeCount = packet.readByte().toInt() and 0xFF
+    val types = packet.readBytes(typeCount)
+
+    val hashAndSignCount = packet.readShort().toInt() and 0xFFFF
+    val hashAndSign = mutableListOf<HashAndSign>()
+
+    repeat(hashAndSignCount / 2) {
+        val hash = packet.readByte()
+        val sign = packet.readByte()
+        hashAndSign += HashAndSign.byCode(hash, sign) ?: return@repeat
+    }
+
+    val authoritiesSize = packet.readShort().toInt() and 0xFFFF
+    val authorities = mutableSetOf<Principal>()
+
+    var position = 0
+    while (position < authoritiesSize) {
+        val size = packet.readShort().toInt() and 0xFFFF
+        position += size
+
+        val authority = packet.readBytes(size)
+        authorities += X500Principal(authority)
+    }
+
+    val certificateInfo = CertificateInfo(types, hashAndSign.toTypedArray(), authorities)
+    check(packet.isEmpty)
+    return certificateInfo
 }
