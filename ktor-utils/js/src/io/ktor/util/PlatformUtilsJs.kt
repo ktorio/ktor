@@ -4,19 +4,17 @@
 
 package io.ktor.util
 
-actual object PlatformUtils {
+public actual object PlatformUtils {
     @KtorExperimentalAPI
-    @Suppress("KDocMissingDocumentation")
-    actual val IS_BROWSER: Boolean = js(
+    public actual val IS_BROWSER: Boolean = js(
         "typeof window !== 'undefined' && typeof window.document !== 'undefined'"
     ) as Boolean
 
     @KtorExperimentalAPI
-    @Suppress("KDocMissingDocumentation")
-    actual val IS_NODE: Boolean = js(
+    public actual val IS_NODE: Boolean = js(
         "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
     ) as Boolean
 
-    actual val IS_JVM: Boolean = false
-    actual val IS_NATIVE: Boolean = false
+    public actual val IS_JVM: Boolean = false
+    public actual val IS_NATIVE: Boolean = false
 }

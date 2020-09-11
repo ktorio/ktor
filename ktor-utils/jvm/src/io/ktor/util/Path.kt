@@ -11,13 +11,13 @@ import java.io.*
  * access anything out of the reference directory (unless you have symbolic or hard links or multiple mount points)
  */
 @KtorExperimentalAPI
-fun File.combineSafe(relativePath: String): File = combineSafe(this, File(relativePath))
+public fun File.combineSafe(relativePath: String): File = combineSafe(this, File(relativePath))
 
 /**
  * Remove all redundant `.` and `..` path elements. Leading `..` are also considered redundant.
  */
 @KtorExperimentalAPI
-fun File.normalizeAndRelativize(): File = normalize().notRooted().dropLeadingTopDirs()
+public fun File.normalizeAndRelativize(): File = normalize().notRooted().dropLeadingTopDirs()
 
 private fun combineSafe(dir: File, relativePath: File): File {
     val normalized = relativePath.normalizeAndRelativize()

@@ -18,7 +18,7 @@ import kotlin.coroutines.*
  * since [InputStream] is blocking on it's nature
  */
 @KtorExperimentalAPI
-fun InputStream.toByteReadChannel(
+public fun InputStream.toByteReadChannel(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     context: CoroutineContext = Dispatchers.Unconfined,
     parent: Job = Job()
