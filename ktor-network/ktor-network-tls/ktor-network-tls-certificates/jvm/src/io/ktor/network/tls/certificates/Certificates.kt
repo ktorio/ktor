@@ -41,7 +41,7 @@ public fun generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
     val keyPair = keyPairGenerator.genKeyPair()!!
 
-    val cert = certificate(public = keyPair.public, private = keyPair.private, algorithm = algorithm)
+    val cert = certificate(keyPair = keyPair, signerKeyPair = keyPair, algorithm = algorithm)
 
     keyStore.setCertificateEntry(keyAlias, cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
@@ -60,8 +60,8 @@ private fun certificate(
         organizationUnit = "Kotlin",
         commonName = "localhost"
     ),
-    public: PublicKey,
-    private: PrivateKey,
+    keyPair: KeyPair,
+    signerKeyPair: KeyPair,
     algorithm: String,
     daysValid: Long = 3,
 ): Certificate {
@@ -70,8 +70,8 @@ private fun certificate(
     val certificateBytes = buildPacket {
         writeCertificate(
             issuer = id, subject = id,
-            public = public,
-            private = private,
+            keyPair = keyPair,
+            signerKeyPair = signerKeyPair,
             algorithm = algorithm,
             from = from, to = to,
             domains = listOf("127.0.0.1", "localhost"),
@@ -80,8 +80,8 @@ private fun certificate(
     }.readBytes()
 
     val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
-
-    cert.verify(public)
+println(cert)
+    cert.verify(keyPair.public)
     return cert
 }
 
@@ -113,17 +113,17 @@ fun generateCertificateChain(
     keyPairGenerator.initialize(keySizeInBits)
 
     val caKeyPair = keyPairGenerator.genKeyPair()!!
-    val caCert = certificate(algorithm = algorithm, public = caKeyPair.public, private = caKeyPair.private)
+    val caCert = certificate(algorithm = algorithm, keyPair= caKeyPair, signerKeyPair = caKeyPair)
     keyStore.setCertificateEntry(keyAliasCA, caCert)
     keyStore.setKeyEntry(keyAliasCA, caKeyPair.private, keyPasswordCA.toCharArray(), arrayOf(caCert))
 
     val interKeyPair = keyPairGenerator.genKeyPair()!!
-    val interCert = certificate(algorithm = algorithm, public = interKeyPair.public, private = caKeyPair.private)
+    val interCert = certificate(algorithm = algorithm, keyPair = interKeyPair, signerKeyPair = caKeyPair)
     keyStore.setCertificateEntry(keyAliasIntermediate, interCert)
     keyStore.setKeyEntry(keyAliasIntermediate, interKeyPair.private, keyPasswordIntermediate.toCharArray(), arrayOf(caCert, interCert))
 
     val certKeyPair = keyPairGenerator.genKeyPair()!!
-    val cert = certificate(algorithm = algorithm, public = certKeyPair.public, private = interKeyPair.private)
+    val cert = certificate(algorithm = algorithm, keyPair = certKeyPair, signerKeyPair = interKeyPair)
     keyStore.setCertificateEntry(keyAlias, cert)
     keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(caCert, interCert, cert))
 
@@ -249,28 +249,18 @@ internal fun BytePacketBuilder.writeCertificate(
     algorithm: String,
     from: Date, to: Date,
     domains: List<String>,
-    ipAddresses: List<InetAddress>
-) = writeCertificate(issuer = issuer, subject = subject, public = keyPair.public, private = keyPair.private, algorithm = algorithm, from = from, to = to, domains = domains, ipAddresses = ipAddresses)
-
-internal fun BytePacketBuilder.writeCertificate(
-    issuer: Counterparty,
-    subject: Counterparty,
-    public: PublicKey,
-    private: PrivateKey,
-    algorithm: String,
-    from: Date, to: Date,
-    domains: List<String>,
-    ipAddresses: List<InetAddress>
+    ipAddresses: List<InetAddress>,
+    signerKeyPair: KeyPair = keyPair
 ) {
     require(to.after(from))
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, public, from, to, domains, ipAddresses)
+        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses)
     }
 
     val certInfoBytes = certInfo.readBytes()
     val signature = Signature.getInstance(algorithm)
-    signature.initSign(private)
+    signature.initSign(signerKeyPair.private)
     signature.update(certInfoBytes)
     val signed = signature.sign()
 
