@@ -255,13 +255,11 @@ internal fun parseHeaderValue(text: CharArrayBuilder, range: MutableRange) {
 
     while (index < end) {
         val ch = text[index]
-        when {
-            ch == HTAB || ch == ' ' -> {
+        when (ch) {
+            HTAB, ' ' -> {
             }
-            ch < ' ' -> characterIsNotAllowed(text, ch)
-            else -> {
-                valueLastIndex = index
-            }
+            '\r', '\n' -> characterIsNotAllowed(text, ch)
+            else -> valueLastIndex = index
         }
 
         index++
