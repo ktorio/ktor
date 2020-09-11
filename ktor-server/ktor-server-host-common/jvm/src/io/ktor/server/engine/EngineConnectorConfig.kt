@@ -79,12 +79,14 @@ interface EngineSSLConnectorConfig : EngineConnectorConfig {
     public val privateKeyPassword: () -> CharArray
 
     /**
-     * If not empty, the list of allowed CA certificates which will be used for client certificate authentication.
-     * If the list is empty, no client certification request will be requested.
-     *
-     * Currently only supported by Jetty Engine
+     * Store of trusted certificates for verifying the remote endpoint's certificate.
      */
-    val requiredClientCACertificates: List<X509Certificate>
+    public val trustStore: KeyStore?
+
+    /**
+     * File with trusted certificates (JKS) for verifying the remote endpoint's certificate.
+     */
+    public val trustStorePath: File?
 }
 
 /**
@@ -126,8 +128,9 @@ class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
     override var keyAlias: String,
     override var keyStorePassword: () -> CharArray,
-    override val privateKeyPassword: () -> CharArray,
-    override val requiredClientCACertificates: List<X509Certificate> = emptyList()
+    override var privateKeyPassword: () -> CharArray,
 ) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
+    override var trustStore: KeyStore? = null
+    override var trustStorePath: File? = null
 }
