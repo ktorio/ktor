@@ -224,7 +224,7 @@ internal class TLSClientHandshake(
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
                 TLSHandshakeType.CertificateRequest -> {
-                    certificateInfo = clientCertificateRequest(packet)
+                    certificateInfo = readClientCertificateRequest(packet)
                 }
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
@@ -464,7 +464,7 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
     return EncryptionInfo(serverPublic, clientKeys.public, clientKeys.private)
 }
 
-internal fun clientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
+internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
 
     val typeCount = packet.readByte().toInt() and 0xFF
     val types = packet.readBytes(typeCount)

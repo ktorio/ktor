@@ -15,7 +15,7 @@ class ClientCertificateRequestTest {
             .split(" ").map { it.toInt().toByte() }.toByteArray()
 
         val packet = ByteReadPacket(bytes)
-        val certInfo = clientCertificateRequest(packet)
+        val certInfo = readClientCertificateRequest(packet)
         assertEquals(5, certInfo.authorities.size)
     }
 }
