@@ -80,13 +80,17 @@ public fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = Header
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public class HeadersImpl(values: Map<String, List<String>> = emptyMap()) : Headers, StringValuesImpl(true, values) {
+public class HeadersImpl(
+    values: Map<String, List<String>> = emptyMap()
+) : Headers, StringValuesImpl(true, values) {
     override fun toString(): String = "Headers ${entries()}"
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-public class HeadersSingleImpl(name: String, values: List<String>) : Headers, StringValuesSingleImpl(true, name, values) {
+public class HeadersSingleImpl(
+    name: String, values: List<String>
+) : Headers, StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Headers ${entries()}"
 }
 

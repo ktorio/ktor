@@ -13,7 +13,9 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
+import io.ktor.utils.io.errors.EOFException
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -102,38 +104,52 @@ internal suspend fun readResponse(
     val rawResponse = parseResponse(input)
         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-    val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
-    val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-    val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
-    val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
+    rawResponse.use {
+        val status = HttpStatusCode(rawResponse.status, rawResponse.statusText.toString())
+        val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+        val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]?.toString()
+        val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
-    val headers = buildHeaders {
-        appendAll(CIOHeaders(rawResponse.headers))
-        rawResponse.headers.release()
-    }
+        val rawHeaders = rawResponse.headers
+        val headers = HeadersImpl(rawHeaders.toMap())
+        val version = HttpProtocolVersion.parse(rawResponse.version)
 
-    val version = HttpProtocolVersion.parse(rawResponse.version)
-
-    if (status == HttpStatusCode.SwitchingProtocols) {
-        return startWebSocketSession(status, requestTime, headers, version, callContext, input, output)
-    }
-
-    val body = when {
-        request.method == HttpMethod.Head ||
-            status in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent) ||
-            status.isInformational() -> {
-            ByteReadChannel.Empty
+        if (status == HttpStatusCode.SwitchingProtocols) {
+            return startWebSocketSession(status, requestTime, headers, version, callContext, input, output)
         }
-        else -> {
-            val httpBodyParser = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
-                parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+
+        val body = when {
+            request.method == HttpMethod.Head ||
+                status in listOf(HttpStatusCode.NotModified, HttpStatusCode.NoContent) ||
+                status.isInformational() -> {
+                ByteReadChannel.Empty
             }
+            else -> {
+                val httpBodyParser = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
+                    parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+                }
 
-            httpBodyParser.channel
+                httpBodyParser.channel
+            }
+        }
+
+        return HttpResponseData(status, requestTime, headers, version, body, callContext)
+    }
+}
+
+internal fun HttpHeadersMap.toMap(): Map<String, List<String>> {
+    val result = mutableMapOf<String, MutableList<String>>()
+
+    for (index in 0 until size) {
+        val key = nameAt(index).toString()
+        val value = valueAt(index).toString()
+
+        if (result[key]?.add(value) == null) {
+            result[key] = mutableListOf(value)
         }
     }
 
-    return HttpResponseData(status, requestTime, headers, version, body, callContext)
+    return result
 }
 
 internal fun HttpStatusCode.isInformational(): Boolean = (value / 100) == 1
