@@ -4,13 +4,15 @@
 
 package io.ktor.tests.http.cio
 
+import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.intrinsics.*
 import kotlin.coroutines.*
 import kotlin.test.*
+
+internal const val HTAB: Char = '\u0009'
 
 class HttpParserTest {
     private var failure: Throwable? = null
@@ -28,6 +30,21 @@ class HttpParserTest {
             assertEquals(2, headers.size)
             assertEquals("value", headers["name"].toString())
             assertEquals("p1${HTAB}p2 p3", headers["name2"].toString())
+        } finally {
+            headers.release()
+        }
+    }
+
+    @Test
+    fun testParseCookieHeader() = test {
+        val rawHeaders = "Set-Cookie: ___utmvazauvysSB=kDu\u0001xSkE; path=/; Max-Age=900\r\n\r\n"
+
+        val channel = ByteReadChannel(rawHeaders)
+        val headers = parseHeaders(channel)
+
+        try {
+            val actual = headers[HttpHeaders.SetCookie].toString()
+            assertEquals("___utmvazauvysSB=kDu\u0001xSkE; path=/; Max-Age=900", actual)
         } finally {
             headers.release()
         }
