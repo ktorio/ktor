@@ -11,6 +11,7 @@ import java.math.*
 import java.net.*
 import java.security.*
 import java.security.cert.*
+import java.security.cert.Certificate
 import java.text.*
 import java.time.*
 import java.util.*
@@ -33,7 +34,6 @@ fun generateCertificate(
     jksPassword: String = keyPassword,
     keySizeInBits: Int = 1024
 ): KeyStore {
-    val daysValid: Long = 3
     val keyStore = KeyStore.getInstance("JKS")!!
     keyStore.load(null, null)
 
@@ -41,28 +41,7 @@ fun generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
     val keyPair = keyPairGenerator.genKeyPair()!!
 
-    val id = Counterparty(
-        country = "RU", organization = "JetBrains", organizationUnit = "Kotlin", commonName = "localhost"
-    )
-
-    val from = Date()
-    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
-
-
-    val certificateBytes = buildPacket {
-        writeCertificate(
-            issuer = id, subject = id,
-            keyPair = keyPair,
-            algorithm = algorithm,
-            from = from, to = to,
-            domains = listOf("127.0.0.1", "localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
-        )
-    }.readBytes()
-
-    val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
-
-    cert.verify(keyPair.public)
+    val cert = certificate(public = keyPair.public, private = keyPair.private, algorithm = algorithm)
 
     keyStore.setCertificateEntry(keyAlias, cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
@@ -74,6 +53,87 @@ fun generateCertificate(
     return keyStore
 }
 
+private fun certificate(
+    id: Counterparty = Counterparty(
+        country = "RU",
+        organization = "JetBrains",
+        organizationUnit = "Kotlin",
+        commonName = "localhost"
+    ),
+    public: PublicKey,
+    private: PrivateKey,
+    algorithm: String,
+    daysValid: Long = 3,
+): Certificate {
+    val from = Date()
+    val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
+    val certificateBytes = buildPacket {
+        writeCertificate(
+            issuer = id, subject = id,
+            public = public,
+            private = private,
+            algorithm = algorithm,
+            from = from, to = to,
+            domains = listOf("127.0.0.1", "localhost"),
+            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
+        )
+    }.readBytes()
+
+    val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
+
+    cert.verify(public)
+    return cert
+}
+
+/**
+ * Generates self-signed CA certificate [keyAliasCA], a intermediate CA certificate [keyAliasIntermediate] and a certificate with [keyAlias] name. All private keys are encrypted with [keyPassword],
+ * and a JKS keystore to hold it in [file] with [jksPassword].
+ *
+ * Only for testing purposes: NEVER use it for production!
+ *
+ * A generated certificate will have 3 days validity period and 1024-bits key strength.
+ * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ */
+fun generateCertificateChain(
+    file: File,
+    algorithm: String = "SHA1withRSA",
+    keyAlias: String = "mykey",
+    keyPassword: String = "changeit",
+    keyAliasCA: String = "$keyAlias-CA",
+    keyPasswordCA: String = keyPassword,
+    keyAliasIntermediate: String = "$keyAlias-Intermediate",
+    keyPasswordIntermediate: String = keyPassword,
+    jksPassword: String = keyPassword,
+    keySizeInBits: Int = 1024
+): KeyStore {
+    val keyStore = KeyStore.getInstance("JKS")!!
+    keyStore.load(null, null)
+
+    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
+    keyPairGenerator.initialize(keySizeInBits)
+
+    val caKeyPair = keyPairGenerator.genKeyPair()!!
+    val caCert = certificate(algorithm = algorithm, public = caKeyPair.public, private = caKeyPair.private)
+    keyStore.setCertificateEntry(keyAliasCA, caCert)
+    keyStore.setKeyEntry(keyAliasCA, caKeyPair.private, keyPasswordCA.toCharArray(), arrayOf(caCert))
+
+    val interKeyPair = keyPairGenerator.genKeyPair()!!
+    val interCert = certificate(algorithm = algorithm, public = interKeyPair.public, private = caKeyPair.private)
+    keyStore.setCertificateEntry(keyAliasIntermediate, interCert)
+    keyStore.setKeyEntry(keyAliasIntermediate, interKeyPair.private, keyPasswordIntermediate.toCharArray(), arrayOf(caCert, interCert))
+
+    val certKeyPair = keyPairGenerator.genKeyPair()!!
+    val cert = certificate(algorithm = algorithm, public = certKeyPair.public, private = interKeyPair.private)
+    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(caCert, interCert, cert))
+
+
+    file.parentFile?.mkdirs()
+    file.outputStream().use {
+        keyStore.store(it, jksPassword.toCharArray())
+    }
+    return keyStore
+}
 
 internal data class Counterparty(
     val country: String = "",
@@ -190,16 +250,27 @@ internal fun BytePacketBuilder.writeCertificate(
     from: Date, to: Date,
     domains: List<String>,
     ipAddresses: List<InetAddress>
+) = writeCertificate(issuer = issuer, subject = subject, public = keyPair.public, private = keyPair.private, algorithm = algorithm, from = from, to = to, domains = domains, ipAddresses = ipAddresses)
+
+internal fun BytePacketBuilder.writeCertificate(
+    issuer: Counterparty,
+    subject: Counterparty,
+    public: PublicKey,
+    private: PrivateKey,
+    algorithm: String,
+    from: Date, to: Date,
+    domains: List<String>,
+    ipAddresses: List<InetAddress>
 ) {
     require(to.after(from))
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses)
+        writeX509Info(algorithm, issuer, subject, public, from, to, domains, ipAddresses)
     }
 
     val certInfoBytes = certInfo.readBytes()
     val signature = Signature.getInstance(algorithm)
-    signature.initSign(keyPair.private)
+    signature.initSign(private)
     signature.update(certInfoBytes)
     val signed = signature.sign()
 

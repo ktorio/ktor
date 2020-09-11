@@ -6,6 +6,7 @@ package io.ktor.server.engine
 
 import java.io.*
 import java.security.*
+import java.security.cert.*
 
 /**
  * Represents a type of a connector, e.g HTTP or HTTPS.
@@ -76,6 +77,14 @@ interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * Private key password provider
      */
     val privateKeyPassword: () -> CharArray
+
+    /**
+     * If not empty, the list of allowed CA certificates which will be used for client certificate authentication.
+     * If the list is empty, no client certification request will be requested.
+     *
+     * Currently only supported by Jetty Engine
+     */
+    val requiredClientCACertificates: List<X509Certificate>
 }
 
 /**
@@ -117,7 +126,8 @@ class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
     override var keyAlias: String,
     override var keyStorePassword: () -> CharArray,
-    override val privateKeyPassword: () -> CharArray
+    override val privateKeyPassword: () -> CharArray,
+    override val requiredClientCACertificates: List<X509Certificate> = emptyList()
 ) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
 }

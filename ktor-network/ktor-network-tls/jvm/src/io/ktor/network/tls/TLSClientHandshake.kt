@@ -243,7 +243,7 @@ internal class TLSClientHandshake(
                     while (position < authoritiesSize) {
                         val size = packet.readShort().toInt() and 0xFFFF
                         val bytesForReadingSize = Short.SIZE_BYTES
-                        position += size + bytesForReadingSize 
+                        position += size + bytesForReadingSize
 
                         val authority = packet.readBytes(size)
                         authorities += X500Principal(authority)
