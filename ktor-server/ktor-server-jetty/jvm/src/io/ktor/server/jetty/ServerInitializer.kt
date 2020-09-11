@@ -11,6 +11,7 @@ import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.server.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.ssl.*
+import java.security.*
 
 internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) {
     environment.connectors.map { ktorConnector ->
@@ -50,6 +51,14 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                 keyStore = (ktorConnector as EngineSSLConnectorConfig).keyStore
                 setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
                 setKeyStorePassword(String(ktorConnector.keyStorePassword()))
+
+                trustStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
+                    this.load(null, null)
+                    ktorConnector.requiredClientCACertificates.forEachIndexed { index, ca ->
+                        keyStore.setCertificateEntry("ca$index", ca)
+                    }
+                }
+                needClientAuth = ktorConnector.requiredClientCACertificates.isNotEmpty()
 
                 setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
                         "SSL_DHE_RSA_WITH_DES_CBC_SHA", "SSL_DHE_DSS_WITH_DES_CBC_SHA",
