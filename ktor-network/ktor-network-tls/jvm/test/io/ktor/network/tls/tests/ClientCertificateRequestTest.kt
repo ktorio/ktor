@@ -16,6 +16,6 @@ class ClientCertificateRequestTest {
 
         val packet = ByteReadPacket(bytes)
         val certInfo = clientCertificateRequest(packet)
-        assertEquals(certInfo.authorities.size, 3)
+        assertEquals(5, certInfo.authorities.size)
     }
 }
