@@ -188,7 +188,7 @@ private suspend fun requestOAuth1aAccessToken(
  * Create an HTTP auth header for OAuth1a obtain token request
  */
 @KtorExperimentalAPI
-fun createObtainRequestTokenHeader(
+public fun createObtainRequestTokenHeader(
     callback: String,
     consumerKey: String,
     nonce: String,
@@ -209,7 +209,7 @@ fun createObtainRequestTokenHeader(
  * Create an HTTP auth header for OAuth1a upgrade token request
  */
 @KtorExperimentalAPI
-fun createUpgradeRequestTokenHeader(
+public fun createUpgradeRequestTokenHeader(
     consumerKey: String,
     token: String,
     nonce: String,
@@ -230,7 +230,7 @@ fun createUpgradeRequestTokenHeader(
  * Sign an HTTP auth header
  */
 @KtorExperimentalAPI
-fun HttpAuthHeader.Parameterized.sign(
+public fun HttpAuthHeader.Parameterized.sign(
     method: HttpMethod,
     baseUrl: String,
     key: String,
@@ -244,7 +244,7 @@ fun HttpAuthHeader.Parameterized.sign(
  * Build an OAuth1a signature base string as per RFC
  */
 @KtorExperimentalAPI
-fun signatureBaseString(
+public fun signatureBaseString(
     header: HttpAuthHeader.Parameterized,
     method: HttpMethod,
     baseUrl: String,
@@ -270,16 +270,16 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
  * Represents an OAuth1a server error
  */
 @KtorExperimentalAPI
-sealed class OAuth1aException(message: String) : Exception(message) {
+public sealed class OAuth1aException(message: String) : Exception(message) {
 
     /**
      * Thrown when an OAuth1a server didn't provide access token
      */
-    class MissingTokenException : OAuth1aException("The OAuth1a server didn't provide access token")
+    public class MissingTokenException : OAuth1aException("The OAuth1a server didn't provide access token")
 
     /**
      * Represents any other OAuth1a error
      */
     @KtorExperimentalAPI
-    class UnknownException(message: String) : OAuth1aException(message)
+    public class UnknownException(message: String) : OAuth1aException(message)
 }

@@ -12,7 +12,7 @@ import io.ktor.http.auth.*
  * Response content with `401 Unauthorized` status code and `WWW-Authenticate` header of supplied [challenges]
  * @param challenges to be passed with `WWW-Authenticate` header
  */
-class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {
+public class UnauthorizedResponse(public vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {
     override val status: HttpStatusCode?
         get() = HttpStatusCode.Unauthorized
 

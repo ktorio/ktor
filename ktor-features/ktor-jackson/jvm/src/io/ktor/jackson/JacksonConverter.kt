@@ -31,7 +31,7 @@ import io.ktor.utils.io.jvm.javaio.*
  +        }
  *    }
  */
-class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
+public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
     override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
         return TextContent(objectmapper.writeValueAsString(value), contentType.withCharset(context.call.suitableCharset()))
     }
@@ -48,7 +48,7 @@ class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMap
 /**
  * Register Jackson converter into [ContentNegotiation] feature
  */
-fun ContentNegotiation.Configuration.jackson(contentType: ContentType = ContentType.Application.Json,
+public fun ContentNegotiation.Configuration.jackson(contentType: ContentType = ContentType.Application.Json,
                                              block: ObjectMapper.() -> Unit = {}) {
     val mapper = jacksonObjectMapper()
     mapper.apply {

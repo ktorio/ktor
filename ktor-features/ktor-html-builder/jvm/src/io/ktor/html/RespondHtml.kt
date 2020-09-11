@@ -16,14 +16,14 @@ import kotlinx.html.stream.*
 /**
  * Responds to a client with a HTML response, using specified [block] to build an HTML page
  */
-suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
+public suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
     respond(HtmlContent(status, block))
 }
 
 /**
  * Represents an [OutgoingContent] using `kotlinx.html` builder.
  */
-class HtmlContent(
+public class HtmlContent(
     override val status: HttpStatusCode? = null, private val builder: HTML.() -> Unit
 ) : OutgoingContent.WriteChannelContent() {
 

@@ -7,30 +7,30 @@ package io.ktor.auth
 /**
  * Represents a cause for authentication challenge request
  */
-sealed class AuthenticationFailedCause {
+public sealed class AuthenticationFailedCause {
     /**
      * Represents a case when no credentials were provided
      */
-    object NoCredentials : AuthenticationFailedCause()
+    public object NoCredentials : AuthenticationFailedCause()
 
     /**
      * Represents a case when invalid credentials were provided
      */
-    object InvalidCredentials : AuthenticationFailedCause()
+    public object InvalidCredentials : AuthenticationFailedCause()
 
     /**
      * Represents a case when authentication mechanism failed
      * @param message describing the cause of the authentication failure
      */
-    open class Error(val message: String) : AuthenticationFailedCause() {
+    public open class Error(public val message: String) : AuthenticationFailedCause() {
         @Suppress("UNUSED_PARAMETER")
         @Deprecated("Use message instead of cause.")
-        constructor(vararg placeholder: Unit, cause: String) : this(message = cause)
+        public constructor(vararg placeholder: Unit, cause: String) : this(message = cause)
 
         /**
          * Contains error message explaining the reason of auth failure.
          */
         @Deprecated("Use message instead.", ReplaceWith("message"))
-        val cause: String get() = message
+        public val cause: String get() = message
     }
 }
