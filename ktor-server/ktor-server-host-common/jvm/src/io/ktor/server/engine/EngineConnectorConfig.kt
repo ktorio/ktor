@@ -76,7 +76,7 @@ interface EngineSSLConnectorConfig : EngineConnectorConfig {
     /**
      * Private key password provider
      */
-    val privateKeyPassword: () -> CharArray
+    public val privateKeyPassword: () -> CharArray
 
     /**
      * If not empty, the list of allowed CA certificates which will be used for client certificate authentication.
