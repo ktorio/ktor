@@ -464,6 +464,15 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
     return EncryptionInfo(serverPublic, clientKeys.public, clientKeys.private)
 }
 
+   /**
+    * RFC 5246, 7.4.4.  Certificate Request:
+    *
+    *     struct {
+    *         ClientCertificateType certificate_types<1..2^8-1>;
+    *         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
+    *         DistinguishedName certificate_authorities<0..2^16-1>;
+    *     } CertificateRequest;
+    */
 internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
 
     val typeCount = packet.readByte().toInt() and 0xFF
