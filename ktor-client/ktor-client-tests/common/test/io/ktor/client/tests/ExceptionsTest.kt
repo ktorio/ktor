@@ -40,7 +40,7 @@ class ExceptionsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests {
+    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl")) {
         config {
             test { client ->
                 val requestBuilder = HttpRequestBuilder()
