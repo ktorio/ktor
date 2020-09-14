@@ -40,38 +40,35 @@ public class ApplicationEngineEnvironmentReloading(
     override val parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     override val rootPath: String = ""
 ) : ApplicationEngineEnvironment {
-
     private var _applicationInstance: Application? = null
     private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val watchPatterns: List<String> =
-        (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + watchPaths
+    private val configuredWatchPath get() = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val watchPatterns: List<String> = configuredWatchPath + watchPaths
 
     private val moduleFunctionNames: List<String>? = run {
-        val configModules = config.propertyOrNull("ktor.application.modules")?.getList()
-        if (watchPatterns.isEmpty()) configModules
-        else {
-            val unlinkedModules = modules.map {
-                val fn = (it as? KFunction<*>)?.javaMethod
-                    ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
-                val clazz = fn.declaringClass
-                val name = fn.name
-                "${clazz.name}.$name"
-            }
-            if (configModules == null)
-                unlinkedModules
-            else
-                configModules + unlinkedModules
+        val configModules = config.propertyOrNull("ktor.application.modules")?.getList() ?: emptyList()
+        if (watchPatterns.isEmpty()) {
+            return@run configModules
         }
+
+        val unlinkedModules = modules.map {
+            val fn = (it as? KFunction<*>)?.javaMethod
+                ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
+            val clazz = fn.declaringClass
+            val name = fn.name
+            "${clazz.name}.$name"
+        }
+
+        configModules + unlinkedModules
     }
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
     override val monitor: ApplicationEvents = ApplicationEvents()
 
-    @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
         get() = currentApplication()
 
@@ -88,32 +85,43 @@ public class ApplicationEngineEnvironmentReloading(
     }
 
     private fun currentApplication(): Application = applicationInstanceLock.read {
-        if (watchPatterns.isNotEmpty()) {
-            val changes = packageWatchKeys.flatMap { it.pollEvents() }
-            if (changes.isNotEmpty()) {
-                log.info("Changes in application detected.")
-                var count = changes.size
-                while (true) {
-                    Thread.sleep(200)
-                    val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
-                    if (moreChanges.isEmpty())
-                        break
-                    log.debug("Waiting for more changes.")
-                    count += moreChanges.size
-                }
+        val currentApplication = _applicationInstance
+            ?: throw IllegalStateException("ApplicationEngineEnvironment was not started")
 
-                log.debug("Changes to $count files caused application restart.")
-                changes.take(5).forEach { log.debug("...  ${it.context()}") }
-                applicationInstanceLock.write {
-                    destroyApplication()
-                    val (application, classLoader) = createApplication()
-                    _applicationInstance = application
-                    _applicationClassLoader = classLoader
-                }
-            }
+        if (watchPatterns.isEmpty()) {
+            return@read currentApplication
         }
 
-        _applicationInstance ?: throw IllegalStateException("ApplicationEngineEnvironment was not started")
+        val changes = packageWatchKeys.flatMap { it.pollEvents() }
+        if (changes.isEmpty()) {
+            return@read currentApplication
+        }
+
+        log.info("Changes in application detected.")
+
+        var count = changes.size
+        while (true) {
+            Thread.sleep(200)
+            val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
+            if (moreChanges.isEmpty()) {
+                break
+            }
+
+            log.debug("Waiting for more changes.")
+            count += moreChanges.size
+        }
+
+        log.debug("Changes to $count files caused application restart.")
+        changes.take(5).forEach { log.debug("...  ${it.context()}") }
+
+        applicationInstanceLock.write {
+            destroyApplication()
+            val (application, classLoader) = createApplication()
+            _applicationInstance = application
+            _applicationClassLoader = classLoader
+        }
+
+        return@read _applicationInstance ?: throw IllegalStateException("ApplicationEngineEnvironment was not started")
     }
 
     private fun createApplication(): Pair<Application, ClassLoader> {
@@ -121,6 +129,7 @@ public class ApplicationEngineEnvironmentReloading(
         val currentThread = Thread.currentThread()
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
+
         try {
             return instantiateAndConfigureApplication(classLoader) to classLoader
         } finally {
@@ -172,8 +181,8 @@ public class ApplicationEngineEnvironmentReloading(
     private fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
         try {
             monitor.raise(event, application)
-        } catch (e: Throwable) {
-            log.error("One or more of the handlers thrown an exception", e)
+        } catch (cause: Throwable) {
+            log.error("One or more of the handlers thrown an exception", cause)
         }
     }
 
@@ -182,6 +191,7 @@ public class ApplicationEngineEnvironmentReloading(
         val applicationClassLoader = _applicationClassLoader
         _applicationInstance = null
         _applicationClassLoader = null
+
         if (currentApplication != null) {
             safeRiseEvent(ApplicationStopping, currentApplication)
             try {
@@ -208,8 +218,9 @@ public class ApplicationEngineEnvironmentReloading(
             // java.nio.file.InvalidPathException: Illegal char <:> at index 2: /Z:/buildAgent/work/7cfdbf2437628a0f/ktor-server/ktor-server-host-common/target/test-classes/
             // val folder = Paths.get(URLDecoder.decode(path, "utf-8"))
 
-            if (!Files.exists(folder))
+            if (!Files.exists(folder)) {
                 continue
+            }
 
             val visitor = object : SimpleFileVisitor<Path>() {
                 override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
@@ -219,8 +230,10 @@ public class ApplicationEngineEnvironmentReloading(
 
                 override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                     val dir = file.parent
-                    if (dir != null)
+                    if (dir != null) {
                         paths.add(dir)
+                    }
+
                     return FileVisitResult.CONTINUE
                 }
             }
@@ -233,6 +246,7 @@ public class ApplicationEngineEnvironmentReloading(
         paths.forEach { path ->
             log.debug("Watching $path for changes.")
         }
+
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
         packageWatchKeys = paths.map {
             it.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
@@ -243,13 +257,13 @@ public class ApplicationEngineEnvironmentReloading(
         applicationInstanceLock.write {
             val (application, classLoader) = try {
                 createApplication()
-            } catch (t: Throwable) {
+            } catch (cause: Throwable) {
                 destroyApplication()
                 if (watchPatterns.isNotEmpty()) {
                     watcher.close()
                 }
 
-                throw t
+                throw cause
             }
             _applicationInstance = application
             _applicationClassLoader = classLoader
@@ -370,41 +384,37 @@ public class ApplicationEngineEnvironmentReloading(
         return callFunctionWithInjection(null, constructor, application)
     }
 
-    private fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? {
-        return sortedWith(
-            compareBy(
-                { it.parameters.isNotEmpty() && isApplication(it.parameters[0]) },
-                { it.parameters.count { !it.isOptional } },
-                { it.parameters.size })
+    private fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? = sortedWith(
+        compareBy(
+            { it.parameters.isNotEmpty() && isApplication(it.parameters[0]) },
+            { it.parameters.count { !it.isOptional } },
+            { it.parameters.size }
         )
-            .lastOrNull()
-    }
+    ).lastOrNull()
 
-    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R {
-        return entryPoint.callBy(entryPoint.parameters
-            .filterNot { it.isOptional }
-            .associateBy({ it }, { p ->
-                @Suppress("IMPLICIT_CAST_TO_ANY")
-                when {
-                    p.kind == KParameter.Kind.INSTANCE -> instance
-                    isApplicationEnvironment(p) -> this
-                    isApplication(p) -> application
-                    else -> {
-                        if (p.type.toString().contains("Application")) {
-                            // It is possible that type is okay, but classloader is not
-                            val classLoader = (p.type.javaType as? Class<*>)?.classLoader
-                            throw IllegalArgumentException(
-                                "Parameter type ${p.type}:{$classLoader} is not supported." +
-                                    "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                            )
-                        }
-
-                        throw IllegalArgumentException("Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported")
+    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R =
+        entryPoint.callBy(entryPoint.parameters.filterNot { it.isOptional }.associateBy({ it }, { p ->
+            @Suppress("IMPLICIT_CAST_TO_ANY")
+            when {
+                p.kind == KParameter.Kind.INSTANCE -> instance
+                isApplicationEnvironment(p) -> this
+                isApplication(p) -> application
+                else -> {
+                    if (p.type.toString().contains("Application")) {
+                        // It is possible that type is okay, but classloader is not
+                        val classLoader = (p.type.javaType as? Class<*>)?.classLoader
+                        throw IllegalArgumentException(
+                            "Parameter type ${p.type}:{$classLoader} is not supported." +
+                                "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                        )
                     }
+
+                    throw IllegalArgumentException(
+                        "Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported"
+                    )
                 }
-            })
-        )
-    }
+            }
+        }))
 
     private fun ClassLoader.loadClassOrNull(name: String): Class<*>? = try {
         loadClass(name)
