@@ -106,8 +106,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             try {
                 val contentLengthIndex = request.headers.find("Content-Length")
-                connectionOptions =
-                    ConnectionOptions.parse(request.headers["Connection"])
+                connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
+
                 if (contentLengthIndex != -1) {
                     contentLength = request.headers.valueAt(contentLengthIndex).parseDecLong()
                     if (request.headers.find("Content-Length", contentLengthIndex + 1) != -1) {
@@ -119,12 +119,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 expectedHttpBody = expectHttpBody(
                     request.method, contentLength, transferEncoding, connectionOptions, contentType
                 )
-                expectedHttpUpgrade = !expectedHttpBody &&
-                        expectHttpUpgrade(
-                            request.method,
-                            upgrade,
-                            connectionOptions
-                        )
+                expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
             } catch (cause: Throwable) {
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
