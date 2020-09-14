@@ -56,7 +56,7 @@ public class ApplicationEngineEnvironmentBuilder {
     /**
      * Paths to wait for application reload
      */
-    public var watchPaths: List<String> = emptyList()
+    public var watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH)
 
     /**
      * Root class loader

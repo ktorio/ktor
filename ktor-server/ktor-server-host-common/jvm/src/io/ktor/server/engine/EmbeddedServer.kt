@@ -30,7 +30,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = emptyList(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine = GlobalScope.embeddedServer(factory, port, host, watchPaths, EmptyCoroutineContext, configure, module)
@@ -47,7 +47,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
-    watchPaths: List<String> = emptyList(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
@@ -78,4 +78,3 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
 ): TEngine {
     return factory.create(environment, configure)
 }
-
