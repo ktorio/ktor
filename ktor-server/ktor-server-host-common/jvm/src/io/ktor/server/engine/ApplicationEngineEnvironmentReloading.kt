@@ -54,14 +54,7 @@ public class ApplicationEngineEnvironmentReloading(
             return@run configModules
         }
 
-        val unlinkedModules = modules.map {
-            val fn = (it as? KFunction<*>)?.javaMethod
-                ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
-            val clazz = fn.declaringClass
-            val name = fn.name
-            "${clazz.name}.$name"
-        }
-
+        val unlinkedModules = modules.map { it.methodName() }
         configModules + unlinkedModules
     }
 
