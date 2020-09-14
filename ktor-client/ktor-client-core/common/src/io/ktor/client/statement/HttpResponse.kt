@@ -45,7 +45,10 @@ public abstract class HttpResponse : HttpMessage, CoroutineScope {
     public abstract val responseTime: GMTDate
 
     /**
-     * [ByteReadChannel] with the payload of the response.
+     * Unmodified [ByteReadChannel] with the raw payload of the response.
+     *
+     * **Note:** this content doesn't go through any interceptors from [HttpResponsePipeline].
+     * If you need modified content, use [HttpResponse::receive<ByteReadChannel>] function.
      */
     public abstract val content: ByteReadChannel
 
