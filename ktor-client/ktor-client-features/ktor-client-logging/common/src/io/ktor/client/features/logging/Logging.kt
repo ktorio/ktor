@@ -104,7 +104,7 @@ public class Logging(
     private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel): Unit = with(logger) {
         log("BODY Content-Type: $contentType")
         log("BODY START")
-        val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
+        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
         log(message)
         log("BODY END")
     }
@@ -137,7 +137,7 @@ public class Logging(
 
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
-            val text = channel.readText(charset)
+            val text = channel.tryReadText(charset) ?: "[request body omitted]"
             logger.log("BODY START")
             logger.log(text)
             logger.log("BODY END")
@@ -225,5 +225,8 @@ public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }
 
-private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
+internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
     readRemaining().readText(charset = charset)
+} catch (cause: MalformedInputException) {
+    null
+}

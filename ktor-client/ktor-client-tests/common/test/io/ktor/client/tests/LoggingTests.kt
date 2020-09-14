@@ -185,6 +185,63 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
+    fun testLogPostMalformedUtf8Body() = clientTests(listOf("native")) {
+        val testLogger = TestLogger(
+            "REQUEST: http://localhost:8080/logging/non-utf",
+            "METHOD: HttpMethod(value=POST)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "BODY Content-Type: application/octet-stream",
+            "BODY START",
+            "[request body omitted]",
+            "BODY END",
+            "RESPONSE: 201 Created",
+            "METHOD: HttpMethod(value=POST)",
+            "FROM: http://localhost:8080/logging/non-utf",
+            "COMMON HEADERS",
+            "???-> Connection: close",
+            "???-> connection: keep-alive",
+            "-> content-length: 2",
+            "-> content-type: application/octet-stream",
+            "BODY Content-Type: application/octet-stream",
+            "BODY START",
+            "[response body omitted]",
+            "BODY END"
+        )
+
+        config {
+            install(Logging) {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.request<HttpStatement> {
+                method = HttpMethod.Post
+
+                url {
+                    encodedPath = "/logging/non-utf"
+                    port = serverPort
+                }
+
+                body = byteArrayOf(-77, 111)
+            }.execute {
+                it.readBytes()
+                it
+            }
+
+            response.coroutineContext[Job]!!.join()
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Test
     fun logRedirectTest() = clientTests(listOf("js", "Curl", "CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/logging/301",
