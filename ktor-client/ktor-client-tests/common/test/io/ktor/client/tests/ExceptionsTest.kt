@@ -41,25 +41,23 @@ class ExceptionsTest : ClientLoader() {
 
     @Test
     fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl")) {
-        config {
-            test { client ->
-                val requestBuilder = HttpRequestBuilder()
-                requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
+        test { client ->
+            val requestBuilder = HttpRequestBuilder()
+            requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
 
-                assertFailsWith<IllegalStateException> {
-                    client.get<HttpStatement>(requestBuilder).execute { response ->
-                        try {
-                            CoroutineScope(response.coroutineContext)
-                                .launch { throw IllegalStateException("failed on receive") }
-                                .join()
-                        } catch (e: Exception) {
-                        }
-                        response.content.toByteArray()
+            assertFailsWith<IllegalStateException> {
+                client.get<HttpStatement>(requestBuilder).execute { response ->
+                    try {
+                        CoroutineScope(response.coroutineContext)
+                            .launch { throw IllegalStateException("failed on receive") }
+                            .join()
+                    } catch (e: Exception) {
                     }
+                    response.content.toByteArray()
                 }
-
-                assertTrue(requestBuilder.executionContext[Job]!!.isActive)
             }
+
+            assertTrue(requestBuilder.executionContext[Job]!!.isActive)
         }
     }
 }
