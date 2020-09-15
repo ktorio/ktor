@@ -77,7 +77,7 @@ class ConnectionTests {
     }
 
     @Test
-    fun test() {
+    fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withRSA", keySizeInBits = 4096)
         val chain1 = keyStore.getCertificateChain("mykey").toList() as List<X509Certificate>
