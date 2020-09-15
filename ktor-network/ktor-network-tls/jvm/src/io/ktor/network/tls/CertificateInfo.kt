@@ -5,10 +5,10 @@
 package io.ktor.network.tls
 
 import io.ktor.network.tls.extensions.*
-import java.security.*
+import javax.security.auth.x500.*
 
 internal class CertificateInfo(
     val types: ByteArray,
     val hashAndSign: Array<HashAndSign>,
-    val authorities: Set<Principal>
+    val authorities: Set<X500Principal>
 )
