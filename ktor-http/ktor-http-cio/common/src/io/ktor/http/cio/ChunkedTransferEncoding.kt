@@ -33,20 +33,28 @@ public typealias DecoderJob = WriterJob
 /**
  * Start a chunked stream decoder coroutine
  */
-@Deprecated("Specify content length if known or pass -1L",
-    ReplaceWith("decodeChunked(input, -1L)"))
+@Deprecated(
+    "Specify content length if known or pass -1L",
+    ReplaceWith("decodeChunked(input, -1L)")
+)
 public fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob =
     decodeChunked(input, -1L)
 
 /**
  * Start a chunked stream decoder coroutine
  */
-public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob = writer(coroutineContext) {
-    decodeChunked(input, channel, contentLength)
-}
+public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: Long): DecoderJob =
+    writer(coroutineContext) {
+        decodeChunked(input, channel, contentLength)
+    }
 
-@Deprecated("Specify contentLength if provided or pass -1L",
-    ReplaceWith("decodeChunked(input, out, -1L)"))
+
+/**
+ * Decode chunked transfer encoding from the [input] channel and write the result in [out].
+ *
+ * @throws EOFException if stream has ended unexpectedly.
+ * @throws ParserException if the format is invalid.
+ */
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     return decodeChunked(input, out, -1L)
 }
@@ -54,6 +62,10 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
 /**
  * Chunked stream decoding loop
  */
+@Deprecated(
+    "The contentLength is ignored for chunked transfer encoding",
+    ReplaceWith("decodeChunked(input, out)")
+)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, contentLength: Long) {
     val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     var totalBytesCopied = 0L
@@ -71,11 +83,6 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, 
                 if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0
                 else chunkSizeBuffer.parseHexLong()
 
-            if (contentLength != -1L && chunkSize > (contentLength - totalBytesCopied)) {
-                input.cancel()
-                throw ParserException("Invalid chunk: chunk-encoded content is larger than expected $contentLength")
-            }
-
             if (chunkSize > 0) {
                 input.copyTo(out, chunkSize)
                 out.flush()
@@ -91,11 +98,6 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel, 
             }
 
             if (chunkSize == 0L) break
-        }
-
-        if (contentLength != -1L && totalBytesCopied != contentLength) {
-            input.cancel()
-            throw EOFException("Corrupted chunk-encoded content: steam ended before the expected number of bytes ($contentLength) were decoded.")
         }
     } catch (t: Throwable) {
         out.close(t)
