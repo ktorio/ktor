@@ -59,11 +59,13 @@ public final class io/ktor/client/call/DoubleReceiveException : java/lang/Illega
 
 public class io/ktor/client/call/HttpClientCall : kotlinx/coroutines/CoroutineScope {
 	public static final field Companion Lio/ktor/client/call/HttpClientCall$Companion;
+	protected fun getAllowDoubleReceive ()Z
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getClient ()Lio/ktor/client/HttpClient;
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getRequest ()Lio/ktor/client/request/HttpRequest;
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
+	protected fun getResponseContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun receive (Lio/ktor/client/call/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
 }
@@ -261,6 +263,7 @@ public final class io/ktor/client/engine/UtilsKt {
 
 public final class io/ktor/client/features/ClientRequestException : io/ktor/client/features/ResponseException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;)V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
 }
 
@@ -460,11 +463,13 @@ public final class io/ktor/client/features/HttpTimeoutKt {
 
 public final class io/ktor/client/features/RedirectResponseException : io/ktor/client/features/ResponseException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;)V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
 }
 
 public class io/ktor/client/features/ResponseException : java/lang/IllegalStateException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;)V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
 }
 
@@ -478,6 +483,7 @@ public abstract interface class io/ktor/client/features/Sender {
 
 public final class io/ktor/client/features/ServerResponseException : io/ktor/client/features/ResponseException {
 	public fun <init> (Lio/ktor/client/statement/HttpResponse;)V
+	public fun <init> (Lio/ktor/client/statement/HttpResponse;Ljava/lang/String;)V
 	public fun getMessage ()Ljava/lang/String;
 }
 
