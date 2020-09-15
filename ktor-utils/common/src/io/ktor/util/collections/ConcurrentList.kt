@@ -49,7 +49,6 @@ public class ConcurrentList<T> : MutableList<T> {
 
     override fun isEmpty(): Boolean = size == 0
 
-
     override fun lastIndexOf(element: T): Int = synchronized(lock) {
         for (index in size - 1 downTo 0) {
             if (data[index] == element) {
@@ -176,7 +175,7 @@ public class ConcurrentList<T> : MutableList<T> {
 
     private fun increaseCapacity(targetCapacity: Int = data.size * 2) {
         val newData = SharedList<T>(targetCapacity)
-        for (index in 0 until targetCapacity) {
+        for (index in 0 until data.size) {
             newData[index] = data[index]
         }
 
@@ -191,7 +190,7 @@ public class ConcurrentList<T> : MutableList<T> {
                 continue
             }
 
-            data[writePosition]= data[index]
+            data[writePosition] = data[index]
             writePosition += 1
         }
 
