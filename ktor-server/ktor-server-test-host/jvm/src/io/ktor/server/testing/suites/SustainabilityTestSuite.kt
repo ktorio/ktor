@@ -498,7 +498,6 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
             post("/") {
                 try {
                     val post = call.receiveParameters()
-                    call.respond("$post")
                     call.respond(HttpStatusCode.BadRequest, "")
                 } catch (cause: Throwable) {
                     throw cause
