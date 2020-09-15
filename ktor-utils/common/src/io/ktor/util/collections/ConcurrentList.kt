@@ -14,7 +14,7 @@ private const val INITIAL_CAPACITY = 32
 
 @KtorExperimentalAPI
 public class ConcurrentList<T> : MutableList<T> {
-    private var data = SharedList<T>(INITIAL_CAPACITY)
+    private var data by shared(SharedList<T>(INITIAL_CAPACITY))
 
     override var size: Int by shared(0)
         private set
