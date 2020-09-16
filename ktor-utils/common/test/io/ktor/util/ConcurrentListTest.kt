@@ -37,4 +37,9 @@ class ConcurrentListTest {
             assertEquals(it, list[it])
         }
     }
+
+    @Test
+    fun testClearHasNoExceptions() {
+        ConcurrentList<Unit>().clear()
+    }
 }
