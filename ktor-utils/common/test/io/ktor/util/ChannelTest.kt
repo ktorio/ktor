@@ -128,6 +128,116 @@ class ChannelTest {
         }
     }
 
+    @Test
+    fun testSplit() = testSuspend {
+        val data = ByteArray(16 * 1024) { it.toByte() }
+        val source = ByteChannel()
+
+        val (first, second) = source.split(this)
+
+        launch(Dispatchers.Unconfined) {
+            source.writeFully(data)
+            source.close()
+        }
+
+        val firstResult = async(Dispatchers.Unconfined) {
+            first.readRemaining().readBytes()
+        }
+        val secondResult = async(Dispatchers.Unconfined) {
+            second.readRemaining().readBytes()
+        }
+
+        val result1 = firstResult.await()
+        val result2 = secondResult.await()
+        assertArrayEquals(data, result1)
+        assertArrayEquals(data, result2)
+    }
+
+    @Test
+    fun testSplitCancelSource() = testSuspend {
+        val source = ByteChannel()
+
+        val (first, second) = source.split(this)
+
+        val message = "Expected reason"
+        launch {
+            source.cancel(IllegalStateException(message))
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            val firstResult = GlobalScope.async(Dispatchers.Unconfined) {
+                first.readRemaining().readBytes()
+            }
+            firstResult.await()
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
+                second.readRemaining().readBytes()
+            }
+            secondResult.await()
+        }
+    }
+
+    @Test
+    fun testSplitCancelFirstReader() = testSuspend {
+        val data = ByteArray(16 * 1024) { it.toByte() }
+        val source = ByteChannel()
+
+        val (first, second) = source.split(this)
+
+        val message = "Expected reason"
+
+        val sourceResult = GlobalScope.async(Dispatchers.Unconfined) {
+            source.writeFully(data)
+            source.close()
+        }
+
+        launch {
+            first.cancel(IllegalStateException(message))
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            sourceResult.await()
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
+                second.readRemaining().readBytes()
+            }
+            secondResult.await()
+        }
+    }
+
+    @Test
+    fun testSplitCancelSecondReader() = testSuspend {
+        val data = ByteArray(16 * 1024) { it.toByte() }
+        val source = ByteChannel()
+
+        val (first, second) = source.split(this)
+
+        val message = "Expected reason"
+
+        val sourceResult = GlobalScope.async(Dispatchers.Unconfined) {
+            source.writeFully(data)
+            source.close()
+        }
+
+        launch {
+            second.cancel(IllegalStateException(message))
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            val firstResult = GlobalScope.async(Dispatchers.Unconfined) {
+                first.readRemaining().readBytes()
+            }
+            firstResult.await()
+        }
+
+        assertFailsWithMessage("Expected reason") {
+            sourceResult.await()
+        }
+    }
 }
 
 private inline fun assertFailsWithMessage(message: String, block: () -> Unit) {

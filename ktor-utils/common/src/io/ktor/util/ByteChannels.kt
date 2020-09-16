@@ -22,11 +22,13 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
     coroutineScope.launch {
         try {
             while (!isClosedForRead) {
-                this@split.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
-                    val firstAsync = async { first.writePacket(chunk.copy()) }
-                    val secondAsync = async { second.writePacket(chunk.copy()) }
-                    firstAsync.await()
-                    secondAsync.await()
+                supervisorScope {
+                    this@split.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
+                        val firstAsync = async { first.writePacket(chunk.copy()) }
+                        val secondAsync = async { second.writePacket(chunk.copy()) }
+                        firstAsync.await()
+                        secondAsync.await()
+                    }
                 }
             }
         } catch (cause: Throwable) {
