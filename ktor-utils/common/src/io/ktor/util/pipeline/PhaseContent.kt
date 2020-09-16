@@ -4,20 +4,25 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.util.collections.*
+import io.ktor.utils.io.concurrent.*
+
 internal class PhaseContent<TSubject : Any, Call : Any>(
     val phase: PipelinePhase,
     val relation: PipelinePhaseRelation,
-    private var interceptors: ArrayList<PipelineInterceptor<TSubject, Call>>
+    interceptors: MutableList<PipelineInterceptor<TSubject, Call>>
 ) {
+    private var interceptors: MutableList<PipelineInterceptor<TSubject, Call>> by shared(interceptors)
+
     @Suppress("UNCHECKED_CAST")
     constructor(
         phase: PipelinePhase,
         relation: PipelinePhaseRelation
-    ) : this(phase, relation, SharedArrayList as ArrayList<PipelineInterceptor<TSubject, Call>>) {
+    ) : this(phase, relation, SharedArrayList as MutableList<PipelineInterceptor<TSubject, Call>>) {
         check(SharedArrayList.isEmpty()) { "The shared empty array list has been modified" }
     }
 
-    var shared: Boolean = true
+    var shared: Boolean by shared(true)
 
     val isEmpty: Boolean get() = interceptors.isEmpty()
     val size: Int get() = interceptors.size
@@ -30,9 +35,13 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         interceptors.add(interceptor)
     }
 
-    fun addTo(destination: ArrayList<PipelineInterceptor<TSubject, Call>>) {
+    fun addTo(destination: MutableList<PipelineInterceptor<TSubject, Call>>) {
         val interceptors = interceptors
-        destination.ensureCapacity(destination.size + interceptors.size)
+
+        if (destination is ArrayList) {
+            destination.ensureCapacity(destination.size + interceptors.size)
+        }
+
         for (index in 0 until interceptors.size) {
             destination.add(interceptors[index])
         }
@@ -54,12 +63,15 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
         addTo(destination.interceptors)
     }
 
-    fun sharedInterceptors(): ArrayList<PipelineInterceptor<TSubject, Call>> {
+    fun sharedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> {
         shared = true
         return interceptors
     }
 
-    fun copiedInterceptors(): ArrayList<PipelineInterceptor<TSubject, Call>> = ArrayList(interceptors)
+    fun copiedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> =
+        sharedListOf<PipelineInterceptor<TSubject, Call>>().apply {
+            addAll(interceptors)
+        }
 
     override fun toString(): String = "Phase `${phase.name}`, $size handlers"
 
@@ -69,6 +81,6 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     }
 
     companion object {
-        val SharedArrayList = ArrayList<Any?>(0)
+        val SharedArrayList: MutableList<Any?> = sharedListOf()
     }
 }
