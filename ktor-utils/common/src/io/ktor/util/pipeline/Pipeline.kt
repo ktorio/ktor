@@ -5,23 +5,25 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
+import io.ktor.util.collections.*
 import io.ktor.utils.io.*
-import kotlin.jvm.*
+import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.*
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
  */
-public open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase) {
+public open class Pipeline<TSubject : Any, TContext : Any>(
+    vararg phases: PipelinePhase
+) {
     /**
      * Provides common place to store pipeline attributes
      */
     public val attributes: Attributes = Attributes(concurrent = true)
 
-    private val phasesRaw: ArrayList<Any> = phases.mapTo(ArrayList(phases.size + 1)) {
-        it
-    }
+    private val phasesRaw: MutableList<Any> = sharedListOf(*phases)
 
-    private var interceptorsQuantity = 0
+    private var interceptorsQuantity by shared(0)
 
     /**
      * Phases of this pipeline
@@ -38,21 +40,27 @@ public open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: Pipeli
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
-    @Volatile
-    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>? = null
+    private val _interceptors: AtomicRef<List<suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit>?> =
+        atomic(null)
+
+    private var interceptors: List<PipelineInterceptor<TSubject, TContext>>?
+        get() = _interceptors.value
+        set(value) {
+            _interceptors.value = value
+        }
 
     /**
      * share between pipelines/contexts
      */
-    private var interceptorsListShared = false
+    private var interceptorsListShared: Boolean by shared(false)
 
     /**
      * interceptors list is shared with pipeline phase content
      */
-    private var interceptorsListSharedPhase: PipelinePhase? = null
+    private var interceptorsListSharedPhase: PipelinePhase? by shared(null)
 
     init {
-        preventFreeze()
+        makeShared()
     }
 
     public constructor(
@@ -264,7 +272,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: Pipeli
             }
         }
 
-        val destination = ArrayList<PipelineInterceptor<TSubject, TContext>>(interceptorsQuantity)
+        val destination: MutableList<suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit> = sharedListOf()
         for (phaseIndex in 0..phases.lastIndex) {
             @Suppress("UNCHECKED_CAST")
             val phase = phases[phaseIndex] as? PhaseContent<TSubject, TContext>
@@ -277,19 +285,19 @@ public open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: Pipeli
         return destination
     }
 
-    private fun <E> ArrayList<E>.addAllAF(from: ArrayList<E>) {
-        ensureCapacity(size + from.size)
-        for (index in 0 until from.size) {
-            add(from[index])
-        }
-    }
+//    private fun <E> ArrayList<E>.addAllAF(from: ArrayList<E>) {
+//        ensureCapacity(size + from.size)
+//        for (index in 0 until from.size) {
+//            add(from[index])
+//        }
+//    }
 
     private fun fastPathMerge(from: Pipeline<TSubject, TContext>): Boolean {
         if (from.phasesRaw.isEmpty()) {
             return true
         }
 
-        if (!phasesRaw.isEmpty()) {
+        if (phasesRaw.isNotEmpty()) {
             return false
         }
 
