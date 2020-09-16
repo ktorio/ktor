@@ -40,7 +40,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingLevelBody() = clientTests(listOf("Curl", "CIO")) {
+    fun testLoggingLevelBody() = clientTests(listOf("CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
@@ -60,7 +60,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(listOf("Curl", "CIO")) {
+    fun testLogLevelAll() = clientTests(listOf("CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
@@ -128,7 +128,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests(listOf("native")) {
+    fun testLogPostBody() = clientTests {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=POST)",
@@ -185,7 +185,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests(listOf("native")) {
+    fun testLogPostMalformedUtf8Body() = clientTests {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: HttpMethod(value=POST)",
@@ -378,7 +378,54 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun customServerTest() = clientTests(listOf("iOS", "native:CIO", "Curl")) {
+    fun testRequestAndResponseBody() = clientTests {
+        val testLogger = TestLogger(
+            "REQUEST: http://127.0.0.1:8080/content/echo",
+            "METHOD: HttpMethod(value=POST)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "BODY Content-Type: text/plain; charset=UTF-8",
+            "BODY START",
+            "test",
+            "BODY END",
+            "RESPONSE: 200 OK",
+            "METHOD: HttpMethod(value=POST)",
+            "FROM: http://127.0.0.1:8080/content/echo",
+            "COMMON HEADERS",
+            "???-> Connection: close",
+            "???-> connection: keep-alive",
+            "-> content-length: 4",
+            "BODY Content-Type: null",
+            "BODY START",
+            "test",
+            "BODY END"
+        )
+
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.request<ByteReadChannel> {
+                method = HttpMethod.Post
+                body = "test"
+                url("$TEST_SERVER/content/echo")
+            }
+            assertNotNull(response)
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Test
+    fun customServerTest() = clientTests(listOf("iOS")) {
         config {
             Logging {
                 level = LogLevel.ALL

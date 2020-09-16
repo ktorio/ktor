@@ -23,10 +23,10 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
         try {
             while (!isClosedForRead) {
                 this@split.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
-                    listOf(
-                        async { first.writePacket(chunk.copy()) },
-                        async { second.writePacket(chunk.copy()) }
-                    ).awaitAll()
+                    val firstAsync = async { first.writePacket(chunk.copy()) }
+                    val secondAsync = async { second.writePacket(chunk.copy()) }
+                    firstAsync.await()
+                    secondAsync.await()
                 }
             }
         } catch (cause: Throwable) {
