@@ -658,7 +658,7 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket {
-        closed?.cause?.let { rethrowClosed(it) }
+        ensureNotFailed()
 
         if (size == 0) return ByteReadPacket.Empty
 
@@ -2060,10 +2060,7 @@ internal open class ByteBufferChannel(
 
     private suspend fun readUTF8LineToAscii(out: Appendable, limit: Int): Boolean {
         if (state === ReadWriteBufferState.Terminated) {
-            val cause = closedCause
-            if (cause != null) {
-                throw cause
-            }
+            ensureNotFailed()
 
             return false
         }
@@ -2207,7 +2204,7 @@ internal open class ByteBufferChannel(
 
                     val rc = readAsMuchAsPossible(buffer)
                     remaining -= rc
-                    remaining > 0L && !isClosedForRead
+                    ensureNotFailed() && remaining > 0L && !isClosedForRead
                 }
             }
         }
@@ -2519,6 +2516,11 @@ internal open class ByteBufferChannel(
         }
 
         return bytesCopied.toLong()
+    }
+
+    private fun ensureNotFailed(): Boolean {
+        closedCause?.let { rethrowClosed(it) }
+        return true
     }
 
     override fun toString(): String = "ByteBufferChannel(${hashCode()}, $state)"
