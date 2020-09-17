@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -40,7 +41,7 @@ class ExceptionsTest : ClientLoader() {
     }
 
     @Test
-    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl")) {
+    fun testErrorOnResponseCoroutine() = clientTests(listOf("Curl", "CIO")) {
         test { client ->
             val requestBuilder = HttpRequestBuilder()
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
@@ -53,7 +54,7 @@ class ExceptionsTest : ClientLoader() {
                             .join()
                     } catch (e: Exception) {
                     }
-                    response.content.toByteArray()
+                    response.receive<String>()
                 }
             }
 

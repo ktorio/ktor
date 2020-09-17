@@ -26,7 +26,7 @@ internal fun Application.downloadTest() {
             get("infinite") {
                 call.respondOutputStream {
                     while (true) {
-                        write(1)
+                        write("test".toByteArray())
                         delay(1)
                     }
                 }
