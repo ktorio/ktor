@@ -45,6 +45,7 @@ buildscript {
         google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
+        maven { url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven {
             url "https://kotlin.bintray.com/kotlin-dev"
@@ -161,6 +162,7 @@ allprojects {
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
             }
         }
+        maven { url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
         maven {
             url "https://kotlin.bintray.com/kotlin-dev"
