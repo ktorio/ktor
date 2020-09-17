@@ -16,6 +16,10 @@ kotlin {
     }
 }
 
+atomicfu {
+    transformJvm = false
+}
+
 // Hack: register the Native interop klibs as outputs of Kotlin source sets:
 kotlin.sourceSets {
     bitsMain { dependsOn commonMain }
