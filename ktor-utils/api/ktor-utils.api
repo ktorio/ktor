@@ -491,8 +491,10 @@ public final class io/ktor/util/collections/ConcurrentList : java/util/List, kot
 	public fun clear ()V
 	public fun contains (Ljava/lang/Object;)Z
 	public fun containsAll (Ljava/util/Collection;)Z
+	public fun equals (Ljava/lang/Object;)Z
 	public fun get (I)Ljava/lang/Object;
 	public fun getSize ()I
+	public fun hashCode ()I
 	public fun indexOf (Ljava/lang/Object;)I
 	public fun isEmpty ()Z
 	public fun iterator ()Ljava/util/Iterator;
@@ -509,6 +511,7 @@ public final class io/ktor/util/collections/ConcurrentList : java/util/List, kot
 	public fun subList (II)Ljava/util/List;
 	public fun toArray ()[Ljava/lang/Object;
 	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
