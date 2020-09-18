@@ -8,6 +8,7 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
@@ -18,12 +19,15 @@ import io.netty.handler.ssl.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
+import org.junit.Test
 import java.io.*
 import java.net.*
 import java.net.ServerSocket
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
+import kotlin.io.use
+import kotlin.test.*
 
 class ConnectionTests {
 
@@ -103,24 +107,32 @@ class ConnectionTests {
             val port = firstFreePort()
             b.bind(port).sync()
 
-            runBlocking {
-                val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
-                    .connect(InetSocketAddress("127.0.0.1", port))
-                    .tls(Dispatchers.IO) {
-                        addKeyStore(keyStore, password)
-                        trustManager = trustManagerFactory
-                            .trustManagers
-                            .filterIsInstance<X509TrustManager>()
-                            .first()
-                    }
+            tryToConnect(port, trustManagerFactory, keyStore to password)
 
-                val output = socket.openWriteChannel(autoFlush = true)
-                output.close()
-                socket.close()
-            }
+            try {
+                tryToConnect(port, trustManagerFactory)
+                fail("TLSException was expected because client has no certificate to authenticate")
+            } catch (expected: TLSException) {}
+
         } finally {
             workerGroup.shutdownGracefully()
         }
+    }
+
+    private fun tryToConnect(port: Int, trustManagerFactory: TrustManagerFactory, keyStoreAndPassword: Pair<KeyStore, CharArray>? = null) {
+        runBlocking {
+            aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
+                .connect(InetSocketAddress("127.0.0.1", port))
+                .tls(Dispatchers.IO) {
+                    keyStoreAndPassword?.let { addKeyStore(it.first, it.second) }
+                    trustManager = trustManagerFactory
+                        .trustManagers
+                        .filterIsInstance<X509TrustManager>()
+                        .first()
+                }
+            }.use {
+                it.openWriteChannel(autoFlush = true).use { close() }
+            }
     }
 
     private fun firstFreePort(): Int {
