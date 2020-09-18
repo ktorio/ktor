@@ -6,7 +6,9 @@ package io.ktor.client
 
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.utils.sharedMap
 import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.collections.set
 
 /**
@@ -14,12 +16,12 @@ import kotlin.collections.set
  */
 @HttpClientDsl
 public class HttpClientConfig<T : HttpClientEngineConfig> {
-    private val features: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = mutableMapOf()
-    private val featureConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = mutableMapOf()
+    private val features: MutableMap<AttributeKey<*>, (HttpClient) -> Unit> = sharedMap()
+    private val featureConfigurations: MutableMap<AttributeKey<*>, Any.() -> Unit> = sharedMap()
 
-    private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = mutableMapOf()
+    private val customInterceptors: MutableMap<String, (HttpClient) -> Unit> = sharedMap()
 
-    internal var engineConfig: T.() -> Unit = {}
+    internal var engineConfig: T.() -> Unit by shared {}
 
     /**
      * Configure engine parameters.
@@ -35,17 +37,17 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     /**
      * Use [HttpRedirect] feature to automatically follow redirects.
      */
-    public var followRedirects: Boolean = true
+    public var followRedirects: Boolean by shared(true)
 
     /**
      * Use [defaultTransformers] to automatically handle simple [ContentType].
      */
-    public var useDefaultTransformers: Boolean = true
+    public var useDefaultTransformers: Boolean by shared(true)
 
     /**
      * Terminate [HttpClient.responsePipeline] if status code is not success(>=300).
      */
-    public var expectSuccess: Boolean = true
+    public var expectSuccess: Boolean by shared(true)
 
     /**
      * Installs a specific [feature] and optionally [configure] it.

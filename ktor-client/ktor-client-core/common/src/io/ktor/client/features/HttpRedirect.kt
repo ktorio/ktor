@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
@@ -19,6 +20,9 @@ private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMe
  * [HttpClient] feature that handles http redirect
  */
 public class HttpRedirect {
+    private val _checkHttpMethod = atomic(true)
+    private val _allowHttpsDowngrade = atomic(false)
+
     /**
      * Check if the HTTP method is allowed for redirect.
      * Only [HttpMethod.Get] and [HttpMethod.Head] is allowed for implicit redirect.
@@ -26,15 +30,21 @@ public class HttpRedirect {
      * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
      */
     @KtorExperimentalAPI
-    @Volatile
-    public var checkHttpMethod: Boolean = true
+    public var checkHttpMethod: Boolean
+        get() = _checkHttpMethod.value
+        set(value) {
+            _checkHttpMethod.value = value
+        }
 
     /**
      * `true` value allows client redirect with downgrade from https to plain http.
      */
     @KtorExperimentalAPI
-    @Volatile
-    public var allowHttpsDowngrade: Boolean = false
+    public var allowHttpsDowngrade: Boolean
+        get() = _allowHttpsDowngrade.value
+        set(value) {
+            _allowHttpsDowngrade.value = value
+        }
 
     public companion object Feature : HttpClientFeature<HttpRedirect, HttpRedirect> {
         override val key: AttributeKey<HttpRedirect> = AttributeKey("HttpRedirect")
@@ -42,7 +52,7 @@ public class HttpRedirect {
         override fun prepare(block: HttpRedirect.() -> Unit): HttpRedirect = HttpRedirect().apply(block)
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
-            scope.feature(HttpSend)!!.intercept { origin, context ->
+            scope[HttpSend].intercept { origin, context ->
                 if (feature.checkHttpMethod && origin.request.method !in ALLOWED_FOR_REDIRECT) {
                     return@intercept origin
                 }
