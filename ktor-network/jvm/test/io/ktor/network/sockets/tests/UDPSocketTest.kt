@@ -13,7 +13,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
-import java.lang.IllegalStateException
 import java.net.*
 import kotlin.coroutines.*
 import kotlin.io.use
@@ -69,6 +68,41 @@ class UDPSocketTest : CoroutineScope {
             assertTrue(denied)
             socket.socketContext.join()
             assertTrue(socket.isClosed)
+        }
+    }
+
+    @Test
+    fun testBroadcastSuccessful() = runBlocking {
+        retryIgnoringBindException {
+            val serverSocket = CompletableDeferred<BoundDatagramSocket>()
+            val server = launch {
+                aSocket(selector)
+                    .udp()
+                    .bind(NetworkAddress("0.0.0.0", 56700))
+                    .use { socket ->
+                        serverSocket.complete(socket)
+                        val received = socket.receive()
+                        assertEquals("0123456789", received.packet.readText())
+                    }
+            }
+
+            serverSocket.await()
+
+            aSocket(selector)
+                .udp()
+                .bind {
+                    broadcast = true
+                }
+                .use { socket ->
+                    socket.send(
+                        Datagram(
+                            packet = buildPacket { writeText("0123456789") },
+                            address = NetworkAddress("255.255.255.255", 56700)
+                        )
+                    )
+                }
+
+            server.join()
         }
     }
 
