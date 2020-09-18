@@ -73,4 +73,23 @@ class ConcurrentListTest {
     fun testClearHasNoExceptions() {
         ConcurrentList<Unit>().clear()
     }
+
+    @Test
+    fun testAddWithIndex() {
+        val list = ConcurrentList<Int>().apply {
+            add(1)
+            add(1, 50)
+            add(1, 42)
+            add(1, 39)
+        }
+
+        val expected = mutableListOf<Int>().apply {
+            add(1)
+            add(1, 50)
+            add(1, 42)
+            add(1, 39)
+        }
+
+        assertEquals(expected, list)
+    }
 }

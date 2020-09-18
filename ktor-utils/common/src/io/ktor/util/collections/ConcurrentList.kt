@@ -267,6 +267,8 @@ public class ConcurrentList<T> : MutableList<T> {
         for (current in index until index + gapSize) {
             data[current] = null
         }
+
+        size += gapSize
     }
 }
 
