@@ -8,15 +8,32 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 
 internal class SharedForwardList<T : Any> : MutableIterable<T> {
-    internal var head by shared<ForwardListNode<T>>(ForwardListNode(null, null, null))
+    internal var head by shared(ForwardListNode(this, null, null, null))
     internal var tail by shared(head)
 
     init {
         makeShared()
     }
 
+    fun first(): ForwardListNode<T>? {
+        return head.next
+    }
+
+    fun last(): ForwardListNode<T>? {
+        if (head == tail) {
+            return null
+        }
+
+        return tail
+    }
+
     fun appendFirst(value: T): ForwardListNode<T> {
-        return head.insertAfter(value)
+        val newValue = head.insertAfter(value)
+        if (head == tail) {
+            tail = newValue
+        }
+
+        return newValue
     }
 
     fun appendLast(value: T): ForwardListNode<T> {
@@ -27,20 +44,3 @@ internal class SharedForwardList<T : Any> : MutableIterable<T> {
     override fun iterator(): MutableIterator<T> =
         ForwardListIterator(head)
 }
-
-private class ForwardListIterator<T>(head: ForwardListNode<T>) : MutableIterator<T> {
-    var previous by shared<ForwardListNode<T>?>(head)
-    val current: ForwardListNode<T>? get() = previous?.next
-
-    override fun hasNext(): Boolean = current?.item != null
-
-    override fun next(): T {
-        previous = current
-        return previous?.item!!
-    }
-
-    override fun remove() {
-        previous?.remove() ?: error("Fail to remove element before iteration")
-    }
-}
-

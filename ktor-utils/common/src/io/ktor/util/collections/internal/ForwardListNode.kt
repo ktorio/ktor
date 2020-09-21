@@ -7,7 +7,8 @@ package io.ktor.util.collections.internal
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 
-internal class ForwardListNode<T>(
+internal class ForwardListNode<T : Any>(
+    private val list: SharedForwardList<T>,
     next: ForwardListNode<T>?,
     val item: T?,
     previous: ForwardListNode<T>?
@@ -20,12 +21,16 @@ internal class ForwardListNode<T>(
     }
 
     fun insertAfter(value: T): ForwardListNode<T> {
-        val result = ForwardListNode(next, value, this)
+        val result = ForwardListNode(list, next, value, this)
         next = result
         return result
     }
 
     fun removeNext() {
+        if (next == list.tail) {
+            list.tail = this
+        }
+
         next = next?.next
         next?.previous = this
     }
