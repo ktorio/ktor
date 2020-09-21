@@ -15,7 +15,6 @@ public class ConcurrentSet<Key : Any> constructor(
     private val lock: Lock = Lock(),
     private val delegate: ConcurrentMap<Key, Unit> = ConcurrentMap(lock)
 ) : MutableSet<Key> {
-
     init {
         makeShared()
     }
@@ -80,4 +79,41 @@ public class ConcurrentSet<Key : Any> constructor(
 
     override fun isEmpty(): Boolean = delegate.isEmpty()
 
+    override fun toString(): String = lock.withLock {
+        return@withLock buildString {
+            append("[")
+
+            this@ConcurrentSet.forEachIndexed { index, item ->
+                append("$item")
+                if (index != size - 1) {
+                    append(", ")
+                }
+            }
+
+            append("]")
+        }
+    }
+
+    override fun equals(other: Any?): Boolean = lock.withLock {
+        if (other == null || other !is Set<*> || other.size != size) {
+            return@withLock false
+        }
+
+        for (item in this) {
+            if (!other.contains(item)) {
+                return@withLock false
+            }
+        }
+
+        return@withLock true
+    }
+
+    override fun hashCode(): Int = lock.withLock {
+        var result = 7
+        forEach {
+            result = Hash.combine(it.hashCode(), result)
+        }
+
+        return@withLock result
+    }
 }
