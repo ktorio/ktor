@@ -13,6 +13,7 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -21,7 +22,7 @@ import java.util.concurrent.*
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
 @EngineAPI
-fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
+public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline()
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
@@ -64,7 +65,7 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
  * Map [cause] to the corresponding status code or `null` if no default exception mapping for this [cause] type
  */
 @EngineAPI
-fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
+public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     return when (cause) {
         is BadRequestException -> HttpStatusCode.BadRequest
         is NotFoundException -> HttpStatusCode.NotFound
@@ -100,6 +101,7 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is CancellationException -> log.info("$status: $logString, cancelled")
             is ClosedChannelException -> log.info("$status: $logString, channel closed")
             is ChannelIOException -> log.info("$status: $logString, channel failed")
+            is IOException -> log.info("$status: $logString, io failed")
             is BadRequestException -> log.debug("$status: $logString", cause)
             is NotFoundException -> log.debug("$status: $logString", cause)
             is UnsupportedMediaTypeException -> log.debug("$status: $logString", cause)

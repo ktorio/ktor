@@ -12,14 +12,14 @@ import platform.posix.*
  */
 @Suppress("FunctionName")
 @ExperimentalIoApi
-fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescriptor)
+public fun Output(fileDescriptor: Int): Output = PosixFileDescriptorOutput(fileDescriptor)
 
 /**
  * Create a blocking [Output] writing to the specified [file] instance using [fwrite].
  */
 @Suppress("FunctionName")
 @ExperimentalIoApi
-fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
+public fun Output(file: CPointer<FILE>): Output = PosixFileInstanceOutput(file)
 
 private class PosixFileDescriptorOutput(val fileDescriptor: Int) : AbstractOutput() {
     private var closed = false

@@ -12,12 +12,12 @@ internal fun Digest(): Digest = Digest(BytePacketBuilder())
 
 internal inline class Digest(val state: BytePacketBuilder) : Closeable {
 
-    fun update(packet: ByteReadPacket) = synchronized(this) {
+    public fun update(packet: ByteReadPacket) = synchronized(this) {
         if (packet.isEmpty) return
         state.writePacket(packet.copy())
     }
 
-    fun doHash(hashName: String): ByteArray = synchronized(this) {
+    public fun doHash(hashName: String): ByteArray = synchronized(this) {
         state.preview { handshakes: ByteReadPacket ->
             val digest = MessageDigest.getInstance(hashName)!!
 

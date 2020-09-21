@@ -5,6 +5,7 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
@@ -96,6 +97,29 @@ private fun CharSequence.parseDecLongWithCheck(): Long {
 }
 
 internal fun Buffer.writeIntHex(value: Int) {
+    require(value > 0) { "Does only work for positive numbers" } // zero is not included!
+    var current = value
+    val table = HexLetterTable
+    var digits = 0
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+
+        if (v != 0) {
+            writeByte(table[v])
+            break
+        }
+    }
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+        writeByte(table[v])
+    }
+}
+
+internal suspend fun ByteWriteChannel.writeIntHex(value: Int) {
     require(value > 0) { "Does only work for positive numbers" } // zero is not included!
     var current = value
     val table = HexLetterTable

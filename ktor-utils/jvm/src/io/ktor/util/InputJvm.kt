@@ -11,7 +11,7 @@ import java.io.*
  * Convert io.ktor.utils.io [Input] to java [InputStream]
  */
 @KtorExperimentalAPI
-fun Input.asStream(): InputStream = object : InputStream() {
+public fun Input.asStream(): InputStream = object : InputStream() {
 
     override fun read(): Int {
         if (endOfInput) return -1

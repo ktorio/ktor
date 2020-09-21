@@ -21,9 +21,9 @@ import kotlinx.coroutines.*
  * You can configure the [Config.storage] and to provide [Config.default] blocks to set
  * cookies when installing.
  */
-class HttpCookies(
+public class HttpCookies(
     private val storage: CookiesStorage,
-    private val defaults: MutableList<suspend CookiesStorage.() -> Unit>
+    private val defaults: List<suspend CookiesStorage.() -> Unit>
 ) : Closeable {
     private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
         defaults.forEach { it(storage) }
@@ -32,54 +32,69 @@ class HttpCookies(
     /**
      * Find all cookies by [requestUrl].
      */
-    suspend fun get(requestUrl: Url): List<Cookie> {
+    public suspend fun get(requestUrl: Url): List<Cookie> {
         initializer.join()
         return storage.get(requestUrl)
+    }
+
+    internal suspend fun sendCookiesWith(builder: HttpRequestBuilder) {
+        val cookies = get(builder.url.clone().build())
+
+        with(builder) {
+            if (cookies.isNotEmpty()) {
+                headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
+            } else {
+                headers.remove(HttpHeaders.Cookie)
+            }
+        }
+    }
+
+    internal suspend fun saveCookiesFrom(response: HttpResponse) {
+        val url = response.request.url
+        response.setCookie().forEach {
+            storage.addCookie(url, it)
+        }
     }
 
     override fun close() {
         storage.close()
     }
 
-    class Config {
+    /**
+     * [HttpCookies] configuration.
+     */
+    public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         /**
          * [CookiesStorage] that will be used at this feature.
          * By default it just uses an initially empty in-memory [AcceptAllCookiesStorage].
          */
-        var storage: CookiesStorage = AcceptAllCookiesStorage()
+        public var storage: CookiesStorage = AcceptAllCookiesStorage()
 
         /**
          * Registers a [block] that will be called when the configuration is complete the specified [storage].
          * The [block] can potentially add new cookies by calling [CookiesStorage.addCookie].
          */
-        fun default(block: suspend CookiesStorage.() -> Unit) {
+        public fun default(block: suspend CookiesStorage.() -> Unit) {
             defaults.add(block)
         }
 
         internal fun build(): HttpCookies = HttpCookies(storage, defaults)
     }
 
-    companion object : HttpClientFeature<Config, HttpCookies> {
+    public companion object : HttpClientFeature<Config, HttpCookies> {
         override fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.sendPipeline.intercept(HttpSendPipeline.State) {
-                val cookies = feature.get(context.url.clone().build())
-
-                with(context) {
-                    headers[HttpHeaders.Cookie] = renderClientCookies(cookies)
-                }
+                feature.sendCookiesWith(context)
             }
 
             scope.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                val url = context.request.url
-                response.setCookie().forEach {
-                    feature.storage.addCookie(url, it)
-                }
+                feature.saveCookiesFrom(response)
             }
         }
     }
@@ -97,15 +112,15 @@ private fun renderClientCookies(cookies: List<Cookie>): String = buildString {
 /**
  * Gets all the cookies for the specified [url] for this [HttpClient].
  */
-suspend fun HttpClient.cookies(url: Url): List<Cookie> = feature(HttpCookies)?.get(url) ?: emptyList()
+public suspend fun HttpClient.cookies(url: Url): List<Cookie> = feature(HttpCookies)?.get(url) ?: emptyList()
 
 /**
  * Gets all the cookies for the specified [urlString] for this [HttpClient].
  */
-suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
+public suspend fun HttpClient.cookies(urlString: String): List<Cookie> =
     feature(HttpCookies)?.get(Url(urlString)) ?: emptyList()
 
 /**
  * Find the [Cookie] by [name]
  */
-operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }
+public operator fun List<Cookie>.get(name: String): Cookie? = find { it.name == name }

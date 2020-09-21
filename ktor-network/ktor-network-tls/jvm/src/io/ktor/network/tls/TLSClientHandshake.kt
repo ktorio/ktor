@@ -146,7 +146,7 @@ internal class TLSClientHandshake(
         }
     }
 
-    suspend fun negotiate() {
+    public suspend fun negotiate() {
         digest.use {
             sendClientHello()
             serverHello = receiveServerHello()
@@ -224,32 +224,7 @@ internal class TLSClientHandshake(
                     } ?: throw TLSException("No suitable server certificate received: $certs")
                 }
                 TLSHandshakeType.CertificateRequest -> {
-                    val typeCount = packet.readByte().toInt() and 0xFF
-                    val types = packet.readBytes(typeCount)
-
-                    val hashAndSignCount = packet.readShort().toInt() and 0xFFFF
-                    val hashAndSign = mutableListOf<HashAndSign>()
-
-                    repeat(hashAndSignCount / 2) {
-                        val hash = packet.readByte()
-                        val sign = packet.readByte()
-                        hashAndSign += HashAndSign.byCode(hash, sign) ?: return@repeat
-                    }
-
-                    val authoritiesSize = packet.readShort().toInt() and 0xFFFF
-                    val authorities = mutableSetOf<Principal>()
-
-                    var position = 0
-                    while (position < authoritiesSize) {
-                        val size = packet.readShort().toInt() and 0xFFFF
-                        position += size
-
-                        val authority = packet.readBytes(size)
-                        authorities += X500Principal(authority)
-                    }
-
-                    certificateInfo = CertificateInfo(types, hashAndSign.toTypedArray(), authorities)
-                    check(packet.isEmpty)
+                    certificateInfo = readClientCertificateRequest(packet)
                 }
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
@@ -487,4 +462,45 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
     val serverPublic = factory.generatePublic(ECPublicKeySpec(serverPoint, publicKey.params!!))!!
 
     return EncryptionInfo(serverPublic, clientKeys.public, clientKeys.private)
+}
+
+   /**
+    * RFC 5246, 7.4.4.  Certificate Request:
+    *
+    *     struct {
+    *         ClientCertificateType certificate_types<1..2^8-1>;
+    *         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
+    *         DistinguishedName certificate_authorities<0..2^16-1>;
+    *     } CertificateRequest;
+    */
+internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
+
+    val typeCount = packet.readByte().toInt() and 0xFF
+    val types = packet.readBytes(typeCount)
+
+    val hashAndSignCount = packet.readShort().toInt() and 0xFFFF
+    val hashAndSign = mutableListOf<HashAndSign>()
+
+    repeat(hashAndSignCount / 2) {
+        val hash = packet.readByte()
+        val sign = packet.readByte()
+        hashAndSign += HashAndSign.byCode(hash, sign) ?: return@repeat
+    }
+
+    val authoritiesSize = packet.readShort().toInt() and 0xFFFF
+    val authorities = mutableSetOf<Principal>()
+
+    var position = 0
+    while (position < authoritiesSize) {
+        val size = packet.readShort().toInt() and 0xFFFF
+        val bytesForReadingSize = Short.SIZE_BYTES
+        position += size + bytesForReadingSize
+
+        val authority = packet.readBytes(size)
+        authorities += X500Principal(authority)
+    }
+
+    val certificateInfo = CertificateInfo(types, hashAndSign.toTypedArray(), authorities)
+    check(packet.isEmpty)
+    return certificateInfo
 }

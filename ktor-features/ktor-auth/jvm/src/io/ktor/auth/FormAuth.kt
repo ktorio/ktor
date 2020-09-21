@@ -13,7 +13,7 @@ import io.ktor.util.pipeline.*
 /**
  * Represents a form-based authentication provider
  */
-class FormAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
+public class FormAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
     internal val userParamName: String = config.userParamName
 
     internal val passwordParamName: String = config.passwordParamName
@@ -26,7 +26,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
     /**
      * Form auth provider configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = { null }
 
         internal var challengeFunction: FormAuthChallengeFunction = {
@@ -39,19 +39,19 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
         /**
          * POST parameter to fetch for a user name
          */
-        var userParamName: String = "user"
+        public var userParamName: String = "user"
 
         /**
          * POST parameter to fetch for a user password
          */
-        var passwordParamName: String = "password"
+        public var passwordParamName: String = "password"
 
         /**
          * A response to send back if authentication failed
          */
         @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
         @Suppress("DEPRECATION_ERROR")
-        var challenge: FormAuthChallenge
+        public var challenge: FormAuthChallenge
             get() = _challenge ?: error("Challenge is already configured via challenge() function")
             set(value) {
                 _challenge = value
@@ -63,7 +63,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
         /**
          * Configure challenge (response to send back) if authentication failed.
          */
-        fun challenge(function: FormAuthChallengeFunction) {
+        public fun challenge(function: FormAuthChallengeFunction) {
             _challenge = null
             challengeFunction = function
         }
@@ -71,7 +71,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
         /**
          * Configure redirect challenge if authentication failed
          */
-        fun challenge(redirectUrl: String) {
+        public fun challenge(redirectUrl: String) {
             challenge {
                 call.respondRedirect(redirectUrl)
             }
@@ -80,7 +80,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
         /**
          * Configure redirect challenge if authentication failed
          */
-        fun challenge(redirect: Url) {
+        public fun challenge(redirect: Url) {
             challenge(redirect.toString())
         }
 
@@ -88,7 +88,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
          * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
          * or null if credential does not correspond to an authenticated principal
          */
-        fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
+        public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
         }
 
@@ -99,7 +99,7 @@ class FormAuthenticationProvider internal constructor(config: Configuration) : A
 /**
  * Installs Form Authentication mechanism
  */
-fun Authentication.Configuration.form(
+public fun Authentication.Configuration.form(
     name: String? = null,
     configure: FormAuthenticationProvider.Configuration.() -> Unit
 ) {
@@ -135,26 +135,26 @@ fun Authentication.Configuration.form(
 /**
  * Specifies what to send back if form authentication fails.
  */
-typealias FormAuthChallengeFunction = suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
+public typealias FormAuthChallengeFunction = suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
 
 /**
  * Specifies what to send back if form authentication fails.
  */
 @Suppress("DEPRECATION_ERROR")
 @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-sealed class FormAuthChallenge {
+public sealed class FormAuthChallenge {
     /**
      * Redirect to an URL provided by the given function.
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
     @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    class Redirect(val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge()
+    public class Redirect(public val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge()
 
     /**
      * Respond with [HttpStatusCode.Unauthorized].
      */
     @Deprecated("Use challenge {} instead.", level = DeprecationLevel.ERROR)
-    object Unauthorized : FormAuthChallenge()
+    public object Unauthorized : FormAuthChallenge()
 }
 
 private val formAuthenticationChallengeKey: Any = "FormAuth"

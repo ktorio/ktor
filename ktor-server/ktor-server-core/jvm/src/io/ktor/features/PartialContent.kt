@@ -23,18 +23,18 @@ import kotlin.properties.*
  * It is essential for streaming video and restarting downloads.
  *
  */
-class PartialContent(private val maxRangeCount: Int) {
+public class PartialContent(private val maxRangeCount: Int) {
 
     /**
      * Configuration for [PartialContent].
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Maximum number of ranges that will be accepted from HTTP request.
          *
          * If HTTP request specifies more ranges, they will all be merged into a single range.
          */
-        var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
+        public var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
             new > 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
@@ -42,7 +42,7 @@ class PartialContent(private val maxRangeCount: Int) {
     /**
      * `ApplicationFeature` implementation for [PartialContent]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContent> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContent> {
         private val PartialContentPhase = PipelinePhase("PartialContent")
 
         override val key: AttributeKey<PartialContent> = AttributeKey("Partial Content")

@@ -12,9 +12,7 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-@OptIn(
-    ImplicitReflectionSerializer::class, ExperimentalStdlibApi::class
-)
+@OptIn(ExperimentalStdlibApi::class)
 internal fun serializerByTypeInfo(type: KType): KSerializer<*> {
     val classifierClass = type.classifier as? KClass<*>
     if (classifierClass != null && classifierClass.java.isArray) {
@@ -37,9 +35,9 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
-internal fun serializerForSending(value: Any, module: SerialModule): KSerializer<*> = when (value) {
-    is JsonElement -> JsonElementSerializer
+@OptIn(InternalSerializationApi::class)
+internal fun serializerForSending(value: Any, module: SerializersModule): KSerializer<*> = when (value) {
+    is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
     is Set<*> -> SetSerializer(value.elementSerializer(module))
     is Map<*, *> -> MapSerializer(value.keys.elementSerializer(module), value.values.elementSerializer(module))
@@ -61,17 +59,15 @@ internal fun serializerForSending(value: Any, module: SerialModule): KSerializer
     else -> module.getContextual(value::class) ?: value::class.serializer()
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
-private fun Collection<*>.elementSerializer(module: SerialModule): KSerializer<*> {
-    @Suppress("DEPRECATION_ERROR")
+@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
+private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers = mapNotNull { value ->
         value?.let { serializerForSending(it, module) }
-    }.distinctBy { it.descriptor.name }
+    }.distinctBy { it.descriptor.serialName }
 
     if (serializers.size > 1) {
-        @Suppress("DEPRECATION_ERROR")
         val message = "Serializing collections of different element types is not yet supported. " +
-            "Selected serializers: ${serializers.map { it.descriptor.name }}"
+            "Selected serializers: ${serializers.map { it.descriptor.serialName }}"
         error(message)
     }
 

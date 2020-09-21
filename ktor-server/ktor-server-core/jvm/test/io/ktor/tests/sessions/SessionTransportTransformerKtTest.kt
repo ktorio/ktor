@@ -23,7 +23,7 @@ class SessionTransportTransformerKtTest {
 
     private class Appending(val value: String) : SessionTransportTransformer {
         companion object {
-            const val separator = ';'
+            public const val separator = ';'
         }
 
         override fun transformRead(transportValue: String): String? {

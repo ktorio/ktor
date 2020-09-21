@@ -1,10 +1,10 @@
 package io.ktor.utils.io.core
 
-expect enum class ByteOrder {
+public expect enum class ByteOrder {
     BIG_ENDIAN, LITTLE_ENDIAN;
 
-    companion object {
-        fun nativeOrder(): ByteOrder
+    public companion object {
+        public fun nativeOrder(): ByteOrder
     }
 }
 

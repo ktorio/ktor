@@ -10,17 +10,17 @@ import io.ktor.http.cio.websocket.*
 /**
  * Client specific [WebSocketSession].
  */
-interface ClientWebSocketSession : WebSocketSession {
+public interface ClientWebSocketSession : WebSocketSession {
     /**
      * [HttpClientCall] associated with session.
      */
-    val call: HttpClientCall
+    public val call: HttpClientCall
 }
 
 /**
  * ClientSpecific [DefaultWebSocketSession].
  */
-class DefaultClientWebSocketSession(
+public class DefaultClientWebSocketSession(
     override val call: HttpClientCall,
     delegate: DefaultWebSocketSession
 ) : ClientWebSocketSession, DefaultWebSocketSession by delegate

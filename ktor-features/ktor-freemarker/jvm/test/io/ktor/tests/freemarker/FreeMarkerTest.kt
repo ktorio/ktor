@@ -32,10 +32,9 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                val expectedContent = listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>")
+                val content = response.content!!.lines()
+                assertEquals(expectedContent, content)
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -55,10 +54,7 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, Anonymous</p>", "<h1>Hi!</h1>"))
-                }
+                assertEquals(listOf("<p>Hello, Anonymous</p>", "<h1>Hi!</h1>"), response.content!!.lines())
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertNull(response.headers[HttpHeaders.ETag])
@@ -85,10 +81,7 @@ class FreeMarkerTest {
                 addHeader(HttpHeaders.AcceptEncoding, "gzip")
             }.response.let { response ->
                 val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-                @Suppress("DEPRECATION_ERROR")
-                assert(content.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                assertEquals(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"), content.lines())
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("\"e\"", response.headers[HttpHeaders.ETag])
@@ -112,10 +105,7 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION_ERROR")
-                assert(response.content!!.lines()) {
-                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
-                }
+                assertEquals(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"), response.content!!.lines())
                 val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
                 assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals(null, response.headers[HttpHeaders.ETag])

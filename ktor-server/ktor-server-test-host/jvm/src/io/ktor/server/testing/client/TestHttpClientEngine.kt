@@ -18,7 +18,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
     override val dispatcher = Dispatchers.IO
 
@@ -72,7 +72,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         clientJob.complete()
     }
 
-    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)

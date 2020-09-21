@@ -177,7 +177,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests {
+    fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
         var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {

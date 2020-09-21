@@ -4,16 +4,19 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@Suppress("PublicApiImplicitType")
 class WebSocketTest : ClientLoader() {
+    private val skipForWebsockets = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
 
     @Test
-    fun testEcho() = clientTests(listOf("Apache", "Android", "iOS")) {
+    fun testEcho() = clientTests(skipForWebsockets) {
         config {
             install(WebSockets)
         }
@@ -30,7 +33,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testClose() = clientTests(listOf("Apache", "Android", "iOS")) {
+    fun testClose() = clientTests(skipForWebsockets) {
         config {
             install(WebSockets)
         }
@@ -48,22 +51,53 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testCancel() = clientTests(listOf("Apache", "Android", "Js", "iOS")) {
+    fun testCancel() = clientTests(skipForWebsockets + "Js") {
         config {
             install(WebSockets)
+        }
 
-            test { client ->
-                io.ktor.client.tests.utils.assertFailsWith<CancellationException> {
-                    withTimeout(1000) {
-                        client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                            repeat(10) {
-                                send(Frame.Text("Hello"))
-                                delay(250)
-                            }
+        test { client ->
+            assertFailsWith<CancellationException> {
+                withTimeout(1000) {
+                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                        repeat(10) {
+                            send(Frame.Text("Hello"))
+                            delay(250)
                         }
                     }
                 }
             }
+        }
+    }
+
+    @Test
+    fun testEchoWSS() = clientTests(listOf("Apache", "Android", "Js", "iOS", "Curl", "native:CIO")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("wss://echo.websocket.org") {
+                outgoing.send(Frame.Text("PING"))
+                val frame = incoming.receive()
+                assertTrue(frame is Frame.Text)
+                assertEquals("PING", frame.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testConfiguration() = clientTests(skipForWebsockets) {
+        config {
+            WebSockets {
+                pingInterval = 100
+                maxFrameSize = 1024
+            }
+        }
+
+        test { client ->
+            assertEquals(100, client[WebSockets].pingInterval)
+            assertEquals(1024, client[WebSockets].maxFrameSize)
         }
     }
 }

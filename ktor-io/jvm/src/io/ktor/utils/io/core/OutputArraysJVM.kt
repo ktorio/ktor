@@ -4,7 +4,7 @@ package io.ktor.utils.io.core
 
 import java.nio.*
 
-fun Output.writeFully(bb: ByteBuffer) {
+public fun Output.writeFully(bb: ByteBuffer) {
     val l = bb.limit()
 
     writeWhile { chunk ->

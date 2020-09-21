@@ -11,7 +11,5 @@ kotlin.sourceSets {
 }
 
 dependencies {
-    if (!project.ext.ideaActive) {
-        jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    }
+    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
 }

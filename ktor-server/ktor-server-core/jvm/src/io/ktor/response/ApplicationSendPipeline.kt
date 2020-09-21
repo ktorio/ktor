@@ -11,43 +11,43 @@ import io.ktor.util.pipeline.*
 /**
  * Server response send pipeline
  */
-open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+public open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     /**
      * Send pipeline phases
      */
     @Suppress("PublicApiImplicitType")
-    companion object Phases {
+    public companion object Phases {
         /**
          * The earliest phase that happens before any other
          */
-        val Before = PipelinePhase("Before")
+        public val Before: PipelinePhase = PipelinePhase("Before")
 
         /**
          * Transformation phase that can proceed with any supported data like String
          */
-        val Transform = PipelinePhase("Transform")
+        public val Transform: PipelinePhase = PipelinePhase("Transform")
 
         /**
          * Phase to render any current pipeline subject into [io.ktor.http.content.OutgoingContent]
          *
          * Beyond this phase only [io.ktor.http.content.OutgoingContent] should be produced by any interceptor
          */
-        val Render = PipelinePhase("Render")
+        public val Render: PipelinePhase = PipelinePhase("Render")
 
         /**
          * Phase for processing Content-Encoding, like compression and partial content
          */
-        val ContentEncoding = PipelinePhase("ContentEncoding")
+        public val ContentEncoding: PipelinePhase = PipelinePhase("ContentEncoding")
 
         /**
          * Phase for handling Transfer-Encoding, like if chunked encoding is being done manually and not by engine
          */
-        val TransferEncoding = PipelinePhase("TransferEncoding")
+        public val TransferEncoding: PipelinePhase = PipelinePhase("TransferEncoding")
 
         /**
          * The latest application phase that happens right before engine will send the response
          */
-        val After = PipelinePhase("After")
+        public val After: PipelinePhase = PipelinePhase("After")
 
         /**
          * Phase for Engine to send the response out to client.
@@ -55,6 +55,6 @@ open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Tran
          * TODO: this phase will be removed from here later
          */
         @KtorExperimentalAPI
-        val Engine = PipelinePhase("Engine")
+        public val Engine: PipelinePhase = PipelinePhase("Engine")
     }
 }

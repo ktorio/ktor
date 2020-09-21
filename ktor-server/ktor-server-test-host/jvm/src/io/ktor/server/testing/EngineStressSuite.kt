@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("NO_EXPLICIT_RETURN_TYPE_IN_API_MODE_WARNING")
+
 package io.ktor.server.testing
 
 import io.ktor.application.*
@@ -27,7 +29,7 @@ import kotlin.coroutines.*
 import kotlin.test.*
 
 @RunWith(StressSuiteRunner::class)
-abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
@@ -48,7 +50,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     override val timeout = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
 
     @Test
-    fun `single connection single thread no pipelining`() {
+    public fun `single connection single thread no pipelining`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -87,7 +89,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `single connection single thread with pipelining`() {
+    public fun `single connection single thread with pipelining`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -153,7 +155,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `single connection high pressure`() {
+    public fun `single connection high pressure`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -168,7 +170,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `multiple connections high pressure`() {
+    public fun `multiple connections high pressure`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -183,7 +185,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `high load stress test`() {
+    public fun `high load stress test`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)
@@ -198,7 +200,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `test http upgrade`() {
+    public fun `test http upgrade`() {
         createAndStartServer {
             handle {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
@@ -249,7 +251,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `test respond write`() {
+    public fun `test respond write`() {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter {
@@ -268,7 +270,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun test404() {
+    public fun test404() {
         createAndStartServer {
             get("/") {
                 call.respondText("OK")
@@ -283,7 +285,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun testLongResponse() {
+    public fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
                 call.respond(object : OutgoingContent.WriteChannelContent() {

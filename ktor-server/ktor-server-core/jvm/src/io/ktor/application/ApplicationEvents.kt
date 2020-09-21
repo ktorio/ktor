@@ -11,13 +11,13 @@ import kotlinx.coroutines.*
 /**
  * Provides events for [Application] lifecycle
  */
-class ApplicationEvents {
+public class ApplicationEvents {
     private val handlers = CopyOnWriteHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
      * Subscribe [handler] to an event specified by [definition]
      */
-    fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
+    public fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
         val registration = HandlerRegistration(handler)
         handlers.computeIfAbsent(definition) { LockFreeLinkedListHead() }.addLast(registration)
         return registration
@@ -26,7 +26,7 @@ class ApplicationEvents {
     /**
      * Unsubscribe [handler] from an event specified by [definition]
      */
-    fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
+    public fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
         handlers[definition]?.forEach<HandlerRegistration> {
             if (it.handler == handler) it.remove()
         }
@@ -38,7 +38,7 @@ class ApplicationEvents {
      * Handlers are called in order of subscriptions.
      * If some handler throws an exception, all handlers will still run and then exception will be rethrown.
      */
-    fun <T> raise(definition: EventDefinition<T>, value: T) {
+    public fun <T> raise(definition: EventDefinition<T>, value: T) {
         var exception: Throwable? = null
         handlers[definition]?.forEach<HandlerRegistration> { registration ->
             try {
@@ -61,7 +61,7 @@ class ApplicationEvents {
 /**
  * Specifies signature for the event handler
  */
-typealias EventHandler<T> = (T) -> Unit
+public typealias EventHandler<T> = (T) -> Unit
 
 // TODO: make two things: definition that is kept private to subsystem, and declaration which is public.
 // Invoke only by definition, subscribe by declaration
@@ -74,4 +74,4 @@ typealias EventHandler<T> = (T) -> Unit
  *
  * @param T specifies what is a type of a value passed to the event
  */
-open class EventDefinition<T> @KtorExperimentalAPI constructor()
+public open class EventDefinition<T> @KtorExperimentalAPI constructor()

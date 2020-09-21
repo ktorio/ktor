@@ -13,26 +13,26 @@ import kotlinx.coroutines.*
 /**
  * [ResponseObserver] callback.
  */
-typealias ResponseHandler = suspend (HttpResponse) -> Unit
+public typealias ResponseHandler = suspend (HttpResponse) -> Unit
 
 /**
  * Observe response feature.
  */
-class ResponseObserver(
+public class ResponseObserver(
     private val responseHandler: ResponseHandler
 ) {
-    class Config {
+    public class Config {
         internal var responseHandler: ResponseHandler = {}
 
         /**
          * Set response handler for logging.
          */
-        fun onResponse(block: ResponseHandler) {
+        public fun onResponse(block: ResponseHandler) {
             responseHandler = block
         }
     }
 
-    companion object Feature : HttpClientFeature<Config, ResponseObserver> {
+    public companion object Feature : HttpClientFeature<Config, ResponseObserver> {
 
         override val key: AttributeKey<ResponseObserver> = AttributeKey("BodyInterceptor")
 
@@ -41,13 +41,13 @@ class ResponseObserver(
 
         override fun install(feature: ResponseObserver, scope: HttpClient) {
 
-            scope.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
+            scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
                 val (loggingContent, responseContent) = response.content.split(response)
 
                 val newClientCall = context.wrapWithContent(responseContent)
                 val sideCall = newClientCall.wrapWithContent(loggingContent)
 
-                launch {
+                scope.launch {
                     feature.responseHandler(sideCall.response)
                 }
 
@@ -65,7 +65,7 @@ class ResponseObserver(
 /**
  * Install [ResponseObserver] feature in client.
  */
-fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {
+public fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {
     install(ResponseObserver) {
         responseHandler = block
     }

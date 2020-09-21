@@ -12,50 +12,50 @@ import io.ktor.util.*
 /**
  * Redirect non-secure requests to HTTPS
  */
-class HttpsRedirect(config: Configuration) {
+public class HttpsRedirect(config: Configuration) {
     /**
      * HTTPS port to redirect to
      */
-    val redirectPort: Int = config.sslPort
+    public val redirectPort: Int = config.sslPort
 
     /**
      * If it does permanent redirect
      */
-    val permanent: Boolean = config.permanentRedirect
+    public val permanent: Boolean = config.permanentRedirect
 
     /**
      * The list of call predicates for redirect exclusion.
      * Any call matching any of the predicates will not be redirected by this feature.
      */
     @KtorExperimentalAPI
-    val excludePredicates: List<(ApplicationCall) -> Boolean> = config.excludePredicates.toList()
+    public val excludePredicates: List<(ApplicationCall) -> Boolean> = config.excludePredicates.toList()
 
     /**
      * Redirect feature configuration
      */
-    class Configuration {
+    public class Configuration {
         /**
          * HTTPS port (443 by default) to redirect to
          */
-        var sslPort: Int = URLProtocol.HTTPS.defaultPort
+        public var sslPort: Int = URLProtocol.HTTPS.defaultPort
 
         /**
          * Use permanent redirect or temporary
          */
-        var permanentRedirect: Boolean = true
+        public var permanentRedirect: Boolean = true
 
         /**
          * The list of call predicates for redirect exclusion.
          * Any call matching any of the predicates will not be redirected by this feature.
          */
         @KtorExperimentalAPI
-        val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
+        public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
 
         /**
          * Exclude calls with paths matching the [pathPrefix] from being redirected to https by this feature.
          */
         @KtorExperimentalAPI
-        fun excludePrefix(pathPrefix: String) {
+        public fun excludePrefix(pathPrefix: String) {
             exclude { call ->
                 call.request.origin.uri.startsWith(pathPrefix)
             }
@@ -65,7 +65,7 @@ class HttpsRedirect(config: Configuration) {
          * Exclude calls matching the [predicate] from being redirected to https by this feature.
          */
         @KtorExperimentalAPI
-        fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
+        public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
             excludePredicates.add(predicate)
         }
     }
@@ -73,8 +73,8 @@ class HttpsRedirect(config: Configuration) {
     /**
      * Feature installation object
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, HttpsRedirect> {
-        override val key = AttributeKey<HttpsRedirect>("HttpsRedirect")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, HttpsRedirect> {
+        override val key: AttributeKey<HttpsRedirect> = AttributeKey("HttpsRedirect")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HttpsRedirect {
             val feature = HttpsRedirect(Configuration().apply(configure))
             pipeline.intercept(ApplicationCallPipeline.Features) {

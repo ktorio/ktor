@@ -17,16 +17,16 @@ import javax.crypto.spec.*
  * @property nonceGenerator function that produces random values
  */
 @KtorExperimentalAPI
-class StatelessHmacNonceManager(
-    val keySpec: SecretKeySpec,
-    val algorithm: String = "HmacSHA256",
-    val timeoutMillis: Long = 60000,
-    val nonceGenerator: () -> String = { generateNonce() }
+public class StatelessHmacNonceManager(
+    public val keySpec: SecretKeySpec,
+    public val algorithm: String = "HmacSHA256",
+    public val timeoutMillis: Long = 60000,
+    public val nonceGenerator: () -> String = { generateNonce() }
 ) : NonceManager {
     /**
      * Helper constructor that makes a secret key from [key] ByteArray
      */
-    constructor(
+    public constructor(
         key: ByteArray,
         algorithm: String = "HmacSHA256",
         timeoutMillis: Long = 60000,

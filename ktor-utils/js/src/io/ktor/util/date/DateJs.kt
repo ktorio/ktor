@@ -6,7 +6,7 @@ package io.ktor.util.date
 
 import kotlin.js.*
 
-actual fun GMTDate(timestamp: Long?): GMTDate {
+public actual fun GMTDate(timestamp: Long?): GMTDate {
     val date = timestamp?.toDouble()?.let { Date(it) } ?: Date()
 
     if (date.getTime().isNaN()) throw InvalidTimestampException(timestamp!!)
@@ -34,7 +34,7 @@ actual fun GMTDate(timestamp: Long?): GMTDate {
     }
 }
 
-actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate {
+public actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate {
     val timestamp = Date.UTC(year, month.ordinal, dayOfMonth, hours, minutes, seconds).toLong()
     return GMTDate(timestamp)
 }
@@ -42,6 +42,6 @@ actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, mont
 /**
  * Invalid exception: possible overflow or underflow
  */
-class InvalidTimestampException(timestamp: Long) : IllegalStateException(
+public class InvalidTimestampException(timestamp: Long) : IllegalStateException(
     "Invalid date timestamp exception: $timestamp"
 )

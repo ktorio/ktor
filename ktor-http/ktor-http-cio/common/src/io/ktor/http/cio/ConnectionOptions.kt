@@ -13,27 +13,27 @@ import io.ktor.http.cio.internals.*
  * @property upgrade `true` for `Connection: upgrade`
  * @property extraOptions a list of extra connection header options other than close, keep-alive and upgrade
  */
-class ConnectionOptions(
-    val close: Boolean = false,
-    val keepAlive: Boolean = false,
-    val upgrade: Boolean = false,
-    val extraOptions: List<String> = emptyList()
+public class ConnectionOptions(
+    public val close: Boolean = false,
+    public val keepAlive: Boolean = false,
+    public val upgrade: Boolean = false,
+    public val extraOptions: List<String> = emptyList()
 ) {
-    companion object {
+    public companion object {
         /**
          * An instance for `Connection: close`
          */
-        val Close = ConnectionOptions(close = true)
+        public val Close: ConnectionOptions = ConnectionOptions(close = true)
 
         /**
          * An instance for `Connection: keep-alive`
          */
-        val KeepAlive = ConnectionOptions(keepAlive = true)
+        public val KeepAlive: ConnectionOptions = ConnectionOptions(keepAlive = true)
 
         /**
          * An instance for `Connection: upgrade`
          */
-        val Upgrade = ConnectionOptions(upgrade = true)
+        public val Upgrade: ConnectionOptions = ConnectionOptions(upgrade = true)
 
         private val knownTypes = AsciiCharTree.build(
             listOf("close" to Close, "keep-alive" to KeepAlive, "upgrade" to Upgrade),
@@ -44,7 +44,7 @@ class ConnectionOptions(
         /**
          * Parse `Connection` header value
          */
-        fun parse(connection: CharSequence?): ConnectionOptions? {
+        public fun parse(connection: CharSequence?): ConnectionOptions? {
             if (connection == null) return null
             val known = knownTypes.search(connection, lowerCase = true, stopPredicate = { _, _ -> false })
             if (known.size == 1) return known[0].second

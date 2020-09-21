@@ -9,27 +9,29 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.collections.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
  * HttpSend pipeline interceptor function
  */
-typealias HttpSendInterceptor = suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall
+public typealias HttpSendInterceptor = suspend Sender.(HttpClientCall, HttpRequestBuilder) -> HttpClientCall
 
 /**
  * HttpSend pipeline interceptor function backward compatible with previous implementation.
  */
-typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpClientCall) -> HttpClientCall
+public typealias HttpSendInterceptorBackwardCompatible = suspend Sender.(HttpClientCall) -> HttpClientCall
 
 /**
  * This interface represents a request send pipeline interceptor chain
  */
 @KtorExperimentalAPI
-interface Sender {
+public interface Sender {
     /**
      * Execute send pipeline. It could start pipeline execution or replace the call
      */
-    suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall
+    public suspend fun execute(requestBuilder: HttpRequestBuilder): HttpClientCall
 }
 
 /**
@@ -37,15 +39,19 @@ interface Sender {
  * @property maxSendCount is a maximum number of requests that can be sent during a call
  */
 @KtorExperimentalAPI
-class HttpSend(
-    var maxSendCount: Int = 20
+public class HttpSend(
+    public var maxSendCount: Int = 20
 ) {
     private val interceptors: MutableList<HttpSendInterceptor> = mutableListOf()
+
+    init {
+        preventFreeze()
+    }
 
     /**
      * Install send pipeline starter interceptor
      */
-    fun intercept(block: HttpSendInterceptor) {
+    public fun intercept(block: HttpSendInterceptor) {
         interceptors += block
     }
 
@@ -53,7 +59,7 @@ class HttpSend(
      * Install send pipeline starter interceptor (backward compatible function).
      */
     @Deprecated("Intercept with one parameter is deprecated, use both call and request builder as parameters.")
-    fun intercept(block: HttpSendInterceptorBackwardCompatible) {
+    public fun intercept(block: HttpSendInterceptorBackwardCompatible) {
         interceptors += { call, _ ->
             block(call)
         }
@@ -62,7 +68,7 @@ class HttpSend(
     /**
      * Feature installation object
      */
-    companion object Feature : HttpClientFeature<HttpSend, HttpSend> {
+    public companion object Feature : HttpClientFeature<HttpSend, HttpSend> {
         override val key: AttributeKey<HttpSend> = AttributeKey("HttpSend")
 
         override fun prepare(block: HttpSend.() -> Unit): HttpSend = HttpSend().apply(block)
@@ -71,7 +77,10 @@ class HttpSend(
             // default send scenario
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { content ->
                 check(content is OutgoingContent) {
-                    "Fail to send body. Content has type: ${content::class}, but OutgoingContent expected."
+                    """
+|Fail to serialize body. Content has type: ${content::class}, but OutgoingContent expected.
+|If you expect serialized body, please check that you have installed the corresponding feature(like `Json`) and set `Content-Type` header."""
+                        .trimMargin()
                 }
                 context.body = content
 
@@ -130,4 +139,4 @@ class HttpSend(
  * It could be caused by infinite or too long redirect sequence.
  * Maximum number of requests is limited by [HttpSend.maxSendCount]
  */
-class SendCountExceedException(message: String) : IllegalStateException(message)
+public class SendCountExceedException(message: String) : IllegalStateException(message)

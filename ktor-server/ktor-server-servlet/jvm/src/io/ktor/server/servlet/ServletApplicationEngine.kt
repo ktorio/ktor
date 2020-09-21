@@ -17,7 +17,7 @@ import javax.servlet.annotation.*
  * This servlet need to be installed into a servlet container
  */
 @MultipartConfig
-open class ServletApplicationEngine : KtorServlet() {
+public open class ServletApplicationEngine : KtorServlet() {
     private val environment: ApplicationEngineEnvironment by lazy {
         val servletContext = servletContext
         val servletConfig = servletConfig
@@ -89,13 +89,13 @@ open class ServletApplicationEngine : KtorServlet() {
         environment.stop()
     }
 
-    companion object {
+    public companion object {
         /**
          * An application engine instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
         @EngineAPI
-        const val ApplicationEngineEnvironmentAttributeKey: String = "_ktor_application_engine_environment_instance"
+        public const val ApplicationEngineEnvironmentAttributeKey: String = "_ktor_application_engine_environment_instance"
 
         private val jettyUpgrade by lazy {
             try {

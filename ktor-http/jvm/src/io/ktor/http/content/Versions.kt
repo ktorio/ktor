@@ -12,12 +12,12 @@ import java.util.*
 /**
  * Specifies a key for VersionList extension property for [OutgoingContent]
  */
-val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
+public val VersionListProperty: AttributeKey<List<Version>> = AttributeKey("VersionList")
 
 /**
  * Gets or sets list of [Version] instances as an extension property on this content
  */
-var OutgoingContent.versions: List<Version>
+public var OutgoingContent.versions: List<Version>
     get() = getProperty(VersionListProperty) ?: emptyList()
     set(value) = setProperty(VersionListProperty, value)
 
@@ -26,16 +26,16 @@ var OutgoingContent.versions: List<Version>
  *
  * An example of version is [EntityTagVersion] or [LastModifiedVersion]
  */
-interface Version {
+public interface Version {
     /**
      * Checks [requestHeaders] against this version and returns [VersionCheckResult]
      */
-    fun check(requestHeaders: Headers): VersionCheckResult
+    public fun check(requestHeaders: Headers): VersionCheckResult
 
     /**
      * Appends relevant headers to the builder
      */
-    fun appendHeadersTo(builder: HeadersBuilder)
+    public fun appendHeadersTo(builder: HeadersBuilder)
 }
 
 /**
@@ -43,7 +43,7 @@ interface Version {
  *
  * @param statusCode represents [HttpStatusCode] associated with the result.
  */
-enum class VersionCheckResult(val statusCode: HttpStatusCode) {
+public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
     /**
      * Indicates that content needs to be sent to recipient.
      */
@@ -73,8 +73,8 @@ enum class VersionCheckResult(val statusCode: HttpStatusCode) {
  *
  *  @param lastModified of the current content, for example file's last modified date
  */
-data class LastModifiedVersion(val lastModified: GMTDate) : Version {
-    constructor(lastModified: Date) : this(GMTDate(lastModified.time))
+public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
+    public constructor(lastModified: Date) : this(GMTDate(lastModified.time))
 
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 
@@ -103,7 +103,7 @@ data class LastModifiedVersion(val lastModified: GMTDate) : Version {
      * If-Modified-Since logic: all [dates] should be _before_ this date (truncated to seconds).
      */
     @KtorExperimentalAPI
-    fun ifModifiedSince(dates: List<GMTDate>): Boolean {
+    public fun ifModifiedSince(dates: List<GMTDate>): Boolean {
         return dates.any { truncatedModificationDate > it }
     }
 
@@ -111,7 +111,7 @@ data class LastModifiedVersion(val lastModified: GMTDate) : Version {
      * If-Unmodified-Since logic: all [dates] should not be before this date (truncated to seconds).
      */
     @KtorExperimentalAPI
-    fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
+    public fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
         return dates.all { truncatedModificationDate <= it }
     }
 
@@ -133,7 +133,7 @@ data class LastModifiedVersion(val lastModified: GMTDate) : Version {
  * Creates an instance of [EntityTagVersion] parsing the [spec] via [EntityTagVersion.parseSingle].
  */
 @Suppress("FunctionName", "CONFLICTING_OVERLOADS")
-fun EntityTagVersion(spec: String): EntityTagVersion {
+public fun EntityTagVersion(spec: String): EntityTagVersion {
     return EntityTagVersion.parseSingle(spec)
 }
 
@@ -150,10 +150,10 @@ fun EntityTagVersion(spec: String): EntityTagVersion {
  * [VersionCheckResult.NOT_MODIFIED] for successful If-None-Match,
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
-data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
+public data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
     @Suppress("unused", "CONFLICTING_OVERLOADS")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(etag: String) : this(etag.removePrefix("W/"), etag.startsWith("W/"))
+    public constructor(etag: String) : this(etag.removePrefix("W/"), etag.startsWith("W/"))
 
     private val normalized: String = when {
         etag == "*" -> etag
@@ -190,7 +190,7 @@ data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
      * Examine two entity-tags for match (strong).
      */
     @KtorExperimentalAPI
-    fun match(other: EntityTagVersion): Boolean {
+    public fun match(other: EntityTagVersion): Boolean {
         if (this == STAR || other == STAR) return true
         return normalized == other.normalized
     }
@@ -199,7 +199,7 @@ data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
      * `If-None-Match` logic using [match] function.
      */
     @KtorExperimentalAPI
-    fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
+    public fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
 
         if (givenNoneMatchEtags.any { match(it) }) {
@@ -213,7 +213,7 @@ data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
      * `If-Match` logic using [match] function.
      */
     @KtorExperimentalAPI
-    fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
+    public fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (givenMatchEtags.isEmpty()) return VersionCheckResult.OK
         if (STAR in givenMatchEtags) return VersionCheckResult.OK
 
@@ -230,18 +230,18 @@ data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
         builder.etag(normalized)
     }
 
-    companion object {
+    public companion object {
         /**
          * Instance for `*` entity-tag pattern.
          */
         @KtorExperimentalAPI
-        val STAR: EntityTagVersion = EntityTagVersion("*", false)
+        public val STAR: EntityTagVersion = EntityTagVersion("*", false)
 
         /**
          * Parse headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
          */
         @KtorExperimentalAPI
-        fun parse(headerValue: String): List<EntityTagVersion> {
+        public fun parse(headerValue: String): List<EntityTagVersion> {
             val rawEntries = parseHeaderValue(headerValue)
             return rawEntries.map { entry ->
                 check (entry.quality == 1.0) { "entity-tag quality parameter is not allowed: ${entry.quality}."}
@@ -255,7 +255,7 @@ data class EntityTagVersion(val etag: String, val weak: Boolean) : Version {
          * Parse single entity-tag or pattern specification.
          */
         @KtorExperimentalAPI
-        fun parseSingle(value: String): EntityTagVersion {
+        public fun parseSingle(value: String): EntityTagVersion {
             if (value == "*") return STAR
 
             val weak: Boolean

@@ -14,21 +14,21 @@ import kotlin.reflect.*
  * Represents request and connection parameters possibly overridden via https headers.
  * By default it fallbacks to [ApplicationRequest.local]
  */
-val ApplicationRequest.origin: RequestConnectionPoint
+public val ApplicationRequest.origin: RequestConnectionPoint
     get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
 /**
  * A key to install a mutable [RequestConnectionPoint]
  */
 @KtorExperimentalAPI
-val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
+public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnectionPoint> =
     AttributeKey("MutableOriginConnectionPointKey")
 
 /**
  * Represents a [RequestConnectionPoint]. Every it's component is mutable so application features could provide them
  */
 @KtorExperimentalAPI
-class MutableOriginConnectionPoint
+public class MutableOriginConnectionPoint
 @Deprecated(
     "Instantiating CP is no longer supported: this will become internal.",
     level = DeprecationLevel.WARNING
@@ -51,7 +51,7 @@ internal class OriginConnectionPoint(
     private val local: RequestConnectionPoint,
     private val hostHeaderValue: String?
 ) : RequestConnectionPoint {
-    constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
+    public constructor(call: ApplicationCall) : this(call.request.local, call.request.header(HttpHeaders.Host))
 
     override val scheme: String
         get() = local.scheme
@@ -82,7 +82,7 @@ internal class OriginConnectionPoint(
  * `X-Forwarded-*` headers support
  * See http://ktor.io/servers/features/forward-headers.html for details
  */
-object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
+public object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
     XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
 
     override val key: AttributeKey<Config> = AttributeKey("XForwardedHeaderSupport")
@@ -143,26 +143,26 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
      * [XForwardedHeaderSupport] feature's configuration
      */
     @Suppress("PublicApiImplicitType")
-    class Config {
+    public class Config {
         /**
          * Host name X-header names. Default are `X-Forwarded-Server` and `X-Forwarded-Host`
          */
-        val hostHeaders = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
+        public val hostHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
 
         /**
          * Protocol X-header names. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`
          */
-        val protoHeaders = arrayListOf(HttpHeaders.XForwardedProto, "X-Forwarded-Protocol")
+        public val protoHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedProto, "X-Forwarded-Protocol")
 
         /**
          * `X-Forwarded-For` header names
          */
-        val forHeaders = arrayListOf(HttpHeaders.XForwardedFor)
+        public val forHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedFor)
 
         /**
          * HTTPS/TLS flag header names. Default are `X-Forwarded-SSL` and `Front-End-Https`
          */
-        val httpsFlagHeaders = arrayListOf("X-Forwarded-SSL", "Front-End-Https")
+        public val httpsFlagHeaders: ArrayList<String> = arrayListOf("X-Forwarded-SSL", "Front-End-Https")
     }
 }
 
@@ -170,11 +170,11 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
  */
 @Suppress("MemberVisibilityCanBePrivate")
-object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
+public object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     /**
      * A key for application call attribute that is used to cache parsed header values
      */
-    val ForwardedParsedKey: AttributeKey<List<ForwardedHeaderValue>> = AttributeKey("ForwardedParsedKey")
+    public val ForwardedParsedKey: AttributeKey<List<ForwardedHeaderValue>> = AttributeKey("ForwardedParsedKey")
 
     override val key: AttributeKey<Unit> = AttributeKey("ForwardedHeaderSupport")
 
@@ -227,7 +227,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
      * @property proto field value (optional)
      * @property others contains custom field values passed by proxy
      */
-    data class ForwardedHeaderValue(
+    public data class ForwardedHeaderValue(
         val host: String?,
         val by: String?,
         val forParam: String?,

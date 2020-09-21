@@ -11,12 +11,15 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import kotlin.test.*
 
 
 class ExceptionsTest {
     @Test
     fun testReadResponseFromException() = testSuspend {
+        if (PlatformUtils.IS_NATIVE) return@testSuspend
+
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -28,7 +31,7 @@ class ExceptionsTest {
         try {
             client.get<String>("www.google.com")
         } catch (exception: ResponseException) {
-            val text = exception.response.readText()
+            val text = exception.response?.readText()
             assertEquals(HttpStatusCode.BadRequest.description, text)
         }
     }

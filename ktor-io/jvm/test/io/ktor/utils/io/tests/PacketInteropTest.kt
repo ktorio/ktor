@@ -23,7 +23,7 @@ class PacketInteropTest {
         baos.writePacket {
             writeInt(777)
             writeLong(0x1234567812345678L)
-            writeStringUtf8("OK")
+            writeText("OK")
         }
 
         val result = ByteBuffer.wrap(baos.toByteArray())!!
@@ -70,7 +70,7 @@ class PacketInteropTest {
         out.writePacket {
             writeInt(777)
             writeLong(0x1234567812345678L)
-            writeStringUtf8("OK")
+            writeText("OK")
         }
         out.close()
 

@@ -1,5 +1,10 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io
 
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
@@ -11,14 +16,14 @@ import kotlinx.coroutines.*
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
-actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
+public actual fun ByteChannel(autoFlush: Boolean): ByteChannel {
     return ByteChannelNative(IoBuffer.Empty, autoFlush)
 }
 
 /**
  * Creates channel for reading from the specified byte array.
  */
-actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
+public actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteReadChannel {
     if (content.isEmpty()) return ByteReadChannel.Empty
     val head = IoBuffer.Pool.borrow()
     var tail = head
@@ -41,7 +46,7 @@ actual fun ByteReadChannel(content: ByteArray, offset: Int, length: Int): ByteRe
     return ByteChannelNative(head, false).apply { close() }
 }
 
-actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
+public actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
     (this as ByteChannelSequentialBase).joinToImpl((dst as ByteChannelSequentialBase), closeOnEnd)
 }
 
@@ -50,7 +55,7 @@ actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boo
  * Closes [dst] channel if fails to read or write with cause exception.
  * @return a number of copied bytes
  */
-actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
+public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
     return (this as ByteChannelSequentialBase).copyToSequentialImpl((dst as ByteChannelSequentialBase), limit)
 }
 
@@ -59,7 +64,11 @@ internal class ByteChannelNative(
     autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannelSequentialBase(initial, autoFlush, pool) {
-    private var attachedJob: Job? = null
+    private var attachedJob: Job? by shared(null)
+
+    init {
+        makeShared()
+    }
 
     @OptIn(InternalCoroutinesApi::class)
     override fun attachJob(job: Job) {
@@ -83,7 +92,7 @@ internal class ByteChannelNative(
             closedCause != null -> throw closedCause!!
             readable.canRead() -> {
                 val size = tryReadCPointer(dst, offset, length)
-                afterRead()
+                afterRead(size)
                 size
             }
             closed -> readAvailableClosed()
@@ -108,8 +117,8 @@ internal class ByteChannelNative(
         return when {
             closedCause != null -> throw closedCause!!
             readable.remaining >= length -> {
-                tryReadCPointer(dst, offset, length)
-                afterRead()
+                val size = tryReadCPointer(dst, offset, length)
+                afterRead(size)
             }
             closed -> throw EOFException("Channel is closed and not enough bytes available: required $length but $availableForRead available")
             else -> readFullySuspend(dst, offset, length)
@@ -137,11 +146,11 @@ internal class ByteChannelNative(
     }
 
     override suspend fun writeFully(src: CPointer<ByteVar>, offset: Long, length: Long) {
-        if (notFull.check()) {
+        if (availableForWrite > 0) {
             val size = tryWriteCPointer(src, offset, length).toLong()
 
             if (length == size) {
-                afterWrite()
+                afterWrite(size.toInt())
                 return
             }
 
@@ -158,12 +167,12 @@ internal class ByteChannelNative(
         var position = offset
 
         while (rem > 0) {
-            awaitFreeSpace()
+            awaitAtLeastNBytesAvailableForWrite(1)
             val size = tryWriteCPointer(src, position, rem).toLong()
             rem -= size
             position += size
             if (rem > 0) flush()
-            else afterWrite()
+            else afterWrite(size.toInt())
         }
     }
 
@@ -172,9 +181,9 @@ internal class ByteChannelNative(
     }
 
     override suspend fun writeAvailable(src: CPointer<ByteVar>, offset: Long, length: Long): Int {
-        if (notFull.check()) {
+        if (availableForWrite > 0) {
             val size = tryWriteCPointer(src, offset, length)
-            afterWrite()
+            afterWrite(size)
             return size
         }
 
@@ -201,7 +210,7 @@ internal class ByteChannelNative(
     }
 
     private suspend fun writeAvailableSuspend(src: CPointer<ByteVar>, offset: Long, length: Long): Int {
-        awaitFreeSpace()
+        awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src, offset, length)
     }
 

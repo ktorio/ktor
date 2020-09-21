@@ -26,6 +26,11 @@ class ContentTypeTest {
     }
 
     @Test
+    fun testBlankIsAny() {
+        assertEquals(ContentType.Any, ContentType.parse(""))
+    }
+
+    @Test
     fun textPlainCharsetInQuotes() {
         val ct1 = ContentType.parse("text/plain; charset=us-ascii")
         val ct2 = ContentType.parse("text/plain; charset=\"us-ascii\"")
@@ -76,5 +81,23 @@ class ContentTypeTest {
     fun contentTypeRenderWorks() {
         // rendering tests are in [HeadersTest] so it is just a smoke test
         assertEquals("text/plain; p1=v1", ContentType.Text.Plain.withParameter("p1", "v1").toString())
+    }
+
+    @Test
+    fun testContentTypeInvalid() {
+        val result = ContentType.parse("image/png; charset=utf-8\" but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "utf-8\" but not really"), result)
+    }
+
+    @Test
+    fun testContentTypeSingleQuoteAtStart() {
+        val result = ContentType.parse("image/png; charset=\"utf-8 but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8 but not really"), result)
+    }
+
+    @Test
+    fun testContentTypeQuotedAtStartAndMiddle() {
+        val result = ContentType.parse("image/png; charset=\"utf-8\" but not really")
+        assertEquals(ContentType.Image.PNG.withParameter("charset", "\"utf-8\" but not really"), result)
     }
 }

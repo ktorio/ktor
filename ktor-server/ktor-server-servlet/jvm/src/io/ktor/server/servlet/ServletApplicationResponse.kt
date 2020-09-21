@@ -14,7 +14,7 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-abstract class ServletApplicationResponse(
+public abstract class ServletApplicationResponse(
     call: ApplicationCall,
     protected val servletResponse: HttpServletResponse
 ) : BaseApplicationResponse(call) {
@@ -44,7 +44,7 @@ abstract class ServletApplicationResponse(
         responseJob.value.channel
     }
 
-    final override suspend fun responseChannel(): ByteWriteChannel = responseChannel.value
+    public final override suspend fun responseChannel(): ByteWriteChannel = responseChannel.value
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {

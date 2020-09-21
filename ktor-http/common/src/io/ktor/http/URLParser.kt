@@ -10,7 +10,7 @@ import io.ktor.util.*
  * Take url parts from [urlString]
  * throws [URLParserException]
  */
-fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+public fun URLBuilder.takeFrom(urlString: String): URLBuilder {
     return try {
         takeFromUnsafe(urlString)
     } catch (cause: Throwable) {
@@ -21,7 +21,7 @@ fun URLBuilder.takeFrom(urlString: String): URLBuilder {
 /**
  * Thrown when failed to parse URL
  */
-class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
+public class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
     "Fail to parse url: $urlString", cause
 )
 
@@ -157,7 +157,7 @@ private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
                 throw IllegalArgumentException("Illegal character in scheme at position $incorrectSchemePosition")
             }
 
-            return current
+            return current - startIndex
         }
 
         // If character '/' or '?' or '#' found this is not a scheme.

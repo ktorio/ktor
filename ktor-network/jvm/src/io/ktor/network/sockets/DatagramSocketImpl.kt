@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.network.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.core.*
@@ -21,11 +22,13 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
 
     private val socket = channel.socket()!!
 
-    override val localAddress: SocketAddress
-        get() = socket.localSocketAddress ?: throw IllegalStateException("Channel is not yet bound")
+    override val localAddress: NetworkAddress
+        get() = socket.localSocketAddress as? NetworkAddress
+            ?: throw IllegalStateException("Channel is not yet bound")
 
-    override val remoteAddress: SocketAddress
-        get() = socket.remoteSocketAddress ?: throw IllegalStateException("Channel is not yet connected")
+    override val remoteAddress: NetworkAddress
+        get() = socket.remoteSocketAddress as? NetworkAddress
+            ?: throw IllegalStateException("Channel is not yet connected")
 
     private val sender = actor<Datagram>(Dispatchers.IO) {
         consumeEach { datagram ->

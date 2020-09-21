@@ -33,8 +33,9 @@ open class KtorTestServer : DefaultTask() {
         } catch (cause: Throwable) {
         }
     }
-
 }
+
+val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
     commonMain {
@@ -49,14 +50,17 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
             api(project(":ktor-client:ktor-client-features:ktor-client-auth"))
+            api(project(":ktor-client:ktor-client-features:ktor-client-encoding"))
         }
     }
     jvmMain {
         dependencies {
-            api(project(":ktor-server:ktor-server-jetty"))
+            api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
+            api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-features:ktor-auth"))
             api(project(":ktor-features:ktor-websockets"))
+            api(project(":ktor-features:ktor-serialization"))
             api("ch.qos.logback:logback-classic:$logback_version")
             api("junit:junit:$junit_version")
             api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
@@ -81,19 +85,27 @@ kotlin.sourceSets {
     if (!ideaActive) {
         listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
-                //                api(project(":ktor-client:ktor-client-curl"))
+                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+
+        if (!osName.startsWith("Windows")) {
+            listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
+                it.dependencies {
+                    api(project(":ktor-client:ktor-client-cio"))
+                }
             }
         }
         listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
-                api(project(":ktor-client:ktor-client-ios"))
+                // api(project(":ktor-client:ktor-client-ios"))
             }
         }
     } else {
         posixTest {
             dependencies {
-                api(project(":ktor-client:ktor-client-ios"))
-                //                api(project(":ktor-client:ktor-client-curl"))
+                // api(project(":ktor-client:ktor-client-ios"))
+                api(project(":ktor-client:ktor-client-curl"))
             }
         }
     }
@@ -108,17 +120,25 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 }
 
 val testTasks = mutableListOf(
-    "jvmTest", "jvmBenchmark", "jsNodeTest", "jsBrowserTest", "posixTest", "darwinTest"
+    "jvmTest",
+    "jvmBenchmark",
+
+    // 1.4.x JS tasks
+    "jsLegacyNodeTest",
+    "jsIrNodeTest",
+    "jsLegacyBrowserTest",
+    "jsIrBrowserTest",
+
+    "posixTest",
+    "darwinTest"
 )
 
 if (!ideaActive) {
     testTasks += listOf(
         "macosX64Test",
         "linuxX64Test",
-        "iosTest",
-        "mingwX64Test",
-        "jsNodeTest",
-        "jsBrowserTest"
+        "iosX64Test",
+        "mingwX64Test"
     )
 }
 

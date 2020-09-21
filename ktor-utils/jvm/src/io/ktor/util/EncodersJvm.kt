@@ -27,7 +27,7 @@ private infix fun Int.has(flag: Int) = this and flag != 0
 /**
  * Implementation of Deflate [Encoder].
  */
-val Deflate: Encoder = object : Encoder {
+public val Deflate: Encoder = object : Encoder {
     override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel =
         source.deflated(gzip = true, coroutineContext = coroutineContext)
 
@@ -39,7 +39,7 @@ val Deflate: Encoder = object : Encoder {
 /**
  * Implementation of GZip [Encoder].
  */
-val GZip: Encoder = object : Encoder {
+public val GZip: Encoder = object : Encoder {
     override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel =
         source.deflated(gzip = true, coroutineContext = coroutineContext)
 

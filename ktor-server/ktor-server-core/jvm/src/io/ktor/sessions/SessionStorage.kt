@@ -9,14 +9,14 @@ import io.ktor.utils.io.*
 /**
  * Represents a way to [write], [read] and [invalidate] session bits.
  */
-interface SessionStorage {
+public interface SessionStorage {
     /**
      * Writes a session [id] using a specific [provider].
      *
      * This method calls the [provider] with a [ByteWriteChannel] and it is in charge of the channel's lifecycle.
      * [provider] is in charge of writing session bits to the specified [ByteWriteChannel].
      */
-    suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit)
+    public suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit)
 
     /**
      * Invalidates session [id].
@@ -25,7 +25,7 @@ interface SessionStorage {
      *
      * @throws NoSuchElementException when session [id] is not found.
      */
-    suspend fun invalidate(id: String)
+    public suspend fun invalidate(id: String)
 
     /**
      * Reads session [id] using a [consumer] as [R]
@@ -37,5 +37,5 @@ interface SessionStorage {
      * @return instance of [R] representing the session object returned from the [consumer].
      * @throws NoSuchElementException when session [id] is not found.
      */
-    suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R
+    public suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R
 }

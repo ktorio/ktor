@@ -14,11 +14,11 @@ import io.ktor.util.*
  *
  * @property agent: value of user-agent header to set.
  */
-class UserAgent(val agent: String) {
+public class UserAgent(public val agent: String) {
 
-    class Config(var agent: String = "Ktor http-client")
+    public class Config(public var agent: String = "Ktor http-client")
 
-    companion object Feature : HttpClientFeature<Config, UserAgent> {
+    public companion object Feature : HttpClientFeature<Config, UserAgent> {
         override val key: AttributeKey<UserAgent> = AttributeKey("UserAgent")
 
         override fun prepare(block: Config.() -> Unit): UserAgent = UserAgent(Config().apply(block).agent)
@@ -34,7 +34,7 @@ class UserAgent(val agent: String) {
 /**
  * Install [UserAgent] feature with browser-like user agent.
  */
-fun HttpClientConfig<*>.BrowserUserAgent() {
+public fun HttpClientConfig<*>.BrowserUserAgent() {
     install(UserAgent) {
         agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36"
     }
@@ -43,7 +43,7 @@ fun HttpClientConfig<*>.BrowserUserAgent() {
 /**
  * Install [UserAgent] feature with browser-like user agent.
  */
-fun HttpClientConfig<*>.CurlUserAgent() {
+public fun HttpClientConfig<*>.CurlUserAgent() {
     install(UserAgent) {
         agent = "curl/7.61.0"
     }

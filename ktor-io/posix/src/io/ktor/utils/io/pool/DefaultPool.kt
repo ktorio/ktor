@@ -2,21 +2,21 @@ package io.ktor.utils.io.pool
 
 import kotlin.native.concurrent.ensureNeverFrozen
 
-actual abstract class DefaultPool<T : Any> actual constructor(actual override final val capacity: Int) : ObjectPool<T> {
+public actual abstract class DefaultPool<T : Any> actual constructor(actual override final val capacity: Int) : ObjectPool<T> {
     private val instances = arrayOfNulls<Any?>(capacity)
     private var size = 0
 
-    actual protected abstract fun produceInstance(): T
-    actual protected open fun disposeInstance(instance: T) {}
+    protected actual abstract fun produceInstance(): T
+    protected actual open fun disposeInstance(instance: T) {}
 
-    actual protected open fun clearInstance(instance: T): T = instance
-    actual protected open fun validateInstance(instance: T) {}
+    protected actual open fun clearInstance(instance: T): T = instance
+    protected actual open fun validateInstance(instance: T) {}
 
     init {
         ensureNeverFrozen()
     }
 
-    actual final override fun borrow(): T {
+    public actual final override fun borrow(): T {
         if (size == 0) return produceInstance()
         val idx = --size
 
@@ -27,7 +27,7 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual override fi
         return clearInstance(instance)
     }
 
-    actual final override fun recycle(instance: T) {
+    public actual final override fun recycle(instance: T) {
         validateInstance(instance)
         if (size == capacity) {
             disposeInstance(instance)
@@ -36,7 +36,7 @@ actual abstract class DefaultPool<T : Any> actual constructor(actual override fi
         }
     }
 
-    actual final override fun dispose() {
+    public actual final override fun dispose() {
         for (i in 0 until size) {
             @Suppress("UNCHECKED_CAST")
             val instance = instances[i] as T

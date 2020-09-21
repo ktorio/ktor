@@ -5,6 +5,6 @@
 apply plugin: "kotlinx-serialization"
 
 kotlin.sourceSets.jvmMain.dependencies {
-    api "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+    api "org.jetbrains.kotlinx:kotlinx-serialization-core:$serialization_version"
 }
 

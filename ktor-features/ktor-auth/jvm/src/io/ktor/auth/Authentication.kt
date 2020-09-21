@@ -16,13 +16,13 @@ import org.slf4j.*
  *
  * @param config initial authentication configuration
  */
-class Authentication(config: Configuration) {
+public class Authentication(config: Configuration) {
     /**
      * @param providers list of registered instances of [AuthenticationProvider]
      */
-    constructor(providers: List<AuthenticationProvider>) : this(Configuration(providers))
+    public constructor(providers: List<AuthenticationProvider>) : this(Configuration(providers))
 
-    constructor() : this(Configuration())
+    public constructor() : this(Configuration())
 
     private var config = config.copy()
 
@@ -31,14 +31,14 @@ class Authentication(config: Configuration) {
     /**
      * Authentication configuration
      */
-    class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
+    public class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
         internal val providers = ArrayList(providers)
 
         /**
          * Register a provider with the specified [name] and [configure] it
          * @throws IllegalArgumentException if there is already provider installed with the same name
          */
-        fun provider(name: String? = null, configure: AuthenticationProvider.Configuration.() -> Unit) {
+        public fun provider(name: String? = null, configure: AuthenticationProvider.Configuration.() -> Unit) {
             requireProviderNotRegistered(name)
             val configuration = LambdaProviderConfig(name).apply(configure)
             providers.add(configuration.buildProvider())
@@ -48,7 +48,7 @@ class Authentication(config: Configuration) {
          * Register the specified [provider]
          * @throws IllegalArgumentException if there is already provider installed with the same name
          */
-        fun register(provider: AuthenticationProvider) {
+        public fun register(provider: AuthenticationProvider) {
             requireProviderNotRegistered(provider.name)
             providers.add(provider)
         }
@@ -62,7 +62,7 @@ class Authentication(config: Configuration) {
     }
 
     private class LambdaProviderConfig(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal fun buildProvider() = AuthenticationProvider(this)
+        fun buildProvider() = AuthenticationProvider(this)
     }
 
     init {
@@ -72,7 +72,7 @@ class Authentication(config: Configuration) {
     /**
      * Configure already installed feature
      */
-    fun configure(block: Configuration.() -> Unit) {
+    public fun configure(block: Configuration.() -> Unit) {
         val newConfiguration = config.copy()
         block(newConfiguration)
         val added = newConfiguration.providers - config.providers
@@ -86,7 +86,7 @@ class Authentication(config: Configuration) {
      * @param pipeline to be configured
      * @param configurationNames references to auth providers, could contain null to point to default
      */
-    fun interceptPipeline(
+    public fun interceptPipeline(
         pipeline: ApplicationCallPipeline,
         configurationNames: List<String?> = listOf(null),
         optional: Boolean = false
@@ -145,20 +145,20 @@ class Authentication(config: Configuration) {
     /**
      * Installable feature for [Authentication].
      */
-    companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
+    public companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
         /**
          * Authenticate phase in that authentication procedures are executed.
          * Please note that referring to the phase is only possible *after* feature installation.
          */
         @KtorExperimentalAPI
-        val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
+        public val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
         /**
          * Authenticate phase in that auth provider's challenges performing.
          * Please note that referring to the phase is only possible *after* feature installation.
          */
         @KtorExperimentalAPI
-        val ChallengePhase: PipelinePhase = PipelinePhase("Challenge")
+        public val ChallengePhase: PipelinePhase = PipelinePhase("Challenge")
 
         override val key: AttributeKey<Authentication> = AttributeKey("Authentication")
 
@@ -265,13 +265,13 @@ class Authentication(config: Configuration) {
 /**
  * Retrieves an [AuthenticationContext] for `this` call
  */
-val ApplicationCall.authentication: AuthenticationContext
+public val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
 /**
  * Retrieves authenticated [Principal] for `this` call
  */
-inline fun <reified P : Principal> ApplicationCall.principal(): P? = authentication.principal<P>()
+public inline fun <reified P : Principal> ApplicationCall.principal(): P? = authentication.principal<P>()
 
 /**
  * Creates an authentication route that does handle authentication by the specified providers referred by
@@ -302,7 +302,7 @@ inline fun <reified P : Principal> ApplicationCall.principal(): P? = authenticat
  * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
  */
-fun Route.authenticate(
+public fun Route.authenticate(
     vararg configurations: String? = arrayOf<String?>(null),
     optional: Boolean = false,
     build: Route.() -> Unit
@@ -322,7 +322,7 @@ fun Route.authenticate(
  * unless you are writing an extension
  * @param names of authentication providers to be applied to this route
  */
-class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation.Constant
     }
@@ -336,6 +336,6 @@ class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(Rout
  * via [Authentication.configure] function.
  * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
  */
-fun Application.authentication(block: Authentication.Configuration.() -> Unit) {
+public fun Application.authentication(block: Authentication.Configuration.() -> Unit) {
     featureOrNull(Authentication)?.configure(block) ?: install(Authentication, block)
 }

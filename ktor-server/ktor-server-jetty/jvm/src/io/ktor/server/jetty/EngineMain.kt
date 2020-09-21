@@ -11,13 +11,13 @@ import java.util.concurrent.*
 /**
  * Jetty engine
  */
-object EngineMain {
+public object EngineMain {
     /**
      * Main function for starting EngineMain with Jetty
      * Creates an embedded Jetty application with an environment built from command line arguments.
      */
     @JvmStatic
-    fun main(args: Array<String>) {
+    public fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = JettyApplicationEngine(applicationEnvironment) { loadConfiguration(applicationEnvironment.config) }
         engine.addShutdownHook {
@@ -38,7 +38,7 @@ object EngineMain {
     replaceWith = ReplaceWith("EngineMain"),
     level = DeprecationLevel.HIDDEN
 )
-object DevelopmentEngine {
+public object DevelopmentEngine {
     @JvmStatic
-    fun main(args: Array<String>): Unit = EngineMain.main(args)
+    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

@@ -15,7 +15,7 @@ import io.ktor.utils.io.core.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
+public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
     is OutgoingContent.WriteChannelContent -> {
@@ -26,7 +26,7 @@ suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
+public suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
     is OutgoingContent.WriteChannelContent -> {
@@ -38,7 +38,7 @@ suspend fun OutgoingContent.toByteReadPacket(): ByteReadPacket = when (this) {
 /**
  * Send error response.
  */
-fun MockRequestHandleScope.respondError(
+public fun MockRequestHandleScope.respondError(
     status: HttpStatusCode,
     content: String = status.description,
     headers: Headers = headersOf()
@@ -47,7 +47,7 @@ fun MockRequestHandleScope.respondError(
 /**
  * Send ok response.
  */
-fun MockRequestHandleScope.respondOk(
+public fun MockRequestHandleScope.respondOk(
     content: String = ""
 ): HttpResponseData = respond(content, HttpStatusCode.OK)
 
@@ -55,12 +55,13 @@ fun MockRequestHandleScope.respondOk(
 /**
  * Send [HttpStatusCode.BadRequest] response.
  */
-fun MockRequestHandleScope.respondBadRequest() = respond("Bad Request", HttpStatusCode.BadRequest)
+public fun MockRequestHandleScope.respondBadRequest(): HttpResponseData =
+    respond("Bad Request", HttpStatusCode.BadRequest)
 
 /**
  * Send response with specified string [content], [status] and [headers].
  */
-fun MockRequestHandleScope.respond(
+public fun MockRequestHandleScope.respond(
     content: String,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
@@ -70,7 +71,7 @@ fun MockRequestHandleScope.respond(
 /**
  * Send response with specified bytes [content], [status] and [headers].
  */
-fun MockRequestHandleScope.respond(
+public fun MockRequestHandleScope.respond(
     content: ByteArray,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
@@ -79,7 +80,7 @@ fun MockRequestHandleScope.respond(
 /**
  * Send response with specified [ByteReadChannel] [content], [status] and [headers].
  */
-fun MockRequestHandleScope.respond(
+public fun MockRequestHandleScope.respond(
     content: ByteReadChannel,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()

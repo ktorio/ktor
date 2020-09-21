@@ -20,7 +20,7 @@ private const val CACHE_LOAD_FACTOR = 0.75f
  * Create a new instance of thread safe [LRUCache] and return it.
  */
 @InternalAPI
-fun <K, V> createLRUCache(supplier: (K) -> V, close: (V) -> Unit, maxSize: Int): Map<K, V> =
+public fun <K, V> createLRUCache(supplier: (K) -> V, close: (V) -> Unit, maxSize: Int): Map<K, V> =
     Collections.synchronizedMap(LRUCache(supplier, close, maxSize))
 
 /**

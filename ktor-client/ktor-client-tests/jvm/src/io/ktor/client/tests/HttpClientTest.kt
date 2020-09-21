@@ -14,18 +14,17 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.intrinsics.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
-abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
+public abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+    override val server: ApplicationEngine = embeddedServer(CIO, serverPort) {
         routing {
             get("/empty") {
                 call.respondText("")
@@ -37,7 +36,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun testWithNoParentJob() {
+    public fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
@@ -59,7 +58,7 @@ abstract class HttpClientTest(private val factory: HttpClientEngineFactory<*>) :
     }
 
     @Test
-    fun configCopiesOldFeaturesAndInterceptors() {
+    public fun configCopiesOldFeaturesAndInterceptors() {
         val customFeatureKey = AttributeKey<Boolean>("customFeature")
         val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
 

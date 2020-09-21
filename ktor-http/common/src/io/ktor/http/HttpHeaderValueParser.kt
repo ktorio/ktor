@@ -11,7 +11,7 @@ import io.ktor.util.*
  * @property name of parameter
  * @property value of parameter
  */
-data class HeaderValueParam(val name: String, val value: String) {
+public data class HeaderValueParam(val name: String, val value: String) {
     override fun equals(other: Any?): Boolean {
         return other is HeaderValueParam
             && other.name.equals(name, ignoreCase = true)
@@ -30,7 +30,7 @@ data class HeaderValueParam(val name: String, val value: String) {
  * @property value
  * @property params for this value (could be empty)
  */
-data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
+public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
     /**
      * Value's quality according to `q` parameter or `1.0` if missing or invalid
      */
@@ -41,12 +41,12 @@ data class HeaderValue(val value: String, val params: List<HeaderValueParam> = l
 /**
  * Parse header value and sort multiple values according to qualities
  */
-fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
+public fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
 
 /**
  * Parse `Content-Type` header values and sort them by quality and asterisks quantity
  */
-fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
+public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
     compareByDescending<HeaderValue> { it.quality }.thenBy {
         val contentType = ContentType.parse(it.value)
         var asterisks = 0
@@ -60,7 +60,7 @@ fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHea
 /**
  * Parse header value respecting multi-values
  */
-fun parseHeaderValue(text: String?): List<HeaderValue> {
+public fun parseHeaderValue(text: String?): List<HeaderValue> {
     return parseHeaderValue(text, false)
 }
 
@@ -68,14 +68,15 @@ fun parseHeaderValue(text: String?): List<HeaderValue> {
  * Parse header value respecting multi-values
  * @param parametersOnly if no header value itself, only parameters
  */
-fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
-    if (text == null)
+public fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> {
+    if (text == null) {
         return emptyList()
+    }
 
-    var pos = 0
+    var position = 0
     val items = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValue>() }
-    while (pos <= text.lastIndex) {
-        pos = parseHeaderValueItem(text, pos, items, parametersOnly)
+    while (position <= text.lastIndex) {
+        position = parseHeaderValueItem(text, position, items, parametersOnly)
     }
     return items.valueOrEmpty()
 }
@@ -84,7 +85,7 @@ fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<HeaderValue> 
  * Construct a list of [HeaderValueParam] from an iterable of pairs
  */
 @KtorExperimentalAPI
-fun Iterable<Pair<String, String>>.toHeaderParamsList(): List<HeaderValueParam> =
+public fun Iterable<Pair<String, String>>.toHeaderParamsList(): List<HeaderValueParam> =
     map { HeaderValueParam(it.first, it.second) }
 
 private fun <T> Lazy<List<T>>.valueOrEmpty(): List<T> = if (isInitialized()) value else emptyList()
@@ -98,95 +99,114 @@ private fun parseHeaderValueItem(
     items: Lazy<ArrayList<HeaderValue>>,
     parametersOnly: Boolean
 ): Int {
-    var pos = start
+    var position = start
     val parameters = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValueParam>() }
-    var valueEnd: Int? = if (parametersOnly) pos else null
-    while (pos <= text.lastIndex) {
-        when (text[pos]) {
+    var valueEnd: Int? = if (parametersOnly) position else null
+
+    while (position <= text.lastIndex) {
+        when (text[position]) {
             ',' -> {
-                items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: pos), parameters.valueOrEmpty()))
-                return pos + 1
+                items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: position), parameters.valueOrEmpty()))
+                return position + 1
             }
             ';' -> {
-                if (valueEnd == null) valueEnd = pos
-                pos = parseHeaderValueParameter(text, pos + 1, parameters)
+                if (valueEnd == null) valueEnd = position
+                position = parseHeaderValueParameter(text, position + 1, parameters)
             }
             else -> {
-                pos = if (parametersOnly) {
-                    parseHeaderValueParameter(text, pos, parameters)
+                position = if (parametersOnly) {
+                    parseHeaderValueParameter(text, position, parameters)
                 } else {
-                    pos + 1
+                    position + 1
                 }
             }
         }
     }
-    items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: pos), parameters.valueOrEmpty()))
-    return pos
+
+    items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: position), parameters.valueOrEmpty()))
+    return position
 }
 
 private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy<ArrayList<HeaderValueParam>>): Int {
     fun addParam(text: String, start: Int, end: Int, value: String) {
         val name = text.subtrim(start, end)
-        if (name.isEmpty())
+        if (name.isEmpty()) {
             return
+        }
+
         parameters.value.add(HeaderValueParam(name, value))
     }
 
-    var pos = start
-    while (pos <= text.lastIndex) {
-        when (text[pos]) {
+    var position = start
+    while (position <= text.lastIndex) {
+        when (text[position]) {
             '=' -> {
-                val (paramEnd, paramValue) = parseHeaderValueParameterValue(text, pos + 1)
-                addParam(text, start, pos, paramValue)
+                val (paramEnd, paramValue) = parseHeaderValueParameterValue(text, position + 1)
+                addParam(text, start, position, paramValue)
                 return paramEnd
             }
             ';', ',' -> {
-                addParam(text, start, pos, "")
-                return pos
+                addParam(text, start, position, "")
+                return position
             }
-            else -> pos++
+            else -> position++
         }
     }
 
-    addParam(text, start, pos, "")
-    return pos
+    addParam(text, start, position, "")
+    return position
 }
 
 
 private fun parseHeaderValueParameterValue(value: String, start: Int): Pair<Int, String> {
-    var pos = start
-    while (pos <= value.lastIndex) {
-        when (value[pos]) {
-            '"' -> return parseHeaderValueParameterValueQuoted(value, pos + 1)
-            ';', ',' -> return pos to value.subtrim(start, pos)
-            else -> pos++
+    if (value.length == start) {
+        return start to ""
+    }
+
+    var position = start
+    if (value[start] == '"') {
+        return parseHeaderValueParameterValueQuoted(value, position + 1)
+    }
+
+    while (position <= value.lastIndex) {
+        when (value[position]) {
+            ';', ',' -> return position to value.subtrim(start, position)
+            else -> position++
         }
     }
-    return pos to value.subtrim(start, pos)
+    return position to value.subtrim(start, position)
 }
 
 private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pair<Int, String> {
-    var pos = start
-    val sb = StringBuilder()
-    while (pos <= value.lastIndex) {
-        val c = value[pos]
-        when (c) {
-            '"' -> return pos + 1 to sb.toString()
-            '\\' -> {
-                if (pos < value.lastIndex - 2) {
-                    sb.append(value[pos + 1])
-                    pos += 2
-                } // quoted value
-                else {
-                    sb.append(c)
-                    pos++ // broken value, escape at the end
-                }
+    var position = start
+    val builder = StringBuilder()
+    loop@ while (position <= value.lastIndex) {
+        val currentChar = value[position]
+
+        when {
+            currentChar == '"' && value.nextIsSemicolonOrEnd(position) -> {
+                return position + 1 to builder.toString()
             }
-            else -> {
-                sb.append(c)
-                pos++
+            currentChar == '\\' && position < value.lastIndex - 2 -> {
+                builder.append(value[position + 1])
+                position += 2
+                continue@loop
             }
         }
+
+        builder.append(currentChar)
+        position++
     }
-    return pos to sb.toString()
+
+    // The value is unquoted here
+    return position to '"' + builder.toString()
+}
+
+private fun String.nextIsSemicolonOrEnd(start: Int): Boolean {
+    var position = start + 1
+    loop@ while (position < length && get(position) == ' ') {
+        position += 1
+    }
+
+    return position == length || get(position) == ';'
 }

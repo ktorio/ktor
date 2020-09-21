@@ -13,33 +13,33 @@ import io.ktor.util.*
  * Cache storage interface.
  */
 @KtorExperimentalAPI
-abstract class HttpCacheStorage {
+public abstract class HttpCacheStorage {
 
     /**
      * Store [value] in cache storage for [url] key.
      */
-    abstract fun store(url: Url, value: HttpCacheEntry)
+    public abstract fun store(url: Url, value: HttpCacheEntry)
 
     /**
      * Find valid entry in cache storage with additional [varyKeys].
      */
-    abstract fun find(url: Url, varyKeys: Map<String, String>): HttpCacheEntry?
+    public abstract fun find(url: Url, varyKeys: Map<String, String>): HttpCacheEntry?
 
     /**
      * Find all matched [HttpCacheEntry] for [url].
      */
-    abstract fun findByUrl(url: Url): Set<HttpCacheEntry>
+    public abstract fun findByUrl(url: Url): Set<HttpCacheEntry>
 
-    companion object {
+    public companion object {
         /**
          * Default unlimited cache storage.
          */
-        val Unlimited: () -> HttpCacheStorage = { UnlimitedCacheStorage() }
+        public val Unlimited: () -> HttpCacheStorage = { UnlimitedCacheStorage() }
 
         /**
          * Disabled cache always empty and store nothing.
          */
-        val Disabled: HttpCacheStorage = DisabledCacheStorage
+        public val Disabled: HttpCacheStorage = DisabledCacheStorage
     }
 }
 

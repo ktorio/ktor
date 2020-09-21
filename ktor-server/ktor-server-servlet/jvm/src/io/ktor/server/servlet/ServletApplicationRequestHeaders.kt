@@ -11,7 +11,7 @@ import javax.servlet.http.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-class ServletApplicationRequestHeaders(
+public class ServletApplicationRequestHeaders(
     private val servletRequest: HttpServletRequest
 ) : Headers {
     override fun getAll(name: String): List<String>? {

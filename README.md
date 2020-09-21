@@ -2,7 +2,6 @@
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
-[![TeamCity Build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_Ktor_BuildGradle.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_Ktor_BuildGradle&branch_KotlinTools_Ktor=%3Cdefault%3E&tab=buildTypeStatusDiv)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
 Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
@@ -67,13 +66,19 @@ Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations
 * Getting started with [Maven](http://ktor.io/quickstart/maven.html) 
 * Getting started with [IDEA](http://ktor.io/quickstart/intellij-idea.html) 
 
-## Inspirations
+## Reporting Issues / Support
 
-Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
+Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommmend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
+
+There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
 
 ## Reporting Security Vulnerabilities
 
-If you find a security vulnerability in Ktor, we kindly request that instead of using our public issue tracker, you instead reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
+If you find a security vulnerability in Ktor, we kindly request that you reach out to the JetBrains security team via our [responsible disclosure process](https://www.jetbrains.com/legal/terms/responsible-disclosure.html).
+
+## Inspirations
+
+Kotlin web frameworks such as Wasabi and Kara, which are currently deprecated.
 
 ## Contributing
 

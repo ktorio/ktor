@@ -1,3 +1,71 @@
+# 1.4.0
+> Published 18 Aug 2020
+
+* Upgrade to kotlin 1.4.0
+* Add native platform support for CIO client (#2021)
+* Prevent access Tomcat servletRequest after recycling
+* Fix verbose IO exception logging
+* Fix client cookies remove
+* Fix suspend tests for digest provider
+* Add deprecation to BasicAuth feature
+* Add client.get operator for features
+* Add client websocket feature config
+* iOS Certificate Pinning (#1750)
+* Add originHost support in browser
+* Fix client logging issues with POST body
+* Prevent CURL multi-handle double close
+* Add content-type header to default transformers
+* Fix report for multiple failed engines in native
+* Use window.location.origin as default host in URLBuilder
+* Prevent Empty Cookie addition (#2008)
+* Fix executor service termination in okhttp (#1860)
+* Verify sending Content-Type and custom object body via POST (#1897)
+* Fix ByteBufferPool recycle (#2016)
+* Update jetty version
+* Fix CIO exception logged twice
+* Change exception type for long strings in readUtf8Line
+* Fix uri field in digest auth header to include query params (#1992)
+* Fix empty multipart post
+* Move the default test server to CIO
+* Fix webpack warning about ktor-client-core critical dependency
+* Fix missing qop in DigestAuthProvider (Issue #1974)
+* Handle " in different position cases
+* Fix parsing of quoted header parameter value
+* Fix saved call early completion
+* Fix tests with empty json check
+* Fix sending blank ContentType in Apache engine
+* Parse blank content type to Any
+* Fixed serialization of empty body (#1952)
+* JsonFeature: Fixed header behavior and made it more flexible (#1927)
+* Fix max-age header to use '=' instead f ':'. (#1769)
+* Add contextual serialization support
+* Introduce non-suspend api for writing
+* fix memory alignment check (#1742)
+* JetBrains Toolbox icon (#1805)
+* Apache should use existing approach when merging headers (#1919)
+* Fix conditional headers behaviour (Fix #1849).
+* Change IosHttpRequestException parent to improve usability
+* OAuth2: Added option to pass params in URL (#1847)
+* Fix doubling host
+* Enhanced handling of statusCode for AndroidEngine (#1852)
+* Fix deserialization issue in client (Fix #1800).
+* GitHub issue/pr links in IDEA Git log (#1806)
+* Fix log channel is not closed for ByteArrayContent (#1808)
+* Use comma to divide headers (Fix #1765).
+* HTTP Client tracing using Stetho Android library.
+* Fix static content resolution for directories inside Jar (#1777).
+* Improve WebSocket routing API (Fix #1075).
+* Implemented cookies encoding with their own encoding and added test cases for this
+* Fix URI support (#1755)
+* Fix OkHttp WebSocket close reason completion (#1363).
+* Fix package directive; Add unimported cfnetwork constants
+* Fix client.join to wait engine close
+* Verify receive from response in exception
+* Update okhttp version to 4.4.0
+* Cleanup iOS proxy configuration
+* Fix WebSocketTest.testMaxSize
+* Fix UTF8 parsing (#1718).
+
 # 1.3.2
 > Published 12 Mar 2020
 

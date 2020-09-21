@@ -6,18 +6,16 @@
 
 package io.ktor.util
 
-import io.ktor.utils.io.core.*
-
 @InternalAPI
-expect class Lock() {
-    fun lock()
-    fun unlock()
+public expect class Lock() {
+    public fun lock()
+    public fun unlock()
 
-    fun close()
+    public fun close()
 }
 
 @InternalAPI
-inline fun <R> Lock.withLock(block: () -> R): R {
+public inline fun <R> Lock.withLock(crossinline block: () -> R): R {
     try {
         lock()
         return block()

@@ -15,30 +15,30 @@ import kotlinx.coroutines.*
 /**
  * Status pages feature that handles exceptions and status codes. Useful to configure default error pages.
  */
-class StatusPages(config: Configuration) {
+public class StatusPages(config: Configuration) {
     private val exceptions = HashMap(config.exceptions)
     private val statuses = HashMap(config.statuses)
 
     /**
      * Status pages feature config
      */
-    class Configuration {
+    public class Configuration {
         /**
          * Exception handlers map by exception class
          */
-        val exceptions: MutableMap<Class<*>, suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit> =
+        public val exceptions: MutableMap<Class<*>, suspend PipelineContext<*, ApplicationCall>.(Throwable) -> Unit> =
             mutableMapOf()
 
         /**
          * Status handlers by status code
          */
-        val statuses: MutableMap<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit> =
+        public val statuses: MutableMap<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit> =
             mutableMapOf()
 
         /**
          * Register exception [handler] for exception type [T] and it's children
          */
-        inline fun <reified T : Throwable> exception(
+        public inline fun <reified T : Throwable> exception(
             noinline handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
         ): Unit =
             exception(T::class.java, handler)
@@ -46,7 +46,7 @@ class StatusPages(config: Configuration) {
         /**
          * Register exception [handler] for exception class [klass] and it's children
          */
-        fun <T : Throwable> exception(
+        public fun <T : Throwable> exception(
             klass: Class<T>,
             handler: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit
         ) {
@@ -60,7 +60,7 @@ class StatusPages(config: Configuration) {
         /**
          * Register status [handler] for [status] code
          */
-        fun status(
+        public fun status(
             vararg status: HttpStatusCode,
             handler: suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit
         ) {
@@ -124,7 +124,7 @@ class StatusPages(config: Configuration) {
     /**
      * Feature installation object
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
         override val key: AttributeKey<StatusPages> = AttributeKey("Status Pages")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
@@ -150,7 +150,7 @@ class StatusPages(config: Configuration) {
  * @param code vararg list of status codes handled by this configuration
  * @param filePattern path to status file with optional `#` character(s) that will be replaced with numeric status code
  */
-fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePattern: String) {
+public fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePattern: String) {
     status(*code) { status ->
         val path = filePattern.replace("#", status.value.toString())
         val message = call.resolveResource(path)

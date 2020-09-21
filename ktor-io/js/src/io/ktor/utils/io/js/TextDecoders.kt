@@ -9,21 +9,21 @@ private val IS_NODE: Boolean = js(
 ) as Boolean
 
 @Deprecated("Use readText with charset instead", ReplaceWith("readText(Charset.forName(encoding), max)", "io.ktor.utils.io.core.readText", "io.ktor.utils.io.charsets.Charset"))
-fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = readText(Charset.forName(encoding), max)
+public fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = readText(Charset.forName(encoding), max)
 
 @Deprecated("Use readText with charset instead", ReplaceWith("readText(out, Charset.forName(encoding), max)", "io.ktor.utils.io.core.readText", "io.ktor.utils.io.charsets.Charset"))
-fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
+public fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return readText(out, Charset.forName(encoding), max)
 }
 
 internal external class TextDecoder(encoding: String, options: dynamic = definedExternally) {
     val encoding: String
 
-    fun decode(): String
-    fun decode(buffer: ArrayBuffer): String
-    fun decode(buffer: ArrayBuffer, options: dynamic): String
-    fun decode(buffer: ArrayBufferView): String
-    fun decode(buffer: ArrayBufferView, options: dynamic): String
+    public fun decode(): String
+    public fun decode(buffer: ArrayBuffer): String
+    public fun decode(buffer: ArrayBuffer, options: dynamic): String
+    public fun decode(buffer: ArrayBufferView): String
+    public fun decode(buffer: ArrayBufferView, options: dynamic): String
 }
 
 private val STREAM_TRUE = Any().apply {

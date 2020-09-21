@@ -110,7 +110,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testGetWithCancellation() = clientTests {
+    fun testGetWithCancellation() = clientTests(listOf("Curl")) {
         config {
             install(HttpTimeout) {
                 requestTimeoutMillis = 500
@@ -210,6 +210,7 @@ class HttpTimeoutTest : ClientLoader() {
                 method = HttpMethod.Get
                 parameter("delay", 500)
             }
+
             assertFailsWith<HttpRequestTimeoutException> {
                 response.readUTF8Line()
             }
@@ -401,7 +402,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeout() = clientTests(listOf("Js", "iOS")) {
+    fun testConnectTimeout() = clientTests(listOf("Js", "iOS", "CIO")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
         }
@@ -431,7 +432,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "iOS")) {
+    fun testConnectTimeoutPerRequestAttributes() = clientTests(listOf("Js", "iOS", "CIO")) {
         config {
             install(HttpTimeout)
         }
@@ -446,7 +447,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "native:CIO")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -461,7 +462,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "native:CIO")) {
         config {
             install(HttpTimeout)
         }
@@ -478,7 +479,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Curl", "Android")) {
+    fun testSocketTimeoutWriteFailOnWrite() = clientTests(listOf("Js", "Curl", "Android", "CIO")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 500 }
         }
@@ -491,7 +492,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(listOf("Js", "Curl", "Android")) {
+    fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(listOf("Js", "Curl", "Android", "CIO")) {
         config {
             install(HttpTimeout)
         }

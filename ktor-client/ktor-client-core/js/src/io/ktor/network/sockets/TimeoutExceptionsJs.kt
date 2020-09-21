@@ -4,18 +4,26 @@
 
 package io.ktor.network.sockets
 
+import io.ktor.client.request.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-actual class ConnectTimeoutException actual constructor(
+public actual class ConnectTimeoutException actual constructor(
     message: String, cause: Throwable?
 ) : IOException(message, cause)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-actual class SocketTimeoutException actual constructor(
+public actual class SocketTimeoutException actual constructor(
     message: String, cause: Throwable?
 ) : IOException(message, cause)
+
+/**
+ * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to
+ * close it with [SocketTimeoutException]).
+ */
+internal actual fun ByteChannelWithMappedExceptions(request: HttpRequestData): ByteChannel = ByteChannel()

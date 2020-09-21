@@ -18,7 +18,7 @@ import io.ktor.http.content.*
  *
  * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
-suspend inline fun <reified T> HttpClient.submitForm(
+public suspend inline fun <reified T> HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -43,7 +43,7 @@ suspend inline fun <reified T> HttpClient.submitForm(
  * [url] destination
  * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
-suspend inline fun <reified T> HttpClient.submitForm(
+public suspend inline fun <reified T> HttpClient.submitForm(
     url: String,
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
@@ -58,7 +58,7 @@ suspend inline fun <reified T> HttpClient.submitForm(
  * [formData] encoded using multipart/form-data format.
  * https://tools.ietf.org/html/rfc2045
  */
-suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
+public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     formData: List<PartData>,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
@@ -74,7 +74,7 @@ suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
  *
  * https://tools.ietf.org/html/rfc2045
  */
-suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
+public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     url: String,
     formData: List<PartData>,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -91,7 +91,7 @@ suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
  *
  * [formParameters] encoded using application/x-www-form-urlencoded format.
  */
-suspend inline fun <reified T> HttpClient.submitForm(
+public suspend inline fun <reified T> HttpClient.submitForm(
     scheme: String = "http",
     host: String = "localhost",
     port: Int = 80,
@@ -109,7 +109,7 @@ suspend inline fun <reified T> HttpClient.submitForm(
  * [formData] encoded using multipart/form-data format.
  * https://tools.ietf.org/html/rfc2045
  */
-suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
+public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     scheme: String = "http",
     host: String = "localhost",
     port: Int = 80,

@@ -8,21 +8,21 @@ package io.ktor.http
  * Represents an HTTP method (verb)
  * @property value contains method name
  */
-data class HttpMethod(val value: String) {
+public data class HttpMethod(val value: String) {
     @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
-    companion object {
-        val Get = HttpMethod("GET")
-        val Post = HttpMethod("POST")
-        val Put = HttpMethod("PUT")
-        val Patch = HttpMethod("PATCH") // https://tools.ietf.org/html/rfc5789
-        val Delete = HttpMethod("DELETE")
-        val Head = HttpMethod("HEAD")
-        val Options = HttpMethod("OPTIONS")
+    public companion object {
+        public val Get: HttpMethod = HttpMethod("GET")
+        public val Post: HttpMethod = HttpMethod("POST")
+        public val Put: HttpMethod = HttpMethod("PUT")
+        public val Patch: HttpMethod = HttpMethod("PATCH") // https://tools.ietf.org/html/rfc5789
+        public val Delete: HttpMethod = HttpMethod("DELETE")
+        public val Head: HttpMethod = HttpMethod("HEAD")
+        public val Options: HttpMethod = HttpMethod("OPTIONS")
 
         /**
          * Parse HTTP method by [method] string
          */
-        fun parse(method: String): HttpMethod {
+        public fun parse(method: String): HttpMethod {
             return when (method) {
                 Get.value -> Get
                 Post.value -> Post
@@ -38,6 +38,6 @@ data class HttpMethod(val value: String) {
         /**
          * A list of default HTTP methods
          */
-        val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
+        public val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
     }
 }

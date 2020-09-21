@@ -165,7 +165,7 @@ internal class NettyHttp2Handler(
         }
     }
 
-    companion object {
+    public companion object {
         private val ApplicationCallKey = AttributeKey.newInstance<NettyHttp2ApplicationCall>("ktor.ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp2ApplicationCall?

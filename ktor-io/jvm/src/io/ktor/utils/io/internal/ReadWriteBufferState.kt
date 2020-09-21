@@ -1,6 +1,6 @@
 package io.ktor.utils.io.internal
 
-import java.nio.ByteBuffer
+import java.nio.*
 
 // this is MAGICAL constant that is tied to the code ByteBufferChannel (that is how much it needs extra)
 internal const val RESERVED_SIZE = 8
@@ -34,13 +34,16 @@ internal sealed class ReadWriteBufferState(
             require(backingBuffer.position() == 0)
             require(backingBuffer.limit() == backingBuffer.capacity())
         }
+
         override val writeBuffer: ByteBuffer = backingBuffer.duplicate() // defensive copy of buffer's state
         override val readBuffer: ByteBuffer = backingBuffer.duplicate() // must have a separate buffer state here
+
         // all other possible states
         internal val idleState = IdleNonEmpty(this)
         internal val readingState = Reading(this)
         internal val writingState = Writing(this)
         internal val readingWritingState = ReadingWriting(this)
+
         // state transitions
         override fun startReading() = readingState
         override fun startWriting() = writingState

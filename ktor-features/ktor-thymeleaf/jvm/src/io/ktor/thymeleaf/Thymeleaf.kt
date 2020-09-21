@@ -40,12 +40,12 @@ class ThymeleafContent(
 /**
  * Thymeleaf support feature. Provides ability to respond with [Thymeleaf]
  */
-class Thymeleaf(private val engine: TemplateEngine) {
+public class Thymeleaf(private val engine: TemplateEngine) {
     /**
      * A feature installing companion object
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
-        override val key = AttributeKey<Thymeleaf>("thymeleaf")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, TemplateEngine, Thymeleaf> {
+        override val key: AttributeKey<Thymeleaf> = AttributeKey<Thymeleaf>("thymeleaf")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: TemplateEngine.() -> Unit): Thymeleaf {
             val config = TemplateEngine().apply(configure)

@@ -10,6 +10,6 @@ import io.ktor.request.*
 /**
  * Parses an authorization header from a [ApplicationRequest] returning a [HttpAuthHeader].
  */
-fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
+public fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
     parseAuthorizationHeader(it)
 }

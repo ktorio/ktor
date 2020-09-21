@@ -13,29 +13,29 @@ import kotlin.coroutines.*
 /**
  * Information about the content to be sent to the peer, recognized by a client or server engine
  */
-sealed class OutgoingContent {
+public sealed class OutgoingContent {
     /**
      * Specifies [ContentType] for this resource.
      */
-    open val contentType: ContentType? get() = null
+    public open val contentType: ContentType? get() = null
 
     /**
      * Specifies content length in bytes for this resource.
      *
      * If null, the resources will be sent as `Transfer-Encoding: chunked`
      */
-    open val contentLength: Long? get() = null
+    public open val contentLength: Long? get() = null
 
     /**
      * Status code to set when sending this content
      */
-    open val status: HttpStatusCode?
+    public open val status: HttpStatusCode?
         get() = null
 
     /**
      * Headers to set when sending this content
      */
-    open val headers: Headers
+    public open val headers: Headers
         get() = Headers.Empty
 
     private var extensionProperties: Attributes? = null
@@ -43,12 +43,12 @@ sealed class OutgoingContent {
     /**
      * Gets an extension property for this content
      */
-    open fun <T : Any> getProperty(key: AttributeKey<T>): T? = extensionProperties?.getOrNull(key)
+    public open fun <T : Any> getProperty(key: AttributeKey<T>): T? = extensionProperties?.getOrNull(key)
 
     /**
      * Sets an extension property for this content
      */
-    open fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) {
+    public open fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) {
         when {
             value == null && extensionProperties == null -> return
             value == null -> extensionProperties?.remove(key)
@@ -59,22 +59,22 @@ sealed class OutgoingContent {
     /**
      * Variant of a [OutgoingContent] without a payload
      */
-    abstract class NoContent : OutgoingContent()
+    public abstract class NoContent : OutgoingContent()
 
     /**
      * Variant of a [OutgoingContent] with payload read from [ByteReadChannel]
      *
      */
-    abstract class ReadChannelContent : OutgoingContent() {
+    public abstract class ReadChannelContent : OutgoingContent() {
         /**
          * Provides [ByteReadChannel] for the content
          */
-        abstract fun readFrom(): ByteReadChannel
+        public abstract fun readFrom(): ByteReadChannel
 
         /**
          * Provides [ByteReadChannel] for the given range of the content
          */
-        open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) ByteReadChannel.Empty else
+        public open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) ByteReadChannel.Empty else
             GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
                 val source = readFrom()
                 source.discard(range.start)
@@ -86,27 +86,27 @@ sealed class OutgoingContent {
     /**
      * Variant of a [OutgoingContent] with payload written to [ByteWriteChannel]
      */
-    abstract class WriteChannelContent : OutgoingContent() {
+    public abstract class WriteChannelContent : OutgoingContent() {
         /**
          * Receives [channel] provided by the engine and writes all data to it
          */
-        abstract suspend fun writeTo(channel: ByteWriteChannel)
+        public abstract suspend fun writeTo(channel: ByteWriteChannel)
     }
 
     /**
      * Variant of a [OutgoingContent] with payload represented as [ByteArray]
      */
-    abstract class ByteArrayContent : OutgoingContent() {
+    public abstract class ByteArrayContent : OutgoingContent() {
         /**
          * Provides [ByteArray] which engine will send to peer
          */
-        abstract fun bytes(): ByteArray
+        public abstract fun bytes(): ByteArray
     }
 
     /**
      * Variant of a [OutgoingContent] for upgrading an HTTP connection
      */
-    abstract class ProtocolUpgrade : OutgoingContent() {
+    public abstract class ProtocolUpgrade : OutgoingContent() {
         final override val status: HttpStatusCode?
             get() = HttpStatusCode.SwitchingProtocols
 
@@ -118,7 +118,7 @@ sealed class OutgoingContent {
          * @param userContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
          */
         @KtorExperimentalAPI
-        abstract suspend fun upgrade(
+        public abstract suspend fun upgrade(
             input: ByteReadChannel,
             output: ByteWriteChannel,
             engineContext: CoroutineContext,

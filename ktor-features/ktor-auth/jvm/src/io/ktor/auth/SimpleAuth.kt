@@ -6,37 +6,37 @@ package io.ktor.auth
 
 import io.ktor.config.*
 import io.ktor.util.*
-import java.security.MessageDigest
+import java.security.*
 
 /**
  * Represents a simple user's principal identified by [name]
  * @property name of user
  */
-data class UserIdPrincipal(val name: String) : Principal
+public data class UserIdPrincipal(val name: String) : Principal
 
 /**
  * Represents a simple user [name] and [password] credential pair
  * @property name
  * @property password
  */
-data class UserPasswordCredential(val name: String, val password: String) : Credential
+public data class UserPasswordCredential(val name: String, val password: String) : Credential
 
 /**
  * Simple in-memory table that keeps user names and password hashes
  * @property digester a hash function to compute password digest
  * @property table of user names and hashed passwords
  */
-class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
+public class UserHashedTableAuth(public val digester: (String) -> ByteArray, public val table: Map<String, ByteArray>) {
     @Suppress("unused")
     @Deprecated("Configure digest function explicitly.", level = DeprecationLevel.HIDDEN)
-    constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
+    public constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256") { "ktor" }, table)
 
     @Suppress("DEPRECATION_ERROR")
     @Deprecated(
         "Configuring from an application config is no longer supported.",
         level = DeprecationLevel.HIDDEN
     )
-    constructor(config: ApplicationConfig) : this(
+    public constructor(config: ApplicationConfig) : this(
         getDigestFunction(
             config.property("hashAlgorithm").getString(),
             config.property("salt").getString()
@@ -53,7 +53,7 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<St
      * Authenticate user by [credential] and return an instance of [UserIdPrincipal]
      * if the [credential] pair is valid
      */
-    fun authenticate(credential: UserPasswordCredential): UserIdPrincipal? {
+    public fun authenticate(credential: UserPasswordCredential): UserIdPrincipal? {
         val userPasswordHash = table[credential.name]
         if (userPasswordHash != null && MessageDigest.isEqual(digester(credential.password), userPasswordHash)) {
             return UserIdPrincipal(credential.name)

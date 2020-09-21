@@ -27,7 +27,7 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
  * Default send transformation
  */
 @EngineAPI
-fun ApplicationSendPipeline.installDefaultTransformations() {
+public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
         if (transformed != null)
@@ -39,7 +39,7 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
  * Default receive transformation
  */
 @EngineAPI
-fun ApplicationReceivePipeline.installDefaultTransformations() {
+public fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
 
@@ -55,11 +55,11 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
                 when {
-                    ContentType.Application.FormUrlEncoded.match(contentType) -> {
+                    contentType.match(ContentType.Application.FormUrlEncoded) -> {
                         val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
                         parseQueryString(string)
                     }
-                    ContentType.MultiPart.FormData.match(contentType) -> {
+                    contentType.match(ContentType.MultiPart.FormData) -> {
                         Parameters.build {
                             multiPartData(channel).forEachPart { part ->
                                 if (part is PartData.FormItem) {
