@@ -15,11 +15,11 @@ private const val CHUNK_BUFFER_SIZE = 4096L
  * Cancel of one channel in split(input or both outputs) cancels other channels.
  */
 @KtorExperimentalAPI
-public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadChannel, ByteReadChannel> {
+public fun ByteReadChannel.split(): Pair<ByteReadChannel, ByteReadChannel> {
     val first = ByteChannel(autoFlush = true)
     val second = ByteChannel(autoFlush = true)
 
-    coroutineScope.launch {
+    GlobalScope.launch {
         try {
             while (!isClosedForRead) {
                 supervisorScope {

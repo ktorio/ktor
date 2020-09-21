@@ -133,7 +133,7 @@ class ChannelTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val source = ByteChannel()
 
-        val (first, second) = source.split(this)
+        val (first, second) = source.split()
 
         launch(Dispatchers.Unconfined) {
             source.writeFully(data)
@@ -157,7 +157,7 @@ class ChannelTest {
     fun testSplitCancelSource() = testSuspend {
         val source = ByteChannel()
 
-        val (first, second) = source.split(this)
+        val (first, second) = source.split()
 
         val message = "Expected reason"
         launch {
@@ -184,7 +184,7 @@ class ChannelTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val source = ByteChannel()
 
-        val (first, second) = source.split(this)
+        val (first, second) = source.split()
 
         val message = "Expected reason"
 
@@ -214,7 +214,7 @@ class ChannelTest {
         val data = ByteArray(16 * 1024) { it.toByte() }
         val source = ByteChannel()
 
-        val (first, second) = source.split(this)
+        val (first, second) = source.split()
 
         val message = "Expected reason"
 
