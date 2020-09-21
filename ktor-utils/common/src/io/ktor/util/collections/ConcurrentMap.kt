@@ -26,7 +26,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     private var insertionOrder by shared(SharedForwardList<MapNode<Key, Value>>())
 
     private val _size = atomic(0)
-    private val loadFactor get() = _size.value / table.size
+    private val loadFactor: Float get() = _size.value.toFloat() / table.size
 
     public constructor(lock: Lock, map: Map<Key, Value>) : this(lock, map.size) {
         putAll(map)
@@ -130,10 +130,48 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     override val values: MutableCollection<Value>
         get() = ConcurrentMapValues(this)
 
+    override fun equals(other: Any?): Boolean = locked {
+        if (other == null || other !is Map<*, *> || other.size != size) {
+            return@locked false
+        }
+
+        for ((key, value) in other.entries) {
+            if (get(key) != value) {
+                return@locked false
+            }
+        }
+
+        return@locked true
+    }
+
+    override fun hashCode(): Int = locked {
+        var current = 7
+        for ((key, value) in entries) {
+            current = Hash.combine(key.hashCode(), value.hashCode(), current)
+        }
+
+        return@locked current
+    }
+
+    override fun toString(): String = locked {
+        return@locked buildString {
+            append("{")
+            this@ConcurrentMap.entries.forEachIndexed { index, (key, value) ->
+                append("$key=$value")
+
+                if (index != size - 1) {
+                    append(", ")
+                }
+            }
+
+            append("}")
+        }
+    }
+
     internal fun iterator(): MutableIterator<MutableMap.MutableEntry<Key, Value>> =
         object : MutableIterator<MutableMap.MutableEntry<Key, Value>> {
-            private var previous: ForwardListNode<MapNode<Key, Value>>? by shared(insertionOrder.head)
-            private val current: ForwardListNode<MapNode<Key, Value>>? get() = previous?.next
+            private var current: ForwardListNode<MapNode<Key, Value>>? by shared(insertionOrder.first())
+            private val previous: ForwardListNode<MapNode<Key, Value>>? get() = current?.previous
 
             init {
                 makeShared()
@@ -143,7 +181,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
 
             override fun next(): MutableMap.MutableEntry<Key, Value> {
                 val result = current!!.item!!
-                previous = current
+                current = current?.next
                 return result
             }
 

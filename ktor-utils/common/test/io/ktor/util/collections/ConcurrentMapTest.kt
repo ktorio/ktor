@@ -57,5 +57,16 @@ class ConcurrentMapTest {
         assertEquals(1, count)
     }
 
-    private fun create(): ConcurrentMap<Int, Int> = ConcurrentMap<Int, Int>()
+    @Test
+    fun testToString() {
+        assertEquals(emptyMap<Int, Int>().toString(), create().toString())
+
+        assertEquals(mutableMapOf(1 to 2, 3 to 4, 5 to 6).toString(), ConcurrentMap<Int, Int>().apply {
+            this[1] = 2
+            this[3] = 4
+            this[5] = 6
+        }.toString())
+    }
+
+    private fun create(): ConcurrentMap<Int, Int> = ConcurrentMap()
 }
