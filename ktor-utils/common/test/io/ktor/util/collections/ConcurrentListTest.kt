@@ -2,10 +2,8 @@
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.util
+package io.ktor.util.collections
 
-import io.ktor.util.collections.*
-import kotlin.random.*
 import kotlin.test.*
 
 class ConcurrentListTest {
@@ -91,5 +89,43 @@ class ConcurrentListTest {
         }
 
         assertEquals(expected, list)
+    }
+
+    @Test
+    fun testListIteratorRemove() {
+        val list = ConcurrentList<Int>().apply {
+            repeat(10) {
+                add(it)
+            }
+        }
+
+        list.removeAll { it == 0 }
+        assertEquals("[1, 2, 3, 4, 5, 6, 7, 8, 9]", list.toString())
+    }
+
+    @Test
+    fun testListIteratorRemovePreLast() {
+        val list = ConcurrentList<Int>()
+        list.addAll(listOf(1, 2))
+
+        val iterator = list.iterator()
+        assertEquals(1, iterator.next())
+
+        iterator.remove()
+
+        assertEquals(2, iterator.next())
+    }
+
+    @Test
+    fun testListIteratorAdd() {
+        val list = ConcurrentList<Int>()
+        val iterator = list.listIterator()
+
+        repeat(100) {
+            iterator.add(it)
+            assertEquals(it, iterator.next())
+        }
+
+        assertEquals(List(100) { it }, list)
     }
 }

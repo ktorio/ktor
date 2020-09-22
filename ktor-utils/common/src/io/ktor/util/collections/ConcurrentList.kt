@@ -139,7 +139,8 @@ public class ConcurrentList<T> : MutableList<T> {
         override fun next(): T = this@ConcurrentList[current++]
 
         override fun remove() {
-            removeAt(current)
+            removeAt(current - 1)
+            current--
         }
 
         override fun hasPrevious(): Boolean = current > 0
@@ -253,12 +254,12 @@ public class ConcurrentList<T> : MutableList<T> {
     }
 
     private fun reserve(index: Int, gapSize: Int) {
-        if (gapSize + size >= data.size) {
-            increaseCapacity(gapSize + size)
+        val targetSize = gapSize + size
+        while (data.size < targetSize) {
+            increaseCapacity()
         }
 
-        var readPosition = size
-
+        var readPosition = size - 1
         while (readPosition >= index) {
             data[readPosition + gapSize] = data[readPosition]
             readPosition -= 1
