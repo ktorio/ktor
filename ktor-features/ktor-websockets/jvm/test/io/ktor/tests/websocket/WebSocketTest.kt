@@ -495,6 +495,34 @@ class WebSocketTest {
         }
     }
 
+    @Test
+    fun testFlushClosed(): Unit = withTestApplication {
+        application.install(WebSockets)
+
+        val session = CompletableDeferred<Unit>()
+        application.routing {
+            webSocket("/close/me") {
+                try {
+                    close()
+                    delay(1)
+                    flush()
+                    session.complete(Unit)
+                } catch (t: Throwable) {
+                    session.completeExceptionally(t)
+                    throw t
+                }
+            }
+        }
+
+        handleWebSocketConversation("/close/me") { incoming, outgoing ->
+            assertTrue(incoming.receive() is Frame.Close)
+            assertNull(incoming.receiveOrNull())
+        }
+        runBlocking {
+            session.await()
+        }
+    }
+
     private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
 
     private fun validateCloseWithBigFrame(call: TestApplicationCall) = runBlocking {
