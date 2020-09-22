@@ -8,15 +8,18 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 
 internal class SharedForwardList<T : Any> : MutableIterable<T> {
-    internal var head by shared(ForwardListNode(this, null, null, null))
+    internal var head: ForwardListNode<T>? by shared(null)
     internal var tail by shared(head)
 
     init {
         makeShared()
+
+        head = ForwardListNode(this, null, null, null)
+        tail = head
     }
 
     fun first(): ForwardListNode<T>? {
-        return head.next
+        return head!!.next
     }
 
     fun last(): ForwardListNode<T>? {
@@ -28,7 +31,7 @@ internal class SharedForwardList<T : Any> : MutableIterable<T> {
     }
 
     fun appendFirst(value: T): ForwardListNode<T> {
-        val newValue = head.insertAfter(value)
+        val newValue = head!!.insertAfter(value)
         if (head == tail) {
             tail = newValue
         }
@@ -37,10 +40,10 @@ internal class SharedForwardList<T : Any> : MutableIterable<T> {
     }
 
     fun appendLast(value: T): ForwardListNode<T> {
-        tail = tail.insertAfter(value)
-        return tail
+        tail = tail!!.insertAfter(value)
+        return tail!!
     }
 
     override fun iterator(): MutableIterator<T> =
-        ForwardListIterator(head)
+        ForwardListIterator(head!!)
 }
