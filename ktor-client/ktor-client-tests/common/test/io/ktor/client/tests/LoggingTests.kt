@@ -40,7 +40,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingLevelBody() = clientTests {
+    fun testLoggingLevelBody() = clientTests(listOf("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
@@ -60,7 +60,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests {
+    fun testLogLevelAll() = clientTests(listOf("native:CIO")) {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
@@ -128,7 +128,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostBody() = clientTests {
+    fun testLogPostBody() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=POST)",
@@ -185,7 +185,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogPostMalformedUtf8Body() = clientTests {
+    fun testLogPostMalformedUtf8Body() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://localhost:8080/logging/non-utf",
             "METHOD: HttpMethod(value=POST)",
@@ -378,7 +378,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testRequestAndResponseBody() = clientTests {
+    fun testRequestAndResponseBody() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
             "METHOD: HttpMethod(value=POST)",
@@ -425,7 +425,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun customServerTest() = clientTests(listOf("iOS")) {
+    fun customServerTest() = clientTests(listOf("iOS", "native:CIO")) {
         config {
             Logging {
                 level = LogLevel.ALL
