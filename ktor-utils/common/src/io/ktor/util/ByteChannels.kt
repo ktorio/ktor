@@ -22,7 +22,7 @@ public fun ByteReadChannel.split(): Pair<ByteReadChannel, ByteReadChannel> {
     GlobalScope.launch {
         try {
             while (!isClosedForRead) {
-                supervisorScope {
+                coroutineScope {
                     this@split.readRemaining(CHUNK_BUFFER_SIZE).use { chunk ->
                         val firstAsync = async { first.writePacket(chunk.copy()) }
                         val secondAsync = async { second.writePacket(chunk.copy()) }
