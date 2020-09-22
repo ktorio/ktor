@@ -84,19 +84,20 @@ class ConnectionTests {
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withRSA", keySizeInBits = 4096)
-        val chain1 = keyStore.getCertificateChain("mykey").toList() as List<X509Certificate>
-        val certs = chain1.toList().toTypedArray()
+        val certsChain = keyStore.getCertificateChain("mykey").toList() as List<X509Certificate>
+        val certs = certsChain.toTypedArray()
         val password = "changeit".toCharArray()
-        val pk = keyStore.getKey("mykey", password) as PrivateKey
-        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()) .also { it.init(keyStore) }
+        val privateKey = keyStore.getKey("mykey", password) as PrivateKey
+        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(keyStore) }
         val workerGroup: EventLoopGroup = NioEventLoopGroup()
+        val port = firstFreePort()
         try {
-            val b = ServerBootstrap()
-            b.group(workerGroup)
+            ServerBootstrap()
+                .group(workerGroup)
                 .channel(NioServerSocketChannel::class.java)
                 .childHandler(object : ChannelInitializer<SocketChannel>() {
                     override fun initChannel(ch: SocketChannel) {
-                        val sslContext = SslContextBuilder.forServer(pk, *certs).trustManager(trustManagerFactory).build()
+                        val sslContext = SslContextBuilder.forServer(privateKey, *certs).trustManager(trustManagerFactory).build()
                         val sslEngine = sslContext.newEngine(ch.alloc()).apply {
                             useClientMode = false
                             needClientAuth = true
@@ -104,8 +105,8 @@ class ConnectionTests {
                         ch.pipeline().addLast(SslHandler(sslEngine))
                     }
                 })
-            val port = firstFreePort()
-            b.bind(port).sync()
+                .bind(port)
+                .sync()
 
             tryToConnect(port, trustManagerFactory, keyStore to password)
 
