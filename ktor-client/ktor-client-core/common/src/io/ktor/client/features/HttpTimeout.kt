@@ -9,6 +9,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.network.sockets.*
 import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
@@ -24,6 +25,10 @@ public class HttpTimeout(
      * [HttpTimeout] extension configuration that is used during installation.
      */
     public class HttpTimeoutCapabilityConfiguration {
+        private var _requestTimeoutMillis: Long? by shared(0)
+        private var _connectTimeoutMillis: Long? by shared(0)
+        private var _socketTimeoutMillis: Long? by shared(0)
+
         /**
          * Creates a new instance of [HttpTimeoutCapabilityConfiguration].
          */
@@ -42,24 +47,27 @@ public class HttpTimeout(
          * Request timeout in milliseconds.
          */
         public var requestTimeoutMillis: Long?
+            get() = _requestTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _requestTimeoutMillis = checkTimeoutValue(value)
             }
 
         /**
          * Connect timeout in milliseconds.
          */
         public var connectTimeoutMillis: Long?
+            get() = _connectTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _connectTimeoutMillis = checkTimeoutValue(value)
             }
 
         /**
          * Socket timeout (read and write) in milliseconds.
          */
         public var socketTimeoutMillis: Long?
+            get() = _socketTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _socketTimeoutMillis = checkTimeoutValue(value)
             }
 
         internal fun build(): HttpTimeout = HttpTimeout(requestTimeoutMillis, connectTimeoutMillis, socketTimeoutMillis)
