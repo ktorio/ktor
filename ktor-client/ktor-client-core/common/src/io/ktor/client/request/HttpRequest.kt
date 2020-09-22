@@ -149,7 +149,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      */
     @KtorExperimentalAPI
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
-        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
+        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
         capabilities[key] = capability
     }
 
