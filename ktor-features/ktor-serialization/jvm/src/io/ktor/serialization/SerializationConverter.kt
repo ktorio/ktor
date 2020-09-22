@@ -15,7 +15,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.*
 import kotlin.text.Charsets
 
 /**
@@ -55,8 +54,9 @@ public fun SerializationConverter(): SerializationConverter =
  * }
  * ```
  */
-@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
-public class SerializationConverter private constructor(
+@OptIn(ExperimentalSerializationApi::class)
+public class SerializationConverter
+private constructor(
     private val format: SerialFormat,
     private val defaultCharset: Charset = Charsets.UTF_8
 ) : ContentConverter {
