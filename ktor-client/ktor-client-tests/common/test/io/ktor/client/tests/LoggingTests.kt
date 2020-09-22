@@ -40,7 +40,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLoggingLevelBody() = clientTests(listOf("CIO")) {
+    fun testLoggingLevelBody() = clientTests {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
@@ -60,7 +60,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testLogLevelAll() = clientTests(listOf("CIO")) {
+    fun testLogLevelAll() = clientTests {
         val logger = TestLogger(
             "REQUEST: http://localhost:8080/logging/",
             "METHOD: HttpMethod(value=GET)",
