@@ -267,6 +267,7 @@ internal open class ByteBufferChannel(
                 ReadWriteBufferState.Terminated -> closed?.cause?.let { rethrowClosed(it) } ?: return null
                 ReadWriteBufferState.IdleEmpty -> closed?.cause?.let { rethrowClosed(it) } ?: return null
                 else -> {
+                    closed?.cause?.let { rethrowClosed(it) }
                     if (state.capacity.availableForRead == 0) return null
                     state.startReading()
                 }

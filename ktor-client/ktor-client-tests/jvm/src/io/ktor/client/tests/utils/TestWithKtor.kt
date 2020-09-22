@@ -16,6 +16,7 @@ import java.util.concurrent.*
 @Suppress("KDocMissingDocumentation")
 public abstract class TestWithKtor {
     protected val serverPort: Int = ServerSocket(0).use { it.localPort }
+    protected val testUrl: String = "http://localhost:$serverPort"
 
     @get:Rule
     public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(5 * 60)
