@@ -5,10 +5,11 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.features.logging.*
+import io.ktor.util.collections.*
 import kotlin.test.*
 
 internal class TestLogger(private vararg val expectedLog: String) : Logger {
-    private val log = mutableListOf<String>()
+    private val log = ConcurrentList<String>()
 
     override fun log(message: String) {
         log += message
