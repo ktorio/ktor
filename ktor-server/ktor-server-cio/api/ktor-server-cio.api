@@ -1,0 +1,64 @@
+public final class io/ktor/server/cio/CIO : io/ktor/server/engine/ApplicationEngineFactory {
+	public static final field INSTANCE Lio/ktor/server/cio/CIO;
+	public fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/cio/CIOApplicationEngine;
+	public synthetic fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
+}
+
+public final class io/ktor/server/cio/CIOApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
+	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
+	public fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
+	public fun stop (JJ)V
+}
+
+public final class io/ktor/server/cio/CIOApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
+	public fun <init> ()V
+	public final fun getConnectionIdleTimeoutSeconds ()I
+	public final fun setConnectionIdleTimeoutSeconds (I)V
+}
+
+public final class io/ktor/server/cio/DevelopmentEngine {
+	public static final field INSTANCE Lio/ktor/server/cio/DevelopmentEngine;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/cio/EngineMain {
+	public static final field INSTANCE Lio/ktor/server/cio/EngineMain;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/cio/HttpServer {
+	public fun <init> (Lkotlinx/coroutines/Job;Lkotlinx/coroutines/Job;Lkotlinx/coroutines/Deferred;)V
+	public final fun getAcceptJob ()Lkotlinx/coroutines/Job;
+	public final fun getRootServerJob ()Lkotlinx/coroutines/Job;
+	public final fun getServerSocket ()Lkotlinx/coroutines/Deferred;
+}
+
+public final class io/ktor/server/cio/HttpServerKt {
+	public static final synthetic fun httpServer (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
+	public static final synthetic fun httpServer (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
+	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function6;)Lio/ktor/server/cio/HttpServer;
+	public static synthetic fun httpServer$default (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/cio/HttpServer;
+	public static synthetic fun httpServer$default (Lio/ktor/server/cio/HttpServerSettings;Lkotlinx/coroutines/Job;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/cio/HttpServer;
+}
+
+public final class io/ktor/server/cio/HttpServerSettings {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;IJ)V
+	public synthetic fun <init> (Ljava/lang/String;IJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()J
+	public final fun copy (Ljava/lang/String;IJ)Lio/ktor/server/cio/HttpServerSettings;
+	public static synthetic fun copy$default (Lio/ktor/server/cio/HttpServerSettings;Ljava/lang/String;IJILjava/lang/Object;)Lio/ktor/server/cio/HttpServerSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConnectionIdleTimeoutSeconds ()J
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getPort ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/cio/backend/HttpServerKt {
+	public static final fun httpServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/cio/HttpServerSettings;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/cio/HttpServer;
+}
+
