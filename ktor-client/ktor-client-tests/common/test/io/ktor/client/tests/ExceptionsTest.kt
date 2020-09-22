@@ -52,7 +52,7 @@ class ExceptionsTest : ClientLoader() {
                         CoroutineScope(response.coroutineContext)
                             .launch { throw IllegalStateException("failed on receive") }
                             .join()
-                    } catch (e: Exception) {
+                    } catch (cause: Exception) {
                     }
                     response.receive<String>()
                 }
