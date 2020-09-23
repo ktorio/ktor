@@ -9,7 +9,7 @@ kotlin.sourceSets {
     }
     jvmTest.dependencies {
         api project(':ktor-server:ktor-server-test-host')
-        api project(':ktor-server:ktor-server-test-host-suits')
+        api project(':ktor-server:ktor-server-test-host-suites')
         api project(':ktor-server:ktor-server-core')
     }
 }

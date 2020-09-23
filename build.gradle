@@ -104,6 +104,7 @@ def disabledExplicitApiModeProjects = [
     "ktor-server-benchmarks",
     "ktor-client-json-tests",
     "ktor-server-test-host",
+    "ktor-server-test-host-suites",
     "ktor-server-tests"
 ]
 
