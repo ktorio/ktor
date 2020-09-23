@@ -11,10 +11,11 @@ class HttpStatementTest {
 
     @Test
     fun testStatementToString() {
-        val statement = HttpStatement(HttpRequestBuilder(), HttpClient(TestEngine))
+        val builder = HttpRequestBuilder()
+        val statement = HttpStatement(builder, HttpClient(TestEngine))
 
-        assertEquals("HttpStatement[http://localhost/]", statement.toString())
-        assertEquals("HttpStatement[http://localhost/]", statement.toString())
+        assertEquals("HttpStatement[${builder.url.buildString()}]", statement.toString())
+        assertEquals("HttpStatement[${builder.url.buildString()}]", statement.toString())
     }
 }
 
