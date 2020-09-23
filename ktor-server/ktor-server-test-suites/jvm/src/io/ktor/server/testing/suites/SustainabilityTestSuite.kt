@@ -531,7 +531,41 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
                 "HTTP/1.0 400"
             )
 
-            assertTrue(expected.any { result.startsWith(it) },"Invalid response: $result")
+            assertTrue(expected.any { result.startsWith(it) }, "Invalid response: $result")
         }
+    }
+
+    @Test
+    fun testErrorInApplicationCallPipeline() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationCallPipeline().items
+            .forEach { phase ->
+                val server = createServer(log = logger) {
+                    intercept(phase) {
+                        throw IllegalStateException("Failed in phase $phase")
+                    }
+
+                    routing {
+                        get("/") {
+                            call.respond("SUCCESS")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl(if (phase == ApplicationCallPipeline.ApplicationPhase.Fallback) "/url" else "/") {
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1)
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
     }
 }
