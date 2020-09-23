@@ -12,6 +12,7 @@ kotlin.sourceSets {
     }
     jvmTest.dependencies {
         api project(':ktor-server:ktor-server-test-host')
+        api project(':ktor-server:ktor-server-test-host-suits')
         api project(':ktor-server:ktor-server-core')
 
         api group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
