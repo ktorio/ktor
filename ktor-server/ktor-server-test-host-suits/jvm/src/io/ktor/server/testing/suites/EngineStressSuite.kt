@@ -48,7 +48,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     private val endMarkerCrLf = endMarker + "\r\n"
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
-    public override val timeout = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
+    public override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
 
     @Test
     public fun singleConnectionSingleThreadNoPipelining() {
