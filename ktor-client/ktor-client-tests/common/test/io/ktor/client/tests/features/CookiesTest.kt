@@ -202,7 +202,7 @@ class CookiesTest : ClientLoader() {
     }
 
     @Test
-    fun testCookiesWithWrongValue() = clientTests {
+    fun testCookiesWithWrongValue() = clientTests(listOf("js")) {
         config {
             install(HttpCookies)
         }
