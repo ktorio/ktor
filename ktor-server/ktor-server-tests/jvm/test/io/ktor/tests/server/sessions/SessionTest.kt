@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.sessions
@@ -112,6 +112,8 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest())
                 }
             }
@@ -492,6 +494,8 @@ class SessionTest {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     identity { (id++).toString() }
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest(algorithm = "SHA-256"))
                 }
             }
@@ -545,6 +549,8 @@ class SessionTest {
                 cookie<EmptySession>("EMPTY")
                 header<TestUserSession>(cookieName, sessionStorage) {
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest())
                 }
             }
