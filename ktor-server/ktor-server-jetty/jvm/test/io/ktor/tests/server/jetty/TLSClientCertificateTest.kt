@@ -17,6 +17,7 @@ import io.ktor.server.jetty.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
+import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
@@ -35,7 +36,6 @@ class TLSClientCertificateTest {
                     keyStore = keyStore,
                     keyStorePassword = { "changeit".toCharArray() },
                     privateKeyPassword = { "changeit".toCharArray() },
-                    requiredClientCACertificates = listOf(keyStore.getCertificate("myKey-CA") as X509Certificate)
                 ).apply {
                     this.host = "0.0.0.0"
                     this.port = 443
@@ -51,8 +51,7 @@ class TLSClientCertificateTest {
         val client = HttpClient(CIO) {
             engine {
                 https {
-                    this.trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-                        .apply { init(keyStore) }.trustManagers.first()
+                    trustManager = keyStore.trustManagers.first()
                     addKeyStore(keyStore, "changeit".toCharArray())
                 }
             }
@@ -62,6 +61,9 @@ class TLSClientCertificateTest {
     }
 }
 
+private val KeyStore.trustManagers: List<TrustManager>
+    get() = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        .apply { init(this@trustManagers) }.trustManagers.toList()
 
 private fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
     CoroutineScope.embeddedServer(
