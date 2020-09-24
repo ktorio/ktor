@@ -129,7 +129,7 @@ public class CallLogging private constructor(
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    withMDC {
+                    withMDC(call) {
                         proceed()
                         feature.logSuccess(call)
                     }
@@ -150,8 +150,8 @@ public class CallLogging private constructor(
     @InternalAPI
     public object Internals {
         @InternalAPI
-        public suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
-            withMDC(block)
+        public suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
+            withMDC(call, block)
         }
     }
 
@@ -173,8 +173,7 @@ public class CallLogging private constructor(
 /**
  * Invoke suspend [block] with a context having MDC configured.
  */
-private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(crossinline block: suspend C.() -> Unit) {
-    val call = call
+private suspend inline fun withMDC(call: ApplicationCall, crossinline block: suspend () -> Unit) {
     val feature = call.application.featureOrNull(CallLogging) ?: return block()
 
     withContext(MDCSurvivalElement(feature.setupMdc(call))) {

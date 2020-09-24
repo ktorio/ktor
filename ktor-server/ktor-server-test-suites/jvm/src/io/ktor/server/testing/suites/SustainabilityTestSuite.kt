@@ -536,7 +536,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    fun testErrorInApplicationCallPipeline() {
+    public fun testErrorInApplicationCallPipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {
             override fun error(message: String?, cause: Throwable?) {
@@ -567,5 +567,37 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
 
                 (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
             }
+    }
+
+    @Test
+    public open fun testErrorInEnginePipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                println(cause.toString())
+                exceptions.add(cause!!)
+            }
+        }
+        val phase = EnginePipeline.Before
+        val server = createServer(log = logger) {
+            routing {
+                get("/req") {
+                    call.respond("SUCCESS")
+                }
+            }
+        }
+        (server as BaseApplicationEngine).pipeline.intercept(phase) {
+            throw IllegalStateException("Failed in engine pipeline")
+        }
+        startServer(server)
+
+        withUrl("/req") {
+            assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
+            assertEquals(exceptions.size, 1)
+            assertEquals(exceptions[0].message, "Failed in engine pipeline")
+            exceptions.clear()
+        }
+
+        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 }

@@ -36,17 +36,12 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
             call.application.execute(call)
         } catch (error: ChannelIOException) {
             with(CallLogging.Internals) {
-                withMDCBlock {
+                withMDCBlock(call) {
                     call.application.environment.logFailure(call, error)
                 }
             }
         } catch (error: Throwable) {
-            with(CallLogging.Internals) {
-                withMDCBlock {
-                    call.application.environment.logFailure(call, error)
-                    handleFailure(error)
-                }
-            }
+            handleFailure(call, error)
         } finally {
             try {
                 call.request.receiveChannel().discard()
@@ -56,6 +51,21 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
     }
 
     return pipeline
+}
+
+@InternalAPI
+public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
+    logError(call, error)
+    tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
+}
+
+@InternalAPI
+public suspend fun logError(call: ApplicationCall, error: Throwable) {
+    with(CallLogging.Internals) {
+        withMDCBlock(call) {
+            call.application.environment.logFailure(call, error)
+        }
+    }
 }
 
 /**
@@ -72,11 +82,7 @@ public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.handleFailure(cause: Throwable) {
-    tryRespondError(defaultExceptionStatusCode(cause) ?: HttpStatusCode.InternalServerError)
-}
-
-private suspend fun PipelineContext<Unit, ApplicationCall>.tryRespondError(statusCode: HttpStatusCode) {
+private suspend fun tryRespondError(call: ApplicationCall, statusCode: HttpStatusCode) {
     try {
         if (call.response.status() == null) {
             call.respond(statusCode)

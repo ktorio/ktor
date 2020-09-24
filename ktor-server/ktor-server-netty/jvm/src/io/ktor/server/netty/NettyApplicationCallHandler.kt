@@ -5,6 +5,8 @@
 package io.ktor.server.netty
 
 import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.features.CallLogging.Internals.withMDCBlock
 import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
@@ -41,7 +43,11 @@ internal class NettyApplicationCallHandler(
                     call.response.sendResponse(chunked = false, ByteReadChannel.Empty)
                     call.finish()
                 }
-                else -> enginePipeline.execute(call)
+                else -> try {
+                    enginePipeline.execute(call)
+                } catch (error: Exception) {
+                    handleFailure(call, error)
+                }
             }
         }
     }
