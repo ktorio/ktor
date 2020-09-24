@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
@@ -71,6 +71,15 @@ internal class CurlMultiApiHandler : Closeable {
 
             request.proxy?.let { proxy ->
                 option(CURLOPT_PROXY, proxy.toString())
+                option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
+                if (request.forceProxyTunneling) {
+                    option(CURLOPT_HTTPPROXYTUNNEL, 1L)
+                }
+            }
+
+            if (!request.sslVerify) {
+                option(CURLOPT_SSL_VERIFYPEER, 0L)
+                option(CURLOPT_SSL_VERIFYHOST, 0L)
             }
         }
 
