@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.engine.curl.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -20,13 +21,15 @@ import kotlin.coroutines.*
 @SharedImmutable
 private val EMPTY_BYTE_ARRAY = ByteArray(0)
 
-internal suspend fun HttpRequestData.toCurlRequest(config: HttpClientEngineConfig): CurlRequestData = CurlRequestData(
+internal suspend fun HttpRequestData.toCurlRequest(config: CurlClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
     proxy = config.proxy,
     content = body.toCurlByteArray(),
-    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis
+    connectTimeout = getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis,
+    config.forceProxyTunneling,
+    config.sslVerify
 )
 
 internal class CurlRequestData(
@@ -35,7 +38,9 @@ internal class CurlRequestData(
     val headers: CPointer<curl_slist>,
     val proxy: ProxyConfig?,
     val content: ByteArray,
-    val connectTimeout: Long?
+    val connectTimeout: Long?,
+    val forceProxyTunneling: Boolean,
+    val sslVerify: Boolean
 ) {
     override fun toString(): String =
         "CurlRequestData(url='$url', method='$method', content: ${content.size} bytes)"
