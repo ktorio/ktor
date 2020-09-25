@@ -20,20 +20,31 @@ import kotlin.test.*
  * once we support TLS options in client configs to connect to the local test TLS server.
  */
 class CurlProxyTest {
+    /**
+     * Copied from ktor-client-tests
+     */
+    private val TEST_SERVER: String = "http://127.0.0.1:8080"
+
+
+    /**
+     * Proxy server url for tests.
+     * Copied from ktor-client-tests
+     */
+    private val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
+
     @Test
     fun plainHttpTest() {
         val client = HttpClient(Curl) {
             engine {
-                proxy = ProxyBuilder.http(URLBuilder().apply {
-                    host = "localhost"
-                    port = 8082
-                }.build())
+                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
             }
         }
 
         client.use {
             runBlocking {
-                assertEquals("Hello", client.get<String>("$@@/content/hello"))
+                // replace with once moved to ktor-client-tests
+//                assertEquals("Hello", client.get<String>("$TEST_SERVER/content/hello"))
+                assertEquals("proxy", client.get("http://google.com/"))
             }
         }
     }
@@ -47,10 +58,7 @@ class CurlProxyTest {
                 forceProxyTunneling = true
                 sslVerify = false
 
-                proxy = ProxyBuilder.http(URLBuilder().apply {
-                    host = "localhost"
-                    port = 8082
-                }.build())
+                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
             }
         }
 
