@@ -29,7 +29,7 @@ public abstract class BaseApplicationEngine(
     public open class Configuration : ApplicationEngine.Configuration()
 
     init {
-        val initializeStartedAt = LocalDateTime.now()
+        val initializeStartedAt = System.nanoTime()
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
             it.receivePipeline.merge(pipeline.receivePipeline)
@@ -38,10 +38,10 @@ public abstract class BaseApplicationEngine(
             it.sendPipeline.installDefaultTransformations()
         }
         environment.monitor.subscribe(ApplicationStarted) {
-            val initializeFinishedAt = LocalDateTime.now()
+            val initializeFinishedAt = System.nanoTime()
             environment.connectors.forEach {
                 environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
-                environment.log.info("Startup time: ${between(initializeStartedAt, initializeFinishedAt).toMillis()} ms")
+                environment.log.info("Startup time: ${(initializeFinishedAt - initializeStartedAt) / 1_000_000} ms")
             }
         }
     }
