@@ -5,6 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import java.time.*
+import java.time.Duration.*
 
 /**
  * Base class for implementing [ApplicationEngine]
@@ -27,6 +29,7 @@ public abstract class BaseApplicationEngine(
     public open class Configuration : ApplicationEngine.Configuration()
 
     init {
+        val initializeStartedAt = LocalDateTime.now()
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
             it.receivePipeline.merge(pipeline.receivePipeline)
@@ -35,8 +38,10 @@ public abstract class BaseApplicationEngine(
             it.sendPipeline.installDefaultTransformations()
         }
         environment.monitor.subscribe(ApplicationStarted) {
+            val initializeFinishedAt = LocalDateTime.now()
             environment.connectors.forEach {
                 environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
+                environment.log.info("Startup time: ${between(initializeStartedAt, initializeFinishedAt).toMillis()} ms")
             }
         }
     }
