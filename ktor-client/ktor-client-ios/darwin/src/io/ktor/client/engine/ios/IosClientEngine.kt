@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import platform.Foundation.*
+import kotlin.native.concurrent.*
 
 internal class IosClientEngine(override val config: IosClientEngineConfig) : HttpClientEngineBase("ktor-ios") {
 
@@ -47,7 +48,7 @@ internal class IosClientEngine(override val config: IosClientEngineConfig) : Htt
         }
 
         val session = NSURLSession.sessionWithConfiguration(
-            configuration, responseReader, delegateQueue = NSOperationQueue.mainQueue()
+            configuration, responseReader.freeze(), delegateQueue = NSOperationQueue.mainQueue()
         )
 
         val task = session.dataTaskWithRequest(nativeRequest)
