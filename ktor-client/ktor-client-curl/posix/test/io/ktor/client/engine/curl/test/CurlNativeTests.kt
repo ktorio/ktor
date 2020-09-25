@@ -27,7 +27,6 @@ class CurlNativeTests {
     }
 
     @Test
-    @Ignore
     fun testDownload() {
         runBlocking {
             val client = HttpClient()
