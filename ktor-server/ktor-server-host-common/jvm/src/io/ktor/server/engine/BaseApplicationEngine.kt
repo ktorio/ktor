@@ -5,8 +5,6 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import java.time.*
-import java.time.Duration.*
 
 /**
  * Base class for implementing [ApplicationEngine]
