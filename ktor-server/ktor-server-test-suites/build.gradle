@@ -8,8 +8,9 @@ kotlin.sourceSets {
             implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
         }
     }
-}
-
-dependencies {
-    jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+    jvmTest {
+        dependencies {
+            api project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+        }
+    }
 }
