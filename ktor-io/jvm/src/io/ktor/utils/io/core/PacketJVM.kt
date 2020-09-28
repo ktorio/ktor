@@ -6,18 +6,18 @@ import io.ktor.utils.io.utils.*
 import java.nio.*
 import java.nio.charset.CharsetDecoder
 
-actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
+public actual val PACKET_MAX_COPY_SIZE: Int = getIOIntProperty("max.copy.size", 500)
 
-actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
+public actual fun BytePacketBuilder(headerSizeHint: Int): BytePacketBuilder =
     BytePacketBuilder(headerSizeHint, ChunkBuffer.Pool)
 
-actual typealias EOFException = java.io.EOFException
+public actual typealias EOFException = java.io.EOFException
 
 /**
  * Read exactly [n] (optional, read all remaining by default) bytes to a newly allocated byte buffer
  * @return a byte buffer containing [n] bytes
  */
-fun ByteReadPacket.readByteBuffer(
+public fun ByteReadPacket.readByteBuffer(
     n: Int = remaining.coerceAtMostMaxIntOrFail("Unable to make a ByteBuffer: packet is too big"),
     direct: Boolean = false
 ): ByteBuffer {
@@ -28,6 +28,6 @@ fun ByteReadPacket.readByteBuffer(
 }
 
 @Deprecated("Migrate parameters order", ReplaceWith("readText(out, decoder, max)"))
-fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
+public fun ByteReadPacket.readText(decoder: CharsetDecoder, out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return decoder.decode(this, out, max)
 }

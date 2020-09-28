@@ -611,6 +611,9 @@ class SessionTest {
                     call.sessions.set(TestUserSession("id2", listOf("item1")))
                     call.respondText("ok")
                 }
+                get("/2") {
+                    call.respondText(call.sessions.get<TestUserSession>()?.userId ?: "none")
+                }
             }
 
             val call = handleRequest {
@@ -624,6 +627,20 @@ class SessionTest {
                 addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
             }
             assertEquals(sessionId, nextCall.response.cookies[cookieName]!!.value)
+
+            handleRequest {
+                uri = "/2"
+                addHeader(HttpHeaders.Cookie, "$cookieName=invalid2")
+            }.let { call2 ->
+                // we are sending expired cookie to remove outdated/invalid session id
+                assertEquals("none", call2.response.content)
+                call2.response.cookies[cookieName].let { cookie ->
+                    assertNotNull(cookie, "cookie should be resend (expired)")
+                    assertEquals(0, cookie.maxAge)
+                    assertNotNull(cookie.expires)
+                    assertEquals(1970, cookie.expires!!.year)
+                }
+            }
         }
     }
 

@@ -15,7 +15,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.*
 import kotlin.text.Charsets
 
 /**
@@ -39,7 +38,7 @@ import kotlin.text.Charsets
         "kotlinx.serialization.json.Json"
     )
 )
-fun SerializationConverter(): SerializationConverter =
+public fun SerializationConverter(): SerializationConverter =
     SerializationConverter(DefaultJson)
 
 /**
@@ -55,8 +54,9 @@ fun SerializationConverter(): SerializationConverter =
  * }
  * ```
  */
-@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
-class SerializationConverter private constructor(
+@OptIn(ExperimentalSerializationApi::class)
+public class SerializationConverter
+private constructor(
     private val format: SerialFormat,
     private val defaultCharset: Charset = Charsets.UTF_8
 ) : ContentConverter {
@@ -64,20 +64,20 @@ class SerializationConverter private constructor(
     /**
      * Creates a converter serializing with the specified binary [format].
      */
-    constructor(format: BinaryFormat) : this(format as SerialFormat)
+    public constructor(format: BinaryFormat) : this(format as SerialFormat)
 
     /**
      * Creates a converter serializing with the specified string [format] and
      * [defaultCharset] (optional, usually it is UTF-8).
      */
-    constructor(
+    public constructor(
         format: StringFormat,
         defaultCharset: Charset = Charsets.UTF_8
     ) : this(format as SerialFormat, defaultCharset)
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(json: Json = DefaultJson) : this(json as StringFormat)
+    public constructor(json: Json = DefaultJson) : this(json as StringFormat)
 
     /**
      * This is no longer supported. Instead, specify format explicitly or
@@ -96,7 +96,7 @@ class SerializationConverter private constructor(
         "Specify format explicitly. E.g SerializationConverter(Json(...))",
         level = DeprecationLevel.HIDDEN
     )
-    constructor() : this(DefaultJson)
+    public constructor() : this(DefaultJson)
 
     init {
         require(format is BinaryFormat || format is StringFormat) {
@@ -147,7 +147,7 @@ class SerializationConverter private constructor(
 
 @Suppress("unused", "CONFLICTING_OVERLOADS")
 @Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
-fun ContentNegotiation.Configuration.serialization(
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType = ContentType.Application.Json,
     json: Json = DefaultJson
 ) {

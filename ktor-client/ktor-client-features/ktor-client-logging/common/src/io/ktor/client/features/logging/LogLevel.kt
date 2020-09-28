@@ -7,9 +7,10 @@ package io.ktor.client.features.logging
 /**
  * [Logging]  log level.
  */
-enum class LogLevel(
-    val info: Boolean,
-    val headers: Boolean, val body: Boolean
+public enum class LogLevel(
+    public val info: Boolean,
+    public val headers: Boolean,
+    public val body: Boolean
 ) {
     ALL(true, true, true),
     HEADERS(true, true, false),

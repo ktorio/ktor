@@ -18,11 +18,11 @@ import kotlin.system.*
  * @property url to handle
  * @property exitCode is a function to compute process exit code
  */
-class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
+public class ShutDownUrl(public val url: String, public val exitCode: ApplicationCall.() -> Int) {
     /**
      * Does application shutdown using the specified [call]
      */
-    suspend fun doShutdown(call: ApplicationCall) {
+    public suspend fun doShutdown(call: ApplicationCall) {
         call.application.log.warn("Shutdown URL was called: server is going down")
         val application = call.application
         val environment = application.environment
@@ -52,8 +52,8 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
     /**
      * A feature to install into engine pipeline
      */
-    object EngineFeature : ApplicationFeature<EnginePipeline, Configuration, ShutDownUrl> {
-        override val key = AttributeKey<ShutDownUrl>("shutdown.url")
+    public object EngineFeature : ApplicationFeature<EnginePipeline, Configuration, ShutDownUrl> {
+        override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
         override fun install(pipeline: EnginePipeline, configure: Configuration.() -> Unit): ShutDownUrl {
             val config = Configuration()
@@ -73,8 +73,8 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
     /**
      * A feature to install into application call pipeline
      */
-    object ApplicationCallFeature : ApplicationFeature<ApplicationCallPipeline, Configuration, ShutDownUrl> {
-        override val key = AttributeKey<ShutDownUrl>("shutdown.url")
+    public object ApplicationCallFeature : ApplicationFeature<ApplicationCallPipeline, Configuration, ShutDownUrl> {
+        override val key: AttributeKey<ShutDownUrl> = AttributeKey<ShutDownUrl>("shutdown.url")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ShutDownUrl {
             val config = Configuration()
@@ -94,15 +94,15 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
     /**
      * Shutdown url configuration builder
      */
-    class Configuration {
+    public class Configuration {
         /**
          * URI to handle shutdown requests
          */
-        var shutDownUrl = "/ktor/application/shutdown"
+        public var shutDownUrl: String = "/ktor/application/shutdown"
 
         /**
          * A function that provides process exit code by an application call
          */
-        var exitCodeSupplier: ApplicationCall.() -> Int = { 0 }
+        public var exitCodeSupplier: ApplicationCall.() -> Int = { 0 }
     }
 }

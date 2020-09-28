@@ -36,13 +36,18 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
         val statusLine = rawResponse.statusLine
 
         val status = HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
-        val version = with(rawResponse.protocolVersion) { HttpProtocolVersion.fromValue(protocol, major, minor) }
-        val headers = Headers.build {
-            rawResponse.allHeaders.forEach { headerLine ->
-                append(headerLine.name, headerLine.value)
-            }
+        val version = with(rawResponse.protocolVersion) {
+            HttpProtocolVersion.fromValue(protocol, major, minor)
         }
 
+        val rawHeaders = rawResponse.allHeaders.filter {
+            it.name != null || !it.name.isBlank()
+        }.groupBy(
+            { it.name },
+            { it.value ?: "" }
+        )
+
+        val headers = HeadersImpl(rawHeaders)
         return HttpResponseData(status, requestTime, headers, version, consumer.responseChannel, callContext)
     } catch (cause: Exception) {
         future.cancel(true)

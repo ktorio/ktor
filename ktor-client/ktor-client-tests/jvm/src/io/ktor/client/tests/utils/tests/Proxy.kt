@@ -7,10 +7,10 @@ package io.ktor.client.tests.utils.tests
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.text.*
 
-suspend fun proxyHandler(socket: Socket) {
+public suspend fun proxyHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 
@@ -39,6 +39,10 @@ suspend fun proxyHandler(socket: Socket) {
             },
             requestData.toString()
         )
+        "GET /wrong-value HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK,
+            listOf("${HttpHeaders.SetCookie}: ___utmvazauvysSB=kDu\u0001xSkE; path=/; Max-Age=900\r\n")
+        )
         else -> buildResponse(HttpStatusCode.BadRequest)
     }
 
@@ -54,11 +58,23 @@ private fun buildResponse(
     status: HttpStatusCode,
     headers: Headers = Headers.Empty,
     body: String = "proxy"
+): String {
+    val headersList: List<String> = headers.toMap().entries.toList().map { (key, values) ->
+        "$key: ${values.joinToString(",")}\r\n"
+    }
+
+    return buildResponse(status, headersList, body)
+}
+
+private fun buildResponse(
+    status: HttpStatusCode,
+    headers: List<String>,
+    body: String = "proxy"
 ): String = buildString {
     append("HTTP/1.1 ${status.value} ${status.description}\r\n")
     append("Connection: close\r\n")
-    headers.forEach { key, values ->
-        append("$key: ${values.joinToString()}\r\n")
+    headers.forEach {
+        append(it)
     }
     append("\r\n")
     append(body)

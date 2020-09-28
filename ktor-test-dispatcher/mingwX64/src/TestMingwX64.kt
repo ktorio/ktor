@@ -6,7 +6,7 @@ import kotlin.coroutines.*
 /**
  * Test runner for native suspend tests.
  */
-actual fun testSuspend(
+public actual fun testSuspend(
     context: CoroutineContext,
     block: suspend CoroutineScope.() -> Unit
 ): Unit = runBlocking(context, block)

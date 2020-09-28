@@ -15,13 +15,13 @@ private typealias T = HttpClientEngineFactory<HttpClientEngineConfig>
  * Shared engines collection for.
  * Use [append] to enable engine auto discover in [HttpClient()].
  */
-object engines : Iterable<T> {
+public object engines : Iterable<T> {
     private val head = AtomicReference<Node?>(null)
 
     /**
      * Add engine to head.
      */
-    fun append(item: T) {
+    public fun append(item: T) {
         while (true) {
             val current = head.value
             val new = Node(item, current)

@@ -23,6 +23,6 @@ private class ChannelAsOutput(
     }
 }
 
-fun WritableByteChannel.asOutput(
+public fun WritableByteChannel.asOutput(
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ): Output = ChannelAsOutput(pool, this)

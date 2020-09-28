@@ -22,20 +22,20 @@ import kotlinx.coroutines.sync.*
 /**
  * [HttpClient] logging feature.
  */
-class Logging(
-    val logger: Logger,
-    var level: LogLevel,
-    var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
+public class Logging(
+    public val logger: Logger,
+    public var level: LogLevel,
+    public var filters: List<(HttpRequestBuilder) -> Boolean> = emptyList()
 ) {
 
-    constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
+    public constructor(logger: Logger, level: LogLevel) : this(logger, level, emptyList())
 
     private val mutex = Mutex()
 
     /**
      * [Logging] feature configuration
      */
-    class Config {
+    public class Config {
         /**
          * filters
          */
@@ -44,17 +44,17 @@ class Logging(
         /**
          * [Logger] instance to use
          */
-        var logger: Logger = Logger.DEFAULT
+        public var logger: Logger = Logger.DEFAULT
 
         /**
          * log [LogLevel]
          */
-        var level: LogLevel = LogLevel.HEADERS
+        public var level: LogLevel = LogLevel.HEADERS
 
         /**
          * Log messages for calls matching a [predicate]
          */
-        fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
+        public fun filter(predicate: (HttpRequestBuilder) -> Boolean) {
             filters.add(predicate)
         }
     }
@@ -104,7 +104,7 @@ class Logging(
     private suspend fun logResponseBody(contentType: ContentType?, content: ByteReadChannel): Unit = with(logger) {
         log("BODY Content-Type: $contentType")
         log("BODY START")
-        val message = content.readText(contentType?.charset() ?: Charsets.UTF_8)
+        val message = content.tryReadText(contentType?.charset() ?: Charsets.UTF_8) ?: "[response body omitted]"
         log(message)
         log("BODY END")
     }
@@ -137,7 +137,7 @@ class Logging(
 
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
-            val text = channel.readText(charset)
+            val text = channel.tryReadText(charset) ?: "[request body omitted]"
             logger.log("BODY START")
             logger.log(text)
             logger.log("BODY END")
@@ -146,7 +146,7 @@ class Logging(
         return content.observe(channel)
     }
 
-    companion object : HttpClientFeature<Config, Logging> {
+    public companion object : HttpClientFeature<Config, Logging> {
         override val key: AttributeKey<Logging> = AttributeKey("ClientLogging")
 
         override fun prepare(block: Config.() -> Unit): Logging {
@@ -221,9 +221,12 @@ class Logging(
 /**
  * Configure and install [Logging] in [HttpClient].
  */
-fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
+public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
     install(Logging, block)
 }
 
-private suspend inline fun ByteReadChannel.readText(charset: Charset): String =
+internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
     readRemaining().readText(charset = charset)
+} catch (cause: MalformedInputException) {
+    null
+}

@@ -1,3 +1,36 @@
+# 1.4.1
+> Published 23 Sep 2020
+
+* OkHttp: Can't reuse same HttpRequestBuilder for different network clients ([KTOR-949](https://youtrack.jetbrains.com/issue/KTOR-949))
+* Empty body in response using macosX64 target ([KTOR-479](https://youtrack.jetbrains.com/issue/KTOR-479))
+* Native: InvalidMutabilityException creating HttpClient ([KTOR-915](https://youtrack.jetbrains.com/issue/KTOR-915))
+* MultiPartData.readAllParts() throws java.io.IOException when multipart list is empty ([KTOR-767](https://youtrack.jetbrains.com/issue/KTOR-767))
+* kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen io(.ktor.client.request.HttpRequestPipeline ([KTOR-693](https://youtrack.jetbrains.com/issue/KTOR-693))
+* "FreezingException: freezing of InvokeOnCompletion has failed" using native-mt coroutines ([KTOR-973](https://youtrack.jetbrains.com/issue/KTOR-973))
+* kotlin.native.concurrent.InvalidMutabilityException with 1.3.3-native-mt ([KTOR-497](https://youtrack.jetbrains.com/issue/KTOR-497))
+* Parser Exception in header with character code 1 not allowed ([KTOR-860](https://youtrack.jetbrains.com/issue/KTOR-860))
+* Calling HttpStatement#toString more than once throws IllegalArgumentException ([KTOR-1005](https://youtrack.jetbrains.com/issue/KTOR-1005))
+* Wrong session id get stuck at clients ([KTOR-1007](https://youtrack.jetbrains.com/issue/KTOR-1007))
+* Exception after WebSocketSession.close() invocation. ([KTOR-847](https://youtrack.jetbrains.com/issue/KTOR-847))
+* Error Ktor running on background thread on iOS ([KTOR-499](https://youtrack.jetbrains.com/issue/KTOR-499))
+* HttpClient can only be used on the main thread for native targets ([KTOR-491](https://youtrack.jetbrains.com/issue/KTOR-491))
+* Ignore content length when transfer encoding is chunked for CIO server ([KTOR-1036](https://youtrack.jetbrains.com/issue/KTOR-1036))
+* ConcurrentList.increaseCapacity() throws ArrayIndexOutOfBoundsException ([KTOR-1034](https://youtrack.jetbrains.com/issue/KTOR-1034))
+* Ktor 1.3.1 Fails File Upload with MalformedInputException ([KTOR-391](https://youtrack.jetbrains.com/issue/KTOR-391))
+* Update library versions, fix config after release ([KTOR-1027](https://youtrack.jetbrains.com/issue/KTOR-1027))
+* Fix parsing urls with trailing spaces ([KTOR-886](https://youtrack.jetbrains.com/issue/KTOR-886))
+* 1.4.0: breaking change by making response nullable in ResponseException ([KTOR-916](https://youtrack.jetbrains.com/issue/KTOR-916))
+* Netty: Not started servers leak resources ([KTOR-939](https://youtrack.jetbrains.com/issue/KTOR-939))
+* Ktor websocket client passes configured max frame as timeout millis ([KTOR-923](https://youtrack.jetbrains.com/issue/KTOR-923))
+* Routing: get matcher has higher priority than param matcher on the same level ([KTOR-792](https://youtrack.jetbrains.com/issue/KTOR-792))
+* Confusing log message about failed session lookup ([KTOR-776](https://youtrack.jetbrains.com/issue/KTOR-776))
+* Implement runtime check of using `native-mt` coroutines ([KTOR-956](https://youtrack.jetbrains.com/issue/KTOR-956))
+* Http parse security issue ([KTOR-841](https://youtrack.jetbrains.com/issue/KTOR-841))
+* Bumped versions:
+    - kotlinx.coroutines 1.3.9-native-mt-2
+    - kotlinx.serialization 1.0.0-RC2
+    - kotlin 1.4.10
+
 # 1.4.0
 > Published 18 Aug 2020
 

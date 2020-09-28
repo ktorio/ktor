@@ -57,5 +57,72 @@ class ConcurrentMapTest {
         assertEquals(1, count)
     }
 
-    private fun create(): ConcurrentMap<Int, Int> = ConcurrentMap<Int, Int>()
+    @Test
+    fun testToString() {
+        assertEquals(emptyMap<Int, Int>().toString(), create().toString())
+
+        assertEquals(mutableMapOf(1 to 2, 3 to 4, 5 to 6).toString(), ConcurrentMap<Int, Int>().apply {
+            this[1] = 2
+            this[3] = 4
+            this[5] = 6
+        }.toString())
+    }
+
+    @Test
+    fun testEmpty() {
+        val map = ConcurrentMap<Int, Int>()
+        assertEquals(0, map.size)
+        assertTrue(map.isEmpty())
+    }
+
+    @Test
+    fun testAdd() {
+        val map = ConcurrentMap<Int, Int>()
+        map[0] = 1
+        assertTrue(map.containsKey(0))
+        assertTrue(map.containsValue(1))
+
+        assertEquals(1, map[0])
+
+        var size = 0
+        map.forEach { size++ }
+        assertEquals(1, size)
+    }
+
+    @Test
+    fun testRemove() {
+        val map = ConcurrentMap<Int, Int>()
+        map[0] = 1
+
+        map.remove(0)
+        assertFalse(map.containsKey(0))
+        assertFalse(map.containsValue(1))
+
+        var size = 0
+        map.forEach { size++ }
+        assertEquals(0, size)
+    }
+
+    @Test
+    fun testMany() {
+        val map = ConcurrentMap<Int, Int>()
+
+        repeat(10000) {
+            map[it] = it + 1
+        }
+
+        repeat(10000) {
+            assertEquals(it + 1, map[it])
+        }
+
+        repeat(10000) {
+            map[it] = it - 1
+        }
+
+        repeat(10000) {
+            assertEquals(it - 1, map[it])
+        }
+    }
+
+    private fun create(): ConcurrentMap<Int, Int> = ConcurrentMap()
 }

@@ -13,7 +13,7 @@ import org.slf4j.*
 /**
  * Creates test application engine environment
  */
-fun createTestEnvironment(
+public fun createTestEnvironment(
     configure: ApplicationEngineEnvironmentBuilder.() -> Unit = {}
 ): ApplicationEngineEnvironment =
     applicationEngineEnvironment {
@@ -25,7 +25,7 @@ fun createTestEnvironment(
 /**
  * Make a test request
  */
-fun TestApplicationEngine.handleRequest(
+public fun TestApplicationEngine.handleRequest(
     method: HttpMethod,
     uri: String,
     setup: TestApplicationRequest.() -> Unit = {}
@@ -38,7 +38,7 @@ fun TestApplicationEngine.handleRequest(
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-fun <R> withApplication(
+public fun <R> withApplication(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
@@ -55,14 +55,14 @@ fun <R> withApplication(
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
+public fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment(), test = test)
 }
 
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
+public fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
         moduleFunction(application)
         test()
@@ -72,7 +72,7 @@ fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestAp
 /**
  * Start test application engine, pass it to [test] function and stop it
  */
-fun <R> withTestApplication(
+public fun <R> withTestApplication(
     moduleFunction: Application.() -> Unit,
     configure: TestApplicationEngine.Configuration.() -> Unit = {},
     test: TestApplicationEngine.() -> R
@@ -86,7 +86,7 @@ fun <R> withTestApplication(
 /**
  * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine]
  */
-object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
+public object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
     override fun create(
         environment: ApplicationEngineEnvironment, configure: TestApplicationEngine.Configuration.() -> Unit
     ): TestApplicationEngine = TestApplicationEngine(environment, configure)

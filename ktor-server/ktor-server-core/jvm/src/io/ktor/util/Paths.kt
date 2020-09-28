@@ -9,7 +9,7 @@ package io.ktor.util
  * It also discards all reserved characters and component names that are reserved (such as `CON`, `NUL`).
  */
 @InternalAPI
-fun List<String>.normalizePathComponents(): List<String> {
+public fun List<String>.normalizePathComponents(): List<String> {
     for (index in indices) {
         val component = get(index)
         if (component.shouldBeReplaced()) {

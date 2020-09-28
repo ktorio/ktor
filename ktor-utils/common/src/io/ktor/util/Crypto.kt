@@ -18,7 +18,7 @@ private val digits = "0123456789abcdef".toCharArray()
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
  */
 @KtorExperimentalAPI
-fun hex(bytes: ByteArray): String {
+public fun hex(bytes: ByteArray): String {
     val result = CharArray(bytes.size * 2)
     var resultIndex = 0
     val digits = digits
@@ -29,14 +29,14 @@ fun hex(bytes: ByteArray): String {
         result[resultIndex++] = digits[b and 0x0f]
     }
 
-    return String(result)
+    return result.concatToString()
 }
 
 /**
  * Decode bytes from HEX string. It should be no spaces and `0x` prefixes.
  */
 @KtorExperimentalAPI
-fun hex(s: String): ByteArray {
+public fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
     for (idx in 0 until result.size) {
         val srcIdx = idx * 2
@@ -52,13 +52,13 @@ fun hex(s: String): ByteArray {
  * Generates a nonce string. Could block if the system's entropy source is empty
  */
 @InternalAPI
-expect fun generateNonce(): String
+public expect fun generateNonce(): String
 
 /**
  * Generates a nonce bytes of [size]. Could block if the system's entropy source is empty
  */
 @InternalAPI
-fun generateNonce(size: Int): ByteArray = buildPacket {
+public fun generateNonce(size: Int): ByteArray = buildPacket {
     while (this.size < size) {
         writeText(generateNonce())
     }
@@ -68,40 +68,41 @@ fun generateNonce(size: Int): ByteArray = buildPacket {
  * Compute SHA-1 hash for the specified [bytes]
  */
 @KtorExperimentalAPI
-expect fun sha1(bytes: ByteArray): ByteArray
+public expect fun sha1(bytes: ByteArray): ByteArray
 
 /**
  * Create [Digest] from specified hash [name].
  */
+@Suppress("FunctionName")
 @InternalAPI
-expect fun Digest(name: String): Digest
+public expect fun Digest(name: String): Digest
 
 /**
  * Stateful digest class specified to calculate digest.
  */
 @InternalAPI
-interface Digest {
+public interface Digest {
     /**
      * Add [bytes] to digest value.
      */
-    operator fun plusAssign(bytes: ByteArray)
+    public operator fun plusAssign(bytes: ByteArray)
 
     /**
      * Reset [Digest] state.
      */
-    fun reset()
+    public fun reset()
 
     /**
      * Calculate digest bytes.
      */
-    suspend fun build(): ByteArray
+    public suspend fun build(): ByteArray
 }
 
 /**
  * Calculate digest from current state and specified [bytes].
  */
 @InternalAPI
-suspend fun Digest.build(bytes: ByteArray): ByteArray {
+public suspend fun Digest.build(bytes: ByteArray): ByteArray {
     this += bytes
     return build()
 }
@@ -110,7 +111,7 @@ suspend fun Digest.build(bytes: ByteArray): ByteArray {
  * Calculate digest from current state and specified [string].
  */
 @InternalAPI
-suspend fun Digest.build(string: String, charset: Charset = Charsets.UTF_8): ByteArray {
+public suspend fun Digest.build(string: String, charset: Charset = Charsets.UTF_8): ByteArray {
     this += string.toByteArray(charset)
     return build()
 }

@@ -21,10 +21,10 @@ import kotlin.coroutines.*
  * @param maxFrameSize maximum frame size that could be read
  */
 @WebSocketInternalAPI
-class WebSocketReader(
+public class WebSocketReader(
     private val byteChannel: ByteReadChannel,
     override val coroutineContext: CoroutineContext,
-    var maxFrameSize: Long,
+    public var maxFrameSize: Long,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
     private var state = State.HEADER
@@ -55,7 +55,7 @@ class WebSocketReader(
     /**
      * Channel receiving Websocket's [Frame] objects read from [byteChannel].
      */
-    val incoming: ReceiveChannel<Frame> get() = queue
+    public val incoming: ReceiveChannel<Frame> get() = queue
 
     private suspend fun readLoop(buffer: ByteBuffer) {
         buffer.clear()
@@ -112,7 +112,7 @@ class WebSocketReader(
      * Raised when the frame is bigger than allowed in a current websocket session
      * @param frameSize size of received or posted frame that is too big
      */
-    class FrameTooBigException(val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
+    public class FrameTooBigException(public val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
 
         override val message: String
             get() = "Frame is too big: $frameSize"

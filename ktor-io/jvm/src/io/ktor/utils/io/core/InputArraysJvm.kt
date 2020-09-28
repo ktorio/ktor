@@ -5,14 +5,14 @@ import io.ktor.utils.io.errors.*
 import java.nio.*
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFully(dst: ByteBuffer, length: Int = dst.remaining()) {
+public fun Input.readFully(dst: ByteBuffer, length: Int = dst.remaining()) {
     if (readAvailable(dst, length) < length) {
         prematureEndOfStream(length)
     }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
+public fun Input.readAvailable(dst: ByteBuffer, length: Int = dst.remaining()): Int {
     var bytesCopied = 0
 
     takeWhile { buffer ->

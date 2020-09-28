@@ -27,7 +27,7 @@ import kotlin.coroutines.*
  * A [ChannelInitializer] implementation that does setup the default ktor channel pipeline
  */
 @EngineAPI
-class NettyChannelInitializer(
+public class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEngineEnvironment,
     private val callEventGroup: EventExecutorGroup,
@@ -170,7 +170,7 @@ class NettyChannelInitializer(
     }
 
     @EngineAPI
-    companion object {
+    public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
 
         private fun findAlpnProvider(): SslProvider? {

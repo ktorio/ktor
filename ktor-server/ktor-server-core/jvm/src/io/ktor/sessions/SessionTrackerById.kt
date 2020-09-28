@@ -18,11 +18,11 @@ import kotlin.reflect.*
  * @property storage session storage to store session
  * @property sessionIdProvider is a function that generates session IDs
  */
-class SessionTrackerById<S : Any>(
-    val type: KClass<S>,
-    val serializer: SessionSerializer<S>,
-    val storage: SessionStorage,
-    val sessionIdProvider: () -> String
+public class SessionTrackerById<S : Any>(
+    public val type: KClass<S>,
+    public val serializer: SessionSerializer<S>,
+    public val storage: SessionStorage,
+    public val sessionIdProvider: () -> String
 ) : SessionTracker<S> {
     private val SessionIdKey = AttributeKey<String>("SessionId")
 
@@ -32,11 +32,15 @@ class SessionTrackerById<S : Any>(
         call.attributes.put(SessionIdKey, sessionId)
         try {
             return storage.read(sessionId) { channel ->
-                val text = channel.readUTF8Line() ?: throw IllegalStateException("Failed to read stored session from $channel")
+                val text = channel.readUTF8Line()
+                    ?: throw IllegalStateException("Failed to read stored session from $channel")
                 serializer.deserialize(text)
             }
         } catch (notFound: NoSuchElementException) {
-            call.application.log.debug("Failed to lookup session: $notFound")
+            call.application.log.debug(
+                "Failed to lookup session: ${notFound.message ?: notFound.toString()}. " +
+                    "The session id is wrong or outdated."
+            )
         }
 
         // we remove the wrong session identifier if no related session found

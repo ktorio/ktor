@@ -14,7 +14,7 @@ private class RequestHolders(
     private val requestBody: StableRef<ByteReadPacket>?,
     private val response: StableRef<CurlResponseBuilder>
 ) {
-    fun dispose() {
+    public fun dispose() {
         requestBody?.dispose()
         response.dispose()
     }
@@ -40,7 +40,7 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    fun scheduleRequest(request: CurlRequestData): EasyHandle {
+    public fun scheduleRequest(request: CurlRequestData): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
@@ -83,7 +83,7 @@ internal class CurlMultiApiHandler : Closeable {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
-    fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
+    public fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
         memScoped {
             val transfersRunning = alloc<IntVar>()
             val activeTasks = alloc<IntVar>()

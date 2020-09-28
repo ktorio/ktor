@@ -26,11 +26,11 @@ internal class ConcurrentMapKeys<Key : Any, Value : Any>(
     }
 
     override fun iterator(): MutableIterator<Key> = object : MutableIterator<Key> {
+        private val delegateIterator: MutableIterator<MutableMap.MutableEntry<Key, Value>> = delegate.iterator()
+
         init {
             makeShared()
         }
-
-        private val delegateIterator: MutableIterator<MutableMap.MutableEntry<Key, Value>> = delegate.iterator()
 
         override fun hasNext(): Boolean = delegateIterator.hasNext()
 

@@ -16,4 +16,16 @@ class ByteBufferChannelTest {
 
         assertFailsWith<IOException> { runBlocking { channel.readByte() } }
     }
+
+    @Test
+    fun readRemainingThrowsOnClosed() = runBlocking {
+        val channel = ByteBufferChannel(false)
+        channel.writeFully(byteArrayOf(1, 2, 3, 4, 5))
+        channel.close(IllegalStateException("closed"))
+
+        assertFailsWith<IllegalStateException>("closed") {
+            channel.readRemaining()
+        }
+        Unit
+    }
 }

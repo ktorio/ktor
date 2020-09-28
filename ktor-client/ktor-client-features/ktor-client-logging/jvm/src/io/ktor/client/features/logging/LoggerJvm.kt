@@ -8,7 +8,7 @@ import io.ktor.client.*
 import io.ktor.util.*
 import org.slf4j.*
 
-actual val Logger.Companion.DEFAULT: Logger
+public actual val Logger.Companion.DEFAULT: Logger
     get() = object : Logger {
         private val delegate = LoggerFactory.getLogger(HttpClient::class.java)!!
         override fun log(message: String) {
@@ -21,7 +21,7 @@ actual val Logger.Companion.DEFAULT: Logger
  * length of 4068 characters
  */
 @KtorExperimentalAPI
-val Logger.Companion.ANDROID: Logger
+public val Logger.Companion.ANDROID: Logger
     get() = MessageLengthLimitingLogger()
 
 /**
@@ -31,7 +31,7 @@ val Logger.Companion.ANDROID: Logger
  * message at a new line between [minLength] and [maxLength] if one exists
  */
 @KtorExperimentalAPI
-class MessageLengthLimitingLogger(
+public class MessageLengthLimitingLogger(
     private val maxLength: Int = 4000,
     private val minLength: Int = 3000,
     private val delegate: Logger = Logger.DEFAULT

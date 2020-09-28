@@ -7,7 +7,7 @@ package io.ktor.http
 /**
  * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
  */
-fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000): Parameters {
+public fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 1000): Parameters {
     return if (startIndex > query.lastIndex) {
         Parameters.Empty
     } else {

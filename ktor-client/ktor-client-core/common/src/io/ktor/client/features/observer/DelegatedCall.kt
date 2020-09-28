@@ -22,7 +22,7 @@ import kotlin.coroutines.*
     ReplaceWith("wrapWithContent(content)"),
     level = DeprecationLevel.ERROR
 )
-fun HttpClientCall.wrapWithContent(
+public fun HttpClientCall.wrapWithContent(
     content: ByteReadChannel,
     shouldCloseOrigin: Boolean
 ): HttpClientCall = wrapWithContent(content)
@@ -31,7 +31,7 @@ fun HttpClientCall.wrapWithContent(
  * Wrap existing [HttpClientCall] with new [content].
  */
 @KtorExperimentalAPI
-fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall {
+public fun HttpClientCall.wrapWithContent(content: ByteReadChannel): HttpClientCall {
     val currentClient = client ?: error("Fail to create response observer in different native thread.")
 
     return DelegatedCall(currentClient, content, this)

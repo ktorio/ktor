@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.features
@@ -10,10 +10,9 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
 import kotlin.test.*
 
-class CookiesTest {
+class CookiesMockTest {
 
     @Test
     fun testCompatibility() = testWithEngine(MockEngine) {
@@ -31,10 +30,8 @@ class CookiesTest {
 
             install(HttpCookies) {
                 default {
-                    runBlocking {
-                        addCookie("//localhost", Cookie("first", "1,2,3,4", encoding = CookieEncoding.DQUOTES))
-                        addCookie("http://localhost", Cookie("second", "abc"))
-                    }
+                    addCookie("//localhost", Cookie("first", "1,2,3,4", encoding = CookieEncoding.DQUOTES))
+                    addCookie("http://localhost", Cookie("second", "abc"))
                 }
             }
         }
@@ -56,9 +53,7 @@ class CookiesTest {
 
             install(HttpCookies) {
                 default {
-                    runBlocking {
-                        addCookie("http://localhost", Cookie("myServer", "value:value", encoding = CookieEncoding.RAW))
-                    }
+                    addCookie("http://localhost", Cookie("myServer", "value:value", encoding = CookieEncoding.RAW))
                 }
             }
         }

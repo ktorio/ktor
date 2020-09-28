@@ -23,9 +23,9 @@ import kotlin.coroutines.*
 /**
  * Android client engine
  */
-class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
+public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
 
-    override val dispatcher by lazy {
+    override val dispatcher: CoroutineDispatcher by lazy {
         Dispatchers.clientDispatcher(
             config.threadsCount,
             "ktor-android-dispatcher"
@@ -84,16 +84,16 @@ class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClient
 
         val responseCode = connection.responseCode
         val responseMessage = connection.responseMessage
-        val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) } ?: HttpStatusCode.fromValue(responseCode)
-        val content: ByteReadChannel = connection.content(callContext, data)
-        val headerFields: MutableMap<String?, MutableList<String>> = connection.headerFields
-        val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+        val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) }
+            ?: HttpStatusCode.fromValue(responseCode)
 
-        val responseHeaders = HeadersBuilder().apply {
-            headerFields.forEach { (key: String?, values: MutableList<String>) ->
-                if (key != null) appendAll(key, values)
-            }
-        }.build()
+        val content: ByteReadChannel = connection.content(callContext, data)
+        val headerFields: Map<String, List<String>> = connection.headerFields
+            .mapKeys { it.key?.toLowerCase() ?: "" }
+            .filter { it.key.isNotBlank() }
+
+        val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+        val responseHeaders = HeadersImpl(headerFields)
 
         return HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
     }

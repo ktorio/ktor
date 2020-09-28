@@ -127,7 +127,6 @@ class ChannelTest {
             sourceResult.await()
         }
     }
-
 }
 
 private inline fun assertFailsWithMessage(message: String, block: () -> Unit) {

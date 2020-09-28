@@ -8,9 +8,9 @@ import io.ktor.utils.io.core.internal.*
 import platform.posix.*
 import kotlin.require
 
-actual class Memory @DangerousInternalIoApi constructor(
-    val pointer: CPointer<ByteVar>,
-    actual inline val size: Long
+public actual class Memory @DangerousInternalIoApi constructor(
+    public val pointer: CPointer<ByteVar>,
+    public actual inline val size: Long
 ) {
     init {
         requirePositiveIndex(size, "size")
@@ -20,33 +20,33 @@ actual class Memory @DangerousInternalIoApi constructor(
      * Size of memory range in bytes represented as signed 32bit integer
      * @throws IllegalStateException when size doesn't fit into a signed 32bit integer
      */
-    actual inline val size32: Int get() = size.toIntOrFail("size")
+    public actual inline val size32: Int get() = size.toIntOrFail("size")
 
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun loadAt(index: Int): Byte = pointer[assertIndex(index, 1)]
+    public actual inline fun loadAt(index: Int): Byte = pointer[assertIndex(index, 1)]
 
     /**
      * Returns byte at [index] position.
      */
-    actual inline fun loadAt(index: Long): Byte = pointer[assertIndex(index, 1)]
+    public actual inline fun loadAt(index: Long): Byte = pointer[assertIndex(index, 1)]
 
     /**
      * Write [value] at the specified [index].
      */
-    actual inline fun storeAt(index: Int, value: Byte) {
+    public actual inline fun storeAt(index: Int, value: Byte) {
         pointer[assertIndex(index, 1)] = value
     }
 
     /**
      * Write [value] at the specified [index]
      */
-    actual inline fun storeAt(index: Long, value: Byte) {
+    public actual inline fun storeAt(index: Long, value: Byte) {
         pointer[assertIndex(index, 1)] = value
     }
 
-    actual fun slice(offset: Long, length: Long): Memory {
+    public actual fun slice(offset: Long, length: Long): Memory {
         assertIndex(offset, length)
         if (offset == 0L && length == size) {
             return this
@@ -55,7 +55,7 @@ actual class Memory @DangerousInternalIoApi constructor(
         return Memory(pointer.plus(offset)!!, length)
     }
 
-    actual fun slice(offset: Int, length: Int): Memory {
+    public actual fun slice(offset: Int, length: Int): Memory {
         assertIndex(offset, length)
         if (offset == 0 && length.toLong() == size) {
             return this
@@ -69,7 +69,7 @@ actual class Memory @DangerousInternalIoApi constructor(
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
-    actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+    public actual fun copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
         require(offset >= 0) { "offset shouldn't be negative: $offset" }
         require(length >= 0) { "length shouldn't be negative: $length" }
         require(destinationOffset >= 0) { "destinationOffset shouldn't be negative: $destinationOffset" }
@@ -96,7 +96,7 @@ actual class Memory @DangerousInternalIoApi constructor(
      * to the [destination] at [destinationOffset].
      * Copying bytes from a memory to itself is allowed.
      */
-    actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
+    public actual fun copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
         require(offset >= 0L) { "offset shouldn't be negative: $offset" }
         require(length >= 0L) { "length shouldn't be negative: $length" }
         require(destinationOffset >= 0L) { "destinationOffset shouldn't be negative: $destinationOffset" }
@@ -118,8 +118,8 @@ actual class Memory @DangerousInternalIoApi constructor(
         )
     }
 
-    actual companion object {
-        actual val Empty: Memory = Memory(nativeHeap.allocArray(0), 0L)
+    public actual companion object {
+        public actual val Empty: Memory = Memory(nativeHeap.allocArray(0), 0L)
     }
 }
 
@@ -127,7 +127,7 @@ actual class Memory @DangerousInternalIoApi constructor(
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+public actual fun Memory.copyTo(
     destination: ByteArray,
     offset: Int,
     length: Int,
@@ -152,7 +152,7 @@ actual fun Memory.copyTo(
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-actual fun Memory.copyTo(
+public actual fun Memory.copyTo(
     destination: ByteArray,
     offset: Long,
     length: Int,
@@ -222,7 +222,7 @@ internal inline fun Double.toBigEndian(): Double = when {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
+public actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
     requireRange(offset, count, size, "fill")
@@ -236,7 +236,7 @@ actual fun Memory.fill(offset: Long, count: Long, value: Byte) {
 /**
  * Fill memory range starting at the specified [offset] with [value] repeated [count] times.
  */
-actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
+public actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(count, "count")
     requireRange(offset.toLong(), count.toLong(), size, "fill")
@@ -252,7 +252,7 @@ actual fun Memory.fill(offset: Int, count: Int, value: Byte) {
  * Copy content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
-fun Memory.copyTo(
+public fun Memory.copyTo(
     destination: CPointer<ByteVar>,
     offset: Int,
     length: Int,
@@ -265,7 +265,7 @@ fun Memory.copyTo(
  * Copy content bytes to the memory addressed by the [destination] pointer with
  * the specified [destinationOffset] in bytes.
  */
-fun Memory.copyTo(
+public fun Memory.copyTo(
     destination: CPointer<ByteVar>,
     offset: Long,
     length: Long,
@@ -283,7 +283,7 @@ fun Memory.copyTo(
  * Copy [length] bytes to the [destination] at the specified [destinationOffset]
  * from the memory addressed by this pointer with [offset] in bytes.
  */
-fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
+public fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Int, length: Int, destinationOffset: Int) {
     copyTo(destination, offset.toLong(), length.toLong(), destinationOffset.toLong())
 }
 
@@ -291,7 +291,7 @@ fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Int, length: Int, dest
  * Copy [length] bytes to the [destination] at the specified [destinationOffset]
  * from the memory addressed by this pointer with [offset] in bytes.
  */
-fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
+public fun CPointer<ByteVar>.copyTo(destination: Memory, offset: Long, length: Long, destinationOffset: Long) {
     requirePositiveIndex(offset, "offset")
     requirePositiveIndex(length, "length")
     requirePositiveIndex(destinationOffset, "destinationOffset")

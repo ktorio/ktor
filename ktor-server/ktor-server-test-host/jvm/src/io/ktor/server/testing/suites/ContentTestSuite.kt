@@ -22,12 +22,12 @@ import kotlinx.coroutines.*
 import java.io.*
 import kotlin.test.*
 
-abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    fun testTextContent() {
+    public fun testTextContent() {
         createAndStartServer {
             handle {
                 call.respondText("test")
@@ -55,7 +55,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStream() {
+    public fun testStream() {
         createAndStartServer {
             handle {
                 call.respondTextWriter {
@@ -74,7 +74,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testBinary() {
+    public fun testBinary() {
         createAndStartServer {
             handle {
                 call.respondOutputStream {
@@ -93,7 +93,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testBinaryUsingChannel() {
+    public fun testBinaryUsingChannel() {
         createAndStartServer {
             handle {
                 call.respondBytesWriter {
@@ -112,7 +112,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testLocalFileContent() {
+    public fun testLocalFileContent() {
         val file = listOf(File("jvm"), File("ktor-server/ktor-server-core/jvm"))
             .filter { it.exists() }
             .flatMap { it.walkBottomUp().filter { it.extension == "kt" }.asIterable() }
@@ -133,7 +133,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testLocalFileContentRange() {
+    public fun testLocalFileContentRange() {
         val file = loadTestFile()
         testLog.trace("test file is $file")
 
@@ -161,7 +161,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testJarFileContent() {
+    public fun testJarFileContent() {
         createAndStartServer {
             handle {
                 call.respond(call.resolveResource("/ArrayList.class", "java.util")!!)
@@ -183,7 +183,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testURIContent() {
+    public fun testURIContent() {
         createAndStartServer {
             handle {
                 call.respond(
@@ -209,7 +209,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testURIContentLocalFile() {
+    public fun testURIContentLocalFile() {
         val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/jvm/test"
         val file = listOf(File("build/classes/kotlin/jvm/test"), File(buildDir)).first { it.exists() }.walkBottomUp()
             .filter { it.extension == "class" }.first()
@@ -236,7 +236,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentFormData() {
+    public fun testRequestContentFormData() {
         createAndStartServer {
             handle {
                 val parameters = call.receiveOrNull<Parameters>()
@@ -262,7 +262,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    open fun testChunked() {
+    public open fun testChunked() {
         val data = ByteArray(16 * 1024, { it.toByte() })
         val size = data.size.toLong()
 
@@ -346,7 +346,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStreamNoFlush() {
+    public fun testStreamNoFlush() {
         createAndStartServer {
             handle {
                 call.respondTextWriter {
@@ -363,7 +363,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testSendTextWithContentType() {
+    public fun testSendTextWithContentType() {
         createAndStartServer {
             handle {
                 call.respondText("Hello")
@@ -381,7 +381,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStaticServe() {
+    public fun testStaticServe() {
         createAndStartServer {
             static("/files/") {
                 resources("io/ktor/server/testing/suites")
@@ -412,7 +412,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testStaticServeFromDir() {
+    public fun testStaticServeFromDir() {
         val targetClasses = listOf(File(classesDir), File(coreClassesDir))
             .filter { it.exists() }
 
@@ -452,7 +452,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestBodyAsyncEcho() {
+    public fun testRequestBodyAsyncEcho() {
         createAndStartServer {
             route("/echo") {
                 handle {
@@ -478,7 +478,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testEchoBlocking() {
+    public fun testEchoBlocking() {
         createAndStartServer {
             post("/") {
                 val text = call.receiveStream().bufferedReader().readText()
@@ -498,7 +498,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentString() {
+    public fun testRequestContentString() {
         createAndStartServer {
             post("/") {
                 call.respond(call.receiveText())
@@ -516,7 +516,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUpload() {
+    public fun testMultipartFileUpload() {
         createAndStartServer {
             post("/") {
                 val response = StringBuilder()
@@ -568,7 +568,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
     @Test
     @NoHttp2
-    fun testMultipartFileUploadLarge() {
+    public fun testMultipartFileUploadLarge() {
         val numberOfLines = 10000
 
         createAndStartServer {
@@ -625,7 +625,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testReceiveInputStream() {
+    public fun testReceiveInputStream() {
         createAndStartServer {
             post("/") {
                 call.respond(call.receive<InputStream>().reader().readText())
@@ -642,7 +642,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentInputStream() {
+    public fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
                 call.respond(call.receiveStream().reader().readText())
@@ -658,8 +658,8 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         }
     }
 
-    companion object {
-        const val classesDir = "build/classes/kotlin/jvm"
-        const val coreClassesDir = "ktor-server/ktor-server-core/$classesDir"
+    public companion object {
+        public const val classesDir: String = "build/classes/kotlin/jvm"
+        public const val coreClassesDir: String = "ktor-server/ktor-server-core/$classesDir"
     }
 }

@@ -12,7 +12,8 @@ import kotlinx.serialization.*
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  * with the specified [contentType] and binary [format] (such as CBOR, ProtoBuf)
  */
-fun ContentNegotiation.Configuration.serialization(
+@OptIn(ExperimentalSerializationApi::class)
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType,
     format: BinaryFormat
 ) {
@@ -26,7 +27,8 @@ fun ContentNegotiation.Configuration.serialization(
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  * with the specified [contentType] and string [format] (such as Json)
  */
-fun ContentNegotiation.Configuration.serialization(
+@OptIn(ExperimentalSerializationApi::class)
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType,
     format: StringFormat
 ) {

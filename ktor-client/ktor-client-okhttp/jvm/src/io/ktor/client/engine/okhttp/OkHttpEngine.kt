@@ -25,7 +25,7 @@ import kotlin.coroutines.*
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
+public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineBase("ktor-okhttp") {
 
     public override val dispatcher: CoroutineDispatcher by lazy {
         Dispatchers.clientDispatcher(

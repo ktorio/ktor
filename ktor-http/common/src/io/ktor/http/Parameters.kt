@@ -9,25 +9,25 @@ import io.ktor.util.*
 /**
  * Represents HTTP parameters as a map from case-insensitive names to collection of [String] values
  */
-interface Parameters : StringValues {
-    companion object {
+public interface Parameters : StringValues {
+    public companion object {
         /**
          * Empty [Parameters] instance
          */
         @Suppress("DEPRECATION_ERROR")
-        val Empty: Parameters = EmptyParameters
+        public val Empty: Parameters = EmptyParameters
 
         /**
          * Builds a [Parameters] instance with the given [builder] function
          * @param builder specifies a function to build a map
          */
-        inline fun build(builder: ParametersBuilder.() -> Unit): Parameters = ParametersBuilder().apply(builder).build()
+        public inline fun build(builder: ParametersBuilder.() -> Unit): Parameters = ParametersBuilder().apply(builder).build()
     }
 
 }
 
 @Suppress("KDocMissingDocumentation")
-class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
+public class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
         built = true
@@ -41,7 +41,7 @@ class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
     replaceWith = ReplaceWith("Parameters.Empty"),
     level = DeprecationLevel.ERROR
 )
-object EmptyParameters : Parameters {
+public object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true
     override fun getAll(name: String): List<String>? = null
     override fun names(): Set<String> = emptySet()
@@ -55,39 +55,39 @@ object EmptyParameters : Parameters {
 /**
  * Returns an empty parameters instance
  */
-fun parametersOf(): Parameters = Parameters.Empty
+public fun parametersOf(): Parameters = Parameters.Empty
 
 /**
  * Creates a parameters instance containing only single pair
  */
-fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl(name, listOf(value))
+public fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl(name, listOf(value))
 
 /**
  * Creates a parameters instance containing only single pair of [name] with multiple [values]
  */
-fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
+public fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 
 /**
  * Creates a parameters instance from the specified [pairs]
  */
-fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
+public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
+public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
+public class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 /**
  * Plus operator function that creates a new parameters instance from the original one concatenating with [other]
  */
-operator fun Parameters.plus(other: Parameters): Parameters = when {
+public operator fun Parameters.plus(other: Parameters): Parameters = when {
     caseInsensitiveName == other.caseInsensitiveName -> when {
         this.isEmpty() -> other
         other.isEmpty() -> this

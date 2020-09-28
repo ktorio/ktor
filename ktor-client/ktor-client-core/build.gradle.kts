@@ -27,6 +27,7 @@ kotlin.sourceSets {
 
     commonTest {
         dependencies {
+            api(project(":ktor-test-dispatcher"))
 //            api(project(":ktor-client:ktor-client-tests"))
 //            api(project(":ktor-client:ktor-client-features:ktor-client-logging"))
         }

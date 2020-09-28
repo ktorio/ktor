@@ -10,5 +10,5 @@ import io.ktor.util.*
 /**
  * Builds an instance of [Headers] using the [block] function.
  */
-fun buildHeaders(block: HeadersBuilder.() -> Unit = {}): Headers =
+public fun buildHeaders(block: HeadersBuilder.() -> Unit = {}): Headers =
     HeadersBuilder().apply(block).build()

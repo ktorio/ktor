@@ -10,7 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 
 
-fun Application.jsonTest() {
+public fun Application.jsonTest() {
     routing {
         route("json") {
             get("user-generic") {

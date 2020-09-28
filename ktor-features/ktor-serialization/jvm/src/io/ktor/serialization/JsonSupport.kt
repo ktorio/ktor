@@ -25,8 +25,8 @@ import kotlinx.serialization.modules.*
     message = "JsonConfiguration is deprecated, consider using DefaultJson instead.",
     replaceWith = ReplaceWith("DefaultJson")
 )
-@Suppress("DEPRECATION_ERROR")
-val DefaultJsonConfiguration: Json = Json {
+@Suppress("DEPRECATION_ERROR", "unused")
+public val DefaultJsonConfiguration: Json = Json {
     encodeDefaults = true
     isLenient = true
     allowSpecialFloatingPointValues = true
@@ -45,7 +45,7 @@ val DefaultJsonConfiguration: Json = Json {
  *
  * See [JsonConfiguration] for more details.
  */
-val DefaultJson: Json = Json {
+public val DefaultJson: Json = Json {
     encodeDefaults = true
     isLenient = true
     allowSpecialFloatingPointValues = true
@@ -67,8 +67,9 @@ val DefaultJson: Json = Json {
     message = "JsonConfiguration is deprecated, consider using `Json { serializersModule = module }` instead.",
     replaceWith = ReplaceWith("json(Json { serializersModule = module }, contentType)")
 )
-@Suppress("DEPRECATION_ERROR")
-fun ContentNegotiation.Configuration.json(
+@OptIn(ExperimentalSerializationApi::class)
+@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER")
+public fun ContentNegotiation.Configuration.json(
     json: Json = Json.Default,
     module: SerializersModule = EmptySerializersModule,
     contentType: ContentType = ContentType.Application.Json
@@ -83,7 +84,8 @@ fun ContentNegotiation.Configuration.json(
  * @param json format instance (optional)
  * @param contentType to register with, application/json by default
  */
-fun ContentNegotiation.Configuration.json(
+@OptIn(ExperimentalSerializationApi::class)
+public fun ContentNegotiation.Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
 ) {
@@ -95,7 +97,7 @@ fun ContentNegotiation.Configuration.json(
  */
 @Suppress("unused")
 @Deprecated("Use json instead", ReplaceWith("json()"))
-fun ContentNegotiation.Configuration.serialization() {
+public fun ContentNegotiation.Configuration.serialization() {
     json()
 }
 
@@ -103,7 +105,7 @@ fun ContentNegotiation.Configuration.serialization() {
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  */
 @Deprecated("Use json function instead.", ReplaceWith("json(contentType = contentType)"))
-fun ContentNegotiation.Configuration.serialization(
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType
 ) {
     json(contentType = contentType)
@@ -114,7 +116,7 @@ fun ContentNegotiation.Configuration.serialization(
  */
 @Suppress("CONFLICTING_OVERLOADS") // conflict with hidden declaration
 @Deprecated("Use json function instead.", ReplaceWith("json(json, contentType)"))
-fun ContentNegotiation.Configuration.serialization(
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType,
     json: Json
 ) {

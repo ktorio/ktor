@@ -25,7 +25,7 @@ package io.ktor.util
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR
 )
-annotation class InternalAPI
+public annotation class InternalAPI
 
 /**
  * API marked with this annotation is experimental and is not guaranteed to be stable.
@@ -34,7 +34,7 @@ annotation class InternalAPI
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,
     message = "This API is experimental. " +
-        "It could be removed or changed in future releases or it's behaviour may be different."
+        "It could be removed or changed in future releases, or its behaviour may be different."
 )
 @Experimental(level = Experimental.Level.WARNING)
 @Target(
@@ -45,4 +45,4 @@ annotation class InternalAPI
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR
 )
-annotation class KtorExperimentalAPI
+public annotation class KtorExperimentalAPI

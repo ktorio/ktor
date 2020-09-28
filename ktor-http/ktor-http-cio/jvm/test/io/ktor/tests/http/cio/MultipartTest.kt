@@ -328,6 +328,65 @@ class MultipartTest {
         }
     }
 
+    @Test
+    fun testEmptyPayload() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=------------------------abcdef" +
+            "\r\n\r\n"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events")
+        }
+    }
+
+    @Test
+    fun testEpilogueOnly() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=abcdef" +
+            "\r\n\r\n" +
+            "--abcdef--"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events but got $it")
+        }
+    }
+
+    @Test
+    fun testEpilogueOnlyAndDoubleLine() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=abcdef" +
+            "\r\n\r\n" +
+            "--abcdef--\r\n\r\n"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events but got $it")
+        }
+    }
+
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
         val boundary = parseBoundary(headerValue)
         val actualBoundary = String(boundary.array(),

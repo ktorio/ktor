@@ -17,6 +17,6 @@ public actual val NetworkAddress.port: Int
 
 public actual typealias UnresolvedAddressException = java.nio.channels.UnresolvedAddressException
 
-actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress {
+public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress {
     return InetSocketAddress(hostname, port)
 }

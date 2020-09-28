@@ -16,4 +16,4 @@ package io.ktor.http.cio.websocket
         "It is not guaranteed to work the same in future releases and may be changed or removed."
 )
 @Experimental(level = Experimental.Level.ERROR)
-annotation class WebSocketInternalAPI
+public annotation class WebSocketInternalAPI

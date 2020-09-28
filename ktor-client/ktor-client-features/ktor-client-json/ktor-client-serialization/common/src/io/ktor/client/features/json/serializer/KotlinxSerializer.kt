@@ -17,7 +17,7 @@ import kotlinx.serialization.modules.*
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
  */
-class KotlinxSerializer(
+public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {
 
@@ -29,7 +29,7 @@ class KotlinxSerializer(
     internal fun writeContent(data: Any): String =
         json.encodeToString(buildSerializer(data, json.serializersModule), data)
 
-    @OptIn(InternalSerializationApi::class)
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override fun read(type: TypeInfo, body: Input): Any {
         val text = body.readText()
         val deserializationStrategy = json.serializersModule.getContextual(type.type)
@@ -37,7 +37,7 @@ class KotlinxSerializer(
         return json.decodeFromString(mapper, text)!!
     }
 
-    companion object {
+    public companion object {
         /**
          * Default [Json] configuration for [KotlinxSerializer].
          */
@@ -46,14 +46,14 @@ class KotlinxSerializer(
             message = "DefaultJsonConfiguration is deprecated. Consider using DefaultJson instead."
         )
         @Suppress("DEPRECATION_ERROR")
-        val DefaultJsonConfiguration: Json = Json {
+        public val DefaultJsonConfiguration: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
             allowSpecialFloatingPointValues = true
             useArrayPolymorphism = false
         }
 
-        val DefaultJson: Json = Json {
+        public val DefaultJson: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
             allowSpecialFloatingPointValues = true
@@ -63,7 +63,7 @@ class KotlinxSerializer(
 }
 
 @Suppress("UNCHECKED_CAST")
-@OptIn(InternalSerializationApi::class)
+@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
     is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
@@ -77,6 +77,7 @@ private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<
     else -> module.getContextual(value::class) ?: value::class.serializer()
 } as KSerializer<Any>
 
+@OptIn(ExperimentalSerializationApi::class)
 @Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =

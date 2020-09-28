@@ -16,7 +16,7 @@ import kotlin.reflect.*
  * @property queryParameters is a list of properties stored in query parameters
  */
 @KtorExperimentalLocationsAPI
-data class LocationInfo internal constructor(
+public data class LocationInfo internal constructor(
     val klass: KClass<*>,
     val parent: LocationInfo?,
     val parentParameter: LocationPropertyInfo?,
@@ -32,14 +32,14 @@ data class LocationInfo internal constructor(
  * @property isOptional when a property is optional
  */
 @KtorExperimentalLocationsAPI
-abstract class LocationPropertyInfo internal constructor(
-    val name: String,
-    val isOptional: Boolean
+public abstract class LocationPropertyInfo internal constructor(
+    public val name: String,
+    public val isOptional: Boolean
 ) {
-    final override fun hashCode(): Int = name.hashCode()
-    final override fun equals(other: Any?): Boolean = other is LocationPropertyInfo &&
+    public final override fun hashCode(): Int = name.hashCode()
+    public final override fun equals(other: Any?): Boolean = other is LocationPropertyInfo &&
         name == other.name &&
         isOptional == other.isOptional
 
-    final override fun toString(): String = "Property(name = $name, optional = $isOptional)"
+    public final override fun toString(): String = "Property(name = $name, optional = $isOptional)"
 }

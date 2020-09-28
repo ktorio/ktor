@@ -22,19 +22,15 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     private val lock: Lock = Lock(),
     initialCapacity: Int = INITIAL_CAPACITY
 ) : MutableMap<Key, Value> {
-
-    constructor(lock: Lock, map: Map<Key, Value>) : this(lock, map.size) {
-        putAll(map)
-    }
-
-    private var table by shared(
-        SharedList<SharedForwardList<MapItem<Key, Value>>>(initialCapacity)
-    )
+    private var table by shared(SharedList<SharedForwardList<MapNode<Key, Value>>>(initialCapacity))
+    private var insertionOrder by shared(SharedForwardList<MapNode<Key, Value>>())
 
     private val _size = atomic(0)
+    private val loadFactor: Float get() = _size.value.toFloat() / table.size
 
-    private var appendSize by shared(0)
-    private val loadFactor get() = appendSize.toFloat() / table.size
+    public constructor(lock: Lock, map: Map<Key, Value>) : this(lock, map.size) {
+        putAll(map)
+    }
 
     init {
         makeShared()
@@ -70,6 +66,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
 
     override fun clear(): Unit = locked {
         table = SharedList(INITIAL_CAPACITY)
+        insertionOrder = SharedForwardList()
     }
 
     override fun put(key: Key, value: Value): Value? = locked {
@@ -86,11 +83,13 @@ public class ConcurrentMap<Key : Any, Value : Any>(
             return@locked oldValue
         }
 
-        bucket.appendHead(MapItem(key, value))
+        val mapNode = MapNode(key, value)
+        val node = insertionOrder.appendLast(mapNode)
 
-        appendSize += 1
+        mapNode.backReference = node
+        bucket.appendFirst(mapNode)
+
         _size.incrementAndGet()
-
         return@locked null
     }
 
@@ -110,6 +109,8 @@ public class ConcurrentMap<Key : Any, Value : Any>(
                 if (item.key == key) {
                     val result = item.value
                     _size.decrementAndGet()
+
+                    item.remove()
                     remove()
 
                     return@locked result
@@ -129,31 +130,64 @@ public class ConcurrentMap<Key : Any, Value : Any>(
     override val values: MutableCollection<Value>
         get() = ConcurrentMapValues(this)
 
+    override fun equals(other: Any?): Boolean = locked {
+        if (other == null || other !is Map<*, *> || other.size != size) {
+            return@locked false
+        }
+
+        for ((key, value) in other.entries) {
+            if (get(key) != value) {
+                return@locked false
+            }
+        }
+
+        return@locked true
+    }
+
+    override fun hashCode(): Int = locked {
+        var current = 7
+        for ((key, value) in entries) {
+            current = Hash.combine(key.hashCode(), value.hashCode(), current)
+        }
+
+        return@locked current
+    }
+
+    override fun toString(): String = locked {
+        return@locked buildString {
+            append("{")
+            this@ConcurrentMap.entries.forEachIndexed { index, (key, value) ->
+                append("$key=$value")
+
+                if (index != size - 1) {
+                    append(", ")
+                }
+            }
+
+            append("}")
+        }
+    }
+
     internal fun iterator(): MutableIterator<MutableMap.MutableEntry<Key, Value>> =
         object : MutableIterator<MutableMap.MutableEntry<Key, Value>> {
-            private val items = mutableListOf<MapItem<Key, Value>>()
-            private var index by shared(0)
+            private var current: ForwardListNode<MapNode<Key, Value>>? by shared(insertionOrder.first())
+            private val previous: ForwardListNode<MapNode<Key, Value>>? get() = current?.previous
 
             init {
-                locked {
-                    table.forEach {
-                        it ?: return@forEach
-                        it.forEach {
-                            items.add(it)
-                        }
-                    }
-                }
-
                 makeShared()
             }
 
-            override fun hasNext(): Boolean = index < keys.size
+            override fun hasNext(): Boolean = current != null
 
-            override fun next(): MutableMap.MutableEntry<Key, Value> = items[index++]
+            override fun next(): MutableMap.MutableEntry<Key, Value> {
+                val result = current!!.item!!
+                current = current?.next
+                return result
+            }
 
             override fun remove() {
-                check(index > 0)
-                remove(items[index - 1].key)
+                val item = previous!!.item!!
+                remove(item.key)
             }
         }
 
@@ -164,7 +198,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         "This is accidentally does insert instead of get. Use computeIfAbsent or getOrElse instead.",
         level = DeprecationLevel.ERROR
     )
-    fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
+    public fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
         return@withLock computeIfAbsent(key, block)
     }
 
@@ -182,17 +216,17 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         return@locked newValue
     }
 
-    private fun findBucket(key: Key): SharedForwardList<MapItem<Key, Value>>? {
+    private fun findBucket(key: Key): SharedForwardList<MapNode<Key, Value>>? {
         val bucketId = key.hashCode() and (table.size - 1)
         return table[bucketId]
     }
 
-    private fun findOrCreateBucket(key: Key): SharedForwardList<MapItem<Key, Value>> {
+    private fun findOrCreateBucket(key: Key): SharedForwardList<MapNode<Key, Value>> {
         val bucketId = key.hashCode() and (table.size - 1)
         val result = table[bucketId]
 
         if (result == null) {
-            val bucket = SharedForwardList<MapItem<Key, Value>>()
+            val bucket = SharedForwardList<MapNode<Key, Value>>()
             table[bucketId] = bucket
             return bucket
         }
@@ -205,25 +239,7 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         newTable.putAll(this)
 
         table = newTable.table
-        appendSize = size
     }
 
     private fun <T> locked(block: () -> T): T = lock.withLock { block() }
-}
-
-private class MapItem<Key, Value>(override val key: Key, value: Value) : MutableMap.MutableEntry<Key, Value> {
-    override var value: Value by shared(value)
-    val hash: Int = key.hashCode()
-
-    init {
-        makeShared()
-    }
-
-    override fun setValue(newValue: Value): Value {
-        val result = value
-        value = newValue
-        return result
-    }
-
-    override fun toString(): String = "MapItem[$key, $value]"
 }

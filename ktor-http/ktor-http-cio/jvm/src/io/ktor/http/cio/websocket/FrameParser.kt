@@ -9,13 +9,13 @@ import java.util.concurrent.atomic.*
 
 @Suppress("KDocMissingDocumentation", "UsePropertyAccessSyntax")
 @WebSocketInternalAPI
-class FrameParser {
+public class FrameParser {
     private val state = AtomicReference(State.HEADER0)
 
-    var fin: Boolean = false
+    public var fin: Boolean = false
         private set
 
-    var mask: Boolean = false
+    public var mask: Boolean = false
         private set
 
     private var opcode = 0
@@ -23,26 +23,26 @@ class FrameParser {
 
     private var lengthLength = 0
 
-    var length: Long = 0L
+    public var length: Long = 0L
         private set
 
-    var maskKey: Int? = null
+    public var maskKey: Int? = null
         private set
 
-    val frameType: FrameType
+    public val frameType: FrameType
         get() = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode ${Integer.toHexString(opcode)}")
 
-    enum class State {
+    public enum class State {
         HEADER0,
         LENGTH,
         MASK_KEY,
         BODY
     }
 
-    val bodyReady: Boolean
+    public val bodyReady: Boolean
         get() = state.get() == State.BODY
 
-    fun bodyComplete() {
+    public fun bodyComplete() {
         if (!state.compareAndSet(State.BODY, State.HEADER0)) {
             throw IllegalStateException("It should be state BODY but it is ${state.get()}")
         }
@@ -54,7 +54,7 @@ class FrameParser {
         maskKey = null
     }
 
-    tailrec fun frame(bb: ByteBuffer) {
+    public tailrec fun frame(bb: ByteBuffer) {
         require(bb.order() == ByteOrder.BIG_ENDIAN) { "Buffer order should be BIG_ENDIAN but it is ${bb.order()}" }
         if (handleStep(bb)) frame(bb)
     }

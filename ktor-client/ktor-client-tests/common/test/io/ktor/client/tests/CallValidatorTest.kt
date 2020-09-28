@@ -10,14 +10,17 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.test.*
 
 class CallValidatorTest {
+    private var firstHandler by shared(0)
+    private var secondHandler by shared(0)
+    private var handleTriggered by shared(false)
+    private var validator by shared(0)
+
     @Test
     fun testAllExceptionHandlers() = testWithEngine(MockEngine) {
-        var firstHandler = 0
-        var secondHandler = 0
-
         config {
             engine {
                 addHandler { respondOk() }
@@ -53,7 +56,6 @@ class CallValidatorTest {
 
     @Test
     fun testExceptionFromEngine() = testWithEngine(MockEngine) {
-        var handleTriggered = 0
         config {
             engine {
                 addHandler { throw CallValidatorTestException() }
@@ -61,7 +63,7 @@ class CallValidatorTest {
             HttpResponseValidator {
                 handleResponseException {
                     assertTrue(it is CallValidatorTestException)
-                    handleTriggered++
+                    firstHandler++
                 }
             }
         }
@@ -71,13 +73,12 @@ class CallValidatorTest {
             } catch (_: CallValidatorTestException) {
             }
 
-            assertEquals(1, handleTriggered)
+            assertEquals(1, firstHandler)
         }
     }
 
     @Test
     fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
-        var handleTriggered = false
         config {
             engine {
                 addHandler { respondOk() }
@@ -102,9 +103,6 @@ class CallValidatorTest {
 
     @Test
     fun testMergeMultipleConfigs() = testWithEngine(MockEngine) {
-        var firstHandler = 0
-        var secondHandler = 0
-
         config {
             engine {
                 addHandler { respondOk() }
@@ -127,22 +125,20 @@ class CallValidatorTest {
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
-            var thirdHandler = false
             try {
                 client.get<String>()
             } catch (_: CallValidatorTestException) {
-                thirdHandler = true
+                handleTriggered = true
             }
 
             assertEquals(1, firstHandler)
             assertEquals(1, secondHandler)
-            assertTrue(thirdHandler)
+            assertTrue(handleTriggered)
         }
     }
 
     @Test
     fun testResponseValidation() = testWithEngine(MockEngine) {
-        var validator = 0
         config {
             engine {
                 addHandler {

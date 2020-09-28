@@ -106,6 +106,7 @@ kotlin.sourceSets {
             dependencies {
                 // api(project(":ktor-client:ktor-client-ios"))
                 api(project(":ktor-client:ktor-client-curl"))
+                api(project(":ktor-client:ktor-client-cio"))
             }
         }
     }

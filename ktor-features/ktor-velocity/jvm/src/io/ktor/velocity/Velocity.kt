@@ -22,17 +22,17 @@ import org.apache.velocity.app.*
  * @param etag header value (optional)
  * @param contentType (optional, `text/html` with UTF-8 character encoding by default)
  */
-class VelocityContent(
-    val template: String,
-    val model: Map<String, Any>,
-    val etag: String? = null,
-    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+public class VelocityContent(
+    public val template: String,
+    public val model: Map<String, Any>,
+    public val etag: String? = null,
+    public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
 /**
  * Velocity ktor feature. Provides ability to respond with [VelocityContent] and [respondTemplate].
  */
-class Velocity(private val engine: VelocityEngine) {
+public class Velocity(private val engine: VelocityEngine) {
     init {
         engine.init()
     }
@@ -40,8 +40,8 @@ class Velocity(private val engine: VelocityEngine) {
     /**
      * A companion object for installing feature
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, VelocityEngine, Velocity> {
-        override val key = AttributeKey<Velocity>("freemarker")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, VelocityEngine, Velocity> {
+        override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("freemarker")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: VelocityEngine.() -> Unit): Velocity {
             val config = VelocityEngine().apply(configure)

@@ -11,46 +11,46 @@ import io.ktor.utils.io.core.*
 /**
  * Builds an HTTP request or response
  */
-expect class RequestResponseBuilder() {
+public expect class RequestResponseBuilder() {
     /**
      * Append response status line
      */
-    fun responseLine(version: CharSequence, status: Int, statusText: CharSequence)
+    public fun responseLine(version: CharSequence, status: Int, statusText: CharSequence)
 
     /**
      * Append request line
      */
-    fun requestLine(method: HttpMethod, uri: CharSequence, version: CharSequence)
+    public fun requestLine(method: HttpMethod, uri: CharSequence, version: CharSequence)
 
     /**
      * Append a line
      */
-    fun line(line: CharSequence)
+    public fun line(line: CharSequence)
 
     /**
      * Append raw bytes
      */
-    fun bytes(content: ByteArray, offset: Int = 0, length: Int = content.size)
+    public fun bytes(content: ByteArray, offset: Int = 0, length: Int = content.size)
 
     /**
      * Append header line
      */
-    fun headerLine(name: CharSequence, value: CharSequence)
+    public fun headerLine(name: CharSequence, value: CharSequence)
 
     /**
      * Append an empty line (CR + LF in fact)
      */
-    fun emptyLine()
+    public fun emptyLine()
 
     /**
      * Build a packet of request/response
      */
-    fun build(): ByteReadPacket
+    public fun build(): ByteReadPacket
 
     /**
      * Release all resources hold by the builder
      */
-    fun release()
+    public fun release()
 }
 
 private const val SP: Byte = 0x20

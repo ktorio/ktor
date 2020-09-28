@@ -14,7 +14,7 @@ import kotlin.coroutines.*
  * [coroutineContext] as well as proper call context management. Should be considered as the best parent class for
  * custom [HttpClientEngine] implementations.
  */
-abstract class HttpClientEngineBase(private val engineName: String) : HttpClientEngine {
+public abstract class HttpClientEngineBase(private val engineName: String) : HttpClientEngine {
 
     override val coroutineContext: CoroutineContext by lazy {
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
@@ -33,7 +33,7 @@ abstract class HttpClientEngineBase(private val engineName: String) : HttpClient
 /**
  * Exception that indicates that client engine is already closed.
  */
-class ClientEngineClosedException(override val cause: Throwable? = null) :
+public class ClientEngineClosedException(override val cause: Throwable? = null) :
     IllegalStateException("Client already closed")
 
 /**

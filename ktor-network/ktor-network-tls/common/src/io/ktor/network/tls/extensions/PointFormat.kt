@@ -8,7 +8,7 @@ package io.ktor.network.tls.extensions
  * Elliptic curve point format
  * @property code numeric point format code
  */
-enum class PointFormat(val code: Byte) {
+public enum class PointFormat(public val code: Byte) {
     /**
      * Curve point is not compressed
      */
@@ -28,7 +28,7 @@ enum class PointFormat(val code: Byte) {
 /**
  * List of supported curve point formats
  */
-val SupportedPointFormats: List<PointFormat> = listOf(
+public val SupportedPointFormats: List<PointFormat> = listOf(
     PointFormat.UNCOMPRESSED,
     PointFormat.ANSIX962_COMPRESSED_PRIME,
     PointFormat.ANSIX962_COMPRESSED_CHAR2

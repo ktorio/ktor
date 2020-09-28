@@ -16,7 +16,7 @@ import io.ktor.util.*
  * [value] is 3 letter shortcut
  */
 @Suppress("KDocMissingDocumentation")
-enum class WeekDay(val value: String) {
+public enum class WeekDay(public val value: String) {
     MONDAY("Mon"),
     TUESDAY("Tue"),
     WEDNESDAY("Wed"),
@@ -25,16 +25,16 @@ enum class WeekDay(val value: String) {
     SATURDAY("Sat"),
     SUNDAY("Sun");
 
-    companion object {
+    public companion object {
         /**
          * Lookup an instance by [ordinal]
          */
-        fun from(ordinal: Int): WeekDay = WeekDay.values()[ordinal]
+        public fun from(ordinal: Int): WeekDay = values()[ordinal]
 
         /**
          * Lookup an instance by short week day name [WeekDay.value]
          */
-        fun from(value: String): WeekDay = WeekDay.values().find { it.value == value }
+        public fun from(value: String): WeekDay = values().find { it.value == value }
             ?: error("Invalid day of week: $value")
     }
 }
@@ -44,7 +44,7 @@ enum class WeekDay(val value: String) {
  * [value] is 3 letter shortcut
  */
 @Suppress("KDocMissingDocumentation")
-enum class Month(val value: String) {
+public enum class Month(public val value: String) {
     JANUARY("Jan"),
     FEBRUARY("Feb"),
     MARCH("Mar"),
@@ -58,15 +58,15 @@ enum class Month(val value: String) {
     NOVEMBER("Nov"),
     DECEMBER("Dec");
 
-    companion object {
+    public companion object {
         /**
          * Lookup an instance by [ordinal]
          */
-        fun from(ordinal: Int): Month = values()[ordinal]
+        public fun from(ordinal: Int): Month = values()[ordinal]
         /**
          * Lookup an instance by short month name [Month.value]
          */
-        fun from(value: String): Month = values().find { it.value == value }
+        public fun from(value: String): Month = values().find { it.value == value }
             ?: error("Invalid month: $value")
     }
 }
@@ -85,7 +85,7 @@ enum class Month(val value: String) {
  *
  * @property timestamp is a number of epoch milliseconds
  */
-data class GMTDate internal constructor(
+public data class GMTDate internal constructor(
     val seconds: Int,
     val minutes: Int,
     val hours: Int,
@@ -102,11 +102,11 @@ data class GMTDate internal constructor(
 
     override fun compareTo(other: GMTDate): Int = timestamp.compareTo(other.timestamp)
 
-    companion object {
+    public companion object {
         /**
          * An instance of [GMTDate] corresponding to the epoch beginning
          */
-        val START: GMTDate = GMTDate(0)
+        public val START: GMTDate = GMTDate(0)
     }
 }
 
@@ -115,25 +115,25 @@ data class GMTDate internal constructor(
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @Suppress("FunctionName")
-expect fun GMTDate(timestamp: Long? = null): GMTDate
+public expect fun GMTDate(timestamp: Long? = null): GMTDate
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
  */
 @Suppress("FunctionName")
-expect fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate
+public expect fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate
 
 /**
  * Adds the specified number of [milliseconds]
  */
-operator fun GMTDate.plus(milliseconds: Long): GMTDate = GMTDate(timestamp + milliseconds)
+public operator fun GMTDate.plus(milliseconds: Long): GMTDate = GMTDate(timestamp + milliseconds)
 
 /**
  * Subtracts the specified number of [milliseconds]
  */
-operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timestamp - milliseconds)
+public operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timestamp - milliseconds)
 
 /**
  * Truncate to seconds by discarding sub-second part
  */
-fun GMTDate.truncateToSeconds(): GMTDate = GMTDate(seconds, minutes, hours, dayOfMonth, month, year)
+public fun GMTDate.truncateToSeconds(): GMTDate = GMTDate(seconds, minutes, hours, dayOfMonth, month, year)

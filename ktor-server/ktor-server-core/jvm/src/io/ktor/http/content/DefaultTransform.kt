@@ -13,7 +13,7 @@ import java.io.*
 /**
  * Default outgoing content transformation
  */
-fun PipelineContext<Any, ApplicationCall>.transformDefaultContent(value: Any): OutgoingContent? = when (value) {
+public fun PipelineContext<Any, ApplicationCall>.transformDefaultContent(value: Any): OutgoingContent? = when (value) {
     is OutgoingContent -> value
     is String -> {
         val contentType = call.defaultTextContentType(null)

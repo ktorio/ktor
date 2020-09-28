@@ -11,5 +11,5 @@ import java.time.*
 /**
  * Creates [CachingOptions] instance with [ZonedDateTime] expiration time
  */
-fun CachingOptions(cacheControl: CacheControl? = null, expires: ZonedDateTime): CachingOptions =
+public fun CachingOptions(cacheControl: CacheControl? = null, expires: ZonedDateTime): CachingOptions =
         CachingOptions(cacheControl, expires.toGMTDate())

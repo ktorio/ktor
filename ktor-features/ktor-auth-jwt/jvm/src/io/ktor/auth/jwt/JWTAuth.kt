@@ -30,24 +30,24 @@ private val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
  * @param payload JWT
  * @see Payload
  */
-class JWTCredential(val payload: Payload) : Credential
+public class JWTCredential(public val payload: Payload) : Credential
 
 /**
  * Represents a JWT principal consist of the specified [payload]
  * @param payload JWT
  * @see Payload
  */
-class JWTPrincipal(val payload: Payload) : Principal
+public class JWTPrincipal(public val payload: Payload) : Principal
 
 /**
  * JWT verifier configuration function. It is applied on the verifier builder.
  */
-typealias JWTConfigureFunction = Verification.() -> Unit
+public typealias JWTConfigureFunction = Verification.() -> Unit
 
 /**
  * JWT authentication provider that will be registered with the specified [name]
  */
-class JWTAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
+public class JWTAuthenticationProvider internal constructor(config: Configuration) : AuthenticationProvider(config) {
 
     internal val realm: String = config.realm
     internal val schemes: JWTAuthSchemes = config.schemes
@@ -59,7 +59,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
     /**
      * JWT auth provider configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
         internal var authenticationFunction: AuthenticationFunction<JWTCredential> = {
             throw NotImplementedError(
                 "JWT auth validate function is not specified. Use jwt { validate { ... } } to fix."
@@ -87,12 +87,12 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
         /**
          * JWT realm name that will be used during auth challenge
          */
-        var realm: String = "Ktor Server"
+        public var realm: String = "Ktor Server"
 
         /**
          * Http auth header retrieval function. By default it does parse `Authorization` header content.
          */
-        fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
+        public fun authHeader(block: (ApplicationCall) -> HttpAuthHeader?) {
             authHeader = block
         }
 
@@ -100,21 +100,21 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
          * @param [additionalSchemes] additional schemes that will be accepted when validating the authentication
          */
-        fun authSchemes(defaultScheme: String = "Bearer", vararg additionalSchemes: String) {
+        public fun authSchemes(defaultScheme: String = "Bearer", vararg additionalSchemes: String) {
             schemes = JWTAuthSchemes(defaultScheme, *additionalSchemes)
         }
 
         /**
          * @param [verifier] verifies token format and signature
          */
-        fun verifier(verifier: JWTVerifier) {
+        public fun verifier(verifier: JWTVerifier) {
             this.verifier = { verifier }
         }
 
         /**
          * @param [verifier] verifies token format and signature
          */
-        fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
+        public fun verifier(verifier: (HttpAuthHeader) -> JWTVerifier?) {
             this.verifier = verifier
         }
 
@@ -123,7 +123,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * @param [issuer] the issuer of the JSON Web Token
          * * @param configure function will be applied during [JWTVerifier] construction
          */
-        fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
+        public fun verifier(jwkProvider: JwkProvider, issuer: String, configure: JWTConfigureFunction = {}) {
             this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes, configure) }
         }
 
@@ -131,7 +131,7 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * @param [jwkProvider] provides the JSON Web Key
          * @param configure function will be applied during [JWTVerifier] construction
          */
-        fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
+        public fun verifier(jwkProvider: JwkProvider, configure: JWTConfigureFunction = {}) {
             this.verifier = { token -> getVerifier(jwkProvider, token, schemes, configure) }
         }
 
@@ -139,14 +139,14 @@ class JWTAuthenticationProvider internal constructor(config: Configuration) : Au
          * Apply [validate] function to every call with [JWTCredential]
          * @return a principal (usually an instance of [JWTPrincipal]) or `null`
          */
-        fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
+        public fun validate(validate: suspend ApplicationCall.(JWTCredential) -> Principal?) {
             authenticationFunction = validate
         }
 
         /**
          * Specifies what to send back if jwt authentication fails.
          */
-        fun challenge(block: JWTAuthChallengeFunction) {
+        public fun challenge(block: JWTAuthChallengeFunction) {
             challenge = block
         }
 
@@ -164,7 +164,7 @@ internal class JWTAuthSchemes(val defaultScheme: String, vararg additionalScheme
 /**
  * Installs JWT Authentication mechanism
  */
-fun Authentication.Configuration.jwt(
+public fun Authentication.Configuration.jwt(
     name: String? = null,
     configure: JWTAuthenticationProvider.Configuration.() -> Unit
 ) {
@@ -204,7 +204,7 @@ fun Authentication.Configuration.jwt(
 /**
  * Specifies what to send back if session authentication fails.
  */
-typealias JWTAuthChallengeFunction =
+public typealias JWTAuthChallengeFunction =
     suspend PipelineContext<*, ApplicationCall>.(defaultScheme: String, realm: String) -> Unit
 
 private fun AuthenticationContext.bearerChallenge(

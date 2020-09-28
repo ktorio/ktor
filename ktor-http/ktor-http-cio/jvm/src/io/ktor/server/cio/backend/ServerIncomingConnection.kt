@@ -16,17 +16,17 @@ import java.net.*
  * @property localAddress on which the client was accepted (optional)
  */
 @InternalAPI
-class ServerIncomingConnection(
-    val input: ByteReadChannel,
-    val output: ByteWriteChannel,
-    val remoteAddress: SocketAddress?,
-    val localAddress: SocketAddress?
+public class ServerIncomingConnection(
+    public val input: ByteReadChannel,
+    public val output: ByteWriteChannel,
+    public val remoteAddress: SocketAddress?,
+    public val localAddress: SocketAddress?
 ) {
     @Deprecated(
         "Specify localAddress as well.",
         level = DeprecationLevel.HIDDEN
     )
-    constructor(
+    public constructor(
         input: ByteReadChannel,
         output: ByteWriteChannel,
         remoteAddress: SocketAddress?

@@ -7,7 +7,7 @@ package io.ktor.http.auth
 /**
  * Contains the standard auth schemes.
  */
-object AuthScheme {
+public object AuthScheme {
     /**
      * Basic Authentication described in the RFC-7617
      *
@@ -17,7 +17,7 @@ object AuthScheme {
      *
      * see https://tools.ietf.org/html/rfc7617)
      */
-    const val Basic = "Basic"
+    public const val Basic: String = "Basic"
 
     /**
      * Digest Authentication described in the RFC-2069:
@@ -30,31 +30,31 @@ object AuthScheme {
      *
      * see https://tools.ietf.org/html/rfc2069
      */
-    const val Digest = "Digest"
+    public const val Digest: String = "Digest"
 
     /**
      * Described in the RFC-4599:
      *
      * see https://www.ietf.org/rfc/rfc4559.txt
      */
-    const val Negotiate = "Negotiate"
+    public const val Negotiate: String = "Negotiate"
 
     /**
      * OAuth Authentication described in the RFC-6749:
      *
      * see https://tools.ietf.org/html/rfc6749
      */
-    const val OAuth = "OAuth"
+    public const val OAuth: String = "OAuth"
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    fun getBasic(): String = Basic
+    public fun getBasic(): String = Basic
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    fun getDigest(): String = Digest
+    public fun getDigest(): String = Digest
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    fun getNegotiate(): String = Negotiate
+    public fun getNegotiate(): String = Negotiate
 }
