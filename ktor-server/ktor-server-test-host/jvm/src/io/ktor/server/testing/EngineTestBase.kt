@@ -56,6 +56,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     protected val exceptions: ArrayList<Throwable> = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
+    protected var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
@@ -157,6 +158,10 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
                 sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
                     this.port = sslPort
                     this.keyStorePath = keyStoreFile.absoluteFile
+                    if (enableCertVerify) {
+                        this.trustStore = keyStore
+                        this.trustStorePath = keyStoreFile.absoluteFile
+                    }
                 }
             }
 

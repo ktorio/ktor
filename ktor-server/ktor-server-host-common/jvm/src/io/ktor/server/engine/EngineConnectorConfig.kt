@@ -76,6 +76,16 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
      * Private key password provider
      */
     public val privateKeyPassword: () -> CharArray
+
+    /**
+     * Store of trusted certificates for verifying the remote endpoint's certificate.
+     */
+    public val trustStore: KeyStore?
+
+    /**
+     * File with trusted certificates (JKS) for verifying the remote endpoint's certificate.
+     */
+    public val trustStorePath: File?
 }
 
 /**
@@ -120,4 +130,6 @@ public class EngineSSLConnectorBuilder(
     override val privateKeyPassword: () -> CharArray
 ) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
+    override var trustStore: KeyStore? = null
+    override var trustStorePath: File? = null
 }
