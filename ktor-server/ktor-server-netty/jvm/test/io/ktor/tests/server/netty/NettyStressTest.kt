@@ -5,7 +5,7 @@
 package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.*
-import io.ktor.server.testing.*
+import io.ktor.server.testing.suites.*
 
 class NettyStressTest : EngineStressSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
 }
