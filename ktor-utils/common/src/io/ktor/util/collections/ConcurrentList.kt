@@ -160,9 +160,9 @@ public class ConcurrentList<T> : MutableList<T> {
         }
     }
 
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
-        error("Common concurrent list doesn't support slicing.")
-    }
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = ConcurrentListSlice(
+        this, fromIndex, toIndex
+    )
 
     override fun remove(element: T): Boolean = synchronized(lock) {
         val index = indexOf(element)
