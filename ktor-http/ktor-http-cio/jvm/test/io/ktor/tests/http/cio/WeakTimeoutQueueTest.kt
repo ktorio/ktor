@@ -1,20 +1,23 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.internals.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import java.lang.Exception
-import java.lang.UnsupportedOperationException
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.Rule
 import java.time.*
-import kotlin.coroutines.*
 import kotlin.test.*
 
 class WeakTimeoutQueueTest {
     private val testClock = TestClock(0L)
     private val q = WeakTimeoutQueue(1000L, clock = { testClock.millis() })
+
+    @get:Rule
+    val timeout = CoroutinesTimeout(2000L, true)
 
     @Test
     fun testNoTimeout() = runBlocking {
@@ -23,6 +26,7 @@ class WeakTimeoutQueueTest {
             1
         }
         assertEquals(1, rc)
+        assertEquals(0, q.count())
     }
 
     @Test
@@ -33,19 +37,22 @@ class WeakTimeoutQueueTest {
             1
         }
         assertEquals(1, rc)
+        assertEquals(0, q.count())
     }
 
     @Test
     fun testTimeoutPassed() = runBlocking {
         try {
             q.withTimeout {
-                suspendCoroutine<Unit> {
+                suspendCancellableCoroutine<Unit> {
                     testClock.millis = 1001
                     q.process()
                 }
             }
         } catch (expected: CancellationException) {
         }
+
+        assertEquals(0, q.count())
     }
 
     @Test
@@ -54,6 +61,7 @@ class WeakTimeoutQueueTest {
         }
         testClock.millis = 1001
         q.process()
+        assertEquals(0, q.count())
     }
 
     @Test
@@ -67,6 +75,8 @@ class WeakTimeoutQueueTest {
             fail("Should fail before")
         } catch (expected: MyException) {
         }
+
+        assertEquals(0, q.count())
     }
 
     @Test
@@ -81,6 +91,31 @@ class WeakTimeoutQueueTest {
             fail("Should fail before")
         } catch (expected: MyException) {
         }
+
+        assertEquals(0, q.count())
+    }
+
+    private val caught = atomic(0)
+    private val executed = atomic(0)
+
+    @Test
+    fun testAlreadyCancelledParent(): Unit = runBlocking(Dispatchers.IO) {
+        launch {
+            cancel("Already cancelled")
+
+            try {
+                q.withTimeout {
+                    executed.incrementAndGet()
+                }
+            } catch (cause: CancellationException) {
+                caught.incrementAndGet()
+                assertEquals("Already cancelled", cause.message)
+            }
+        }.join()
+
+        assertEquals(1, caught.value)
+        assertEquals(0, executed.value)
+        assertEquals(0, q.count())
     }
 
     private class MyException : Exception()
