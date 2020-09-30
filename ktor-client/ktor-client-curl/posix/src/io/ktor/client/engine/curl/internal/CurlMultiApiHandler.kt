@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
@@ -217,10 +217,12 @@ internal class CurlMultiApiHandler : Closeable {
                         )
                     }
 
+                    val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+
                     return CurlFail(
                         request,
                         @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Connection failed for request: $request")
+                        CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
                     )
                 }
 
