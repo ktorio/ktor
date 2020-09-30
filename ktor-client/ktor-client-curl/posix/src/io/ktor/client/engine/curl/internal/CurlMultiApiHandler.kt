@@ -226,10 +226,12 @@ internal class CurlMultiApiHandler : Closeable {
                         )
                     }
 
+                    val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+
                     return CurlFail(
                         request,
                         @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Connection failed for request: $request")
+                        CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
                     )
                 }
 
