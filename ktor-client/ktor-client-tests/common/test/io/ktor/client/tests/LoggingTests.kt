@@ -264,7 +264,7 @@ class LoggingTest : ClientLoader() {
             "-> Location: /logging",
             "BODY Content-Type: null",
             "BODY START",
-            "",
+            "!!! body can be cancelled or printed",
             "BODY END",
             "REQUEST: http://127.0.0.1:8080/logging",
             "METHOD: HttpMethod(value=GET)",
@@ -297,6 +297,8 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
+            testLogger.reset()
+
             val response = client.request<HttpStatement> {
                 method = HttpMethod.Get
                 url.takeFrom("$TEST_SERVER/logging/301")

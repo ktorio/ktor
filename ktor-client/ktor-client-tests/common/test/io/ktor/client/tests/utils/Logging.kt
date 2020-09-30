@@ -15,9 +15,15 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         log += message
     }
 
+    fun reset() {
+        log.clear()
+    }
+
     fun verify() {
         var expectedIndex = 0
         var actualIndex = 0
+
+        val message = StringBuilder()
 
         while (expectedIndex < expectedLog.size && actualIndex < log.size) {
             var expected = expectedLog[expectedIndex].toLowerCase()
@@ -47,10 +53,25 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
                 continue
             }
 
-            assertEquals(expected, actual)
+            if (expected != actual) {
+                message.appendLine(">>> Expected log:")
+                expectedLog.forEach {
+                    message.appendLine(it)
+                }
+
+                message.appendLine(">>> Actual log:")
+                log.forEach {
+                    message.appendLine(it)
+                }
+
+                message.appendLine(
+                    "Expected log doesn't match actual at lines: expected $expectedIndex, actual $actualIndex"
+                )
+
+                fail(message.toString())
+            }
         }
 
-        val message = StringBuilder()
         if (actualIndex < log.size) {
             message.append("Actual log was not fully processed:\n")
             message.appendLog(log.subList(actualIndex, log.size))
@@ -62,7 +83,7 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
         }
 
         if (message.isNotEmpty()) {
-            error(message)
+            fail(message.toString())
         }
     }
 }
