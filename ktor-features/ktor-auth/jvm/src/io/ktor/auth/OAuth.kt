@@ -8,9 +8,9 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
@@ -79,8 +79,22 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val accessTokenUrl: String,
 
         public val consumerKey: String,
-        public val consumerSecret: String
-    ) : OAuthServerSettings(name, OAuthVersion.V10a)
+        public val consumerSecret: String,
+
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+    ) : OAuthServerSettings(name, OAuthVersion.V10a) {
+        @Suppress("unused")
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            requestTokenUrl: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+
+            consumerKey: String,
+            consumerSecret: String
+        ) : this(name, requestTokenUrl, authorizeUrl, accessTokenUrl, consumerKey, consumerSecret, {})
+    }
 
     /**
      * OAuth2 server settings
@@ -94,6 +108,7 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property passParamsInURL whether to pass request parameters in POST requests in URL instead of body.
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
+     * @property accessTokenInterceptor an interceptor function to customize access token request
      */
     public class OAuth2ServerSettings(
         name: String,
@@ -109,8 +124,32 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val nonceManager: NonceManager = GenerateOnlyNonceManager,
 
         public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
-        public val passParamsInURL: Boolean = false
-    ) : OAuthServerSettings(name, OAuthVersion.V20)
+        public val passParamsInURL: Boolean = false,
+        public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+    ) : OAuthServerSettings(name, OAuthVersion.V20) {
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+        ) : this(name, authorizeUrl, accessTokenUrl, requestMethod, clientId, clientSecret,
+            defaultScopes, accessTokenRequiresBasicAuth, nonceManager,
+            authorizeUrlInterceptor,
+            passParamsInURL,
+            {}
+        )
+    }
 }
 
 /**
@@ -218,9 +257,28 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
 }
 
 /**
- * Handle OAuth callback
+ * Handle OAuth callback. Usually it leads to requesting an access token.
  */
 @Deprecated("Install and configure OAuth instead.")
+public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
+    provider: OAuthServerSettings,
+    callbackUrl: String,
+    loginPageUrl: String,
+    block: suspend (OAuthAccessTokenResponse) -> Unit
+) {
+    @Suppress("DEPRECATION")
+    oauthHandleCallback(client, dispatcher, provider, callbackUrl, loginPageUrl, {}, block)
+}
+
+/**
+ * Handle OAuth callback.
+ */
+@Deprecated(
+    "Specifying an extra configuration function will be deprecated. " +
+        "Please provide it via OAuthServerSettings."
+)
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
