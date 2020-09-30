@@ -16,6 +16,7 @@ import kotlin.test.*
 class HttpStatementTest : ClientLoader() {
 
     @Test
+    @Ignore
     fun testExecute() = clientTests(listOf("curl")) {
         test { client ->
             client.request<HttpStatement>("$TEST_SERVER/content/stream").execute {

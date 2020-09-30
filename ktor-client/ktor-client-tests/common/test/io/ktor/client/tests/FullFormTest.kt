@@ -66,6 +66,7 @@ class FullFormTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testCustomUrls() = clientTests(listOf("iOS", "native:CIO")) {
         val urls = listOf(
             "https://google.com",

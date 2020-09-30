@@ -303,7 +303,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testBlockingConcurrency() {
+    public open fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
         createAndStartServer {
             get("/{index}") {
