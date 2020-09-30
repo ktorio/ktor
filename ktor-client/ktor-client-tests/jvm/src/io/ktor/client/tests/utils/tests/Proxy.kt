@@ -88,22 +88,9 @@ private suspend fun handleProxyTunnel(
     when (host) {
         "localhost", "127.0.0.1", "::1" -> {
             withTimeout(30.seconds) {
-                SelectorManager(Dispatchers.IO).use { selector ->
-                    aSocket(selector).tcp().connect(host, port).use { destination ->
-                        coroutineScope {
-                            launch {
-                                destination.openReadChannel().copyAndClose(output)
-                            }
-                            launch {
-                                input.copyAndClose(destination.openWriteChannel(true))
-                            }
-                        }
-                    }
-                }
+                connectAndProcessTunnel(host, port, output, input)
             }
             return true
-        }
-        else -> {
         }
     }
 
@@ -112,6 +99,26 @@ private suspend fun handleProxyTunnel(
     output.flush()
 
     return false
+}
+
+private suspend fun connectAndProcessTunnel(
+    host: String,
+    port: Int,
+    output: ByteWriteChannel,
+    input: ByteReadChannel
+) {
+    SelectorManager(Dispatchers.IO).use { selector ->
+        aSocket(selector).tcp().connect(host, port).use { destination ->
+            coroutineScope {
+                launch {
+                    destination.openReadChannel().copyAndClose(output)
+                }
+                launch {
+                    input.copyAndClose(destination.openWriteChannel(true))
+                }
+            }
+        }
+    }
 }
 
 private fun buildResponse(
