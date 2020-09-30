@@ -19,6 +19,7 @@ import io.netty.handler.ssl.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
+import org.junit.Ignore
 import org.junit.Test
 import java.io.*
 import java.net.*
@@ -81,6 +82,7 @@ class ConnectionTests {
     }
 
     @Test
+    @Ignore
     fun clientCertificatesAuthTest() {
         val keyStoreFile = File("build/temp.jks")
         val keyStore = generateCertificate(keyStoreFile, algorithm = "SHA256withRSA", keySizeInBits = 4096)

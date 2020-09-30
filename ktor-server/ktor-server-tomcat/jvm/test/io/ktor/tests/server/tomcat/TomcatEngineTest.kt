@@ -66,4 +66,10 @@ class TomcatSustainabilityTestSuite :
     override fun testChunkedWithVSpace() {
         super.testChunkedWithVSpace()
     }
+
+    @Ignore
+    @Test
+    override fun testBlockingConcurrency() {
+        super.testBlockingConcurrency()
+    }
 }
