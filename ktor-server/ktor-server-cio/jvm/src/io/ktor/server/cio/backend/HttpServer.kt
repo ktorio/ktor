@@ -44,10 +44,13 @@ public fun CoroutineScope.httpServer(
         aSocket(selector).tcp().bind(settings.host, settings.port).use { server ->
             socket.complete(server)
 
+            val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
+                ?: DefaultUncaughtExceptionHandler(logger)
+
             val connectionScope = CoroutineScope(
                 coroutineContext +
                     SupervisorJob(serverJob) +
-                    DefaultUncaughtExceptionHandler(logger) +
+                    exceptionHandler +
                     CoroutineName("request")
             )
 
