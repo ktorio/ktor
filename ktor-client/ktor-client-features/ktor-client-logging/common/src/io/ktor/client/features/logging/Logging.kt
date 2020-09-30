@@ -227,6 +227,6 @@ public fun HttpClientConfig<*>.Logging(block: Logging.Config.() -> Unit = {}) {
 
 internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
     readRemaining().readText(charset = charset)
-} catch (cause: MalformedInputException) {
+} catch (cause: Throwable) {
     null
 }
