@@ -152,6 +152,7 @@ class ServerPipelineTest : CoroutineScope {
             request.release()
 
             output.writeStringUtf8("HTTP/1.1 101 Switching\r\nUpgrade: test\r\nConnection: Upgrade\r\n\r\n")
+            output.flush()
 
             latch.join()
         }
