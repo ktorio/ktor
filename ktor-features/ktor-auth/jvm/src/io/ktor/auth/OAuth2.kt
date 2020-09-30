@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -92,8 +92,16 @@ internal suspend fun oauth2RequestAccessToken(
     usedRedirectUrl: String,
     callbackResponse: OAuthCallback.TokenSingle,
     extraParameters: Map<String, String> = emptyMap(),
-    configure: HttpRequestBuilder.() -> Unit = {}
+    configure: (HttpRequestBuilder.() -> Unit)? = null
 ): OAuthAccessTokenResponse.OAuth2 {
+    val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
+        null -> settings.accessTokenInterceptor
+        else -> fun HttpRequestBuilder.() {
+            settings.accessTokenInterceptor(this)
+            configure()
+        }
+    }
+
     return oauth2RequestAccessToken(
         client,
         settings.requestMethod,
@@ -104,7 +112,7 @@ internal suspend fun oauth2RequestAccessToken(
         callbackResponse.state,
         callbackResponse.token,
         extraParameters,
-        configure,
+        interceptor,
         settings.accessTokenRequiresBasicAuth,
         settings.nonceManager,
         settings.passParamsInURL
@@ -188,7 +196,8 @@ private suspend fun oauth2RequestAccessToken(
             if (passParamsInURL)
                 request.url.parameters.appendAll(urlParameters)
             else
-                request.body = TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+                request.body =
+                    TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
         }
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
@@ -299,7 +308,7 @@ public suspend fun verifyWithOAuth2(
         clientSecret = settings.clientSecret,
         code = null,
         state = null,
-        configure = {},
+        configure = settings.accessTokenInterceptor,
         extraParameters = mapOf(
             OAuth2RequestParameters.UserName to credential.name,
             OAuth2RequestParameters.Password to credential.password
