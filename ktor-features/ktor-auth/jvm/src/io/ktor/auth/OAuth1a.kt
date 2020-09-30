@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -142,7 +142,8 @@ internal suspend fun requestOAuth1aAccessToken(
     token = callbackResponse.token,
     verifier = callbackResponse.tokenSecret,
     nonce = nonce,
-    extraParameters = extraParameters
+    extraParameters = extraParameters,
+    accessTokenInterceptor = settings.accessTokenInterceptor
 )
 
 private suspend fun requestOAuth1aAccessToken(
@@ -153,7 +154,8 @@ private suspend fun requestOAuth1aAccessToken(
     token: String,
     verifier: String,
     nonce: String = generateNonce(),
-    extraParameters: Map<String, String> = emptyMap()
+    extraParameters: Map<String, String> = emptyMap(),
+    accessTokenInterceptor: (HttpRequestBuilder.() -> Unit)?
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()
     val authHeader = createUpgradeRequestTokenHeader(consumerKey, token, nonce)
@@ -168,6 +170,8 @@ private suspend fun requestOAuth1aAccessToken(
             { params.formUrlEncodeTo(this) },
             ContentType.Application.FormUrlEncoded
         )
+
+        accessTokenInterceptor?.invoke(this)
     }
 
     try {
