@@ -142,7 +142,8 @@ internal suspend fun requestOAuth1aAccessToken(
     token = callbackResponse.token,
     verifier = callbackResponse.tokenSecret,
     nonce = nonce,
-    extraParameters = extraParameters
+    extraParameters = extraParameters,
+    accessTokenInterceptor = settings.accessTokenInterceptor
 )
 
 private suspend fun requestOAuth1aAccessToken(
@@ -153,7 +154,8 @@ private suspend fun requestOAuth1aAccessToken(
     token: String,
     verifier: String,
     nonce: String = generateNonce(),
-    extraParameters: Map<String, String> = emptyMap()
+    extraParameters: Map<String, String> = emptyMap(),
+    accessTokenInterceptor: (HttpRequestBuilder.() -> Unit)?
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()
     val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
@@ -168,6 +170,8 @@ private suspend fun requestOAuth1aAccessToken(
             { params.formUrlEncodeTo(this) },
             ContentType.Application.FormUrlEncoded
         )
+
+        accessTokenInterceptor?.invoke(this)
     }
 
     try {
