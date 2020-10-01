@@ -784,6 +784,19 @@ public final class io/ktor/features/XForwardedHeaderSupport$Config {
 	public final fun getProtoHeaders ()Ljava/util/ArrayList;
 }
 
+public final class io/ktor/features/XHttpMethodOverrideSupport : io/ktor/application/ApplicationFeature {
+	public static final field INSTANCE Lio/ktor/features/XHttpMethodOverrideSupport;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/features/XHttpMethodOverrideSupport$Config;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/features/XHttpMethodOverrideSupport$Config {
+	public fun <init> ()V
+	public final fun getHeaderName ()Ljava/lang/String;
+	public final fun setHeaderName (Ljava/lang/String;)V
+}
+
 public final class io/ktor/http/ApplicationResponsePropertiesJvmKt {
 	public static final fun expires (Lio/ktor/http/HeadersBuilder;Ljava/time/LocalDateTime;)V
 	public static final fun lastModified (Lio/ktor/http/HeadersBuilder;Ljava/time/ZonedDateTime;)V
