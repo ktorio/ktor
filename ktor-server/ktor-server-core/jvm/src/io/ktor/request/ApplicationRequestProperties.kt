@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -132,7 +132,8 @@ public fun ApplicationRequest.ranges(): RangesSpecifier? = header(HttpHeaders.Ra
 public val ApplicationRequest.uri: String get() = origin.uri
 
 /**
- * Returns request HTTP method possibly overridden via header X-Http-Method-Override
+ * Returns request HTTP method possibly overridden via header `X-Http-Method-Override`
+ * (requires [XHttpMethodOverrideSupport] feature).
  */
 public val ApplicationRequest.httpMethod: HttpMethod get() = origin.method
 
