@@ -82,8 +82,17 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
         return call.response.requestTime + maxAge * 1000L
     }
 
-    headers[HttpHeaders.Expires]?.fromHttpToGmtDate()?.let { return it }
-    return GMTDate()
+    val expires = headers[HttpHeaders.Expires]
+    return expires?.let {
+        // Handle "0" case faster
+        if (it == "0") return GMTDate()
+
+        return try {
+            it.fromHttpToGmtDate()
+        } catch (e: Throwable) {
+            GMTDate()
+        }
+    } ?: GMTDate()
 }
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
