@@ -9,13 +9,15 @@ if there is already an open ticket and open a new one if not yet opened.
 
 Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests). 
 
-1. [Create](https://github.com/ktorio/ktor/compare) a new PR, your PR should request to merge to the **master** branch.
-2. Ensure that the description is clear, refer to an existing ticket/bug if applicable.
-3. When contributing a new feature, provide motivation and use-cases describing why 
+1. Open(or find) corresponding [YT](https://youtrack.jetbrains.com/issues/KTOR) issue.
+2. Please make sure that commit messages start with issue number(like `KTOR-1001`). You can copy `githook/prepare-commit-msg` to `.git/hooks` to enable automatic commit message check.
+3. [Create](https://github.com/ktorio/ktor/compare) a new PR, your PR should request to merge to the **master** branch.
+4. Ensure that the description is clear, refer to an existing ticket/bug if applicable.
+5. When contributing a new feature, provide motivation and use-cases describing why 
 the feature is important enough to be delivered with ktor to everyone. 
-4. Adding and updating features may require to update the [documentation](https://github.com/ktorio/ktorio.github.io).
+6. Adding and updating features may require to update the [documentation](https://github.com/ktorio/ktorio.github.io).
 Create a documentation PR and link both pull requests.
-5. Make sure you have adequate tests added and no existing tests were broken. 
+7. Make sure you have adequate tests added and no existing tests were broken. 
 
 # Styleguides
 
