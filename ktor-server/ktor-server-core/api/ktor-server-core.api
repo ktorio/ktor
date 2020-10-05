@@ -1355,8 +1355,12 @@ public abstract class io/ktor/routing/RouteSelector {
 public final class io/ktor/routing/RouteSelectorEvaluation {
 	public static final field Companion Lio/ktor/routing/RouteSelectorEvaluation$Companion;
 	public static final field qualityConstant D
+	public static final field qualityMethodParameter D
 	public static final field qualityMissing D
 	public static final field qualityParameter D
+	public static final field qualityParameterWithPrefixOrSuffix D
+	public static final field qualityPathParameter D
+	public static final field qualityQueryParameter D
 	public static final field qualityTailcard D
 	public static final field qualityWildcard D
 	public fun <init> (ZDLio/ktor/http/Parameters;I)V
