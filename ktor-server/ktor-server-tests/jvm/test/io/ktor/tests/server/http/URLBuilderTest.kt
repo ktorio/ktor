@@ -60,6 +60,64 @@ class URLBuilderTest {
     }
 
     @Test
+    fun testPathPartNoFirstSlash() {
+        val s = url {
+            encodedPath = ""
+            pathPart("asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathPartFirstSlash() {
+        val s = url {
+            encodedPath = "/"
+            pathPart("/asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathPartFunctionVararg() {
+        val s = url {
+            pathPart("a", "b")
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathPartFunctionList() {
+        val s = url {
+            pathPart(listOf("a", "b"))
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathPartWithSpace() {
+        assertEquals("http://localhost/a%20b/c", url { pathPart("a b", "c") })
+    }
+
+    @Test
+    fun testPathPartWithPlus() {
+        assertEquals("http://localhost/a+b/c", url { pathPart("a+b", "c") })
+    }
+
+    @Test
+    fun testPathPartWithTrailingSlashes() {
+        assertEquals("http://localhost/asd", url { pathPart("asd///") })
+    }
+
+    @Test
+    fun testPathPartWithLeadingSlashes() {
+        assertEquals("http://localhost/asd", url { pathPart("asd///") })
+    }
+
+    @Test
     fun testPort() {
         assertEquals("http://localhost/", url { port = 80 })
         assertEquals("http://localhost:8080/", url { port = 8080 })
