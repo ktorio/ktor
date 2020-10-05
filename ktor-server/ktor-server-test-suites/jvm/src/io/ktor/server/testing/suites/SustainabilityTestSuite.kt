@@ -570,6 +570,85 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
+    public fun testErrorInApplicationReceivePipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationReceivePipeline().items
+            .forEach { phase ->
+                val server = createServer(log = logger) {
+                    intercept(ApplicationCallPipeline.Setup) {
+                        call.request.pipeline.intercept(phase) { throw IllegalStateException("Failed in phase $phase") }
+                    }
+
+                    routing {
+                        post("/") {
+                            val body = call.receive<String>()
+                            call.respond("SUCCESS $body")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl(
+                    "/",
+                    { method = HttpMethod.Post; body = "body" }
+                ) {
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1)
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
+    }
+
+    @Test
+    public fun testErrorInApplicationSendPipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationSendPipeline().items
+            .filter { it != ApplicationSendPipeline.Engine }
+            .forEach { phase ->
+                var intercepted = false
+                val server = createServer(log = logger) {
+                    intercept(ApplicationCallPipeline.Setup) {
+                        call.response.pipeline.intercept(phase) {
+                            if (intercepted) return@intercept
+                            intercepted = true
+                            throw IllegalStateException("Failed in phase $phase")
+                        }
+                    }
+
+                    routing {
+                        get("/") {
+                            call.respond("SUCCESS")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl("/", { intercepted = false }) {
+                    val text = receive<String>()
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1)
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
+    }
+
+    @Test
     public open fun testErrorInEnginePipelineInterceptor() {
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
         val logger = object : Logger by loggerDelegate {

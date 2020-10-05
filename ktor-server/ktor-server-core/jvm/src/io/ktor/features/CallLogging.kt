@@ -150,6 +150,11 @@ public class CallLogging private constructor(
     @InternalAPI
     public object Internals {
         @InternalAPI
+        public suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
+            withMDCBlock(call) { block.invoke(this) }
+        }
+
+        @InternalAPI
         public suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
             withMDC(call, block)
         }
