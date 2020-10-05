@@ -242,7 +242,7 @@ public object PathSegmentSelectorBuilder {
     /**
      * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix and a name
      */
-    public fun parseParameter(value: String): RouteSelector =  parseParameter(value, false)
+    public fun parseParameter(value: String): RouteSelector = parseParameter(value, false)
 
     /**
      * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any

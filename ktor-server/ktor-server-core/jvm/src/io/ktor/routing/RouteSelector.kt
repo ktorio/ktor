@@ -212,7 +212,7 @@ public data class OptionalParameterRouteSelector(val name: String) :
  * Evaluates a route against a constant path segment
  * @param value is a value of the path segment
  */
-data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     private var hasTrailingSlash: Boolean = false
 
@@ -257,7 +257,7 @@ data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(R
  * @param prefix is an optional suffix
  * @param suffix is an optional prefix
  */
-data class PathSegmentParameterRouteSelector(
+public data class PathSegmentParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
@@ -276,7 +276,9 @@ data class PathSegmentParameterRouteSelector(
             name = name,
             prefix = prefix,
             suffix = suffix,
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = hasTrailingSlash,
+            contextHasTrailingSlash = context.hasTrailingSlash,
         )
     }
 
@@ -313,7 +315,7 @@ data class PathSegmentParameterRouteSelector(
  * @param prefix is an optional suffix
  * @param suffix is an optional prefix
  */
-data class PathSegmentOptionalParameterRouteSelector(
+public data class PathSegmentOptionalParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
@@ -332,7 +334,9 @@ data class PathSegmentOptionalParameterRouteSelector(
             name = name,
             prefix = prefix,
             suffix = suffix,
-            isOptional = true
+            isOptional = true,
+            selectorHasTrailingSlash = hasTrailingSlash,
+            contextHasTrailingSlash = context.hasTrailingSlash,
         )
     }
 
@@ -381,7 +385,7 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEval
  * @param name is the name of the parameter to capture values to
  * @property prefix before the tailcard (static text)
  */
-data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+public data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
 
     private var hasTrailingSlash: Boolean = false
 
@@ -555,10 +559,16 @@ internal fun evaluatePathSegmentParameter(
     name: String,
     prefix: String?,
     suffix: String?,
-    isOptional: Boolean
+    isOptional: Boolean,
+    selectorHasTrailingSlash: Boolean,
+    contextHasTrailingSlash: Boolean
 ): RouteSelectorEvaluation {
     fun failedEvaluation(): RouteSelectorEvaluation {
         return if (isOptional) RouteSelectorEvaluation.Missing else RouteSelectorEvaluation.Failed
+    }
+
+    if (segmentIndex == segments.lastIndex && selectorHasTrailingSlash != contextHasTrailingSlash) {
+        return RouteSelectorEvaluation.Failed
     }
 
     if (segmentIndex >= segments.size) {
