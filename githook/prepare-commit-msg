@@ -3,40 +3,39 @@
 import sys
 
 ALLOW = 0
-RESTRICT = 0
+RESTRICT = 1
+
 
 def is_integer(value: str) -> bool:
     try:
         int(value)
         return True
     except ValueError as _:
-        pass
+        return False
 
+
+def is_correct_commit_message(message: str) -> bool:
+    issue_name = first_line.split(" ")[0]
+
+    # Allow fixup commits
+    if issue_name in ["fixup!", "WIP"]:
+        return True
+
+    if issue_name.startswith("~"):
+        return True
+
+    prefix = "KTOR-"
+    if issue_name.startswith(prefix) and is_integer(issue_name[len(prefix):]):
+        return True
+
+    print(f"Commit name should start with the issue number(like KTOR-1001). Current prefix is '{issue_name}'")
     return False
 
-def check_commit_message() -> int:
+
+if __name__ == "__main__":
     commit_message_filename: str = sys.argv[1]
     with open(commit_message_filename) as file:
         first_line: str = file.readline()
 
-    issue_name = first_line.split(" ")[0]
-
-    # Allow fixup commits
-    if issue_name == "fixup!":
-        return ALLOW
-
-    # Allow WIP commits
-    if issue_name == "WIP":
-        return ALLOW
-
-    if issue_name.startswith("~"):
-        return ALLOW
-
-    if issue_name.startswith("KTOR-") and is_integer(issue_name[5:]):
-        return ALLOW
-
-    print(f"Commit name should start with the issue number(like KTOR-1001). Current prefix is '{issue_name}'")
-    return RESTRICT
-
-if __name__ == "__main__":
-    exit(check_commit_message())
+    exit_code = ALLOW if is_correct_commit_message(first_line) else RESTRICT
+    exit(exit_code)
