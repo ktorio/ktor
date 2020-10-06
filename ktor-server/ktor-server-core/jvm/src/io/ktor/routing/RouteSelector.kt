@@ -53,7 +53,7 @@ public data class RouteSelectorEvaluation(
         /**
          * Quality of [RouteSelectorEvaluation] when a HTTP method parameter has matched
          */
-        public const val qualityMethodParameter: Double= qualityParameter
+        public const val qualityMethodParameter: Double = qualityParameter
 
         /**
          * Quality of [RouteSelectorEvaluation] when a wildcard has matched
