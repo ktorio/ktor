@@ -15,7 +15,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testHeadersReturnNullWhenMissing() = clientTests {
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/headers/").let {
+            client.get<HttpResponse>("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.readText())
 
@@ -28,7 +28,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testHeadersMerge() = clientTests(listOf("Js")) {
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/headers-merge/") {
+            client.get<HttpResponse>("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
                 accept(ContentType.Application.Json)
             }.let {
@@ -37,7 +37,7 @@ class HeadersTest : ClientLoader() {
                 assertEquals("application/json; charset=UTF-8", it.headers[HttpHeaders.ContentType])
             }
 
-            client.get<HttpResponse>("$TEST_SERVER/headers-merge/") {
+            client.get<HttpResponse>("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
                 accept(ContentType.Application.Xml)
             }.let {

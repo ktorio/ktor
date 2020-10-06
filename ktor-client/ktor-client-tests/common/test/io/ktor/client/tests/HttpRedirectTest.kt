@@ -23,7 +23,7 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/").execute {
+            client.get<HttpStatement>("$TEST_URL_BASE").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.readText())
             }
