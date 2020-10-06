@@ -1253,6 +1253,7 @@ public final class io/ktor/routing/ParameterRouteSelector : io/ktor/routing/Rout
 
 public final class io/ktor/routing/PathSegmentConstantRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Z)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;)Lio/ktor/routing/PathSegmentConstantRouteSelector;
 	public static synthetic fun copy$default (Lio/ktor/routing/PathSegmentConstantRouteSelector;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/routing/PathSegmentConstantRouteSelector;
@@ -1266,6 +1267,8 @@ public final class io/ktor/routing/PathSegmentConstantRouteSelector : io/ktor/ro
 public final class io/ktor/routing/PathSegmentOptionalParameterRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -1283,6 +1286,8 @@ public final class io/ktor/routing/PathSegmentOptionalParameterRouteSelector : i
 public final class io/ktor/routing/PathSegmentParameterRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -1300,14 +1305,18 @@ public final class io/ktor/routing/PathSegmentParameterRouteSelector : io/ktor/r
 public final class io/ktor/routing/PathSegmentSelectorBuilder {
 	public static final field INSTANCE Lio/ktor/routing/PathSegmentSelectorBuilder;
 	public final fun parseConstant (Ljava/lang/String;)Lio/ktor/routing/RouteSelector;
+	public final fun parseConstant (Ljava/lang/String;Z)Lio/ktor/routing/RouteSelector;
 	public final fun parseName (Ljava/lang/String;)Ljava/lang/String;
 	public final fun parseParameter (Ljava/lang/String;)Lio/ktor/routing/RouteSelector;
+	public final fun parseParameter (Ljava/lang/String;Z)Lio/ktor/routing/RouteSelector;
 }
 
 public final class io/ktor/routing/PathSegmentTailcardRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/ktor/routing/PathSegmentTailcardRouteSelector;
@@ -1508,6 +1517,7 @@ public final class io/ktor/routing/RoutingPathSegmentKind : java/lang/Enum {
 public final class io/ktor/routing/RoutingResolveContext {
 	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/application/ApplicationCall;Ljava/util/List;)V
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
+	public final fun getHasTrailingSlash ()Z
 	public final fun getRouting ()Lio/ktor/routing/Route;
 	public final fun getSegments ()Ljava/util/List;
 	public final fun resolve ()Lio/ktor/routing/RoutingResolveResult;
