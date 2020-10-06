@@ -222,10 +222,12 @@ public fun Route.options(body: PipelineInterceptor<Unit, ApplicationCall>): Rout
 public fun Route.createRouteFromPath(path: String): Route {
     val parts = RoutingPath.parse(path).parts
     var current: Route = this
-    for ((value, kind) in parts) {
+    for (index in parts.indices) {
+        val (value, kind) = parts[index]
+        val hasTrailingSlash = index == parts.lastIndex && path.endsWith('/')
         val selector = when (kind) {
-            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value)
-            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value)
+            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value, hasTrailingSlash)
+            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value, hasTrailingSlash)
         }
         // there may already be entry with same selector, so join them
         current = current.createChild(selector)
@@ -240,7 +242,12 @@ public object PathSegmentSelectorBuilder {
     /**
      * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix and a name
      */
-    public fun parseParameter(value: String): RouteSelector {
+    public fun parseParameter(value: String): RouteSelector = parseParameter(value, false)
+
+    /**
+     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any
+     */
+    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector {
         val prefixIndex = value.indexOf('{')
         val suffixIndex = value.lastIndexOf('}')
 
@@ -249,23 +256,28 @@ public object PathSegmentSelectorBuilder {
 
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
-            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
+            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix, hasTrailingSlash)
             signature.endsWith("...") -> {
                 if (suffix != null && suffix.isNotEmpty()) {
                     throw IllegalArgumentException("Suffix after tailcard is not supported")
                 }
-                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")
+                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "", hasTrailingSlash)
             }
-            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
+            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix, hasTrailingSlash)
         }
     }
 
     /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter
      */
-    public fun parseConstant(value: String): RouteSelector = when (value) {
+    public fun parseConstant(value: String): RouteSelector = parseConstant(value, false)
+
+    /**
+     * Builds a [RouteSelector] to match a constant or wildcard segment parameter and trailing slash if any
+     */
+    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = when (value) {
         "*" -> PathSegmentWildcardRouteSelector
-        else -> PathSegmentConstantRouteSelector(value)
+        else -> PathSegmentConstantRouteSelector(value, hasTrailingSlash)
     }
 
     /**
