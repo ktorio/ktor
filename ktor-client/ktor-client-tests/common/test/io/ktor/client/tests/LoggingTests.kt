@@ -45,7 +45,7 @@ class LoggingTest : ClientLoader() {
     @Test
     fun testLoggingLevelBody() = clientTests(listOf("native:CIO")) {
         val logger = TestLogger(
-            "REQUEST: http://localhost:8080/logging/",
+            "REQUEST: http://localhost:8080/logging",
             "METHOD: HttpMethod(value=GET)",
             "BODY Content-Type: null",
             "BODY START",
@@ -53,7 +53,7 @@ class LoggingTest : ClientLoader() {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost:8080/logging/",
+            "FROM: http://localhost:8080/logging",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             "home page",
@@ -65,7 +65,7 @@ class LoggingTest : ClientLoader() {
     @Test
     fun testLogLevelAll() = clientTests(listOf("native:CIO")) {
         val logger = TestLogger(
-            "REQUEST: http://localhost:8080/logging/",
+            "REQUEST: http://localhost:8080/logging",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -78,7 +78,7 @@ class LoggingTest : ClientLoader() {
             "BODY END",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost:8080/logging/",
+            "FROM: http://localhost:8080/logging",
             "COMMON HEADERS",
             "???-> Connection: keep-alive",
             "???-> Connection: close",
@@ -95,7 +95,7 @@ class LoggingTest : ClientLoader() {
     @Test
     fun testLogLevelHeaders() = clientTests {
         val logger = TestLogger(
-            "REQUEST: http://localhost:8080/logging/",
+            "REQUEST: http://localhost:8080/logging",
             "METHOD: HttpMethod(value=GET)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -104,7 +104,7 @@ class LoggingTest : ClientLoader() {
             "-> Content-Length: 0",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost:8080/logging/",
+            "FROM: http://localhost:8080/logging",
             "COMMON HEADERS",
             "???-> Connection: close",
             "???-> Connection: keep-alive",
@@ -117,11 +117,11 @@ class LoggingTest : ClientLoader() {
     @Test
     fun testLogLevelInfo() = clientTests {
         val logger = TestLogger(
-            "REQUEST: http://localhost:8080/logging/",
+            "REQUEST: http://localhost:8080/logging",
             "METHOD: HttpMethod(value=GET)",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
-            "FROM: http://localhost:8080/logging/"
+            "FROM: http://localhost:8080/logging"
         )
         checkLog(logger, HttpMethod.Get, "", null, LogLevel.INFO)
     }
@@ -135,7 +135,7 @@ class LoggingTest : ClientLoader() {
     @Test
     fun testLogPostBody() = clientTests(listOf("native:CIO")) {
         val testLogger = TestLogger(
-            "REQUEST: http://localhost:8080/logging/",
+            "REQUEST: http://localhost:8080/logging",
             "METHOD: HttpMethod(value=POST)",
             "COMMON HEADERS",
             "-> Accept: */*",
@@ -149,7 +149,7 @@ class LoggingTest : ClientLoader() {
             "BODY END",
             "RESPONSE: 201 Created",
             "METHOD: HttpMethod(value=POST)",
-            "FROM: http://localhost:8080/logging/",
+            "FROM: http://localhost:8080/logging",
             "COMMON HEADERS",
             "???-> Connection: close",
             "???-> connection: keep-alive",
@@ -173,7 +173,7 @@ class LoggingTest : ClientLoader() {
                 method = HttpMethod.Post
 
                 url {
-                    encodedPath = "/logging/"
+                    encodedPath = "/logging"
                     port = serverPort
                 }
 
@@ -566,7 +566,7 @@ class LoggingTest : ClientLoader() {
                 method = requestMethod
 
                 url {
-                    encodedPath = "/logging/$path"
+                    encodedPath = if (path.isEmpty()) "/logging" else "/logging/$path"
                     port = serverPort
                 }
 

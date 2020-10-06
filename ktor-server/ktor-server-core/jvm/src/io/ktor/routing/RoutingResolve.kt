@@ -53,18 +53,11 @@ public class RoutingResolveContext(
     /**
      * List of path segments parsed out of a [call]
      */
-    public val segments: List<String>
+    public val segments: List<String> = parse(call.request.path())
 
-    private val trace: RoutingResolveTrace?
+    public val hasTrailingSlash: Boolean = call.request.path().endsWith('/')
 
-    init {
-        try {
-            segments = parse(call.request.path())
-            trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
-        } catch (cause: URLDecodeException) {
-            throw BadRequestException("Url decode failed for ${call.request.uri}", cause)
-        }
-    }
+    private val trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
 
     private fun parse(path: String): List<String> {
         if (path.isEmpty() || path == "/") return listOf()
