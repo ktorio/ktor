@@ -114,7 +114,7 @@ class URLBuilderTest {
 
     @Test
     fun testPathPartWithLeadingSlashes() {
-        assertEquals("http://localhost/asd", url { pathPart("asd///") })
+        assertEquals("http://localhost/asd", url { pathPart("///asd") })
     }
 
     @Test
