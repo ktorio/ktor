@@ -174,6 +174,12 @@ internal class URLBuilderTest {
         assertEquals("", url.encodedPath)
     }
 
+    @Test
+    fun testSurrogateInPath() {
+        val url = URLBuilder("http://www.ktor.io/path/🐕")
+        assertEquals("/path/%F0%9F%90%95", url.encodedPath)
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
