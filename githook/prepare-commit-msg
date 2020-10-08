@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+
+import sys
+
+ALLOW = 0
+RESTRICT = 1
+
+
+def is_integer(value: str) -> bool:
+    try:
+        int(value)
+        return True
+    except ValueError as _:
+        return False
+
+
+def is_correct_commit_message(message: str) -> bool:
+    issue_name = first_line.split(" ")[0]
+
+    # Allow fixup commits
+    if issue_name in ["fixup!", "WIP"]:
+        return True
+
+    if issue_name.startswith("~"):
+        return True
+
+    prefix = "KTOR-"
+    if issue_name.startswith(prefix) and is_integer(issue_name[len(prefix):]):
+        return True
+
+    print(f"Commit name should start with the issue number(like KTOR-1001). Current prefix is '{issue_name}'")
+    return False
+
+
+if __name__ == "__main__":
+    commit_message_filename: str = sys.argv[1]
+    with open(commit_message_filename) as file:
+        first_line: str = file.readline()
+
+    exit_code = ALLOW if is_correct_commit_message(first_line) else RESTRICT
+    exit(exit_code)
