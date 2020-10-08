@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -13,11 +13,11 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
 import java.io.*
 import kotlin.text.*
 
@@ -46,7 +46,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
         val transformed: Any? = when (query.type) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
-            InputStream::class -> channel.toInputStream()
+            InputStream::class -> receiveGuardedInputStream(channel)
             MultiPartData::class -> multiPartData(channel)
             String::class -> channel.readText(
                 charset = withContentType(call) { call.request.contentCharset() }
@@ -79,6 +79,19 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
         }
         if (transformed != null)
             proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.type in ReusableTypes))
+    }
+}
+
+private fun receiveGuardedInputStream(channel: ByteReadChannel): InputStream {
+    checkSafeParking()
+    return channel.toInputStream()
+}
+
+private fun checkSafeParking() {
+    check(safeToRunInPlace()) {
+        "Acquiring blocking primitives on this dispatcher is not allowed. " +
+            "Consider using async channel or " +
+            "doing withContext(Dispatchers.IO) { call.receive<InputStream>().use { ... } } instead."
     }
 }
 
