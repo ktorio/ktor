@@ -531,7 +531,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
                 "HTTP/1.0 400"
             )
 
-            assertTrue(expected.any { result.startsWith(it) },"Invalid response: $result")
+            assertTrue(expected.any { result.startsWith(it) }, "Invalid response: $result")
         }
     }
 }
