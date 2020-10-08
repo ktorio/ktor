@@ -481,7 +481,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
     public fun testEchoBlocking() {
         createAndStartServer {
             post("/") {
-                val text = call.receiveStream().bufferedReader().readText()
+                val text = withContext(Dispatchers.IO) { call.receiveStream().bufferedReader().readText() }
                 call.response.status(HttpStatusCode.OK)
                 call.respond(text)
             }
@@ -628,7 +628,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
     public fun testReceiveInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.receive<InputStream>().reader().readText())
+                call.respond(withContext(Dispatchers.IO) { call.receive<InputStream>().reader().readText() })
             }
         }
 
@@ -645,7 +645,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
     public fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.receiveStream().reader().readText())
+                call.respond(withContext(Dispatchers.IO) { call.receiveStream().reader().readText() })
             }
         }
 
