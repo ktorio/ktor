@@ -80,15 +80,27 @@ private fun String.checkNeedEscape(): Boolean {
 
     for (index in 0 until length) {
         when (this[index]) {
-            '\\',
-            '\n',
-            '\r',
-            '\"',
-            ' ',
-            '=',
-            ';',
+            '(',
+            ')',
+            '<',
+            '>',
+            '@',
             ',',
-            '/' -> return true
+            ';',
+            ':',
+            '\\',
+            '\"',
+            '/',
+            '[',
+            ']',
+            '?',
+            '=',
+            '{',
+            '}',
+            ' ',
+            '\t',
+            '\n',
+            '\r' -> return true
         }
     }
 
@@ -109,6 +121,7 @@ private fun String.quoteTo(out: StringBuilder) {
             '\\' -> out.append("\\\\")
             '\n' -> out.append("\\n")
             '\r' -> out.append("\\r")
+            '\t' -> out.append("\\t")
             '\"' -> out.append("\\\"")
             else -> out.append(ch)
         }
