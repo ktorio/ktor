@@ -18,7 +18,6 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
 import java.security.*
-import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -27,19 +26,21 @@ class TLSClientCertificateTest {
 
     @Test
     fun `Jetty Server requesting Client Certificate from CIO Client`() = runBlocking {
-        val keyStore = generateCertificateChain(File.createTempFile("test", "certificate"))
+        val ca = generateCertificate(File.createTempFile("caKeys", "jks"), isCA = true )
+        val serverKeys = ca.generateCertificate(File.createTempFile("server", "jks"))
+        val clientKeys = ca.generateCertificate(File.createTempFile("client", "jks"))
 
         val server = embeddedServer(
             Jetty, connectors = listOf(
                 EngineSSLConnectorBuilder(
                     keyAlias = "mykey",
-                    keyStore = keyStore,
+                    keyStore = serverKeys,
                     keyStorePassword = { "changeit".toCharArray() },
                     privateKeyPassword = { "changeit".toCharArray() },
                 ).apply {
                     this.host = "0.0.0.0"
                     this.port = 443
-                    trustStore = keyStore
+                    trustStore = ca
                 })
         ) {
             routing {
@@ -52,8 +53,8 @@ class TLSClientCertificateTest {
         val client = HttpClient(CIO) {
             engine {
                 https {
-                    trustManager = keyStore.trustManagers.first()
-                    addKeyStore(keyStore, "changeit".toCharArray())
+                    trustManager = ca.trustManagers.first()
+                    addKeyStore(clientKeys, "changeit".toCharArray())
                 }
             }
         }
