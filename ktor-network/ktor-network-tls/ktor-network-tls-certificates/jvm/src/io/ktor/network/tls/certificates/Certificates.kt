@@ -173,60 +173,54 @@ internal fun BytePacketBuilder.writeX509Info(
         val extensions = buildPacket {
             writeDerSequence {
                 if (isCA) {
-                    writeDerSequence {
-                        writeDerObjectIdentifier(OID.BasicConstraints)
-                        // CA certificate bit
-                        writeDerBoolean(true)
-                        writeDerOctetString {
-                            writeDerSequence {
-                                //Path Length Constraint Limit or true, if no limit
-                                writeDerBoolean(true)
-                            }
-                        }
-                    }
-                    /*writeDerSequence {
-                        writeDerObjectIdentifier(OID.KeyUsage)
-                        writeDerOctetString {
-                            writeDerUTF8String("110")
-                        }
-                    }
-                    writeDerSequence {
-                        writeDerObjectIdentifier(OID.AuthorityKeyIdentifier)
-                        writeDerOctetString {
-                            writeDerSequence {
-                                writeDerOctetString {
-
-                                }
-                            }
-                        }
-                    }*/
+                    caExtension()
                 } else {
-                    // subject alt name
-                    writeDerSequence {
-                        writeDerObjectIdentifier(OID.SubjectAltName)
-                        writeDerOctetString {
-                            writeDerSequence {
-                                for (domain in domains) {
-                                    writeX509Extension(2) {
-                                        // DNSName
-                                        writeFully(domain.toByteArray())
-                                    }
-                                }
-                                for (ip in ipAddresses) {
-                                    writeX509Extension(7) {
-                                        // IP address
-                                        writeFully(ip.address)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    subjectAlternativeNames(domains, ipAddresses)
                 }
             }
         }
 
         writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
+    }
+}
+
+private fun BytePacketBuilder.subjectAlternativeNames(
+    domains: List<String>,
+    ipAddresses: List<InetAddress>
+) {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.SubjectAltName)
+        writeDerOctetString {
+            writeDerSequence {
+                for (domain in domains) {
+                    writeX509Extension(2) {
+                        // DNSName
+                        writeFully(domain.toByteArray())
+                    }
+                }
+                for (ip in ipAddresses) {
+                    writeX509Extension(7) {
+                        // IP address
+                        writeFully(ip.address)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun BytePacketBuilder.caExtension() {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.BasicConstraints)
+        // CA certificate bit
+        writeDerBoolean(true)
+        writeDerOctetString {
+            writeDerSequence {
+                //Path Length Constraint Limit or true, if no limit
+                writeDerBoolean(true)
+            }
+        }
     }
 }
 
