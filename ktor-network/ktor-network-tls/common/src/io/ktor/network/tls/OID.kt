@@ -35,6 +35,14 @@ public data class OID(public val identifier: String) {
         public val RSAwithSHA1Encryption: OID = OID("1.2.840.113549.1.1.5")
 
         /**
+         * CA OID
+         * */
+        public val BasicConstraints: OID = OID("2.5.29.19")
+        public val KeyUsage: OID = OID("2.5.29.15")
+        public val AuthorityKeyIdentifier:OID =OID("2.5.29.35")
+        public val SubjectKeyIdentifier: OID =OID("2.5.29.14")
+
+        /**
          * EC curves
          */
         public val secp256r1: OID = OID("1.2.840.10045.3.1.7")
