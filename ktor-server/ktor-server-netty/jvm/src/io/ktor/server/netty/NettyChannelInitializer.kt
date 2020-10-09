@@ -98,8 +98,8 @@ public class NettyChannelInitializer(
                             ApplicationProtocolNames.HTTP_1_1
                         )
                     )
-                    connector.trustManagerFactory()?.let { this.trustManager(it) }
                 }
+                connector.trustManagerFactory()?.let { this.trustManager(it) }
             }
                 .build()
         }
@@ -176,7 +176,7 @@ public class NettyChannelInitializer(
     private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
         val trustStore = trustStore ?: trustStorePath?.let { file ->
             FileInputStream(file).use { fis ->
-                KeyStore.getInstance(KeyStore.getDefaultType()).also { it.load(fis, null) }
+                KeyStore.getInstance("JKS").also { it.load(fis, null) }
             }
         }
         return trustStore?.let { store ->

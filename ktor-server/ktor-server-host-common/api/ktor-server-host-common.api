@@ -213,9 +213,11 @@ public final class io/ktor/server/engine/EmbeddedServerKt {
 	public static final fun embeddedServer (Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static final fun embeddedServer (Lio/ktor/server/engine/ApplicationEngineFactory;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static final fun embeddedServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
+	public static final fun embeddedServer (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;[Lio/ktor/server/engine/EngineConnectorConfig;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lio/ktor/server/engine/ApplicationEngineFactory;Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 	public static synthetic fun embeddedServer$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;ILjava/lang/String;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
+	public static synthetic fun embeddedServer$default (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/server/engine/ApplicationEngineFactory;[Lio/ktor/server/engine/EngineConnectorConfig;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/engine/ApplicationEngine;
 }
 
 public abstract interface annotation class io/ktor/server/engine/EngineAPI : java/lang/annotation/Annotation {
@@ -270,11 +272,18 @@ public final class io/ktor/server/engine/EngineSSLConnectorBuilder : io/ktor/ser
 	public fun getKeyStore ()Ljava/security/KeyStore;
 	public fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
 	public fun getKeyStorePath ()Ljava/io/File;
+	public fun getPort ()I
 	public fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public fun getTrustStore ()Ljava/security/KeyStore;
+	public fun getTrustStorePath ()Ljava/io/File;
 	public fun setKeyAlias (Ljava/lang/String;)V
 	public fun setKeyStore (Ljava/security/KeyStore;)V
 	public fun setKeyStorePassword (Lkotlin/jvm/functions/Function0;)V
 	public fun setKeyStorePath (Ljava/io/File;)V
+	public fun setPort (I)V
+	public fun setPrivateKeyPassword (Lkotlin/jvm/functions/Function0;)V
+	public fun setTrustStore (Ljava/security/KeyStore;)V
+	public fun setTrustStorePath (Ljava/io/File;)V
 }
 
 public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig : io/ktor/server/engine/EngineConnectorConfig {
@@ -283,6 +292,8 @@ public abstract interface class io/ktor/server/engine/EngineSSLConnectorConfig :
 	public abstract fun getKeyStorePassword ()Lkotlin/jvm/functions/Function0;
 	public abstract fun getKeyStorePath ()Ljava/io/File;
 	public abstract fun getPrivateKeyPassword ()Lkotlin/jvm/functions/Function0;
+	public abstract fun getTrustStore ()Ljava/security/KeyStore;
+	public abstract fun getTrustStorePath ()Ljava/io/File;
 }
 
 public final class io/ktor/server/engine/ShutDownUrl {

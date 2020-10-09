@@ -79,11 +79,19 @@ public interface EngineSSLConnectorConfig : EngineConnectorConfig {
 
     /**
      * Store of trusted certificates for verifying the remote endpoint's certificate.
+     *
+     * The engine tries to use [trustStore] first and uses [trustStorePath] as a fallback.
+     *
+     * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
      */
     public val trustStore: KeyStore?
 
     /**
      * File with trusted certificates (JKS) for verifying the remote endpoint's certificate.
+     *
+     * The engine tries to use [trustStore] first and uses [trustStorePath] as a fallback.
+     *
+     * If [trustStore] and [trustStorePath] are both null, the endpoint's certificate will not be verified.
      */
     public val trustStorePath: File?
 }
@@ -129,9 +137,10 @@ public class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
     override var keyAlias: String,
     override var keyStorePassword: () -> CharArray,
-    override var privateKeyPassword: () -> CharArray,
+    override var privateKeyPassword: () -> CharArray
 ) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
     override var trustStore: KeyStore? = null
     override var trustStorePath: File? = null
+    override var port: Int = 443
 }

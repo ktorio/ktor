@@ -13,6 +13,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	public final fun getApplicationEngineFactory ()Lio/ktor/server/engine/ApplicationEngineFactory;
 	protected final fun getCallGroupSize ()I
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	protected final fun getEnableCertVerify ()Z
 	protected final fun getEnableHttp2 ()Z
 	protected final fun getEnableSsl ()Z
 	protected final fun getExceptions ()Ljava/util/ArrayList;
@@ -27,6 +28,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	public final fun getTimeoutRule ()Lkotlinx/coroutines/debug/junit4/CoroutinesTimeout;
 	protected final fun isUnderDebugger ()Z
 	protected fun plugins (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)V
+	protected final fun setEnableCertVerify (Z)V
 	protected final fun setEnableHttp2 (Z)V
 	protected final fun setEnableSsl (Z)V
 	protected final fun setPort (I)V
