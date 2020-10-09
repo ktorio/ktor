@@ -6,6 +6,10 @@ package io.ktor.http
 
 import io.ktor.util.*
 
+/** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
+private val HeaderFieldValueSeparators =
+    setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
+
 /**
  * Represents a header value that consist of [content] followed by [parameters].
  * Useful for headers such as `Content-Type`, `Content-Disposition` and so on.
@@ -79,29 +83,7 @@ private fun String.checkNeedEscape(): Boolean {
     if (isEmpty()) return true
 
     for (index in 0 until length) {
-        when (this[index]) {
-            '(',
-            ')',
-            '<',
-            '>',
-            '@',
-            ',',
-            ';',
-            ':',
-            '\\',
-            '\"',
-            '/',
-            '[',
-            ']',
-            '?',
-            '=',
-            '{',
-            '}',
-            ' ',
-            '\t',
-            '\n',
-            '\r' -> return true
-        }
+        if (HeaderFieldValueSeparators.contains(this[index])) return true
     }
 
     return false
