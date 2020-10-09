@@ -31,12 +31,12 @@ import java.util.concurrent.atomic.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
-    public fun testLoggerOnError() {
+    fun testLoggerOnError() {
         val message = "expected, ${Random().nextLong()}"
         val collected = LinkedBlockingQueue<Throwable>()
 
@@ -84,7 +84,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testIgnorePostContent(): Unit = runBlocking {
+    fun testIgnorePostContent(): Unit = runBlocking {
         createAndStartServer {
             post("/") {
                 call.respondText("OK")
@@ -136,7 +136,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     @Test
     @NoHttp2
     @Ignore
-    public open fun testChunkedWrongLength() {
+    open fun testChunkedWrongLength() {
         val data = ByteArray(16 * 1024, { it.toByte() })
         val doubleSize = (data.size * 2).toString()
         val halfSize = (data.size / 2).toString()
@@ -224,7 +224,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testApplicationScopeCancellation() {
+    fun testApplicationScopeCancellation() {
         var job: Job? = null
 
         createAndStartServer {
@@ -239,7 +239,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testEmbeddedServerCancellation() {
+    fun testEmbeddedServerCancellation() {
         val parent = Job()
 
         createAndStartServer(parent = parent) {
@@ -269,7 +269,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testGetWithBody() {
+    fun testGetWithBody() {
         createAndStartServer {
             application.install(Compression)
 
@@ -287,7 +287,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testRepeatRequest() {
+    fun testRepeatRequest() {
         createAndStartServer {
             get("/") {
                 call.respond("OK ${call.request.queryParameters["i"]}")
@@ -303,7 +303,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public open fun testBlockingConcurrency() {
+    open fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
         createAndStartServer {
             get("/{index}") {
@@ -363,7 +363,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testBigFile() {
+    fun testBigFile() {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
@@ -392,7 +392,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public fun testBigFileHttpUrlConnection() {
+    fun testBigFileHttpUrlConnection() {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
@@ -427,7 +427,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public open fun testBlockingDeadlock() {
+    open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") {
                 call.respondTextWriter(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
@@ -493,7 +493,7 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
     }
 
     @Test
-    public open fun testChunkedWithVSpace() {
+    open fun testChunkedWithVSpace() {
         createAndStartServer {
             post("/") {
                 try {
@@ -517,6 +517,48 @@ public abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConf
             "a=1\r\n",
             "0\r\n",
             "\r\n",
+        )
+
+        socket {
+            getOutputStream().writer().also { writer ->
+                messages.forEach { writer.write(it) }
+                writer.flush()
+            }
+
+            val result = getInputStream().reader().readLines().joinToString("\n")
+            val expected = listOf(
+                "HTTP/1.1 400",
+                "HTTP/1.0 400"
+            )
+
+            assertTrue(expected.any { result.startsWith(it) }, "Invalid response: $result")
+        }
+    }
+
+    @Test
+    fun testChunkedIsNotFinal() {
+        createAndStartServer {
+            get("/") {
+                call.respondText("Hello, world!", ContentType.Text.Html)
+            }
+            post("/"){
+                val post = call.receiveParameters()
+                call.respond("$post")
+            }
+        }
+
+        val messages = listOf(
+            "POST / HTTP/1.1\r\n",
+            "Host:localhost\r\n",
+            "Connection: close\r\n",
+            "Content-Length: 1\r\n",
+            "Content-Type: application/x-www-form-urlencoded\r\n",
+            "Transfer-Encoding: chunked, smuggle\r\n",
+            "\r\n",
+            "3\r\n",
+            "a=1\r\n",
+            "0\r\n",
+            "\r\n"
         )
 
         socket {
