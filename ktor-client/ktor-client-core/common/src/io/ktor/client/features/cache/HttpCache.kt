@@ -14,7 +14,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
 
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")
@@ -100,7 +99,7 @@ public class HttpCache(
 
                 if (response.status == HttpStatusCode.NotModified) {
                     response.complete()
-                    val responseFromCache = feature.findAndRefresh(response)
+                    val responseFromCache = feature.findAndRefresh(context.request, response)
                         ?: throw InvalidCacheStateException(context.request.url)
 
                     proceedWith(responseFromCache)
@@ -123,14 +122,23 @@ public class HttpCache(
         return cacheEntry.produceResponse()
     }
 
-    private fun findAndRefresh(response: HttpResponse): HttpResponse? {
+    private fun findAndRefresh(request: HttpRequest, response: HttpResponse): HttpResponse? {
         val url = response.call.request.url
         val cacheControl = response.cacheControl()
 
         val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
-        val cache = storage.find(url, response.varyKeys()) ?: return null
 
-        storage.store(url, HttpCacheEntry(response.cacheExpires(), response.varyKeys(), cache.response, cache.body))
+        val varyKeysFrom304 = response.varyKeys()
+        val cache = when {
+            varyKeysFrom304.isNullOrEmpty() -> storage.findByUrl(url)
+                .sortedByDescending { it.response.responseTime }
+                .firstOrNull { cachedResponse ->
+                    cachedResponse.varyKeys.all { (key, value) -> value == request.headers[key] ?: "" }
+                }
+            else -> storage.find(url, varyKeysFrom304)
+        } ?: return null
+        val newVaryKeys = if (varyKeysFrom304.isNullOrEmpty()) cache.varyKeys else varyKeysFrom304
+        storage.store(url, HttpCacheEntry(response.cacheExpires(), newVaryKeys, cache.response, cache.body))
         return cache.produceResponse()
     }
 
