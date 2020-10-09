@@ -30,9 +30,9 @@ public fun generateCertificate(
     keyAlias: String = "mykey",
     keyPassword: String = "changeit",
     jksPassword: String = keyPassword,
-    keySizeInBits: Int = 1024
+    keySizeInBits: Int = 1024,
+    isCA: Boolean = false
 ): KeyStore {
-    val daysValid: Long = 3
     val keyStore = KeyStore.getInstance("JKS")!!
     keyStore.load(null, null)
 
@@ -40,35 +40,92 @@ public fun generateCertificate(
     keyPairGenerator.initialize(keySizeInBits)
     val keyPair = keyPairGenerator.genKeyPair()!!
 
-    val id = Counterparty(
-        country = "RU",
-        organization = "JetBrains",
-        organizationUnit = "Kotlin",
-        commonName = "localhost"
-    )
+    val id = id(if(isCA) "localhostCA" else "localhost")
+    val cert = certificate(subject = id, issuer = id, keyPair = keyPair, signerKeyPair = keyPair, algorithm = algorithm, isCA = isCA)
 
+    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
+
+    file.parentFile?.mkdirs()
+    file.outputStream().use {
+        keyStore.store(it, jksPassword.toCharArray())
+    }
+    return keyStore
+}
+
+private fun id(commonName: String): Counterparty = Counterparty(
+    country = "RU",
+    organization = "JetBrains",
+    organizationUnit = "Kotlin",
+    commonName = commonName
+)
+
+private fun certificate(
+    subject: Counterparty,
+    issuer: Counterparty,
+    keyPair: KeyPair,
+    signerKeyPair: KeyPair,
+    algorithm: String,
+    daysValid: Long = 3,
+    isCA: Boolean = false
+): Certificate {
     val from = Date()
     val to = Date.from(LocalDateTime.now().plusDays(daysValid).atZone(ZoneId.systemDefault()).toInstant())
-
     val certificateBytes = buildPacket {
         writeCertificate(
-            issuer = id,
-            subject = id,
+            issuer = issuer,
+            subject = subject,
             keyPair = keyPair,
+            signerKeyPair = signerKeyPair,
             algorithm = algorithm,
             from = from,
             to = to,
             domains = listOf("127.0.0.1", "localhost"),
-            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
+            ipAddresses = listOf(Inet4Address.getByName("127.0.0.1")),
+            isCA = isCA
         )
     }.readBytes()
 
     val cert = CertificateFactory.getInstance("X.509").generateCertificate(certificateBytes.inputStream())
+    cert.verify(signerKeyPair.public)
+    return cert
+}
 
-    cert.verify(keyPair.public)
+/**
+ * Uses the given keystore as certificate CA [caKeyAlias] to generate a signed certificate with [keyAlias] name.
+ *
+ * All private keys are encrypted with [keyPassword] and stored in a JKS keystore in [file] with [jksPassword].
+ *
+ * Only for testing purposes: NEVER use it for production!
+ *
+ * A generated certificate will have 3 days validity period and 1024-bits key strength.
+ * Only localhost and 127.0.0.1 domains are valid with the certificate.
+ */
+public fun KeyStore.generateCertificate(
+    file: File,
+    algorithm: String = "SHA1withRSA",
+    keyAlias: String = "mykey",
+    keyPassword: String = "changeit",
+    jksPassword: String = keyPassword,
+    keySizeInBits: Int = 1024,
+    caKeyAlias: String = "mykey",
+    caPassword: String = "changeit"
+): KeyStore {
+    val caCert = getCertificate(caKeyAlias)
+    val ca = KeyPair(caCert.publicKey, getKey(caKeyAlias, caPassword.toCharArray()) as PrivateKey)
+
+    val keyStore = KeyStore.getInstance("JKS")!!
+    keyStore.load(null, null)
+
+    val keyPairGenerator = KeyPairGenerator.getInstance(keysGenerationAlgorithm(algorithm))!!
+    keyPairGenerator.initialize(keySizeInBits)
+
+    val certKeyPair = keyPairGenerator.genKeyPair()!!
+    val cert = certificate(issuer = id("localhostCA"), subject = id("localhost"),algorithm = algorithm, keyPair = certKeyPair, signerKeyPair = ca)
 
     keyStore.setCertificateEntry(keyAlias, cert)
-    keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
+    keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(cert, caCert))
+
 
     file.parentFile?.mkdirs()
     file.outputStream().use {
@@ -92,7 +149,8 @@ internal fun BytePacketBuilder.writeX509Info(
     from: Date,
     to: Date,
     domains: List<String>,
-    ipAddresses: List<InetAddress>
+    ipAddresses: List<InetAddress>,
+    isCA: Boolean = false
 ) {
     val version = BigInteger(64, SecureRandom())
 
@@ -114,31 +172,55 @@ internal fun BytePacketBuilder.writeX509Info(
         writeByte(0xa3.toByte())
         val extensions = buildPacket {
             writeDerSequence {
-                // subject alt name
-                writeDerSequence {
-                    writeDerObjectIdentifier(OID.SubjectAltName)
-                    writeDerOctetString {
-                        writeDerSequence {
-                            for (domain in domains) {
-                                writeX509Extension(2) {
-                                    // DNSName
-                                    writeFully(domain.toByteArray())
-                                }
-                            }
-                            for (ip in ipAddresses) {
-                                writeX509Extension(7) {
-                                    // IP address
-                                    writeFully(ip.address)
-                                }
-                            }
-                        }
-                    }
+                if (isCA) {
+                    caExtension()
+                } else {
+                    subjectAlternativeNames(domains, ipAddresses)
                 }
             }
         }
 
         writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
+    }
+}
+
+private fun BytePacketBuilder.subjectAlternativeNames(
+    domains: List<String>,
+    ipAddresses: List<InetAddress>
+) {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.SubjectAltName)
+        writeDerOctetString {
+            writeDerSequence {
+                for (domain in domains) {
+                    writeX509Extension(2) {
+                        // DNSName
+                        writeFully(domain.toByteArray())
+                    }
+                }
+                for (ip in ipAddresses) {
+                    writeX509Extension(7) {
+                        // IP address
+                        writeFully(ip.address)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun BytePacketBuilder.caExtension() {
+    writeDerSequence {
+        writeDerObjectIdentifier(OID.BasicConstraints)
+        // CA certificate bit
+        writeDerBoolean(true)
+        writeDerOctetString {
+            writeDerSequence {
+                //Path Length Constraint Limit or true, if no limit
+                writeDerBoolean(true)
+            }
+        }
     }
 }
 
@@ -191,17 +273,19 @@ internal fun BytePacketBuilder.writeCertificate(
     from: Date,
     to: Date,
     domains: List<String>,
-    ipAddresses: List<InetAddress>
+    ipAddresses: List<InetAddress>,
+    signerKeyPair: KeyPair = keyPair,
+    isCA: Boolean = false
 ) {
     require(to.after(from))
 
     val certInfo = buildPacket {
-        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses)
+        writeX509Info(algorithm, issuer, subject, keyPair.public, from, to, domains, ipAddresses, isCA)
     }
 
     val certInfoBytes = certInfo.readBytes()
     val signature = Signature.getInstance(algorithm)
-    signature.initSign(keyPair.private)
+    signature.initSign(signerKeyPair.private)
     signature.update(certInfoBytes)
     val signed = signature.sign()
 
@@ -408,6 +492,25 @@ private fun Int.derLength(): Int {
     }
 
     return byteCount
+}
+
+/**
+ * Boolean DER
+ *
+ * Tag: 1 (0x01)
+ * Length: 1 Byte (0x01)
+ * Value: 0b1111 1111 if true or 0b0000 0000 if false
+ */
+private fun BytePacketBuilder.writeDerBoolean(value: Boolean) {
+    writeDerType(0, 1, true)
+    writeDerLength(1)
+    writeUByte(value.toUByte())
+}
+
+private fun Boolean.toUByte(): UByte = if(this) {
+    255.toUByte()
+} else {
+    0.toUByte()
 }
 
 private fun BytePacketBuilder.writeDerInt(value: Int) {

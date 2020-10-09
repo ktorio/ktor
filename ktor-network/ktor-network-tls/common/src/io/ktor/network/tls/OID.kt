@@ -18,6 +18,11 @@ public data class OID(public val identifier: String) {
         public val SubjectAltName: OID = OID("2.5.29.17")
 
         /**
+         * CA OID
+         * */
+        public val BasicConstraints: OID = OID("2.5.29.19")
+
+        /**
          * Encryption OID
          */
         public val RSAEncryption: OID = OID("1 2 840 113549 1 1 1")
