@@ -83,9 +83,16 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
     }
 
     val expires = headers[HttpHeaders.Expires]
-    if(expires != null && expires.isNotBlank()) {
-        return expires.fromHttpToGmtDate()
-    } else return GMTDate()
+    return expires?.let {
+        // Handle "0" case faster
+        if (it == "0") return GMTDate()
+
+        return try {
+            it.fromHttpToGmtDate()
+        } catch (e: Throwable) {
+            GMTDate()
+        }
+    } ?: GMTDate()
 }
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
