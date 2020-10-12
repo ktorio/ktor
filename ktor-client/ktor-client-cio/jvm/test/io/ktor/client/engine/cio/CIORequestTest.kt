@@ -17,6 +17,7 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
+import java.nio.channels.*
 import kotlin.test.*
 import kotlin.test.Test
 
@@ -65,12 +66,9 @@ class CIORequestTest : TestWithKtor() {
 
         test { client ->
             for (i in 0..1000) {
-                println(i)
                 try {
                     client.get<String>("http://something.wrong")
-                } catch (cause: CancellationException) {
-                    throw cause
-                } catch (cause: Throwable) {
+                } catch (cause: UnresolvedAddressException) {
                     // ignore
                 }
             }
