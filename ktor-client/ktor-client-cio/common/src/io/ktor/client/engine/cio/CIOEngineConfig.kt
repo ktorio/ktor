@@ -16,6 +16,7 @@ public class CIOEngineConfig : HttpClientEngineConfig() {
      * [Endpoint] settings.
      */
     public val endpoint: EndpointConfig = EndpointConfig()
+
     /**
      * [https] settings.
      */
@@ -76,7 +77,17 @@ public class EndpointConfig {
     /**
      * Maximum number of connection attempts.
      */
-    public var connectRetryAttempts: Int = 1
+    @Deprecated("Misleading name.", replaceWith = ReplaceWith("connectAttempts"))
+    public var connectRetryAttempts: Int
+        get() = connectAttempts
+        set(value) {
+            connectAttempts = value
+        }
+
+    /**
+     * Maximum number of connection attempts.
+     */
+    public var connectAttempts: Int = 1
 
     /**
      * Allow socket to close output channel immediately on writing completion (TCP connection half close).
