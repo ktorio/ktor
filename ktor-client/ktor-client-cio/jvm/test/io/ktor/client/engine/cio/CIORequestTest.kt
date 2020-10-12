@@ -14,10 +14,17 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
+
+    @get:Rule
+    override val timeout = CoroutinesTimeout.seconds(10)
 
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
@@ -42,6 +49,30 @@ class CIORequestTest : TestWithKtor() {
                 header("LongHeader", headerValue)
             }.execute { response ->
                 assertEquals(headerValue, response.headers["LongHeader"])
+            }
+        }
+    }
+
+    @Test
+    fun testHangingTimeoutWithWrongUrl() = testWithEngine(CIO) {
+        config {
+            engine {
+                endpoint {
+                    connectTimeout = 1
+                }
+            }
+        }
+
+        test { client ->
+            for (i in 0..1000) {
+                println(i)
+                try {
+                    client.get<String>("http://something.wrong")
+                } catch (cause: CancellationException) {
+                    throw cause
+                } catch (cause: Throwable) {
+                    // ignore
+                }
             }
         }
     }
