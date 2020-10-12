@@ -60,61 +60,61 @@ class URLBuilderTest {
     }
 
     @Test
-    fun testPathPartNoFirstSlash() {
+    fun testPathComponentsNoFirstSlash() {
         val s = url {
             encodedPath = ""
-            pathPart("asd")
+            pathComponents("asd")
         }
 
         assertEquals("http://localhost/asd", s)
     }
 
     @Test
-    fun testPathPartFirstSlash() {
+    fun testPathComponentsFirstSlash() {
         val s = url {
             encodedPath = "/"
-            pathPart("/asd")
+            pathComponents("/asd")
         }
 
         assertEquals("http://localhost/asd", s)
     }
 
     @Test
-    fun testPathPartFunctionVararg() {
+    fun testPathComponentsFunctionVararg() {
         val s = url {
-            pathPart("a", "b")
+            pathComponents("a", "b")
         }
 
         assertEquals("http://localhost/a/b", s)
     }
 
     @Test
-    fun testPathPartFunctionList() {
+    fun testPathComponentsFunctionList() {
         val s = url {
-            pathPart(listOf("a", "b"))
+            pathComponents(listOf("a", "b"))
         }
 
         assertEquals("http://localhost/a/b", s)
     }
 
     @Test
-    fun testPathPartWithSpace() {
-        assertEquals("http://localhost/a%20b/c", url { pathPart("a b", "c") })
+    fun testPathComponentsWithSpace() {
+        assertEquals("http://localhost/a%20b/c", url { pathComponents("a b", "c") })
     }
 
     @Test
-    fun testPathPartWithPlus() {
-        assertEquals("http://localhost/a+b/c", url { pathPart("a+b", "c") })
+    fun testPathComponentsWithPlus() {
+        assertEquals("http://localhost/a+b/c", url { pathComponents("a+b", "c") })
     }
 
     @Test
-    fun testPathPartWithTrailingSlashes() {
-        assertEquals("http://localhost/asd", url { pathPart("asd///") })
+    fun testPathComponentsWithTrailingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("asd///") })
     }
 
     @Test
-    fun testPathPartWithLeadingSlashes() {
-        assertEquals("http://localhost/asd", url { pathPart("///asd") })
+    fun testPathComponentsWithLeadingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("///asd") })
     }
 
     @Test

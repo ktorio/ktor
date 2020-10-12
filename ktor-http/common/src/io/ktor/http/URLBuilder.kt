@@ -192,10 +192,10 @@ public val URLBuilder.authority: String
 
 
 /**
- * Adds [parts] to current [encodedPath]
+ * Adds [components] to current [encodedPath]
  */
-public fun URLBuilder.pathPart(parts: List<String>): URLBuilder {
-    var paths = parts
+public fun URLBuilder.pathComponents(components: List<String>): URLBuilder {
+    var paths = components
         .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' }.encodeURLQueryComponent() }
         .filter { it.isNotEmpty() }
         .joinToString("/")
@@ -211,8 +211,8 @@ public fun URLBuilder.pathPart(parts: List<String>): URLBuilder {
 
 
 /**
- * Adds [parts] to current [encodedPath]
+ * Adds [components] to current [encodedPath]
  */
-public fun URLBuilder.pathPart(vararg parts: String): URLBuilder {
-    return pathPart(parts.toList())
+public fun URLBuilder.pathComponents(vararg components: String): URLBuilder {
+    return pathComponents(components.toList())
 }
