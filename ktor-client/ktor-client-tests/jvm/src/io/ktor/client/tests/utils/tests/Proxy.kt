@@ -25,16 +25,16 @@ public suspend fun proxyHandler(socket: Socket) {
         val line = input.readUTF8Line() ?: ""
         requestData.append(line).append("\n")
 
-	if (line.isNotEmpty()) continue
-	if (statusLine == null || !statusLine.startsWith("CONNECT ")) break
+        if (line.isNotEmpty()) continue
+        if (statusLine == null || !statusLine.startsWith("CONNECT ")) break
 
-	if (handleProxyTunnel(statusLine, input, output)) {
-	    return
-	}
+        if (handleProxyTunnel(statusLine, input, output)) {
+            return
+        }
 
-	statusLine = input.readUTF8Line()
-	requestData.clear()
-	requestData.append(statusLine).append("\n")
+        statusLine = input.readUTF8Line()
+        requestData.clear()
+        requestData.append(statusLine).append("\n")
     }
 
     val response = when (statusLine) {
