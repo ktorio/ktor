@@ -29,18 +29,7 @@ internal fun startServer(): Closeable {
         benchmarks()
     }.start()
 
-    val file = File("build/client-tls-test-server.jks")
-    val testKeyStore = generateCertificate(file)
-    val tlsServer = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(testKeyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }, {
-            this.port = DEFAULT_TLS_PORT
-            this.keyStorePath = file
-        })
-
-        module {
-            tlsTests()
-        }
-    })
+    val tlsServer = setupTLSServer()
     tlsServer.start()
 
     Thread.sleep(1000)
@@ -64,3 +53,22 @@ public fun main() {
         handler.close()
     }
 }
+
+private fun setupTLSServer(): ApplicationEngine {
+    val file = File("build/client-tls-test-server.jks")
+    val testKeyStore = generateCertificate(file)
+    val tlsServer = embeddedServer(Jetty, applicationEngineEnvironment {
+        sslConnector(testKeyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }, {
+            this.port = DEFAULT_TLS_PORT
+            this.keyStorePath = file
+        })
+
+        module {
+            tlsTests()
+        }
+    })
+
+    return tlsServer
+}
+
+
