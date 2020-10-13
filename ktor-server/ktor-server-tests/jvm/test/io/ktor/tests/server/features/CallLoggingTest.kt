@@ -74,7 +74,7 @@ class CallLoggingTest {
             handleRequest(HttpMethod.Get, "/")
         }
 
-        assertTrue("TRACE: Unhandled: GET - /" in messages)
+        assertTrue("TRACE: 404 Not Found: GET - /" in messages)
     }
 
     @Test
