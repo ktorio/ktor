@@ -179,7 +179,7 @@ class CIOHttpsTest : TestWithKtor() {
                 maxConnectionsCount = 1_000_000
                 pipelining = true
                 endpoint.apply {
-                    connectRetryAttempts = 1
+                    connectAttempts = 1
                     maxConnectionsPerRoute = 10_000
                 }
             }
