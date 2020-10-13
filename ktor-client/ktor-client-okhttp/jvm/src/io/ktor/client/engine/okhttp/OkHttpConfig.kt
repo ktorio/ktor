@@ -10,7 +10,7 @@ import okhttp3.*
 /**
  * Configuration for [OkHttp] client engine.
  */
-class OkHttpConfig : HttpClientEngineConfig() {
+public class OkHttpConfig : HttpClientEngineConfig() {
 
     internal var config: OkHttpClient.Builder.() -> Unit = {
         followRedirects(false)
@@ -21,17 +21,17 @@ class OkHttpConfig : HttpClientEngineConfig() {
     /**
      * Preconfigured [OkHttpClient] instance instead of configuring one.
      */
-    var preconfigured: OkHttpClient? = null
+    public var preconfigured: OkHttpClient? = null
 
     /**
      * Size of the cache that keeps least recently used [OkHttpClient] instances. Set "0" to avoid caching.
      */
-    var clientCacheSize: Int = 10
+    public var clientCacheSize: Int = 10
 
     /**
      * Configure [OkHttpClient] using [OkHttpClient.Builder].
      */
-    fun config(block: OkHttpClient.Builder.() -> Unit) {
+    public fun config(block: OkHttpClient.Builder.() -> Unit) {
         val oldConfig = config
         config = {
             oldConfig()
@@ -43,7 +43,7 @@ class OkHttpConfig : HttpClientEngineConfig() {
     /**
      * Add [Interceptor] to [OkHttp] client.
      */
-    fun addInterceptor(interceptor: Interceptor) {
+    public fun addInterceptor(interceptor: Interceptor) {
         config {
             addInterceptor(interceptor)
         }
@@ -52,7 +52,7 @@ class OkHttpConfig : HttpClientEngineConfig() {
     /**
      * Add network [Interceptor] to [OkHttp] client.
      */
-    fun addNetworkInterceptor(interceptor: Interceptor) {
+    public fun addNetworkInterceptor(interceptor: Interceptor) {
         config {
             addNetworkInterceptor(interceptor)
         }

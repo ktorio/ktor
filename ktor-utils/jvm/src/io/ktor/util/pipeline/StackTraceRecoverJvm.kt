@@ -4,6 +4,8 @@
 
 package io.ktor.util.pipeline
 
+import io.ktor.utils.io.*
+
 internal actual fun Throwable.withCause(cause: Throwable?): Throwable {
     if (cause == null || this.cause == cause) {
         return this

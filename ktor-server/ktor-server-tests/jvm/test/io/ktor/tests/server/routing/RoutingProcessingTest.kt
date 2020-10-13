@@ -13,8 +13,13 @@ import io.ktor.server.testing.*
 import org.junit.Test
 import kotlin.test.*
 
+private enum class SelectedRoute { Get, Param, Header, None }
+private class Foo
+
 class RoutingProcessingTest {
-    @Test fun `routing on GET foo-bar`() = withTestApplication {
+
+    @Test
+    fun testRoutingOnGETFooBar() = withTestApplication {
         application.routing {
             get("/foo/bar") {
                 call.respond(HttpStatusCode.OK)
@@ -45,7 +50,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `routing on GET user with parameter`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserWithParameter() = withTestApplication {
         var username = ""
         application.routing {
             route("user") {
@@ -70,7 +76,8 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `routing on GET user with surrounded parameter`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserWithSurroundedParameter() = withTestApplication {
         var username = ""
         application.routing {
             get("/user-{name}-get") {
@@ -89,7 +96,132 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `verify most specific selected`() = withTestApplication {
+    @Test
+    fun testRoutingOnParamRoute() = withTestApplication {
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("test") {
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                get {
+                    selectedRoute = SelectedRoute.Get
+                }
+            }
+        }
+        on("making get request to /test with `param` query parameter") {
+            handleRequest {
+                uri = "/test?param=value"
+                method = HttpMethod.Get
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making get request to /test without `param` query parameter") {
+            handleRequest {
+                uri = "/test"
+                method = HttpMethod.Get
+            }
+            it("should choose get routing") {
+                assertEquals(selectedRoute, SelectedRoute.Get)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingOnOptionalParamRoute() = withTestApplication {
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("test") {
+                optionalParam("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                get {
+                    selectedRoute = SelectedRoute.Get
+                }
+            }
+        }
+        on("making get request to /test with `param` query parameter") {
+            handleRequest {
+                uri = "/test?param=value"
+                method = HttpMethod.Get
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making get request to /test without `param` query parameter") {
+            handleRequest {
+                uri = "/test"
+                method = HttpMethod.Get
+            }
+            it("should choose get routing") {
+                assertEquals(selectedRoute, SelectedRoute.Get)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingOnRoutesWithSameQualityShouldBeBasedOnOrder() = withTestApplication {
+        // `accept {}` and `param {}` use quality = 1.0
+        var selectedRoute = SelectedRoute.None
+        application.routing {
+            route("paramFirst") {
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+
+                accept(ContentType.Text.Plain) {
+                    handle {
+                        selectedRoute = SelectedRoute.Header
+                    }
+                }
+            }
+            route("headerFirst") {
+                accept(ContentType.Text.Plain) {
+                    handle {
+                        selectedRoute = SelectedRoute.Header
+                    }
+                }
+
+                param("param") {
+                    handle {
+                        selectedRoute = SelectedRoute.Param
+                    }
+                }
+            }
+        }
+        on("making request to /paramFirst with `param` query parameter and accept header") {
+            handleRequest {
+                uri = "/paramFirst?param=value"
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }
+            it("should choose param routing") {
+                assertEquals(selectedRoute, SelectedRoute.Param)
+            }
+        }
+        on("making request to /headerFirst with `param` query parameter and accept header") {
+            handleRequest {
+                uri = "/headerFirst?param=value"
+                addHeader(HttpHeaders.Accept, "text/plain")
+            }
+            it("should choose header routing") {
+                assertEquals(selectedRoute, SelectedRoute.Header)
+            }
+        }
+    }
+
+    @Test
+    fun testMostSpecificSelected() = withTestApplication {
         var path = ""
         application.routing {
             get("{path...}") {
@@ -119,7 +251,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `routing on GET -user-username with interceptors`() = withTestApplication {
+    @Test
+    fun testRoutingOnGETUserUsernameWithInterceptors() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -152,7 +285,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be after`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeAfter() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -190,7 +324,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of phase`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfPhase() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -228,7 +363,8 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of order`() = withTestApplication {
+    @Test
+    fun testInterceptionOrderWhenOuterShouldBeBeforeBecauseOfOrder() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -266,8 +402,8 @@ class RoutingProcessingTest {
         }
     }
 
-    class Foo
-    @Test fun `intercept receive pipeline`() = withTestApplication {
+    @Test
+    fun testInterceptReceivePipeline() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false
@@ -308,7 +444,8 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `verify accept header processing`() = withTestApplication {
+    @Test
+    fun testAcceptHeaderProcessing() = withTestApplication {
         application.routing {
             route("/") {
                 accept(ContentType.Text.Plain) {
@@ -358,7 +495,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `host and port routing processing`(): Unit = withTestApplication {
+    fun testHostAndPortRoutingProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
                 host("my-host", 8080) {
@@ -454,7 +591,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `local port route processing`(): Unit = withTestApplication {
+    fun testLocalPortRouteProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
                 // TestApplicationRequest.local defaults to 80 in the absence of headers
@@ -493,7 +630,7 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun `routing with tracing`() = withTestApplication {
+    fun testRoutingWithTracing() = withTestApplication {
         var trace: RoutingResolveTrace? = null
         application.routing {
             trace {
@@ -656,6 +793,36 @@ class RoutingProcessingTest {
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
 """.toPlatformLineSeparators(), trace?.buildText())
+        }
+    }
+
+    @Test
+    fun testRouteWithParamaterPrefixAndSuffixHasMorePriority() = withTestApplication {
+        application.routing {
+            get("/foo:{baz}") {
+                call.respondText("foo")
+            }
+            get("/{baz}") {
+                call.respondText("baz")
+            }
+            get("/{baz}:bar") {
+                call.respondText("bar")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/foo:bar").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "foo")
+        }
+
+        handleRequest(HttpMethod.Get, "/baz").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "baz")
+        }
+
+        handleRequest(HttpMethod.Get, "/baz:bar").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(call.response.content, "bar")
         }
     }
 

@@ -8,6 +8,8 @@ project.ext.registerInteropAsSourceSetOutput = { interopName, sourceSet ->
             it.konanTarget == hostManager.Companion.getHost()
         }
 
+        if (currentHostKotlinTarget == null) return
+
         def interop = currentHostKotlinTarget.compilations["main"].cinterops[interopName]
         def cinteropTask = tasks.named(interop.interopProcessingTaskName)
         def cinteropKlib = cinteropTask.map { it.outputFile }

@@ -17,7 +17,7 @@ import java.util.concurrent.*
  *
  * This is intended for development.
  */
-class SessionStorageMemory : SessionStorage {
+public class SessionStorageMemory : SessionStorage {
     private val sessions = ConcurrentHashMap<String, ByteArray>()
 
     override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {

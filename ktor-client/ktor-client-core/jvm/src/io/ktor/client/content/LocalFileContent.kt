@@ -16,8 +16,8 @@ import java.io.*
  *
  * @param file specifies the File to be served to a client
  */
-class LocalFileContent(
-    val file: File,
+public class LocalFileContent(
+    public val file: File,
     override val contentType: ContentType = ContentType.defaultForFile(file)
 ) : OutgoingContent.ReadChannelContent() {
 
@@ -31,7 +31,7 @@ class LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(
+public fun LocalFileContent(
     baseDir: File, relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)

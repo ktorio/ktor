@@ -12,23 +12,23 @@ import javax.net.ssl.*
 /**
  * [TLSConfig] builder.
  */
-class TLSConfigBuilder {
+public actual class TLSConfigBuilder {
     /**
      * List of client certificate chains with private keys.
      */
-    val certificates: MutableList<CertificateAndKey> = mutableListOf()
+    public val certificates: MutableList<CertificateAndKey> = mutableListOf()
 
     /**
      * [SecureRandom] to use in encryption.
      */
-    var random: SecureRandom? = null
+    public var random: SecureRandom? = null
 
     /**
      * Custom [X509TrustManager] to verify server authority.
      *
      * Use system by default.
      */
-    var trustManager: TrustManager? = null
+    public var trustManager: TrustManager? = null
         set(value) {
             value?.let {
                 check(it is X509TrustManager) {
@@ -42,18 +42,18 @@ class TLSConfigBuilder {
     /**
      * List of allowed [CipherSuite]s.
      */
-    var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
+    public var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
 
     /**
      * Custom server name for TLS server name extension.
      * See also: https://en.wikipedia.org/wiki/Server_Name_Indication
      */
-    var serverName: String? = null
+    public actual var serverName: String? = null
 
     /**
      * Create [TLSConfig].
      */
-    fun build(): TLSConfig = TLSConfig(
+    public actual fun build(): TLSConfig = TLSConfig(
         random ?: SecureRandom(),
         certificates, trustManager as? X509TrustManager ?: findTrustManager(),
         cipherSuites, serverName
@@ -61,16 +61,27 @@ class TLSConfigBuilder {
 }
 
 /**
+ * Append config from [other] builder.
+ */
+public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
+    certificates += other.certificates
+    random = other.random
+    cipherSuites = other.cipherSuites
+    serverName = other.serverName
+    trustManager = other.trustManager
+}
+
+/**
  * Add client certificate chain to use.
  */
-fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
+public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
     certificates += CertificateAndKey(chain, key)
 }
 
 /**
  * Add client certificates from [store].
  */
-fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
@@ -99,7 +110,7 @@ fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
 /**
  * Throws if failed to find [PrivateKey] for any alias in [KeyStore].
  */
-class NoPrivateKeyException(
+public class NoPrivateKeyException(
     private val alias: String, private val store: KeyStore
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {

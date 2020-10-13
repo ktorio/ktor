@@ -2,19 +2,19 @@ package io.ktor.utils.io.errors
 
 import io.ktor.utils.io.core.*
 
-expect open class IOException(message: String, cause: Throwable?) : Exception {
-    constructor(message: String)
+public expect open class IOException(message: String, cause: Throwable?) : Exception {
+    public constructor(message: String)
 }
 
-expect open class EOFException(message: String) : IOException
+public expect open class EOFException(message: String) : IOException
 
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated("Not implemented.", level = DeprecationLevel.ERROR)
-fun <R> TODO_ERROR(value: R): Nothing = TODO("Not implemented. Value is $value")
+public fun <R> TODO_ERROR(value: R): Nothing = TODO("Not implemented. Value is $value")
 
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated("Not implemented.", level = DeprecationLevel.ERROR)
-fun TODO_ERROR(): Nothing = TODO("Not implemented.")
+public fun TODO_ERROR(): Nothing = TODO("Not implemented.")
 
 internal fun checkPeekTo(destination: Buffer, offset: Int, min: Int, max: Int) {
     io.ktor.utils.io.core.internal.require(offset >= 0) { "offset shouldn't be negative: $offset." }

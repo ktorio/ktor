@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import kotlin.test.*
 
 class DigestProviderTest {
@@ -25,40 +26,44 @@ class DigestProviderTest {
     private val authMissingQopAndOpaque =
         "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", snonce=\"server-nonce\", cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\""
 
-    private val digestAuthProvider = DigestAuthProvider("username", "password", "realm")
+    private val digestAuthProvider by lazy { DigestAuthProvider("username", "password", "realm") }
 
     lateinit var requestBuilder: HttpRequestBuilder
 
     @BeforeTest
     fun setup() {
+        if (!PlatformUtils.IS_JVM) return
         val params = ParametersBuilder(1)
         params.append(paramName, paramValue)
-        requestBuilder =
-            HttpRequestBuilder { takeFrom(URLBuilder(encodedPath = path, parameters = params, trailingQuery = true)) }
+
+        val url = URLBuilder(encodedPath = path, parameters = params, trailingQuery = true)
+        requestBuilder = HttpRequestBuilder {
+            takeFrom(url)
+        }
     }
 
     @Test
-    fun addRequestHeadersSetsExpectedAuthHeaderFields() {
+    fun addRequestHeadersSetsExpectedAuthHeaderFields() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
         runIsApplicable(authAllFields)
-        testSuspend {
-            val authHeader = addRequestHeaders()
+        val authHeader = addRequestHeaders()
 
-            assertTrue(authHeader.contains("qop=qop"))
-            assertTrue(authHeader.contains("opaque=opaque"))
-            checkStandardFields(authHeader)
-        }
+        assertTrue(authHeader.contains("qop=qop"))
+        assertTrue(authHeader.contains("opaque=opaque"))
+        checkStandardFields(authHeader)
     }
 
     @Test
-    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() {
-        runIsApplicable(authMissingQopAndOpaque)
-        testSuspend {
-            val authHeader = addRequestHeaders()
+    fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
 
-            assertFalse(authHeader.contains("opaque="))
-            assertFalse(authHeader.contains("qop="))
-            checkStandardFields(authHeader)
-        }
+        runIsApplicable(authMissingQopAndOpaque)
+        val authHeader = addRequestHeaders()
+
+        assertFalse(authHeader.contains("opaque="))
+        assertFalse(authHeader.contains("qop="))
+        checkStandardFields(authHeader)
     }
 
     private fun runIsApplicable(headerValue: String) =
@@ -73,6 +78,8 @@ class DigestProviderTest {
         assertTrue(authHeader.contains("realm=realm"))
         assertTrue(authHeader.contains("username=username"))
         assertTrue(authHeader.contains("nonce=nonce"))
-        assertTrue(authHeader.contains("uri=\"/$path?$paramName=$paramValue\""))
+
+        val uriPattern = "uri=\"/$path?$paramName=$paramValue\""
+        assertTrue(authHeader.contains(uriPattern))
     }
 }

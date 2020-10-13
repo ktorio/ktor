@@ -10,7 +10,7 @@ import io.ktor.util.*
  * Mutable application config backed by a hash map
  */
 @KtorExperimentalAPI
-open class MapApplicationConfig : ApplicationConfig {
+public open class MapApplicationConfig : ApplicationConfig {
     /**
      * A backing map for this config
      */
@@ -26,20 +26,20 @@ open class MapApplicationConfig : ApplicationConfig {
         this.path = path
     }
 
-    constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
-    constructor() : this(mutableMapOf<String, String>(), "")
+    public constructor(vararg values: Pair<String, String>) : this(mutableMapOf(*values), "")
+    public constructor() : this(mutableMapOf<String, String>(), "")
 
     /**
      * Set property value
      */
-    fun put(path: String, value: String) {
+    public fun put(path: String, value: String) {
         map[path] = value
     }
 
     /**
      * Put list property value
      */
-    fun put(path: String, values: Iterable<String>) {
+    public fun put(path: String, values: Iterable<String>) {
         var size = 0
         values.forEachIndexed { i, value ->
             put(combine(path, i.toString()), value)
@@ -77,7 +77,10 @@ open class MapApplicationConfig : ApplicationConfig {
      * @property path to this value
      */
     @KtorExperimentalAPI
-    protected class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
+    protected class MapApplicationConfigValue(
+        public val map: Map<String, String>,
+        public val path: String
+    ) : ApplicationConfigValue {
         override fun getString(): String = map[path]!!
         override fun getList(): List<String> {
             val size = map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")

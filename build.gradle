@@ -99,6 +99,15 @@ def check(Object version, String libVersion, String libName) {
     }
 }
 
+def disabledExplicitApiModeProjects = [
+    "ktor-client-tests",
+    "ktor-server-benchmarks",
+    "ktor-client-json-tests",
+    "ktor-server-test-host",
+    "ktor-server-test-suites",
+    "ktor-server-tests"
+]
+
 apply from: 'gradle/compatibility.gradle'
 
 allprojects {
@@ -160,11 +169,13 @@ allprojects {
         }
     }
 
-
-
     configurations { testOutput }
 
     kotlin {
+        if (!disabledExplicitApiModeProjects.contains(project.name)){
+            explicitApi()
+        }
+
         sourceSets.matching { !(it.name in ["jmh", "main", "test"]) }.all {
             def srcDir = name.endsWith("Main") ? "src" : "test"
             def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
@@ -189,7 +200,6 @@ allprojects {
         apply from: rootProject.file('gradle/publish.gradle')
     }
 }
-
 
 task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport) {
     def rootAllTest = it

@@ -7,21 +7,21 @@ package io.ktor.sessions
 /**
  * Represents a session cookie transformation. Useful for such things like signing and encryption
  */
-interface SessionTransportTransformer {
+public interface SessionTransportTransformer {
     /**
      * Un-apply a transformation for [transportValue] representing a transformed session.
      * Returns null if it fails.
      *
      * @return Untransformed value or null
      */
-    fun transformRead(transportValue: String): String?
+    public fun transformRead(transportValue: String): String?
 
     /**
      * Apply a transformation for [transportValue] representing a session.
      *
      * @return Transformed value
      */
-    fun transformWrite(transportValue: String): String
+    public fun transformWrite(transportValue: String): String
 }
 
 /**
@@ -30,7 +30,7 @@ interface SessionTransportTransformer {
  *
  * @return A string representing the original session contents.
  */
-fun List<SessionTransportTransformer>.transformRead(cookieValue: String?): String? {
+public fun List<SessionTransportTransformer>.transformRead(cookieValue: String?): String? {
     val value = cookieValue ?: return null
     return this.asReversed().fold(value) { v, t -> t.transformRead(v) ?: return null }
 }
@@ -40,6 +40,6 @@ fun List<SessionTransportTransformer>.transformRead(cookieValue: String?): Strin
  *
  * @return A string containing all the transformations applied.
  */
-fun List<SessionTransportTransformer>.transformWrite(value: String): String {
+public fun List<SessionTransportTransformer>.transformWrite(value: String): String {
     return fold(value) { it, transformer -> transformer.transformWrite(it) }
 }

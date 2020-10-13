@@ -5,75 +5,75 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 
 
-fun Output.writeShort(value: Short, byteOrder: ByteOrder) {
+public fun Output.writeShort(value: Short, byteOrder: ByteOrder) {
     writePrimitiveTemplate(value, byteOrder, { writeShort(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeInt(value: Int, byteOrder: ByteOrder) {
+public fun Output.writeInt(value: Int, byteOrder: ByteOrder) {
     writePrimitiveTemplate(value, byteOrder, { writeInt(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeLong(value: Long, byteOrder: ByteOrder) {
+public fun Output.writeLong(value: Long, byteOrder: ByteOrder) {
     writePrimitiveTemplate(value, byteOrder, { writeLong(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeFloat(value: Float, byteOrder: ByteOrder) {
+public fun Output.writeFloat(value: Float, byteOrder: ByteOrder) {
     writePrimitiveTemplate(value, byteOrder, { writeFloat(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeDouble(value: Double, byteOrder: ByteOrder) {
+public fun Output.writeDouble(value: Double, byteOrder: ByteOrder) {
     writePrimitiveTemplate(value, byteOrder, { writeDouble(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeShortLittleEndian(value: Short) {
+public fun Output.writeShortLittleEndian(value: Short) {
     writePrimitiveTemplate(value, { writeShort(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeIntLittleEndian(value: Int) {
+public fun Output.writeIntLittleEndian(value: Int) {
     writePrimitiveTemplate(value, { writeInt(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeLongLittleEndian(value: Long) {
+public fun Output.writeLongLittleEndian(value: Long) {
     writePrimitiveTemplate(value, { writeLong(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeFloatLittleEndian(value: Float) {
+public fun Output.writeFloatLittleEndian(value: Float) {
     writePrimitiveTemplate(value, { writeFloat(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeDoubleLittleEndian(value: Double) {
+public fun Output.writeDoubleLittleEndian(value: Double) {
     writePrimitiveTemplate(value, { writeDouble(it) }, { reverseByteOrder() })
 }
 
-fun Output.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asShortArray(), offset, length)
 }
 
-fun Buffer.writeShortLittleEndian(value: Short) {
+public fun Buffer.writeShortLittleEndian(value: Short) {
     writePrimitiveTemplate(value, { writeShort(it) }, { reverseByteOrder() })
 }
 
-fun Buffer.writeIntLittleEndian(value: Int) {
+public fun Buffer.writeIntLittleEndian(value: Int) {
     writePrimitiveTemplate(value, { writeInt(it) }, { reverseByteOrder() })
 }
 
-fun Buffer.writeLongLittleEndian(value: Long) {
+public fun Buffer.writeLongLittleEndian(value: Long) {
     writePrimitiveTemplate(value, { writeLong(it) }, { reverseByteOrder() })
 }
 
-fun Buffer.writeFloatLittleEndian(value: Float) {
+public fun Buffer.writeFloatLittleEndian(value: Float) {
     writePrimitiveTemplate(value, { writeFloat(it) }, { reverseByteOrder() })
 }
 
-fun Buffer.writeDoubleLittleEndian(value: Double) {
+public fun Buffer.writeDoubleLittleEndian(value: Double) {
     writePrimitiveTemplate(value, { writeDouble(it) }, { reverseByteOrder() })
 }
 
-fun Buffer.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: UShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asShortArray(), offset, length)
 }
 
-fun Output.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -81,11 +81,11 @@ fun Output.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: I
         { writeShort(source[it].reverseByteOrder()) })
 }
 
-fun Output.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asIntArray(), offset, length)
 }
 
-fun Output.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -93,11 +93,11 @@ fun Output.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int
         { writeInt(source[it].reverseByteOrder()) })
 }
 
-fun Output.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asLongArray(), offset, length)
 }
 
-fun Output.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -105,7 +105,7 @@ fun Output.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: In
         { writeLong(source[it].reverseByteOrder()) })
 }
 
-fun Output.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -113,7 +113,7 @@ fun Output.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: I
         { writeFloat(source[it].reverseByteOrder()) })
 }
 
-fun Output.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Output.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -121,7 +121,7 @@ fun Output.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: 
         { writeDouble(source[it].reverseByteOrder()) })
 }
 
-fun Buffer.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -129,11 +129,11 @@ fun Buffer.writeFullyLittleEndian(source: ShortArray, offset: Int = 0, length: I
         { writeShort(source[it].reverseByteOrder()) })
 }
 
-fun Buffer.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: UIntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asIntArray(), offset, length)
 }
 
-fun Buffer.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -141,11 +141,11 @@ fun Buffer.writeFullyLittleEndian(source: IntArray, offset: Int = 0, length: Int
         { writeInt(source[it].reverseByteOrder()) })
 }
 
-fun Buffer.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: ULongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeFullyLittleEndian(source.asLongArray(), offset, length)
 }
 
-fun Buffer.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -153,7 +153,7 @@ fun Buffer.writeFullyLittleEndian(source: LongArray, offset: Int = 0, length: In
         { writeLong(source[it].reverseByteOrder()) })
 }
 
-fun Buffer.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,
@@ -161,7 +161,7 @@ fun Buffer.writeFullyLittleEndian(source: FloatArray, offset: Int = 0, length: I
         { writeFloat(source[it].reverseByteOrder()) })
 }
 
-fun Buffer.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: Int = source.size - offset) {
+public fun Buffer.writeFullyLittleEndian(source: DoubleArray, offset: Int = 0, length: Int = source.size - offset) {
     writeArrayTemplate(
         offset,
         length,

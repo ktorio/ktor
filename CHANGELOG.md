@@ -1,3 +1,104 @@
+# 1.4.1
+> Published 23 Sep 2020
+
+* OkHttp: Can't reuse same HttpRequestBuilder for different network clients ([KTOR-949](https://youtrack.jetbrains.com/issue/KTOR-949))
+* Empty body in response using macosX64 target ([KTOR-479](https://youtrack.jetbrains.com/issue/KTOR-479))
+* Native: InvalidMutabilityException creating HttpClient ([KTOR-915](https://youtrack.jetbrains.com/issue/KTOR-915))
+* MultiPartData.readAllParts() throws java.io.IOException when multipart list is empty ([KTOR-767](https://youtrack.jetbrains.com/issue/KTOR-767))
+* kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen io(.ktor.client.request.HttpRequestPipeline ([KTOR-693](https://youtrack.jetbrains.com/issue/KTOR-693))
+* "FreezingException: freezing of InvokeOnCompletion has failed" using native-mt coroutines ([KTOR-973](https://youtrack.jetbrains.com/issue/KTOR-973))
+* kotlin.native.concurrent.InvalidMutabilityException with 1.3.3-native-mt ([KTOR-497](https://youtrack.jetbrains.com/issue/KTOR-497))
+* Parser Exception in header with character code 1 not allowed ([KTOR-860](https://youtrack.jetbrains.com/issue/KTOR-860))
+* Calling HttpStatement#toString more than once throws IllegalArgumentException ([KTOR-1005](https://youtrack.jetbrains.com/issue/KTOR-1005))
+* Wrong session id get stuck at clients ([KTOR-1007](https://youtrack.jetbrains.com/issue/KTOR-1007))
+* Exception after WebSocketSession.close() invocation. ([KTOR-847](https://youtrack.jetbrains.com/issue/KTOR-847))
+* Error Ktor running on background thread on iOS ([KTOR-499](https://youtrack.jetbrains.com/issue/KTOR-499))
+* HttpClient can only be used on the main thread for native targets ([KTOR-491](https://youtrack.jetbrains.com/issue/KTOR-491))
+* Ignore content length when transfer encoding is chunked for CIO server ([KTOR-1036](https://youtrack.jetbrains.com/issue/KTOR-1036))
+* ConcurrentList.increaseCapacity() throws ArrayIndexOutOfBoundsException ([KTOR-1034](https://youtrack.jetbrains.com/issue/KTOR-1034))
+* Ktor 1.3.1 Fails File Upload with MalformedInputException ([KTOR-391](https://youtrack.jetbrains.com/issue/KTOR-391))
+* Update library versions, fix config after release ([KTOR-1027](https://youtrack.jetbrains.com/issue/KTOR-1027))
+* Fix parsing urls with trailing spaces ([KTOR-886](https://youtrack.jetbrains.com/issue/KTOR-886))
+* 1.4.0: breaking change by making response nullable in ResponseException ([KTOR-916](https://youtrack.jetbrains.com/issue/KTOR-916))
+* Netty: Not started servers leak resources ([KTOR-939](https://youtrack.jetbrains.com/issue/KTOR-939))
+* Ktor websocket client passes configured max frame as timeout millis ([KTOR-923](https://youtrack.jetbrains.com/issue/KTOR-923))
+* Routing: get matcher has higher priority than param matcher on the same level ([KTOR-792](https://youtrack.jetbrains.com/issue/KTOR-792))
+* Confusing log message about failed session lookup ([KTOR-776](https://youtrack.jetbrains.com/issue/KTOR-776))
+* Implement runtime check of using `native-mt` coroutines ([KTOR-956](https://youtrack.jetbrains.com/issue/KTOR-956))
+* Http parse security issue ([KTOR-841](https://youtrack.jetbrains.com/issue/KTOR-841))
+* Bumped versions:
+    - kotlinx.coroutines 1.3.9-native-mt-2
+    - kotlinx.serialization 1.0.0-RC2
+    - kotlin 1.4.10
+
+# 1.4.0
+> Published 18 Aug 2020
+
+* Upgrade to kotlin 1.4.0
+* Add native platform support for CIO client (#2021)
+* Prevent access Tomcat servletRequest after recycling
+* Fix verbose IO exception logging
+* Fix client cookies remove
+* Fix suspend tests for digest provider
+* Add deprecation to BasicAuth feature
+* Add client.get operator for features
+* Add client websocket feature config
+* iOS Certificate Pinning (#1750)
+* Add originHost support in browser
+* Fix client logging issues with POST body
+* Prevent CURL multi-handle double close
+* Add content-type header to default transformers
+* Fix report for multiple failed engines in native
+* Use window.location.origin as default host in URLBuilder
+* Prevent Empty Cookie addition (#2008)
+* Fix executor service termination in okhttp (#1860)
+* Verify sending Content-Type and custom object body via POST (#1897)
+* Fix ByteBufferPool recycle (#2016)
+* Update jetty version
+* Fix CIO exception logged twice
+* Change exception type for long strings in readUtf8Line
+* Fix uri field in digest auth header to include query params (#1992)
+* Fix empty multipart post
+* Move the default test server to CIO
+* Fix webpack warning about ktor-client-core critical dependency
+* Fix missing qop in DigestAuthProvider (Issue #1974)
+* Handle " in different position cases
+* Fix parsing of quoted header parameter value
+* Fix saved call early completion
+* Fix tests with empty json check
+* Fix sending blank ContentType in Apache engine
+* Parse blank content type to Any
+* Fixed serialization of empty body (#1952)
+* JsonFeature: Fixed header behavior and made it more flexible (#1927)
+* Fix max-age header to use '=' instead f ':'. (#1769)
+* Add contextual serialization support
+* Introduce non-suspend api for writing
+* fix memory alignment check (#1742)
+* JetBrains Toolbox icon (#1805)
+* Apache should use existing approach when merging headers (#1919)
+* Fix conditional headers behaviour (Fix #1849).
+* Change IosHttpRequestException parent to improve usability
+* OAuth2: Added option to pass params in URL (#1847)
+* Fix doubling host
+* Enhanced handling of statusCode for AndroidEngine (#1852)
+* Fix deserialization issue in client (Fix #1800).
+* GitHub issue/pr links in IDEA Git log (#1806)
+* Fix log channel is not closed for ByteArrayContent (#1808)
+* Use comma to divide headers (Fix #1765).
+* HTTP Client tracing using Stetho Android library.
+* Fix static content resolution for directories inside Jar (#1777).
+* Improve WebSocket routing API (Fix #1075).
+* Implemented cookies encoding with their own encoding and added test cases for this
+* Fix URI support (#1755)
+* Fix OkHttp WebSocket close reason completion (#1363).
+* Fix package directive; Add unimported cfnetwork constants
+* Fix client.join to wait engine close
+* Verify receive from response in exception
+* Update okhttp version to 4.4.0
+* Cleanup iOS proxy configuration
+* Fix WebSocketTest.testMaxSize
+* Fix UTF8 parsing (#1718).
+
 # 1.3.2
 > Published 12 Mar 2020
 

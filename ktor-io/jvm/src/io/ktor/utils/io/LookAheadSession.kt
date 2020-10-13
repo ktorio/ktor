@@ -4,11 +4,11 @@ import io.ktor.utils.io.core.*
 import java.nio.*
 
 @Deprecated("Use read { } instead.")
-interface LookAheadSession {
+public interface LookAheadSession {
     /**
      * Marks [n] bytes as consumed so the corresponding range becomes available for writing
      */
-    fun consumed(n: Int)
+    public fun consumed(n: Int)
 
     /**
      * Request byte buffer range skipping [skip] bytes and [atLeast] bytes length
@@ -20,20 +20,20 @@ interface LookAheadSession {
      * - end of stream encountered and all bytes were consumed
      * - channel has been closed with an exception so buffer has been recycled
      */
-    fun request(skip: Int, atLeast: Int): ByteBuffer?
+    public fun request(skip: Int, atLeast: Int): ByteBuffer?
 }
 
 @Deprecated("Use read { } instead.")
-interface LookAheadSuspendSession : LookAheadSession {
+public interface LookAheadSuspendSession : LookAheadSession {
     /**
      * Suspend until [n] bytes become available or end of stream encountered (possibly due to exceptional close)
      * @see SuspendableReadSession.await
      */
-    suspend fun awaitAtLeast(n: Int): Boolean
+    public suspend fun awaitAtLeast(n: Int): Boolean
 }
 
 @ExperimentalIoApi
-inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolean) {
+public inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolean) {
     do {
         val cont = request(0, 1)?.let {
             val s = it.remaining()
@@ -48,7 +48,7 @@ inline fun LookAheadSession.consumeEachRemaining(visitor: (ByteBuffer) -> Boolea
 
 @Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
 @ExperimentalIoApi
-suspend inline fun LookAheadSuspendSession.consumeEachRemaining(visitor: suspend (ByteBuffer) -> Boolean) {
+public suspend inline fun LookAheadSuspendSession.consumeEachRemaining(visitor: suspend (ByteBuffer) -> Boolean) {
     do {
         val buffer = request(0, 1)
         if (buffer == null) {

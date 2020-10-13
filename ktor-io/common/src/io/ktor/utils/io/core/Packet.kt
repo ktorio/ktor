@@ -11,33 +11,34 @@ import io.ktor.utils.io.pool.*
     "Will be removed in the future releases. Use Input or AbstractInput instead.",
     ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
 )
-abstract class ByteReadPacketBase(head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>) :
-    AbstractInput(head, remaining, pool) {
+public abstract class ByteReadPacketBase(
+    head: ChunkBuffer, remaining: Long, pool: ObjectPool<ChunkBuffer>
+) : AbstractInput(head, remaining, pool) {
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(head: IoBuffer,
+    public constructor(head: IoBuffer,
                 remaining: Long,
                 pool: ObjectPool<ChunkBuffer>) : this(head as ChunkBuffer, remaining, pool)
 
-    companion object {
+    public companion object {
         @Deprecated(
             "Use ByteReadPacket.Empty instead",
             ReplaceWith("ByteReadPacket.Empty"),
             level = DeprecationLevel.ERROR
         )
-        val Empty: ByteReadPacket
+        public val Empty: ByteReadPacket
             get() = ByteReadPacket.Empty
     }
 }
 
-expect class EOFException(message: String) : IOException
+public expect class EOFException(message: String) : IOException
 
 /**
  * For streaming input it should be [Input.endOfInput] instead.
  */
 @Deprecated("Use endOfInput property instead", ReplaceWith("endOfInput"))
-inline val Input.isEmpty: Boolean
+public inline val Input.isEmpty: Boolean
     get() = endOfInput
 
 /**
@@ -48,7 +49,7 @@ inline val Input.isEmpty: Boolean
     "This makes no sense for streaming inputs. Some use-cases are covered by endOfInput property",
     ReplaceWith("!endOfInput")
 )
-val Input.isNotEmpty: Boolean
+public val Input.isNotEmpty: Boolean
     get() {
         if (endOfInput) return false
         prepareReadFirstHead(1)?.let { found ->
@@ -59,9 +60,9 @@ val Input.isNotEmpty: Boolean
     }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-inline val ByteReadPacket.isEmpty: Boolean
+public inline val ByteReadPacket.isEmpty: Boolean
     get() = endOfInput
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-inline val ByteReadPacket.isNotEmpty: Boolean
+public inline val ByteReadPacket.isNotEmpty: Boolean
     get() = !endOfInput

@@ -5,6 +5,7 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlin.test.*
 
 internal class URLBuilderTest {
@@ -60,6 +61,8 @@ internal class URLBuilderTest {
 
     @Test
     fun protocolDefaultPortIsUsedIfAPortIsNotSpecified() {
+        if (PlatformUtils.IS_BROWSER) return
+
         URLBuilder().apply {
             protocol = URLProtocol.HTTPS
 
@@ -169,6 +172,12 @@ internal class URLBuilderTest {
     fun retainEmptyPath() {
         val url = URLBuilder("http://www.test.com")
         assertEquals("", url.encodedPath)
+    }
+
+    @Test
+    fun testSurrogateInPath() {
+        val url = URLBuilder("http://www.ktor.io/path/🐕")
+        assertEquals("/path/%F0%9F%90%95", url.encodedPath)
     }
 
     /**

@@ -5,8 +5,8 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.nio.file.*
 
 /**
@@ -15,7 +15,8 @@ import java.nio.file.*
  * your async code
  */
 @KtorExperimentalAPI
-fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel = toFile().readChannel(start, endInclusive)
+public fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel =
+    toFile().readChannel(start, endInclusive)
 
 /**
  * Open a read channel for file and launch a coroutine to fill it.
@@ -23,4 +24,4 @@ fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel = toFile(
  * your async code
  */
 @KtorExperimentalAPI
-fun Path.readChannel(): ByteReadChannel = toFile().readChannel()
+public fun Path.readChannel(): ByteReadChannel = toFile().readChannel()

@@ -17,9 +17,10 @@ import javax.crypto.spec.*
  * @property keySpec is a secret key spec for message authentication
  * @property algorithm is a message authentication algorithm name
  */
-class SessionTransportTransformerMessageAuthentication(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA256") :
-    SessionTransportTransformer {
-    constructor(key: ByteArray, algorithm: String = "HmacSHA256") : this(SecretKeySpec(key, algorithm), algorithm)
+public class SessionTransportTransformerMessageAuthentication(
+    public val keySpec: SecretKeySpec, public val algorithm: String = "HmacSHA256"
+) : SessionTransportTransformer {
+    public constructor(key: ByteArray, algorithm: String = "HmacSHA256") : this(SecretKeySpec(key, algorithm), algorithm)
 
     override fun transformRead(transportValue: String): String? {
         val expectedSignature = transportValue.substringAfterLast('/', "")

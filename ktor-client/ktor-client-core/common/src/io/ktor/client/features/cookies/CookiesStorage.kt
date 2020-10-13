@@ -11,22 +11,22 @@ import io.ktor.utils.io.core.*
 /**
  * Storage for [Cookie].
  */
-interface CookiesStorage : Closeable {
+public interface CookiesStorage : Closeable {
     /**
      * Gets a map of [String] to [Cookie] for a specific [host].
      */
-    suspend fun get(requestUrl: Url): List<Cookie>
+    public suspend fun get(requestUrl: Url): List<Cookie>
 
     /**
      * Sets a [cookie] for the specified [host].
      */
-    suspend fun addCookie(requestUrl: Url, cookie: Cookie)
+    public suspend fun addCookie(requestUrl: Url, cookie: Cookie)
 }
 
 /**
  * Add [cookie] with key [urlString] to storage.
  */
-suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
+public suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
     addCookie(Url(urlString), cookie)
 }
 

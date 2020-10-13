@@ -57,4 +57,19 @@ class TomcatSustainabilityTestSuite :
         }
         enableHttp2 = false
     }
+
+    /**
+     * Tomcat trim `vspace` symbol and drop content-length. The request is treated as chunked.
+     */
+    @Ignore
+    @Test
+    override fun testChunkedWithVSpace() {
+        super.testChunkedWithVSpace()
+    }
+
+    @Ignore
+    @Test
+    override fun testBlockingConcurrency() {
+        super.testBlockingConcurrency()
+    }
 }

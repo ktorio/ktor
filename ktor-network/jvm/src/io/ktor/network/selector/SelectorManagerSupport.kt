@@ -14,24 +14,24 @@ import kotlin.coroutines.*
  * Base class for NIO selector managers
  */
 @KtorExperimentalAPI
-abstract class SelectorManagerSupport internal constructor() : SelectorManager {
-    final override val provider: SelectorProvider = SelectorProvider.provider()
+public abstract class SelectorManagerSupport internal constructor() : SelectorManager {
+    public final override val provider: SelectorProvider = SelectorProvider.provider()
     /**
      * Number of pending selectables
      */
-    protected var pending = 0
+    protected var pending: Int = 0
 
     /**
      * Number of cancelled keys
      */
-    protected var cancelled = 0
+    protected var cancelled: Int = 0
 
     /**
      * Publish current [selectable] interest, any thread
      */
     protected abstract fun publishInterest(selectable: Selectable)
 
-    final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
+    public final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
         require(selectable.interestedOps and interest.flag != 0)
 
         suspendCancellableCoroutine<Unit> { c ->
@@ -172,5 +172,5 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
             attach(newValue)
         }
 
-    class ClosedSelectorCancellationException : CancellationException("Closed selector")
+    public class ClosedSelectorCancellationException : CancellationException("Closed selector")
 }

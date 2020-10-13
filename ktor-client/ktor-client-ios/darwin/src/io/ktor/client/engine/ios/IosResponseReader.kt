@@ -26,7 +26,7 @@ internal class IosResponseReader(
 
     private val requestTime = GMTDate()
 
-    suspend fun awaitResponse(): HttpResponseData {
+    public suspend fun awaitResponse(): HttpResponseData {
         val response = rawResponse.await()
 
         @Suppress("UNCHECKED_CAST")

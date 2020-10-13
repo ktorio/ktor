@@ -16,7 +16,7 @@ import kotlin.text.Charsets
  * Represents a Basic authentication provider
  * @property name is the name of the provider, or `null` for a default provider
  */
-class BasicAuthenticationProvider internal constructor(
+public class BasicAuthenticationProvider internal constructor(
     configuration: Configuration
 ) : AuthenticationProvider(configuration) {
     internal val realm: String = configuration.realm
@@ -28,7 +28,7 @@ class BasicAuthenticationProvider internal constructor(
     /**
      * Basic auth configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
         internal var authenticationFunction: AuthenticationFunction<UserPasswordCredential> = {
             throw NotImplementedError(
                 "Basic auth validate function is not specified. Use basic { validate { ... } } to fix."
@@ -38,13 +38,13 @@ class BasicAuthenticationProvider internal constructor(
         /**
          * Specifies realm to be passed in `WWW-Authenticate` header
          */
-        var realm: String = "Ktor Server"
+        public var realm: String = "Ktor Server"
 
         /**
          * Specifies the charset to be used. It can be either UTF_8 or null.
          * Setting `null` turns legacy mode on that actually means that ISO-8859-1 is used.
          */
-        var charset: Charset? = Charsets.UTF_8
+        public var charset: Charset? = Charsets.UTF_8
             set(value) {
                 if (value != null && value != Charsets.UTF_8) {
                     // https://tools.ietf.org/html/rfc7617#section-2.1
@@ -58,7 +58,7 @@ class BasicAuthenticationProvider internal constructor(
          * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
          * or null if credential does not correspond to an authenticated principal
          */
-        fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
+        public fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
             authenticationFunction = body
         }
     }
@@ -67,7 +67,7 @@ class BasicAuthenticationProvider internal constructor(
 /**
  * Installs Basic Authentication mechanism
  */
-fun Authentication.Configuration.basic(
+public fun Authentication.Configuration.basic(
     name: String? = null,
     configure: BasicAuthenticationProvider.Configuration.() -> Unit
 ) {
@@ -104,7 +104,7 @@ fun Authentication.Configuration.basic(
  * Retrieves Basic authentication credentials for this [ApplicationRequest]
  */
 @KtorExperimentalAPI
-fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
+public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {
             // Verify the auth scheme is HTTP Basic. According to RFC 2617, the authorization scheme should not be case

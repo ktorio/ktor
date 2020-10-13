@@ -14,12 +14,12 @@ private val Logger: Logger = LoggerFactory.getLogger("io.ktor.auth.oauth")
 /**
  * OAuth provider key
  */
-val OAuthKey: Any = "OAuth"
+public val OAuthKey: Any = "OAuth"
 
 /**
  * Represents an OAuth provider for [Authentication] feature
  */
-class OAuthAuthenticationProvider internal constructor(config : Configuration) : AuthenticationProvider(config) {
+public class OAuthAuthenticationProvider internal constructor(config : Configuration) : AuthenticationProvider(config) {
 
     internal val client: HttpClient = config.client
     internal val providerLookup: ApplicationCall.() -> OAuthServerSettings? = config.providerLookup
@@ -28,21 +28,21 @@ class OAuthAuthenticationProvider internal constructor(config : Configuration) :
     /**
      * OAuth provider configuration
      */
-    class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
+    public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
         /**
          * HTTP client instance used by this provider to make HTTP calls to OAuth server
          */
-        lateinit var client: HttpClient
+        public lateinit var client: HttpClient
 
         /**
          * Lookup function to find OAuth server settings for the particular call
          */
-        lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+        public lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
 
         /**
          * URL provider that should produce login url for the particular call
          */
-        lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+        public lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 
         internal fun build() = OAuthAuthenticationProvider(this)
     }
@@ -51,7 +51,7 @@ class OAuthAuthenticationProvider internal constructor(config : Configuration) :
 /**
  * Installs OAuth Authentication mechanism
  */
-fun Authentication.Configuration.oauth(
+public fun Authentication.Configuration.oauth(
     name: String? = null,
     configure: OAuthAuthenticationProvider.Configuration.() -> Unit
 ) {

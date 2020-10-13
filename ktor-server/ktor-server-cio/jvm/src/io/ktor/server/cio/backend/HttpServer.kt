@@ -19,7 +19,7 @@ import java.nio.channels.*
  * Start an http server with [settings] invoking [handler] for every request
  */
 @OptIn(InternalAPI::class)
-fun CoroutineScope.httpServer(
+public fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: HttpRequestHandler
 ): HttpServer {
@@ -44,10 +44,13 @@ fun CoroutineScope.httpServer(
         aSocket(selector).tcp().bind(settings.host, settings.port).use { server ->
             socket.complete(server)
 
+            val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
+                ?: DefaultUncaughtExceptionHandler(logger)
+
             val connectionScope = CoroutineScope(
                 coroutineContext +
                     SupervisorJob(serverJob) +
-                    DefaultUncaughtExceptionHandler(logger) +
+                    exceptionHandler +
                     CoroutineName("request")
             )
 

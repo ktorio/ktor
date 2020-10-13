@@ -73,7 +73,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testString() = clientTests(listOf("Js", "iOS")) {
+    fun testString() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -102,7 +102,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testTextContent() = clientTests(listOf("Js", "iOS")) {
+    fun testTextContent() = clientTests(listOf("Js", "iOS", "Curl", "CIO")) {
         test { client ->
             testSize.forEach { size ->
                 val content = makeString(size)
@@ -139,6 +139,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testMultipartFormData() = clientTests(listOf("Js")) {
         val data = {
             formData {
@@ -224,7 +225,8 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js")) {
+    @Ignore
+    fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Curl")) {
         test { client ->
             val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
             content.cancel()
@@ -232,7 +234,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl", "CIO")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
             }
@@ -240,7 +242,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js")) {
+    fun testDownloadStreamResponseWithCancel() = clientTests(listOf("Js", "Curl")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
                 it.cancel()
@@ -249,7 +251,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js")) {
+    fun testDownloadStreamArrayWithTimeout() = clientTests(listOf("Js", "Curl", "CIO")) {
         test { client ->
             val result: ByteArray? = withTimeoutOrNull(100) {
                 client.get<ByteArray>("$TEST_SERVER/content/stream")

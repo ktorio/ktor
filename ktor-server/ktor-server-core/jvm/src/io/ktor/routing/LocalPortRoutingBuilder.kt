@@ -22,7 +22,7 @@ import io.ktor.util.*
  * @throws IllegalArgumentException if the port is outside the range of TCP/UDP ports
  */
 @KtorExperimentalAPI
-fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
+public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
     require(port in 1..65535) { "Port $port must be a positive number between 1 and 65,535" }
 
     val selector = LocalPortRouteSelector(port)
@@ -35,8 +35,9 @@ fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
  * @param port the port to match against
  */
 @KtorExperimentalAPI
-data class LocalPortRouteSelector(val port: Int) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) =
+public data class LocalPortRouteSelector(val port: Int) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         if (context.call.request.local.port == port) {
             val parameters = parametersOf(LocalPortParameter, port.toString())
             RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, parameters)
@@ -44,11 +45,11 @@ data class LocalPortRouteSelector(val port: Int) : RouteSelector(RouteSelectorEv
             RouteSelectorEvaluation.Failed
         }
 
-    companion object {
+    public companion object {
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request host
          */
         @KtorExperimentalAPI
-        const val LocalPortParameter: String = "\$LocalPort"
+        public const val LocalPortParameter: String = "\$LocalPort"
     }
 }

@@ -13,7 +13,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
-open class JettyApplicationEngineBase @EngineAPI constructor(
+public open class JettyApplicationEngineBase @EngineAPI constructor(
     environment: ApplicationEngineEnvironment,
     configure: Configuration.() -> Unit
 ) : BaseApplicationEngine(environment) {
@@ -21,12 +21,12 @@ open class JettyApplicationEngineBase @EngineAPI constructor(
     /**
      * Jetty-specific engine configuration
      */
-    class Configuration : BaseApplicationEngine.Configuration() {
+    public class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Property function that will be called during Jetty server initialization
          * with the server instance as receiver.
          */
-        var configureServer: Server.() -> Unit = {}
+        public var configureServer: Server.() -> Unit = {}
     }
 
     /**

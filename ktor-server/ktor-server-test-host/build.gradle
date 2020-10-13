@@ -1,5 +1,7 @@
 description = ''
 
+def boot_version = project.ext.jetty_alpn_boot_version
+
 kotlin.sourceSets.jvmMain.dependencies {
     api project(':ktor-server:ktor-server-core')
     api project(':ktor-server:ktor-server-host-common')
@@ -18,7 +20,10 @@ kotlin.sourceSets.jvmMain.dependencies {
     api group: 'org.eclipse.jetty.http2', name: 'http2-client', version: jetty_version
     api group: 'org.eclipse.jetty', name: 'jetty-client', version: jetty_version
     api group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version: jetty_version
-    api group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: project.ext.jetty_alpn_boot_version
+
+    if (boot_version != null) {
+        api group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: boot_version
+    }
 
     api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
     api group: 'junit', name: 'junit', version: junit_version

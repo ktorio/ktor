@@ -116,10 +116,15 @@ class PublishWithRetryTask extends DefaultTask {
 
     @TaskAction
     void exec() {
+        def isLinuxHost = System.getProperty("os.name", "unknown").toLowerCase().contains("linux")
         def attempt = 1
         while (attempt <= retryCount) {
             try {
-                publishTasks.forEach { Task task -> task.publish() }
+                publishTasks.forEach { Task task ->
+                    if (!task.name.contains("LinuxX64") || isLinuxHost) {
+                        task.publish()
+                    }
+                }
                 break
             } catch (Throwable cause) {
                 attempt += 1

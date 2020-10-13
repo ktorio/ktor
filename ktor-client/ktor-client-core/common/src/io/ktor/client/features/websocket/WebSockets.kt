@@ -20,15 +20,38 @@ import io.ktor.util.*
  */
 @KtorExperimentalAPI
 @OptIn(WebSocketInternalAPI::class)
-class WebSockets(
-    val pingInterval: Long = -1L,
-    val maxFrameSize: Long = Int.MAX_VALUE.toLong()
+public class WebSockets(
+    public val pingInterval: Long = -1L,
+    public val maxFrameSize: Long = Int.MAX_VALUE.toLong()
 ) {
-    @Suppress("KDocMissingDocumentation")
-    companion object Feature : HttpClientFeature<Unit, WebSockets> {
+
+    /**
+     * [WebSockets] configuration.
+     */
+    public class Config {
+        /**
+         * Sets interval of sending ping frames.
+         *
+         * Value -1L is for disabled ping.
+         */
+        public var pingInterval: Long = -1L
+
+        /**
+         * Sets maximum frame size in bytes.
+         */
+        public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
+    }
+
+    /**
+     * Add WebSockets support for ktor http client.
+     */
+    public companion object Feature : HttpClientFeature<Config, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("Websocket")
 
-        override fun prepare(block: Unit.() -> Unit): WebSockets = WebSockets()
+        override fun prepare(block: Config.() -> Unit): WebSockets {
+            val config = Config().apply(block)
+            return WebSockets(config.pingInterval, config.maxFrameSize)
+        }
 
         override fun install(feature: WebSockets, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) {
@@ -54,11 +77,14 @@ class WebSockets(
         }
     }
 
-    private fun WebSocketSession.asDefault(): DefaultWebSocketSession {
+    internal fun WebSocketSession.asDefault(): DefaultWebSocketSession {
         if (this is DefaultWebSocketSession) return this
-        return DefaultWebSocketSession(this, pingInterval, maxFrameSize)
+
+        return DefaultWebSocketSession(this, pingInterval, timeoutMillis = pingInterval * 2).also {
+            it.maxFrameSize = this@WebSockets.maxFrameSize
+        }
     }
 }
 
 @Suppress("KDocMissingDocumentation")
-class WebSocketException(message: String) : IllegalStateException(message)
+public class WebSocketException(message: String) : IllegalStateException(message)

@@ -132,7 +132,7 @@ class CIOHttpsTest : TestWithKtor() {
                         assertEquals("Hello, world", actual)
                     } catch (cause: Throwable) {
                         println("${suite.name}: $cause")
-                        client.cancel()
+                        client.cancel("Failed with: $cause")
                         fail("${suite.name}: $cause")
                     }
                 }
@@ -142,7 +142,7 @@ class CIOHttpsTest : TestWithKtor() {
 
     @Test
     @Ignore
-    fun external() = testWithEngine(CIO) {
+    fun testExternal() = testWithEngine(CIO) {
         test { client ->
             client.get<HttpStatement>("https://kotlinlang.org").execute { response ->
                 assertEquals(HttpStatusCode.OK, response.status)

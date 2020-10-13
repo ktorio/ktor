@@ -9,7 +9,7 @@ import io.ktor.util.*
 /**
  * Format `Content-Range` header value
  */
-fun contentRangeHeaderValue(
+public fun contentRangeHeaderValue(
     range: LongRange?,
     fullLength: Long? = null,
     unit: RangeUnits = RangeUnits.Bytes
@@ -19,7 +19,7 @@ fun contentRangeHeaderValue(
 /**
  * Format `Content-Range` header value
  */
-fun contentRangeHeaderValue(
+public fun contentRangeHeaderValue(
     range: LongRange?,
     fullLength: Long? = null,
     unit: String = RangeUnits.Bytes.unitToken

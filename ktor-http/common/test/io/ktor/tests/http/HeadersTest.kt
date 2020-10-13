@@ -216,15 +216,22 @@ class HeadersTest {
 
     @Test
     fun testRenderEscaped() {
-        assertEquals("file; k=\"v,v\"", ContentDisposition.File.withParameter("k", "v,v").toString())
-        assertEquals(
-            "file; k=\"v,v\"; k2=\"=\"",
-            ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "=").toString()
-        )
-        assertEquals(
-            "file; k=\"v,v\"; k2=v2",
-            ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "v2").toString()
-        )
+        assertEquals("file; k=\"v\\nv\"", ContentDisposition.File.withParameter("k", "v\nv").toString())
+        assertEquals("file; k=\"v\\rv\"", ContentDisposition.File.withParameter("k", "v\rv").toString())
+        assertEquals("file; k=\"v\\tv\"", ContentDisposition.File.withParameter("k", "v\tv").toString())
+        assertEquals("file; k=\"v\\\\v\"", ContentDisposition.File.withParameter("k", "v\\v").toString())
+        assertEquals("file; k=\"v\\\"v\"", ContentDisposition.File.withParameter("k", "v\"v").toString())
+    }
+
+    @Test
+    fun testRenderQuoted() {
+        val separators = setOf('(', ')', '<', '>', '@', ',', ';', ':', '/', '[', ']', '?', '=', '{', '}', ' ')
+        separators.forEach { separator ->
+            assertEquals(
+                "file; k=\"v${separator}v\"",
+                ContentDisposition.File.withParameter("k", "v${separator}v").toString()
+            )
+        }
     }
 
     @Test

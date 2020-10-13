@@ -7,8 +7,9 @@ import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import java.io.*
 
-private class OutputStreamAdapter(pool: ObjectPool<ChunkBuffer>, private val stream: OutputStream) :
-    AbstractOutput(pool) {
+private class OutputStreamAdapter(
+    pool: ObjectPool<ChunkBuffer>, private val stream: OutputStream
+) : AbstractOutput(pool) {
     override fun flush(source: Memory, offset: Int, length: Int) {
         val nioBuffer = source.buffer
         if (nioBuffer.hasArray() && !nioBuffer.isReadOnly) {
@@ -36,4 +37,4 @@ private class OutputStreamAdapter(pool: ObjectPool<ChunkBuffer>, private val str
     }
 }
 
-fun OutputStream.asOutput(): Output = OutputStreamAdapter(ChunkBuffer.Pool, this)
+public fun OutputStream.asOutput(): Output = OutputStreamAdapter(ChunkBuffer.Pool, this)

@@ -604,7 +604,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testClientClosingFirst() {
+    open fun testClientClosingFirst() {
         val deferred = CompletableDeferred<Unit>()
 
         createAndStartServer {

@@ -12,9 +12,9 @@ import io.ktor.response.respond
 /**
  * Respond with [template] applying [model]
  */
-suspend fun ApplicationCall.respondTemplate(
+public suspend fun ApplicationCall.respondTemplate(
     template: String,
     model: Map<String, Any> = emptyMap(),
     etag: String? = null,
     contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
-) = respond(ThymeleafContent(template, model, etag, contentType))
+): Unit = respond(ThymeleafContent(template, model, etag, contentType))

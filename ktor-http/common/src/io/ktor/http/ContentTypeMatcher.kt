@@ -7,9 +7,9 @@ package io.ktor.http
 /**
  * Interface for any objects that can match a [ContentType].
  */
-interface ContentTypeMatcher {
+public interface ContentTypeMatcher {
     /**
      * Checks if `this` type matches a [contentType] type.
      */
-    fun match(contentType: ContentType): Boolean
+    public fun contains(contentType: ContentType): Boolean
 }

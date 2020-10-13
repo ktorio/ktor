@@ -26,10 +26,8 @@ import java.io.*
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
-)
-fun CoroutineScope.startServerConnectionPipeline(
+@OptIn(ObsoleteCoroutinesApi::class)
+public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
@@ -40,23 +38,7 @@ fun CoroutineScope.startServerConnectionPipeline(
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            val receiveChildOrNull =
-                suspendLambda<CoroutineScope, ByteReadChannel?> {
-                    @Suppress("DEPRECATION")
-                    channel.receiveOrNull()
-                }
-            while (true) {
-                val child = timeout.withTimeout(receiveChildOrNull) ?: break
-                try {
-                    child.joinTo(connection.output, false)
-//                        child.copyTo(output)
-                    connection.output.flush()
-                } catch (t: Throwable) {
-                    if (child is ByteWriteChannel) {
-                        child.close(t)
-                    }
-                }
-            }
+            pipelineWriterLoop(channel, timeout, connection)
         } catch (t: Throwable) {
             connection.output.close(t)
         } finally {
@@ -106,8 +88,8 @@ fun CoroutineScope.startServerConnectionPipeline(
 
             try {
                 val contentLengthIndex = request.headers.find("Content-Length")
-                connectionOptions =
-                    ConnectionOptions.parse(request.headers["Connection"])
+                connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
+
                 if (contentLengthIndex != -1) {
                     contentLength = request.headers.valueAt(contentLengthIndex).parseDecLong()
                     if (request.headers.find("Content-Length", contentLengthIndex + 1) != -1) {
@@ -119,12 +101,7 @@ fun CoroutineScope.startServerConnectionPipeline(
                 expectedHttpBody = expectHttpBody(
                     request.method, contentLength, transferEncoding, connectionOptions, contentType
                 )
-                expectedHttpUpgrade = !expectedHttpBody &&
-                        expectHttpUpgrade(
-                            request.method,
-                            upgrade,
-                            connectionOptions
-                        )
+                expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
             } catch (cause: Throwable) {
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
@@ -189,6 +166,30 @@ fun CoroutineScope.startServerConnectionPipeline(
         coroutineContext.cancel()
     } finally {
         outputsActor.close()
+    }
+}
+
+@OptIn(ObsoleteCoroutinesApi::class)
+private suspend fun pipelineWriterLoop(
+    channel: ReceiveChannel<ByteReadChannel>,
+    timeout: WeakTimeoutQueue,
+    connection: ServerIncomingConnection
+) {
+    val receiveChildOrNull =
+        suspendLambda<CoroutineScope, ByteReadChannel?> {
+            @Suppress("DEPRECATION")
+            channel.receiveOrNull()
+        }
+    while (true) {
+        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        try {
+            child.joinTo(connection.output, false)
+            connection.output.flush()
+        } catch (t: Throwable) {
+            if (child is ByteWriteChannel) {
+                child.close(t)
+            }
+        }
     }
 }
 

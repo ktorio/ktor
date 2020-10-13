@@ -14,17 +14,17 @@ package io.ktor.util
  * Nonce length is unspecified.
  */
 @KtorExperimentalAPI
-interface NonceManager {
+public interface NonceManager {
     /**
      * Generate new nonce instance
      */
-    suspend fun newNonce(): String
+    public suspend fun newNonce(): String
 
     /**
      * Verify [nonce] value
      * @return `true` if [nonce] is valid
      */
-    suspend fun verifyNonce(nonce: String): Boolean
+    public suspend fun verifyNonce(nonce: String): Boolean
 }
 
 
@@ -32,7 +32,7 @@ interface NonceManager {
  * This implementation does only generate nonce values but doesn't validate them. This is recommended for testing only.
  */
 @KtorExperimentalAPI
-object GenerateOnlyNonceManager : NonceManager {
+public object GenerateOnlyNonceManager : NonceManager {
     override suspend fun newNonce(): String {
         return generateNonce()
     }
@@ -48,7 +48,7 @@ object GenerateOnlyNonceManager : NonceManager {
  */
 @Deprecated("This should be removed with OAuth2StateProvider", level = DeprecationLevel.ERROR)
 @InternalAPI
-object AlwaysFailNonceManager : NonceManager {
+public object AlwaysFailNonceManager : NonceManager {
     override suspend fun newNonce(): String {
         throw UnsupportedOperationException("This manager should never be used")
     }

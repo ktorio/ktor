@@ -10,10 +10,7 @@ import io.ktor.utils.io.pool.*
 import java.nio.*
 import javax.crypto.*
 
-internal val CryptoBufferPool: ObjectPool<ByteBuffer> = object : DefaultPool<ByteBuffer>(128) {
-    override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(65536)
-    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
-}
+internal val CryptoBufferPool: ObjectPool<ByteBuffer> = ByteBufferPool(128, 65536)
 
 internal fun ByteReadPacket.cipherLoop(cipher: Cipher, header: BytePacketBuilder.() -> Unit = {}): ByteReadPacket {
     val srcBuffer = DefaultByteBufferPool.borrow()

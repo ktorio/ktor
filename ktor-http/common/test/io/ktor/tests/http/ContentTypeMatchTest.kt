@@ -7,19 +7,19 @@ package io.ktor.tests.http
 import io.ktor.http.*
 import kotlin.test.*
 
-class ContentTypeMatchTest {
+public class ContentTypeMatchTest {
     @Test
     fun testTypeAndSubtype() {
-        assertTrue { ContentType.parse("*").match("text/plain") }
-        assertTrue { ContentType.parse("* ").match("text/plain") }
-        assertTrue { ContentType.parse("*/*").match("text/plain") }
-        assertTrue { ContentType.parse("*/ *").match("text/plain") }
-        assertTrue { ContentType.parse("*/plain").match("text/plain") }
-        assertTrue { ContentType.parse("* /plain").match("text/plain") }
-        assertTrue { ContentType.parse("*/plain").match("text/PLAIN") }
-        assertTrue { ContentType.parse("text/*").match("text/plain") }
+        assertTrue { ContentType.parse("text/plain").match("*") }
+        assertTrue { ContentType.parse("text/plain").match("* ") }
+        assertTrue { ContentType.parse("text/plain").match("*/*") }
+        assertTrue { ContentType.parse("text/plain").match("*/ *") }
+        assertTrue { ContentType.parse("text/plain").match("*/plain") }
+        assertTrue { ContentType.parse("text/plain").match("* /plain") }
+        assertTrue { ContentType.parse("text/PLAIN").match("*/plain") }
+        assertTrue { ContentType.parse("text/plain").match("text/*") }
         assertTrue { ContentType.parse("text/plain").match("text/plain") }
-        assertTrue { ContentType.parse("TEXT/plain").match("text/plain") }
+        assertTrue { ContentType.parse("text/plain").match("TEXT/plain") }
 
         assertFailsWith<BadContentTypeFormatException> { ContentType.parse("text/") }
         assertFailsWith<BadContentTypeFormatException> { ContentType.parse("/plain") }
@@ -32,37 +32,37 @@ class ContentTypeMatchTest {
 
     @Test
     fun testParametersConstants() {
-        assertTrue { ContentType.parse("*/*; a=1").match("a/b; a=1") }
-        assertTrue { ContentType.parse("*/*; a=1").match("a/b; A=1") }
-        assertFalse(ContentType.parse("*/*; a=2").match("a/b"))
-        assertFalse(ContentType.parse("*/*; a=2").match("a/b; a=1"))
-        assertFalse(ContentType.parse("*/*; a=2").match("a/b; A=1"))
+        assertTrue { ContentType.parse("a/b; a=1").match("*/*; a=1") }
+        assertTrue { ContentType.parse("a/b; A=1").match("*/*; a=1") }
+        assertFalse(ContentType.parse("a/b").match("*/*; a=2"))
+        assertFalse(ContentType.parse("a/b; a=1").match("*/*; a=2"))
+        assertFalse(ContentType.parse("a/b; A=1").match("*/*; a=2"))
     }
 
     @Test
     fun testParametersWithSubtype() {
-        assertTrue { ContentType.parse("a/b").match("a/b; a=1") }
-        assertTrue { ContentType.parse("a/b; a=XYZ").match("a/b; a=xyz") }
+        assertTrue { ContentType.parse("a/b; a=1").match("a/b") }
+        assertTrue { ContentType.parse("a/b; a=xyz").match("a/b; a=XYZ") }
     }
 
     @Test
     fun testParametersValueWildcard() {
-        assertTrue(ContentType.parse("*/*; a=*").match("a/b; a=1"))
-        assertFalse(ContentType.parse("*/*; a=*").match("a/b; b=1"))
+        assertTrue(ContentType.parse("a/b; a=1").match("*/*; a=*"))
+        assertFalse(ContentType.parse("a/b; b=1").match("*/*; a=*"))
     }
 
     @Test
     fun testParametersNameWildcard() {
-        assertTrue(ContentType.parse("*/*; *=1").match("a/b; a=1"))
-        assertTrue(ContentType.parse("*/*; *=x").match("a/b; a=X"))
-        assertFalse(ContentType.parse("*/*; *=1").match("a/b; a=2"))
-        assertFalse(ContentType.parse("*/*; *=x").match("a/b; a=y"))
+        assertTrue(ContentType.parse("a/b; a=1").match("*/*; *=1"))
+        assertTrue(ContentType.parse("a/b; a=X").match("*/*; *=x"))
+        assertFalse(ContentType.parse("a/b; a=2").match("*/*; *=1"))
+        assertFalse(ContentType.parse("a/b; a=y").match("*/*; *=x"))
     }
 
     @Test
     fun testParametersAllWildcard() {
-        assertTrue(ContentType.parse("*/*; *=*").match("a/b; a=2"))
-        assertTrue(ContentType.parse("*/*; *=*").match("a/b"))
+        assertTrue(ContentType.parse("a/b; a=2").match("*/*; *=*"))
+        assertTrue(ContentType.parse("a/b").match("*/*; *=*"))
     }
 
     @Test

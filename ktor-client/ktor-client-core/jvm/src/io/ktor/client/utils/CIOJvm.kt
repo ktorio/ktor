@@ -5,19 +5,27 @@
 package io.ktor.client.utils
 
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.pool.*
+import io.ktor.utils.io.pool.ByteBufferPool
 import java.nio.*
 
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
 @InternalAPI
-val HttpClientDefaultPool = ByteBufferPool()
+public val HttpClientDefaultPool: ByteBufferPool = ByteBufferPool()
 
 @InternalAPI
-class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
+@Deprecated(
+    level = DeprecationLevel.WARNING,
+    message = "ByteBufferPool is moved to `io` module",
+    replaceWith = ReplaceWith("ByteBufferPool", "io.ktor.utils.io.pool.ByteBufferPool")
+)
+public class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_HTTP_BUFFER_SIZE)!!
 
-    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
+    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply {
+        clear()
+        order(ByteOrder.BIG_ENDIAN)
+    }
 }

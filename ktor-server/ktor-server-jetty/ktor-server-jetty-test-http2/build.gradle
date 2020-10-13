@@ -1,14 +1,18 @@
 kotlin.sourceSets.jvmTest.dependencies {
     api project(':ktor-server:ktor-server-test-host')
+    api project(':ktor-server:ktor-server-test-suites')
     api group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
     api project(':ktor-server:ktor-server-core')
     api project(":ktor-server:ktor-server-jetty")
 }
 
 
+def boot_version = project.ext.jetty_alpn_boot_version
 dependencies {
     jvmTestApi project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
-    boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: project.ext.jetty_alpn_boot_version
+    if (boot_version != null) {
+        boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: boot_version
+    }
 }
 
 configure(tasks.jvmTest) {

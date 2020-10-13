@@ -14,6 +14,6 @@ import java.util.concurrent.*
  * @param timeUnit the [TimeUnit] for [gracePeriod] and [timeout]
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun ApplicationEngine.stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+public fun ApplicationEngine.stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
     stop(timeUnit.toMillis(gracePeriod), timeUnit.toMillis(timeout))
 }

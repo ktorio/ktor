@@ -16,29 +16,29 @@ import kotlin.random.*
  * Web resources serve configuration
  */
 @KtorExperimentalAPI
-class WebResourcesConfig {
+public class WebResourcesConfig {
     /**
      * Path predicates to be included. All files will be served if no include rules specified.
      * A path provided to a predicate is always slash-separated (`/`).
      */
-    val includes: MutableList<(String) -> Boolean> = mutableListOf()
+    public val includes: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
      * Path predicates to be excluded. By default WEB-INF directory is excluded.
      * A path provided to a predicate is always slash-separated (`/`).
      */
-    val excludes: MutableList<(String) -> Boolean> = mutableListOf()
+    public val excludes: MutableList<(String) -> Boolean> = mutableListOf()
 
     /**
      * Content-type resolution, uses [defaultForFileExtension] by default
      */
-    var mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
+    public var mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
 
     /**
      * Add [predicate] to [includes]
      * @see includes
      */
-    fun include(predicate: (path: String) -> Boolean) {
+    public fun include(predicate: (path: String) -> Boolean) {
         includes.add(predicate)
     }
 
@@ -46,7 +46,7 @@ class WebResourcesConfig {
      * Add [predicate] exclusion rule to [excludes]
      * @see excludes
      */
-    fun exclude(predicate: (path: String) -> Boolean) {
+    public fun exclude(predicate: (path: String) -> Boolean) {
         excludes.add(predicate)
     }
 
@@ -61,7 +61,7 @@ class WebResourcesConfig {
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
 @KtorExperimentalAPI
-fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
+public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
     val prefix = subPath.split('/', '\\').filter { it.isNotEmpty() }

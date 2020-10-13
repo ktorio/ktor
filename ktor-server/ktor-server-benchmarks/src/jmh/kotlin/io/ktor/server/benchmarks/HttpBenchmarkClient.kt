@@ -68,7 +68,7 @@ class OkHttpBenchmarkClient : HttpBenchmarkClient {
     override fun load(url: String) {
         val request = Request.Builder().url(url).build()
         val response = httpClient!!.newCall(request).execute()
-        response.body()?.byteStream()?.use { stream ->
+        response.body?.byteStream()?.use { stream ->
             val buf = ByteArray(8192)
             while (stream.read(buf) != -1);
         }

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.jetbrains.kotlin.gradle.plugin.*
 import java.io.*
 import java.net.*
@@ -33,8 +37,9 @@ open class KtorTestServer : DefaultTask() {
         } catch (cause: Throwable) {
         }
     }
-
 }
+
+val osName = System.getProperty("os.name")
 
 kotlin.sourceSets {
     commonMain {
@@ -54,11 +59,13 @@ kotlin.sourceSets {
     }
     jvmMain {
         dependencies {
+            api(project(":ktor-network:ktor-network-tls:ktor-network-tls-certificates"))
             api(project(":ktor-server:ktor-server-cio"))
             api(project(":ktor-server:ktor-server-netty"))
             api(project(":ktor-server:ktor-server-jetty"))
             api(project(":ktor-features:ktor-auth"))
             api(project(":ktor-features:ktor-websockets"))
+            api(project(":ktor-features:ktor-serialization"))
             api("ch.qos.logback:logback-classic:$logback_version")
             api("junit:junit:$junit_version")
             api("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
@@ -83,7 +90,15 @@ kotlin.sourceSets {
     if (!ideaActive) {
         listOf("linuxX64Test", "mingwX64Test", "macosX64Test").map { getByName(it) }.forEach {
             it.dependencies {
-                // api(project(":ktor-client:ktor-client-curl"))
+                api(project(":ktor-client:ktor-client-curl"))
+            }
+        }
+
+        if (!osName.startsWith("Windows")) {
+            listOf("linuxX64Test", "macosX64Test", "iosX64Test").map { getByName(it) }.forEach {
+                it.dependencies {
+                    api(project(":ktor-client:ktor-client-cio"))
+                }
             }
         }
         listOf("iosX64Test", "macosX64Test").map { getByName(it) }.forEach {
@@ -95,7 +110,8 @@ kotlin.sourceSets {
         posixTest {
             dependencies {
                 // api(project(":ktor-client:ktor-client-ios"))
-                // api(project(":ktor-client:ktor-client-curl"))
+                api(project(":ktor-client:ktor-client-curl"))
+                api(project(":ktor-client:ktor-client-cio"))
             }
         }
     }
@@ -127,7 +143,7 @@ if (!ideaActive) {
     testTasks += listOf(
         "macosX64Test",
         "linuxX64Test",
-        "iosTest",
+        "iosX64Test",
         "mingwX64Test"
     )
 }

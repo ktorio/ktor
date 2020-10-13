@@ -24,9 +24,7 @@ import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
-@OptIn(
-    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
-)
+@OptIn(WebSocketInternalAPI::class)
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)
@@ -494,6 +492,34 @@ class WebSocketTest {
                 }
                 assertEquals(textMessages, received)
             }
+        }
+    }
+
+    @Test
+    fun testFlushClosed(): Unit = withTestApplication {
+        application.install(WebSockets)
+
+        val session = CompletableDeferred<Unit>()
+        application.routing {
+            webSocket("/close/me") {
+                try {
+                    close()
+                    delay(1)
+                    flush()
+                    session.complete(Unit)
+                } catch (cause: Throwable) {
+                    session.completeExceptionally(cause)
+                    throw cause
+                }
+            }
+        }
+
+        handleWebSocketConversation("/close/me") { incoming, outgoing ->
+            assertTrue(incoming.receive() is Frame.Close)
+            assertNull(incoming.receiveOrNull())
+        }
+        runBlocking {
+            session.await()
         }
     }
 

@@ -24,7 +24,7 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
             writeFloat(1.23f)
             writeLong(0x123456789abcdef0)
 
-            writeStringUtf8("OK\n")
+            writeText("OK\n")
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 
@@ -56,7 +56,7 @@ class BytePacketBuildTestExtended : BytePacketBuildTest() {
             writeFloat(1.23f)
             writeLong(0x123456789abcdef0)
 
-            writeStringUtf8("OK\n")
+            writeText("OK\n")
             listOf(1, 2, 3).joinTo(this, separator = "|")
         }
 

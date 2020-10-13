@@ -15,7 +15,7 @@ import io.ktor.utils.io.core.*
 /**
  * Add [BasicAuthProvider] to client [Auth] providers.
  */
-fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
+public fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
     with(BasicAuthConfig().apply(block)) {
         providers.add(BasicAuthProvider(username, password, realm, sendWithoutRequest))
     }
@@ -24,32 +24,32 @@ fun Auth.basic(block: BasicAuthConfig.() -> Unit) {
 /**
  * [BasicAuthProvider] configuration.
  */
-class BasicAuthConfig {
+public class BasicAuthConfig {
     /**
      * Required: The username of the basic auth.
      */
-    lateinit var username: String
+    public lateinit var username: String
 
     /**
      * Required: The password of the basic auth.
      */
-    lateinit var password: String
+    public lateinit var password: String
 
     /**
      * Optional: current provider realm
      */
-    var realm: String? = null
+    public var realm: String? = null
 
     /**
      * Send credentials in without waiting for [HttpStatusCode.Unauthorized].
      */
-    var sendWithoutRequest: Boolean = false
+    public var sendWithoutRequest: Boolean = false
 }
 
 /**
  * Client basic authentication provider.
  */
-class BasicAuthProvider(
+public class BasicAuthProvider(
     private val username: String,
     private val password: String,
     private val realm: String? = null,

@@ -23,7 +23,7 @@ import kotlin.coroutines.*
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
 @OptIn(ExperimentalIoApi::class)
-fun File.readChannel(
+public fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
     coroutineContext: CoroutineContext = Dispatchers.IO
@@ -90,7 +90,7 @@ fun File.readChannel(
     ReplaceWith("writeChannel()"),
     level = DeprecationLevel.ERROR
 )
-fun File.writeChannel(
+public fun File.writeChannel(
     @Suppress("UNUSED_PARAMETER") pool: ObjectPool<ByteBuffer>
 ): ByteWriteChannel = writeChannel()
 
@@ -101,7 +101,7 @@ fun File.writeChannel(
  * This is why [coroutineContext] should have [Dispatchers.IO] or
  * a coroutine dispatcher that is properly configured for blocking IO.
  */
-fun File.writeChannel(
+public fun File.writeChannel(
     coroutineContext: CoroutineContext = Dispatchers.IO
 ): ByteWriteChannel = GlobalScope.reader(CoroutineName("file-writer") + coroutineContext, autoFlush = true) {
     @Suppress("BlockingMethodInNonBlockingContext")

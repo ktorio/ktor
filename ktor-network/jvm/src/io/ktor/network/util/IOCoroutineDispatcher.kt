@@ -19,7 +19,7 @@ import kotlin.coroutines.intrinsics.*
     "This is going to be deprecated. Use kotlinx.coroutines dispatchers",
     level = DeprecationLevel.HIDDEN
 )
-class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
+public class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     @Suppress("DEPRECATION_ERROR")
     private val dispatcherThreadGroup = ThreadGroup("io-pool-group-sub")
 
@@ -97,7 +97,7 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
             }
         }
 
-        fun tryResume(): Boolean {
+        public fun tryResume(): Boolean {
             val cont = ThreadCont.getAndSet(this, null)
             if (cont != null) {
                 cont.resume(Unit)

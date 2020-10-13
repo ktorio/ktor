@@ -22,7 +22,7 @@ import kotlin.math.*
  *
  * To configure charsets set following properties in [HttpPlainText.Config].
  */
-class HttpPlainText internal constructor(
+public class HttpPlainText internal constructor(
     charsets: Set<Charset>,
     charsetQuality: Map<Charset, Float>,
     sendCharset: Charset?,
@@ -64,14 +64,14 @@ class HttpPlainText internal constructor(
     /**
      * Charset configuration for [HttpPlainText] feature.
      */
-    class Config {
+    public class Config {
         internal val charsets: MutableSet<Charset> = mutableSetOf()
         internal val charsetQuality: MutableMap<Charset, Float> = mutableMapOf()
 
         /**
          * Add [charset] to allowed list with selected [quality].
          */
-        fun register(charset: Charset, quality: Float? = null) {
+        public fun register(charset: Charset, quality: Float? = null) {
             quality?.let { check(it in 0.0..1.0) }
 
             charsets.add(charset)
@@ -88,13 +88,13 @@ class HttpPlainText internal constructor(
          *
          * Use first with highest quality from [register] charset if null.
          */
-        var sendCharset: Charset? = null
+        public var sendCharset: Charset? = null
 
         /**
          * Fallback charset for the response.
          * Use it if no charset specified.
          */
-        var responseCharsetFallback: Charset = Charsets.UTF_8
+        public var responseCharsetFallback: Charset = Charsets.UTF_8
 
         /**
          * Default [Charset] to use.
@@ -105,11 +105,11 @@ class HttpPlainText internal constructor(
             replaceWith = ReplaceWith("register()"),
             level = DeprecationLevel.ERROR
         )
-        var defaultCharset: Charset = Charsets.UTF_8
+        public var defaultCharset: Charset = Charsets.UTF_8
     }
 
     @Suppress("KDocMissingDocumentation")
-    companion object Feature : HttpClientFeature<Config, HttpPlainText> {
+    public companion object Feature : HttpClientFeature<Config, HttpPlainText> {
         override val key: AttributeKey<HttpPlainText> = AttributeKey("HttpPlainText")
 
         override fun prepare(block: Config.() -> Unit): HttpPlainText {
@@ -127,7 +127,9 @@ class HttpPlainText internal constructor(
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->
                 feature.addCharsetHeaders(context)
 
-                if (content !is String) return@intercept
+                if (content !is String) {
+                    return@intercept
+                }
 
                 val contentType = context.contentType()
                 if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) return@intercept
@@ -138,7 +140,9 @@ class HttpPlainText internal constructor(
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
                 if (info.type != String::class || body !is ByteReadChannel) return@intercept
-                val content = feature.read(context, body.readRemaining())
+
+                val bodyBytes = body.readRemaining()
+                val content = feature.read(context, bodyBytes)
                 proceedWith(HttpResponseContainer(info, content))
             }
         }
@@ -168,7 +172,7 @@ class HttpPlainText internal constructor(
         replaceWith = ReplaceWith("register()"),
         level = DeprecationLevel.ERROR
     )
-    var defaultCharset: Charset
+    public var defaultCharset: Charset
         get() = error("defaultCharset is deprecated")
         set(value) = error("defaultCharset is deprecated")
 }
@@ -186,6 +190,6 @@ class HttpPlainText internal constructor(
  * ```
  */
 @Suppress("FunctionName")
-fun HttpClientConfig<*>.Charsets(block: HttpPlainText.Config.() -> Unit) {
+public fun HttpClientConfig<*>.Charsets(block: HttpPlainText.Config.() -> Unit) {
     install(HttpPlainText, block)
 }

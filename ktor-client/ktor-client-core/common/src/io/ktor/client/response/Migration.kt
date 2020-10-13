@@ -17,7 +17,7 @@ import kotlin.coroutines.*
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("HttpStatement", "io.ktor.client.statement.*")
 )
-class HttpResponse : CoroutineScope, HttpMessage {
+public class HttpResponse : CoroutineScope, HttpMessage {
     override val coroutineContext: CoroutineContext
         get() = error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
     override val headers: Headers
@@ -29,7 +29,7 @@ class HttpResponse : CoroutineScope, HttpMessage {
     "Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.",
     level = DeprecationLevel.ERROR
 )
-suspend fun HttpResponse.readText(charset: Charset? = null): String {
+public suspend fun HttpResponse.readText(charset: Charset? = null): String {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
 
@@ -41,7 +41,7 @@ suspend fun HttpResponse.readText(charset: Charset? = null): String {
     level = DeprecationLevel.ERROR
 )
 @Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
-suspend fun HttpResponse.readBytes(count: Int): ByteArray {
+public suspend fun HttpResponse.readBytes(count: Int): ByteArray {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
 
@@ -54,7 +54,7 @@ suspend fun HttpResponse.readBytes(count: Int): ByteArray {
     level = DeprecationLevel.ERROR
 )
 @Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
-suspend fun HttpResponse.readBytes(): ByteArray {
+public suspend fun HttpResponse.readBytes(): ByteArray {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }
 
@@ -66,6 +66,6 @@ suspend fun HttpResponse.readBytes(): ByteArray {
     level = DeprecationLevel.ERROR
 )
 @Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER", "RedundantSuspendModifier")
-suspend fun HttpResponse.discardRemaining() {
+public suspend fun HttpResponse.discardRemaining() {
     error("Unbound streaming [HttpResponse] is deprecated. Consider using [HttpStatement] instead.")
 }

@@ -10,8 +10,8 @@ internal open class DelegatingMutableSet<From, To>(
     private val convert: To.() -> From
 ) : MutableSet<To> {
 
-    open fun Collection<To>.convert(): Collection<From> = map { it.convert() }
-    open fun Collection<From>.convertTo(): Collection<To> = map { it.convertTo() }
+    public open fun Collection<To>.convert(): Collection<From> = map { it.convert() }
+    public open fun Collection<From>.convertTo(): Collection<To> = map { it.convertTo() }
 
     override val size: Int = delegate.size
 

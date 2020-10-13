@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.sessions
@@ -112,6 +112,8 @@ class SessionTest {
             application.install(Sessions) {
                 cookie<TestUserSession>(cookieName) {
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest())
                 }
             }
@@ -492,6 +494,8 @@ class SessionTest {
                 cookie<TestUserSession>(cookieName, sessionStorage) {
                     identity { (id++).toString() }
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest(algorithm = "SHA-256"))
                 }
             }
@@ -545,6 +549,8 @@ class SessionTest {
                 cookie<EmptySession>("EMPTY")
                 header<TestUserSession>(cookieName, sessionStorage) {
                     @Suppress("DEPRECATION_ERROR")
+                    // Stop using SessionTransportTransformerDigest
+                    // Never use it and see the deprecation message
                     transform(SessionTransportTransformerDigest())
                 }
             }
@@ -611,6 +617,9 @@ class SessionTest {
                     call.sessions.set(TestUserSession("id2", listOf("item1")))
                     call.respondText("ok")
                 }
+                get("/2") {
+                    call.respondText(call.sessions.get<TestUserSession>()?.userId ?: "none")
+                }
             }
 
             val call = handleRequest {
@@ -624,6 +633,20 @@ class SessionTest {
                 addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
             }
             assertEquals(sessionId, nextCall.response.cookies[cookieName]!!.value)
+
+            handleRequest {
+                uri = "/2"
+                addHeader(HttpHeaders.Cookie, "$cookieName=invalid2")
+            }.let { call2 ->
+                // we are sending expired cookie to remove outdated/invalid session id
+                assertEquals("none", call2.response.content)
+                call2.response.cookies[cookieName].let { cookie ->
+                    assertNotNull(cookie, "cookie should be resend (expired)")
+                    assertEquals(0, cookie.maxAge)
+                    assertNotNull(cookie.expires)
+                    assertEquals(1970, cookie.expires!!.year)
+                }
+            }
         }
     }
 

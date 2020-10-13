@@ -6,12 +6,12 @@ import platform.iconv.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
-actual abstract class Charset(internal val _name: String) {
-    actual abstract fun newEncoder(): CharsetEncoder
-    actual abstract fun newDecoder(): CharsetDecoder
+public actual abstract class Charset(internal val _name: String) {
+    public actual abstract fun newEncoder(): CharsetEncoder
+    public actual abstract fun newDecoder(): CharsetDecoder
 
-    actual companion object {
-        actual fun forName(name: String): Charset {
+    public actual companion object {
+        public actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
             if (name == "ISO-8859-1" || name == "iso-8859-1") return Charsets.ISO_8859_1
             if (name == "UTF-16" || name == "utf-16" || name == "UTF16" || name == "utf16") return Charsets.UTF_16
@@ -32,14 +32,14 @@ private class CharsetImpl(name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-actual val Charset.name: String get() = _name
+public actual val Charset.name: String get() = _name
 
 // -----------------------
 
-actual abstract class CharsetEncoder(internal val _charset: Charset)
+public actual abstract class CharsetEncoder(internal val _charset: Charset)
 private data class CharsetEncoderImpl(private val charset: Charset) : CharsetEncoder(charset)
 
-actual val CharsetEncoder.charset: Charset get() = _charset
+public actual val CharsetEncoder.charset: Charset get() = _charset
 
 @SymbolName("Kotlin_Arrays_getShortArrayAddressOfElement")
 private external fun getAddressOfElement(array: Any, index: Int): COpaquePointer
@@ -64,7 +64,7 @@ private fun checkErrors(iconvOpenResults: COpaquePointer?, charset: String) {
     }
 }
 
-actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
+public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray =
     encodeToByteArrayImpl1(input, fromIndex, toIndex)
 
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Buffer): Int {
@@ -108,7 +108,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
     }
 }
 
-actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
+public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) {
     val cd = iconv_open(charset.name, "UTF-8")
     checkErrors(cd, "UTF-8")
 
@@ -185,15 +185,15 @@ internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
 // ----------------------------------------------------------------------
 
-actual abstract class CharsetDecoder(internal val _charset: Charset)
+public actual abstract class CharsetDecoder(internal val _charset: Charset)
 private data class CharsetDecoderImpl(private val charset: Charset) : CharsetDecoder(charset)
 
-actual val CharsetDecoder.charset: Charset get() = _charset
+public actual val CharsetDecoder.charset: Charset get() = _charset
 
 @SharedImmutable
 private val platformUtf16: String = if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
-actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
+public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int): Int {
     val charset = iconvCharsetName(charset.name)
     val cd = iconv_open(platformUtf16, charset)
     checkErrors(cd, charset)
@@ -315,7 +315,7 @@ internal actual fun CharsetDecoder.decodeBuffer(
     }
 }
 
-actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
+public actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): String {
     if (inputLength == 0) return ""
 
     val charset = iconvCharsetName(charset.name)
@@ -384,10 +384,10 @@ actual fun CharsetDecoder.decodeExactBytes(input: Input, inputLength: Int): Stri
 
 // -----------------------------------------------------------
 
-actual object Charsets {
-    actual val UTF_8: Charset = CharsetImpl("UTF-8")
-    actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
+public actual object Charsets {
+    public actual val UTF_8: Charset = CharsetImpl("UTF-8")
+    public actual val ISO_8859_1: Charset = CharsetImpl("ISO-8859-1")
     internal val UTF_16: Charset = CharsetImpl(platformUtf16)
 }
 
-actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
+public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)

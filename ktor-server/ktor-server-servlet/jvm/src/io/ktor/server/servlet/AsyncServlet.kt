@@ -18,7 +18,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-open class AsyncServletApplicationCall(
+public open class AsyncServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
@@ -46,7 +46,7 @@ open class AsyncServletApplicationCall(
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-class AsyncServletApplicationRequest(
+public class AsyncServletApplicationRequest(
     call: ApplicationCall, servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
@@ -66,7 +66,7 @@ class AsyncServletApplicationRequest(
 
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
-open class AsyncServletApplicationResponse(
+public open class AsyncServletApplicationResponse(
     call: AsyncServletApplicationCall,
     protected val servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
@@ -78,7 +78,7 @@ open class AsyncServletApplicationResponse(
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 
-    final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    public final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         try {
             servletResponse.flushBuffer()
         } catch (e: IOException) {
@@ -103,7 +103,7 @@ open class AsyncServletApplicationResponse(
         }
     }
 
-    companion object {
+    public companion object {
         private val foundPushImpls by lazy {
             listOf("io.ktor.servlet.v4.PushKt.doPush").mapNotNull { tryFind(it) }
         }

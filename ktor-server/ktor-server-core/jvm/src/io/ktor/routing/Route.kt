@@ -14,23 +14,24 @@ import io.ktor.util.pipeline.*
  * @param selector is an instance of [RouteSelector] for this node
  */
 @ContextDsl
-open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
+public open class Route(public val parent: Route?, public val selector: RouteSelector) : ApplicationCallPipeline() {
 
     /**
      * List of child routes for this node
      */
-    val children: List<Route> get() = childList
+    public val children: List<Route> get() = childList
 
     private val childList: MutableList<Route> = ArrayList()
 
-    @Volatile private var cachedPipeline: ApplicationCallPipeline? = null
+    @Volatile
+    private var cachedPipeline: ApplicationCallPipeline? = null
 
     internal val handlers = ArrayList<PipelineInterceptor<Unit, ApplicationCall>>()
 
     /**
      * Creates a child node in this node with a given [selector] or returns an existing one with the same selector
      */
-    fun createChild(selector: RouteSelector): Route {
+    public fun createChild(selector: RouteSelector): Route {
         val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = Route(this, selector)
@@ -43,12 +44,12 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
     /**
      * Allows using route instance for building additional routes
      */
-    operator fun invoke(body: Route.() -> Unit): Unit = body()
+    public operator fun invoke(body: Route.() -> Unit): Unit = body()
 
     /**
      * Installs a handler into this route which will be called when the route is selected for a call
      */
-    fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
+    public fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)
 
         // Adding a handler invalidates only pipeline for this entry

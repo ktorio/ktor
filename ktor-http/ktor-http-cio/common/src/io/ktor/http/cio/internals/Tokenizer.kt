@@ -19,7 +19,7 @@ internal fun skipSpacesAndHorizontalTabs(
     var index = start
     while (index < end) {
         val ch = text[index]
-        if (ch != ' ' && ch != HTAB) break
+        if (!ch.isWhitespace() && ch != HTAB) break
         index++
     }
     return index
@@ -29,11 +29,11 @@ internal fun skipSpaces(text: CharSequence, range: MutableRange) {
     var idx = range.start
     val end = range.end
 
-    if (idx >= end || text[idx] != ' ') return
+    if (idx >= end || !text[idx].isWhitespace()) return
     idx++
 
     while (idx < end) {
-        if (text[idx] != ' ') break
+        if (!text[idx].isWhitespace()) break
         idx++
     }
 
@@ -44,11 +44,11 @@ internal fun findSpaceOrEnd(text: CharSequence, range: MutableRange): Int {
     var idx = range.start
     val end = range.end
 
-    if (idx >= end || text[idx] == ' ') return idx
+    if (idx >= end || text[idx].isWhitespace()) return idx
     idx++
 
     while (idx < end) {
-        if (text[idx] == ' ') return idx
+        if (text[idx].isWhitespace()) return idx
         idx++
     }
 

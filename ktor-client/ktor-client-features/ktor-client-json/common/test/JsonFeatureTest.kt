@@ -13,22 +13,22 @@ class JsonFeatureTest {
         val config = JsonFeature.Config()
 
         assertEquals(1, config.acceptContentTypes.size)
-        assertTrue { config.matchesContentType(ContentType.Application.Json) }
+        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Json) }
 
-        assertTrue { config.matchesContentType(ContentType.parse("application/json")) }
-        assertTrue { config.matchesContentType(ContentType.parse("application/vnd.foo+json")) }
-        assertFalse { config.matchesContentType(ContentType.parse("text/json")) }
+        val feature = JsonFeature(config)
+        assertTrue { feature.canHandle(ContentType.parse("application/json")) }
+        assertTrue { feature.canHandle(ContentType.parse("application/vnd.foo+json")) }
+        assertFalse { feature.canHandle(ContentType.parse("text/json")) }
     }
 
     @Test
     fun testAcceptCall() {
         val config = JsonFeature.Config()
         config.accept(ContentType.Application.Xml)
-        config.accept(ContentType.Application.Xml)
 
         assertEquals(2, config.acceptContentTypes.size)
-        assertTrue { config.matchesContentType(ContentType.Application.Json) }
-        assertTrue { config.matchesContentType(ContentType.Application.Xml) }
+        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Json) }
+        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
     }
 
     @Test
@@ -37,22 +37,22 @@ class JsonFeatureTest {
         config.acceptContentTypes = listOf(ContentType.Application.Pdf, ContentType.Application.Xml)
 
         assertEquals(2, config.acceptContentTypes.size)
-        assertFalse { config.matchesContentType(ContentType.Application.Json) }
-        assertTrue { config.matchesContentType(ContentType.Application.Xml) }
-        assertTrue { config.matchesContentType(ContentType.Application.Pdf) }
+        assertFalse { config.acceptContentTypes.contains(ContentType.Application.Json) }
+        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Xml) }
+        assertTrue { config.acceptContentTypes.contains(ContentType.Application.Pdf) }
     }
 
     @Test
     fun testContentTypesFilter() {
         val config = JsonFeature.Config().apply {
-            acceptContentTypes = listOf(object : ContentTypeMatcher {
-                override fun match(contentType: ContentType): Boolean =
-                    contentType.match("text/json")
+            receive(object : ContentTypeMatcher {
+                override fun contains(contentType: ContentType): Boolean {
+                    return contentType.toString() == "text/json"
+                }
             })
         }
 
-        assertFalse { config.matchesContentType(ContentType.parse("application/json")) }
-        assertFalse { config.matchesContentType(ContentType.parse("application/vnd.foo+json")) }
-        assertTrue { config.matchesContentType(ContentType.parse("text/json")) }
+        val feature = JsonFeature(config)
+        assertTrue { feature.canHandle(ContentType.parse("text/json")) }
     }
 }

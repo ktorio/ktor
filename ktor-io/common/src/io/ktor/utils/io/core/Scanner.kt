@@ -7,7 +7,7 @@ import io.ktor.utils.io.bits.loadByteArray
  * Discards bytes until [delimiter] occurred
  * @return number of bytes discarded
  */
-fun Input.discardUntilDelimiter(delimiter: Byte): Long {
+public fun Input.discardUntilDelimiter(delimiter: Byte): Long {
     var discardedTotal = 0L
 
     takeWhile { chunk ->
@@ -23,7 +23,7 @@ fun Input.discardUntilDelimiter(delimiter: Byte): Long {
  * Discards bytes until of of the specified delimiters [delimiter1] or [delimiter2] occurred
  * @return number of bytes discarded
  */
-fun Input.discardUntilDelimiters(delimiter1: Byte, delimiter2: Byte): Long {
+public fun Input.discardUntilDelimiters(delimiter1: Byte, delimiter2: Byte): Long {
     var discardedTotal = 0L
 
     takeWhile { chunk ->
@@ -39,7 +39,7 @@ fun Input.discardUntilDelimiters(delimiter1: Byte, delimiter2: Byte): Long {
  * Copies to [dst] array at [offset] at most [length] bytes or until the specified [delimiter] occurred.
  * @return number of bytes copied
  */
-fun Input.readUntilDelimiter(delimiter: Byte, dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
+public fun Input.readUntilDelimiter(delimiter: Byte, dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
     var currentOffset = offset
     var dstRemaining = length
 
@@ -58,7 +58,7 @@ fun Input.readUntilDelimiter(delimiter: Byte, dst: ByteArray, offset: Int = 0, l
  * [delimiter1] or [delimiter2] occurred.
  * @return number of bytes copied
  */
-fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
+public fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
                               dst: ByteArray, offset: Int = 0, length: Int = dst.size): Int {
     if (delimiter1 == delimiter2) return readUntilDelimiter(delimiter1, dst, offset, length)
 
@@ -79,7 +79,7 @@ fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte,
  * Copies to [dst] output until the specified [delimiter] occurred.
  * @return number of bytes copied
  */
-fun Input.readUntilDelimiter(delimiter: Byte, dst: Output): Long {
+public fun Input.readUntilDelimiter(delimiter: Byte, dst: Output): Long {
     var copiedTotal = 0L
     takeWhile { chunk ->
         val copied = chunk.readUntilDelimiterImpl(delimiter, dst)
@@ -95,7 +95,7 @@ fun Input.readUntilDelimiter(delimiter: Byte, dst: Output): Long {
  * [delimiter1] or [delimiter2] occurred.
  * @return number of bytes copied
  */
-fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): Long {
+public fun Input.readUntilDelimiters(delimiter1: Byte, delimiter2: Byte, dst: Output): Long {
     var copiedTotal = 0L
 
     takeWhile { chunk ->

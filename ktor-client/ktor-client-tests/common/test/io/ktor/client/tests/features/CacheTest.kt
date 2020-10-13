@@ -8,13 +8,15 @@ import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CacheTest : ClientLoader() {
+    var storage: HttpCache.Config? by shared(null)
+
     @Test
     fun testNoStore() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -38,7 +40,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testNoCache() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -62,7 +63,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testETagCache() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -84,7 +84,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testLastModified() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -106,7 +105,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testVary() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -152,7 +150,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testMaxAge() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -177,8 +174,7 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
-    fun testPublicAndPrivateCache() = clientTests {
-        var storage: HttpCache.Config? = null
+    fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
         config {
             install(HttpCache) {
                 storage = this

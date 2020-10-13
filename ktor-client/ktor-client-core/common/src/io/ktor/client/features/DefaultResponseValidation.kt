@@ -8,7 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.util.*
 import io.ktor.client.statement.*
-import kotlin.jvm.*
+import io.ktor.utils.io.concurrent.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
@@ -18,7 +18,7 @@ private val ValidateMark = AttributeKey<Unit>("ValidateMark")
  * Default response validation.
  * Check the response status code in range (0..299).
  */
-fun HttpClientConfig<*>.addDefaultResponseValidation() {
+public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
         validateResponse { response ->
             val statusCode = response.status.value
@@ -42,17 +42,20 @@ fun HttpClientConfig<*>.addDefaultResponseValidation() {
 
 /**
  * Base for default response exceptions.
- * @param response: origin response
+ * @param [response]: origin response
  */
-open class ResponseException(
-    @Transient val response: HttpResponse
-) : IllegalStateException("Bad response: $response")
+public open class ResponseException(
+    response: HttpResponse
+) : IllegalStateException("Bad response: $response") {
+    private val _response: HttpResponse? by threadLocal(response)
+    public val response: HttpResponse get() = _response ?: error("Failed to access response from a different native thread")
+}
 
 /**
  * Unhandled redirect exception.
  */
 @Suppress("KDocMissingDocumentation")
-class RedirectResponseException(response: HttpResponse) : ResponseException(response) {
+public class RedirectResponseException(response: HttpResponse) : ResponseException(response) {
     override val message: String? = "Unhandled redirect: ${response.call.request.url}. Status: ${response.status}"
 }
 
@@ -60,7 +63,7 @@ class RedirectResponseException(response: HttpResponse) : ResponseException(resp
  * Server error exception.
  */
 @Suppress("KDocMissingDocumentation")
-class ServerResponseException(
+public class ServerResponseException(
     response: HttpResponse
 ) : ResponseException(response) {
     override val message: String? = "Server error(${response.call.request.url}: ${response.status}."
@@ -70,7 +73,7 @@ class ServerResponseException(
  * Bad client request exception.
  */
 @Suppress("KDocMissingDocumentation")
-class ClientRequestException(
+public class ClientRequestException(
     response: HttpResponse
 ) : ResponseException(response) {
     override val message: String? = "Client request(${response.call.request.url}) invalid: ${response.status}"

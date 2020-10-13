@@ -6,6 +6,10 @@ package io.ktor.http
 
 import io.ktor.util.*
 
+/** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
+private val HeaderFieldValueSeparators =
+    setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
+
 /**
  * Represents a header value that consist of [content] followed by [parameters].
  * Useful for headers such as `Content-Type`, `Content-Disposition` and so on.
@@ -13,15 +17,15 @@ import io.ktor.util.*
  * @property content header's content without parameters
  * @property parameters
  */
-abstract class HeaderValueWithParameters(
+public abstract class HeaderValueWithParameters(
     protected val content: String,
-    val parameters: List<HeaderValueParam> = emptyList()
+    public val parameters: List<HeaderValueParam> = emptyList()
 ) {
 
     /**
      * The first value for the parameter with [name] comparing case-insensitively or `null` if no such parameters found
      */
-    fun parameter(name: String): String? = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
+    public fun parameter(name: String): String? = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content
@@ -40,11 +44,11 @@ abstract class HeaderValueWithParameters(
         }
     }
 
-    companion object {
+    public companion object {
         /**
          * Parse header with parameter and pass it to [init] function to instantiate particular type
          */
-        inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
+        public inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
             val headerValue = parseHeaderValue(value).single()
             return init(headerValue.value, headerValue.params)
         }
@@ -54,7 +58,7 @@ abstract class HeaderValueWithParameters(
 /**
  * Append formatted header value to the builder
  */
-fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
+public fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
     append(name, value.toString())
 }
 
@@ -62,7 +66,7 @@ fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
  * Escape using double quotes if needed or keep as is if no dangerous strings found
  */
 @InternalAPI
-fun String.escapeIfNeeded() = when {
+public fun String.escapeIfNeeded(): String = when {
     checkNeedEscape() -> quote()
     else -> this
 }
@@ -79,17 +83,7 @@ private fun String.checkNeedEscape(): Boolean {
     if (isEmpty()) return true
 
     for (index in 0 until length) {
-        when (this[index]) {
-            '\\',
-            '\n',
-            '\r',
-            '\"',
-            ' ',
-            '=',
-            ';',
-            ',',
-            '/' -> return true
-        }
+        if (HeaderFieldValueSeparators.contains(this[index])) return true
     }
 
     return false
@@ -99,7 +93,7 @@ private fun String.checkNeedEscape(): Boolean {
  * Escape string using double quotes
  */
 @InternalAPI
-fun String.quote() = buildString { this@quote.quoteTo(this) }
+public fun String.quote(): String = buildString { this@quote.quoteTo(this) }
 
 private fun String.quoteTo(out: StringBuilder) {
     out.append("\"")
@@ -109,6 +103,7 @@ private fun String.quoteTo(out: StringBuilder) {
             '\\' -> out.append("\\\\")
             '\n' -> out.append("\\n")
             '\r' -> out.append("\\r")
+            '\t' -> out.append("\\t")
             '\"' -> out.append("\\\"")
             else -> out.append(ch)
         }
