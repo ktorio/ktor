@@ -137,12 +137,6 @@ class HeadTest {
             }
         }
 
-        application.intercept(ApplicationCallPipeline.Fallback) {
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        }
-
         // ensure with GET
         handleRequest(HttpMethod.Get, "/page1").let { call ->
             assertTrue { call.requestHandled }
