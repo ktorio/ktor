@@ -152,14 +152,14 @@ internal class Endpoint(
     }
 
     private suspend fun connect(requestData: HttpRequestData): Socket {
-        val retryAttempts = config.endpoint.connectRetryAttempts
+        val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
         var timeoutFails = 0
 
         connections.incrementAndGet()
 
         try {
-            repeat(retryAttempts) {
+            repeat(connectAttempts) {
                 val connect: suspend CoroutineScope.() -> Socket = {
                     connectionFactory.connect(address) {
                         this.socketTimeout = socketTimeout
@@ -202,15 +202,15 @@ internal class Endpoint(
 
         connections.decrementAndGet()
 
-        throw getTimeoutException(retryAttempts, timeoutFails, requestData)
+        throw getTimeoutException(connectAttempts, timeoutFails, requestData)
     }
 
     /**
-     * Defines exact type of exception based on [retryAttempts] and [timeoutFails].
+     * Defines exact type of exception based on [connectAttempts] and [timeoutFails].
      */
-    private fun getTimeoutException(retryAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
+    private fun getTimeoutException(connectAttempts: Int, timeoutFails: Int, request: HttpRequestData) =
         when (timeoutFails) {
-            retryAttempts -> ConnectTimeoutException(request)
+            connectAttempts -> ConnectTimeoutException(request)
             else -> FailToConnectException()
         }
 
