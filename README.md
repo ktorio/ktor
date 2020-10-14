@@ -1,4 +1,4 @@
-<img src="http://ktor.io/assets/images/ktor_logo.png" alt="Ktor" width="600" style="max-width:100%;">
+<img src="https://avatars0.githubusercontent.com/u/28214161" alt="Ktor" width="100" style="max-width:100%;">
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
