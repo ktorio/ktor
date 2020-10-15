@@ -79,12 +79,17 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                                         "the property in the EngineSSLConnectorConfig class used"
                                 )
                             }
+                            if (ktorConnector.trustStorePath != null) {
+                                setAttribute("clientAuth", true)
+                                setAttribute("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
+                            } else {
+                                setAttribute("clientAuth", false)
+                            }
 
                             setAttribute("keyAlias", ktorConnector.keyAlias)
                             setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
                             setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
                             setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                            setAttribute("clientAuth", false)
                             setAttribute("sslProtocol", "TLS")
                             setAttribute("SSLEnabled", true)
 

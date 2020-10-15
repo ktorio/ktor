@@ -43,7 +43,7 @@ public fun generateCertificate(
     val id = id(if(isCA) "localhostCA" else "localhost")
     val cert = certificate(subject = id, issuer = id, keyPair = keyPair, signerKeyPair = keyPair, algorithm = algorithm, isCA = isCA)
 
-    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
 
     file.parentFile?.mkdirs()
