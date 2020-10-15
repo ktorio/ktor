@@ -51,7 +51,7 @@ public fun generateCertificate(
         keyType = keyType
     )
 
-    keyStore.setCertificateEntry(keyAlias, cert)
+    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
 
     file?.parentFile?.mkdirs()

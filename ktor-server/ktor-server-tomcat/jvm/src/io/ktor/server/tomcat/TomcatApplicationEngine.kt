@@ -79,6 +79,12 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                                     "the property in the EngineSSLConnectorConfig class used"
                             )
                         }
+                        if (ktorConnector.trustStorePath != null) {
+                            setAttribute("clientAuth", true)
+                            setAttribute("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
+                        } else {
+                            setAttribute("clientAuth", false)
+                        }
 
                         if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
                             throw IllegalArgumentException("Tomcat requires trustStorePath for client certificate authentication")
