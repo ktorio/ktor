@@ -225,7 +225,7 @@ public data class CertificatePinner internal constructor(
         for (certificate in certificates) {
             append("\n    ")
             val publicKeyStr = certificate.getPublicKeyBytes()?.toSha256String()
-            append("$CertificatesInfo.HASH_ALGORITHM_SHA_256$publicKeyStr")
+            append("${CertificatesInfo.HASH_ALGORITHM_SHA_256}$publicKeyStr")
             append(": ")
             val summaryRef = SecCertificateCopySubjectSummary(certificate)
             val summary = CFBridgingRelease(summaryRef) as NSString
