@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty
@@ -51,7 +51,7 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                 setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
                 setKeyStorePassword(String(ktorConnector.keyStorePassword()))
 
-                setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
+                addExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
                         "SSL_DHE_RSA_WITH_DES_CBC_SHA", "SSL_DHE_DSS_WITH_DES_CBC_SHA",
                         "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
                         "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
