@@ -46,8 +46,7 @@ internal fun Application.tests() {
         }
         post("/echo-with-content-type") {
             val response = call.receiveText()
-            val contentType =
-                call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             call.respondBytes(response.toByteArray(), contentType)
         }
         get("/bytes") {
