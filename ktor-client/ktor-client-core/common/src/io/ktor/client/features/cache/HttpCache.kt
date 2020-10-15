@@ -129,22 +129,34 @@ public class HttpCache(
         val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
 
         val varyKeysFrom304 = response.varyKeys()
-        val cache = when {
-            varyKeysFrom304.isNullOrEmpty() -> storage.findByUrl(url)
-                .sortedByDescending { it.response.responseTime }
-                .firstOrNull { cachedResponse ->
-                    cachedResponse.varyKeys.all { (key, value) -> value == request.headers[key] ?: "" }
-                }
-            else -> storage.find(url, varyKeysFrom304)
-        } ?: return null
+        val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
         val newVaryKeys = if (varyKeysFrom304.isNullOrEmpty()) cache.varyKeys else varyKeysFrom304
         storage.store(url, HttpCacheEntry(response.cacheExpires(), newVaryKeys, cache.response, cache.body))
         return cache.produceResponse()
     }
 
+    private fun findResponse(
+        storage: HttpCacheStorage,
+        varyKeys: Map<String, String>,
+        url: Url,
+        request: HttpRequest
+    ): HttpCacheEntry? = when {
+        varyKeys.isNotEmpty() -> {
+            storage.find(url, varyKeys)
+        }
+        else -> {
+            val requestHeaders = mergedHeadersLookup(request.content, request.headers::get, request.headers::getAll)
+            storage.findByUrl(url)
+                .sortedByDescending { it.response.responseTime }
+                .firstOrNull { cachedResponse ->
+                    cachedResponse.varyKeys.all { (key, value) -> requestHeaders(key) == value }
+                }
+        }
+    }
+
     private fun findResponse(context: HttpRequestBuilder, content: OutgoingContent): HttpCacheEntry? {
         val url = Url(context.url)
-        val lookup = mergedHeadersLookup(context.headers, content)
+        val lookup = mergedHeadersLookup(content, context.headers::get, context.headers::getAll)
 
         val cachedResponses = privateStorage.findByUrl(url) + publicStorage.findByUrl(url)
         for (item in cachedResponses) {
@@ -159,17 +171,18 @@ public class HttpCache(
 }
 
 private fun mergedHeadersLookup(
-    requestHeaders: HeadersBuilder,
-    content: OutgoingContent
+    content: OutgoingContent,
+    headerExtractor: (String) -> String?,
+    allHeadersExtractor: (String) -> List<String>?,
 ): (String) -> String = block@{ header ->
     return@block when (header) {
         HttpHeaders.ContentLength -> content.contentLength?.toString() ?: ""
         HttpHeaders.ContentType -> content.contentType?.toString() ?: ""
         HttpHeaders.UserAgent -> {
-            content.headers[HttpHeaders.UserAgent] ?: requestHeaders[HttpHeaders.UserAgent] ?: KTOR_DEFAULT_USER_AGENT
+            content.headers[HttpHeaders.UserAgent] ?: headerExtractor(HttpHeaders.UserAgent) ?: KTOR_DEFAULT_USER_AGENT
         }
         else -> {
-            val value = content.headers.getAll(header) ?: requestHeaders.getAll(header) ?: emptyList()
+            val value = content.headers.getAll(header) ?: allHeadersExtractor(header) ?: emptyList()
             value.joinToString(";")
         }
     }
