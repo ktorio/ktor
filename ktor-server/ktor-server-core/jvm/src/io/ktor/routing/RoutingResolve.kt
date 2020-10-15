@@ -110,16 +110,21 @@ public class RoutingResolveContext(
         var bestQuality = 0.0
         var bestChild: Route? = null
 
+        val children = flattenChildren(entry.children)
         // iterate using indices to avoid creating iterator
-        for (childIndex in 0..entry.children.lastIndex) {
-            val child = entry.children[childIndex]
+        for (childIndex in 0..children.lastIndex) {
+            val child = children[childIndex]
             val selectorResult = child.selector.evaluate(this, segmentIndex)
             if (!selectorResult.succeeded) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Selector didn't match"))
                 continue // selector didn't match, skip entire subtree
             }
 
-            val immediateSelectQuality = selectorResult.quality
+            val immediateSelectQuality = when (selectorResult.quality) {
+                // handlers of route with qualityTransparent should be treated as ones with qualityConstant
+                RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
+                else -> selectorResult.quality
+            }
 
             if (immediateSelectQuality < bestQuality) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Better match was already found"))
@@ -181,5 +186,22 @@ public class RoutingResolveContext(
         return result
     }
 
-}
+    private fun flattenChildren(children: List<Route>): List<Route> {
+        // to avoid unnecessary allocations, first check in flattening is required
+        // iterate using indices to avoid creating iterator
+        var hasTransparentChildren = false
+        for (childIndex in 0..children.lastIndex) {
+            hasTransparentChildren = children[childIndex].selector.quality == RouteSelectorEvaluation.qualityTransparent
+            if (hasTransparentChildren) break
+        }
+        if (!hasTransparentChildren) return children
 
+        return children.flatMap {
+            when (it.selector.quality) {
+                RouteSelectorEvaluation.qualityTransparent ->
+                    flattenChildren(it.children) + if (it.handlers.isNotEmpty()) listOf(it) else emptyList()
+                else -> listOf(it)
+            }
+        }
+    }
+}
