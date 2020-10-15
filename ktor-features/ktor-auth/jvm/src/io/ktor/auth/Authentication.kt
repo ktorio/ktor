@@ -322,9 +322,9 @@ public fun Route.authenticate(
  * unless you are writing an extension
  * @param names of authentication providers to be applied to this route
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Constant
+        return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
     }
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"

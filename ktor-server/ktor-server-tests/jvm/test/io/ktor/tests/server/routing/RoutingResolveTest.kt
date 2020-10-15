@@ -851,4 +851,49 @@ class RoutingResolveTest {
             }
         }
     }
+
+    @Test
+    fun testRoutingWithTransparentQualitySibling() {
+        val root = routing()
+        val siblingTop = root.handle(PathSegmentParameterRouteSelector("sibling", "top"))
+        val transparentEntryTop = root.createChild(object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+            override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+            }
+        })
+        // inner entry has lower priority then its siblings
+        val innerEntryTop = transparentEntryTop.handle(PathSegmentParameterRouteSelector("inner"))
+        val siblingBottom = root.handle(PathSegmentParameterRouteSelector("sibling", "bottom"))
+
+        on("resolving /topSibling") {
+            val result = resolve(root, "/topSibling")
+
+            it("should successfully resolve") {
+                assertTrue(result is RoutingResolveResult.Success)
+            }
+            it("should resolve to siblingFirst") {
+                assertEquals(siblingTop, result.route)
+            }
+        }
+        on("resolving /innerEntry") {
+            val result = resolve(root, "/innerEntry")
+
+            it("should successfully resolve") {
+                assertTrue(result is RoutingResolveResult.Success)
+            }
+            it("should resolve to innerEntryTop") {
+                assertEquals(innerEntryTop, result.route)
+            }
+        }
+        on("resolving /bottomSibling") {
+            val result = resolve(root, "/bottomSibling")
+
+            it("should successfully resolve") {
+                assertTrue(result is RoutingResolveResult.Success)
+            }
+            it("should resolve to siblingBottom") {
+                assertEquals(siblingBottom, result.route)
+            }
+        }
+    }
 }

@@ -1371,6 +1371,7 @@ public final class io/ktor/routing/RouteSelectorEvaluation {
 	public static final field qualityPathParameter D
 	public static final field qualityQueryParameter D
 	public static final field qualityTailcard D
+	public static final field qualityTransparent D
 	public static final field qualityWildcard D
 	public fun <init> (ZDLio/ktor/http/Parameters;I)V
 	public synthetic fun <init> (ZDLio/ktor/http/Parameters;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
