@@ -209,10 +209,10 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
         public fun create(parallelism: Int): EventLoopGroupProxy {
             val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java)
 
-            val factory: ThreadFactory = ThreadFactory { r ->
+            val factory: ThreadFactory = ThreadFactory { runnable ->
                 defaultFactory.newThread {
                     markParkingProhibited()
-                    r.run()
+                    runnable.run()
                 }
             }
 

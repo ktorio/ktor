@@ -21,11 +21,10 @@ public class OutputStreamContent(
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         withBlocking {
-            val stream = channel.toOutputStream()
-            // use bock should be inside because closing OutputStream is blocking as well
+            // use block should be inside because closing OutputStream is blocking as well
             // and should not be invoked in a epoll/kqueue/reactor thread
-            stream.use {
-                it.body()
+            channel.toOutputStream().use { stream ->
+                stream.body()
             }
         }
     }
