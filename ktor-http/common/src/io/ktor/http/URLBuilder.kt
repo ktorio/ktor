@@ -236,3 +236,30 @@ public val URLBuilder.authority: String
             append(port.toString())
         }
     }
+
+
+/**
+ * Adds [components] to current [encodedPath]
+ */
+public fun URLBuilder.pathComponents(components: List<String>): URLBuilder {
+    var paths = components
+        .map { part -> part.dropWhile { it == '/' }.dropLastWhile { it == '/' }.encodeURLQueryComponent() }
+        .filter { it.isNotEmpty() }
+        .joinToString("/")
+
+    // make sure that there's a slash separator at the end of current path
+    if (!encodedPath.endsWith('/')) {
+        paths = "/${paths}"
+    }
+    encodedPath += paths
+
+    return this
+}
+
+
+/**
+ * Adds [components] to current [encodedPath]
+ */
+public fun URLBuilder.pathComponents(vararg components: String): URLBuilder {
+    return pathComponents(components.toList())
+}

@@ -901,6 +901,8 @@ public final class io/ktor/http/URLBuilderKt {
 	public static final fun clone (Lio/ktor/http/URLBuilder;)Lio/ktor/http/URLBuilder;
 	public static final fun getAuthority (Lio/ktor/http/URLBuilder;)Ljava/lang/String;
 	public static final fun getAuthority (Lio/ktor/http/Url;)Ljava/lang/String;
+	public static final fun pathComponents (Lio/ktor/http/URLBuilder;Ljava/util/List;)Lio/ktor/http/URLBuilder;
+	public static final fun pathComponents (Lio/ktor/http/URLBuilder;[Ljava/lang/String;)Lio/ktor/http/URLBuilder;
 }
 
 public final class io/ktor/http/URLDecodeException : java/lang/Exception {
