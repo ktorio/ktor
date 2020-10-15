@@ -43,7 +43,7 @@ public fun generateCertificate(
     val id = id(if(isCA) "localhostCA" else "localhost")
     val cert = certificate(subject = id, issuer = id, keyPair = keyPair, signerKeyPair = keyPair, algorithm = algorithm, isCA = isCA)
 
-    keyStore.setCertificateEntry(keyAlias + "Cert", cert)
+    keyStore.setCertificateEntry(keyAlias, cert)
     keyStore.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
 
     file.parentFile?.mkdirs()
@@ -132,6 +132,26 @@ public fun KeyStore.generateCertificate(
         keyStore.store(it, jksPassword.toCharArray())
     }
     return keyStore
+}
+
+/**
+ * Extracts all certificates from the given KeyStore to use these certificates as a valid TrustStore.
+ *
+ * A TrustStore should only contain the public certificates of a certificate authority,
+ * while their responding keys are private.
+ */
+public fun KeyStore.trustStore(file: File, password: CharArray = "changeit".toCharArray()): KeyStore {
+    val trustStore = KeyStore.getInstance("JKS")!!
+    trustStore.load(null, null)
+    aliases().toList().forEach { alias ->
+        val cert: Certificate = getCertificate(alias)
+        trustStore.setCertificateEntry(alias, cert)
+    }
+    file.parentFile?.mkdirs()
+    file.outputStream().use {
+        trustStore.store(it, password)
+    }
+    return trustStore
 }
 
 internal data class Counterparty(

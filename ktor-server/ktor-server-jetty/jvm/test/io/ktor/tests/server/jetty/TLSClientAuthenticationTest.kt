@@ -53,11 +53,13 @@ class TLSClientAuthenticationTest {
         TConfiguration : ApplicationEngine.Configuration,
         Factory : ApplicationEngineFactory<TEngine, TConfiguration>>
         `Server requesting Client Certificate from CIO Client`(engine: Factory) = runBlocking {
-        val caPath = File.createTempFile("caKeys", "jks")
-        val ca = generateCertificate(caPath, isCA = true)
+        val ca = generateCertificate(File.createTempFile("caKeys", "jks"), isCA = true)
         val serverKeyPath = File.createTempFile("server", "jks")
         val serverKeys = ca.generateCertificate(serverKeyPath)
         val clientKeys = ca.generateCertificate(File.createTempFile("client", "jks"))
+
+        val caTrustStorePath = File.createTempFile("trustStore", "jks")
+        val caTrustStore = ca.trustStore(caTrustStorePath)
 
         val server = embeddedServer(
             engine, connectors = listOf(
@@ -69,10 +71,10 @@ class TLSClientAuthenticationTest {
                 ).apply {
                     this.host = "0.0.0.0"
                     this.port = 443
-                    trustStore = ca
+                    trustStore = caTrustStore
                     if(engine is Tomcat) {
                         keyStorePath = serverKeyPath
-                        trustStorePath = caPath
+                        trustStorePath = caTrustStorePath
                     }
                 })
         ) {
@@ -86,7 +88,7 @@ class TLSClientAuthenticationTest {
         val client = HttpClient(CIO) {
             engine {
                 https {
-                    trustManager = ca.trustManagers.first()
+                    trustManager = caTrustStore.trustManagers.first()
                     addKeyStore(clientKeys, "changeit".toCharArray())
                 }
             }
