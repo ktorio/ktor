@@ -14,6 +14,9 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
+import io.ktor.server.cio.CIO as CIOServer
+import io.ktor.server.tomcat.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.io.*
@@ -25,13 +28,39 @@ import kotlin.test.*
 class TLSClientAuthenticationTest {
 
     @Test
-    fun `Jetty Server requesting Client Certificate from CIO Client`() = runBlocking {
-        val ca = generateCertificate(File.createTempFile("caKeys", "jks"), isCA = true )
-        val serverKeys = ca.generateCertificate(File.createTempFile("server", "jks"))
+    fun `Jetty Server requesting Client Certificate from CIO Client`() {
+        `Server requesting Client Certificate from CIO Client`(Jetty)
+    }
+
+    @Test
+    fun `Netty Server requesting Client Certificate from CIO Client`()  {
+        `Server requesting Client Certificate from CIO Client`(Netty)
+    }
+
+    @Test
+    fun `CIO Server requesting Client Certificate from CIO Client`() {
+        val httpsNotImplemented= assertFailsWith<UnsupportedOperationException> {
+            `Server requesting Client Certificate from CIO Client`(CIOServer)
+        }
+    }
+
+    @Test
+    fun `Tomcat Server requesting Client Certificate from CIO Client`()  {
+        `Server requesting Client Certificate from CIO Client`(Tomcat)
+    }
+
+    private fun <TEngine : ApplicationEngine,
+        TConfiguration : ApplicationEngine.Configuration,
+        Factory : ApplicationEngineFactory<TEngine, TConfiguration>>
+        `Server requesting Client Certificate from CIO Client`(engine: Factory) = runBlocking {
+        val caPath = File.createTempFile("caKeys", "jks")
+        val ca = generateCertificate(caPath, isCA = true)
+        val serverKeyPath = File.createTempFile("server", "jks")
+        val serverKeys = ca.generateCertificate(serverKeyPath)
         val clientKeys = ca.generateCertificate(File.createTempFile("client", "jks"))
 
         val server = embeddedServer(
-            Jetty, connectors = listOf(
+            engine, connectors = listOf(
                 EngineSSLConnectorBuilder(
                     keyAlias = "mykey",
                     keyStore = serverKeys,
@@ -41,6 +70,10 @@ class TLSClientAuthenticationTest {
                     this.host = "0.0.0.0"
                     this.port = 443
                     trustStore = ca
+                    if(engine is Tomcat) {
+                        keyStorePath = serverKeyPath
+                        trustStorePath = caPath
+                    }
                 })
         ) {
             routing {
