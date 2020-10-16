@@ -428,9 +428,11 @@ public final class io/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConf
 	public static final field Companion Lio/ktor/client/features/HttpTimeout$HttpTimeoutCapabilityConfiguration$Companion;
 	public fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;)V
 	public synthetic fun <init> (Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getConnectTimeoutMillis ()Ljava/lang/Long;
 	public final fun getRequestTimeoutMillis ()Ljava/lang/Long;
 	public final fun getSocketTimeoutMillis ()Ljava/lang/Long;
+	public fun hashCode ()I
 	public final fun setConnectTimeoutMillis (Ljava/lang/Long;)V
 	public final fun setRequestTimeoutMillis (Ljava/lang/Long;)V
 	public final fun setSocketTimeoutMillis (Ljava/lang/Long;)V
