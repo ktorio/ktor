@@ -72,7 +72,7 @@ public class TestApplicationResponse(
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
-            call.requestHandled = true
+            call.requestHandled = call.response.status() != HttpStatusCode.NotFound
         }
     }
 

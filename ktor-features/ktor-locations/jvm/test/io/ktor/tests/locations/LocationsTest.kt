@@ -487,7 +487,7 @@ class LocationsTest {
         // missing parameter text
         handleRequest(HttpMethod.Get, "/?number=1&longNumber=2").let { call ->
             // null because missing parameter leads to routing miss
-            assertEquals(null, call.response.status())
+            assertEquals(HttpStatusCode.NotFound, call.response.status())
         }
 
         // illegal value for numeric property

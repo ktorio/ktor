@@ -34,9 +34,6 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
     pipeline.intercept(EnginePipeline.Call) {
         try {
             call.application.execute(call)
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
-            }
         } catch (error: ChannelIOException) {
             with(CallLogging.Internals) {
                 withMDCBlock {
