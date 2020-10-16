@@ -67,6 +67,17 @@ internal fun Application.cacheTestServer() {
                 call.respond(response)
             }
 
+            get("/vary-stale") {
+                val current = counter.incrementAndGet()
+                val response = TextContent("$current", ContentType.Text.Plain).apply {
+                    caching = CachingOptions(CacheControl.MaxAge(0))
+                }
+                response.versions += LastModifiedVersion(GMTDate.START)
+
+                call.response.header(HttpHeaders.Vary, HttpHeaders.ContentLanguage)
+                call.respond(response)
+            }
+
             get("/public") {
                 call.response.cacheControl(CacheControl.MaxAge(60))
                 call.respondText("public")
