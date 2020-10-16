@@ -53,13 +53,13 @@ public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePip
     return pipeline
 }
 
-@InternalAPI
+@EngineAPI
 public suspend fun handleFailure(call: ApplicationCall, error: Throwable) {
     logError(call, error)
     tryRespondError(call, defaultExceptionStatusCode(error) ?: HttpStatusCode.InternalServerError)
 }
 
-@InternalAPI
+@EngineAPI
 public suspend fun logError(call: ApplicationCall, error: Throwable) {
     with(CallLogging.Internals) {
         withMDCBlock(call) {
