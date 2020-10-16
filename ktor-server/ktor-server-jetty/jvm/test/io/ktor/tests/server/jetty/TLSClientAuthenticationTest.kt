@@ -53,10 +53,10 @@ class TLSClientAuthenticationTest {
         TConfiguration : ApplicationEngine.Configuration,
         Factory : ApplicationEngineFactory<TEngine, TConfiguration>>
         `Server requesting Client Certificate from CIO Client`(engine: Factory) = runBlocking {
-        val ca = generateCertificate(File.createTempFile("caKeys", "jks"), isCA = true)
+        val ca = generateCertificate(isCA = true)
         val serverKeyPath = File.createTempFile("server", "jks")
         val serverKeys = ca.generateCertificate(serverKeyPath)
-        val clientKeys = ca.generateCertificate(File.createTempFile("client", "jks"))
+        val clientKeys = ca.generateCertificate()
 
         val caTrustStorePath = File.createTempFile("trustStore", "jks")
         val caTrustStore = ca.trustStore(caTrustStorePath)
