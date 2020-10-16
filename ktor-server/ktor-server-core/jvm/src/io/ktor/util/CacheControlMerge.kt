@@ -42,7 +42,7 @@ internal fun List<CacheControl>.mergeCacheControlDirectives(): List<CacheControl
 
     val maxAgeDirectives = filterIsInstance<CacheControl.MaxAge>()
     val minMaxAge = maxAgeDirectives.minByOrNull { it.maxAgeSeconds }?.maxAgeSeconds
-    val minProxyMaxAge = maxAgeDirectives.minByOrNull { it.proxyMaxAgeSeconds }?.proxyMaxAgeSeconds
+    val minProxyMaxAge = maxAgeDirectives.minByOrNull { it.proxyMaxAgeSeconds ?: Int.MAX_VALUE }?.proxyMaxAgeSeconds
     val mustRevalidate = maxAgeDirectives.any { it.mustRevalidate }
     val proxyRevalidate = maxAgeDirectives.any { it.proxyRevalidate }
 
