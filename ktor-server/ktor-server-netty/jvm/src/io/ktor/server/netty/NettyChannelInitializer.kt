@@ -145,7 +145,7 @@ public class NettyChannelInitializer(
     private fun EngineSSLConnectorConfig.trustManagerFactory(): TrustManagerFactory? {
         val trustStore = trustStore ?: trustStorePath?.let { file ->
             FileInputStream(file).use { fis ->
-                KeyStore.getInstance(KeyStore.getDefaultType()).also { it.load(fis, null) }
+                KeyStore.getInstance("JKS").also { it.load(fis, null) }
             }
         }
         return trustStore?.let { store ->
