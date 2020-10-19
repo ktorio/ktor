@@ -48,7 +48,12 @@ See [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/
 * A questionable and new API should be marked with the `@KtorExperimentalAPI` annotation.
 * A Public API that is not intended to be used by end-users that couldn't be made private/internal due to technical reasons,
 should be marked with `@InternalAPI` annotation.
-  
+
+### Design process
+
+Whether you're thinking of a new feature or want to change the design of an existing process, before making any
+code contributions, please make sure you read how we handle the [design process on the team](https://blog.jetbrains.com/ktor/2020/09/24/ktor-design-process/).
+
 ### Building the project
 
 Ktor is built with Gradle.
