@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -36,10 +36,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 events.close()
                 return
             }
-            @Suppress("DEPRECATION")
-            @OptIn(
-                ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-            )
+            @OptIn(ExperimentalCoroutinesApi::class)
             events.receiveOrNull() ?: return
             loop(buffer)
 
@@ -67,10 +64,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
                 channel.writeFully(buffer, 0, rc)
             } else {
                 channel.flush()
-                @Suppress("DEPRECATION")
-                @OptIn(
-                    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-                )
+                @OptIn(ExperimentalCoroutinesApi::class)
                 events.receiveOrNull() ?: break
             }
         }

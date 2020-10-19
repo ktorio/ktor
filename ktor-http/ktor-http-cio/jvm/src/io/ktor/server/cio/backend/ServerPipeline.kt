@@ -26,12 +26,12 @@ import java.io.*
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-@OptIn(ObsoleteCoroutinesApi::class)
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
+    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     val outputsActor = actor<ByteReadChannel>(
         context = HttpPipelineWriterCoroutine,
         capacity = 3,
@@ -116,6 +116,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
+            @OptIn(ExperimentalCoroutinesApi::class)
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 val handlerScope = ServerRequestScope(
                     coroutineContext,
@@ -169,7 +170,6 @@ public fun CoroutineScope.startServerConnectionPipeline(
     }
 }
 
-@OptIn(ObsoleteCoroutinesApi::class)
 private suspend fun pipelineWriterLoop(
     channel: ReceiveChannel<ByteReadChannel>,
     timeout: WeakTimeoutQueue,
@@ -177,7 +177,7 @@ private suspend fun pipelineWriterLoop(
 ) {
     val receiveChildOrNull =
         suspendLambda<CoroutineScope, ByteReadChannel?> {
-            @Suppress("DEPRECATION")
+            @OptIn(ExperimentalCoroutinesApi::class)
             channel.receiveOrNull()
         }
     while (true) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
@@ -11,7 +11,6 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.lang.IllegalStateException
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -88,15 +87,13 @@ public class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
         var last: BytePacketBuilder? = null
         var closeFramePresented = false
         try {
+            @OptIn(ExperimentalCoroutinesApi::class)
             raw.incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Close -> {
@@ -144,9 +141,7 @@ public class DefaultWebSocketSessionImpl(
         }
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {

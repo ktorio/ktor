@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
@@ -20,9 +20,6 @@ import kotlin.coroutines.*
  * @property pool: [ByteBuffer] pool to be used by this writer
  */
 @WebSocketInternalAPI
-@OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-)
 public class WebSocketWriter(
     private val writeChannel: ByteWriteChannel,
     override val coroutineContext: CoroutineContext,
@@ -39,7 +36,7 @@ public class WebSocketWriter(
      */
     public val outgoing: SendChannel<Frame> get() = queue
 
-    @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val writeLoopJob = launch(context = CoroutineName("ws-writer"), start = CoroutineStart.ATOMIC) {
         pool.useInstance { writeLoop(it) }
     }
@@ -67,6 +64,7 @@ public class WebSocketWriter(
     }
 
     private fun drainQueueAndDiscard() {
+        @OptIn(ExperimentalCoroutinesApi::class)
         check(queue.isClosedForSend)
 
         try {

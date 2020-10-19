@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty
@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import io.ktor.utils.io.*
-import kotlinx.coroutines.selects.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
@@ -96,17 +95,14 @@ internal class JettyResponseListener(
     }
 
     public suspend fun awaitHeaders(): StatusWithHeaders {
-        onHeadersReceived.await()
-        val statusCode = onHeadersReceived.getCompleted() ?: throw IOException("Connection reset")
+        val statusCode = onHeadersReceived.await() ?: throw IOException("Connection reset")
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
         while (!backendChannel.isClosedForReceive) {
-            val (buffer, callback) = @Suppress("DEPRECATION") backendChannel.receiveOrNull() ?: break
+            val (buffer, callback) = backendChannel.receiveOrNull() ?: break
             try {
                 if (buffer.remaining() > 0) channel.writeFully(buffer)
                 callback.succeeded()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -54,9 +54,6 @@ public val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handl
 @Deprecated(
     "This is going to become internal. " +
         "Start ktor server or raw cio server from ktor-server-cio module instead of constructing server from parts."
-)
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
 )
 public fun CoroutineScope.startConnectionPipeline(
     input: ByteReadChannel,
