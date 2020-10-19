@@ -8,8 +8,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.CancellationException
 import io.ktor.utils.io.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -99,10 +99,9 @@ internal class JettyResponseListener(
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
-        while (!backendChannel.isClosedForReceive) {
-            val (buffer, callback) = backendChannel.receiveOrNull() ?: break
+        while (true) {
+            val (buffer, callback) = backendChannel.receive()
             try {
                 if (buffer.remaining() > 0) channel.writeFully(buffer)
                 callback.succeeded()
@@ -117,9 +116,13 @@ internal class JettyResponseListener(
             }
         }
     }.invokeOnCompletion { cause ->
-        channel.close(cause)
+        channel.close(cause?.takeIf { it !is CancellationException })
         backendChannel.close()
-        GlobalScope.launch { backendChannel.consumeEach { it.callback.succeeded() } }
+        GlobalScope.launch {
+            for ((_, callback) in backendChannel) {
+                callback.succeeded()
+            }
+        }
     }
 
     public companion object {

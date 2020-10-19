@@ -21,7 +21,11 @@ internal actual suspend fun openTLSSession(
     context: CoroutineContext
 ): Socket {
     val handshake = TLSClientHandshake(input, output, config, context)
-    handshake.negotiate()
+    try {
+        handshake.negotiate()
+    } catch (cause: ClosedSendChannelException) {
+        throw TLSException("Negotiation failed due to EOS", cause)
+    }
     return TLSSocket(handshake.input, handshake.output, socket, context)
 }
 

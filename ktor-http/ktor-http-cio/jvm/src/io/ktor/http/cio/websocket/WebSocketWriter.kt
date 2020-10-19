@@ -64,8 +64,7 @@ public class WebSocketWriter(
     }
 
     private fun drainQueueAndDiscard() {
-        @OptIn(ExperimentalCoroutinesApi::class)
-        check(queue.isClosedForSend)
+        queue.close()
 
         try {
             do {
