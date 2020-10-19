@@ -25,7 +25,8 @@ internal actual suspend fun connect(
                 connect(descriptor, address, size).check()
             }
 
-            fcntl(descriptor, F_SETFL, O_NONBLOCK).check()
+            assignOptions(descriptor, socketOptions)
+            nonBlocking(descriptor)
 
             val localAddress = getLocalAddress(descriptor)
 
@@ -54,7 +55,8 @@ internal actual fun bind(
     val address = localAddress?.address ?: getAnyLocalAddress()
     val descriptor = socket(address.family.convert(), SOCK_STREAM, 0).check()
 
-    fcntl(descriptor, F_SETFL, O_NONBLOCK).check { it == 0 }
+    assignOptions(descriptor, socketOptions)
+    nonBlocking(descriptor)
 
     address.nativeAddress { address, size ->
         bind(descriptor, address, size).check()

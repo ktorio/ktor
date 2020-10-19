@@ -1,4 +1,9 @@
 package=io.ktor.network.interop
+compilerOpts.ios = -DM_DARWIN
+compilerOpts.osx = -DM_DARWIN
+compilerOpts.watchos = -DM_DARWIN
+compilerOpts.tvos = -DM_DARWIN
+compilerOpts.mingw = -DMINGW
 ---
 #include <sys/select.h>
 
@@ -17,3 +22,17 @@ static inline void select_fd_clear(fd_set *set) {
 static inline int select_fd_isset(int descriptor, fd_set* set) {
     return FD_ISSET(descriptor, set);
 }
+
+#if defined(M_DARWIN)
+#include <arpa/inet.h>
+static inline const char *ktor_inet_ntop(int af, const void *src, char *dst, socklen_t size) {
+    return inet_ntop(af, src, dst, size);
+}
+#elif defined(MINGW)
+// TODO
+#else
+#include <arpa/inet.h>
+static inline const char *ktor_inet_ntop(int af, const void *src, char *dst, socklen_t size) {
+    return inet_ntop(af, src, dst, size);
+}
+#endif

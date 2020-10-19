@@ -4,8 +4,11 @@
 
 package io.ktor.network.util
 
+import io.ktor.network.interop.*
 import kotlinx.cinterop.*
 import platform.posix.*
+import platform.posix.sockaddr_in
+import platform.posix.sockaddr_in6
 
 /**
  * Represents pair of network ip and port.
@@ -24,7 +27,7 @@ public sealed class SocketAddress(
 
 internal class IPv4Address(
     family: sa_family_t,
-    nativeAddress: in_addr,
+    private val nativeAddress: in_addr,
     port: Int
 ) : SocketAddress(family, port) {
     private val ip: in_addr_t = nativeAddress.s_addr
@@ -40,12 +43,23 @@ internal class IPv4Address(
     }
 
     override val address: String
-        get() = error("String address representation is unsupported on Native.")
+        get() {
+            val address = ByteArray(INET_ADDRSTRLEN)
+            address.usePinned { addressBuf ->
+                ktor_inet_ntop(
+                    AF_INET,
+                    nativeAddress.ptr,
+                    addressBuf.addressOf(0),
+                    address.size.convert()
+                )
+            }
+            return address.toKString()
+        }
 }
 
 internal class IPv6Address(
     family: sa_family_t,
-    rawAddress: in6_addr,
+    private val rawAddress: in6_addr,
     port: Int,
     private val flowInfo: uint32_t,
     private val scopeId: uint32_t
@@ -67,5 +81,11 @@ internal class IPv6Address(
     }
 
     override val address: String
-        get() = error("String address representation is unsupported on Native.")
+        get() {
+            val address = ByteArray(INET6_ADDRSTRLEN)
+            address.usePinned { addressBuf ->
+                ktor_inet_ntop(AF_INET, rawAddress.ptr, addressBuf.addressOf(0), address.size.convert())
+            }
+            return address.toKString()
+        }
 }
