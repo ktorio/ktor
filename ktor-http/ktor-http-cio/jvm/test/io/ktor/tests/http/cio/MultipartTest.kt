@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http.cio
@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {
@@ -54,7 +55,6 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)
@@ -124,7 +124,6 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)
@@ -195,7 +194,7 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
+        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         val parts = allEvents.filterIsInstance<MultipartEvent.MultipartPart>()
@@ -251,7 +250,7 @@ class MultipartTest {
         val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
+        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)

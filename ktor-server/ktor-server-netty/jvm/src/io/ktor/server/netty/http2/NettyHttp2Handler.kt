@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http2
@@ -154,6 +154,7 @@ internal class NettyHttp2Handler(
         return superclass.findIdField()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private class Http2ClosedChannelException(
         val errorCode: Long
     ) : ClosedChannelException(), CopyableThrowable<Http2ClosedChannelException> {

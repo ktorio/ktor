@@ -39,6 +39,7 @@ internal class IosResponseReader(
 
         val responseBody = GlobalScope.writer(callContext + Dispatchers.Unconfined, autoFlush = true) {
             try {
+                @OptIn(ExperimentalCoroutinesApi::class)
                 chunks.consumeEach {
                     channel.writeFully(it)
                     channel.flush()

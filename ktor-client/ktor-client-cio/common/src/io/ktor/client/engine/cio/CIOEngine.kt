@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -57,6 +57,7 @@ internal class CIOEngine(
         val requestJob = requestField[Job]!!
         val selector = selectorManager
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(parentContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestJob.join()

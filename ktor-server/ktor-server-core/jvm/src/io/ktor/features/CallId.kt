@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -30,6 +30,7 @@ public typealias CallIdVerifier = (String) -> Boolean
  * An exception that could be thrown to reject a call due to illegal call id
  * @param illegalCallId that caused rejection
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public class RejectedCallIdException(
     public val illegalCallId: String
 ) : IllegalArgumentException(), CopyableThrowable<RejectedCallIdException> {

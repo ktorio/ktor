@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
@@ -24,7 +24,7 @@ import java.util.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 
-@OptIn(WebSocketInternalAPI::class)
+@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 class WebSocketTest {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(30)

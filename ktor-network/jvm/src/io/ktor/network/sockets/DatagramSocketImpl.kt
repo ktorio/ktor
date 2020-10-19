@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -14,9 +14,7 @@ import java.net.*
 import java.nio.*
 import java.nio.channels.*
 
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
-)
+@Suppress("BlockingMethodInNonBlockingContext")
 internal class DatagramSocketImpl(override val channel: DatagramChannel, selector: SelectorManager)
     : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(channel, selector, DefaultDatagramByteBufferPool) {
 
@@ -30,12 +28,14 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
         get() = socket.remoteSocketAddress as? NetworkAddress
             ?: throw IllegalStateException("Channel is not yet connected")
 
+    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val sender = actor<Datagram>(Dispatchers.IO) {
         consumeEach { datagram ->
             sendImpl(datagram)
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val receiver = produce<Datagram>(Dispatchers.IO) {
         while (true) {
             channel.send(receiveImpl())
