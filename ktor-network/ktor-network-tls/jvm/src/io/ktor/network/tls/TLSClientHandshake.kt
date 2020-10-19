@@ -390,10 +390,13 @@ internal class TLSClientHandshake(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun sendChangeCipherSpec() {
-        if (!output.isClosedForSend) {
-            output.send(TLSRecord(TLSRecordType.ChangeCipherSpec, packet = buildPacket { writeByte(1) }))
+        val packet = buildPacket { writeByte(1) }
+        try {
+            output.send(TLSRecord(TLSRecordType.ChangeCipherSpec, packet = packet))
+        } catch (cause: Throwable) {
+            packet.release()
+            throw cause
         }
     }
 
@@ -426,7 +429,6 @@ internal class TLSClientHandshake(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun sendHandshakeRecord(handshakeType: TLSHandshakeType, block: BytePacketBuilder.() -> Unit) {
         val handshakeBody = buildPacket(block = block)
 
@@ -437,8 +439,11 @@ internal class TLSClientHandshake(
 
         digest.update(recordBody)
         val element = TLSRecord(TLSRecordType.Handshake, packet = recordBody)
-        if (!output.isClosedForSend) {
+        try {
             output.send(element)
+        } catch (cause: Throwable) {
+            element.packet.release()
+            throw cause
         }
     }
 }
