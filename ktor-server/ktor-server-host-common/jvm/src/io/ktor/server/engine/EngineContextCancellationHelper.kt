@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -25,6 +25,7 @@ public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
 public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val deferred: CompletableJob = Job(parent = this)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     GlobalScope.launch(this + Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
         var cancelled = false
         try {

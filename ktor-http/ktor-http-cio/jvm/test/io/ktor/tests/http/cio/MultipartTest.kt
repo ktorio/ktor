@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {

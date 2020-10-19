@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.*
 import java.nio.*
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TrySkipDelimiterTest {
     private val ch = ByteChannel()
 

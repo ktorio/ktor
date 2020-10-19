@@ -15,7 +15,6 @@ import java.nio.*
 import java.nio.channels.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class DatagramSocketImpl(override val channel: DatagramChannel, selector: SelectorManager)
     : BoundDatagramSocket, ConnectedDatagramSocket, NIOSocketImpl<DatagramChannel>(channel, selector, DefaultDatagramByteBufferPool) {
 
@@ -29,13 +28,14 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
         get() = socket.remoteSocketAddress as? NetworkAddress
             ?: throw IllegalStateException("Channel is not yet connected")
 
-    @OptIn(ObsoleteCoroutinesApi::class)
+    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val sender = actor<Datagram>(Dispatchers.IO) {
         consumeEach { datagram ->
             sendImpl(datagram)
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val receiver = produce<Datagram>(Dispatchers.IO) {
         while (true) {
             channel.send(receiveImpl())

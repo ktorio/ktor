@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.network.selector
 
@@ -9,6 +9,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class WorkerSelectorManager : SelectorManager {
     private val selectorContext = newSingleThreadContext("WorkerSelectorManager")
     override val coroutineContext: CoroutineContext = selectorContext

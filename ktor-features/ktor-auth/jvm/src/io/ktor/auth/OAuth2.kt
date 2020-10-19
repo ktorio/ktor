@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -375,6 +375,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * Throw when an OAuth2 server replied with error "unsupported_grant_type"
      * @param grantType that was passed to the server
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     @KtorExperimentalAPI
     public class UnsupportedGrantType(public val grantType: String) : OAuth2Exception(
         "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
@@ -388,6 +389,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * OAuth2 server responded with an error code [errorCode]
      * @param errorCode the OAuth2 server replied with
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     @KtorExperimentalAPI
     public class UnknownException(
         private val details: String, errorCode: String

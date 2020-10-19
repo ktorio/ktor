@@ -26,6 +26,8 @@ public fun CoroutineScope.httpServer(
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch: CompletableJob = Job()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val serverJob = launch(
         context = CoroutineName("server-root-${settings.port}"),
         start = CoroutineStart.UNDISPATCHED

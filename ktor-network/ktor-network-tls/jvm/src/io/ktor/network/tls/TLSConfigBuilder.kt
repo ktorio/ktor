@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -110,6 +110,7 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
 /**
  * Throws if failed to find [PrivateKey] for any alias in [KeyStore].
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public class NoPrivateKeyException(
     private val alias: String, private val store: KeyStore
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),

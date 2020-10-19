@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -390,6 +390,7 @@ internal class TLSClientHandshake(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun sendChangeCipherSpec() {
         if (!output.isClosedForSend) {
             output.send(TLSRecord(TLSRecordType.ChangeCipherSpec, packet = buildPacket { writeByte(1) }))
@@ -425,6 +426,7 @@ internal class TLSClientHandshake(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun sendHandshakeRecord(handshakeType: TLSHandshakeType, block: BytePacketBuilder.() -> Unit) {
         val handshakeBody = buildPacket(block = block)
 

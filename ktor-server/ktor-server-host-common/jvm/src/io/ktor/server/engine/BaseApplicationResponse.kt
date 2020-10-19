@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -250,6 +250,7 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
      * [OutgoingContent] is trying to set some header that is not allowed for this content type.
      * For example, only upgrade content can set `Upgrade` header.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class InvalidHeaderForContent(
         private val name: String, private val content: String
     ) : IllegalStateException("Header $name is not allowed for $content"),
@@ -263,6 +264,7 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooSmall(
         private val expected: Long, private val actual: Long
     ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
@@ -275,6 +277,7 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
     /**
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
         "Body.size is too long. Expected $expected"
     ), CopyableThrowable<BodyLengthIsTooLong> {

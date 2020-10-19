@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.application
@@ -118,6 +118,7 @@ public class DuplicateApplicationFeatureException(message: String) : Exception(m
  * Thrown when Application Feature has been attempted to be accessed but has not been installed before
  * @param key application feature's attribute key
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public class MissingApplicationFeatureException(
     public val key: AttributeKey<*>
 ) : IllegalStateException(), CopyableThrowable<MissingApplicationFeatureException> {

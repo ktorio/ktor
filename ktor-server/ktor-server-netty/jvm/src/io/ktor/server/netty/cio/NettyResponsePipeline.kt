@@ -35,6 +35,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private val ready = ArrayDeque<NettyRequestQueue.CallElement>(readyQueueSize)
     private val running = ArrayDeque<NettyRequestQueue.CallElement>(runningQueueSize)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val responses = launch(
         dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName,
         start = CoroutineStart.UNDISPATCHED

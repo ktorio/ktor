@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
@@ -53,6 +54,7 @@ public actual abstract class ClientLoader {
         testWithEngine(engine.factory, this, block)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     public actual fun dumpCoroutines() {
         DebugProbes.dumpCoroutines()
     }
@@ -63,6 +65,7 @@ public actual abstract class ClientLoader {
      * 2. Nonce generator
      */
     // @After
+    @OptIn(ExperimentalCoroutinesApi::class)
     public fun waitForAllCoroutines() {
         check(DebugProbes.isInstalled) {
             "Debug probes isn't installed."
@@ -103,6 +106,7 @@ private val OS_NAME: String
     }
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 private fun List<CoroutineInfo>.dump(): String = buildString {
     this@dump.forEach { info ->
         appendln("Coroutine: $info")

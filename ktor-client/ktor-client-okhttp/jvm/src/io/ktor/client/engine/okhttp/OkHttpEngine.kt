@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.network.sockets.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
@@ -50,6 +49,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         requestsJob = SilentSupervisor(parent)
         coroutineContext = super.coroutineContext + requestsJob
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
             try {
                 requestsJob[Job]!!.join()

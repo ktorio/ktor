@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -97,6 +97,7 @@ internal class OkHttpWebsocketSession(
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         super.onClosing(webSocket, code, reason)
 
@@ -135,6 +136,7 @@ internal class OkHttpWebsocketSession(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
 public class UnsupportedFrameTypeException(
     private val frame: Frame
