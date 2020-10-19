@@ -55,10 +55,10 @@ public inline fun <R> withMemory(size: Long, block: (Memory) -> R): R {
 @PublishedApi
 internal expect object DefaultAllocator : Allocator
 
-internal interface Allocator {
-    fun alloc(size: Int): Memory
+public interface Allocator {
+    public fun alloc(size: Int): Memory
 
-    fun alloc(size: Long): Memory
+    public fun alloc(size: Long): Memory
 
-    fun free(instance: Memory)
+    public fun free(instance: Memory)
 }
