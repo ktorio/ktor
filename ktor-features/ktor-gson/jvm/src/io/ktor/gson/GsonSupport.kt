@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.gson
@@ -57,6 +57,7 @@ public fun ContentNegotiation.Configuration.gson(
     register(contentType, converter)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ExcludedTypeGsonException(
     val type: KClass<*>
 ) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),

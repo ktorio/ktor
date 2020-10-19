@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.websocket
@@ -30,9 +30,7 @@ import java.util.concurrent.CancellationException
 import kotlin.test.*
 import kotlin.test.Ignore
 
-@OptIn(
-    WebSocketInternalAPI::class, ObsoleteCoroutinesApi::class
-)
+@OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {

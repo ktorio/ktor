@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -21,7 +21,11 @@ internal actual suspend fun openTLSSession(
     context: CoroutineContext
 ): Socket {
     val handshake = TLSClientHandshake(input, output, config, context)
-    handshake.negotiate()
+    try {
+        handshake.negotiate()
+    } catch (cause: ClosedSendChannelException) {
+        throw TLSException("Negotiation failed due to EOS", cause)
+    }
     return TLSSocket(handshake.input, handshake.output, socket, context)
 }
 
@@ -42,7 +46,7 @@ private class TLSSocket(
             appDataOutputLoop(this.channel)
         }
 
-    @OptIn(ObsoleteCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
         try {
             input.consumeEach { record ->

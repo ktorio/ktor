@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
@@ -33,6 +33,7 @@ public class WebSocketReader(
 
     private val queue = Channel<Frame>(8)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val readerJob = launch(CoroutineName("ws-reader"), start = CoroutineStart.ATOMIC) {
         val buffer = pool.borrow()
         try {
@@ -112,6 +113,7 @@ public class WebSocketReader(
      * Raised when the frame is bigger than allowed in a current websocket session
      * @param frameSize size of received or posted frame that is too big
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class FrameTooBigException(public val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
 
         override val message: String

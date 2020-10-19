@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.websocket
@@ -71,6 +71,7 @@ internal class JsWebSocketSession(
         })
 
         launch {
+            @OptIn(ExperimentalCoroutinesApi::class)
             _outgoing.consumeEach {
                 when (it.frameType) {
                     FrameType.TEXT -> {

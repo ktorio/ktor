@@ -34,6 +34,7 @@ private val exceptionCtors: WeakHashMap<Class<out Throwable>, Ctor> = WeakHashMa
  * Try copy [exception] using [cause] as cause.
  */
 @DangerousInternalIoApi
+@OptIn(ExperimentalCoroutinesApi::class)
 public fun <E : Throwable> tryCopyException(exception: E, cause: Throwable): E? {
     // Fast path for CopyableThrowable
     if (exception is CopyableThrowable<*>) {
