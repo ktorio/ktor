@@ -8,9 +8,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.CancellationException
 import io.ktor.utils.io.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
@@ -100,8 +100,9 @@ internal class JettyResponseListener(
     }
 
     private fun runResponseProcessing() = GlobalScope.launch(callContext) {
+        @OptIn(ExperimentalCoroutinesApi::class)
         while (true) {
-            val (buffer, callback) = backendChannel.receive()
+            val (buffer, callback) = backendChannel.receiveOrNull() ?: break
             try {
                 if (buffer.remaining() > 0) channel.writeFully(buffer)
                 callback.succeeded()
@@ -116,7 +117,7 @@ internal class JettyResponseListener(
             }
         }
     }.invokeOnCompletion { cause ->
-        channel.close(cause?.takeIf { it !is CancellationException })
+        channel.close(cause)
         backendChannel.close()
         GlobalScope.launch {
             for ((_, callback) in backendChannel) {
