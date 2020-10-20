@@ -36,6 +36,7 @@ internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWrite
                 break
             }
         }
+    } catch (closed: ClosedReceiveChannelException) {
     } catch (t: Throwable) {
         bc.close(t)
     } finally {
