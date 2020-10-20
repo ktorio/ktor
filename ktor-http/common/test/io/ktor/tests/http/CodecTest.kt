@@ -12,6 +12,7 @@ class CodecTest {
     private val swissAndGerman = "\u0047\u0072\u00fc\u0065\u007a\u0069\u005f\u007a\u00e4\u006d\u00e4"
     private val russian = "\u0412\u0441\u0435\u043c\u005f\u043f\u0440\u0438\u0432\u0435\u0442"
     private val urlPath = "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana\u2013Champaign_logo.svg"
+    private val surrogateSymbolUrlPath = "/path/🐕"
 
     @Test/*(timeout = 1000L)*/
     @Ignore
@@ -114,13 +115,18 @@ class CodecTest {
     fun testFormUrlEncode() {
         val result = StringBuilder()
 
-        val source = mapOf<String, List<String>>(
+        mapOf(
             "a" to listOf("b", "c", "d"),
             "1" to listOf("2"),
             "x" to listOf("y", "z"),
         ).entries.formUrlEncodeTo(result)
 
         assertEquals("a=b&a=c&a=d&1=2&x=y&x=z", result.toString())
+    }
+
+    @Test
+    fun testEncodeURLPathSurrogateSymbol() {
+        assertEquals("/path/%F0%9F%90%95", surrogateSymbolUrlPath.encodeURLPath())
     }
 
     private fun encodeAndDecodeTest(text: String) {

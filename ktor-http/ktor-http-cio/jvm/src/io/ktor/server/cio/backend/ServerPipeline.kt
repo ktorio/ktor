@@ -26,9 +26,7 @@ import java.io.*
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
-)
+@OptIn(ObsoleteCoroutinesApi::class)
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
@@ -40,23 +38,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            val receiveChildOrNull =
-                suspendLambda<CoroutineScope, ByteReadChannel?> {
-                    @Suppress("DEPRECATION")
-                    channel.receiveOrNull()
-                }
-            while (true) {
-                val child = timeout.withTimeout(receiveChildOrNull) ?: break
-                try {
-                    child.joinTo(connection.output, false)
-//                        child.copyTo(output)
-                    connection.output.flush()
-                } catch (t: Throwable) {
-                    if (child is ByteWriteChannel) {
-                        child.close(t)
-                    }
-                }
-            }
+            pipelineWriterLoop(channel, timeout, connection)
         } catch (t: Throwable) {
             connection.output.close(t)
         } finally {
@@ -184,6 +166,30 @@ public fun CoroutineScope.startServerConnectionPipeline(
         coroutineContext.cancel()
     } finally {
         outputsActor.close()
+    }
+}
+
+@OptIn(ObsoleteCoroutinesApi::class)
+private suspend fun pipelineWriterLoop(
+    channel: ReceiveChannel<ByteReadChannel>,
+    timeout: WeakTimeoutQueue,
+    connection: ServerIncomingConnection
+) {
+    val receiveChildOrNull =
+        suspendLambda<CoroutineScope, ByteReadChannel?> {
+            @Suppress("DEPRECATION")
+            channel.receiveOrNull()
+        }
+    while (true) {
+        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        try {
+            child.joinTo(connection.output, false)
+            connection.output.flush()
+        } catch (t: Throwable) {
+            if (child is ByteWriteChannel) {
+                child.close(t)
+            }
+        }
     }
 }
 

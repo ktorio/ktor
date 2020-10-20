@@ -162,7 +162,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText("text to be compressed", status = HttpStatusCode.NotFound)
+                    call.respondText("text to be compressed", status = HttpStatusCode.Found)
                 }
             }
 
@@ -170,7 +170,7 @@ class CompressionTest {
                 addHeader(HttpHeaders.AcceptEncoding, "*")
             }
             assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.NotFound, result.response.status())
+            assertEquals(HttpStatusCode.Found, result.response.status())
             assertEquals("text to be compressed", result.response.byteContent!!.toString(Charsets.UTF_8))
         }
     }

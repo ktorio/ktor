@@ -14,20 +14,26 @@ public abstract class io/ktor/http/CacheControl {
 public final class io/ktor/http/CacheControl$MaxAge : io/ktor/http/CacheControl {
 	public fun <init> (ILjava/lang/Integer;ZZLio/ktor/http/CacheControl$Visibility;)V
 	public synthetic fun <init> (ILjava/lang/Integer;ZZLio/ktor/http/CacheControl$Visibility;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun getMaxAgeSeconds ()I
 	public final fun getMustRevalidate ()Z
 	public final fun getProxyMaxAgeSeconds ()Ljava/lang/Integer;
 	public final fun getProxyRevalidate ()Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/CacheControl$NoCache : io/ktor/http/CacheControl {
 	public fun <init> (Lio/ktor/http/CacheControl$Visibility;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/http/CacheControl$NoStore : io/ktor/http/CacheControl {
 	public fun <init> (Lio/ktor/http/CacheControl$Visibility;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 

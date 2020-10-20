@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
@@ -48,7 +49,15 @@ public class ResponseObserver(
                 val sideCall = newClientCall.wrapWithContent(loggingContent)
 
                 scope.launch {
-                    feature.responseHandler(sideCall.response)
+                    try {
+                        feature.responseHandler(sideCall.response)
+                    } catch (_: Throwable) {
+                    }
+
+                    val content = sideCall.response.content
+                    if (!content.isClosedForRead) {
+                        content.discard()
+                    }
                 }
 
                 context.response = newClientCall.response

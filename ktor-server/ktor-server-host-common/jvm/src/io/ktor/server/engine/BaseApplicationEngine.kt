@@ -5,6 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
 
 /**
  * Base class for implementing [ApplicationEngine]
@@ -33,10 +35,19 @@ public abstract class BaseApplicationEngine(
             it.sendPipeline.merge(pipeline.sendPipeline)
             it.receivePipeline.installDefaultTransformations()
             it.sendPipeline.installDefaultTransformations()
+            it.installDefaultInterceptors()
         }
         environment.monitor.subscribe(ApplicationStarted) {
             environment.connectors.forEach {
                 environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
+            }
+        }
+    }
+
+    private fun Application.installDefaultInterceptors() {
+        intercept(ApplicationCallPipeline.Fallback) {
+            if (call.response.status() == null) {
+                call.respond(HttpStatusCode.NotFound)
             }
         }
     }

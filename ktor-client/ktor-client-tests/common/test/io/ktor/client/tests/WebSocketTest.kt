@@ -33,6 +33,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testClose() = clientTests(skipForWebsockets) {
         config {
             install(WebSockets)
@@ -51,6 +52,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testCancel() = clientTests(skipForWebsockets + "Js") {
         config {
             install(WebSockets)

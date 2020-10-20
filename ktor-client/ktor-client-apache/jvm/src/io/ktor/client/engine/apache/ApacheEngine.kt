@@ -58,11 +58,11 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
             disableAuthCaching()
             disableConnectionState()
             disableCookieManagement()
-            setDefaultIOReactorConfig(IOReactorConfig.custom().apply {
-                setMaxConnPerRoute(MAX_CONNECTIONS_COUNT)
-                setMaxConnTotal(MAX_CONNECTIONS_COUNT)
-                setIoThreadCount(IO_THREAD_COUNT_DEFAULT)
-            }.build())
+            setMaxConnPerRoute(MAX_CONNECTIONS_COUNT)
+            setMaxConnTotal(MAX_CONNECTIONS_COUNT)
+            setDefaultIOReactorConfig(IOReactorConfig.custom()
+                .setIoThreadCount(IO_THREAD_COUNT_DEFAULT)
+                .build())
 
             setupProxy()
         }

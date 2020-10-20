@@ -36,6 +36,7 @@ private val VALID_PATH_PART = listOf(
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
     '-', '.', '_', '~'
 )
+
 /**
  * Oauth specific percent encoding
  * https://tools.ietf.org/html/rfc5849#section-3.6
@@ -49,7 +50,7 @@ internal val LETTERS_AND_NUMBERS = ('a'..'z').toSet() + ('A'..'Z').toSet() + ('0
  * https://tools.ietf.org/html/rfc7230#section-3.2.6
  */
 internal val TOKENS: Set<Char> =
-    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') +  LETTERS_AND_NUMBERS
+    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') + LETTERS_AND_NUMBERS
 
 /**
  * Encode url part as specified in
@@ -98,11 +99,12 @@ public fun String.encodeURLPath(): String = buildString {
             continue
         }
 
+        val symbolSize = if (current.isSurrogate()) 2 else 1
         // we need to call newEncoder() for every symbol, otherwise it won't work
-        charset.newEncoder().encode(this@encodeURLPath, index, index + 1).forEach {
+        charset.newEncoder().encode(this@encodeURLPath, index, index + symbolSize).forEach {
             append(it.percentEncode())
         }
-        index++
+        index += symbolSize
     }
 }
 
@@ -230,7 +232,7 @@ private fun CharSequence.decodeImpl(
  */
 public class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String= buildString(3) {
+private fun Byte.percentEncode(): String = buildString(3) {
     val code = toInt() and 0xff
     append('%')
     append(hexDigitToChar(code shr 4))
