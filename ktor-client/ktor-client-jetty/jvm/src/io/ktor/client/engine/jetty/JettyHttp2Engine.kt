@@ -27,15 +27,19 @@ internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpCl
     /**
      * Cache that keeps least recently used [HTTP2Client] instances. Set "0" to avoid caching.
      */
-    private val clientCache = createLRUCache(::createJettyClient, HTTP2Client::stop, config.clientCacheSize)
+    internal val clientCache = createLRUCache(::createJettyClient, HTTP2Client::stop, config.clientCacheSize)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
-        val jettyClient =
-            clientCache[data.getCapabilityOrNull(HttpTimeout)]
-                ?: error("Http2Client can't be constructed because HttpTimeout feature is not installed")
+        val jettyClient = getOrCreateClient(data)
 
         return data.executeRequest(jettyClient, config, callContext)
+    }
+
+    /** Only for tests */
+    internal fun getOrCreateClient(data: HttpRequestData): HTTP2Client {
+        return clientCache[data.getCapabilityOrNull(HttpTimeout)]
+            ?: error("Http2Client can't be constructed because HttpTimeout feature is not installed")
     }
 
     override fun close() {

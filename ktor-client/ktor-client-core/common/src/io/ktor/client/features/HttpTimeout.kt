@@ -79,6 +79,26 @@ public class HttpTimeout(
             return value
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as HttpTimeoutCapabilityConfiguration
+
+            if (_requestTimeoutMillis != other._requestTimeoutMillis) return false
+            if (_connectTimeoutMillis != other._connectTimeoutMillis) return false
+            if (_socketTimeoutMillis != other._socketTimeoutMillis) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = _requestTimeoutMillis?.hashCode() ?: 0
+            result = 31 * result + (_connectTimeoutMillis?.hashCode() ?: 0)
+            result = 31 * result + (_socketTimeoutMillis?.hashCode() ?: 0)
+            return result
+        }
+
         public companion object {
             public val key: AttributeKey<HttpTimeoutCapabilityConfiguration> = AttributeKey("TimeoutConfiguration")
         }
