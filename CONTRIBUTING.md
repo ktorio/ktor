@@ -20,14 +20,15 @@ with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23
 
 Contributions are made using Github [pull requests](https://help.github.com/en/articles/about-pull-requests):
 
-1. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the **master** branch.
-2. Ensure that the description is clear and refers to an existing ticket/bug if applicable, prefixing the description with 
+1. Fork the Ktor repository and work on your fork. 
+2. [Create](https://github.com/ktorio/ktor/compare) a new PR with a request to merge to the **master** branch.
+3. Ensure that the description is clear and refers to an existing ticket/bug if applicable, prefixing the description with 
    KTOR-{NUM}, where {NUM} refers to the YouTrack issue. 
-3. When contributing a new feature, provide motivation and use-cases describing why
+4. When contributing a new feature, provide motivation and use-cases describing why
    the feature not only provides value to Ktor, but also why it would make sense to be part of the Ktor framework itself.
-4. If the contribution requires updates to documentation (be it updating existing contents or creating new one), please
-   make sure you file a new ticket on [YouTrack](https://youtrack.jetbrains.com/issues/KTOR).
-5. Make sure any code contributed is covered by tests and no existing tests are broken.
+5. If the contribution requires updates to documentation (be it updating existing contents or creating new one), please
+   file a new ticket on [YouTrack](https://youtrack.jetbrains.com/issues/KTOR).
+6. Make sure any code contributed is covered by tests and no existing tests are broken.
 
 ### Style guides
 
@@ -40,14 +41,18 @@ except that star imports should be always enabled
 * Every new source file should have a copyright header.
 * Every public API (including functions, classes, objects and so on) should be documented,
 every parameter, property, return types and exceptions should be described properly.
-* Commit messages should be written in English only, should be clear and descriptive,
-written in present tense and using imperative mood ("Fix" instead of "Fixes", "Improve" instead of "Improved").
-Add the related bug reference to a commit message (bug number after a hash character between round braces). Ideally, and when applicable, 
-  prefix the commit message with KTOR-{NUM} where {NUM} represents the YouTrack issue number
-See [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
 * A questionable and new API should be marked with the `@KtorExperimentalAPI` annotation.
 * A Public API that is not intended to be used by end-users that couldn't be made private/internal due to technical reasons,
-should be marked with `@InternalAPI` annotation.
+  should be marked with `@InternalAPI` annotation.
+
+### Commit messages
+
+* Commit messages should be written in English
+* They should be written in present tense using imperative mood ("Fix" instead of "Fixes", "Improve" instead of "Improved").
+Add the related bug reference to a commit message (bug number after a hash character between round braces). 
+* When applicable, prefix the commit message with KTOR-{NUM} where {NUM} represents the YouTrack issue number
+
+See [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
 
 ### Design process
 
@@ -56,9 +61,13 @@ code contributions, please make sure you read how we handle the [design process 
 
 ### Building the project
 
-Ktor is built with Gradle.
+Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
-* Run `./gradlew build` to build. It also runs all the tests.
+#### JVM Builds
+
+* Run `./gradlew jvmTest` to build and run all the tests.
+
+#### Importing into IntelliJ IDEA
 
 You can import this project into IDEA, but you have to delegate build actions
 to Gradle (in Preferences -> Build, Execution, Deployment -> Build Tools -> Gradle -> Runner)
