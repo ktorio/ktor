@@ -31,15 +31,29 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
+        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 
-        return HttpResponseData(
-            testServerCall.status()!!, GMTDate(),
-            testServerCall.headers.allValues(),
-            HttpProtocolVersion.HTTP_1_1,
-            ByteReadChannel(testServerCall.byteContent ?: byteArrayOf()),
-            callContext()
-        )
+        return if (testServerCall.requestHandled) {
+            with(testServerCall.response) {
+                HttpResponseData(
+                    status()!!, GMTDate(),
+                    headers.allValues(),
+                    HttpProtocolVersion.HTTP_1_1,
+                    ByteReadChannel(byteContent ?: byteArrayOf()),
+                    callContext()
+                )
+            }
+        } else {
+            HttpResponseData(
+                HttpStatusCode.NotFound, GMTDate(),
+                Headers.build {
+                    this[HttpHeaders.ContentLength] = "0"
+                },
+                HttpProtocolVersion.HTTP_1_1,
+                ByteReadChannel(byteArrayOf()),
+                callContext()
+            )
+        }
     }
 
     private fun runRequest(
