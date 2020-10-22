@@ -142,4 +142,5 @@ public class EngineSSLConnectorBuilder(
     override var keyStorePath: File? = null
     override var trustStore: KeyStore? = null
     override var trustStorePath: File? = null
+    override var port: Int = 443
 }
