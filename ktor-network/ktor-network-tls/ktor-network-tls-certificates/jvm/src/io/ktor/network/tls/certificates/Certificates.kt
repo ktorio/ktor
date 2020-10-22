@@ -222,15 +222,12 @@ internal fun BytePacketBuilder.writeX509Info(
                 when (keyType) {
                     KeyType.CA -> {
                         caExtension()
-                        //keyUsages(KeyUsage.DigitalSignature, KeyUsage.NonRepudiation)
                     }
                     KeyType.Server -> {
-                        //keyUsages(KeyUsage.DigitalSignature, KeyUsage.KeyEncipherment)
                         extKeyUsage { serverAuth() }
                         subjectAlternativeNames(domains, ipAddresses)
                     }
                     KeyType.Client -> {
-                        //keyUsages(KeyUsage.DigitalSignature, KeyUsage.KeyEncipherment)
                         extKeyUsage { clientAuth() }
                     }
                 }
@@ -239,38 +236,6 @@ internal fun BytePacketBuilder.writeX509Info(
 
         writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
-    }
-}
-
-/**
- * RFC 3280 Internet X.509 Public Key Infrastructure
- *
- * 4.2.1.3  Key Usage
- */
-public enum class KeyUsage {
-    DigitalSignature,
-    NonRepudiation,
-    KeyEncipherment,
-    DataEncipherment,
-    KeyAgreement,
-    KeyCertSign,
-    CRLSign,
-    EncipherOnly,
-    DecipherOnly
-}
-
-private fun BytePacketBuilder.keyUsages(vararg usages: KeyUsage) {
-    writeDerSequence {
-        writeDerObjectIdentifier(OID.KeyUsage)
-        // is critical extension bit
-        writeDerBoolean(true)
-        writeDerOctetString {
-            val s = usages.map { it.ordinal to 1.toByte() }.toMap()
-            val setBytes = ByteArray(KeyUsage.values().size) {
-                s.getOrDefault(it, 0)
-            }
-            writeDerBitString(setBytes)
-        }
     }
 }
 

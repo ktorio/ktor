@@ -76,7 +76,7 @@ class TLSClientAuthenticationTest {
                     call.respondText { "Hello World" }
                 }
             }
-        }//.start(wait = true)
+        }
         server.start()
         val client = HttpClient(CIO) {
             engine {
