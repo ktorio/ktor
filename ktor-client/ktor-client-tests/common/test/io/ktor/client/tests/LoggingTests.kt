@@ -68,6 +68,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "BODY Content-Type: null",
             "BODY START",
             "",
@@ -97,6 +98,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
             "FROM: http://localhost:8080/logging/",
@@ -136,6 +138,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 13",
+            "-> Content-Length: text/plain; charset=UTF-8",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             content,
@@ -193,6 +197,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 2",
+            "-> Content-Length: application/octet-stream",
             "BODY Content-Type: application/octet-stream",
             "BODY START",
             "[request body omitted]",
@@ -242,7 +248,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun logRedirectTest() = clientTests(listOf("js", "Curl", "CIO")) {
+    fun testLogRedirect() = clientTests(listOf("js", "Curl", "CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/logging/301",
             "METHOD: HttpMethod(value=GET)",
@@ -250,6 +256,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "BODY Content-Type: null",
             "BODY START",
             "",
@@ -272,6 +279,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "BODY Content-Type: null",
             "BODY START",
             "",
@@ -316,7 +324,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun customServerHeadersLoggingTest() = clientTests(listOf("Curl", "iOS", "Js")) {
+    fun testCustomServerHeadersLogging() = clientTests(listOf("Curl", "iOS", "Js")) {
         val testLogger = TestLogger(
             "REQUEST: http://google.com/",
             "METHOD: HttpMethod(value=GET)",
@@ -324,6 +332,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "RESPONSE: 301 Moved Permanently",
             "METHOD: HttpMethod(value=GET)",
             "FROM: http://google.com/",
@@ -343,6 +352,7 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 0",
             "RESPONSE: 200 OK",
             "METHOD: HttpMethod(value=GET)",
             "FROM: http://www.google.com/",
@@ -388,6 +398,8 @@ class LoggingTest : ClientLoader() {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
+            "-> Content-Length: 4",
+            "-> Content-Length: text/plain; charset=UTF-8",
             "BODY Content-Type: text/plain; charset=UTF-8",
             "BODY START",
             "test",
@@ -427,7 +439,7 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun customServerTest() = clientTests(listOf("iOS", "native:CIO")) {
+    fun testCustomServer() = clientTests(listOf("iOS", "native:CIO")) {
         config {
             Logging {
                 level = LogLevel.ALL
@@ -444,6 +456,56 @@ class LoggingTest : ClientLoader() {
                 val body = response.content
                 body.readFully(responseBytes)
             }
+        }
+    }
+
+    @Test
+    fun testRequestContentTypeInLog() = clientTests(listOf("iOS", "native:CIO")) {
+        val testLogger = TestLogger(
+            "REQUEST: http://127.0.0.1:8080/content/echo",
+            "METHOD: HttpMethod(value=POST)",
+            "COMMON HEADERS",
+            "-> Accept: */*",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "-> Content-Length: 4",
+            "-> Content-Length: application/octet-stream",
+            "BODY Content-Type: application/octet-stream",
+            "BODY START",
+            "test",
+            "BODY END",
+            "RESPONSE: 200 OK",
+            "METHOD: HttpMethod(value=POST)",
+            "FROM: http://127.0.0.1:8080/content/echo",
+            "COMMON HEADERS",
+            "???-> Connection: keep-alive",
+            "-> Content-Length: 4",
+            "BODY Content-Type: null",
+            "BODY START",
+            "test",
+            "BODY END"
+        )
+
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.request<ByteReadChannel> {
+                method = HttpMethod.Post
+                body = "test"
+                contentType(ContentType.Application.OctetStream)
+                url("$TEST_SERVER/content/echo")
+            }
+
+            assertNotNull(response)
+        }
+
+        after {
+            testLogger.verify()
         }
     }
 

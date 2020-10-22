@@ -80,6 +80,8 @@ public class Logging(
             logHeaders(request.headers.entries())
 
             logger.log("CONTENT HEADERS")
+            content.contentLength?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
+            content.contentType?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
             logHeaders(content.headers.entries())
         }
 
@@ -113,7 +115,6 @@ public class Logging(
         if (level.info) {
             logger.log("REQUEST ${Url(context.url)} failed with exception: $cause")
         }
-
     }
 
     private fun logResponseException(context: HttpClientCall, cause: Throwable) {
@@ -126,8 +127,12 @@ public class Logging(
         val sortedHeaders = headers.toList().sortedBy { it.key }
 
         sortedHeaders.forEach { (key, values) ->
-            logger.log("-> $key: ${values.joinToString("; ")}")
+            logger.logHeader(key, values.joinToString("; "))
         }
+    }
+
+    private fun Logger.logHeader(key: String, value: String) {
+        log("-> $key: $value")
     }
 
     private suspend fun logRequestBody(content: OutgoingContent): OutgoingContent? {
