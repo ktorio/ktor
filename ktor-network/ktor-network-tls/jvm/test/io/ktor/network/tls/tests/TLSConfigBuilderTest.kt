@@ -24,9 +24,16 @@ internal class TLSConfigBuilderTest {
                 password = ""
             }
         }
-        val tlsConfig = TLSConfigBuilder().apply {
-            addKeyStore(keyStore, "".toCharArray(), "first")
+        with(TLSConfigBuilder().apply {
+            addKeyStore(keyStore, "".toCharArray())
+        }) {
+            assertEquals(2, certificates.size)
         }
-        assertEquals(1, tlsConfig.certificates.size)
+
+        with(TLSConfigBuilder().apply {
+            addKeyStore(keyStore, "".toCharArray(), "first")
+        }) {
+            assertEquals(1, certificates.size)
+        }
     }
 }
