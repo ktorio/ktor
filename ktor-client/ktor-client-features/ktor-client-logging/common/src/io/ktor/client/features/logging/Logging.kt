@@ -81,7 +81,7 @@ public class Logging(
 
             logger.log("CONTENT HEADERS")
             content.contentLength?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
-            content.contentType?.let { logger.logHeader(HttpHeaders.ContentLength, it.toString()) }
+            content.contentType?.let { logger.logHeader(HttpHeaders.ContentType, it.toString()) }
             logHeaders(content.headers.entries())
         }
 
