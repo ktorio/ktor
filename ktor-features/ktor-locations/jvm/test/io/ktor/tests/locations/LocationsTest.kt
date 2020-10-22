@@ -83,11 +83,11 @@ class LocationsTest {
         urlShouldBeUnhandled("/user?id=123")
     }
 
-    @Location("/user/{id}/{name}") class named(val id: Int, val name: String)
+    @Location("/user/{id}/{name}/tailpart") class named(val id: Int, val name: String)
 
     @Test fun `location with urlencoded path param`() = withLocationsApplication {
-        val href = application.locations.href(named(123, "abc def"))
-        assertEquals("/user/123/abc%20def", href)
+        val href = application.locations.href(named(123, "abc /#def"))
+        assertEquals("/user/123/abc%20%2F%23def", href)
         application.routing {
             get<named> { named ->
                 assertEquals(123, named.id)

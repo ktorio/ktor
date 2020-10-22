@@ -9,10 +9,10 @@ import io.ktor.utils.io.core.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
 
 @SharedImmutable
-private val URL_ALPHABET_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
+private val URL_ALPHABET = URL_ALPHABET_CHARS.map { it.toByte() }.toByteArray()
 
 @SharedImmutable
 private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
@@ -25,17 +25,24 @@ private val URL_PROTOCOL_PART = listOf(
     ':', '/', '?', '#', '[', ']', '@',  // general
     '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=',  // sub-components
     '-', '.', '_', '~', '+' // unreserved
-).map { it.toByte() }
+).map { it.toByte() }.toByteArray()
 
 /**
  * from `pchar` in https://tools.ietf.org/html/rfc3986#section-2
  */
 @SharedImmutable
-private val VALID_PATH_PART = listOf(
+private val VALID_PATH_PART_CHARS = listOf(
     ':', '@',
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
     '-', '.', '_', '~'
 )
+
+@SharedImmutable
+private val VALID_PATH_PART = listOf(
+    ':', '@',
+    '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
+    '-', '.', '_', '~'
+).map { it.toByte() }.toByteArray()
 
 /**
  * Oauth specific percent encoding
@@ -72,7 +79,10 @@ public fun String.encodeURLQueryComponent(
 }
 
 /**
- * Encode URL path or component. It escapes all illegal or ambiguous characters
+ * Encode URL path or component. It escapes all illegal or ambiguous characters while preserving slashes, certain special
+ * and percent encoded characters.
+ *
+ * Note that it is up to the user of this function to ensure that it performs the needed encoding or escaping.
  */
 public fun String.encodeURLPath(): String = buildString {
     val charset = Charsets.UTF_8
@@ -80,7 +90,7 @@ public fun String.encodeURLPath(): String = buildString {
     var index = 0
     while (index < this@encodeURLPath.length) {
         val current = this@encodeURLPath[index]
-        if (current == '/' || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART) {
+        if (current == '/' || current in URL_ALPHABET_CHARS || current in VALID_PATH_PART_CHARS) {
             append(current)
             index++
             continue
@@ -105,6 +115,27 @@ public fun String.encodeURLPath(): String = buildString {
             append(it.percentEncode())
         }
         index += symbolSize
+    }
+}
+
+/**
+ * Encode URL path part. It escapes all illegal or ambiguous characters. Only use this method
+ * for escaping parts between the / in the path as it will also escape any slashes in the String.
+ */
+public fun String.encodeURLPathPart(): String = buildString {
+    val charset = Charsets.UTF_8
+
+    // Percent encode whatever needs to be so. Percent encoding only concerns itself with utf-8 so just encode to bytes
+    // first and map that instead of messing with utf-16 chars.
+    val packet = charset.newEncoder().encode(this@encodeURLPathPart)
+    while (packet.canRead()){
+        val currentByte = packet.readByte()
+
+        if (currentByte in URL_ALPHABET || currentByte in VALID_PATH_PART) {
+            append(currentByte.toChar())
+        } else {
+            appendPercentEncoded(currentByte)
+        }
     }
 }
 
@@ -232,8 +263,19 @@ private fun CharSequence.decodeImpl(
  */
 public class URLDecodeException(message: String) : Exception(message)
 
+/**
+ * https://tools.ietf.org/html/rfc3986#section-2.1
+ */
+// TODO: Inline this method. Useless String(+Builder) allocation
 private fun Byte.percentEncode(): String = buildString(3) {
-    val code = toInt() and 0xff
+    appendPercentEncoded(this@percentEncode)
+}
+
+/**
+ * https://tools.ietf.org/html/rfc3986#section-2.1
+ */
+private fun StringBuilder.appendPercentEncoded(byte: Byte) {
+    val code = byte.toInt() and 0xff
     append('%')
     append(hexDigitToChar(code shr 4))
     append(hexDigitToChar(code and 0x0f))

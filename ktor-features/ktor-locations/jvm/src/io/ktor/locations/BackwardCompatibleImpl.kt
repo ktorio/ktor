@@ -95,7 +95,7 @@ internal class BackwardCompatibleImpl(
 
         val relativePath = substituteParts
             .filterNot { it.isEmpty() }
-            .joinToString("/") { it.encodeURLQueryComponent() }
+            .joinToString("/") { it.encodeURLPathPart() }
 
         val parentInfo = when {
             info.parent == null -> rootUri
