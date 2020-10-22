@@ -3,7 +3,7 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                api group: 'io.dropwizard.metrics', name: 'metrics-core', version: '4.1.2'
+                api group: 'io.dropwizard.metrics', name: 'metrics-core', version: '4.1.13'
                 api group: 'io.dropwizard.metrics', name: 'metrics-jvm', version: '4.1.13'
             }
         }
