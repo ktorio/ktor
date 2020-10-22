@@ -70,8 +70,8 @@ public class NettyChannelInitializer(
                             ApplicationProtocolNames.HTTP_1_1
                         )
                     )
-                    connector.trustManagerFactory()?.let { this.trustManager(it) }
                 }
+                connector.trustManagerFactory()?.let { this.trustManager(it) }
             }
                 .build()
         }
