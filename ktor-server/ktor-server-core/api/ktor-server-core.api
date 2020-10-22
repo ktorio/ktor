@@ -1003,8 +1003,8 @@ public abstract interface class io/ktor/response/ApplicationResponse {
 
 public final class io/ktor/response/ApplicationResponseFunctionsKt {
 	public static final fun defaultTextContentType (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;)Lio/ktor/http/ContentType;
-	public static final fun respond (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun respond (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;[BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondBytes$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -1111,6 +1111,10 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 }
 
 public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
+}
+
+public final class io/ktor/response/ResponseTypeAttributeKeyKt {
+	public static final fun getResponseTypeAttributeKey ()Lio/ktor/util/AttributeKey;
 }
 
 public final class io/ktor/routing/AndRouteSelector : io/ktor/routing/RouteSelector {

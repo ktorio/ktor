@@ -12,11 +12,29 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import java.io.*
+import kotlin.reflect.*
 
 /**
  * Sends a [message] as a response
  */
-@Suppress("NOTHING_TO_INLINE")
+@OptIn(ExperimentalStdlibApi::class)
+@JvmName("respondWithType")
+public suspend inline fun <reified T> ApplicationCall.respond(message: T) {
+    try {
+        // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
+        attributes.put(ResponseTypeAttributeKey, typeOf<T>())
+    } catch (_: Throwable) {
+    }
+    response.pipeline.execute(this, message as Any)
+}
+
+/**
+ * Sends a [message] as a response
+ */
+@Deprecated(
+    message = "This method doesn't save type of the response. This can lead to error in serialization",
+    level = DeprecationLevel.HIDDEN
+)
 public suspend inline fun ApplicationCall.respond(message: Any) {
     response.pipeline.execute(this, message)
 }
@@ -24,10 +42,23 @@ public suspend inline fun ApplicationCall.respond(message: Any) {
 /**
  * Sets [status] and sends a [message] as a response
  */
-@Suppress("NOTHING_TO_INLINE")
+@OptIn(ExperimentalStdlibApi::class)
+@JvmName("respondWithType")
+public suspend inline fun <reified T> ApplicationCall.respond(status: HttpStatusCode, message: T) {
+    response.status(status)
+    respond(message)
+}
+
+/**
+ * Sets [status] and sends a [message] as a response
+ */
+@Deprecated(
+    message = "This method doesn't save type of the response. This can lead to error in serialization",
+    level = DeprecationLevel.HIDDEN
+)
 public suspend inline fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
     response.status(status)
-    response.pipeline.execute(this, message)
+    respond(message)
 }
 
 /**

@@ -111,7 +111,7 @@ private constructor(
         value: Any
     ): Any? {
         @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(value, format.serializersModule) as KSerializer<Any>
+        val serializer = serializerForSending(context, value, format.serializersModule) as KSerializer<Any>
 
         return when (format) {
             is StringFormat -> {
