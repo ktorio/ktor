@@ -7,6 +7,8 @@ package io.ktor.server.netty.cio
 import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.http2.*
+import io.ktor.server.netty.http2.NettyHttp2ApplicationResponse
 import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.channel.*
@@ -223,6 +225,14 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
+    private fun trailerMessage(response: NettyApplicationResponse): Any? {
+        return if (response is NettyHttp2ApplicationResponse) {
+            response.trailerMessage()
+        } else {
+            null
+        }
+    }
+
     private suspend fun processEmpty(call: NettyApplicationCall, lastFuture: ChannelFuture) {
         return finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
@@ -237,7 +247,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
         val encapsulation = encapsulation
         val future = dst.write(encapsulation.transform(buffer, true))
-        finishCall(call, encapsulation.endOfStream(true), future)
+
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(true)
+        finishCall(call, lastMessage, future)
     }
 
     @OptIn(ExperimentalIoApi::class)
@@ -279,7 +291,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false), lastFuture)
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(false)
+        finishCall(call, lastMessage, lastFuture)
     }
 
     @OptIn(ExperimentalIoApi::class)
@@ -321,7 +334,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false), lastFuture)
+        val lastMessage = trailerMessage(response) ?: encapsulation.endOfStream(false)
+        finishCall(call, lastMessage, lastFuture)
     }
 }
 
