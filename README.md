@@ -6,7 +6,8 @@
 [![Slack channel](https://img.shields.io/badge/chat-slack-green.svg?logo=slack)](https://kotlinlang.slack.com/messages/ktor/)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
+Ktor is an asynchronous framework for creating microservices, web applications and more. Written in Kotlin from the ground up.
+
 
 ```kotlin
 import io.ktor.server.netty.*
@@ -59,6 +60,11 @@ Ktor applications can be hosted in a special test environment, which emulates a 
 extent without actually doing any networking. It provides easy way to test an application without mocking 
 too much stuff, and still achieve good performance while validating application calls. Running integration tests with a real 
 embedded web server are of course possible, too.
+
+## JetBrains Product
+
+Ktor is an official [JetBrains](https://jetbrains.com) product and is primarily developed by the team at JetBrains, with contributions
+from the community. 
 
 ## Documentation
 
