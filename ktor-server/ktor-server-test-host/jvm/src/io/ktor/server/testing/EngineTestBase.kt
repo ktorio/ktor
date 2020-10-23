@@ -131,7 +131,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     }
 
     protected open fun createServer(
-        log: Logger?,
+        log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): TEngine {
@@ -211,7 +211,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         throw MultipleFailureException(lastFailures)
     }
 
-    private fun startServer(server: TEngine): List<Throwable> {
+    protected fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
