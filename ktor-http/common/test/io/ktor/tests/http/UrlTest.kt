@@ -153,7 +153,10 @@ class UrlTest {
     @Test
     fun testPortRange() {
         fun testPort(n: Int) {
-            assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort)
+            assertEquals(
+                n,
+                Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort
+            )
         }
 
         // smallest port value
@@ -185,5 +188,47 @@ class UrlTest {
             assertEquals(null, user)
             assertEquals(null, password)
         }
+    }
+
+    @Test
+    fun testForFileProtocol() {
+        val expectedUrl = "file:///var/www"
+        val result = Url(expectedUrl)
+        assertEquals("file", result.protocol.name)
+        assertEquals("", result.host)
+        assertEquals("/var/www", result.encodedPath)
+        assertEquals(expectedUrl, result.toString())
+    }
+
+    @Test
+    fun testForFileProtocolWithHost() {
+        val expectedUrl = "file://localhost/var/www"
+        val result = Url(expectedUrl)
+        assertEquals("file", result.protocol.name)
+        assertEquals("localhost", result.host)
+        assertEquals("/var/www", result.encodedPath)
+        assertEquals(expectedUrl, result.toString())
+    }
+
+    @Test
+    fun testForMailProtocol() {
+        val expectedUrl = "mailto:abc@xyz.io"
+        val resultUrl = Url(expectedUrl)
+
+        assertEquals(expectedUrl, resultUrl.toString())
+        assertEquals("abc", resultUrl.user)
+        assertEquals("xyz.io", resultUrl.host)
+        assertEquals("mailto", resultUrl.protocol.name)
+    }
+
+    @Test
+    fun testForMailProtocolWithComplexName() {
+        val expectedUrl = "mailto:Abc Def@xyz.io"
+        val resultUrl = Url(expectedUrl)
+
+        assertEquals("mailto:Abc%20Def@xyz.io", resultUrl.toString())
+        assertEquals("Abc Def", resultUrl.user)
+        assertEquals("xyz.io", resultUrl.host)
+        assertEquals("mailto", resultUrl.protocol.name)
     }
 }
