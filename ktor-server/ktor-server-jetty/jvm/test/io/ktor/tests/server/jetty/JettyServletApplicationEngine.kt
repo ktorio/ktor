@@ -31,6 +31,7 @@ internal class JettyServletApplicationEngine(
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader
             setAttribute(ServletApplicationEngine.ApplicationEngineEnvironmentAttributeKey, environment)
+            setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
             insertHandler(ServletHandler().apply {
                 val holder = ServletHolder(

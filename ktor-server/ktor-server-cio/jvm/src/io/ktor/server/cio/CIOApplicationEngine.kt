@@ -156,6 +156,8 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
 
                 try {
                     pipeline.execute(call)
+                } catch (error: Exception) {
+                    handleFailure(call, error)
                 } finally {
                     call.release()
                 }

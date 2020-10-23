@@ -119,6 +119,9 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
             try {
                 enginePipeline.execute(call)
+            } catch (cause: Throwable) {
+                logError(call, cause)
+                response.sendErrorIfNotCommitted("")
             } finally {
                 try {
                     asyncContext.complete()
