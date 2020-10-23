@@ -577,4 +577,150 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertTrue(expected.any { result.startsWith(it) }, "Invalid response: $result")
         }
     }
+
+    @Test
+    public fun testErrorInApplicationCallPipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationCallPipeline().items
+            .filter { it != ApplicationCallPipeline.ApplicationPhase.Fallback } // fallback will reply with 404 and not 500
+            .forEach { phase ->
+                val server = createServer(log = logger) {
+                    intercept(phase) {
+                        throw IllegalStateException("Failed in phase $phase")
+                    }
+
+                    routing {
+                        get("/") {
+                            call.respond("SUCCESS")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl("/") {
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
+    }
+
+    @Test
+    public fun testErrorInApplicationReceivePipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationReceivePipeline().items
+            .forEach { phase ->
+                val server = createServer(log = logger) {
+                    intercept(ApplicationCallPipeline.Setup) {
+                        call.request.pipeline.intercept(phase) { throw IllegalStateException("Failed in phase $phase") }
+                    }
+
+                    routing {
+                        post("/") {
+                            val body = call.receive<String>()
+                            call.respond("SUCCESS $body")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl(
+                    "/",
+                    { method = HttpMethod.Post; body = "body" }
+                ) {
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
+    }
+
+    @Test
+    public fun testErrorInApplicationSendPipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                exceptions.add(cause!!)
+            }
+        }
+        ApplicationSendPipeline().items
+            .filter { it != ApplicationSendPipeline.Engine }
+            .forEach { phase ->
+                var intercepted = false
+                val server = createServer(log = logger) {
+                    intercept(ApplicationCallPipeline.Setup) {
+                        call.response.pipeline.intercept(phase) {
+                            if (intercepted) return@intercept
+                            intercepted = true
+                            throw IllegalStateException("Failed in phase $phase")
+                        }
+                    }
+
+                    routing {
+                        get("/") {
+                            call.respond("SUCCESS")
+                        }
+                    }
+                }
+                startServer(server)
+
+                withUrl("/", { intercepted = false }) {
+                    val text = receive<String>()
+                    assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
+                    assertEquals(exceptions.size, 1, "Failed in phase $phase")
+                    assertEquals(exceptions[0].message, "Failed in phase $phase")
+                    exceptions.clear()
+                }
+
+                (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            }
+    }
+
+    @Test
+    public open fun testErrorInEnginePipelineInterceptor() {
+        val loggerDelegate = LoggerFactory.getLogger("ktor.test")
+        val logger = object : Logger by loggerDelegate {
+            override fun error(message: String?, cause: Throwable?) {
+                println(cause.toString())
+                exceptions.add(cause!!)
+            }
+        }
+        val phase = EnginePipeline.Before
+        val server = createServer(log = logger) {
+            routing {
+                get("/req") {
+                    call.respond("SUCCESS")
+                }
+            }
+        }
+        (server as BaseApplicationEngine).pipeline.intercept(phase) {
+            throw IllegalStateException("Failed in engine pipeline")
+        }
+        startServer(server)
+
+        withUrl("/req") {
+            assertEquals(HttpStatusCode.InternalServerError, status, "Failed in engine pipeline")
+            assertEquals(exceptions.size, 1, "Failed in phase $phase")
+            assertEquals(exceptions[0].message, "Failed in engine pipeline")
+            exceptions.clear()
+        }
+
+        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+    }
 }

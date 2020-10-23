@@ -55,6 +55,7 @@ public final class io/ktor/server/servlet/KtorServletKt {
 
 public class io/ktor/server/servlet/ServletApplicationEngine : io/ktor/server/servlet/KtorServlet {
 	public static final field ApplicationEngineEnvironmentAttributeKey Ljava/lang/String;
+	public static final field ApplicationEnginePipelineAttributeKey Ljava/lang/String;
 	public static final field Companion Lio/ktor/server/servlet/ServletApplicationEngine$Companion;
 	public fun <init> ()V
 	public fun destroy ()V

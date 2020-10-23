@@ -35,6 +35,7 @@ public abstract class io/ktor/server/testing/EngineTestBase : kotlinx/coroutines
 	public final fun setUpBase ()V
 	public static final fun setupAll ()V
 	protected final fun socket (Lkotlin/jvm/functions/Function1;)V
+	protected final fun startServer (Lio/ktor/server/engine/ApplicationEngine;)Ljava/util/List;
 	public final fun tearDownBase ()V
 	protected final fun withUrl (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
 	public static synthetic fun withUrl$default (Lio/ktor/server/testing/EngineTestBase;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V

@@ -45,7 +45,11 @@ internal class NettyApplicationCallHandler(
                     call.response.sendResponse(chunked = false, ByteReadChannel.Empty)
                     call.finish()
                 }
-                else -> enginePipeline.execute(call)
+                else -> try {
+                    enginePipeline.execute(call)
+                } catch (error: Exception) {
+                    handleFailure(call, error)
+                }
             }
         }
     }
