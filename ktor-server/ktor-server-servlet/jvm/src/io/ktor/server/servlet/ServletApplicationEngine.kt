@@ -64,6 +64,8 @@ public open class ServletApplicationEngine : KtorServlet() {
     override val logger: Logger get() = environment.log
 
     override val enginePipeline: EnginePipeline by lazy {
+        servletContext.getAttribute(ApplicationEnginePipelineAttributeKey)?.let { return@lazy it as EnginePipeline }
+
         defaultEnginePipeline(environment).also {
             BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
         }
@@ -91,11 +93,18 @@ public open class ServletApplicationEngine : KtorServlet() {
 
     public companion object {
         /**
-         * An application engine instance key. It is not recommended to use unless you are writing
+         * An application engine environment instance key. It is not recommended to use unless you are writing
          * your own servlet application engine implementation
          */
         @EngineAPI
         public const val ApplicationEngineEnvironmentAttributeKey: String = "_ktor_application_engine_environment_instance"
+
+        /**
+         * An application engine pipeline instance key. It is not recommended to use unless you are writing
+         * your own servlet application engine implementation
+         */
+        @EngineAPI
+        public const val ApplicationEnginePipelineAttributeKey: String = "_ktor_application_engine_pipeline_instance"
 
         private val jettyUpgrade by lazy {
             try {

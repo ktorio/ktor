@@ -98,7 +98,8 @@ internal class JettyKtorHandler(
                 } catch (cancelled: CancellationException) {
                     response.sendErrorIfNotCommitted(HttpServletResponse.SC_GONE)
                 } catch (channelFailed: ChannelIOException) {
-                } catch (t: Throwable) {
+                } catch (error: Throwable) {
+                    logError(call, error)
                     if (!response.isCommitted) {
                         call.respond(HttpStatusCode.InternalServerError)
                     }

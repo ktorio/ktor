@@ -185,6 +185,8 @@ public final class io/ktor/server/engine/ConnectorType$Companion {
 public final class io/ktor/server/engine/DefaultEnginePipelineKt {
 	public static final fun defaultEnginePipeline (Lio/ktor/application/ApplicationEnvironment;)Lio/ktor/server/engine/EnginePipeline;
 	public static final fun defaultExceptionStatusCode (Ljava/lang/Throwable;)Lio/ktor/http/HttpStatusCode;
+	public static final fun handleFailure (Lio/ktor/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun logError (Lio/ktor/application/ApplicationCall;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/engine/DefaultTransformKt {
