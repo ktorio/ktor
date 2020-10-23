@@ -45,7 +45,11 @@ internal class NettyApplicationCallHandler(
                 call is NettyHttp1ApplicationCall && !call.request.httpRequest.isValid() -> {
                     respondError400BadRequest(call)
                 }
-                else -> enginePipeline.execute(call)
+                else -> try {
+                    enginePipeline.execute(call)
+                } catch (error: Exception) {
+                    handleFailure(call, error)
+                }
             }
         }
     }

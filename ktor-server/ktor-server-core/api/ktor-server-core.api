@@ -298,6 +298,7 @@ public final class io/ktor/features/CallLogging$Feature : io/ktor/application/Ap
 
 public final class io/ktor/features/CallLogging$Internals {
 	public static final field INSTANCE Lio/ktor/features/CallLogging$Internals;
+	public final fun withMDCBlock (Lio/ktor/application/ApplicationCall;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun withMDCBlock (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
