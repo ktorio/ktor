@@ -32,7 +32,7 @@ buildscript {
 
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
@@ -46,6 +46,7 @@ buildscript {
         }
         maven { url "https://dl.bintray.com/orangy/maven" }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
+        jcenter()
     }
 
     dependencies {
@@ -136,6 +137,7 @@ allprojects {
 
     repositories {
         mavenLocal()
+        mavenCentral()
         maven {
             url "https://dl.bintray.com/kotlin/kotlinx/"
             credentials {
@@ -153,7 +155,6 @@ allprojects {
         }
         maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
-
     }
 
     if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
