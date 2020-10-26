@@ -404,11 +404,13 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(mapOf(
-                    "a" to "1",
-                    null to "2",
-                    "b" to null
-                ))
+                call.respond(
+                    mapOf(
+                        "a" to "1",
+                        null to "2",
+                        "b" to null
+                    )
+                )
             }
         }
 
@@ -459,6 +461,55 @@ class SerializationTest {
                 """[{"x":777},{"x":888}]""",
                 call.response.content
             )
+        }
+    }
+
+    @Test
+    fun testRespondDifferentRuntimeTypes(): Unit = withTestApplication {
+        var counter = 0
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                call.respond(
+                    when (counter) {
+                        0 -> TextPlainData(777)
+                        1 -> TestSealed.A("A")
+                        2 -> TestSealed.B("B")
+                        else -> HttpStatusCode.Accepted
+                    }
+                )
+                counter++
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"x":777}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueA":"A"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueB":"B"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Accepted, call.response.status())
+            assertNull(call.response.content)
         }
     }
 }

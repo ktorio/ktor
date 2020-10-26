@@ -47,6 +47,7 @@ internal fun serializerForSending(
     if (responseType != null) try {
         return module.serializer(responseType)
     } catch (_: SerializationException) {
+        // right now there is no better way to check if serializer is available (https://github.com/Kotlin/kotlinx.serialization/issues/1163)
         // if serializer for type was not found, fallback to manual search
     }
 

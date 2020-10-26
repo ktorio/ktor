@@ -19,7 +19,7 @@ import kotlin.reflect.*
  */
 @OptIn(ExperimentalStdlibApi::class)
 @JvmName("respondWithType")
-public suspend inline fun <reified T> ApplicationCall.respond(message: T) {
+public suspend inline fun <reified T: Any> ApplicationCall.respond(message: T) {
     try {
         // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
         attributes.put(ResponseTypeAttributeKey, typeOf<T>())
@@ -44,7 +44,7 @@ public suspend inline fun ApplicationCall.respond(message: Any) {
  */
 @OptIn(ExperimentalStdlibApi::class)
 @JvmName("respondWithType")
-public suspend inline fun <reified T> ApplicationCall.respond(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T: Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
     response.status(status)
     respond(message)
 }

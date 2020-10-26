@@ -7,4 +7,5 @@ package io.ktor.response
 import io.ktor.util.*
 import kotlin.reflect.*
 
+@InternalAPI
 public val ResponseTypeAttributeKey: AttributeKey<KType> = AttributeKey("ResponseTypeAttributeKey")
