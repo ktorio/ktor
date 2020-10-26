@@ -17,8 +17,6 @@ import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Test
 import java.time.*
 import java.util.concurrent.*
 import kotlin.test.*
@@ -59,7 +57,7 @@ class OAuth1aSignatureTest {
 class OAuth1aFlowTest {
     var testClient: HttpClient? = null
 
-    @Before
+    @BeforeTest
     fun createServer() {
         testClient = createOAuthServer(object : TestingOAuthServer {
 
@@ -113,7 +111,7 @@ class OAuth1aFlowTest {
         })
     }
 
-    @After
+    @AfterTest
     fun destroyServer() {
         testClient?.close()
         testClient = null
@@ -132,7 +130,7 @@ class OAuth1aFlowTest {
             consumerSecret = "0xPR3CQaGOilgXCGUt4g6SpBkhti9DOGkWtBCOImNFomedZ3ZU"
     )
 
-    @After
+    @AfterTest
     fun tearDown() {
         executor.shutdownNow()
     }

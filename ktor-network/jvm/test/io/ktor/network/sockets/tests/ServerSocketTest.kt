@@ -40,7 +40,7 @@ class ServerSocketTest : CoroutineScope {
     @get:Rule
     val timeout = CoroutinesTimeout.seconds(15)
 
-    @After
+    @AfterTest
     fun tearDown() {
         testJob.cancel()
         tearDown = true
