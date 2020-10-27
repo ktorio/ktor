@@ -84,7 +84,7 @@ class HttpsRedirectFeatureTest {
     }
 
     @Test
-    fun testRedirectHttpsExemption() {
+    fun testRedirectHttpsPrefixExemption() {
         withTestApplication {
             application.install(HttpsRedirect) {
                 excludePrefix("/exempted")
@@ -100,6 +100,26 @@ class HttpsRedirectFeatureTest {
             }
 
             handleRequest(HttpMethod.Get, "/exempted/path").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testRedirectHttpsSuffixExemption() {
+        withTestApplication {
+            application.install(HttpsRedirect) {
+                excludeSuffix("exempted")
+            }
+            application.intercept(ApplicationCallPipeline.Fallback) {
+                call.respond("ok")
+            }
+
+            handleRequest(HttpMethod.Get, "/exemptednot").let { call ->
+                assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/path/exempted").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }
         }
