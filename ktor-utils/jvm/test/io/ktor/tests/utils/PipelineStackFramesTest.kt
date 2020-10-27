@@ -7,7 +7,6 @@ package io.ktor.tests.utils
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.test.*

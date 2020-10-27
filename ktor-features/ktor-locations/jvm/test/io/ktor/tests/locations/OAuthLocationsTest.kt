@@ -13,7 +13,6 @@ import io.ktor.locations.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
-import org.junit.Test
 import java.net.*
 import kotlin.test.*
 

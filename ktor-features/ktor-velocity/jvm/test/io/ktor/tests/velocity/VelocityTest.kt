@@ -13,7 +13,6 @@ import io.ktor.server.testing.*
 import io.ktor.velocity.*
 import org.apache.velocity.runtime.resource.loader.*
 import org.apache.velocity.runtime.resource.util.*
-import org.junit.Test
 import java.util.zip.*
 import kotlin.test.*
 

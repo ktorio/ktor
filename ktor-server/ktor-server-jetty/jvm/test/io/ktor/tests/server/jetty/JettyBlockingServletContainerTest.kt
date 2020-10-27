@@ -6,7 +6,7 @@ package io.ktor.tests.server.jetty
 
 import io.ktor.server.jetty.*
 import io.ktor.server.testing.suites.*
-import org.junit.*
+import kotlin.test.*
 
 class JettyBlockingServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))

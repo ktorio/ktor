@@ -14,7 +14,6 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.*
 import kotlin.system.*
