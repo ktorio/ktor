@@ -5,7 +5,6 @@
 package io.ktor.client.request
 
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -116,10 +115,15 @@ public suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilde
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "get(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.get(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -129,15 +133,32 @@ public suspend inline fun <reified T> HttpClient.get(
 }
 
 /**
+ * Executes a [HttpClient] GET request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.get(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = get(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] POST request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "post(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.post(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -147,15 +168,32 @@ public suspend inline fun <reified T> HttpClient.post(
 }
 
 /**
+ * Executes a [HttpClient] POST request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.post(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = post(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] PUT request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "put(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.put(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -165,15 +203,32 @@ public suspend inline fun <reified T> HttpClient.put(
 }
 
 /**
+ * Executes a [HttpClient] PUT request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.put(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = put(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] DELETE request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "delete(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.delete(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -183,15 +238,32 @@ public suspend inline fun <reified T> HttpClient.delete(
 }
 
 /**
+ * Executes a [HttpClient] DELETE request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.delete(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = delete(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] PATCH request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "patch(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.patch(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -201,15 +273,32 @@ public suspend inline fun <reified T> HttpClient.patch(
 }
 
 /**
+ * Executes a [HttpClient] PATCH request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.patch(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = patch(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] HEAD request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "head(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.head(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -219,15 +308,32 @@ public suspend inline fun <reified T> HttpClient.head(
 }
 
 /**
+ * Executes a [HttpClient] HEAD request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.head(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = head(scheme, host, port, path, EmptyContent, block)
+
+/**
  * Executes a [HttpClient] OPTIONS request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    message = "This method is deprecated because it's not typesafe and can lead to problems during serialization. Please use overload with `body: TypedBody` parameter",
+    replaceWith = ReplaceWith(expression = "options(scheme, host, port, path, bodyOf(body), block", imports = arrayOf("io.ktor.client.request.bodyOf")),
+    level = DeprecationLevel.WARNING
+)
 public suspend inline fun <reified T> HttpClient.options(
     scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
     path: String = "/",
-    body: Any = EmptyContent,
+    body: Any,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
@@ -235,6 +341,18 @@ public suspend inline fun <reified T> HttpClient.options(
     this.body = body
     apply(block)
 }
+
+/**
+ * Executes a [HttpClient] OPTIONS request, with the specified [scheme], [host], [port] and [path].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+public suspend inline fun <reified T> HttpClient.options(
+    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    path: String = "/",
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = options(scheme, host, port, path, EmptyContent, block)
 
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.

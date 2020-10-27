@@ -13,6 +13,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
+import kotlin.reflect.*
 
 /**
  * A [JsonSerializer] implemented for kotlinx [Serializable] classes.
@@ -21,13 +22,21 @@ public class KotlinxSerializer(
     private val json: Json = DefaultJson
 ) : JsonSerializer {
 
-    override fun write(data: Any, contentType: ContentType): OutgoingContent {
+    override fun write(data: Any, contentType: ContentType, payloadType: KType?): OutgoingContent {
         @Suppress("UNCHECKED_CAST")
-        return TextContent(writeContent(data), contentType)
+        return TextContent(writeContent(data, payloadType), contentType)
     }
 
-    internal fun writeContent(data: Any): String =
-        json.encodeToString(buildSerializer(data, json.serializersModule), data)
+    override fun write(data: Any, contentType: ContentType): OutgoingContent = write(data, contentType, null)
+
+    internal fun writeContent(data: Any, typeOfBody: KType?): String {
+        if (typeOfBody != null) try {
+            return json.encodeToString(json.serializersModule.serializer(typeOfBody), data)
+        } catch (cause: Throwable) {
+            println(cause)
+        }
+        return json.encodeToString(buildSerializer(data, json.serializersModule), data)
+    }
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override fun read(type: TypeInfo, body: Input): Any {

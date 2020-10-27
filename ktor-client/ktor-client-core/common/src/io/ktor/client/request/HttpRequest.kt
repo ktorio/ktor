@@ -15,6 +15,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.reflect.*
 
 /**
  * A request for [HttpClient], first part of [HttpClientCall].
@@ -57,6 +58,7 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
     public val content: OutgoingContent
 }
 
+
 /**
  * Class for building [HttpRequestData].
  */
@@ -80,6 +82,25 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * The [body] for this request. Initially [EmptyContent].
      */
     public var body: Any = EmptyContent
+        @Deprecated(
+            message = "This setter is not typesafe and can lead to problems " +
+                "during serialization. Please use setBody method",
+            replaceWith = ReplaceWith(expression = "setBody"),
+            level = DeprecationLevel.WARNING
+        ) set
+
+    /**
+     * The [KType] of [body] for this request. Null for default types that don't need serialization.
+     */
+    public var bodyType: KType?
+        get() = attributes.getOrNull(BodyTypeAttributeKey)
+        @InternalAPI set(value) {
+            if (value != null) {
+                attributes.put(BodyTypeAttributeKey, value)
+            } else {
+                attributes.remove(BodyTypeAttributeKey)
+            }
+        }
 
     /**
      * A deferred used to control the execution of this request.

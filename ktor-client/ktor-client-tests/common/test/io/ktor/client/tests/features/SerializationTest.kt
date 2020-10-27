@@ -9,11 +9,28 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlin.test.*
 
 @Serializable
 class MyCustomObject(val message: String)
+
+@Serializable
+sealed class TestSealed {
+    @Serializable
+    @SerialName("A")
+    data class A(val valA: String) : TestSealed()
+
+    @Serializable
+    @SerialName("B")
+    data class B(val valB: String) : TestSealed()
+}
+
+@Serializable
+class TestGeneric<T>(
+    val id: Int,
+    val data: T
+)
 
 class SerializationTest : ClientLoader() {
     @Test
@@ -62,6 +79,36 @@ class SerializationTest : ClientLoader() {
                     body = MyCustomObject("Foo")
                 }
             }
+        }
+    }
+
+    @Test
+    fun testPostSealedClass() = clientTests {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            val response = client.post<String>("$TEST_SERVER/echo") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(listOf(TestSealed.A("a"), TestSealed.B("b")))
+            }
+            assertEquals("""[{"type":"A","valA":"a"},{"type":"B","valB":"b"}]""", response)
+        }
+    }
+
+    @Test
+    fun testPostGenericClass() = clientTests {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            val response = client.post<String>("$TEST_SERVER/echo") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(TestGeneric(1, "test"))
+            }
+            assertEquals("""{"id":1,"data":"test"}""", response)
         }
     }
 }
