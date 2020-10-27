@@ -5,9 +5,9 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -574,7 +574,7 @@ class LastModifiedVersionTest {
             }
 
             // guard: file lastmodified is actually set as expected
-            Assert.assertEquals(input.time, file.lastModified())
+            assertEquals(input.time, file.lastModified())
 
             // setup: object to test
             LastModifiedVersion(Files.getLastModifiedTime(file.toPath()))

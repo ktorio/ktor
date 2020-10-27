@@ -6,7 +6,6 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import kotlin.test.*
 
 class ByteChannelTextTest {

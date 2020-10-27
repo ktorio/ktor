@@ -21,12 +21,10 @@ import io.ktor.server.testing.withTestApplication
 import io.ktor.thymeleaf.Thymeleaf
 import io.ktor.thymeleaf.ThymeleafContent
 import io.ktor.thymeleaf.respondTemplate
-import org.junit.Test
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import org.thymeleaf.templateresolver.StringTemplateResolver
 import java.util.zip.GZIPInputStream
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.test.*
 
 class ThymeleafTest {
     @Test

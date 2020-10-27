@@ -18,7 +18,6 @@ import io.ktor.server.testing.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
