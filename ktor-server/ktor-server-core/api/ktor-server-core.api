@@ -1114,7 +1114,8 @@ public abstract interface annotation class io/ktor/response/UseHttp2Push : java/
 }
 
 public final class io/ktor/response/ResponseTypeAttributeKeyKt {
-	public static final fun getResponseTypeAttributeKey ()Lio/ktor/util/AttributeKey;
+	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lkotlin/reflect/KType;
+	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lkotlin/reflect/KType;)V
 }
 
 public final class io/ktor/routing/AndRouteSelector : io/ktor/routing/RouteSelector {

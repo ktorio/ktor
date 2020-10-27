@@ -22,7 +22,7 @@ import kotlin.reflect.*
 public suspend inline fun <reified T: Any> ApplicationCall.respond(message: T) {
     try {
         // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
-        attributes.put(ResponseTypeAttributeKey, typeOf<T>())
+        response.responseType = typeOf<T>()
     } catch (_: Throwable) {
     }
     response.pipeline.execute(this, message as Any)

@@ -43,7 +43,7 @@ internal fun serializerForSending(
     value: Any,
     module: SerializersModule
 ): KSerializer<*> {
-    val responseType = context.call.attributes.getOrNull(ResponseTypeAttributeKey)
+    val responseType = context.call.response.responseType
     if (responseType != null) try {
         return module.serializer(responseType)
     } catch (_: SerializationException) {
