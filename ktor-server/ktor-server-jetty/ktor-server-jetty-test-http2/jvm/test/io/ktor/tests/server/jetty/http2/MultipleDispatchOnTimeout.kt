@@ -9,7 +9,6 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
-import org.junit.Test
 import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*

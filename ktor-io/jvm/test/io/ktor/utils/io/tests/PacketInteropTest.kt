@@ -3,8 +3,6 @@ package io.ktor.utils.io.tests
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.nio.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
-import org.junit.Ignore
 import java.io.*
 import java.nio.*
 import java.nio.ByteOrder
