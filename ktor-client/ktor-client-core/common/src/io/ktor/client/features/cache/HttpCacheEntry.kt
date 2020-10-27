@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.cache
@@ -67,7 +67,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
     return result
 }
 
-internal fun HttpResponse.cacheExpires(): GMTDate {
+internal fun HttpResponse.cacheExpires(fallback: () -> GMTDate = { GMTDate() }): GMTDate {
     val cacheControl = cacheControl()
 
     val isPrivate = CacheControl.PRIVATE in cacheControl
@@ -85,14 +85,14 @@ internal fun HttpResponse.cacheExpires(): GMTDate {
     val expires = headers[HttpHeaders.Expires]
     return expires?.let {
         // Handle "0" case faster
-        if (it == "0") return GMTDate()
+        if (it == "0" || it.isBlank()) return fallback()
 
         return try {
             it.fromHttpToGmtDate()
         } catch (e: Throwable) {
-            GMTDate()
+            fallback()
         }
-    } ?: GMTDate()
+    } ?: fallback()
 }
 
 internal fun HttpCacheEntry.shouldValidate(): Boolean {
