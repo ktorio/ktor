@@ -5,7 +5,6 @@
 package io.ktor.tests.routing
 
 import io.ktor.routing.*
-import org.junit.Test
 import kotlin.test.*
 
 internal class RouteSelectorTest {

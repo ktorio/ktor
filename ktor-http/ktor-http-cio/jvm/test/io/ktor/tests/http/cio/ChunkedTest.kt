@@ -8,7 +8,6 @@ import io.ktor.http.cio.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
 import java.io.*
 import java.nio.*
 import kotlin.test.*
