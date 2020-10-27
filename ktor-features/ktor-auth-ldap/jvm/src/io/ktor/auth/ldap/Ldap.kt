@@ -14,7 +14,7 @@ import javax.naming.directory.*
  * Do LDAP authentication and verify [credential] by [doVerify] function
  */
 @KtorExperimentalAPI
-fun <K : Credential, P : Any> ldapAuthenticate(
+public fun <K : Credential, P : Any> ldapAuthenticate(
     credential: K,
     ldapServerURL: String,
     ldapEnvironmentBuilder: (MutableMap<String, Any?>) -> Unit = {},
@@ -35,7 +35,7 @@ fun <K : Credential, P : Any> ldapAuthenticate(
 /**
  * Do LDAP authentication and verify [UserPasswordCredential] by [validate] function and construct [UserIdPrincipal]
  */
-fun ldapAuthenticate(
+public fun ldapAuthenticate(
     credential: UserPasswordCredential,
     ldapServerURL: String,
     userDNFormat: String,
@@ -54,7 +54,7 @@ fun ldapAuthenticate(
 /**
  * Do LDAP authentication and verify [UserPasswordCredential] by [userDNFormat] and construct [UserIdPrincipal]
  */
-fun ldapAuthenticate(
+public fun ldapAuthenticate(
     credential: UserPasswordCredential,
     ldapServerURL: String,
     userDNFormat: String

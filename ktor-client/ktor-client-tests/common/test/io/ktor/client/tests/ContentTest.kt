@@ -139,6 +139,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testMultipartFormData() = clientTests(listOf("Js")) {
         val data = {
             formData {
@@ -224,6 +225,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testDownloadStreamChannelWithCancel() = clientTests(listOf("Js", "Curl")) {
         test { client ->
             val content = client.get<ByteReadChannel>("$TEST_SERVER/content/stream")
@@ -232,7 +234,7 @@ class ContentTest : ClientLoader() {
     }
 
     @Test
-    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl")) {
+    fun testDownloadStreamResponseWithClose() = clientTests(listOf("Js", "Curl", "CIO")) {
         test { client ->
             client.get<HttpStatement>("$TEST_SERVER/content/stream").execute {
             }

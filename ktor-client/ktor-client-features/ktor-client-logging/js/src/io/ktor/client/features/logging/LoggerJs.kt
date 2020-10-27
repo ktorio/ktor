@@ -4,4 +4,4 @@
 
 package io.ktor.client.features.logging
 
-actual val Logger.Companion.DEFAULT: Logger get() = SIMPLE
+public actual val Logger.Companion.DEFAULT: Logger get() = SIMPLE

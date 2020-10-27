@@ -1057,7 +1057,6 @@ public final class io/ktor/utils/io/core/ByteReadPacket : io/ktor/utils/io/core/
 	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public final fun copy ()Lio/ktor/utils/io/core/ByteReadPacket;
-	public synthetic fun fill ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public fun toString ()Ljava/lang/String;
 }
 

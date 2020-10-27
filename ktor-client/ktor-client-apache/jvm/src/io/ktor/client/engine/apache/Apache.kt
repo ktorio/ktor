@@ -13,7 +13,7 @@ import io.ktor.client.engine.*
  *
  * Supports HTTP/2 and HTTP/1.x requests.
  */
-object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
+public object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     override fun create(block: ApacheEngineConfig.() -> Unit): HttpClientEngine {
         val config = ApacheEngineConfig().apply(block)
         return ApacheEngine(config)
@@ -21,7 +21,7 @@ object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
 }
 
 @Suppress("KDocMissingDocumentation")
-class ApacheEngineContainer : HttpClientEngineContainer {
+public class ApacheEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Apache
 
     override fun toString(): String = "Apache"

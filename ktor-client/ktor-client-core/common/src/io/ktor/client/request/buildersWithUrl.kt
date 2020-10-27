@@ -13,7 +13,7 @@ import io.ktor.http.*
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.get(
+public suspend inline fun <reified T> HttpClient.get(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = get {
@@ -27,7 +27,7 @@ suspend inline fun <reified T> HttpClient.get(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.post(
+public suspend inline fun <reified T> HttpClient.post(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = post {
@@ -41,7 +41,7 @@ suspend inline fun <reified T> HttpClient.post(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.put(
+public suspend inline fun <reified T> HttpClient.put(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = put {
@@ -55,7 +55,7 @@ suspend inline fun <reified T> HttpClient.put(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.patch(
+public suspend inline fun <reified T> HttpClient.patch(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = patch {
@@ -69,7 +69,7 @@ suspend inline fun <reified T> HttpClient.patch(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.options(
+public suspend inline fun <reified T> HttpClient.options(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = options {
@@ -83,7 +83,7 @@ suspend inline fun <reified T> HttpClient.options(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.head(
+public suspend inline fun <reified T> HttpClient.head(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = head {
@@ -97,7 +97,7 @@ suspend inline fun <reified T> HttpClient.head(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
-suspend inline fun <reified T> HttpClient.delete(
+public suspend inline fun <reified T> HttpClient.delete(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = delete {
@@ -108,6 +108,6 @@ suspend inline fun <reified T> HttpClient.delete(
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
-fun HttpRequestBuilder.url(url: Url): Unit {
+public fun HttpRequestBuilder.url(url: Url): Unit {
     this.url.takeFrom(url)
 }

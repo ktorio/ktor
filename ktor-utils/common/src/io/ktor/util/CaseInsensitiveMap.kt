@@ -8,7 +8,7 @@ package io.ktor.util
  * A map with case insensitive [String] keys
  */
 @InternalAPI
-class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
+public class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
     private val delegate = mutableMapOf<CaseInsensitiveString, Value>()
 
     override val size: Int get() = delegate.size
@@ -41,7 +41,7 @@ class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
         )
 
     override val entries: MutableSet<MutableMap.MutableEntry<String, Value>>
-        get() = DelegatingMutableSet<MutableMap.MutableEntry<CaseInsensitiveString, Value>, MutableMap.MutableEntry<String, Value>>(
+        get() = DelegatingMutableSet(
             delegate.entries,
             { Entry(key.content, value) },
             { Entry(key.caseInsensitive(), value) }

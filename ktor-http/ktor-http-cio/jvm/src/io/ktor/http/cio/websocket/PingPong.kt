@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
@@ -25,7 +25,7 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
 @OptIn(
     ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
 )
-fun CoroutineScope.ponger(
+public fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Ping> = actor(PongerCoroutineName, capacity = 5, start = CoroutineStart.LAZY) {
@@ -46,16 +46,14 @@ fun CoroutineScope.ponger(
  * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [periodMillis] to [outgoing] channel,
  * waiting for and verifying client's pong frames. It is also handling [timeoutMillis] and sending timeout close frame
  */
-@OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-)
-fun CoroutineScope.pinger(
+public fun CoroutineScope.pinger(
     outgoing: SendChannel<Frame>,
     periodMillis: Long,
     timeoutMillis: Long,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Pong> {
     val actorJob = Job()
+    @OptIn(ObsoleteCoroutinesApi::class)
     val result = actor<Frame.Pong>(
         actorJob + PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY
     ) {
@@ -66,7 +64,7 @@ fun CoroutineScope.pinger(
         val pingIdBytes = ByteArray(32)
 
         try {
-            while (!isClosedForReceive) {
+            while (true) {
                 // drop pongs during period delay as they are irrelevant
                 // here we expect a timeout, so ignore it
                 withTimeoutOrNull(periodMillis) {

@@ -1,10 +1,10 @@
 pluginManagement {
     repositories {
         mavenCentral()
-        jcenter()
         google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/orangy/maven" }
+        jcenter()
     }
     resolutionStrategy {
         eachPlugin {
@@ -21,6 +21,7 @@ include ':ktor-server:ktor-server-core'
 include ':ktor-server:ktor-server-tests'
 include ':ktor-server:ktor-server-host-common'
 include ':ktor-server:ktor-server-test-host'
+include ':ktor-server:ktor-server-test-suites'
 include ':ktor-server:ktor-server-jetty'
 include ':ktor-server:ktor-server-jetty:ktor-server-jetty-test-http2'
 include ':ktor-server:ktor-server-servlet'

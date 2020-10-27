@@ -32,7 +32,7 @@ buildscript {
 
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
@@ -46,6 +46,7 @@ buildscript {
         }
         maven { url "https://dl.bintray.com/orangy/maven" }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
+        jcenter()
     }
 
     dependencies {
@@ -99,6 +100,15 @@ def check(Object version, String libVersion, String libName) {
     }
 }
 
+def disabledExplicitApiModeProjects = [
+    "ktor-client-tests",
+    "ktor-server-benchmarks",
+    "ktor-client-json-tests",
+    "ktor-server-test-host",
+    "ktor-server-test-suites",
+    "ktor-server-tests"
+]
+
 apply from: 'gradle/compatibility.gradle'
 
 allprojects {
@@ -127,6 +137,7 @@ allprojects {
 
     repositories {
         mavenLocal()
+        mavenCentral()
         maven {
             url "https://dl.bintray.com/kotlin/kotlinx/"
             credentials {
@@ -144,7 +155,6 @@ allprojects {
         }
         maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
-
     }
 
     if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
@@ -160,11 +170,13 @@ allprojects {
         }
     }
 
-
-
     configurations { testOutput }
 
     kotlin {
+        if (!disabledExplicitApiModeProjects.contains(project.name)){
+            explicitApi()
+        }
+
         sourceSets.matching { !(it.name in ["jmh", "main", "test"]) }.all {
             def srcDir = name.endsWith("Main") ? "src" : "test"
             def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
@@ -181,10 +193,6 @@ allprojects {
                     useExperimentalAnnotation("io.ktor.server.engine.EngineAPI")
                 }
             }
-        }
-
-        sourceSets.matching({ it.name.contains("Main") }).all { srcSet ->
-            project.ext.set("kotlin.mpp.freeCompilerArgsForSourceSet.${srcSet.name}", "-Xexplicit-api=warning")
         }
     }
 

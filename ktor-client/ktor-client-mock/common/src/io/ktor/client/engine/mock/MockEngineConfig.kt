@@ -13,33 +13,33 @@ import kotlin.coroutines.*
 /**
  * Single [HttpClientCall] to [HttpResponse] mapper.
  */
-typealias MockRequestHandler = suspend MockRequestHandleScope.(request: HttpRequestData) -> HttpResponseData
+public typealias MockRequestHandler = suspend MockRequestHandleScope.(request: HttpRequestData) -> HttpResponseData
 
 /**
  * Scope for [MockRequestHandler].
  */
-class MockRequestHandleScope(internal val callContext: CoroutineContext)
+public class MockRequestHandleScope(internal val callContext: CoroutineContext)
 
 /**
  * [HttpClientEngineConfig] for [MockEngine].
  */
-class MockEngineConfig : HttpClientEngineConfig() {
+public class MockEngineConfig : HttpClientEngineConfig() {
 
     /**
      * Request handlers.
      * Responses are given back in order they were added to [requestHandlers].
      */
-    val requestHandlers: MutableList<MockRequestHandler> = mutableListOf()
+    public val requestHandlers: MutableList<MockRequestHandler> = mutableListOf()
 
     /**
      * Should engine reuse handlers.
      */
-    var reuseHandlers: Boolean = true
+    public var reuseHandlers: Boolean = true
 
     /**
      * Add request handler to [MockEngine]
      */
-    fun addHandler(handler: MockRequestHandler) {
+    public fun addHandler(handler: MockRequestHandler) {
         requestHandlers += handler
     }
 }

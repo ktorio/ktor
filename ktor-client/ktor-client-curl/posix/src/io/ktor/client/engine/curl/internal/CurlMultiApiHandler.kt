@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl.internal
@@ -14,7 +14,7 @@ private class RequestHolders(
     private val requestBody: StableRef<ByteReadPacket>?,
     private val response: StableRef<CurlResponseBuilder>
 ) {
-    fun dispose() {
+    public fun dispose() {
         requestBody?.dispose()
         response.dispose()
     }
@@ -40,7 +40,7 @@ internal class CurlMultiApiHandler : Closeable {
         curl_multi_cleanup(multiHandle).verify()
     }
 
-    fun scheduleRequest(request: CurlRequestData): EasyHandle {
+    public fun scheduleRequest(request: CurlRequestData): EasyHandle {
         val easyHandle = curl_easy_init()
             ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
@@ -71,6 +71,15 @@ internal class CurlMultiApiHandler : Closeable {
 
             request.proxy?.let { proxy ->
                 option(CURLOPT_PROXY, proxy.toString())
+                option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
+                if (request.forceProxyTunneling) {
+                    option(CURLOPT_HTTPPROXYTUNNEL, 1L)
+                }
+            }
+
+            if (!request.sslVerify) {
+                option(CURLOPT_SSL_VERIFYPEER, 0L)
+                option(CURLOPT_SSL_VERIFYHOST, 0L)
             }
         }
 
@@ -83,7 +92,7 @@ internal class CurlMultiApiHandler : Closeable {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
-    fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
+    public fun pollCompleted(millis: Int = 100): List<CurlResponseData> {
         memScoped {
             val transfersRunning = alloc<IntVar>()
             val activeTasks = alloc<IntVar>()
@@ -217,10 +226,12 @@ internal class CurlMultiApiHandler : Closeable {
                         )
                     }
 
+                    val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+
                     return CurlFail(
                         request,
                         @Suppress("DEPRECATION")
-                        CurlIllegalStateException("Connection failed for request: $request")
+                        CurlIllegalStateException("Connection failed for request: $request. Reason: $errorMessage")
                     )
                 }
 

@@ -13,82 +13,82 @@ import java.security.*
  *
  * Some engines can support other connector types, hence not a enum.
  */
-data class ConnectorType(val name: String) {
-    companion object {
+public data class ConnectorType(val name: String) {
+    public companion object {
         /**
          * Non-secure HTTP connector.
          * 1
          */
-        val HTTP = ConnectorType("HTTP")
+        public val HTTP: ConnectorType = ConnectorType("HTTP")
 
         /**
          * Secure HTTP connector.
          */
-        val HTTPS = ConnectorType("HTTPS")
+        public val HTTPS: ConnectorType = ConnectorType("HTTPS")
     }
 }
 
 /**
  * Represents a connector configuration.
  */
-interface EngineConnectorConfig {
+public interface EngineConnectorConfig {
     /**
      * Type of the connector, e.g HTTP or HTTPS.
      */
-    val type: ConnectorType
+    public val type: ConnectorType
 
     /**
      * The network interface this host binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
      */
-    val host: String
+    public val host: String
 
     /**
      * The port this application should be bound to.
      */
-    val port: Int
+    public val port: Int
 }
 
 /**
  * Represents an SSL connector configuration.
  */
-interface EngineSSLConnectorConfig : EngineConnectorConfig {
+public interface EngineSSLConnectorConfig : EngineConnectorConfig {
     /**
      * KeyStore where a certificate is stored
      */
-    val keyStore: KeyStore
+    public val keyStore: KeyStore
 
     /**
      * File where the keystore is located
      */
-    val keyStorePath: File?
+    public val keyStorePath: File?
 
     /**
      * TLS key alias
      */
-    val keyAlias: String
+    public val keyAlias: String
 
     /**
      * Keystore password provider
      */
-    val keyStorePassword: () -> CharArray
+    public val keyStorePassword: () -> CharArray
 
     /**
      * Private key password provider
      */
-    val privateKeyPassword: () -> CharArray
+    public val privateKeyPassword: () -> CharArray
 }
 
 /**
  * Adds a non-secure connector to this engine environment
  */
-inline fun ApplicationEngineEnvironmentBuilder.connector(builder: EngineConnectorBuilder.() -> Unit) {
+public inline fun ApplicationEngineEnvironmentBuilder.connector(builder: EngineConnectorBuilder.() -> Unit) {
     connectors.add(EngineConnectorBuilder().apply(builder))
 }
 
 /**
  * Adds a secure connector to this engine environment
  */
-inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
+public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
     keyStore: KeyStore,
     keyAlias: String,
     noinline keyStorePassword: () -> CharArray,
@@ -101,7 +101,7 @@ inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
 /**
  * Mutable implementation of EngineConnectorConfig for building connectors programmatically
  */
-open class EngineConnectorBuilder(override val type: ConnectorType = ConnectorType.HTTP) : EngineConnectorConfig {
+public open class EngineConnectorBuilder(override val type: ConnectorType = ConnectorType.HTTP) : EngineConnectorConfig {
     override var host: String = "0.0.0.0"
     override var port: Int = 80
 
@@ -113,7 +113,7 @@ open class EngineConnectorBuilder(override val type: ConnectorType = ConnectorTy
 /**
  * Mutable implementation of EngineSSLConnectorConfig for building connectors programmatically
  */
-class EngineSSLConnectorBuilder(
+public class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
     override var keyAlias: String,
     override var keyStorePassword: () -> CharArray,

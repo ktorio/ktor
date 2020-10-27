@@ -21,7 +21,7 @@ internal object FreePorts {
         allocate(CAPACITY)
     }
 
-    fun select(): Int {
+    public fun select(): Int {
         if (free.size < CAPACITY_LOW) {
             thread(name = "free-port-population") {
                 allocate(CAPACITY - free.size)
@@ -38,7 +38,7 @@ internal object FreePorts {
         }
     }
 
-    fun recycle(port: Int) {
+    public fun recycle(port: Int) {
         if (port in found && checkFreePort(port)) {
             free.add(port)
         }

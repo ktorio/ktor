@@ -7,11 +7,11 @@
 package io.ktor.util
 
 @InternalAPI
-expect class Lock() {
-    fun lock()
-    fun unlock()
+public expect class Lock() {
+    public fun lock()
+    public fun unlock()
 
-    fun close()
+    public fun close()
 }
 
 @InternalAPI

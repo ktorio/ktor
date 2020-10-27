@@ -12,9 +12,9 @@ import io.ktor.util.*
 /**
  * [Feature] is used to set request default parameters.
  */
-class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) {
+public class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) {
 
-    companion object Feature : HttpClientFeature<HttpRequestBuilder, DefaultRequest> {
+    public companion object Feature : HttpClientFeature<HttpRequestBuilder, DefaultRequest> {
         override val key: AttributeKey<DefaultRequest> = AttributeKey("DefaultRequest")
 
         override fun prepare(block: HttpRequestBuilder.() -> Unit): DefaultRequest =
@@ -32,7 +32,7 @@ class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) {
 /**
  * Set request default parameters.
  */
-fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Unit) {
     install(DefaultRequest) {
         block()
     }

@@ -9,13 +9,14 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.network.sockets.*
 import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 
 /**
  * Client HTTP timeout feature. There are no default values, so default timeouts will be taken from engine configuration
  * or considered as infinite time if engine doesn't provide them.
  */
-class HttpTimeout(
+public class HttpTimeout(
     private val requestTimeoutMillis: Long?,
     private val connectTimeoutMillis: Long?,
     private val socketTimeoutMillis: Long?
@@ -23,12 +24,16 @@ class HttpTimeout(
     /**
      * [HttpTimeout] extension configuration that is used during installation.
      */
-    class HttpTimeoutCapabilityConfiguration {
+    public class HttpTimeoutCapabilityConfiguration {
+        private var _requestTimeoutMillis: Long? by shared(0)
+        private var _connectTimeoutMillis: Long? by shared(0)
+        private var _socketTimeoutMillis: Long? by shared(0)
+
         /**
          * Creates a new instance of [HttpTimeoutCapabilityConfiguration].
          */
         @InternalAPI
-        constructor(
+        public constructor(
             requestTimeoutMillis: Long? = null,
             connectTimeoutMillis: Long? = null,
             socketTimeoutMillis: Long? = null
@@ -41,25 +46,28 @@ class HttpTimeout(
         /**
          * Request timeout in milliseconds.
          */
-        var requestTimeoutMillis: Long?
+        public var requestTimeoutMillis: Long?
+            get() = _requestTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _requestTimeoutMillis = checkTimeoutValue(value)
             }
 
         /**
          * Connect timeout in milliseconds.
          */
-        var connectTimeoutMillis: Long?
+        public var connectTimeoutMillis: Long?
+            get() = _connectTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _connectTimeoutMillis = checkTimeoutValue(value)
             }
 
         /**
          * Socket timeout (read and write) in milliseconds.
          */
-        var socketTimeoutMillis: Long?
+        public var socketTimeoutMillis: Long?
+            get() = _socketTimeoutMillis
             set(value) {
-                field = checkTimeoutValue(value)
+                _socketTimeoutMillis = checkTimeoutValue(value)
             }
 
         internal fun build(): HttpTimeout = HttpTimeout(requestTimeoutMillis, connectTimeoutMillis, socketTimeoutMillis)
@@ -71,8 +79,28 @@ class HttpTimeout(
             return value
         }
 
-        companion object {
-            val key = AttributeKey<HttpTimeoutCapabilityConfiguration>("TimeoutConfiguration")
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as HttpTimeoutCapabilityConfiguration
+
+            if (_requestTimeoutMillis != other._requestTimeoutMillis) return false
+            if (_connectTimeoutMillis != other._connectTimeoutMillis) return false
+            if (_socketTimeoutMillis != other._socketTimeoutMillis) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = _requestTimeoutMillis?.hashCode() ?: 0
+            result = 31 * result + (_connectTimeoutMillis?.hashCode() ?: 0)
+            result = 31 * result + (_socketTimeoutMillis?.hashCode() ?: 0)
+            return result
+        }
+
+        public companion object {
+            public val key: AttributeKey<HttpTimeoutCapabilityConfiguration> = AttributeKey("TimeoutConfiguration")
         }
     }
 
@@ -85,7 +113,7 @@ class HttpTimeout(
     /**
      * Companion object for feature installation.
      */
-    companion object Feature : HttpClientFeature<HttpTimeoutCapabilityConfiguration, HttpTimeout>,
+    public companion object Feature : HttpClientFeature<HttpTimeoutCapabilityConfiguration, HttpTimeout>,
         HttpClientEngineCapability<HttpTimeoutCapabilityConfiguration> {
 
         override val key: AttributeKey<HttpTimeout> = AttributeKey("TimeoutFeature")
@@ -93,7 +121,7 @@ class HttpTimeout(
         /**
          * Infinite timeout in milliseconds.
          */
-        const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
+        public const val INFINITE_TIMEOUT_MS: Long = Long.MAX_VALUE
 
         override fun prepare(block: HttpTimeoutCapabilityConfiguration.() -> Unit): HttpTimeout =
             HttpTimeoutCapabilityConfiguration().apply(block).build()
@@ -132,36 +160,40 @@ class HttpTimeout(
 /**
  * Adds timeout boundaries to the request. Requires [HttpTimeout] feature to be installed.
  */
-fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityConfiguration.() -> Unit) =
+public fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityConfiguration.() -> Unit): Unit =
     setCapability(HttpTimeout, HttpTimeout.HttpTimeoutCapabilityConfiguration().apply(block))
 
 /**
  * This exception is thrown in case request timeout exceeded.
  */
-class HttpRequestTimeoutException(
+public class HttpRequestTimeoutException(
     request: HttpRequestBuilder
 ) : CancellationException(
-    "Request timeout has been expired [url=${request.url.buildString()}, request_timeout=${request.getCapabilityOrNull(
-        HttpTimeout
-    )?.requestTimeoutMillis ?: "unknown"} ms]"
+    "Request timeout has been expired [url=${request.url.buildString()}, request_timeout=${
+        request.getCapabilityOrNull(
+            HttpTimeout
+        )?.requestTimeoutMillis ?: "unknown"
+    } ms]"
 )
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-fun ConnectTimeoutException(
+public fun ConnectTimeoutException(
     request: HttpRequestData, cause: Throwable? = null
 ): ConnectTimeoutException = ConnectTimeoutException(
-    "Connect timeout has been expired [url=${request.url}, connect_timeout=${request.getCapabilityOrNull(
-        HttpTimeout
-    )?.connectTimeoutMillis ?: "unknown"} ms]",
+    "Connect timeout has been expired [url=${request.url}, connect_timeout=${
+        request.getCapabilityOrNull(
+            HttpTimeout
+        )?.connectTimeoutMillis ?: "unknown"
+    } ms]",
     cause
 )
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-fun ConnectTimeoutException(
+public fun ConnectTimeoutException(
     url: String, timeout: Long?, cause: Throwable? = null
 ): ConnectTimeoutException = ConnectTimeoutException(
     "Connect timeout has been expired [url=$url, connect_timeout=${timeout ?: "unknown"} ms]",
@@ -171,13 +203,15 @@ fun ConnectTimeoutException(
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-fun SocketTimeoutException(
+public fun SocketTimeoutException(
     request: HttpRequestData,
     cause: Throwable? = null
 ): SocketTimeoutException = SocketTimeoutException(
-    "Socket timeout has been expired [url=${request.url}, socket_timeout=${request.getCapabilityOrNull(
-        HttpTimeout
-    )?.socketTimeoutMillis ?: "unknown"}] ms",
+    "Socket timeout has been expired [url=${request.url}, socket_timeout=${
+        request.getCapabilityOrNull(
+            HttpTimeout
+        )?.socketTimeoutMillis ?: "unknown"
+    }] ms",
     cause
 )
 
@@ -186,7 +220,7 @@ fun SocketTimeoutException(
  * as zero and convert timeout value to [Int].
  */
 @InternalAPI
-fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
+public fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
     timeout == HttpTimeout.INFINITE_TIMEOUT_MS -> 0
     timeout < Int.MIN_VALUE -> Int.MIN_VALUE
     timeout > Int.MAX_VALUE -> Int.MAX_VALUE
@@ -198,7 +232,7 @@ fun convertLongTimeoutToIntWithInfiniteAsZero(timeout: Long): Int = when {
  * as zero and convert timeout value to [Int].
  */
 @InternalAPI
-fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {
+public fun convertLongTimeoutToLongWithInfiniteAsZero(timeout: Long): Long = when (timeout) {
     HttpTimeout.INFINITE_TIMEOUT_MS -> 0L
     else -> timeout
 }

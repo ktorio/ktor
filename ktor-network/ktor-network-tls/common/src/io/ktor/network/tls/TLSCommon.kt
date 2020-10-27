@@ -10,7 +10,7 @@ import kotlin.coroutines.*
 /**
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
-expect suspend fun Socket.tls(
+public expect suspend fun Socket.tls(
     coroutineContext: CoroutineContext, config: TLSConfig
 ): Socket
 
@@ -19,9 +19,9 @@ expect suspend fun Socket.tls(
  *
  * TODO: report YT issue
  */
-suspend fun Socket.tls(coroutineContext: CoroutineContext): Socket =  tls(coroutineContext) {}
+public suspend fun Socket.tls(coroutineContext: CoroutineContext): Socket =  tls(coroutineContext) {}
 
 /**
  * Make [Socket] connection secure with TLS configured with [block].
  */
-expect suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket
+public expect suspend fun Socket.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket

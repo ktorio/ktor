@@ -4,13 +4,12 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 
 /**
  * Parse URL query parameters. Shouldn't be used for urlencoded forms because of `+` character.
  */
-fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000): Parameters {
+public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000): Parameters {
     val parameters: List<Pair<String, String>> =
         split("&", limit = limit).map { it.substringBefore("=") to it.substringAfter("=", "") }
     val encoding: String =
@@ -30,22 +29,21 @@ fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, 
 /**
  * Encode form parameters from a list of pairs
  */
-fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder().apply {
+public fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder().apply {
     formUrlEncodeTo(this)
 }.toString()
 
 /**
  * Encode form parameters from a list of pairs to the specified [out] appendable
  */
-fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
+public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
     joinTo(
         out, "&"
     ) {
         val key = it.first.encodeURLParameter(spaceToPlus = true)
         if (it.second == null) {
             key
-        }
-        else {
+        } else {
             val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
             "$key=$value"
         }
@@ -55,15 +53,23 @@ fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
 /**
  * Encode form parameters
  */
-fun Parameters.formUrlEncode(): String = entries()
+public fun Parameters.formUrlEncode(): String = entries()
     .flatMap { e -> e.value.map { e.key to it } }
     .formUrlEncode()
 
 /**
  * Encode form parameters to the specified [out] appendable
  */
-fun Parameters.formUrlEncodeTo(out: Appendable) {
-    entries()
-        .flatMap { e -> if (e.value.isEmpty()) listOf(e.key to null) else e.value.map { e.key to it } }
-        .formUrlEncodeTo(out)
+public fun Parameters.formUrlEncodeTo(out: Appendable) {
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun ParametersBuilder.formUrlEncodeTo(out: Appendable) {
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun Set<Map.Entry<String, List<String>>>.formUrlEncodeTo(out: Appendable) {
+    flatMap { (key, value) ->
+        if (value.isEmpty()) listOf(key to null) else value.map { key to it }
+    }.formUrlEncodeTo(out)
 }

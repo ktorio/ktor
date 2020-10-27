@@ -11,7 +11,8 @@ apiValidation {
         'ktor-client',
         'ktor-client-features',
         'ktor-client-benchmarks',
-        'ktor-server-benchmarks'
+        'ktor-server-benchmarks',
+        'ktor-server-test-suites',
     ].toSet()
 
     def projects = [].toSet()
@@ -21,9 +22,8 @@ apiValidation {
         project(":ktor-network"),
         project(":ktor-utils"),
         project(":ktor-io"),
-        project(":ktor-server:ktor-server-core"),
-        project(":ktor-features:ktor-auth"),
-        project(":ktor-features:ktor-websockets")
+        project(":ktor-server"),
+        project(":ktor-features"),
     ]
 
     while (!queue.isEmpty()) {

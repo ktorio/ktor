@@ -31,7 +31,7 @@ internal open class SelectableBase(override val channel: SelectableChannel) : Se
         close()
     }
 
-    companion object {
+    public companion object {
         val InterestedOps =
             AtomicIntegerFieldUpdater.newUpdater(SelectableBase::class.java, SelectableBase::interestedOps.name)!!
     }

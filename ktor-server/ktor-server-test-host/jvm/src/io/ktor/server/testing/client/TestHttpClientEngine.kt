@@ -18,7 +18,7 @@ import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
+public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
     override val dispatcher = Dispatchers.IO
 
@@ -31,15 +31,29 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
     override val coroutineContext: CoroutineContext = dispatcher + clientJob
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body).response }
+        val testServerCall = with(data) { runRequest(method, url.fullPath, headers, body) }
 
-        return HttpResponseData(
-            testServerCall.status()!!, GMTDate(),
-            testServerCall.headers.allValues(),
-            HttpProtocolVersion.HTTP_1_1,
-            ByteReadChannel(testServerCall.byteContent ?: byteArrayOf()),
-            callContext()
-        )
+        return if (testServerCall.requestHandled) {
+            with(testServerCall.response) {
+                HttpResponseData(
+                    status()!!, GMTDate(),
+                    headers.allValues(),
+                    HttpProtocolVersion.HTTP_1_1,
+                    ByteReadChannel(byteContent ?: byteArrayOf()),
+                    callContext()
+                )
+            }
+        } else {
+            HttpResponseData(
+                HttpStatusCode.NotFound, GMTDate(),
+                Headers.build {
+                    this[HttpHeaders.ContentLength] = "0"
+                },
+                HttpProtocolVersion.HTTP_1_1,
+                ByteReadChannel(byteArrayOf()),
+                callContext()
+            )
+        }
     }
 
     private fun runRequest(
@@ -72,7 +86,7 @@ class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClie
         clientJob.complete()
     }
 
-    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+    public companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
             return TestHttpClientEngine(config)

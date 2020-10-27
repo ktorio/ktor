@@ -12,20 +12,20 @@ import java.nio.*
  *
  * Operations on this channel cannot be invoked concurrently.
  */
-actual interface ByteReadChannel {
+public actual interface ByteReadChannel {
     /**
      * Returns number of bytes that can be read without suspension. Read operations do no suspend and return
      * immediately when this number is at least the number of bytes requested for read.
      */
-    actual val availableForRead: Int
+    public actual val availableForRead: Int
 
     /**
      * Returns `true` if the channel is closed and no remaining bytes are available for read.
      * It implies that [availableForRead] is zero.
      */
-    actual val isClosedForRead: Boolean
+    public actual val isClosedForRead: Boolean
 
-    actual val isClosedForWrite: Boolean
+    public actual val isClosedForWrite: Boolean
 
     /**
      * Byte order that is used for multi-byte read operations
@@ -35,90 +35,90 @@ actual interface ByteReadChannel {
         "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
         level = DeprecationLevel.ERROR
     )
-    actual var readByteOrder: ByteOrder
+    public actual var readByteOrder: ByteOrder
 
     /**
      * Number of bytes read from the channel.
      * It is not guaranteed to be atomic so could be updated in the middle of long running read operation.
      */
     @Deprecated("Don't use byte count")
-    actual val totalBytesRead: Long
+    public actual val totalBytesRead: Long
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
-    actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    actual suspend fun readAvailable(dst: IoBuffer): Int
-    suspend fun readAvailable(dst: ByteBuffer): Int
+    public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
+    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
-    actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    actual suspend fun readFully(dst: IoBuffer, n: Int)
-    suspend fun readFully(dst: ByteBuffer): Int
+    public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
+    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public suspend fun readFully(dst: ByteBuffer): Int
 
     /**
      * Reads the specified amount of bytes and makes a byte packet from them. Fails if channel has been closed
      * and not enough bytes available. Accepts [headerSizeHint] to be provided, see [WritePacket].
      */
-    actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readPacket(size: Int, headerSizeHint: Int): ByteReadPacket
 
     /**
      * Reads up to [limit] bytes and makes a byte packet or until end of stream encountered.
      * Accepts [headerSizeHint] to be provided, see [BytePacketBuilder].
      */
-    actual suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
+    public actual suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket
 
     /**
      * Reads a long number (suspending if not enough bytes available) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readLong(): Long
+    public actual suspend fun readLong(): Long
 
     /**
      * Reads an int number (suspending if not enough bytes available) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readInt(): Int
+    public actual suspend fun readInt(): Int
 
     /**
      * Reads a short number (suspending if not enough bytes available) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readShort(): Short
+    public actual suspend fun readShort(): Short
 
     /**
      * Reads a byte (suspending if no bytes available yet) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readByte(): Byte
+    public actual suspend fun readByte(): Byte
 
     /**
      * Reads a boolean value (suspending if no bytes available yet) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readBoolean(): Boolean
+    public actual suspend fun readBoolean(): Boolean
 
     /**
      * Reads double number (suspending if not enough bytes available) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readDouble(): Double
+    public actual suspend fun readDouble(): Double
 
     /**
      * Reads float number (suspending if not enough bytes available) or fails if channel has been closed
      * and not enough bytes.
      */
-    actual suspend fun readFloat(): Float
+    public actual suspend fun readFloat(): Float
 
     /**
      * For every available bytes range invokes [visitor] function until it return false or end of stream encountered
      */
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
+    public suspend fun consumeEachBufferRange(visitor: ConsumeEachBufferVisitor) {
         consumeEachBufferRange(visitor)
     }
 
@@ -128,7 +128,7 @@ actual interface ByteReadChannel {
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    actual fun readSession(consumer: ReadSession.() -> Unit)
+    public actual fun readSession(consumer: ReadSession.() -> Unit)
 
     /**
      * Starts a suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
@@ -136,15 +136,15 @@ actual interface ByteReadChannel {
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
+    public actual suspend fun readSuspendableSession(consumer: suspend SuspendableReadSession.() -> Unit)
 
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    fun <R> lookAhead(visitor: LookAheadSession.() -> R): R
+    public fun <R> lookAhead(visitor: LookAheadSession.() -> R): R
 
     @Suppress("DEPRECATION")
     @Deprecated("Use read { } instead.")
-    suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R
+    public suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R
 
     /**
      * Reads a line of UTF-8 characters to the specified [out] buffer up to [limit] characters.
@@ -154,7 +154,7 @@ actual interface ByteReadChannel {
      * @return `true` if line has been read (possibly empty) or `false` if channel has been closed
      * and no characters were read.
      */
-    actual suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
+    public actual suspend fun <A : Appendable> readUTF8LineTo(out: A, limit: Int): Boolean
 
     /**
      * Reads a line of UTF-8 characters up to [limit] characters.
@@ -164,7 +164,7 @@ actual interface ByteReadChannel {
      * @return a line string with no line endings or `null` of channel has been closed
      * and no characters were read.
      */
-    actual suspend fun readUTF8Line(limit: Int): String?
+    public actual suspend fun readUTF8Line(limit: Int): String?
 
     /**
      * Invokes [consumer] when it will be possible to read at least [min] bytes
@@ -188,7 +188,7 @@ actual interface ByteReadChannel {
      * @param min amount of bytes available for read, should be positive or zero
      * @param consumer to be invoked when at least [min] bytes available for read
      */
-    suspend fun read(min: Int = 1, consumer: (ByteBuffer) -> Unit)
+    public suspend fun read(min: Int = 1, consumer: (ByteBuffer) -> Unit)
 
     /**
      * Close channel with optional [cause] cancellation. Unlike [ByteWriteChannel.close] that could close channel
@@ -200,14 +200,14 @@ actual interface ByteReadChannel {
      *
      * @see ByteWriteChannel.close
      */
-    actual fun cancel(cause: Throwable?): Boolean
+    public actual fun cancel(cause: Throwable?): Boolean
 
     /**
      * Discard up to [max] bytes
      *
      * @return number of bytes were discarded
      */
-    actual suspend fun discard(max: Long): Long
+    public actual suspend fun discard(max: Long): Long
 
     /**
      * Try to copy at least [min] but up to [max] bytes to the specified [destination] buffer from this input
@@ -228,7 +228,7 @@ actual interface ByteReadChannel {
      * @param max bytes to be copied even if there are more bytes buffered, could be [Int.MAX_VALUE].
      * @return number of bytes copied to the [destination] possibly `0`
      */
-    actual suspend fun peekTo(
+    public actual suspend fun peekTo(
         destination: Memory,
         destinationOffset: Long,
         offset: Long,
@@ -236,12 +236,12 @@ actual interface ByteReadChannel {
         max: Long
     ): Long
 
-    actual companion object {
-        actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
+    public actual companion object {
+        public actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
     }
 }
 
-actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
+public actual suspend fun ByteReadChannel.joinTo(dst: ByteWriteChannel, closeOnEnd: Boolean) {
     require(dst !== this)
 
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
@@ -265,7 +265,7 @@ private suspend fun ByteReadChannel.joinToImplSuspend(dst: ByteWriteChannel, clo
  * Closes [dst] channel if fails to read or write with cause exception.
  * @return a number of copied bytes
  */
-actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
+public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
     require(this !== dst)
     require(limit >= 0L)
 

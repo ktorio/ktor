@@ -13,5 +13,9 @@ import io.ktor.response.*
  *
  * @see FreeMarkerContent
  */
-suspend fun ApplicationCall.respondTemplate(template: String, model: Any? = null, etag: String? = null, contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8))
-    = respond(FreeMarkerContent(template, model, etag, contentType))
+public suspend fun ApplicationCall.respondTemplate(
+    template: String,
+    model: Any? = null,
+    etag: String? = null,
+    contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+): Unit = respond(FreeMarkerContent(template, model, etag, contentType))

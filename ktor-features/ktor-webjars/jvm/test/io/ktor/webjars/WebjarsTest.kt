@@ -28,7 +28,7 @@ class WebjarsTest {
             application.install(Webjars)
             handleRequest(HttpMethod.Get, "/webjars/foo.js").let { call ->
                 //Should be handled by some other routing
-                assertNull(call.response.status())
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
             }
         }
     }

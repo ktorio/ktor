@@ -14,3 +14,8 @@ import kotlinx.coroutines.*
 public expect fun Dispatchers.clientDispatcher(
     threadCount: Int, dispatcherName: String = "ktor-client-dispatcher"
 ): CoroutineDispatcher
+
+/**
+ * Check if the current coroutines supports multithreaded mode for kotlin-native.
+ */
+internal expect fun checkCoroutinesVersion()

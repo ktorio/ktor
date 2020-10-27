@@ -16,12 +16,12 @@ import io.ktor.util.*
  * [providers] - list of auth providers to use.
  */
 @Suppress("KDocMissingDocumentation")
-class Auth(
-    val providers: MutableList<AuthProvider> = mutableListOf()
+public class Auth(
+    public val providers: MutableList<AuthProvider> = mutableListOf()
 ) {
     private val alwaysSend by lazy { providers.filter { it.sendWithoutRequest } }
 
-    companion object Feature : HttpClientFeature<Auth, Auth> {
+    public companion object Feature : HttpClientFeature<Auth, Auth> {
         override val key: AttributeKey<Auth> = AttributeKey("DigestAuth")
 
         override fun prepare(block: Auth.() -> Unit): Auth {
@@ -64,6 +64,6 @@ class Auth(
 /**
  * Install [Auth] feature.
  */
-fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
+public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
     install(Auth, block)
 }

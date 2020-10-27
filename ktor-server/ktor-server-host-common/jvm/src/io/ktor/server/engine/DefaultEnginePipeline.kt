@@ -22,7 +22,7 @@ import java.util.concurrent.*
  * Default engine pipeline for all engines. Use it only if you are writing your own application engine implementation.
  */
 @EngineAPI
-fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
+public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline()
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
@@ -34,9 +34,6 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     pipeline.intercept(EnginePipeline.Call) {
         try {
             call.application.execute(call)
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
-            }
         } catch (error: ChannelIOException) {
             with(CallLogging.Internals) {
                 withMDCBlock {
@@ -65,7 +62,7 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
  * Map [cause] to the corresponding status code or `null` if no default exception mapping for this [cause] type
  */
 @EngineAPI
-fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
+public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? {
     return when (cause) {
         is BadRequestException -> HttpStatusCode.BadRequest
         is NotFoundException -> HttpStatusCode.NotFound

@@ -19,7 +19,7 @@ import kotlin.coroutines.*
  * Represents a multipart data object that does parse and convert parts to ktor's [PartData]
  */
 @InternalAPI
-class CIOMultipartDataBase(
+public class CIOMultipartDataBase(
     override val coroutineContext: CoroutineContext,
     channel: ByteReadChannel,
     contentType: CharSequence,

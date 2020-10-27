@@ -9,7 +9,7 @@ package io.ktor.http.cio.websocket
  * @property controlFrame if this is control frame type
  * @property opcode - frame type id that is used to transport it
  */
-enum class FrameType(val controlFrame: Boolean, val opcode: Int) {
+public enum class FrameType(public val controlFrame: Boolean, public val opcode: Int) {
     /**
      * Regular application level text frame
      */
@@ -35,7 +35,7 @@ enum class FrameType(val controlFrame: Boolean, val opcode: Int) {
      */
     PONG(true, 0xa);
 
-    companion object {
+    public companion object {
         private val maxOpcode = values().maxBy { it.opcode }!!.opcode
 
         private val byOpcodeArray = Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }
@@ -44,6 +44,6 @@ enum class FrameType(val controlFrame: Boolean, val opcode: Int) {
          * Find [FrameType] instance by numeric [opcode]
          * @return a [FrameType] instance or `null` of the [opcode] value is not valid
          */
-        operator fun get(opcode: Int): FrameType? = if (opcode in 0..maxOpcode) byOpcodeArray[opcode] else null
+        public operator fun get(opcode: Int): FrameType? = if (opcode in 0..maxOpcode) byOpcodeArray[opcode] else null
     }
 }

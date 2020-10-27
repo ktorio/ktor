@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.okhttp
@@ -13,7 +13,6 @@ import okio.*
 import okio.ByteString.Companion.toByteString
 import kotlin.coroutines.*
 
-@OptIn(ObsoleteCoroutinesApi::class)
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
     engineRequest: Request,
@@ -49,6 +48,7 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
+    @OptIn(ObsoleteCoroutinesApi::class)
     override val outgoing: SendChannel<Frame> = actor {
         val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
 
@@ -101,8 +101,9 @@ internal class OkHttpWebsocketSession(
         super.onClosing(webSocket, code, reason)
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
-        if (!outgoing.isClosedForSend) {
+        try {
             outgoing.sendBlocking(Frame.Close(CloseReason(code.toShort(), reason)))
+        } catch (ignore: Throwable) {
         }
         _incoming.close()
     }
@@ -122,7 +123,7 @@ internal class OkHttpWebsocketSession(
     /**
      * Creates a new web socket and starts the session.
      */
-    fun start() {
+    public fun start() {
         self.complete(this)
     }
 
@@ -135,8 +136,9 @@ internal class OkHttpWebsocketSession(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("KDocMissingDocumentation")
-class UnsupportedFrameTypeException(
+public class UnsupportedFrameTypeException(
     private val frame: Frame
 ) : IllegalArgumentException("Unsupported frame type: $frame"), CopyableThrowable<UnsupportedFrameTypeException> {
     override fun createCopy(): UnsupportedFrameTypeException? = UnsupportedFrameTypeException(frame).also {

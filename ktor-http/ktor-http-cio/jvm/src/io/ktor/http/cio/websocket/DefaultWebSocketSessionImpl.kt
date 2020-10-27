@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.websocket
@@ -11,7 +11,6 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import java.lang.IllegalStateException
 import java.nio.*
 import kotlin.coroutines.*
 
@@ -24,7 +23,7 @@ private val NORMAL_CLOSE = CloseReason(CloseReason.Codes.NORMAL, "OK")
  * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
  */
 @WebSocketInternalAPI
-class DefaultWebSocketSessionImpl(
+public class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Long = -1L,
     override var timeoutMillis: Long = 15000L,
@@ -71,7 +70,7 @@ class DefaultWebSocketSessionImpl(
     /**
      * Close session with GOING_AWAY reason
      */
-    suspend fun goingAway(message: String = "Server is going down") {
+    public suspend fun goingAway(message: String = "Server is going down") {
         sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
@@ -88,15 +87,13 @@ class DefaultWebSocketSessionImpl(
         raw.cancel()
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(
         IncomingProcessorCoroutineName + Dispatchers.Unconfined
     ) {
         var last: BytePacketBuilder? = null
         var closeFramePresented = false
         try {
+            @OptIn(ExperimentalCoroutinesApi::class)
             raw.incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Close -> {
@@ -144,9 +141,7 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun runOutgoingProcessor(): Job = launch(
         OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
     ) {
@@ -227,14 +222,14 @@ class DefaultWebSocketSessionImpl(
         }
     }
 
-    companion object {
+    public companion object {
         private val EmptyPong = Frame.Pong(ByteArray(0))
     }
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
+public suspend fun DefaultWebSocketSession.run(handler: suspend DefaultWebSocketSession.() -> Unit) {
     try {
         val me: DefaultWebSocketSession = this@run
         me.handler()

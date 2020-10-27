@@ -4,17 +4,21 @@
 package io.ktor.client.tests.features
 
 import io.ktor.client.features.cache.*
-import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CacheTest : ClientLoader() {
+    var storage: HttpCache.Config? by shared(null)
+
     @Test
     fun testNoStore() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -38,7 +42,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testNoCache() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -62,7 +65,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testETagCache() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -84,7 +86,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testLastModified() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -106,7 +107,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testVary() = clientTests(listOf("Js")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -116,9 +116,9 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/vary")
 
+            // first header value from Vary
             val first = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-
             }
 
             val second = client.get<String>(url) {
@@ -127,32 +127,170 @@ class CacheTest : ClientLoader() {
 
             assertEquals(first, second)
 
+            // second header value from Vary
             val third = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-
             }
 
             assertNotEquals(third, second)
 
             val fourth = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-
             }
 
             assertEquals(third, fourth)
 
+            // first header value from Vary
             val fifth = client.get<String>(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-
             }
 
             assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
+        }
+    }
+
+    @Test
+    fun testVaryStale() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val url = Url("$TEST_SERVER/cache/vary-stale")
+
+            // first header value from Vary
+            val first = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            val second = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, second)
+
+            // second header value from Vary
+            val third = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertNotEquals(third, second)
+
+            val fourth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertEquals(third, fourth)
+
+            // first header value from Vary
+            val fifth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
+        }
+    }
+
+    @Test
+    fun testNoVaryIn304() = clientTests(listOf("Js")) {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
+                if (response.status == HttpStatusCode.NotModified) {
+                    val headers = buildHeaders {
+                        response.headers
+                            .filter { name, _ ->
+                                !name.equals(HttpHeaders.Vary, ignoreCase = true)
+                            }
+                            .forEach(::appendAll)
+                    }
+                    proceedWith(object : HttpResponse() {
+                        override val call get() = response.call
+                        override val content get() = response.content
+                        override val coroutineContext get() = response.coroutineContext
+                        override val headers = headers
+                        override val requestTime get() = response.requestTime
+                        override val responseTime get() = response.responseTime
+                        override val status get() = response.status
+                        override val version get() = response.version
+                    })
+                }
+            }
+
+            val url = Url("$TEST_SERVER/cache/vary-stale")
+
+            // first header value from Vary
+            val first = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            val second = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, second)
+
+            // second header value from Vary
+            val third = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertNotEquals(third, second)
+
+            val fourth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "ru")
+            }
+
+            assertEquals(third, fourth)
+
+            // first header value from Vary
+            val fifth = client.get<String>(url) {
+                header(HttpHeaders.ContentLanguage, "en")
+            }
+
+            assertEquals(first, fifth)
+
+            // no header value from Vary
+            val sixth = client.get<String>(url)
+
+            assertNotEquals(sixth, second)
+            assertNotEquals(sixth, third)
+
+            val seventh = client.get<String>(url)
+
+            assertEquals(sixth, seventh)
         }
     }
 
     @Test
     fun testMaxAge() = clientTests {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this
@@ -178,7 +316,6 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
-        var storage: HttpCache.Config? = null
         config {
             install(HttpCache) {
                 storage = this

@@ -2,6 +2,7 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+
 package io.ktor.util.internal
 
 /*
@@ -37,13 +38,13 @@ internal val LIST_EMPTY: Any = Symbol("LIST_EMPTY")
 private val REMOVE_PREPARED: Any = Symbol("REMOVE_PREPARED")
 
 /** @suppress **This is unstable API and it is subject to change.** */
-typealias RemoveFirstDesc<T> = LockFreeLinkedListNode.RemoveFirstDesc<T>
+public typealias RemoveFirstDesc<T> = LockFreeLinkedListNode.RemoveFirstDesc<T>
 
 /** @suppress **This is unstable API and it is subject to change.** */
-typealias AddLastDesc<T> = LockFreeLinkedListNode.AddLastDesc<T>
+public typealias AddLastDesc<T> = LockFreeLinkedListNode.AddLastDesc<T>
 
 /** @suppress **This is unstable API and it is subject to change.** */
-typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
+public typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
 
 private class Symbol(val symbol: String) {
     override fun toString(): String = symbol
@@ -62,7 +63,7 @@ public abstract class OpDescriptor {
      * Returns `null` is operation was performed successfully or some other
      * object that indicates the failure reason.
      */
-    abstract fun perform(affected: Any?): Any?
+    public abstract fun perform(affected: Any?): Any?
 }
 
 private val NO_DECISION: Any = Symbol("NO_DECISION")
@@ -82,22 +83,22 @@ private val NO_DECISION: Any = Symbol("NO_DECISION")
 public abstract class AtomicOp<in T> : OpDescriptor() {
     private val _consensus = atomic<Any?>(NO_DECISION)
 
-    val isDecided: Boolean get() = _consensus.value !== NO_DECISION
+    public val isDecided: Boolean get() = _consensus.value !== NO_DECISION
 
-    fun tryDecide(decision: Any?): Boolean {
+    public fun tryDecide(decision: Any?): Boolean {
         check(decision !== NO_DECISION)
         return _consensus.compareAndSet(NO_DECISION, decision)
     }
 
     private fun decide(decision: Any?): Any? = if (tryDecide(decision)) decision else _consensus.value
 
-    abstract fun prepare(affected: T): Any? // `null` if Ok, or failure reason
+    public abstract fun prepare(affected: T): Any? // `null` if Ok, or failure reason
 
-    abstract fun complete(affected: T, failure: Any?) // failure != null if failed to prepare op
+    public abstract fun complete(affected: T, failure: Any?) // failure != null if failed to prepare op
 
     // returns `null` on success
     @Suppress("UNCHECKED_CAST")
-    final override fun perform(affected: Any?): Any? {
+    public final override fun perform(affected: Any?): Any? {
         // make decision on status
         var decision = this._consensus.value
         if (decision === NO_DECISION) {
@@ -115,9 +116,9 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
  * @suppress **This is unstable API and it is subject to change.**
  */
 @InternalAPI
-abstract class AtomicDesc {
-    abstract fun prepare(op: AtomicOp<*>): Any? // returns `null` if prepared successfully
-    abstract fun complete(op: AtomicOp<*>, failure: Any?) // decision == null if success
+public abstract class AtomicDesc {
+    public abstract fun prepare(op: AtomicOp<*>): Any? // returns `null` if prepared successfully
+    public abstract fun complete(op: AtomicOp<*>, failure: Any?) // decision == null if success
 }
 
 
@@ -138,7 +139,7 @@ abstract class AtomicDesc {
  */
 @Suppress("LeakingThis")
 @InternalAPI
-open class LockFreeLinkedListNode {
+public open class LockFreeLinkedListNode {
     private val _next = atomic<Any>(this) // Node | Removed | OpDescriptor
     private val _prev = atomic<Any>(this) // Node | Removed
     private val _removedRef = atomic<Removed?>(null) // lazily cached removed ref to this
@@ -168,7 +169,7 @@ open class LockFreeLinkedListNode {
             override fun prepare(affected: Node): Any? = if (condition()) null else CONDITION_FALSE
         }
 
-    val isRemoved: Boolean get() = next is Removed
+    public val isRemoved: Boolean get() = next is Removed
 
     // LINEARIZABLE. Returns Node | Removed
     public val next: Any get() {
@@ -393,8 +394,8 @@ open class LockFreeLinkedListNode {
     // ------ multi-word atomic operations helpers ------
 
     public open class AddLastDesc<T : Node> constructor(
-        @JvmField val queue: Node,
-        @JvmField val node: T
+        @JvmField public val queue: Node,
+        @JvmField public val node: T
     ) : AbstractAtomicDesc() {
         init {
             // require freshly allocated node here
@@ -446,7 +447,7 @@ open class LockFreeLinkedListNode {
     }
 
     public open class RemoveFirstDesc<T>(
-        @JvmField val queue: Node
+        @JvmField public val queue: Node
     ) : AbstractAtomicDesc() {
         private val _affectedNode = atomic<Node?>(null)
         private val _originalNext = atomic<Node?>(null)
@@ -484,11 +485,11 @@ open class LockFreeLinkedListNode {
         }
 
         final override fun updatedNext(affected: Node, next: Node): Any = next.removed()
-        final override fun finishOnSuccess(affected: Node, next: Node) = affected.finishRemove(next)
+        final override fun finishOnSuccess(affected: Node, next: Node): Unit = affected.finishRemove(next)
     }
 
     @InternalAPI
-    abstract class AbstractAtomicDesc : AtomicDesc() {
+    public abstract class AbstractAtomicDesc : AtomicDesc() {
         protected abstract val affectedNode: Node?
         protected abstract val originalNext: Node?
         protected open fun takeAffectedNode(op: OpDescriptor): Node = affectedNode!!

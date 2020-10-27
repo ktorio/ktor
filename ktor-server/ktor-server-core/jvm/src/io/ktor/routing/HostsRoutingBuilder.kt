@@ -18,7 +18,7 @@ import io.ktor.util.*
  * @param host exact host name that is treated literally
  * @param port to be tested or `0` to pass all ports
  */
-fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Route {
+public fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Route {
     return host(listOf(host), emptyList(), if (port > 0) listOf(port) else emptyList(), build)
 }
 
@@ -32,7 +32,7 @@ fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Route {
  * @param hostPattern is a  regular expression to match request host
  * @param port to be tested or `0` to pass all ports
  */
-fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit): Route {
+public fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit): Route {
     return host(emptyList(), listOf(hostPattern), if (port > 0) listOf(port) else emptyList(), build)
 }
 
@@ -48,7 +48,7 @@ fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit): Rout
  *
  * @throws IllegalArgumentException when no constraints were applied in [hosts] and [ports]
  */
-fun Route.host(hosts: List<String>, ports: List<Int> = emptyList(), build: Route.() -> Unit): Route {
+public fun Route.host(hosts: List<String>, ports: List<Int> = emptyList(), build: Route.() -> Unit): Route {
     return host(hosts, emptyList(), ports, build)
 }
 
@@ -65,7 +65,7 @@ fun Route.host(hosts: List<String>, ports: List<Int> = emptyList(), build: Route
  *
  * @throws IllegalArgumentException when no constraints were applied in [host], [hostPatterns] and [ports]
  */
-fun Route.host(hosts: List<String>, hostPatterns: List<Regex>, ports: List<Int> = emptyList(), build: Route.() -> Unit): Route {
+public fun Route.host(hosts: List<String>, hostPatterns: List<Regex>, ports: List<Int> = emptyList(), build: Route.() -> Unit): Route {
     val selector = HostRouteSelector(hosts, hostPatterns, ports)
     return createChild(selector).apply(build)
 }
@@ -80,7 +80,7 @@ fun Route.host(hosts: List<String>, hostPatterns: List<Regex>, ports: List<Int> 
  *
  * @throws IllegalArgumentException if no ports were specified
  */
-fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
+public fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
     require(ports.isNotEmpty()) { "At least one port need to be specified" }
 
     val selector = HostRouteSelector(emptyList(), emptyList(), ports.toList())
@@ -93,7 +93,7 @@ fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
  * @param hostPatterns contains host patterns to match
  * @param portsList contains possible ports or empty to match all ports
  */
-data class HostRouteSelector(val hostList: List<String>, val hostPatterns: List<Regex>, val portsList: List<Int>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class HostRouteSelector(val hostList: List<String>, val hostPatterns: List<Regex>, val portsList: List<Int>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     init {
         require(hostList.isNotEmpty() || hostPatterns.isNotEmpty() || portsList.isNotEmpty())
     }
@@ -125,17 +125,17 @@ data class HostRouteSelector(val hostList: List<String>, val hostPatterns: List<
 
     override fun toString(): String = "($hostList, $hostPatterns, $portsList)"
 
-    companion object {
+    public companion object {
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request host
          */
         @KtorExperimentalAPI
-        const val HostNameParameter: String = "\$RequestHost"
+        public const val HostNameParameter: String = "\$RequestHost"
 
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request port
          */
         @KtorExperimentalAPI
-        const val PortParameter: String = "\$RequestPort"
+        public const val PortParameter: String = "\$RequestPort"
     }
 }

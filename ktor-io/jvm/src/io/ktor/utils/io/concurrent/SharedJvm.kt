@@ -32,11 +32,11 @@ public actual inline fun <T> shared(value: T): ReadWriteProperty<Any, T> = objec
 }
 
 /**
- * Allow to create unsafe reference that will never freeze.
+ * Allow to create thread local reference without freezing.
+ * Please note that reference is thread-local only in kotlin-native. Otherwise it will be simple [value] reference.
  *
  * This reference is allowed to use only from creation thread. Otherwise it will return null.
  */
 @DangerousInternalIoApi
-public actual fun <T : Any> threadLocal(value: T): ReadOnlyProperty<Any, T?> = object : ReadOnlyProperty<Any, T?> {
-    override fun getValue(thisRef: Any, property: KProperty<*>): T? = value
-}
+public actual fun <T : Any> threadLocal(value: T): ReadOnlyProperty<Any, T?> =
+    ReadOnlyProperty<Any, T?> { thisRef, property -> value }

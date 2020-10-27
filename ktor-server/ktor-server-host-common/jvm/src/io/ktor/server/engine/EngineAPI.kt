@@ -14,4 +14,4 @@ package io.ktor.server.engine
     message = "This is not general purpose API and should be only used in custom server engine implementations."
 )
 @Experimental(Experimental.Level.ERROR)
-annotation class EngineAPI
+public annotation class EngineAPI

@@ -90,8 +90,10 @@ class HttpsRedirectFeatureTest {
             application.install(HttpsRedirect) {
                 excludePrefix("/exempted")
             }
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond("ok")
+            application.routing {
+                get("/exempted/path") {
+                    call.respond("ok")
+                }
             }
 
             handleRequest(HttpMethod.Get, "/nonexempted").let { call ->

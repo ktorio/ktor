@@ -4,38 +4,40 @@ import kotlinx.atomicfu.*
 import io.ktor.utils.io.core.*
 import kotlin.jvm.*
 
-interface ObjectPool<T : Any> : Closeable {
+public interface ObjectPool<T : Any> : Closeable {
     /**
      * Pool capacity
      */
-    val capacity: Int
+    public val capacity: Int
 
     /**
      * borrow an instance. Pool can recycle an old instance or create a new one
      */
-    fun borrow(): T
+    public fun borrow(): T
 
     /**
      * Recycle an instance. Should be recycled what was borrowed before otherwise could fail
      */
-    fun recycle(instance: T)
+    public fun recycle(instance: T)
 
     /**
      * Dispose the whole pool. None of borrowed objects could be used after the pool gets disposed
      * otherwise it can result in undefined behaviour
      */
-    fun dispose()
+    public fun dispose()
 
     /**
      * Does pool dispose
      */
-    override fun close() = dispose()
+    override fun close() {
+        dispose()
+    }
 }
 
 /**
  * A pool implementation of zero capacity that always creates new instances
  */
-abstract class NoPoolImpl<T : Any> : ObjectPool<T> {
+public abstract class NoPoolImpl<T : Any> : ObjectPool<T> {
     override val capacity: Int
         get() = 0
 
@@ -49,7 +51,7 @@ abstract class NoPoolImpl<T : Any> : ObjectPool<T> {
 /**
  * A pool that produces at most one instance
  */
-abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
+public abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
     private val borrowed = atomic(0)
     private val disposed = atomic(false)
 
@@ -111,7 +113,7 @@ abstract class SingleInstancePool<T : Any> : ObjectPool<T> {
 /**
  * Default object pool implementation.
  */
-expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T> {
+public expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T> {
     /**
      * Pool capacity.
      */
@@ -148,14 +150,14 @@ expect abstract class DefaultPool<T : Any>(capacity: Int) : ObjectPool<T> {
  * Borrows and instance of [T] from the pool, invokes [block] with it and finally recycles it
  */
 @Deprecated("Use useInstance instead", ReplaceWith("useInstance(block)"))
-inline fun <T : Any, R> ObjectPool<T>.useBorrowed(block: (T) -> R): R {
+public inline fun <T : Any, R> ObjectPool<T>.useBorrowed(block: (T) -> R): R {
     return useInstance(block)
 }
 
 /**
  * Borrows and instance of [T] from the pool, invokes [block] with it and finally recycles it
  */
-inline fun <T : Any, R> ObjectPool<T>.useInstance(block: (T) -> R): R {
+public inline fun <T : Any, R> ObjectPool<T>.useInstance(block: (T) -> R): R {
     val instance = borrow()
     try {
         return block(instance)

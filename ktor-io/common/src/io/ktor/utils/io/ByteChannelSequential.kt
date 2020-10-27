@@ -10,12 +10,12 @@ import kotlinx.atomicfu.locks.*
 import kotlin.math.*
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
+public suspend fun ByteChannelSequentialBase.joinTo(dst: ByteChannelSequentialBase, closeOnEnd: Boolean) {
     return joinToImpl(dst, closeOnEnd)
 }
 
 @Deprecated("This is going to become internal. Use ByteReadChannel receiver instead.", level = DeprecationLevel.ERROR)
-suspend fun ByteChannelSequentialBase.copyTo(
+public suspend fun ByteChannelSequentialBase.copyTo(
     dst: ByteChannelSequentialBase,
     limit: Long = Long.MAX_VALUE
 ): Long {
@@ -29,7 +29,7 @@ private const val EXPECTED_CAPACITY: Long = 4088L
  */
 @Suppress("OverridingDeprecatedMember")
 @DangerousInternalIoApi
-abstract class ByteChannelSequentialBase(
+public abstract class ByteChannelSequentialBase(
     initial: IoBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
@@ -37,7 +37,7 @@ abstract class ByteChannelSequentialBase(
 
     @Suppress("unused", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
+    public constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
 
     protected var closed: Boolean by shared(false)
     protected val writable: BytePacketBuilder = BytePacketBuilder(0, pool)

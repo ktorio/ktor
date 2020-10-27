@@ -4,19 +4,23 @@
 
 package io.ktor.client.features.cookies
 
+import io.ktor.client.utils.*
+import io.ktor.client.utils.sharedList
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.withLock
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.sync.*
 import kotlin.math.*
 
 /**
  * [CookiesStorage] that stores all the cookies in an in-memory map.
  */
-class AcceptAllCookiesStorage : CookiesStorage {
-    private val container: MutableList<Cookie> = mutableListOf()
+public class AcceptAllCookiesStorage : CookiesStorage {
+    private val container: MutableList<Cookie> = sharedList()
     private val oldestCookie: AtomicLong = atomic(0L)
-    private val mutex = Lock()
+    private val mutex = Mutex()
 
     override suspend fun get(requestUrl: Url): List<Cookie> = mutex.withLock {
         val date = GMTDate()
@@ -40,7 +44,6 @@ class AcceptAllCookiesStorage : CookiesStorage {
     }
 
     override fun close() {
-        mutex.close()
     }
 
     private fun cleanup(timestamp: Long) {

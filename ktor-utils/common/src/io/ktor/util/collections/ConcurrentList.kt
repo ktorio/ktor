@@ -14,7 +14,7 @@ private const val INITIAL_CAPACITY = 32
 
 @KtorExperimentalAPI
 public class ConcurrentList<T> : MutableList<T> {
-    private var data = SharedList<T>(INITIAL_CAPACITY)
+    private var data by shared(SharedList<T>(INITIAL_CAPACITY))
 
     override var size: Int by shared(0)
         private set
@@ -23,6 +23,37 @@ public class ConcurrentList<T> : MutableList<T> {
 
     init {
         makeShared()
+    }
+
+    override fun hashCode(): Int = synchronized(lock) {
+        return@synchronized fold(7) { state, current -> Hash.combine(state, current.hashCode()) }
+    }
+
+    override fun equals(other: Any?): Boolean = synchronized(lock) {
+        if (other == null || other !is List<*> || other.size != size) {
+            return@synchronized false
+        }
+
+        forEachIndexed { index, item ->
+            if (other[index] != item) return@synchronized false
+        }
+
+        return@synchronized true
+    }
+
+    override fun toString(): String = synchronized(lock) {
+        return@synchronized buildString {
+            append('[')
+            this@ConcurrentList.forEachIndexed { index, item ->
+                append("$item")
+
+                if (index + 1 < size) {
+                    append(", ")
+                }
+            }
+
+            append(']')
+        }
     }
 
     override fun contains(element: T): Boolean = indexOf(element) >= 0
@@ -48,7 +79,6 @@ public class ConcurrentList<T> : MutableList<T> {
     }
 
     override fun isEmpty(): Boolean = size == 0
-
 
     override fun lastIndexOf(element: T): Int = synchronized(lock) {
         for (index in size - 1 downTo 0) {
@@ -97,21 +127,42 @@ public class ConcurrentList<T> : MutableList<T> {
         size = 0
     }
 
-    override fun iterator(): MutableIterator<T> {
-        error("Common concurrent list doesn't support iterator.")
+    override fun iterator(): MutableIterator<T> = listIterator()
+
+    override fun listIterator(): MutableListIterator<T> = listIterator(0)
+
+    override fun listIterator(index: Int): MutableListIterator<T> = object : MutableListIterator<T> {
+        var current by shared(index)
+
+        override fun hasNext(): Boolean = current < this@ConcurrentList.size
+
+        override fun next(): T = this@ConcurrentList[current++]
+
+        override fun remove() {
+            removeAt(current - 1)
+            current--
+        }
+
+        override fun hasPrevious(): Boolean = current > 0
+
+        override fun nextIndex(): Int = current + 1
+
+        override fun previous(): T = this@ConcurrentList[current--]
+
+        override fun previousIndex(): Int = current - 1
+
+        override fun add(element: T) {
+            add(current, element)
+        }
+
+        override fun set(element: T) {
+            this@ConcurrentList[current - 1] = element
+        }
     }
 
-    override fun listIterator(): MutableListIterator<T> {
-        error("Common concurrent list doesn't support iterator.")
-    }
-
-    override fun listIterator(index: Int): MutableListIterator<T> {
-        error("Common concurrent list doesn't support iterator.")
-    }
-
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
-        error("Common concurrent list doesn't support slicing.")
-    }
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = ConcurrentListSlice(
+        this, fromIndex, toIndex
+    )
 
     override fun remove(element: T): Boolean = synchronized(lock) {
         val index = indexOf(element)
@@ -176,7 +227,7 @@ public class ConcurrentList<T> : MutableList<T> {
 
     private fun increaseCapacity(targetCapacity: Int = data.size * 2) {
         val newData = SharedList<T>(targetCapacity)
-        for (index in 0 until targetCapacity) {
+        for (index in 0 until data.size) {
             newData[index] = data[index]
         }
 
@@ -191,7 +242,7 @@ public class ConcurrentList<T> : MutableList<T> {
                 continue
             }
 
-            data[writePosition]= data[index]
+            data[writePosition] = data[index]
             writePosition += 1
         }
 
@@ -203,12 +254,12 @@ public class ConcurrentList<T> : MutableList<T> {
     }
 
     private fun reserve(index: Int, gapSize: Int) {
-        if (gapSize + size >= data.size) {
-            increaseCapacity(gapSize + size)
+        val targetSize = gapSize + size
+        while (data.size < targetSize) {
+            increaseCapacity()
         }
 
-        var readPosition = size
-
+        var readPosition = size - 1
         while (readPosition >= index) {
             data[readPosition + gapSize] = data[readPosition]
             readPosition -= 1
@@ -217,6 +268,8 @@ public class ConcurrentList<T> : MutableList<T> {
         for (current in index until index + gapSize) {
             data[current] = null
         }
+
+        size += gapSize
     }
 }
 

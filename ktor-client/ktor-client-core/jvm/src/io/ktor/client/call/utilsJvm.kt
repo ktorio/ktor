@@ -18,5 +18,5 @@ import java.net.*
     replaceWith = ReplaceWith("this.request<HttpResponse>(url, block)", "io.ktor.client.statement.*")
 )
 @Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
-suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+public suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
     error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(url, block)] instead.")

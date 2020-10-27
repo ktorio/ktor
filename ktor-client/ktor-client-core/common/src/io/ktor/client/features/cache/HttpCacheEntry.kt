@@ -23,11 +23,11 @@ internal suspend fun HttpCacheEntry(response: HttpResponse): HttpCacheEntry {
  */
 @KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
-class HttpCacheEntry internal constructor(
-    val expires: GMTDate,
-    val varyKeys: Map<String, String>,
-    val response: HttpResponse,
-    val body: ByteArray
+public class HttpCacheEntry internal constructor(
+    public val expires: GMTDate,
+    public val varyKeys: Map<String, String>,
+    public val response: HttpResponse,
+    public val body: ByteArray
 ) {
     internal val responseHeaders: Headers = Headers.build {
         appendAll(response.headers)

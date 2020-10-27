@@ -14,12 +14,12 @@ import kotlinx.coroutines.*
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
-expect class ConnectTimeoutException(message: String, cause: Throwable? = null) : IOException
+public expect class ConnectTimeoutException(message: String, cause: Throwable? = null) : IOException
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
-expect class SocketTimeoutException(message: String, cause: Throwable? = null) : IOException
+public expect class SocketTimeoutException(message: String, cause: Throwable? = null) : IOException
 
 /**
  * Returns [ByteReadChannel] with [ByteChannel.close] handler that returns [SocketTimeoutException] instead of

@@ -1,0 +1,34 @@
+public final class io/ktor/auth/jwt/JWTAuthKt {
+	public static final fun jwt (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun jwt$default (Lio/ktor/auth/Authentication$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/auth/jwt/JWTAuthenticationProvider : io/ktor/auth/AuthenticationProvider {
+}
+
+public final class io/ktor/auth/jwt/JWTAuthenticationProvider$Configuration : io/ktor/auth/AuthenticationProvider$Configuration {
+	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V
+	public final fun authSchemes (Ljava/lang/String;[Ljava/lang/String;)V
+	public static synthetic fun authSchemes$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;[Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun challenge (Lkotlin/jvm/functions/Function4;)V
+	public final fun getRealm ()Ljava/lang/String;
+	public final fun setRealm (Ljava/lang/String;)V
+	public final fun validate (Lkotlin/jvm/functions/Function3;)V
+	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Lcom/auth0/jwt/interfaces/JWTVerifier;)V
+	public final fun verifier (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public final class io/ktor/auth/jwt/JWTCredential : io/ktor/auth/Credential {
+	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
+	public final fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
+}
+
+public final class io/ktor/auth/jwt/JWTPrincipal : io/ktor/auth/Principal {
+	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
+	public final fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
+}
+

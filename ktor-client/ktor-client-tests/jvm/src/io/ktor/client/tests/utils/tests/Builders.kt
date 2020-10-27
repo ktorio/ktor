@@ -8,7 +8,7 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Application.buildersTest() {
+public fun Application.buildersTest() {
     routing {
         route("builders") {
             get("empty") {

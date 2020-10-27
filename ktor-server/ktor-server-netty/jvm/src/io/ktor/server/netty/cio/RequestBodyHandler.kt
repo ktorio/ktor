@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.cio
@@ -26,17 +26,15 @@ internal class RequestBodyHandler(
 
     override val coroutineContext: CoroutineContext get() = handlerJob
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private val job = launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
         var upgraded = false
 
         try {
             while (true) {
+                @OptIn(ExperimentalCoroutinesApi::class)
                 val event = queue.poll()
-                    ?: run { current?.flush(); @Suppress("DEPRECATION") queue.receiveOrNull() }
+                    ?: run { current?.flush(); queue.receiveOrNull() }
                     ?: break
 
                 if (event is ByteBufHolder) {
@@ -68,12 +66,12 @@ internal class RequestBodyHandler(
         }
     }
 
-    fun upgrade(): ByteReadChannel {
+    public fun upgrade(): ByteReadChannel {
         tryOfferChannelOrToken(Upgrade)
         return newChannel()
     }
 
-    fun newChannel(): ByteReadChannel {
+    public fun newChannel(): ByteReadChannel {
         val bc = ByteChannel()
         tryOfferChannelOrToken(bc)
         return bc
@@ -89,7 +87,7 @@ internal class RequestBodyHandler(
         }
     }
 
-    fun close() {
+    public fun close() {
         queue.close()
     }
 

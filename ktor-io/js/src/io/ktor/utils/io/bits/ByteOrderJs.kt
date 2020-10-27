@@ -5,27 +5,27 @@ package io.ktor.utils.io.bits
 /**
  * Reverse number's byte order
  */
-actual fun Short.reverseByteOrder(): Short = swap(this)
+public actual fun Short.reverseByteOrder(): Short = swap(this)
 
 /**
  * Reverse number's byte order
  */
-actual fun Int.reverseByteOrder(): Int = swap(this)
+public actual fun Int.reverseByteOrder(): Int = swap(this)
 
 /**
  * Reverse number's byte order
  */
-actual fun Long.reverseByteOrder(): Long = swap(this)
+public actual fun Long.reverseByteOrder(): Long = swap(this)
 
 /**
  * Reverse number's byte order
  */
-actual fun Float.reverseByteOrder(): Float = swap(this)
+public actual fun Float.reverseByteOrder(): Float = swap(this)
 
 /**
  * Reverse number's byte order
  */
-actual fun Double.reverseByteOrder(): Double = swap(this)
+public actual fun Double.reverseByteOrder(): Double = swap(this)
 
 
 private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()

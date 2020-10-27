@@ -7,7 +7,7 @@ package io.ktor.util
 /**
  * Escapes the characters in a String using HTML entities
  */
-fun String.escapeHTML(): String {
+public fun String.escapeHTML(): String {
     val text = this@escapeHTML
     if (text.isEmpty()) return text
 
@@ -31,7 +31,9 @@ fun String.escapeHTML(): String {
  *
  * Useful together with destructuring declarations
  */
-inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String, String>): Pair<String, String> {
+public inline fun String.chomp(
+    separator: String, onMissingDelimiter: () -> Pair<String, String>
+): Pair<String, String> {
     val idx = indexOf(separator)
     return when (idx) {
         -1 -> onMissingDelimiter()
@@ -44,7 +46,7 @@ inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String
  * so latin characters are converted by the original english rules.
  */
 @InternalAPI
-fun String.toLowerCasePreservingASCIIRules(): String {
+public fun String.toLowerCasePreservingASCIIRules(): String {
     val firstIndex = indexOfFirst {
         toLowerCasePreservingASCII(it) != it
     }

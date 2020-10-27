@@ -14,14 +14,14 @@ import io.ktor.util.*
  *
  * Just supports HTTP/2 requests.
  */
-object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
+public object Jetty : HttpClientEngineFactory<JettyEngineConfig> {
     override fun create(block: JettyEngineConfig.() -> Unit): HttpClientEngine =
         JettyHttp2Engine(JettyEngineConfig().apply(block))
 }
 
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class JettyEngineContainer : HttpClientEngineContainer {
+public class JettyEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Jetty
 
     override fun toString(): String = "Jetty"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
  * Stop server on job cancellation. The returned deferred need to be completed or cancelled.
  */
 @EngineAPI
-fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
+public fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
     environment.parentCoroutineContext[Job]?.launchOnCancellation {
         stop(1000, 5000)
     } ?: Job()
@@ -22,9 +22,10 @@ fun ApplicationEngine.stopServerOnCancellation(): CompletableJob =
  * otherwise the parent job will be unable to complete successfully.
  */
 @InternalAPI
-fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
+public fun Job.launchOnCancellation(block: suspend () -> Unit): CompletableJob {
     val deferred: CompletableJob = Job(parent = this)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     GlobalScope.launch(this + Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
         var cancelled = false
         try {

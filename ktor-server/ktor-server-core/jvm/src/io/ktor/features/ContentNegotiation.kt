@@ -5,12 +5,12 @@
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.text.Charsets
@@ -20,7 +20,7 @@ import kotlin.text.Charsets
  * @see ContentNegotiation.Configuration.accept
  */
 @KtorExperimentalAPI
-typealias AcceptHeaderContributor = (
+public typealias AcceptHeaderContributor = (
     call: ApplicationCall,
     acceptedContentTypes: List<ContentTypeWithQuality>
 ) -> List<ContentTypeWithQuality>
@@ -31,9 +31,9 @@ typealias AcceptHeaderContributor = (
  * @param quality
  */
 @KtorExperimentalAPI
-data class ContentTypeWithQuality(val contentType: ContentType, val quality: Double = 1.0) {
+public data class ContentTypeWithQuality(val contentType: ContentType, val quality: Double = 1.0) {
     init {
-        require(quality in 0.0 .. 1.0) { "Quality should be in range [0, 1]: $quality" }
+        require(quality in 0.0..1.0) { "Quality should be in range [0, 1]: $quality" }
     }
 }
 
@@ -47,27 +47,33 @@ data class ContentTypeWithQuality(val contentType: ContentType, val quality: Dou
  *
  * @param registrations is a list of registered converters for ContentTypes
  */
-class ContentNegotiation(val registrations: List<ConverterRegistration>,
-                         private val acceptContributors: List<AcceptHeaderContributor>) {
+public class ContentNegotiation(
+    public val registrations: List<ConverterRegistration>,
+    private val acceptContributors: List<AcceptHeaderContributor>
+) {
 
     /**
      * Specifies which [converter] to use for a particular [contentType]
      * @param contentType is an instance of [ContentType] for this registration
      * @param converter is an instance of [ContentConverter] for this registration
      */
-    data class ConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
+    public data class ConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
 
     /**
      * Configuration type for [ContentNegotiation] feature
      */
-    class Configuration {
+    public class Configuration {
         internal val registrations = mutableListOf<ConverterRegistration>()
         internal val acceptContributors = mutableListOf<AcceptHeaderContributor>()
 
         /**
          * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
          */
-        fun <T : ContentConverter> register(contentType: ContentType, converter: T, configuration: T.() -> Unit = {}) {
+        public fun <T : ContentConverter> register(
+            contentType: ContentType,
+            converter: T,
+            configuration: T.() -> Unit = {}
+        ) {
             val registration = ConverterRegistration(contentType, converter.apply(configuration))
             registrations.add(registration)
         }
@@ -83,7 +89,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
          * so a custom [contributor] may keep it unsorted and should not rely on input list order.
          */
         @KtorExperimentalAPI
-        fun accept(contributor: AcceptHeaderContributor) {
+        public fun accept(contributor: AcceptHeaderContributor) {
             acceptContributors.add(contributor)
         }
     }
@@ -91,7 +97,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
     /**
      * Implementation of an [ApplicationFeature] for the [ContentNegotiation]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
         override val key: AttributeKey<ContentNegotiation> = AttributeKey("ContentNegotiation")
 
         override fun install(
@@ -181,7 +187,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>,
  * Could provide bi-directional conversion implementation.
  * One of the most typical examples of content converter is a json content converter that provides both serialization and deserialization
  */
-interface ContentConverter {
+public interface ContentConverter {
     /**
      * Convert a [value] to the specified [contentType] to a value suitable for sending (serialize).
      * Note that as far as [ContentConverter] could be registered multiple times with different content types
@@ -196,7 +202,7 @@ interface ContentConverter {
      *
      * @return a converted value (possibly an [OutgoingContent]), or null if [value] isn't suitable for this converter
      */
-    suspend fun convertForSend(
+    public suspend fun convertForSend(
         context: PipelineContext<Any, ApplicationCall>,
         contentType: ContentType,
         value: Any
@@ -208,13 +214,13 @@ interface ContentConverter {
      *
      * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
      */
-    suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
+    public suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
 }
 
 /**
  * Detect suitable charset for an application call by `Accept` header or fallback to [defaultCharset]
  */
-fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+public fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
     for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset
         Charset.isSupported(charset) -> return Charset.forName(charset)
@@ -227,7 +233,7 @@ fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): C
  * @see parseAndSortContentTypeHeader
  */
 @KtorExperimentalAPI
-fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQuality> {
+public fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQuality> {
     return sortedWith(
         compareByDescending<ContentTypeWithQuality> { it.quality }.thenBy {
             val contentType = it.contentType

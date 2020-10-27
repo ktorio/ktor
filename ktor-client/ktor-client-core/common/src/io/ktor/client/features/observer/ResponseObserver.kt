@@ -8,31 +8,32 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
 /**
  * [ResponseObserver] callback.
  */
-typealias ResponseHandler = suspend (HttpResponse) -> Unit
+public typealias ResponseHandler = suspend (HttpResponse) -> Unit
 
 /**
  * Observe response feature.
  */
-class ResponseObserver(
+public class ResponseObserver(
     private val responseHandler: ResponseHandler
 ) {
-    class Config {
+    public class Config {
         internal var responseHandler: ResponseHandler = {}
 
         /**
          * Set response handler for logging.
          */
-        fun onResponse(block: ResponseHandler) {
+        public fun onResponse(block: ResponseHandler) {
             responseHandler = block
         }
     }
 
-    companion object Feature : HttpClientFeature<Config, ResponseObserver> {
+    public companion object Feature : HttpClientFeature<Config, ResponseObserver> {
 
         override val key: AttributeKey<ResponseObserver> = AttributeKey("BodyInterceptor")
 
@@ -48,7 +49,15 @@ class ResponseObserver(
                 val sideCall = newClientCall.wrapWithContent(loggingContent)
 
                 scope.launch {
-                    feature.responseHandler(sideCall.response)
+                    try {
+                        feature.responseHandler(sideCall.response)
+                    } catch (_: Throwable) {
+                    }
+
+                    val content = sideCall.response.content
+                    if (!content.isClosedForRead) {
+                        content.discard()
+                    }
                 }
 
                 context.response = newClientCall.response
@@ -65,7 +74,7 @@ class ResponseObserver(
 /**
  * Install [ResponseObserver] feature in client.
  */
-fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {
+public fun HttpClientConfig<*>.ResponseObserver(block: ResponseHandler) {
     install(ResponseObserver) {
         responseHandler = block
     }

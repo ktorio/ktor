@@ -24,7 +24,9 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
 
                 try {
                     socket.use { handler(it) }
-                } catch (_: Throwable) {
+                } catch (cause: Throwable) {
+                    println("Exception in tcp server: $cause")
+                    cause.printStackTrace()
                 }
             }
         }.apply {
@@ -34,7 +36,7 @@ internal class TestTcpServer(val port: Int, handler: suspend (Socket) -> Unit) :
         }
     }
 
-    fun close() {
+    public fun close() {
         coroutineContext.cancel()
     }
 }

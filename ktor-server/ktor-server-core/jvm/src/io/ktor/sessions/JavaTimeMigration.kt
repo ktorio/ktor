@@ -9,7 +9,7 @@ import java.time.temporal.*
 
 @Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
 @Deprecated("Use maxAgeInSeconds or maxAgeDuration instead.")
-var CookieConfiguration.duration: TemporalAmount?
+public var CookieConfiguration.duration: TemporalAmount?
     get() = Duration.ofSeconds(maxAgeInSeconds)
     set(newMaxAge) {
         maxAgeInSeconds = when (newMaxAge) {

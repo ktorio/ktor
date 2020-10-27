@@ -5,10 +5,9 @@
 package io.ktor.util.collections
 
 import io.ktor.util.*
-import io.ktor.utils.io.core.*
 
 @InternalAPI
-open class ConcurrentCollection<E>(
+public open class ConcurrentCollection<E>(
     private val delegate: MutableCollection<E>,
     private val lock: Lock
 ) : MutableCollection<E> {
@@ -37,7 +36,7 @@ open class ConcurrentCollection<E>(
         delegate.addAll(elements)
     }
 
-    override fun clear() = lock.withLock {
+    override fun clear(): Unit = lock.withLock {
         delegate.clear()
     }
 

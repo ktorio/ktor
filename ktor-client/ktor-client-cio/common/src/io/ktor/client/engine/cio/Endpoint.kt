@@ -16,6 +16,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.sync.*
 import kotlin.coroutines.*
 
 internal class Endpoint(
@@ -29,35 +30,38 @@ internal class Endpoint(
     private val onDone: () -> Unit
 ) : CoroutineScope, Closeable {
     private val address = NetworkAddress(host, port)
-
+    private val lastActivity = atomic(GMTDate())
     private val connections: AtomicInt = atomic(0)
-    private val tasks: Channel<RequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime: Long = 2 * config.endpoint.connectTimeout
 
-    private val postman = launch {
+    private val timeout = launch(coroutineContext + CoroutineName("Endpoint timeout($host:$port)")) {
         try {
             while (true) {
-                val task = withTimeout(maxEndpointIdleTime) {
-                    tasks.receive()
+                val remaining = (lastActivity.value + maxEndpointIdleTime).timestamp - GMTDate().timestamp
+                if (remaining <= 0) {
+                    break
                 }
 
-                try {
-                    if (!config.pipelining || task.request.requiresDedicatedConnection()) {
-                        makeDedicatedRequest(task)
-                    } else {
-                        makePipelineRequest(task)
-                    }
-                } catch (cause: Throwable) {
-                    task.response.completeExceptionally(cause)
-                    throw cause
-                }
+                delay(remaining)
             }
         } catch (cause: Throwable) {
         } finally {
             deliveryPoint.close()
-            tasks.close()
             onDone()
+        }
+    }
+
+    private suspend fun processTask(task: RequestTask) {
+        try {
+            if (!config.pipelining || task.request.requiresDedicatedConnection()) {
+                makeDedicatedRequest(task)
+            } else {
+                makePipelineRequest(task)
+            }
+        } catch (cause: Throwable) {
+            task.response.completeExceptionally(cause)
+            throw cause
         }
     }
 
@@ -65,10 +69,11 @@ internal class Endpoint(
         request: HttpRequestData,
         callContext: CoroutineContext
     ): HttpResponseData {
-        val result = CompletableDeferred<HttpResponseData>()
-        val task = RequestTask(request, result, callContext)
-        tasks.offer(task)
-        return result.await()
+        lastActivity.value = GMTDate()
+        val response = CompletableDeferred<HttpResponseData>()
+        val task = RequestTask(request, response, callContext)
+        processTask(task)
+        return response.await()
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
@@ -229,7 +234,7 @@ internal class Endpoint(
     }
 
     override fun close() {
-        tasks.close()
+        timeout.cancel()
     }
 }
 
@@ -247,10 +252,10 @@ private suspend fun <T> CoroutineScope.handleTimeout(
     "Binary compatibility.",
     level = DeprecationLevel.HIDDEN, replaceWith = ReplaceWith("FailToConnectException")
 )
-open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
+public open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 @Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
+public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable

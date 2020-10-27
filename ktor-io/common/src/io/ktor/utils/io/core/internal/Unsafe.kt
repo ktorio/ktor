@@ -14,10 +14,10 @@ import kotlin.native.concurrent.*
 @Suppress("DEPRECATION")
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
 @Experimental(level = Experimental.Level.ERROR)
-annotation class DangerousInternalIoApi
+public annotation class DangerousInternalIoApi
 
 @DangerousInternalIoApi
-fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
+public fun ByteReadPacket.`$unsafeAppend$`(builder: BytePacketBuilder) {
     val builderHead = builder.stealAll() ?: return
     val builderSize = builder.size
 
@@ -46,12 +46,12 @@ internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
 @Suppress("DEPRECATION", "UNUSED")
 @JvmName("prepareReadFirstHead")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Input.prepareReadFirstHeadOld(minSize: Int): IoBuffer? {
+public fun Input.prepareReadFirstHeadOld(minSize: Int): IoBuffer? {
     return prepareReadFirstHead(minSize) as IoBuffer?
 }
 
 @DangerousInternalIoApi
-fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
+public fun Input.prepareReadFirstHead(minSize: Int): ChunkBuffer? {
     if (this is AbstractInput) {
         return prepareReadHead(minSize)
     }
@@ -84,12 +84,12 @@ private fun Input.prepareReadHeadFallback(minSize: Int): ChunkBuffer? {
 
 @Suppress("UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Input.completeReadHead(current: IoBuffer) {
+public fun Input.completeReadHead(current: IoBuffer) {
     completeReadHead(current)
 }
 
 @DangerousInternalIoApi
-fun Input.completeReadHead(current: ChunkBuffer) {
+public fun Input.completeReadHead(current: ChunkBuffer) {
     if (current === this) {
         return
     }
@@ -116,12 +116,12 @@ private fun Input.completeReadHeadFallback(current: ChunkBuffer) {
 @Suppress("DEPRECATION", "UNUSED")
 @JvmName("prepareReadNextHead")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Input.prepareReadNextHeadOld(current: IoBuffer): IoBuffer? {
+public fun Input.prepareReadNextHeadOld(current: IoBuffer): IoBuffer? {
     return prepareReadNextHead(current) as IoBuffer?
 }
 
 @DangerousInternalIoApi
-fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
+public fun Input.prepareReadNextHead(current: ChunkBuffer): ChunkBuffer? {
     if (current === this) {
         return if (canRead()) this else null
     }
@@ -147,12 +147,12 @@ private fun Input.prepareNextReadHeadFallback(current: ChunkBuffer): ChunkBuffer
 
 @Suppress("DEPRECATION", "UNUSED")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
+public fun Output.prepareWriteHead(capacity: Int, current: IoBuffer?): IoBuffer {
     return prepareWriteHead(capacity, current) as IoBuffer
 }
 
 @DangerousInternalIoApi
-fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
+public fun Output.prepareWriteHead(capacity: Int, current: ChunkBuffer?): ChunkBuffer {
     if (this is AbstractOutput) {
         if (current != null) {
             afterHeadWrite()
@@ -175,12 +175,12 @@ private fun Output.prepareWriteHeadFallback(current: ChunkBuffer?): ChunkBuffer 
 
 @Suppress("DEPRECATION", "UNUSED")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-fun Output.afterHeadWrite(current: IoBuffer) {
+public fun Output.afterHeadWrite(current: IoBuffer) {
     return afterHeadWrite(current)
 }
 
 @DangerousInternalIoApi
-fun Output.afterHeadWrite(current: ChunkBuffer) {
+public fun Output.afterHeadWrite(current: ChunkBuffer) {
     if (this is AbstractOutput) {
         return afterHeadWrite()
     }

@@ -30,7 +30,7 @@ kotlin {
 
                 api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
                 api group: 'org.openjdk.jmh', name: 'jmh-core', version: jmh_version
-                api group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+                api group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
                 api group: 'com.squareup.okhttp3', name: 'okhttp', version: okhttp_version
                 api group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
             }
@@ -71,7 +71,7 @@ if (!project.ext.ideaActive) {
         }
 
         jmh group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
-        jmh group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.6.0'
+        jmh group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.0'
         jmh group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
     }
 

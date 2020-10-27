@@ -10,11 +10,11 @@ import kotlin.jvm.*
 /**
  * Helper interface to test client.
  */
-expect abstract class ClientLoader() {
+public expect abstract class ClientLoader() {
     /**
      * Perform test against all clients from dependencies.
      */
-    fun clientTests(
+    public fun clientTests(
         skipEngines: List<String> = emptyList(),
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     )
@@ -22,5 +22,5 @@ expect abstract class ClientLoader() {
     /**
      * Print coroutines in debug mode.
      */
-    fun dumpCoroutines()
+    public fun dumpCoroutines()
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio.internals
@@ -26,8 +26,8 @@ import kotlin.coroutines.intrinsics.*
  */
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
-class WeakTimeoutQueue(
-    val timeoutMillis: Long,
+public class WeakTimeoutQueue(
+    public val timeoutMillis: Long,
     private val clock: () -> Long = { System.currentTimeMillis() }
 ) {
     private val head = LockFreeLinkedListHead()
@@ -38,7 +38,7 @@ class WeakTimeoutQueue(
     /**
      * Register [job] in this queue. It will be cancelled if doesn't complete in time.
      */
-    fun register(job: Job): Registration {
+    public fun register(job: Job): Registration {
         val now = clock()
         val head = head
         if (cancelled) throw CancellationException()
@@ -58,7 +58,7 @@ class WeakTimeoutQueue(
     /**
      * Cancel all registered timeouts
      */
-    fun cancel() {
+    public fun cancel() {
         cancelled = true
         process()
     }
@@ -66,25 +66,43 @@ class WeakTimeoutQueue(
     /**
      * Process and cancel all jobs that are timed out
      */
-    fun process() {
+    public fun process() {
         process(clock(), head, cancelled)
     }
 
     /**
-     * Execute [block] and cancel if doesn't complete in time.
+     * Counts registered jobs, for testing purpose only
      */
-    suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
+    internal fun count(): Int {
+        var count = 0
+        head.forEach<Cancellable> { count++ }
+        return count
+    }
+
+    /**
+     * Execute [block] and cancel if doesn't complete in time.
+     * Unlike the regular kotlinx.coroutines withTimeout,
+     * this also checks for cancellation first and fails immediately.
+     */
+    public suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
         return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
+            if (!rawContinuation.context.isActive) {
+                // fast-path for cancellation with no continuation wrapping
+                checkCancellation(rawContinuation)
+            }
             val continuation = rawContinuation.intercepted()
 
-            val wrapped =
-                WeakTimeoutCoroutine(continuation.context, continuation)
+            val wrapped = WeakTimeoutCoroutine(continuation.context, continuation)
             val handle = register(wrapped)
             wrapped.invokeOnCompletion(handle)
 
             val result = try {
-                if (wrapped.isCancelled) COROUTINE_SUSPENDED
-                else block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
+                if (wrapped.isCancelled) {
+                    @OptIn(InternalCoroutinesApi::class)
+                    throw wrapped.getCancellationException()
+                } else {
+                    block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
+                }
             } catch (t: Throwable) {
                 if (wrapped.tryComplete()) {
                     handle.dispose()
@@ -92,12 +110,20 @@ class WeakTimeoutQueue(
                 } else COROUTINE_SUSPENDED
             }
 
-            if (result !== COROUTINE_SUSPENDED) {
-                if (wrapped.tryComplete()) {
-                    handle.dispose()
-                    result
-                } else COROUTINE_SUSPENDED
-            } else COROUTINE_SUSPENDED
+            if (result !== COROUTINE_SUSPENDED && wrapped.tryComplete()) {
+                handle.dispose()
+            }
+
+            result
+        }
+    }
+
+    private fun <T> checkCancellation(continuation: Continuation<T>) {
+        continuation.context[Job]?.let { job ->
+            if (job.isCancelled) {
+                @OptIn(InternalCoroutinesApi::class)
+                throw job.getCancellationException()
+            }
         }
     }
 
@@ -115,7 +141,7 @@ class WeakTimeoutQueue(
     /**
      * [register] function result
      */
-    interface Registration : CompletionHandler, DisposableHandle {
+    public interface Registration : CompletionHandler, DisposableHandle {
         override fun invoke(cause: Throwable?) {
             dispose()
         }
@@ -146,27 +172,12 @@ class WeakTimeoutQueue(
     private class WeakTimeoutCoroutine<in T>(
         context: CoroutineContext,
         delegate: Continuation<T>,
-        val job: Job = Job(context[Job])
+        private val job: Job = Job(context[Job])
     ) : Continuation<T>, Job by job, CoroutineScope {
         override val context: CoroutineContext = context + job
         override val coroutineContext: CoroutineContext get() = context
 
         private val state = atomic<Continuation<T>?>(delegate)
-
-        init {
-            context[Job]?.let { parent ->
-                @OptIn(InternalCoroutinesApi::class)
-                parent.invokeOnCompletion(onCancelling = true) {
-                    if (it != null) {
-                        resumeWithException(it)
-                        job.cancel()
-                    }
-                }
-            }
-            job.invokeOnCompletion {
-                resumeWithException(it ?: CancellationException())
-            }
-        }
 
         override fun resumeWith(result: Result<T>) {
             state.getAndUpdate {

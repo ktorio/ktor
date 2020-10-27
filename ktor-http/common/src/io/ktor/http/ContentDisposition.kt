@@ -7,29 +7,29 @@ package io.ktor.http
 /**
  * Represents `Content-Disposition` header value
  */
-class ContentDisposition(disposition: String, parameters: List<HeaderValueParam> = emptyList()) :
+public class ContentDisposition(disposition: String, parameters: List<HeaderValueParam> = emptyList()) :
     HeaderValueWithParameters(disposition, parameters) {
     /**
      * Content disposition value without parameters
      */
-    val disposition: String get() = content
+    public val disposition: String get() = content
 
     /**
      * Content disposition name (from parameter named `name`)
      */
-    val name: String?
+    public val name: String?
         get() = parameter(Parameters.Name)
 
     /**
      * Creates new with parameter appended
      */
-    fun withParameter(key: String, value: String): ContentDisposition =
+    public fun withParameter(key: String, value: String): ContentDisposition =
         ContentDisposition(disposition, parameters + HeaderValueParam(key, value))
 
     /**
      * Creates new with parameters appended
      */
-    fun withParameters(newParameters: List<HeaderValueParam>): ContentDisposition =
+    public fun withParameters(newParameters: List<HeaderValueParam>): ContentDisposition =
         ContentDisposition(disposition, parameters + newParameters)
 
     override fun equals(other: Any?): Boolean =
@@ -40,45 +40,45 @@ class ContentDisposition(disposition: String, parameters: List<HeaderValueParam>
     override fun hashCode(): Int = disposition.hashCode() * 31 + parameters.hashCode()
 
     @Suppress("unused", "PublicApiImplicitType")
-    companion object {
+    public companion object {
         /**
          * `Content-Disposition: file`
          */
-        val File = ContentDisposition("file")
+        public val File: ContentDisposition = ContentDisposition("file")
 
         /**
          * `Content-Disposition: mixed`
          */
-        val Mixed = ContentDisposition("mixed")
+        public val Mixed: ContentDisposition = ContentDisposition("mixed")
 
         /**
          * `Content-Disposition: attachment`
          */
-        val Attachment = ContentDisposition("attachment")
+        public val Attachment: ContentDisposition = ContentDisposition("attachment")
 
         /**
          * `Content-Disposition: inline`
          */
-        val Inline = ContentDisposition("inline")
+        public val Inline: ContentDisposition = ContentDisposition("inline")
 
         /**
          * Parse `Content-Disposition` header [value]
          */
-        fun parse(value: String): ContentDisposition = parse(value) { v, p -> ContentDisposition(v, p) }
+        public fun parse(value: String): ContentDisposition = parse(value) { v, p -> ContentDisposition(v, p) }
     }
 
     /**
      * Frequently used content disposition parameter names
      */
     @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
-    object Parameters {
-        const val FileName = "filename"
-        const val FileNameAsterisk = "filename*"
-        const val Name = "name"
-        const val CreationDate = "creation-date"
-        const val ModificationDate = "modification-date"
-        const val ReadDate = "read-date"
-        const val Size = "size"
-        const val Handling = "handling"
+    public object Parameters {
+        public const val FileName: String = "filename"
+        public const val FileNameAsterisk: String = "filename*"
+        public const val Name: String = "name"
+        public const val CreationDate: String = "creation-date"
+        public const val ModificationDate: String = "modification-date"
+        public const val ReadDate: String = "read-date"
+        public const val Size: String = "size"
+        public const val Handling: String = "handling"
     }
 }

@@ -9,11 +9,11 @@ import io.ktor.util.*
 /**
  * Client content encoder.
  */
-interface ContentEncoder : Encoder {
+public interface ContentEncoder : Encoder {
     /**
      * Encoder identifier to use in http headers.
      */
-    val name: String
+    public val name: String
 }
 
 internal expect object GZipEncoder : ContentEncoder

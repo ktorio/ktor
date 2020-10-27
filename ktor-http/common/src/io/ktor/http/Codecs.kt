@@ -36,6 +36,7 @@ private val VALID_PATH_PART = listOf(
     '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
     '-', '.', '_', '~'
 )
+
 /**
  * Oauth specific percent encoding
  * https://tools.ietf.org/html/rfc5849#section-3.6
@@ -49,13 +50,13 @@ internal val LETTERS_AND_NUMBERS = ('a'..'z').toSet() + ('A'..'Z').toSet() + ('0
  * https://tools.ietf.org/html/rfc7230#section-3.2.6
  */
 internal val TOKENS: Set<Char> =
-    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') +  LETTERS_AND_NUMBERS
+    setOf('!', '#', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') + LETTERS_AND_NUMBERS
 
 /**
  * Encode url part as specified in
  * https://tools.ietf.org/html/rfc3986#section-2
  */
-fun String.encodeURLQueryComponent(
+public fun String.encodeURLQueryComponent(
     encodeFull: Boolean = false,
     spaceToPlus: Boolean = false,
     charset: Charset = Charsets.UTF_8
@@ -73,7 +74,7 @@ fun String.encodeURLQueryComponent(
 /**
  * Encode URL path or component. It escapes all illegal or ambiguous characters
  */
-fun String.encodeURLPath(): String = buildString {
+public fun String.encodeURLPath(): String = buildString {
     val charset = Charsets.UTF_8
 
     var index = 0
@@ -98,11 +99,12 @@ fun String.encodeURLPath(): String = buildString {
             continue
         }
 
+        val symbolSize = if (current.isSurrogate()) 2 else 1
         // we need to call newEncoder() for every symbol, otherwise it won't work
-        charset.newEncoder().encode(this@encodeURLPath, index, index + 1).forEach {
+        charset.newEncoder().encode(this@encodeURLPath, index, index + symbolSize).forEach {
             append(it.percentEncode())
         }
-        index++
+        index += symbolSize
     }
 }
 
@@ -110,12 +112,12 @@ fun String.encodeURLPath(): String = buildString {
  * Encode [this] in percent encoding specified here:
  * https://tools.ietf.org/html/rfc5849#section-3.6
  */
-fun String.encodeOAuth(): String = encodeURLParameter()
+public fun String.encodeOAuth(): String = encodeURLParameter()
 
 /**
  * Encode [this] as query parameter
  */
-fun String.encodeURLParameter(
+public fun String.encodeURLParameter(
     spaceToPlus: Boolean = false
 ): String = buildString {
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
@@ -131,7 +133,7 @@ fun String.encodeURLParameter(
 /**
  * Decode URL query component
  */
-fun String.decodeURLQueryComponent(
+public fun String.decodeURLQueryComponent(
     start: Int = 0, end: Int = length,
     plusIsSpace: Boolean = false,
     charset: Charset = Charsets.UTF_8
@@ -142,7 +144,7 @@ fun String.decodeURLQueryComponent(
  * This function is not intended to decode urlencoded forms so it doesn't decode plus character to space.
  */
 @KtorExperimentalAPI
-fun String.decodeURLPart(
+public fun String.decodeURLPart(
     start: Int = 0, end: Int = length,
     charset: Charset = Charsets.UTF_8
 ): String = decodeScan(start, end, false, charset)
@@ -228,9 +230,9 @@ private fun CharSequence.decodeImpl(
 /**
  * URL decoder exception
  */
-class URLDecodeException(message: String) : Exception(message)
+public class URLDecodeException(message: String) : Exception(message)
 
-private fun Byte.percentEncode(): String= buildString(3) {
+private fun Byte.percentEncode(): String = buildString(3) {
     val code = toInt() and 0xff
     append('%')
     append(hexDigitToChar(code shr 4))

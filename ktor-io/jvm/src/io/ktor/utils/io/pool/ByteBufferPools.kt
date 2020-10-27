@@ -13,9 +13,9 @@ private const val DEFAULT_POOL_CAPACITY: Int = 2000
 private const val DEFAULT_BUFFER_SIZE: Int = 4096
 
 @ExperimentalIoApi
-class ByteBufferPool(
+public class ByteBufferPool(
     capacity: Int = DEFAULT_POOL_CAPACITY,
-    val bufferSize: Int = DEFAULT_BUFFER_SIZE
+    public val bufferSize: Int = DEFAULT_BUFFER_SIZE
 ) : DefaultPool<ByteBuffer>(capacity) {
 
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(bufferSize)!!
@@ -33,9 +33,9 @@ class ByteBufferPool(
 
 
 @ExperimentalIoApi
-class DirectByteBufferPool(
+public class DirectByteBufferPool(
     capacity: Int = DEFAULT_POOL_CAPACITY,
-    val bufferSize: Int = DEFAULT_BUFFER_SIZE
+    public val bufferSize: Int = DEFAULT_BUFFER_SIZE
 ) : DefaultPool<ByteBuffer>(capacity) {
 
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocateDirect(bufferSize)!!

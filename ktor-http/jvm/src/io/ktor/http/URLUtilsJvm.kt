@@ -9,7 +9,7 @@ import java.net.*
 /**
  * Take URI components from [uri]
  */
-fun URLBuilder.takeFrom(uri: URI): URLBuilder {
+public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
     uri.scheme?.let {
         protocol = URLProtocol.createOrDefault(it)
         port = protocol.defaultPort
@@ -44,12 +44,12 @@ fun URLBuilder.takeFrom(uri: URI): URLBuilder {
 /**
  * Take URI components from [url]
  */
-fun URLBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
+public fun URLBuilder.takeFrom(url: URL): URLBuilder = takeFrom(url.toURI())
 
 /**
  * Convert [Url] to [URI]
  */
-fun Url.toURI(): URI = URI(toString())
+public fun Url.toURI(): URI = URI(toString())
 
 /**
  * Helper method that concisely creates a [Url] from a [URI]
@@ -57,4 +57,4 @@ fun Url.toURI(): URI = URI(toString())
  * Creates [Url] from [URI]
  */
 @Suppress("FunctionName")
-fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()
+public fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()

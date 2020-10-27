@@ -7,7 +7,7 @@ package io.ktor.http
 /**
  * Select default port value from protocol.
  */
-const val DEFAULT_PORT: Int = 0
+public const val DEFAULT_PORT: Int = 0
 
 /**
  * A URL builder with all mutable components
@@ -22,16 +22,16 @@ const val DEFAULT_PORT: Int = 0
  * @property fragment URL fragment (anchor name)
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
-class URLBuilder(
-    var protocol: URLProtocol = URLProtocol.HTTP,
-    var host: String = "localhost",
-    var port: Int = DEFAULT_PORT,
-    var user: String? = null,
-    var password: String? = null,
-    var encodedPath: String = "/",
-    val parameters: ParametersBuilder = ParametersBuilder(),
-    var fragment: String = "",
-    var trailingQuery: Boolean = false
+public class URLBuilder(
+    public var protocol: URLProtocol = URLProtocol.HTTP,
+    public var host: String = "localhost",
+    public var port: Int = DEFAULT_PORT,
+    public var user: String? = null,
+    public var password: String? = null,
+    public var encodedPath: String = "/",
+    public val parameters: ParametersBuilder = ParametersBuilder(),
+    public var fragment: String = "",
+    public var trailingQuery: Boolean = false
 ) {
     init {
         originHost?.let { takeFrom(it) }
@@ -44,7 +44,7 @@ class URLBuilder(
     /**
      * Encode [components] to [encodedPath]
      */
-    fun path(vararg components: String): URLBuilder {
+    public fun path(vararg components: String): URLBuilder {
         path(components.asList())
 
         return this
@@ -53,7 +53,7 @@ class URLBuilder(
     /**
      * Encode [components] to [encodedPath]
      */
-    fun path(components: List<String>): URLBuilder {
+    public fun path(components: List<String>): URLBuilder {
         encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
 
         return this
@@ -61,10 +61,22 @@ class URLBuilder(
 
     private fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
+
+        when (protocol.name) {
+            "file" -> {
+                out.appendFile(host, encodedPath)
+                return out
+            }
+            "mailto" -> {
+                out.appendMailto(userAndPassword, encodedPath)
+                return out
+            }
+        }
+
         out.append("://")
         out.append(authority)
 
-        out.appendUrlFullPath(encodedPath, parameters.build(), trailingQuery)
+        out.appendUrlFullPath(encodedPath, parameters, trailingQuery)
 
         if (fragment.isNotEmpty()) {
             out.append('#')
@@ -78,17 +90,17 @@ class URLBuilder(
      * Build a URL string
      */
     // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
-    fun buildString(): String = appendTo(StringBuilder(256)).toString()
+    public fun buildString(): String = appendTo(StringBuilder(256)).toString()
 
     /**
      * Build a [Url] instance (everything is copied to a new instance)
      */
-    fun build(): Url = Url(
+    public fun build(): Url = Url(
         protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
     )
 
     // Required to write external extension function
-    companion object
+    public companion object
 }
 
 /**
@@ -101,7 +113,7 @@ internal expect val URLBuilder.Companion.originHost: String?
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
  */
-fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
+public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 
 /**
  * Represents an immutable URL
@@ -117,7 +129,7 @@ fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
  * @property password password part of URL
  * @property trailingQuery keep trailing question character even if there are no query parameters
  */
-data class Url(
+public data class Url(
     val protocol: URLProtocol,
     val host: String,
     val specifiedPort: Int,
@@ -136,6 +148,19 @@ data class Url(
 
     override fun toString(): String = buildString {
         append(protocol.name)
+
+        when (protocol.name) {
+            "file" -> {
+                appendFile(host, encodedPath)
+                return@buildString
+            }
+            "mailto" -> {
+                val userValue = user ?: error("User can't be empty.")
+                appendMailto(userValue, host)
+                return@buildString
+            }
+        }
+
         append("://")
         append(authority)
         append(fullPath)
@@ -146,22 +171,51 @@ data class Url(
         }
     }
 
-    companion object
+    public companion object
+}
+
+private fun Appendable.appendMailto(user: String, host: String) {
+    append(":")
+    append(user.encodeURLParameter())
+    append('@')
+    append(host)
+}
+
+private fun Appendable.appendFile(host: String, encodedPath: String) {
+    append("://")
+    append(host)
+    append(encodedPath)
+}
+
+internal val Url.userAndPassword: String
+    get() = buildString {
+        appendUserAndPassword(user, password)
+    }
+
+internal val URLBuilder.userAndPassword: String
+    get() = buildString {
+        appendUserAndPassword(user, password)
+    }
+
+private fun StringBuilder.appendUserAndPassword(user: String?, password: String?) {
+    user ?: return
+    append(user.encodeURLParameter())
+
+    if (password != null) {
+        append(':')
+        append(password.encodeURLParameter())
+    }
+
+    append("@")
 }
 
 /**
  * [Url] authority.
  */
-val Url.authority: String
+public val Url.authority: String
     get() = buildString {
-        if (user != null) {
-            append(user.encodeURLParameter())
-            if (password != null) {
-                append(':')
-                append(password.encodeURLParameter())
-            }
-            append('@')
-        }
+        append(userAndPassword)
+
         if (specifiedPort == DEFAULT_PORT) {
             append(host)
         } else {
@@ -172,16 +226,9 @@ val Url.authority: String
 /**
  * [URLBuilder] authority.
  */
-val URLBuilder.authority: String
+public val URLBuilder.authority: String
     get() = buildString {
-        user?.let { user ->
-            append(user.encodeURLParameter())
-            password?.let { password ->
-                append(":")
-                append(password.encodeURLParameter())
-            }
-            append("@")
-        }
+        append(userAndPassword)
         append(host)
 
         if (port != DEFAULT_PORT && port != protocol.defaultPort) {

@@ -10,7 +10,7 @@ import kotlin.contracts.*
  * otherwise an unexpected behaviour may occur.
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-inline fun <R> BytePacketBuilder.preview(block: (tmp: ByteReadPacket) -> R): R {
+public inline fun <R> BytePacketBuilder.preview(block: (tmp: ByteReadPacket) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }

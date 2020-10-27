@@ -37,7 +37,7 @@ internal actual class ConnectionPipeline actual constructor(
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
-    actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
+    public actual val pipelineContext: Job = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
                 val task = withTimeoutOrNull(keepAliveTime) {

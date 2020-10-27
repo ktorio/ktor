@@ -4,20 +4,24 @@
 
 package io.ktor.util
 
+import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.concurrent.*
+import kotlinx.atomicfu.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.test.*
 
 @Suppress("KDocMissingDocumentation")
 class PipelineContractsTest {
-    private var v = 0
+    private val checkList = sharedListOf<String>()
+    private var v by shared(0)
+    private val caught = atomic(false)
+
     private val phase1 = PipelinePhase("A")
     private val phase2 = PipelinePhase("B")
     private val interceptor1: PipelineInterceptor<Unit, Unit> = { v = 1; checkList.add("1") }
     private val interceptor2: PipelineInterceptor<Unit, Unit> = { v = 2; checkList.add("2") }
-
-    private val checkList = ArrayList<String>()
 
     @Test
     fun testMergeEmpty() {
@@ -166,6 +170,11 @@ class PipelineContractsTest {
 
     @Test
     fun executePipelineWithSuspension() {
+        /**
+         * Continuation doesn't support freeze in native.
+         */
+        if (PlatformUtils.IS_NATIVE) return
+
         val pipeline = Pipeline<Unit, Unit>(phase1)
         var continuation: Continuation<Unit>? = null
 
@@ -227,6 +236,11 @@ class PipelineContractsTest {
 
     @Test
     fun executePipelineWithSuspensionAndNestedProceed() {
+        /**
+         * Continuation doesn't support freeze in native.
+         */
+        if (PlatformUtils.IS_NATIVE) return
+
         val pipeline = Pipeline<Unit, Unit>(phase1)
         var continuation: Continuation<Unit>? = null
 
@@ -286,7 +300,6 @@ class PipelineContractsTest {
 
     @Test
     fun testExecutePipelineCaughtFailureTest() {
-        var caught = false
         val pipeline = Pipeline<Unit, Unit>(phase1)
 
         class MyException : Exception()
@@ -295,7 +308,7 @@ class PipelineContractsTest {
             try {
                 proceed()
             } catch (expected: MyException) {
-                caught = true
+                caught.value = true
             }
         }
         pipeline.intercept(phase1) {
@@ -303,7 +316,7 @@ class PipelineContractsTest {
         }
 
         pipeline.execute()
-        assertTrue { caught }
+        assertTrue { caught.value }
     }
 
     private fun Pipeline<Unit, Unit>.execute() {
@@ -311,8 +324,10 @@ class PipelineContractsTest {
             execute(Unit, Unit)
         }
 
-        body.startCoroutine(Continuation(EmptyCoroutineContext) {
+        val completion: Continuation<Unit> = Continuation(EmptyCoroutineContext) {
             checkList.add("completed")
-        })
+        }
+
+        body.startCoroutine(completion)
     }
 }

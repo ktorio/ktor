@@ -233,8 +233,6 @@ class MicrometerMetricsTests {
 
         assertNull(throwableCaughtInEngine)
         assertTrue(noHandlerHandledReqeust)
-
-
     }
 
     private fun TestApplicationEngine.installDefaultBehaviour() {
@@ -242,9 +240,8 @@ class MicrometerMetricsTests {
         this.callInterceptor = {
             try {
                 call.application.execute(call)
-                if (call.response.status() == null) {
+                if (call.response.status() == HttpStatusCode.NotFound) {
                     noHandlerHandledReqeust = true
-                    call.respond(HttpStatusCode.NotFound)
                 }
             } catch (t: Throwable) {
                 throwableCaughtInEngine = t

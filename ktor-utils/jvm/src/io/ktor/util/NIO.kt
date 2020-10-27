@@ -16,7 +16,7 @@ import java.nio.charset.*
  * @return number of bytes moved
  */
 @InternalAPI
-fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
+public fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
     val size = minOf(limit, remaining(), destination.remaining())
     if (size == remaining()) {
         destination.put(this)
@@ -33,7 +33,7 @@ fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int 
  * Moves bytes from `this` buffer into newly created [ByteArray] and returns it
  */
 @InternalAPI
-fun ByteBuffer.moveToByteArray(): ByteArray {
+public fun ByteBuffer.moveToByteArray(): ByteArray {
     val array = ByteArray(remaining())
     get(array)
     return array
@@ -43,7 +43,7 @@ fun ByteBuffer.moveToByteArray(): ByteArray {
  * Decodes a string from `this` buffer with the specified [charset]
  */
 @InternalAPI
-fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
+public fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
     return charset.decode(this).toString()
 }
 
@@ -51,7 +51,7 @@ fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size]
  */
 @InternalAPI
-fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
+public fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
     return ByteBuffer.allocate(size).apply {
         this@copy.slice().moveTo(this@apply)
         clear()
@@ -62,7 +62,7 @@ fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size] by allocating it from the given [pool]
  */
 @InternalAPI
-fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().apply {
+public fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().apply {
     limit(size)
     this@copy.slice().moveTo(this)
     flip()

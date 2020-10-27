@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.cio
@@ -35,6 +35,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private val ready = ArrayDeque<NettyRequestQueue.CallElement>(readyQueueSize)
     private val running = ArrayDeque<NettyRequestQueue.CallElement>(runningQueueSize)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val responses = launch(
         dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName,
         start = CoroutineStart.UNDISPATCHED
@@ -52,7 +53,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
 
-    fun ensureRunning() {
+    public fun ensureRunning() {
         responses.start()
     }
 
@@ -87,12 +88,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    @OptIn(
-        ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
-    )
     private suspend fun fillSuspend() {
         if (running.isEmpty()) {
-            @Suppress("DEPRECATION")
+            @OptIn(ExperimentalCoroutinesApi::class)
             val e = incoming.receiveOrNull()
 
             if (e != null && e.ensureRunning()) {
@@ -332,13 +330,13 @@ private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-sealed class WriterEncapsulation {
-    open val requiresContextClose: Boolean get() = true
-    abstract fun transform(buf: ByteBuf, last: Boolean): Any
-    abstract fun endOfStream(lastTransformed: Boolean): Any?
-    abstract fun upgrade(dst: ChannelHandlerContext)
+public sealed class WriterEncapsulation {
+    public open val requiresContextClose: Boolean get() = true
+    public abstract fun transform(buf: ByteBuf, last: Boolean): Any
+    public abstract fun endOfStream(lastTransformed: Boolean): Any?
+    public abstract fun upgrade(dst: ChannelHandlerContext)
 
-    object Http1 : WriterEncapsulation() {
+    public object Http1 : WriterEncapsulation() {
         override fun transform(buf: ByteBuf, last: Boolean): Any {
             return DefaultHttpContent(buf)
         }
@@ -354,7 +352,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Http2 : WriterEncapsulation() {
+    public object Http2 : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {
@@ -370,7 +368,7 @@ sealed class WriterEncapsulation {
         }
     }
 
-    object Raw : WriterEncapsulation() {
+    public object Raw : WriterEncapsulation() {
         override val requiresContextClose: Boolean get() = false
 
         override fun transform(buf: ByteBuf, last: Boolean): Any {

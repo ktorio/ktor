@@ -4,7 +4,7 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readShort(): Short {
+public fun Input.readShort(): Short {
     return readPrimitive(2, { memory, index -> memory.loadShortAt(index) }, { readShortFallback() })
 }
 
@@ -13,7 +13,7 @@ private fun Input.readShortFallback(): Short {
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readInt(): Int {
+public fun Input.readInt(): Int {
     return readPrimitive(4, { memory, index -> memory.loadIntAt(index) }, { readIntFallback() })
 }
 
@@ -22,7 +22,7 @@ private fun Input.readIntFallback(): Int {
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readLong(): Long {
+public fun Input.readLong(): Long {
     return readPrimitive(8, { memory, index -> memory.loadLongAt(index) }, { readLongFallback() })
 }
 
@@ -31,20 +31,20 @@ private fun Input.readLongFallback(): Long {
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readFloat(): Float {
+public fun Input.readFloat(): Float {
     return readPrimitive(4, { memory, index -> memory.loadFloatAt(index) }, { readFloatFallback() })
 }
 
-fun Input.readFloatFallback(): Float {
+public fun Input.readFloatFallback(): Float {
     return readPrimitiveFallback(4) { it.readFloat() }
 }
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-fun Input.readDouble(): Double {
+public fun Input.readDouble(): Double {
     return readPrimitive(8, { memory, index -> memory.loadDoubleAt(index) }, { readDoubleFallback() })
 }
 
-fun Input.readDoubleFallback(): Double {
+public fun Input.readDoubleFallback(): Double {
     return readPrimitiveFallback(8) { it.readDouble() }
 }
 

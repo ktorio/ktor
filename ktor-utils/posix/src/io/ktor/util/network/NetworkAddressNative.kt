@@ -8,13 +8,13 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 
-actual class NetworkAddress constructor(
-    val hostname: String,
-    val port: Int,
+public actual class NetworkAddress constructor(
+    public val hostname: String,
+    public val port: Int,
     explicitAddress: Any? = null
 ) {
     @InternalAPI
-    var explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
+    public var explicitAddress: AtomicRef<Any?> = atomic(explicitAddress)
 
     init {
         makeShared()
@@ -27,12 +27,12 @@ actual class NetworkAddress constructor(
     override fun toString(): String = "NetworkAddress[$hostname:$port]"
 }
 
-actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
+public actual fun NetworkAddress(hostname: String, port: Int): NetworkAddress =
     NetworkAddress(hostname, port, null)
 
-actual val NetworkAddress.hostname: String get() = hostname
+public actual val NetworkAddress.hostname: String get() = hostname
 
-actual val NetworkAddress.port: Int get() = port
+public actual val NetworkAddress.port: Int get() = port
 
-actual class UnresolvedAddressException : IllegalArgumentException()
+public actual class UnresolvedAddressException : IllegalArgumentException()
 

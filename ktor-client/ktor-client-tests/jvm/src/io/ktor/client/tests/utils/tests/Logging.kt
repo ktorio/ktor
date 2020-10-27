@@ -26,6 +26,16 @@ internal fun Application.loggingTestServer() {
             get("301") {
                 call.respondRedirect("/logging")
             }
+
+            route("non-utf") {
+                post {
+                    call.respondBytes(
+                        bytes = byteArrayOf(-77, 111),
+                        contentType = ContentType.parse("application/octet-stream"),
+                        status = HttpStatusCode.Created
+                    )
+                }
+            }
         }
     }
 }

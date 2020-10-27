@@ -11,13 +11,13 @@ import java.util.concurrent.*
 /**
  * Tomcat engine
  */
-object EngineMain {
+public object EngineMain {
     /**
      * Main function for starting EngineMain with Tomcat
      * Creates an embedded Tomcat application with an environment built from command line arguments.
      */
     @JvmStatic
-    fun main(args: Array<String>) {
+    public fun main(args: Array<String>) {
         val applicationEnvironment = commandLineEnvironment(args)
         val engine = TomcatApplicationEngine(applicationEnvironment) {
             loadConfiguration(applicationEnvironment.config)
@@ -40,7 +40,7 @@ object EngineMain {
     replaceWith = ReplaceWith("EngineMain"),
     level = DeprecationLevel.HIDDEN
 )
-object DevelopmentEngine {
+public object DevelopmentEngine {
     @JvmStatic
-    fun main(args: Array<String>) = EngineMain.main(args)
+    public fun main(args: Array<String>): Unit = EngineMain.main(args)
 }

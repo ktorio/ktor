@@ -20,7 +20,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
 
     val elements: ReceiveChannel<CallElement> = incomingQueue
 
-    fun schedule(call: NettyApplicationCall) {
+    public fun schedule(call: NettyApplicationCall) {
         val element = CallElement(call)
         try {
             incomingQueue.offer(element)
@@ -29,11 +29,11 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
         }
     }
 
-    fun close() {
+    public fun close() {
         incomingQueue.close()
     }
 
-    fun cancel() {
+    public fun cancel() {
         incomingQueue.close()
 
         while (true) {
@@ -42,7 +42,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
+    public fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
         private val scheduled = atomic(0)
@@ -51,7 +51,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
 
         val isCompleted: Boolean get() = message.isCompleted
 
-        fun ensureRunning(): Boolean {
+        public fun ensureRunning(): Boolean {
             scheduled.update { value ->
                 when (value) {
                     0 -> 1
@@ -64,7 +64,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
             return true
         }
 
-        fun tryDispose() {
+        public fun tryDispose() {
             if (scheduled.compareAndSet(0, 2)) {
                 call.dispose()
             }

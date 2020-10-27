@@ -12,8 +12,8 @@ import kotlin.jvm.*
  * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
  * @property message - a close reason message, could be empty
  */
-data class CloseReason(val code: Short, val message: String) {
-    constructor(code: Codes, message: String) : this(code.code, message)
+public data class CloseReason(val code: Short, val message: String) {
+    public constructor(code: Codes, message: String) : this(code.code, message)
 
     /**
      * A enum value for this [code] or `null` if the [code] is not listed in [Codes]
@@ -31,7 +31,7 @@ data class CloseReason(val code: Short, val message: String) {
      * see https://tools.ietf.org/html/rfc6455#section-7.4 for list of codes
      */
     @Suppress("KDocMissingDocumentation")
-    enum class Codes(val code: Short) {
+    public enum class Codes(public val code: Short) {
         NORMAL(1000),
         GOING_AWAY(1001),
         PROTOCOL_ERROR(1002),
@@ -48,7 +48,7 @@ data class CloseReason(val code: Short, val message: String) {
         SERVICE_RESTART(1012),
         TRY_AGAIN_LATER(1013);
 
-        companion object {
+        public companion object {
             private val byCodeMap = values().associateBy { it.code }
 
             @Deprecated(
@@ -60,13 +60,13 @@ data class CloseReason(val code: Short, val message: String) {
             )
             @JvmField
             @Suppress("UNUSED")
-            val UNEXPECTED_CONDITION: Codes = INTERNAL_ERROR
+            public val UNEXPECTED_CONDITION: Codes = INTERNAL_ERROR
 
             /**
              * Get enum value by close reason code
              * @return enum instance or null if [code] is not in standard
              */
-            fun byCode(code: Short): Codes? = byCodeMap[code]
+            public fun byCode(code: Short): Codes? = byCodeMap[code]
         }
     }
 }

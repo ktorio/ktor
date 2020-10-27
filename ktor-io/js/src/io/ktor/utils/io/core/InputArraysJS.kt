@@ -6,7 +6,7 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
 
-fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset) {
+public fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset) {
     if (this is AbstractInput) {
         return readFully(dst, offset, length)
     }
@@ -17,7 +17,7 @@ fun Input.readFully(dst: Int8Array, offset: Int = 0, length: Int = dst.length - 
     }
 }
 
-fun Input.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
+public fun Input.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset) {
     if (this is AbstractInput) {
         return readFully(dst, offset, length)
     }
@@ -28,7 +28,7 @@ fun Input.readFully(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLen
     }
 }
 
-fun Input.readFully(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset) {
+public fun Input.readFully(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset) {
     if (this is AbstractInput) {
         return readFully(dst, byteOffset, byteLength)
     }
@@ -39,7 +39,7 @@ fun Input.readFully(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int =
     }
 }
 
-fun Input.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset): Int {
+public fun Input.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.length - offset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, offset, length)
     }
@@ -49,7 +49,7 @@ fun Input.readAvailable(dst: Int8Array, offset: Int = 0, length: Int = dst.lengt
 }
 
 @Suppress("Duplicates")
-fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
+public fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byteLength - offset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, offset, length)
     }
@@ -66,7 +66,7 @@ fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = dst.byt
 }
 
 @Suppress("Duplicates")
-fun Input.readAvailable(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset): Int {
+public fun Input.readAvailable(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, byteOffset, byteLength)
     }

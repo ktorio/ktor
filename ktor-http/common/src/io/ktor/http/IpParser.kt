@@ -11,7 +11,7 @@ import kotlin.native.concurrent.*
 /**
  * Check if [host] is IPv4 or IPv6 address.
  */
-fun hostIsIp(host: String): Boolean = IP_PARSER.match(host)
+public fun hostIsIp(host: String): Boolean = IP_PARSER.match(host)
 
 @SharedImmutable
 private val IPv4address = digits then "." then digits then "." then digits then "." then digits

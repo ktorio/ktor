@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.gson
@@ -21,7 +21,7 @@ import kotlin.reflect.jvm.*
 /**
  * GSON converter for [ContentNegotiation] feature
  */
-class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
+public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
     override suspend fun convertForSend(
         context: PipelineContext<Any, ApplicationCall>,
         contentType: ContentType,
@@ -47,7 +47,7 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 /**
  * Register GSON to [ContentNegotiation] feature
  */
-fun ContentNegotiation.Configuration.gson(
+public fun ContentNegotiation.Configuration.gson(
     contentType: ContentType = ContentType.Application.Json,
     block: GsonBuilder.() -> Unit = {}
 ) {
@@ -57,6 +57,7 @@ fun ContentNegotiation.Configuration.gson(
     register(contentType, converter)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ExcludedTypeGsonException(
     val type: KClass<*>
 ) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),

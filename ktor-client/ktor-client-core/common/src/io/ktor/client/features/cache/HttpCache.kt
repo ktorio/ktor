@@ -14,7 +14,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
 
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")
@@ -28,20 +27,20 @@ internal object CacheControl {
  *
  * For detailed description follow: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
  */
-class HttpCache(
-    val publicStorage: HttpCacheStorage,
-    val privateStorage: HttpCacheStorage
+public class HttpCache(
+    public val publicStorage: HttpCacheStorage,
+    public val privateStorage: HttpCacheStorage
 ) {
     /**
      * [HttpCache] configuration.
      */
-    class Config {
+    public class Config {
         /**
          * Storage for public cache entries.
          *
          * Use [HttpCacheStorage.Unlimited] by default.
          */
-        var publicStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
+        public var publicStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
 
         /**
          * Storage for private cache entries.
@@ -50,10 +49,10 @@ class HttpCache(
          *
          * Consider using [HttpCacheStorage.Disabled] if the client used as intermediate.
          */
-        var privateStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
+        public var privateStorage: HttpCacheStorage = HttpCacheStorage.Unlimited()
     }
 
-    companion object : HttpClientFeature<Config, HttpCache> {
+    public companion object : HttpClientFeature<Config, HttpCache> {
         override val key: AttributeKey<HttpCache> = AttributeKey("HttpCache")
 
         override fun prepare(block: Config.() -> Unit): HttpCache {
@@ -100,7 +99,7 @@ class HttpCache(
 
                 if (response.status == HttpStatusCode.NotModified) {
                     response.complete()
-                    val responseFromCache = feature.findAndRefresh(response)
+                    val responseFromCache = feature.findAndRefresh(context.request, response)
                         ?: throw InvalidCacheStateException(context.request.url)
 
                     proceedWith(responseFromCache)
@@ -123,20 +122,41 @@ class HttpCache(
         return cacheEntry.produceResponse()
     }
 
-    private fun findAndRefresh(response: HttpResponse): HttpResponse? {
+    private fun findAndRefresh(request: HttpRequest, response: HttpResponse): HttpResponse? {
         val url = response.call.request.url
         val cacheControl = response.cacheControl()
 
         val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
-        val cache = storage.find(url, response.varyKeys()) ?: return null
 
-        storage.store(url, HttpCacheEntry(response.cacheExpires(), response.varyKeys(), cache.response, cache.body))
+        val varyKeysFrom304 = response.varyKeys()
+        val cache = findResponse(storage, varyKeysFrom304, url, request) ?: return null
+        val newVaryKeys = if (varyKeysFrom304.isNullOrEmpty()) cache.varyKeys else varyKeysFrom304
+        storage.store(url, HttpCacheEntry(response.cacheExpires(), newVaryKeys, cache.response, cache.body))
         return cache.produceResponse()
+    }
+
+    private fun findResponse(
+        storage: HttpCacheStorage,
+        varyKeys: Map<String, String>,
+        url: Url,
+        request: HttpRequest
+    ): HttpCacheEntry? = when {
+        varyKeys.isNotEmpty() -> {
+            storage.find(url, varyKeys)
+        }
+        else -> {
+            val requestHeaders = mergedHeadersLookup(request.content, request.headers::get, request.headers::getAll)
+            storage.findByUrl(url)
+                .sortedByDescending { it.response.responseTime }
+                .firstOrNull { cachedResponse ->
+                    cachedResponse.varyKeys.all { (key, value) -> requestHeaders(key) == value }
+                }
+        }
     }
 
     private fun findResponse(context: HttpRequestBuilder, content: OutgoingContent): HttpCacheEntry? {
         val url = Url(context.url)
-        val lookup = mergedHeadersLookup(context.headers, content)
+        val lookup = mergedHeadersLookup(content, context.headers::get, context.headers::getAll)
 
         val cachedResponses = privateStorage.findByUrl(url) + publicStorage.findByUrl(url)
         for (item in cachedResponses) {
@@ -151,24 +171,25 @@ class HttpCache(
 }
 
 private fun mergedHeadersLookup(
-    requestHeaders: HeadersBuilder,
-    content: OutgoingContent
+    content: OutgoingContent,
+    headerExtractor: (String) -> String?,
+    allHeadersExtractor: (String) -> List<String>?,
 ): (String) -> String = block@{ header ->
     return@block when (header) {
         HttpHeaders.ContentLength -> content.contentLength?.toString() ?: ""
         HttpHeaders.ContentType -> content.contentType?.toString() ?: ""
         HttpHeaders.UserAgent -> {
-            content.headers[HttpHeaders.UserAgent] ?: requestHeaders[HttpHeaders.UserAgent] ?: KTOR_DEFAULT_USER_AGENT
+            content.headers[HttpHeaders.UserAgent] ?: headerExtractor(HttpHeaders.UserAgent) ?: KTOR_DEFAULT_USER_AGENT
         }
         else -> {
-            val value = content.headers.getAll(header) ?: requestHeaders.getAll(header) ?: emptyList()
+            val value = content.headers.getAll(header) ?: allHeadersExtractor(header) ?: emptyList()
             value.joinToString(";")
         }
     }
 }
 
 @Suppress("KDocMissingDocumentation")
-class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(
+public class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(
     "The entry for url: $requestUrl was removed from cache"
 )
 

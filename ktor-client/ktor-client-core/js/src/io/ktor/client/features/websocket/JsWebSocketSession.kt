@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.websocket
@@ -24,6 +24,10 @@ internal class JsWebSocketSession(
     override val outgoing: SendChannel<Frame> = _outgoing
 
     override val closeReason: Deferred<CloseReason?> = _closeReason
+
+    override var maxFrameSize: Long
+        get() = Long.MAX_VALUE
+        set(value) {}
 
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
@@ -67,6 +71,7 @@ internal class JsWebSocketSession(
         })
 
         launch {
+            @OptIn(ExperimentalCoroutinesApi::class)
             _outgoing.consumeEach {
                 when (it.frameType) {
                     FrameType.TEXT -> {

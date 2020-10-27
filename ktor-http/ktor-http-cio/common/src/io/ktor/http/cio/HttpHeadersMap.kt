@@ -33,13 +33,13 @@ private val EMPTY_INT_ARRAY = IntArray(0)
  */
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {
-    var size = 0
+public class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder) {
+    public var size: Int = 0
         private set
 
     private var indexes = IntArrayPool.borrow()
 
-    fun put(
+    public fun put(
         nameHash: Int,
         valueHash: Int,
         nameStartIndex: Int,
@@ -64,7 +64,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
         size++
     }
 
-    fun find(name: String, fromIndex: Int = 0): Int {
+    public fun find(name: String, fromIndex: Int = 0): Int {
         val nameHash = name.hashCodeLowerCase()
         for (i in fromIndex until size) {
             val offset = i * HEADER_SIZE
@@ -76,7 +76,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
         return -1
     }
 
-    operator fun get(name: String): CharSequence? {
+    public operator fun get(name: String): CharSequence? {
         val nameHash = name.hashCodeLowerCase()
         for (i in 0 until size) {
             val offset = i * HEADER_SIZE
@@ -88,7 +88,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
         return null
     }
 
-    fun getAll(name: String): Sequence<CharSequence> {
+    public fun getAll(name: String): Sequence<CharSequence> {
         val nameHash = name.hashCodeLowerCase()
         return generateSequence(0) { if (it + 1 >= size) null else it + 1 }
             .map { it * HEADER_SIZE }
@@ -96,7 +96,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
             .map { builder.subSequence(indexes[it + 4], indexes[it + 5]) }
     }
 
-    fun nameAt(idx: Int): CharSequence {
+    public fun nameAt(idx: Int): CharSequence {
         require(idx >= 0)
         require(idx < size)
 
@@ -109,7 +109,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
         return builder.subSequence(nameStart, nameEnd)
     }
 
-    fun valueAt(idx: Int): CharSequence {
+    public fun valueAt(idx: Int): CharSequence {
         require(idx >= 0)
         require(idx < size)
 
@@ -122,7 +122,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
         return builder.subSequence(nameStart, nameEnd)
     }
 
-    fun release() {
+    public fun release() {
         size = 0
         val indexes = indexes
         this.indexes = EMPTY_INT_ARRAY
@@ -139,7 +139,7 @@ class HttpHeadersMap internal constructor(private val builder: CharArrayBuilder)
  * Dump header values to [out], useful for debugging
  */
 @InternalAPI
-fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
+public fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     for (i in 0 until size) {
         out.append(indent)
         out.append(nameAt(i))

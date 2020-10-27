@@ -14,12 +14,12 @@ import io.ktor.util.*
 /**
  * Feature to check modified/match conditional headers and avoid sending contents if it was not changed
  */
-class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>) {
+public class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>) {
 
     /**
      * Configuration for [ConditionalHeaders] feature
      */
-    class Configuration {
+    public class Configuration {
         internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
 
         init {
@@ -29,7 +29,7 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
         /**
          * Registers a function that can fetch version list for a given [OutgoingContent]
          */
-        fun version(provider: suspend (OutgoingContent) -> List<Version>) {
+        public fun version(provider: suspend (OutgoingContent) -> List<Version>) {
             versionProviders.add(provider)
         }
     }
@@ -71,15 +71,16 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
     /**
      * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
      */
-    suspend fun versionsFor(content: OutgoingContent): List<Version> {
+    public suspend fun versionsFor(content: OutgoingContent): List<Version> {
         return versionProviders.flatMapTo(ArrayList(versionProviders.size)) { it(content) }
     }
 
     /**
      * `ApplicationFeature` implementation for [ConditionalHeaders]
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ConditionalHeaders> {
-        override val key = AttributeKey<ConditionalHeaders>("Conditional Headers")
+    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ConditionalHeaders> {
+        override val key: AttributeKey<ConditionalHeaders> = AttributeKey<ConditionalHeaders>("Conditional Headers")
+
         override fun install(
             pipeline: ApplicationCallPipeline,
             configure: Configuration.() -> Unit
@@ -110,7 +111,7 @@ class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingCon
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
 @Deprecated("Use configuration for ConditionalHeaders or configure block of call.respond function.")
-suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit) {
+public suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = EntityTagVersion(etag)
     val result = version.check(request.headers)
     if (putHeader) {
@@ -127,7 +128,7 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
  * Retrieves LastModified and ETag versions from this [OutgoingContent] headers
  */
 @Deprecated("Use versions or headers.parseVersions()")
-val OutgoingContent.defaultVersions: List<Version>
+public val OutgoingContent.defaultVersions: List<Version>
     get() {
         val extensionVersions = versions
         if (extensionVersions.isNotEmpty())
@@ -139,7 +140,7 @@ val OutgoingContent.defaultVersions: List<Version>
 /**
  * Retrieves LastModified and ETag versions from headers.
  */
-fun Headers.parseVersions(): List<Version> {
+public fun Headers.parseVersions(): List<Version> {
     val lastModifiedHeaders = getAll(HttpHeaders.LastModified) ?: emptyList()
     val etagHeaders = getAll(HttpHeaders.ETag) ?: emptyList()
     val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
