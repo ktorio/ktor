@@ -629,6 +629,7 @@ public final class io/ktor/features/HttpsRedirect$Configuration {
 	public fun <init> ()V
 	public final fun exclude (Lkotlin/jvm/functions/Function1;)V
 	public final fun excludePrefix (Ljava/lang/String;)V
+	public final fun excludeSuffix (Ljava/lang/String;)V
 	public final fun getExcludePredicates ()Ljava/util/List;
 	public final fun getPermanentRedirect ()Z
 	public final fun getSslPort ()I
