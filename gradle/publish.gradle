@@ -48,8 +48,8 @@ tasks.withType(AbstractPublishToMaven).all {
     onlyIf { isAvailableForPublication(publication) }
 }
 
-def sonatypeUser = project.hasProperty('sonatypeUser') ? project.property('sonatypeUser') : System.getenv('SONATYPE_USER')
-def sonatypePassword = project.hasProperty('sonatypePassword') ? project.property('sonatypePassword') : System.getenv('sonatypePassword')
+def sonatypeUser = System.getenv('SONATYPE_USER')
+def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
 
 publishing {
     repositories {
@@ -110,9 +110,9 @@ publishing {
 publish.dependsOn publishToMavenLocal
 
 
-def signingKeyId = findProperty("sign.key.id")
-def signingKey = findProperty("sign.key.passphrase")
-def signingPassword = findProperty("sign.key.private")
+def signingKeyId = System.getenv("SIGN_KEY_ID")
+def signingKey = System.getenv("SIGN_KEY_PASSPHRASE")
+def signingPassword = System.getenv("SIGN_KEY_PRIVATE")
 
 if (signingKeyId != null) {
     signing {
