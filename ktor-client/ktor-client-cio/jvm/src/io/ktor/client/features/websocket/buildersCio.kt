@@ -56,6 +56,7 @@ public suspend fun HttpClient.wsRaw(
 /**
  * Open [DefaultClientWebSocketSession].
  */
+@Deprecated(message = "This method is deprecated. Use one from :ktor-client:ktor-client-core", level = DeprecationLevel.HIDDEN)
 public suspend fun HttpClient.ws(
     urlString: String,
     request: HttpRequestBuilder.() -> Unit = {},
