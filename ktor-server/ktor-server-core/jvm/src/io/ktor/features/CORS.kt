@@ -30,11 +30,6 @@ class CORS(configuration: Configuration) {
     val allowsAnyHost: Boolean = "*" in configuration.hosts
 
     /**
-     * Allow requests with any headers
-     */
-    val allowsAnyHeader: Boolean = "*" in configuration.headers
-
-    /**
      * Allow to pass credentials
      */
     val allowCredentials: Boolean = configuration.allowCredentials
@@ -45,6 +40,11 @@ class CORS(configuration: Configuration) {
     val allHeaders: Set<String> = (configuration.headers + Configuration.CorsSimpleRequestHeaders).let { headers ->
         if (configuration.allowNonSimpleContentTypes) headers else headers.minus(HttpHeaders.ContentType)
     }
+
+    /**
+     * Prefix for permitted headers
+     */
+    val headerPrefix = configuration.headerPrefix
 
     /**
      * All allowed HTTP methods
@@ -58,11 +58,9 @@ class CORS(configuration: Configuration) {
 
     private val allowNonSimpleContentTypes: Boolean = configuration.allowNonSimpleContentTypes
 
-    private val headersListHeaderValue =
+    private val headersList =
         configuration.headers.filterNot { it in Configuration.CorsSimpleRequestHeaders }
             .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-            .sorted()
-            .joinToString(", ")
 
     private val methodsListHeaderValue =
         methods.filterNot { it in Configuration.CorsDefaultMethods }
@@ -122,7 +120,13 @@ class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-        if (!corsCheckRequestMethod() || (!allowsAnyHeader && !corsCheckRequestHeaders())) {
+
+        val requestHeaders =
+            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
+                it.trim().toLowerCasePreservingASCIIRules()
+            } ?: emptyList()
+
+        if (!corsCheckRequestMethod() || (!corsCheckRequestHeaders(requestHeaders))) {
             respond(HttpStatusCode.Forbidden)
             return
         }
@@ -132,13 +136,12 @@ class CORS(configuration: Configuration) {
         if (methodsListHeaderValue.isNotEmpty()) {
             response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         }
-        if (allowsAnyHeader) {
-            request.header(HttpHeaders.AccessControlRequestHeaders)?.let { value: String ->
-                response.header(HttpHeaders.AccessControlAllowHeaders, value)
-            }
-        } else if (headersListHeaderValue.isNotEmpty()) {
-            response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
-        }
+
+        val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesPrefix(header) }
+
+        val headersListHeaderValue = listOf(headersList, requestHeadersMatchingPrefix).flatten().sorted().joinToString(", ")
+
+        response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
         accessControlMaxAge()
 
         respond(HttpStatusCode.OK)
@@ -182,13 +185,17 @@ class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
-        val requestHeaders =
-            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+    private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+
+        requestHeaders.all { header ->
+            return header in allHeadersSet || headerMatchesPrefix(header)
+        }
 
         return requestHeaders.none { it !in allHeadersSet }
+    }
+
+    private fun ApplicationCall.headerMatchesPrefix(header: String): Boolean {
+        return headerPrefix != null && header.startsWith(headerPrefix, true)
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -299,24 +306,24 @@ class CORS(configuration: Configuration) {
              * Please note that `Content-Type` header simplicity depends on it's value.
              */
             val CorsSimpleRequestHeaders: Set<String> = caseInsensitiveSet(
-                    HttpHeaders.Accept,
-                    HttpHeaders.AcceptLanguage,
-                    HttpHeaders.ContentLanguage,
-                    HttpHeaders.ContentType
-                )
+                HttpHeaders.Accept,
+                HttpHeaders.AcceptLanguage,
+                HttpHeaders.ContentLanguage,
+                HttpHeaders.ContentType
+            )
 
             /**
              * Default HTTP headers that are always allowed by CORS to be used in response
              * (simple request headers according to https://www.w3.org/TR/cors/#simple-header )
              */
             val CorsSimpleResponseHeaders: Set<String> = caseInsensitiveSet(
-                    HttpHeaders.CacheControl,
-                    HttpHeaders.ContentLanguage,
-                    HttpHeaders.ContentType,
-                    HttpHeaders.Expires,
-                    HttpHeaders.LastModified,
-                    HttpHeaders.Pragma
-                )
+                HttpHeaders.CacheControl,
+                HttpHeaders.ContentLanguage,
+                HttpHeaders.ContentType,
+                HttpHeaders.Expires,
+                HttpHeaders.LastModified,
+                HttpHeaders.Pragma
+            )
 
             /**
              * The allowed set of content types that are allowed by CORS without preflight check
@@ -354,6 +361,11 @@ class CORS(configuration: Configuration) {
          * Allow sending credentials
          */
         var allowCredentials: Boolean = false
+
+        /**
+         * If present represents the prefix for headers which are permitted in cors requests.
+         */
+        var headerPrefix: String? = null
 
         /**
          * Max-Age for cached CORS options
@@ -446,8 +458,8 @@ class CORS(configuration: Configuration) {
         /**
          * Allow to send any header
          */
-        fun anyHeader() {
-            headers.add("*")
+        fun anyHeaderWithPrefix(headerPrefix: String) {
+            this.headerPrefix = headerPrefix
         }
 
         /**

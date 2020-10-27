@@ -672,11 +672,11 @@ class CORSTest {
     }
 
     @Test
-    fun testAnyHeader() {
+    fun testAnyHeaderWithPrefix() {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                anyHeader()
+                anyHeaderWithPrefix("custom-")
             }
 
             application.routing {
@@ -690,8 +690,83 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-header1, custom-header2")
             }.let { call ->
-                assertEquals("custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
                 assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+            }
+        }
+    }
+
+    @Test
+    fun testAnyHeaderWithPrefixMergesHeadersWithConfiguration() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+                anyHeaderWithPrefix("custom-")
+                header(HttpHeaders.Range)
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+                addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-header1, custom-header2")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("Range, custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+            }
+        }
+    }
+
+    @Test
+    fun testAnyHeaderWithPrefixWithNoControlRequestHeaders() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+                anyHeaderWithPrefix("custom-")
+                header(HttpHeaders.Range)
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("Range", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+            }
+        }
+    }
+
+    @Test
+    fun testAnyHeaderWithPrefixRequestIsRejectedWhenHeaderDoesNotMatchPrefix() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+                anyHeaderWithPrefix("custom-")
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Options, "/") {
+                addHeader(HttpHeaders.Origin, "http://host")
+                addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+                addHeader(HttpHeaders.AccessControlRequestHeaders, "x-header1")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
             }
         }
     }
