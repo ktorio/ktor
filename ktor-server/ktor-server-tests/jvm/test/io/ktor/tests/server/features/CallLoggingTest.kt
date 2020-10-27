@@ -12,8 +12,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Test
 import org.slf4j.*
 import org.slf4j.event.*
 import java.util.concurrent.*
@@ -50,7 +48,7 @@ class CallLoggingTest {
     }
 
 
-    @Before
+    @BeforeTest
     fun setup() {
         messages = ArrayList()
     }

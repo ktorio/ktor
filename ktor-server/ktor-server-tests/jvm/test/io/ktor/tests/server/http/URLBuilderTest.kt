@@ -9,7 +9,6 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class URLBuilderTest {

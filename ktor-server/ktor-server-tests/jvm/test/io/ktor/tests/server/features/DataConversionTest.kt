@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import java.math.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*

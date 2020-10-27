@@ -7,22 +7,21 @@ package io.ktor.tests.auth
 import io.ktor.http.auth.*
 import java.util.*
 import kotlin.test.*
-import org.junit.Test as test
 
 class AuthorizeHeaderParserTest {
-    @org.junit.Test fun empty() {
+    @Test fun empty() {
         testParserParameterized("Basic", emptyMap(), "Basic")
     }
 
-    @org.junit.Test fun emptyWithTrailingSpaces() {
+    @Test fun emptyWithTrailingSpaces() {
         testParserParameterized("Basic", emptyMap(), "Basic ")
     }
 
-    @org.junit.Test fun singleSimple() {
+    @Test fun singleSimple() {
         testParserSingle("Basic", "abc==", "Basic abc==")
     }
 
-    @org.junit.Test fun testParameterizedSimple() {
+    @Test fun testParameterizedSimple() {
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a=1")
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a =1")
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a = 1")
@@ -31,7 +30,7 @@ class AuthorizeHeaderParserTest {
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a=1 ")
     }
 
-    @org.junit.Test fun testParameterizedSimpleTwoParams() {
+    @Test fun testParameterizedSimpleTwoParams() {
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1, b=2")
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1,b=2")
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1 ,b=2")
@@ -39,20 +38,20 @@ class AuthorizeHeaderParserTest {
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1 , b=2 ")
     }
 
-    @org.junit.Test fun testParameterizedQuoted() {
+    @Test fun testParameterizedQuoted() {
         testParserParameterized("Basic", mapOf("a" to "1 2"), "Basic a=\"1 2\"")
     }
 
-    @org.junit.Test fun testParameterizedQuotedEscaped() {
+    @Test fun testParameterizedQuotedEscaped() {
         testParserParameterized("Basic", mapOf("a" to "1 \" 2"), "Basic a=\"1 \\\" 2\"")
         testParserParameterized("Basic", mapOf("a" to "1 A 2"), "Basic a=\"1 \\A 2\"")
     }
 
-    @org.junit.Test fun testParameterizedQuotedEscapedInTheMiddle() {
+    @Test fun testParameterizedQuotedEscapedInTheMiddle() {
         testParserParameterized("Basic", mapOf("a" to "1 \" 2", "b" to "2"), "Basic a=\"1 \\\" 2\", b= 2")
     }
 
-    @org.junit.Test fun testGarbage() {
+    @Test fun testGarbage() {
         Random().let { rnd ->
             repeat(10000) {
                 val random = rnd.nextString(3 + rnd.nextInt(7)) + " " + rnd.nextString(10, ('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf(',', ' ', '/'))

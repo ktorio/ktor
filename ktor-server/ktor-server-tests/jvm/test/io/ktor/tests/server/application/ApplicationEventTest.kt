@@ -6,7 +6,6 @@ package io.ktor.tests.server.application
 
 import io.ktor.application.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class ApplicationEventTest {

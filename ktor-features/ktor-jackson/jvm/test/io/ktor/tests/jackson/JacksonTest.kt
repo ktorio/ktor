@@ -13,7 +13,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class JacksonTest {

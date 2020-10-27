@@ -27,7 +27,6 @@ import java.net.ServerSocket
 import java.security.*
 import java.security.cert.*
 import javax.net.ssl.*
-import kotlin.io.use
 import kotlin.test.*
 
 class ConnectionTests {
