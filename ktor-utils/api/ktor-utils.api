@@ -252,6 +252,10 @@ public final class io/ktor/util/PlatformUtils {
 	public final fun getIS_NODE ()Z
 }
 
+public abstract interface annotation class io/ktor/util/PublicAPICandidate : java/lang/annotation/Annotation {
+	public abstract fun version ()Ljava/lang/String;
+}
+
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
 	public static final fun getLength (Lkotlin/ranges/LongRange;)J
