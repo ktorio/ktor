@@ -4,17 +4,15 @@
 
 package io.ktor.tests.http.cio
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.utils.io.streams.*
-import org.junit.*
-import org.junit.Test
 import kotlin.test.*
 
 class RequestResponseBuilderTest {
     private val builder = RequestResponseBuilder()
 
-    @After
+    @AfterTest
     fun tearDown() {
         builder.release()
     }

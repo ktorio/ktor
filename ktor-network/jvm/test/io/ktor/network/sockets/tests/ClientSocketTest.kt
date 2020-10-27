@@ -7,17 +7,17 @@ package io.ktor.network.sockets.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
-import io.ktor.utils.io.*
 import org.junit.*
-import org.junit.Test
 import org.junit.rules.*
 import java.net.ServerSocket
 import java.nio.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class ClientSocketTest {
     private val exec = Executors.newCachedThreadPool()
@@ -30,7 +30,7 @@ class ClientSocketTest {
     @get:Rule
     val errors = ErrorCollector()
 
-    @After
+    @AfterTest
     fun tearDown() {
         server?.let { (server, thread) ->
             server.close()
@@ -100,7 +100,7 @@ class ClientSocketTest {
     }
 
     private fun server(block: (java.net.Socket) -> Unit) {
-        val server = java.net.ServerSocket(0)
+        val server = ServerSocket(0)
         val thread = thread(start = false) {
             try {
                 while (true) {

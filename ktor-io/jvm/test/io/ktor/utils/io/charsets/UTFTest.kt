@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io.charsets
 
-import org.junit.Test
 import java.nio.*
 import kotlin.test.*
 

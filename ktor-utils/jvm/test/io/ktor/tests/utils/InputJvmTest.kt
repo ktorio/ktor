@@ -6,7 +6,6 @@ package io.ktor.tests.utils
 
 import io.ktor.util.*
 import io.ktor.utils.io.streams.*
-import org.junit.Test
 import kotlin.test.*
 
 class InputJvmTest {
