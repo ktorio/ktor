@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.utils.tests
@@ -34,6 +34,12 @@ internal fun Application.cacheTestServer() {
             get("/max-age") {
                 val value = counter.incrementAndGet()
                 call.response.cacheControl(CacheControl.MaxAge(2))
+                call.respondText("$value")
+            }
+            get("/expires") {
+                // note: we don't add X-Expires to Vary intentionally
+                val value = counter.incrementAndGet()
+                call.response.header(HttpHeaders.Expires, call.request.headers["X-Expires"] ?: "?")
                 call.respondText("$value")
             }
 
