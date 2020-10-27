@@ -18,7 +18,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.junit.*
-import org.junit.Test
 import org.junit.rules.*
 import java.io.*
 import java.net.*
@@ -29,6 +28,7 @@ import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.test.*
 import kotlin.test.Ignore
+import kotlin.test.Test
 
 @OptIn(WebSocketInternalAPI::class, ExperimentalCoroutinesApi::class)
 abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(

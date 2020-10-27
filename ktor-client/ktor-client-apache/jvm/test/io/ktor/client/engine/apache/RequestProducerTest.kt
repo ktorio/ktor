@@ -11,7 +11,6 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.apache.http.*
-import org.junit.Test
 import kotlin.coroutines.*
 import kotlin.test.*
 

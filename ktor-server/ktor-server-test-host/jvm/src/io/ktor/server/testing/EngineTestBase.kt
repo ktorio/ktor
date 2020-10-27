@@ -86,7 +86,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
-    @Before
+    @BeforeTest
     public fun setUpBase() {
         val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
 
@@ -101,7 +101,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         exceptions.clear()
     }
 
-    @After
+    @AfterTest
     public fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }

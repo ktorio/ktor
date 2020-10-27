@@ -8,7 +8,6 @@ import io.ktor.util.cio.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import org.junit.Test
 import java.nio.ByteBuffer
 import kotlin.test.*
 

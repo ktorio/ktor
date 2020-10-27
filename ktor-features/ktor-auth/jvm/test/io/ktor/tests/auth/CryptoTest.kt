@@ -5,7 +5,6 @@
 package io.ktor.tests.auth
 
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class CryptoTest {

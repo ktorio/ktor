@@ -16,8 +16,6 @@ import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import io.micrometer.core.instrument.distribution.*
 import io.micrometer.core.instrument.simple.*
-import org.junit.*
-import org.junit.Test
 import kotlin.reflect.*
 import kotlin.test.*
 
@@ -27,7 +25,7 @@ class MicrometerMetricsTests {
     var noHandlerHandledReqeust = false
     var throwableCaughtInEngine: Throwable? = null
 
-    @Before
+    @BeforeTest
     fun reset() {
         noHandlerHandledReqeust = false
         throwableCaughtInEngine = null
