@@ -512,7 +512,27 @@ class SerializationTest {
             assertNull(call.response.content)
         }
     }
+
+    @Test
+    fun testGeneric(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            json()
+        }
+        application.routing {
+            get("/generic") {
+                call.respond(GenericEntity(id = 1, data = "asd"))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/generic").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"id":1,"data":"asd"}""", it.response.content)
+        }
+    }
 }
+
+@Serializable
+data class GenericEntity<T>(val id: Int, val data: T)
 
 @Serializable
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
