@@ -19,11 +19,13 @@ import kotlin.reflect.*
  */
 @OptIn(ExperimentalStdlibApi::class)
 @JvmName("respondWithType")
-public suspend inline fun <reified T: Any> ApplicationCall.respond(message: T) {
-    try {
-        // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
-        response.responseType = typeOf<T>()
-    } catch (_: Throwable) {
+public suspend inline fun <reified T : Any> ApplicationCall.respond(message: T) {
+    if (message !is OutgoingContent && message !is String && message !is ByteArray) {
+        try {
+            // We need to wrap getting type in try catch because of https://youtrack.jetbrains.com/issue/KT-42913
+            response.responseType = typeOf<T>()
+        } catch (_: Throwable) {
+        }
     }
     response.pipeline.execute(this, message as Any)
 }
@@ -44,7 +46,7 @@ public suspend inline fun ApplicationCall.respond(message: Any) {
  */
 @OptIn(ExperimentalStdlibApi::class)
 @JvmName("respondWithType")
-public suspend inline fun <reified T: Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
+public suspend inline fun <reified T : Any> ApplicationCall.respond(status: HttpStatusCode, message: T) {
     response.status(status)
     respond(message)
 }
