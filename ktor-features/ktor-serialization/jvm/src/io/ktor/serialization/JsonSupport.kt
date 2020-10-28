@@ -18,14 +18,14 @@ import kotlinx.serialization.modules.*
  * - array polymorphism is enabled
  * - keys and values are quoted, non-quoted are not allowed
  *
- * See [JsonConfiguration] for more details.
+ * See [Json] for more details.
  */
 @Deprecated(
     level = DeprecationLevel.ERROR,
     message = "JsonConfiguration is deprecated, consider using DefaultJson instead.",
     replaceWith = ReplaceWith("DefaultJson")
 )
-@Suppress("DEPRECATION_ERROR", "unused")
+@Suppress("unused")
 public val DefaultJsonConfiguration: Json = Json {
     encodeDefaults = true
     isLenient = true
@@ -43,7 +43,7 @@ public val DefaultJsonConfiguration: Json = Json {
  * - array polymorphism is enabled
  * - keys and values are quoted, non-quoted are not allowed
  *
- * See [JsonConfiguration] for more details.
+ * See [Json] for more details.
  */
 public val DefaultJson: Json = Json {
     encodeDefaults = true
@@ -68,7 +68,7 @@ public val DefaultJson: Json = Json {
     replaceWith = ReplaceWith("json(Json { serializersModule = module }, contentType)")
 )
 @OptIn(ExperimentalSerializationApi::class)
-@Suppress("DEPRECATION_ERROR", "unused", "UNUSED_PARAMETER")
+@Suppress("unused", "UNUSED_PARAMETER")
 public fun ContentNegotiation.Configuration.json(
     json: Json = Json.Default,
     module: SerializersModule = EmptySerializersModule,
