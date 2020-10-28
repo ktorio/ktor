@@ -39,8 +39,8 @@ class ContextualSerializationTest {
 
         val data = UserData(1, "kotlin")
 
-        val contextualString = contextual.writeContent(data)
-        val simpleString = simple.writeContent(data)
+        val contextualString = contextual.writeContent(data, null)
+        val simpleString = simple.writeContent(data, null)
 
         assertEquals("\"1\"\"kotlin\"", contextualString)
         assertEquals("{\"id\":1,\"name\":\"kotlin\"}", simpleString)
