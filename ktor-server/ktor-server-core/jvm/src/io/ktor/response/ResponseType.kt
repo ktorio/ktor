@@ -15,6 +15,9 @@ private val ResponseTypeAttributeKey: AttributeKey<KType> = AttributeKey("Respon
 public var ApplicationResponse.responseType: KType?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
     set(value) {
-        if (value != null) call.attributes.put(ResponseTypeAttributeKey, value)
-        else call.attributes.remove(ResponseTypeAttributeKey)
+        if (value != null) {
+            call.attributes.put(ResponseTypeAttributeKey, value)
+        } else {
+            call.attributes.remove(ResponseTypeAttributeKey)
+        }
     }
