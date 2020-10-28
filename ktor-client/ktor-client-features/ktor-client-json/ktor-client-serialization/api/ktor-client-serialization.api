@@ -6,6 +6,7 @@ public final class io/ktor/client/features/json/serializer/KotlinxSerializer : i
 	public fun read (Lio/ktor/client/call/TypeInfo;Lio/ktor/utils/io/core/Input;)Ljava/lang/Object;
 	public fun write (Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 	public fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;)Lio/ktor/http/content/OutgoingContent;
+	public fun write (Ljava/lang/Object;Lio/ktor/http/ContentType;Lkotlin/reflect/KType;)Lio/ktor/http/content/OutgoingContent;
 }
 
 public final class io/ktor/client/features/json/serializer/KotlinxSerializer$Companion {

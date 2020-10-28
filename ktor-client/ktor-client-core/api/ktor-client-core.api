@@ -758,6 +758,7 @@ public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/Http
 	public final fun build ()Lio/ktor/client/request/HttpRequestData;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public final fun getBody ()Ljava/lang/Object;
+	public final fun getBodyType ()Lkotlin/reflect/KType;
 	public final fun getCapabilityOrNull (Lio/ktor/client/engine/HttpClientEngineCapability;)Ljava/lang/Object;
 	public final fun getExecutionContext ()Lkotlinx/coroutines/Job;
 	public fun getHeaders ()Lio/ktor/http/HeadersBuilder;
@@ -765,6 +766,7 @@ public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/Http
 	public final fun getUrl ()Lio/ktor/http/URLBuilder;
 	public final fun setAttributes (Lkotlin/jvm/functions/Function1;)V
 	public final fun setBody (Ljava/lang/Object;)V
+	public final fun setBodyType (Lkotlin/reflect/KType;)V
 	public final fun setCapability (Lio/ktor/client/engine/HttpClientEngineCapability;Ljava/lang/Object;)V
 	public final fun setMethod (Lio/ktor/http/HttpMethod;)V
 	public final fun takeFrom (Lio/ktor/client/request/HttpRequestBuilder;)Lio/ktor/client/request/HttpRequestBuilder;
@@ -842,6 +844,23 @@ public final class io/ktor/client/request/HttpSendPipeline$Phases {
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getReceive ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getState ()Lio/ktor/util/pipeline/PipelinePhase;
+}
+
+public final class io/ktor/client/request/TypedBody {
+	public static final field Companion Lio/ktor/client/request/TypedBody$Companion;
+	public fun <init> (Ljava/lang/Object;Lkotlin/reflect/KType;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun component2 ()Lkotlin/reflect/KType;
+	public final fun copy (Ljava/lang/Object;Lkotlin/reflect/KType;)Lio/ktor/client/request/TypedBody;
+	public static synthetic fun copy$default (Lio/ktor/client/request/TypedBody;Ljava/lang/Object;Lkotlin/reflect/KType;ILjava/lang/Object;)Lio/ktor/client/request/TypedBody;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/Object;
+	public final fun getType ()Lkotlin/reflect/KType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/request/TypedBody$Companion {
 }
 
 public final class io/ktor/client/request/UtilsKt {
