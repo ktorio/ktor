@@ -62,7 +62,7 @@ public class HttpsRedirect(config: Configuration) {
          * Exclude calls with paths matching the [pathSuffix] from being redirected to https by this feature.
         */
         @KtorExperimentalAPI
-        fun excludeSuffix(pathSuffix: String) {
+        public fun excludeSuffix(pathSuffix: String) {
             exclude { call ->
                 call.request.origin.uri.endsWith(pathSuffix)
             }
