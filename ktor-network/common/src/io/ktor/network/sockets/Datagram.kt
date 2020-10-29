@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -30,7 +30,6 @@ public class Datagram(
 /**
  * A channel for sending datagrams
  */
-@KtorExperimentalAPI
 public interface DatagramWriteChannel {
     /**
      * Datagram outgoing channel
@@ -48,7 +47,6 @@ public interface DatagramWriteChannel {
 /**
  * A channel for receiving datagrams
  */
-@KtorExperimentalAPI
 public interface DatagramReadChannel {
     /**
      * Incoming datagrams channel

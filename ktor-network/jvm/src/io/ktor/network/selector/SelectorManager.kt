@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.selector
@@ -21,7 +21,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     /**
      * NIO selector provider
      */
-    @KtorExperimentalAPI
     public val provider: SelectorProvider
 
     /**
@@ -65,7 +64,6 @@ public inline fun <C : Closeable, R> SelectorManager.buildOrClose(create: Select
  * @property [flag] to be set in NIO selector
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@KtorExperimentalAPI
 @InternalAPI
 public actual enum class SelectInterest(public val flag: Int) {
     READ(SelectionKey.OP_READ),

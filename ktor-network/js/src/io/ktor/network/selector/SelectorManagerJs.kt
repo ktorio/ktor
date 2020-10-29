@@ -44,7 +44,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
  * @property [flag] to be set in NIO selector
  */
 @Suppress("KDocMissingDocumentation", "NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
-@KtorExperimentalAPI
 @InternalAPI
 public actual enum class SelectInterest {
     READ, WRITE, ACCEPT, CONNECT;
