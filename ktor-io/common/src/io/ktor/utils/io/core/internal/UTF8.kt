@@ -393,16 +393,16 @@ private const val MinSupplementary = 0x10000
 private const val HighSurrogateMagic = MinHighSurrogate - (MinSupplementary ushr 10)
 
 @PublishedApi
-internal fun isBmpCodePoint(cp: Int) = cp ushr 16 == 0
+internal fun isBmpCodePoint(cp: Int): Boolean = cp ushr 16 == 0
 
 @PublishedApi
-internal fun isValidCodePoint(codePoint: Int) = codePoint <= MaxCodePoint
+internal fun isValidCodePoint(codePoint: Int): Boolean = codePoint <= MaxCodePoint
 
 @PublishedApi
-internal fun lowSurrogate(cp: Int) = (cp and 0x3ff) + MinLowSurrogate
+internal fun lowSurrogate(cp: Int): Int = (cp and 0x3ff) + MinLowSurrogate
 
 @PublishedApi
-internal fun highSurrogate(cp: Int) = (cp ushr 10) + HighSurrogateMagic
+internal fun highSurrogate(cp: Int): Int = (cp ushr 10) + HighSurrogateMagic
 
 internal fun codePoint(high: Char, low: Char): Int {
 //    check(high.isHighSurrogate())

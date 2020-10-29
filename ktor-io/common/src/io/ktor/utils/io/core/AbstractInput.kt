@@ -67,14 +67,14 @@ public abstract class AbstractInput(
     internal final var headMemory: Memory by shared(head.memory)
 
     @PublishedApi
-    internal final var headPosition by shared(head.readPosition)
+    internal final var headPosition: Int by shared(head.readPosition)
 
     @PublishedApi
-    internal final var headEndExclusive by shared(head.writePosition)
+    internal final var headEndExclusive: Int by shared(head.writePosition)
 
     @PublishedApi
     @Suppress("DEPRECATION_ERROR")
-    internal final var headRemaining
+    internal final var headRemaining: Int
         inline get() = headEndExclusive - headPosition
         @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
         set(newRemaining) {
@@ -605,7 +605,7 @@ public abstract class AbstractInput(
     public fun ensureNextHead(current: ChunkBuffer): ChunkBuffer? = ensureNext(current)
 
     @PublishedApi
-    internal fun ensureNext(current: ChunkBuffer) = ensureNext(
+    internal fun ensureNext(current: ChunkBuffer): ChunkBuffer? = ensureNext(
         current,
         ChunkBuffer.Empty
     )
