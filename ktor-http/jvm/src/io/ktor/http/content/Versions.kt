@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -102,7 +102,6 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     /**
      * If-Modified-Since logic: all [dates] should be _before_ this date (truncated to seconds).
      */
-    @KtorExperimentalAPI
     public fun ifModifiedSince(dates: List<GMTDate>): Boolean {
         return dates.any { truncatedModificationDate > it }
     }
@@ -110,7 +109,6 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     /**
      * If-Unmodified-Since logic: all [dates] should not be before this date (truncated to seconds).
      */
-    @KtorExperimentalAPI
     public fun ifUnmodifiedSince(dates: List<GMTDate>): Boolean {
         return dates.all { truncatedModificationDate <= it }
     }
@@ -189,7 +187,6 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     /**
      * Examine two entity-tags for match (strong).
      */
-    @KtorExperimentalAPI
     public fun match(other: EntityTagVersion): Boolean {
         if (this == STAR || other == STAR) return true
         return normalized == other.normalized
@@ -198,7 +195,6 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     /**
      * `If-None-Match` logic using [match] function.
      */
-    @KtorExperimentalAPI
     public fun noneMatch(givenNoneMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (STAR in givenNoneMatchEtags) return VersionCheckResult.OK
 
@@ -212,7 +208,6 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
     /**
      * `If-Match` logic using [match] function.
      */
-    @KtorExperimentalAPI
     public fun match(givenMatchEtags: List<EntityTagVersion>): VersionCheckResult {
         if (givenMatchEtags.isEmpty()) return VersionCheckResult.OK
         if (STAR in givenMatchEtags) return VersionCheckResult.OK
@@ -234,13 +229,11 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
         /**
          * Instance for `*` entity-tag pattern.
          */
-        @KtorExperimentalAPI
         public val STAR: EntityTagVersion = EntityTagVersion("*", false)
 
         /**
          * Parse headers with a list of entity-tags. Useful for headers such as `If-Match`/`If-None-Match`.
          */
-        @KtorExperimentalAPI
         public fun parse(headerValue: String): List<EntityTagVersion> {
             val rawEntries = parseHeaderValue(headerValue)
             return rawEntries.map { entry ->
@@ -254,7 +247,6 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
         /**
          * Parse single entity-tag or pattern specification.
          */
-        @KtorExperimentalAPI
         public fun parseSingle(value: String): EntityTagVersion {
             if (value == "*") return STAR
 
