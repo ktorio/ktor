@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -15,7 +15,6 @@ import java.net.*
  * Represents a content that is served from the specified [uri]
  * @property uri that is used as a source
  */
-@KtorExperimentalAPI
 public class URIFileContent(
     public val uri: URI,
     override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)

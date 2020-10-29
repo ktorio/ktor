@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.cio
@@ -27,7 +27,7 @@ private val notFound404_11 = RequestResponseBuilder().apply {
 /**
  * This is just an example demonstrating how to create CIO low-level http server
  */
-fun main(args: Array<String>) {
+fun main() {
     val settings = HttpServerSettings()
 
     GlobalScope.launch {

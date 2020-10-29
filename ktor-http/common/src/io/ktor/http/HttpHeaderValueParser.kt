@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -84,7 +84,6 @@ public fun parseHeaderValue(text: String?, parametersOnly: Boolean): List<Header
 /**
  * Construct a list of [HeaderValueParam] from an iterable of pairs
  */
-@KtorExperimentalAPI
 public fun Iterable<Pair<String, String>>.toHeaderParamsList(): List<HeaderValueParam> =
     map { HeaderValueParam(it.first, it.second) }
 

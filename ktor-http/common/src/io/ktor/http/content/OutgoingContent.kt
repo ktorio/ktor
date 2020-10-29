@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -117,7 +117,6 @@ public sealed class OutgoingContent {
          * @param engineContext is a [CoroutineContext] to execute non-blocking code, such as parsing or processing
          * @param userContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
          */
-        @KtorExperimentalAPI
         public abstract suspend fun upgrade(
             input: ByteReadChannel,
             output: ByteWriteChannel,
