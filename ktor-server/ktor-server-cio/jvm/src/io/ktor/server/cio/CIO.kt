@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio
@@ -10,7 +10,6 @@ import io.ktor.util.*
 /**
  * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine]
  */
-@KtorExperimentalAPI
 public object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicationEngine.Configuration> {
     override fun create(environment: ApplicationEngineEnvironment, configure: CIOApplicationEngine.Configuration.() -> Unit): CIOApplicationEngine {
         return CIOApplicationEngine(environment, configure)

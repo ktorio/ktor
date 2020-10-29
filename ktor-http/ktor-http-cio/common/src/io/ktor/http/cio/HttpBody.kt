@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -13,7 +13,6 @@ import io.ktor.utils.io.*
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
  * parsed [connectionOptions]
  */
-@KtorExperimentalAPI
 public fun expectHttpUpgrade(
     method: HttpMethod,
     upgrade: CharSequence?,
@@ -25,7 +24,6 @@ public fun expectHttpUpgrade(
 /**
  * @return `true` if an http upgrade is expected according to [request]
  */
-@KtorExperimentalAPI
 public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
     request.method,
     request.headers["Upgrade"],
@@ -35,7 +33,6 @@ public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
 /**
  * @return `true` if request or response with the specified parameters could have a body
  */
-@KtorExperimentalAPI
 public fun expectHttpBody(
     method: HttpMethod,
     contentLength: Long,
@@ -56,7 +53,6 @@ public fun expectHttpBody(
 /**
  * @return `true` if request or response with the specified parameters could have a body
  */
-@KtorExperimentalAPI
 public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
     request.method,
     request.headers["Content-Length"]?.parseDecLong() ?: -1,
@@ -73,7 +69,6 @@ public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
  * @param transferEncoding header or `null`
  * @param
  */
-@KtorExperimentalAPI
 public suspend fun parseHttpBody(
     contentLength: Long,
     transferEncoding: CharSequence?,
@@ -116,7 +111,6 @@ public suspend fun parseHttpBody(
  * Parse HTTP request or response body using request/response's [headers]
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  */
-@KtorExperimentalAPI
 public suspend fun parseHttpBody(
     headers: HttpHeadersMap,
     input: ByteReadChannel,
