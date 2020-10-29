@@ -28,6 +28,7 @@ buildscript {
                 }
             }
         }
+        ext.jvmCompilerTypeAttr = Attribute.of('org.jetbrains.kotlin.jvm.compiler', String)
     }
 
     repositories {
@@ -48,7 +49,20 @@ buildscript {
         jcenter()
     }
 
+    configurations.named('classpath') {
+        if (build_snapshot_train) {
+            attributes {
+                attribute(jvmCompilerTypeAttr, 'jvm')
+            }
+        }
+    }
+
     dependencies {
+        if (build_snapshot_train) {
+            attributesSchema {
+                attribute(jvmCompilerTypeAttr)
+            }
+        }
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
@@ -249,16 +263,19 @@ if (build_snapshot_train) {
         }
     }
 
-    println "Manifest of kotlin-compiler-embeddable.jar"
     configure(subprojects.findAll { it.name == "ktor-client" }) {
-        configurations.matching { it.name == "kotlinCompilerClasspath" }.all {
-            resolvedConfiguration.getFiles().findAll { it.name.contains("kotlin-compiler-embeddable") }.each {
-                def manifest = zipTree(it).matching {
-                    include 'META-INF/MANIFEST.MF'
-                }.getFiles().first()
+        // after evaluate is to make possible user attribute defining (jvm compiler type in our case)
+        afterEvaluate {
+            println "Manifest of kotlin-compiler-embeddable.jar"
+            configurations.matching { it.name == "kotlinCompilerClasspath" }.all {
+                resolvedConfiguration.getFiles().findAll { it.name.contains("kotlin-compiler-embeddable") }.each {
+                    def manifest = zipTree(it).matching {
+                        include 'META-INF/MANIFEST.MF'
+                    }.getFiles().first()
 
-                manifest.readLines().each {
-                    println it
+                    manifest.readLines().each {
+                        println it
+                    }
                 }
             }
         }

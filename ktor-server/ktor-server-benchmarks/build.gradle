@@ -115,3 +115,12 @@ kotlin {
         }
     }
 }
+
+if (rootProject.ext.build_snapshot_train) {
+    configurations {
+        // configure Java plugin configurations
+        configure([compileClasspath, testCompileClasspath, testRuntimeClasspath]) {
+            attributes.attribute(rootProject.ext.jvmCompilerTypeAttr, 'jvm')
+        }
+    }
+}
