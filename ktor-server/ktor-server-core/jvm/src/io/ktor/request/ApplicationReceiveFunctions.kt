@@ -205,5 +205,4 @@ private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventi
  * Thrown when a request body has been already received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
-@KtorExperimentalAPI
 public class RequestAlreadyConsumedException : IllegalStateException("Request body has been already consumed (received).")
