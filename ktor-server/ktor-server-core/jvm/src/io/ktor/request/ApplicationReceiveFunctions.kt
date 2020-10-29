@@ -22,7 +22,7 @@ import kotlin.reflect.jvm.*
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
+public class ApplicationReceiveRequest constructor(
     public val typeInfo: KType,
     public val value: Any,
     public val reusableValue: Boolean = false

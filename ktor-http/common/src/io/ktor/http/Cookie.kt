@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -190,7 +190,7 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
         else -> value
     }
     CookieEncoding.DQUOTES -> when {
-        value.contains('"') -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
+        value.contains('"') -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in DQUOTES format. Consider URL_ENCODING mode")
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
         else -> value
     }

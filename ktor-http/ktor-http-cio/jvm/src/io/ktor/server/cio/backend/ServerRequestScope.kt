@@ -18,7 +18,6 @@ import kotlin.coroutines.*
  * @property remoteAddress of the client (if known)
  * @property localAddress on which the client was accepted (if known)
  */
-@KtorExperimentalAPI
 public class ServerRequestScope internal constructor(
     override val coroutineContext: CoroutineContext,
     public val input: ByteReadChannel,
@@ -30,7 +29,6 @@ public class ServerRequestScope internal constructor(
     /**
      * Creates another request scope with same parameters except coroutine context
      */
-    @KtorExperimentalAPI
     public fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(
             this.coroutineContext + coroutineContext,

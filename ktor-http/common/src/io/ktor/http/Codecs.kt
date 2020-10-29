@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.http
 
@@ -143,7 +143,6 @@ public fun String.decodeURLQueryComponent(
  * Decode percent encoded URL part within the specified range [[start], [end]).
  * This function is not intended to decode urlencoded forms so it doesn't decode plus character to space.
  */
-@KtorExperimentalAPI
 public fun String.decodeURLPart(
     start: Int = 0, end: Int = length,
     charset: Charset = Charsets.UTF_8
