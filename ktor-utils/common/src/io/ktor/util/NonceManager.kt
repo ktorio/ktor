@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -13,7 +13,6 @@ package io.ktor.util
  * Note that there is usually some timeout for nonce values to reduce memory usage and to avoid replay attacks.
  * Nonce length is unspecified.
  */
-@KtorExperimentalAPI
 public interface NonceManager {
     /**
      * Generate new nonce instance
@@ -31,7 +30,6 @@ public interface NonceManager {
 /**
  * This implementation does only generate nonce values but doesn't validate them. This is recommended for testing only.
  */
-@KtorExperimentalAPI
 public object GenerateOnlyNonceManager : NonceManager {
     override suspend fun newNonce(): String {
         return generateNonce()
