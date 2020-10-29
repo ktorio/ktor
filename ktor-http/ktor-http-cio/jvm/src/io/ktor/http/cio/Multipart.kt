@@ -256,7 +256,6 @@ public fun parseMultipart(
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@KtorExperimentalAPI
 public fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
@@ -278,14 +277,13 @@ public fun parseMultipart(
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-@KtorExperimentalAPI
 public fun CoroutineScope.parseMultipart(
     input: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?
 ): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
-    val boundaryBytes = parseBoundary(contentType)
+    val boundaryBytes = parseBoundaryInternal(contentType)
 
     // TODO fail if contentLength = 0 and content subtype is wrong
 
@@ -479,8 +477,20 @@ private fun findBoundary(contentType: CharSequence): Int {
  * Parse multipart boundary encoded in [contentType] header value
  * @return a buffer containing CRLF, prefix '--' and boundary bytes
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "This is going to become internal. " +
+    "Use parseMultipart instead or file a ticket explaining why do you need this function."
+)
+@Suppress("unused")
 public fun parseBoundary(contentType: CharSequence): ByteBuffer {
+    return parseBoundaryInternal(contentType)
+}
+
+/**
+ * Parse multipart boundary encoded in [contentType] header value
+ * @return a buffer containing CRLF, prefix '--' and boundary bytes
+ */
+internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
     val boundaryParameter = findBoundary(contentType)
 
     if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
