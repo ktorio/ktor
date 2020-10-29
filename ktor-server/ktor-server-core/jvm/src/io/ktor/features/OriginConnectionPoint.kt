@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -27,7 +27,6 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
 /**
  * Represents a [RequestConnectionPoint]. Every it's component is mutable so application features could provide them
  */
-@KtorExperimentalAPI
 public class MutableOriginConnectionPoint
 @Deprecated(
     "Instantiating CP is no longer supported: this will become internal.",
@@ -249,7 +248,7 @@ public object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipelin
 }
 
 internal val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
-    get() = attributes.computeIfAbsent(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) {
+    get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(
             OriginConnectionPoint(this)
         )

@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
@@ -24,9 +23,9 @@ class ClassCastExceptionTest {
      * Regression test for KTOR-349
      */
     @Test
-    @OptIn(KtorExperimentalAPI::class, ExperimentalTime::class, ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
     fun testClassCastException(): Unit = runBlocking {
-        val exceptionHandler = CoroutineExceptionHandler { context, cause ->
+        val exceptionHandler = CoroutineExceptionHandler { _, cause ->
             cancel("Uncaught failure", cause)
         }
         val server = embeddedServer(CIO, port = port, parentCoroutineContext = coroutineContext + exceptionHandler) {

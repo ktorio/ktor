@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.request
@@ -23,9 +23,9 @@ import kotlin.reflect.jvm.*
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
 public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
-    @KtorExperimentalAPI public val typeInfo: KType,
+    public val typeInfo: KType,
     public val value: Any,
-    @KtorExperimentalAPI public val reusableValue: Boolean = false
+    public val reusableValue: Boolean = false
 ) {
     @Deprecated("Use typeOf to pass KType instead")
     public constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
@@ -33,6 +33,9 @@ public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
     /**
      * Star projected class computed from [typeInfo]
      */
+    @Deprecated("Use typeInfo instead as it provides type parameter information",
+        ReplaceWith("typeInfo.jvmErasure", "kotlin.reflect.jvm.jvmErasure")
+    )
     public val type: KClass<*>
         get() = typeInfo.jvmErasure
 }

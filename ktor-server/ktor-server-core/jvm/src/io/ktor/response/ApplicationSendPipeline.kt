@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.response
@@ -51,10 +51,7 @@ public open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Befor
 
         /**
          * Phase for Engine to send the response out to client.
-         *
-         * TODO: this phase will be removed from here later
          */
-        @KtorExperimentalAPI
         public val Engine: PipelinePhase = PipelinePhase("Engine")
     }
 }
