@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.application
@@ -74,4 +74,4 @@ public typealias EventHandler<T> = (T) -> Unit
  *
  * @param T specifies what is a type of a value passed to the event
  */
-public open class EventDefinition<T> @KtorExperimentalAPI constructor()
+public open class EventDefinition<T>
