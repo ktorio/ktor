@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -30,5 +30,4 @@ public actual fun Digest(name: String): Digest = error("[Digest] is not supporte
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-@KtorExperimentalAPI
 public actual fun sha1(bytes: ByteArray): ByteArray = error("sha1 currently is not supported in ktor-native")

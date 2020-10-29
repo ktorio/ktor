@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:kotlin.jvm.JvmMultifileClass
@@ -17,7 +17,6 @@ private val digits = "0123456789abcdef".toCharArray()
 /**
  * Encode [bytes] as a HEX string with no spaces, newlines and `0x` prefixes.
  */
-@KtorExperimentalAPI
 public fun hex(bytes: ByteArray): String {
     val result = CharArray(bytes.size * 2)
     var resultIndex = 0
@@ -35,7 +34,6 @@ public fun hex(bytes: ByteArray): String {
 /**
  * Decode bytes from HEX string. It should be no spaces and `0x` prefixes.
  */
-@KtorExperimentalAPI
 public fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
     for (idx in 0 until result.size) {
@@ -67,7 +65,6 @@ public fun generateNonce(size: Int): ByteArray = buildPacket {
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-@KtorExperimentalAPI
 public expect fun sha1(bytes: ByteArray): ByteArray
 
 /**
