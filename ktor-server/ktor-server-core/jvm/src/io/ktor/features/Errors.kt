@@ -30,7 +30,6 @@ public class NotFoundException(message: String? = "Resource not found") : Except
  * @property parameterName of missing request parameter
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@KtorExperimentalAPI
 public class MissingRequestParameterException(
     public val parameterName: String
 ) : BadRequestException("Request parameter $parameterName is missing"),
@@ -46,7 +45,6 @@ public class MissingRequestParameterException(
  * @property parameterName of missing request parameter
  * @property type this parameter is unable to convert to
  */
-@KtorExperimentalAPI
 @OptIn(ExperimentalCoroutinesApi::class)
 public class ParameterConversionException(
     public val parameterName: String,
