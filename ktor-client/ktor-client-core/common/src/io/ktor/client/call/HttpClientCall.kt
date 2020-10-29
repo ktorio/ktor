@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.call
@@ -25,6 +25,7 @@ internal fun HttpClientCall(
     response = DefaultHttpResponse(this, responseData)
 
     if (responseData.body !is ByteReadChannel) {
+        @Suppress("DEPRECATION")
         attributes.put(HttpClientCall.CustomResponse, responseData.body)
     }
 }
@@ -72,6 +73,7 @@ public open class HttpClientCall internal constructor(
             if (response.instanceOf(info.type)) return response
             if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
+            @Suppress("DEPRECATION")
             val responseData = attributes.getOrNull(CustomResponse) ?: response.content
 
             val subject = HttpResponseContainer(info, responseData)
@@ -102,7 +104,10 @@ public open class HttpClientCall internal constructor(
          *
          * Example: [WebSocketSession]
          */
-        @KtorExperimentalAPI
+        @Deprecated(
+            "This is going to be removed. " +
+                "Please file a ticket with clarification why and what for do you need it."
+        )
         public val CustomResponse: AttributeKey<Any> = AttributeKey<Any>("CustomResponse")
     }
 }
