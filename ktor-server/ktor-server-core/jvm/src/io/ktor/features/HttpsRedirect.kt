@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -27,7 +27,6 @@ public class HttpsRedirect(config: Configuration) {
      * The list of call predicates for redirect exclusion.
      * Any call matching any of the predicates will not be redirected by this feature.
      */
-    @KtorExperimentalAPI
     public val excludePredicates: List<(ApplicationCall) -> Boolean> = config.excludePredicates.toList()
 
     /**
@@ -48,13 +47,11 @@ public class HttpsRedirect(config: Configuration) {
          * The list of call predicates for redirect exclusion.
          * Any call matching any of the predicates will not be redirected by this feature.
          */
-        @KtorExperimentalAPI
         public val excludePredicates: MutableList<(ApplicationCall) -> Boolean> = ArrayList()
 
         /**
          * Exclude calls with paths matching the [pathPrefix] from being redirected to https by this feature.
          */
-        @KtorExperimentalAPI
         public fun excludePrefix(pathPrefix: String) {
             exclude { call ->
                 call.request.origin.uri.startsWith(pathPrefix)
@@ -64,7 +61,6 @@ public class HttpsRedirect(config: Configuration) {
         /**
          * Exclude calls matching the [predicate] from being redirected to https by this feature.
          */
-        @KtorExperimentalAPI
         public fun exclude(predicate: (call: ApplicationCall) -> Boolean) {
             excludePredicates.add(predicate)
         }
