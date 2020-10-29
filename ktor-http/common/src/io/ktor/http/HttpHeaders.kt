@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -133,7 +133,6 @@ public object HttpHeaders {
     /**
      * Validates header [name] throwing [IllegalHeaderNameException] when the name is not valid.
      */
-    @KtorExperimentalAPI
     public fun checkHeaderName(name: String) {
         name.forEachIndexed { index, ch ->
             if (ch <= ' ' || isDelimiter(ch)) {
@@ -145,7 +144,6 @@ public object HttpHeaders {
     /**
      * Validates header [value] throwing [IllegalHeaderValueException] when the value is not valid.
      */
-    @KtorExperimentalAPI
     public fun checkHeaderValue(value: String) {
         value.forEachIndexed { index, ch ->
             if (ch == ' ' || ch == '\u0009') return@forEachIndexed
@@ -171,7 +169,6 @@ public class UnsafeHeaderException(header: String) : IllegalArgumentException(
  * @property headerName that was tried to use
  * @property position at which validation failed
  */
-@KtorExperimentalAPI
 public class IllegalHeaderNameException(public val headerName: String, public val position: Int) : IllegalArgumentException(
     "Header name '$headerName' contains illegal character '${headerName[position]}'" +
         " (code ${(headerName[position].toInt() and 0xff)})"
@@ -183,7 +180,6 @@ public class IllegalHeaderNameException(public val headerName: String, public va
  * @property headerValue that was tried to use
  * @property position at which validation failed
  */
-@KtorExperimentalAPI
 public class IllegalHeaderValueException(public val headerValue: String, public val position: Int) : IllegalArgumentException(
     "Header value '$headerValue' contains illegal character '${headerValue[position]}'" +
         " (code ${(headerValue[position].toInt() and 0xff)})"
