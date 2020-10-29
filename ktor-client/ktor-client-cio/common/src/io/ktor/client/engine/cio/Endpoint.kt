@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -255,7 +255,6 @@ private suspend fun <T> CoroutineScope.handleTimeout(
 public open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")
 
 internal expect fun Throwable.mapToKtor(request: HttpRequestData): Throwable

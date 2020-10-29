@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -128,7 +128,6 @@ public suspend fun ApplicationCall.respondOutputStream(contentType: ContentType?
  * The [producer] parameter will be called later when engine is ready to produce content. You don't need to close it.
  * Provided [ByteWriteChannel] will be closed automatically.
  */
-@KtorExperimentalAPI
 public suspend fun ApplicationCall.respondBytesWriter(
     contentType: ContentType? = null,
     status: HttpStatusCode? = null,
