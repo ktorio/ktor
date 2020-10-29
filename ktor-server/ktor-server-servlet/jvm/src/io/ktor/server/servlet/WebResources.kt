@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -15,8 +15,12 @@ import kotlin.random.*
 /**
  * Web resources serve configuration
  */
-@KtorExperimentalAPI
-public class WebResourcesConfig {
+public class WebResourcesConfig
+@Deprecated(
+    "Direct instantiation will be impossible in 2.0.0. " +
+        "Use Route.webResources {} function instead " +
+        "or file an issue describing why do you need it."
+) constructor() {
     /**
      * Path predicates to be included. All files will be served if no include rules specified.
      * A path provided to a predicate is always slash-separated (`/`).
@@ -60,8 +64,8 @@ public class WebResourcesConfig {
  * itself is not served by default.
  * @param subPath slash-delimited web resources root path (relative to webapp directory)
  */
-@KtorExperimentalAPI
 public fun Route.webResources(subPath: String = "/", configure: WebResourcesConfig.() -> Unit = {}) {
+    @Suppress("DEPRECATION")
     val config = WebResourcesConfig().apply(configure)
     val pathParameterName = pathParameterName + "_" + Random.nextInt(0, Int.MAX_VALUE)
     val prefix = subPath.split('/', '\\').filter { it.isNotEmpty() }

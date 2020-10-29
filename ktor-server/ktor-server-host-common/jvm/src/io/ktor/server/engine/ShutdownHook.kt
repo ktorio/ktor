@@ -1,11 +1,10 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.util.*
 import java.util.concurrent.atomic.*
 
 /**
@@ -15,7 +14,6 @@ import java.util.concurrent.atomic.*
  * is already stopped then there will be no hook and no [stop] function invocation possible.
  * So [stop] block will be called once or never.
  */
-@KtorExperimentalAPI
 public fun ApplicationEngine.addShutdownHook(stop: () -> Unit) {
     val hook = ShutdownHook(stop)
     environment.monitor.subscribe(ApplicationStarting) {
