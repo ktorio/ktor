@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -31,7 +31,6 @@ public class AuthenticationProcedureChallenge {
     /**
      * List of currently installed challenges for errors
      */
-    @KtorExperimentalAPI
     public val errorChallenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
         get() = register.filter { it.first is AuthenticationFailedCause.Error }.map { it.second }
 
