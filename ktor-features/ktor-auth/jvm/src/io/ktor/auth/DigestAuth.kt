@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -22,13 +22,10 @@ public class DigestAuthenticationProvider internal constructor(
 
     public val realm: String = config.realm
 
-    @KtorExperimentalAPI
     public val algorithmName: String = config.algorithmName
 
-    @KtorExperimentalAPI
     internal val nonceManager: NonceManager = config.nonceManager
 
-    @KtorExperimentalAPI
     internal val userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = config.digestProvider
 
     /**
@@ -56,7 +53,6 @@ public class DigestAuthenticationProvider internal constructor(
         /**
          * [NonceManager] to be used to generate nonce values
          */
-        @KtorExperimentalAPI
         public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
         /**
@@ -75,7 +71,6 @@ public class DigestAuthenticationProvider internal constructor(
          * `userName` and `realm`. A message digest is usually computed based on user name (login), realm and password
          * concatenated with colon character ':'. For example `"$userName:$realm:$password"`.
          */
-        @KtorExperimentalAPI
         public fun digestProvider(digest: suspend (userName: String, realm: String) -> ByteArray?) {
             digestProvider = digest
         }

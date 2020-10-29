@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:kotlin.jvm.JvmMultifileClass
@@ -24,7 +24,6 @@ public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteA
  * @param algorithm digest algorithm name
  * @param salt a function computing a salt for a particular hash input value
  */
-@KtorExperimentalAPI
 public fun getDigestFunction(algorithm: String, salt: (value: String) -> String): (String) -> ByteArray = { e ->
     getDigest(e, algorithm, salt)
 }
@@ -38,7 +37,6 @@ private fun getDigest(text: String, algorithm: String, salt: (String) -> String)
 /**
  * Compute SHA-1 hash for the specified [bytes]
  */
-@KtorExperimentalAPI
 public actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
     Digest("SHA1").also { it += bytes }.build()
 }
@@ -46,10 +44,8 @@ public actual fun sha1(bytes: ByteArray): ByteArray = runBlocking {
 /**
  * Create [Digest] from specified hash [name].
  */
-@KtorExperimentalAPI
 public actual fun Digest(name: String): Digest = DigestImpl(MessageDigest.getInstance(name))
 
-@KtorExperimentalAPI
 private inline class DigestImpl(val delegate: MessageDigest) : Digest {
     override fun plusAssign(bytes: ByteArray) {
         delegate.update(bytes)
@@ -65,7 +61,6 @@ private inline class DigestImpl(val delegate: MessageDigest) : Digest {
 /**
  * Generates a nonce string 16 characters long. Could block if the system's entropy source is empty
  */
-@KtorExperimentalAPI
 public actual fun generateNonce(): String {
     val nonce = seedChannel.poll()
     if (nonce != null) return nonce
