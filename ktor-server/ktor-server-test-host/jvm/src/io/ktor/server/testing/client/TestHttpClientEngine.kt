@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.client
@@ -17,7 +17,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 @Suppress("KDocMissingDocumentation")
-@KtorExperimentalAPI
 public class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngineBase("ktor-test") {
 
     override val dispatcher = Dispatchers.IO
