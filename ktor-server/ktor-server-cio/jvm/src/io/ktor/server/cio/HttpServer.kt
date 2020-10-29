@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio
@@ -18,9 +18,11 @@ import kotlin.coroutines.*
  * @property acceptJob client connections accepting job
  * @property serverSocket a deferred server socket instance, could be completed with error if it failed to bind
  */
-@Suppress("MemberVisibilityCanBePrivate")
-@KtorExperimentalAPI
-public class HttpServer(public val rootServerJob: Job, public val acceptJob: Job, public val serverSocket: Deferred<ServerSocket>)
+public class HttpServer(
+    public val rootServerJob: Job,
+    public val acceptJob: Job,
+    public val serverSocket: Deferred<ServerSocket>
+)
 
 /**
  * HTTP server connector settings
