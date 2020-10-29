@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -81,11 +81,11 @@ private suspend fun simpleOAuth1aStep1(
     nonce: String = generateNonce(),
     extraParameters: List<Pair<String, String>> = emptyList()
 ): OAuthCallback.TokenPair {
-    val authHeader = createObtainRequestTokenHeader(
+    val authHeader = createObtainRequestTokenHeaderInternal(
         callback = callback,
         consumerKey = consumerKey,
         nonce = nonce
-    ).sign(HttpMethod.Post, baseUrl, secretKey, extraParameters)
+    ).signInternal(HttpMethod.Post, baseUrl, secretKey, extraParameters)
 
     val url = baseUrl.appendUrlParameters(extraParameters.formUrlEncode())
 
@@ -156,8 +156,8 @@ private suspend fun requestOAuth1aAccessToken(
     extraParameters: Map<String, String> = emptyMap()
 ): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(HttpAuthHeader.Parameters.OAuthVerifier to verifier) + extraParameters.toList()
-    val authHeader = createUpgradeRequestTokenHeader(consumerKey, token, nonce)
-        .sign(HttpMethod.Post, baseUrl, secretKey, params)
+    val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
+        .signInternal(HttpMethod.Post, baseUrl, secretKey, params)
 
     val body = client.post<String>(baseUrl) {
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
@@ -187,8 +187,22 @@ private suspend fun requestOAuth1aAccessToken(
 /**
  * Create an HTTP auth header for OAuth1a obtain token request
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "This is going to become internal. " +
+        "Please file a ticket and clarify, why do you need it."
+)
+@Suppress("unused")
 public fun createObtainRequestTokenHeader(
+    callback: String,
+    consumerKey: String,
+    nonce: String,
+    timestamp: LocalDateTime = LocalDateTime.now()
+): HttpAuthHeader.Parameterized = createObtainRequestTokenHeaderInternal(callback, consumerKey, nonce, timestamp)
+
+/**
+ * Create an HTTP auth header for OAuth1a obtain token request
+ */
+private fun createObtainRequestTokenHeaderInternal(
     callback: String,
     consumerKey: String,
     nonce: String,
@@ -208,8 +222,22 @@ public fun createObtainRequestTokenHeader(
 /**
  * Create an HTTP auth header for OAuth1a upgrade token request
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "This is going to become internal. " +
+        "Please file a ticket and clarify, why do you need it."
+)
+@Suppress("unused")
 public fun createUpgradeRequestTokenHeader(
+    consumerKey: String,
+    token: String,
+    nonce: String,
+    timestamp: LocalDateTime = LocalDateTime.now()
+): HttpAuthHeader.Parameterized = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce, timestamp)
+
+/**
+ * Create an HTTP auth header for OAuth1a upgrade token request
+ */
+private fun createUpgradeRequestTokenHeaderInternal(
     consumerKey: String,
     token: String,
     nonce: String,
@@ -229,22 +257,50 @@ public fun createUpgradeRequestTokenHeader(
 /**
  * Sign an HTTP auth header
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "This is going to become internal. " +
+        "Please file a ticket and clarify, why do you need it."
+)
+@Suppress("unused")
 public fun HttpAuthHeader.Parameterized.sign(
+    method: HttpMethod,
+    baseUrl: String,
+    key: String,
+    parameters: List<Pair<String, String>>
+): HttpAuthHeader.Parameterized = signInternal(method, baseUrl, key, parameters)
+
+/**
+ * Sign an HTTP auth header
+ */
+private fun HttpAuthHeader.Parameterized.signInternal(
     method: HttpMethod,
     baseUrl: String,
     key: String,
     parameters: List<Pair<String, String>>
 ): HttpAuthHeader.Parameterized = withParameter(
     HttpAuthHeader.Parameters.OAuthSignature,
-    signatureBaseString(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key)
+    signatureBaseStringInternal(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key)
 )
 
 /**
  * Build an OAuth1a signature base string as per RFC
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "This is going to become internal. " +
+        "Please file a ticket and clarify, why do you need it."
+)
+@Suppress("unused")
 public fun signatureBaseString(
+    header: HttpAuthHeader.Parameterized,
+    method: HttpMethod,
+    baseUrl: String,
+    parameters: List<HeaderValueParam>
+): String = signatureBaseStringInternal(header, method, baseUrl, parameters)
+
+/**
+ * Build an OAuth1a signature base string as per RFC
+ */
+internal fun signatureBaseStringInternal(
     header: HttpAuthHeader.Parameterized,
     method: HttpMethod,
     baseUrl: String,
@@ -269,7 +325,6 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
 /**
  * Represents an OAuth1a server error
  */
-@KtorExperimentalAPI
 public sealed class OAuth1aException(message: String) : Exception(message) {
 
     /**
@@ -280,6 +335,6 @@ public sealed class OAuth1aException(message: String) : Exception(message) {
     /**
      * Represents any other OAuth1a error
      */
-    @KtorExperimentalAPI
+    @Deprecated("This is no longer thrown.")
     public class UnknownException(message: String) : OAuth1aException(message)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -178,7 +178,8 @@ public object OAuthGrantTypes {
  * Install both OAuth1a and OAuth2 authentication helpers that do redirect to OAuth server authorization page
  * and handle corresponding callbacks
  */
-@KtorExperimentalAPI
+@Suppress("unused")
+@Deprecated("Install and configure OAuth instead.")
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
     client: HttpClient, dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
@@ -191,7 +192,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
 /**
  * Respond OAuth redirect
  */
-@KtorExperimentalAPI
+@Deprecated("Install and configure OAuth instead.")
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
@@ -219,7 +220,7 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
 /**
  * Handle OAuth callback
  */
-@KtorExperimentalAPI
+@Deprecated("Install and configure OAuth instead.")
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     client: HttpClient,
     dispatcher: CoroutineDispatcher,
