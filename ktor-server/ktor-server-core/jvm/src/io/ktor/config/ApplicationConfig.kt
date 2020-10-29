@@ -1,15 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.config
 
-import io.ktor.util.*
-
 /**
  * Represents an application config node
  */
-@KtorExperimentalAPI
 public interface ApplicationConfig {
     /**
      * Get config property with [path] or fail
@@ -38,7 +35,6 @@ public interface ApplicationConfig {
 /**
  * Represents an application config value
  */
-@KtorExperimentalAPI
 public interface ApplicationConfigValue {
     /**
      * Get property string value
@@ -54,5 +50,4 @@ public interface ApplicationConfigValue {
 /**
  * Thrown when an application is misconfigured
  */
-@KtorExperimentalAPI
 public class ApplicationConfigurationException(message: String) : Exception(message)

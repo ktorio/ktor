@@ -1,16 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.config
 
 import com.typesafe.config.*
-import io.ktor.util.*
 
 /**
  * Implements [ApplicationConfig] by loading configuration from HOCON data structures
  */
-@KtorExperimentalAPI
 public open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
     override fun property(path: String): ApplicationConfigValue {
         if (!config.hasPath(path))
@@ -39,11 +37,9 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
 /**
  * Get string property value for [path] or `null` if missing
  */
-@KtorExperimentalAPI
 public fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
 
 /**
  * Get list property value for [path] or `null` if missing
  */
-@KtorExperimentalAPI
 public fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null
