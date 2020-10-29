@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -289,7 +289,7 @@ public open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functio
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -321,7 +321,7 @@ public open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functio
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 

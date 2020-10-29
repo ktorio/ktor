@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -25,13 +25,13 @@ public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflect
 /**
  * Creates the the default [SessionSerializer] for class [type]
  */
+@Suppress("DEPRECATION")
 @Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
 public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
 
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
-@KtorExperimentalAPI
 @Suppress("DEPRECATION")
 public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> = autoSerializerOf(T::class)
 
@@ -41,7 +41,10 @@ public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerialize
  *
  * @property type is a session instance class handled by this serializer
  */
-@KtorExperimentalAPI
+@Deprecated(
+    "Don't refer to the implementation class directly. " +
+        "Use interface type if possible or use defaultSessionSerializer function to create."
+)
 public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : SessionSerializer<T> {
     private val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
