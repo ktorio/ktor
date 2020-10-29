@@ -311,19 +311,19 @@ class MultipartTest {
                 "multipart/mixed; boundary=" + "0".repeat(70))
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary=" + "0".repeat(71))
+            parseBoundaryInternal("multipart/mixed; boundary=" + "0".repeat(71))
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary=")
+            parseBoundaryInternal("multipart/mixed; boundary=")
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary= ")
+            parseBoundaryInternal("multipart/mixed; boundary= ")
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary= \"\" ")
+            parseBoundaryInternal("multipart/mixed; boundary= \"\" ")
         }
     }
 
@@ -387,7 +387,7 @@ class MultipartTest {
     }
 
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
-        val boundary = parseBoundary(headerValue)
+        val boundary = parseBoundaryInternal(headerValue)
         val actualBoundary = String(boundary.array(),
                 boundary.arrayOffset() + boundary.position(), boundary.remaining())
 
