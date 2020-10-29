@@ -11,11 +11,7 @@ if (project.name in project.ext.jdk8Modules) {
 apply plugin: "kotlinx-atomicfu"
 
 kotlin {
-    jvm('jvm') {
-        if (rootProject.ext.build_snapshot_train) {
-            attributes.attribute(rootProject.ext.jvmCompilerTypeAttr, 'jvm')
-        }
-    }
+    jvm('jvm')
 
     task jarTest(type: Jar, dependsOn: jvmTestClasses) {
         from targets.jvm.compilations.test.output
@@ -66,6 +62,35 @@ kotlin {
 
             implementation "org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version"
         }
+    }
+}
+
+if (rootProject.ext.build_snapshot_train) {
+    kotlin {
+        jvm('jvm') {
+            attributes.attribute(rootProject.ext.jvmCompilerTypeAttr, 'jvm')
+        }
+        jvm('jvmIr') {
+            attributes.attribute(rootProject.ext.jvmCompilerTypeAttr, 'jvmIr')
+            compilations.all {
+                kotlinOptions.useIR = true
+            }
+            // Do not publish JVM IR into repository
+            mavenPublication { targetPublication ->
+                tasks.withType(PublishToMavenRepository)
+                    .matching { it.publication == targetPublication }
+                    .all { onlyIf { false } }
+            }
+        }
+
+        sourceSets {
+            jvmIrMain.dependsOn jvmMain
+            jvmIrTest.dependsOn jvmTest
+        }
+    }
+
+    jvmIrTest {
+        environment 'JVM_TARGET_NAME', 'jvmIr'
     }
 }
 

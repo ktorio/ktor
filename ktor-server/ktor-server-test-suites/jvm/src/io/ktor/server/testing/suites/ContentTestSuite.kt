@@ -210,8 +210,8 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     public fun testURIContentLocalFile() {
-        val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/jvm/test"
-        val file = listOf(File("build/classes/kotlin/jvm/test"), File(buildDir)).first { it.exists() }.walkBottomUp()
+        val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/$targetName/test"
+        val file = listOf(File("build/classes/kotlin/$targetName/test"), File(buildDir)).first { it.exists() }.walkBottomUp()
             .filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
@@ -658,8 +658,9 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    public companion object {
-        public const val classesDir: String = "build/classes/kotlin/jvm"
-        public const val coreClassesDir: String = "ktor-server/ktor-server-core/$classesDir"
+    companion object {
+        val targetName = System.getenv("JVM_TARGET_NAME") ?: "jvm"
+        val classesDir: String = "build/classes/kotlin/$targetName"
+        val coreClassesDir: String = "ktor-server/ktor-server-core/$classesDir"
     }
 }

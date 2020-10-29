@@ -15,7 +15,8 @@ dependencies {
     }
 }
 
-configure(tasks.jvmTest) {
+def testTasks = rootProject.ext.build_snapshot_train ? [tasks.jvmTest, tasks.jvmIrTest] : [tasks.jvmTest]
+configure(testTasks) {
     useJUnit()
 
     systemProperty 'enable.http2', 'true'

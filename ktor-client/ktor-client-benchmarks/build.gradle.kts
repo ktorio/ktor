@@ -41,7 +41,13 @@ kotlin {
 benchmark {
     reportsDir = "../reports"
     targets {
-        register("jvm") {
+        register("jvm")
+
+        if (rootProject.ext.get("build_snapshot_train") as Boolean) {
+            register("jvmIr")
+        }
+
+        this.configureEach{
             if (this is JvmBenchmarkTarget) {
                 jmhVersion = "$jmh_version"
             }

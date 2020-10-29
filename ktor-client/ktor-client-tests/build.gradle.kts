@@ -139,6 +139,10 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
+if (rootProject.ext.get("build_snapshot_train") as Boolean) {
+    testTasks += "jvmIrTest"
+}
+
 if (!ideaActive) {
     testTasks += listOf(
         "macosX64Test",
