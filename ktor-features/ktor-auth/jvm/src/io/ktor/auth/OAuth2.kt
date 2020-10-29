@@ -354,19 +354,16 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
  * Represents a error during communicating to OAuth2 server
  * @property errorCode OAuth2 server replied with
  */
-@KtorExperimentalAPI
 public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
      * OAuth2 server responded error="invalid_grant"
      */
-    @KtorExperimentalAPI
     public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
 
     /**
      * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
      * decoded but the response doesn't contain error code nor access token
      */
-    @KtorExperimentalAPI
     public class MissingAccessToken : OAuth2Exception(
         "OAuth2 server response is OK neither error nor access token provided", null
     )
@@ -376,7 +373,6 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * @param grantType that was passed to the server
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    @KtorExperimentalAPI
     public class UnsupportedGrantType(public val grantType: String) : OAuth2Exception(
         "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
     ), CopyableThrowable<UnsupportedGrantType> {
@@ -390,7 +386,6 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * @param errorCode the OAuth2 server replied with
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    @KtorExperimentalAPI
     public class UnknownException(
         private val details: String, errorCode: String
     ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {
