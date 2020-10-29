@@ -1,14 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
 
 import io.ktor.client.*
-import io.ktor.client.response.*
-import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 
 /**
  * Base configuration for [HttpClientEngine].
@@ -24,7 +21,6 @@ public open class HttpClientEngineConfig {
     /**
      * Enable http pipelining advice.
      */
-    @KtorExperimentalAPI
     public var pipelining: Boolean = false
 
     /**
@@ -40,5 +36,5 @@ public open class HttpClientEngineConfig {
         level = DeprecationLevel.ERROR
     )
     public val response: Nothing get() =
-        error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
+        error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] instead.")
 }

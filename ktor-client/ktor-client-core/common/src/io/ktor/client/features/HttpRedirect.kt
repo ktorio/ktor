@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features
@@ -29,7 +29,6 @@ public class HttpRedirect {
      *
      * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
      */
-    @KtorExperimentalAPI
     public var checkHttpMethod: Boolean
         get() = _checkHttpMethod.value
         set(value) {
@@ -39,7 +38,6 @@ public class HttpRedirect {
     /**
      * `true` value allows client redirect with downgrade from https to plain http.
      */
-    @KtorExperimentalAPI
     public var allowHttpsDowngrade: Boolean
         get() = _allowHttpsDowngrade.value
         set(value) {
