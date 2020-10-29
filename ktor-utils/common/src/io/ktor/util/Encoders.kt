@@ -10,7 +10,6 @@ import io.ktor.utils.io.*
 /**
  * Empty [Encoder] that doesn't do any changes.
  */
-@KtorExperimentalAPI
 public object Identity : Encoder {
     override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel = source
 
@@ -20,7 +19,6 @@ public object Identity : Encoder {
 /**
  * Content encoder.
  */
-@KtorExperimentalAPI
 public interface Encoder {
     /**
      * Launch coroutine to encode [source] bytes.
