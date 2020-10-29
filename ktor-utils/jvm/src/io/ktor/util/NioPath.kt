@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -32,7 +32,6 @@ public fun Path.combineSafe(relativePath: Path): File {
 /**
  * Remove all redundant `.` and `..` path elements. Leading `..` are also considered redundant.
  */
-@KtorExperimentalAPI
 public fun Path.normalizeAndRelativize(): Path =
     root?.relativize(this)?.normalize()?.dropLeadingTopDirs() ?: normalize().dropLeadingTopDirs()
 
