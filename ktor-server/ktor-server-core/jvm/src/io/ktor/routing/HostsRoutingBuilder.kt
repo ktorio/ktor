@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
 
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.util.*
 
 /**
  * Create a route to match request host and port.
@@ -129,13 +128,11 @@ public data class HostRouteSelector(val hostList: List<String>, val hostPatterns
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request host
          */
-        @KtorExperimentalAPI
         public const val HostNameParameter: String = "\$RequestHost"
 
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request port
          */
-        @KtorExperimentalAPI
         public const val PortParameter: String = "\$RequestPort"
     }
 }
