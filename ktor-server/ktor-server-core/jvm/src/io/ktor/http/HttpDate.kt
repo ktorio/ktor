@@ -38,4 +38,4 @@ public fun String.fromHttpDateString0(): ZonedDateTime = ZonedDateTime.parse(thi
 @Suppress("unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 public val httpDateFormat0: DateTimeFormatter
-    @JvmName("httpDateFormat") get() = httpDateFormat
+    @JvmName("getHttpDateFormat") get() = httpDateFormat
