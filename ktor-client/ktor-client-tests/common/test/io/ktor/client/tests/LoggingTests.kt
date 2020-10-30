@@ -4,11 +4,14 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -507,6 +510,42 @@ class LoggingTest : ClientLoader() {
 
         after {
             testLogger.verify()
+        }
+    }
+
+    @Test
+    fun testBodyLoggingKeepsContent() = clientTests {
+        val logs = ConcurrentList<String>()
+        val testLogger = object : Logger {
+            override fun log(message: String) {
+                logs.add(message)
+            }
+        }
+
+        config {
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.post<HttpResponse>("$TEST_SERVER/content/echo") {
+                body = MultiPartFormDataContent(formData {
+                    append("file", "123")
+                })
+            }
+
+            assertNotNull(response.receive<String>())
+            val request = response.request
+            val contentLength = request.content.contentLength!!
+            val contentType = request.content.contentType!!
+
+            assertTrue(contentType.contentType == "multipart")
+            assertTrue(contentType.contentSubtype == "form-data")
+            assertTrue(contentType.parameters.any { it.name == "boundary" })
+            assertTrue(logs.any { it.contains("Content-Type: $contentType") })
+            assertTrue(logs.any { it.contains("Content-Length: $contentLength") })
         }
     }
 
