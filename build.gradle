@@ -60,6 +60,8 @@ buildscript {
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
         classpath "com.android.tools.build:gradle:$android_gradle_version"
     }
+
+    CacheRedirector.configureBuildScript(buildscript, rootProject)
 }
 
 
@@ -156,6 +158,8 @@ allprojects {
         maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
     }
+
+    CacheRedirector.configure(project)
 
     if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
 
