@@ -12,6 +12,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
+import java.util.function.*
 
 /**
  * CORS feature. Please read http://ktor.io/servers/features/cors.html first before using it.
@@ -45,7 +46,7 @@ public class CORS(configuration: Configuration) {
     /**
      * Prefix for permitted headers
      */
-    val headerPrefix = configuration.headerPrefix
+    public val headerPredicates : List<Predicate<String>> = configuration.headerPredicates
 
     /**
      * All allowed HTTP methods
@@ -138,7 +139,7 @@ public class CORS(configuration: Configuration) {
             response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         }
 
-        val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesPrefix(header) }
+        val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesAPredicate(header) }
 
         val headersListHeaderValue = listOf(headersList, requestHeadersMatchingPrefix).flatten().sorted().joinToString(", ")
 
@@ -189,14 +190,14 @@ public class CORS(configuration: Configuration) {
     private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
 
         requestHeaders.all { header ->
-            return header in allHeadersSet || headerMatchesPrefix(header)
+            return header in allHeadersSet || headerMatchesAPredicate(header)
         }
 
         return requestHeaders.none { it !in allHeadersSet }
     }
 
-    private fun ApplicationCall.headerMatchesPrefix(header: String): Boolean {
-        return headerPrefix != null && header.startsWith(headerPrefix, true)
+    private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
+        return headerPredicates.any { it.test(header) }
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -366,7 +367,7 @@ public class CORS(configuration: Configuration) {
         /**
          * If present represents the prefix for headers which are permitted in cors requests.
          */
-        var headerPrefix: String? = null
+        public val headerPredicates: MutableList<Predicate<String>> = mutableListOf()
 
         /**
          * Max-Age for cached CORS options
@@ -457,10 +458,17 @@ public class CORS(configuration: Configuration) {
         }
 
         /**
-         * Allow to send any header
+         * Allow headers prefixed with [headerPrefix]
          */
-        fun anyHeaderWithPrefix(headerPrefix: String) {
-            this.headerPrefix = headerPrefix
+        public fun allowHeadersPrefixed(headerPrefix: String) {
+            this.headerPredicates.add { name -> name.startsWith(headerPrefix) }
+        }
+
+        /**
+         * Allow headers that match [predicate]
+         */
+        public fun allowHeaders(predicate: Predicate<String>) {
+            this.headerPredicates.add(predicate)
         }
 
         /**
