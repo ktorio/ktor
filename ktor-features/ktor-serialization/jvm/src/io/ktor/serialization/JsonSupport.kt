@@ -115,8 +115,7 @@ public fun ContentNegotiation.Configuration.serialization(
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  */
 @Deprecated("Use json function instead.", ReplaceWith("json(json, contentType)"))
-@JvmName("serialization")
-public fun ContentNegotiation.Configuration.serialization0(
+public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType,
     json: Json
 ) {
