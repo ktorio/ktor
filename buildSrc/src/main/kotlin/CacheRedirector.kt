@@ -81,7 +81,8 @@ private val mirroredUrls = listOf(
     "https://www.python.org/ftp",
     "https://www.jetbrains.com/intellij-repository/nightly",
     "https://www.jetbrains.com/intellij-repository/releases",
-    "https://www.jetbrains.com/intellij-repository/snapshots"
+    "https://www.jetbrains.com/intellij-repository/snapshots",
+    "https://dl.bintray.com/jetbrains/kotlin-native-dependencies"
 )
 
 private val aliases = mapOf(
@@ -89,9 +90,14 @@ private val aliases = mapOf(
     "https://kotlin.bintray.com/kotlin-dev" to "https://dl.bintray.com/kotlin/kotlin-dev",
     "https://kotlin.bintray.com/kotlin-eap" to "https://dl.bintray.com/kotlin/kotlin-eap",
     "https://kotlin.bintray.com/kotlinx" to "https://dl.bintray.com/kotlin/kotlinx"
-)
+).also {
+    it.forEach { (key, value) ->
+        require(!key.endsWith('/'))
+        require(!value.endsWith('/'))
+    }
+}
 
-private fun URI.toCacheRedirectorUri() = URI("https://cache-redirector.jetbrains.com/$host/$path")
+private fun URI.toCacheRedirectorUri() = URI("https://cache-redirector.jetbrains.com/$host$path")
 
 private fun URI.maybeRedirect(): URI? {
     val url = toString().trimEnd('/')

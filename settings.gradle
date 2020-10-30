@@ -3,7 +3,6 @@ pluginManagement {
         mavenCentral()
         google()
         gradlePluginPortal()
-        maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
     }
     resolutionStrategy {
