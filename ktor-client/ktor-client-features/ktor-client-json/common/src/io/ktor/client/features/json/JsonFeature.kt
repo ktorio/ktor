@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.json
@@ -75,7 +75,6 @@ public class JsonFeature internal constructor(
          * It also affects `Accept` request header value.
          * Please note that wildcard content types are supported but no quality specification provided.
          */
-        @KtorExperimentalAPI
         public var acceptContentTypes: List<ContentType>
             set(value) {
                 require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
@@ -89,7 +88,6 @@ public class JsonFeature internal constructor(
          * List of content type matchers that are handled by this feature.
          * Please note that wildcard content types are supported but no quality specification provided.
          */
-        @KtorExperimentalAPI
         public var receiveContentTypeMatchers: List<ContentTypeMatcher>
             set(value) {
                 require(value.isNotEmpty()) { "At least one content type should be provided to acceptContentTypes" }
