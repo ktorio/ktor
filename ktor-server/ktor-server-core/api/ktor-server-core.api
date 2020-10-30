@@ -163,7 +163,7 @@ public final class io/ktor/features/CORS {
 	public final fun getAllowCredentials ()Z
 	public final fun getAllowSameOrigin ()Z
 	public final fun getAllowsAnyHost ()Z
-	public final fun getHeaderPrefix ()Ljava/lang/String;
+	public final fun getHeaderPredicates ()Ljava/util/List;
 	public final fun getMethods ()Ljava/util/Set;
 	public final fun intercept (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -171,8 +171,9 @@ public final class io/ktor/features/CORS {
 public final class io/ktor/features/CORS$Configuration {
 	public static final field Companion Lio/ktor/features/CORS$Configuration$Companion;
 	public fun <init> ()V
+	public final fun allowHeaders (Ljava/util/function/Predicate;)V
+	public final fun allowHeadersPrefixed (Ljava/lang/String;)V
 	public final fun allowXHttpMethodOverride ()V
-	public final fun anyHeaderWithPrefix (Ljava/lang/String;)V
 	public final fun anyHost ()V
 	public final fun exposeHeader (Ljava/lang/String;)V
 	public final fun exposeXHttpMethodOverride ()V
@@ -180,7 +181,7 @@ public final class io/ktor/features/CORS$Configuration {
 	public final fun getAllowNonSimpleContentTypes ()Z
 	public final fun getAllowSameOrigin ()Z
 	public final fun getExposedHeaders ()Ljava/util/Set;
-	public final fun getHeaderPrefix ()Ljava/lang/String;
+	public final fun getHeaderPredicates ()Ljava/util/List;
 	public final fun getHeaders ()Ljava/util/Set;
 	public final fun getHosts ()Ljava/util/Set;
 	public final synthetic fun getMaxAge ()Ljava/time/Duration;
@@ -193,7 +194,6 @@ public final class io/ktor/features/CORS$Configuration {
 	public final fun setAllowCredentials (Z)V
 	public final fun setAllowNonSimpleContentTypes (Z)V
 	public final fun setAllowSameOrigin (Z)V
-	public final fun setHeaderPrefix (Ljava/lang/String;)V
 	public final synthetic fun setMaxAge (Ljava/time/Duration;)V
 	public final fun setMaxAgeInSeconds (J)V
 }
