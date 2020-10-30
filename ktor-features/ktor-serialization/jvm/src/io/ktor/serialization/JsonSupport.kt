@@ -114,9 +114,9 @@ public fun ContentNegotiation.Configuration.serialization(
 /**
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  */
-@Suppress("CONFLICTING_OVERLOADS") // conflict with hidden declaration
 @Deprecated("Use json function instead.", ReplaceWith("json(json, contentType)"))
-public fun ContentNegotiation.Configuration.serialization(
+@JvmName("serialization")
+public fun ContentNegotiation.Configuration.serialization0(
     contentType: ContentType,
     json: Json
 ) {
