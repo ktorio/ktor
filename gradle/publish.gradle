@@ -117,7 +117,7 @@ if (signingKey != null) {
     project.ext["signing.gnupg.passphrase"] = signingKeyPassphrase
 
     def keyLocation = java.nio.file.Paths.get(signingKeyLocation, ".gnupg")
-    project.ext["signing.gnupg.homeDir"] = signingKeyLocation
+    project.ext["signing.gnupg.homeDir"] = keyLocation
 
     apply plugin: 'signing'
 
