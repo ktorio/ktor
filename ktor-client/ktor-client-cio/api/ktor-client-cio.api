@@ -52,6 +52,7 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 	public final fun setKeepAliveTime (J)V
 	public final fun setMaxConnectionsPerRoute (I)V
 	public final fun setPipelineMaxSize (I)V
+	public final fun setSocketTimeout (J)V
 }
 
 public final class io/ktor/client/engine/cio/FailToConnectException : java/lang/Exception {
