@@ -32,6 +32,7 @@ buildscript {
     ext.jvm_ir_target_enabled = build_snapshot_train && rootProject.properties['disable_jvm_ir'] == null
     if (jvm_ir_target_enabled) {
         ext.jvmCompilerTypeAttr = Attribute.of('org.jetbrains.kotlin.jvm.compiler', String)
+        ext.jvm_ir_target_api_check_enabled = ext.jvm_ir_target_enabled && rootProject.properties['enable_jvm_ir_api_check'] != null
     }
 
     repositories {
@@ -306,4 +307,20 @@ afterEvaluate {
 
 if (project.hasProperty("enable-coverage")) {
     apply from: "gradle/jacoco.gradle"
+}
+
+// since we have jvm targets with same source sets only, use single dumped api
+subprojects { project ->
+    afterEvaluate {
+        def projApiDir = file("$projectDir/api")
+        configure(tasks.matching { it.name.startsWith("apiDump") }) {
+            into(projApiDir)
+        }
+        configure(tasks.matching { it.name.startsWith("apiCheck") }) {
+            projectApiDir = projApiDir
+        }
+        configure(tasks.matching { it.name == "apiCheckJvmIr" }) {
+            enabled = enabled && jvm_ir_target_api_check_enabled
+        }
+    }
 }
