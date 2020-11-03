@@ -28,6 +28,9 @@ buildscript {
                 }
             }
         }
+    }
+    ext.jvm_ir_target_enabled = build_snapshot_train && rootProject.properties['disable_jvm_ir'] == null
+    if (jvm_ir_target_enabled) {
         ext.jvmCompilerTypeAttr = Attribute.of('org.jetbrains.kotlin.jvm.compiler', String)
     }
 
@@ -50,7 +53,7 @@ buildscript {
     }
 
     configurations.named('classpath') {
-        if (build_snapshot_train) {
+        if (jvm_ir_target_enabled) {
             attributes {
                 attribute(jvmCompilerTypeAttr, 'jvm')
             }
@@ -58,7 +61,7 @@ buildscript {
     }
 
     dependencies {
-        if (build_snapshot_train) {
+        if (jvm_ir_target_enabled) {
             attributesSchema {
                 attribute(jvmCompilerTypeAttr)
             }

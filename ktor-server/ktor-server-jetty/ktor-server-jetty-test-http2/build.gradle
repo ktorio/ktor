@@ -15,7 +15,7 @@ dependencies {
     }
 }
 
-def testTasks = rootProject.ext.build_snapshot_train ? [tasks.jvmTest, tasks.jvmIrTest] : [tasks.jvmTest]
+def testTasks = rootProject.ext.jvm_ir_target_enabled ? [tasks.jvmTest, tasks.jvmIrTest] : [tasks.jvmTest]
 configure(testTasks) {
     useJUnit()
 

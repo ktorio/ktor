@@ -139,7 +139,7 @@ val testTasks = mutableListOf(
     "darwinTest"
 )
 
-if (rootProject.ext.get("build_snapshot_train") as Boolean) {
+if (rootProject.ext.get("jvm_ir_target_enabled") as Boolean) {
     testTasks += "jvmIrTest"
 
     // TODO: remove these exclusions when tests passing is fixed

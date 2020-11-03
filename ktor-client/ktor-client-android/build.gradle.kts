@@ -15,7 +15,7 @@ kotlin.sourceSets {
 
 // pass JVM option to enlarge built-in HttpUrlConnection pool
 // to avoid failures due to lack of local socket ports
-val jvmTestTasks = if (rootProject.ext.get("build_snapshot_train") as Boolean) {
+val jvmTestTasks = if (rootProject.ext.get("jvm_ir_target_enabled") as Boolean) {
     listOf(tasks.jvmTest, tasks.named<org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest>("jvmIrTest"))
 } else {
     listOf(tasks.jvmTest)

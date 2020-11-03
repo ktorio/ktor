@@ -43,7 +43,7 @@ benchmark {
     targets {
         register("jvm")
 
-        if (rootProject.ext.get("build_snapshot_train") as Boolean) {
+        if (rootProject.ext.get("jvm_ir_target_enabled") as Boolean) {
             register("jvmIr")
         }
 
