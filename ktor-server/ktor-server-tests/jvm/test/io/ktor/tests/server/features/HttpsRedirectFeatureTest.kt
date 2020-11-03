@@ -111,8 +111,10 @@ class HttpsRedirectFeatureTest {
             application.install(HttpsRedirect) {
                 excludeSuffix("exempted")
             }
-            application.intercept(ApplicationCallPipeline.Fallback) {
-                call.respond("ok")
+            application.routing {
+                get("/path/exempted") {
+                    call.respond("ok")
+                }
             }
 
             handleRequest(HttpMethod.Get, "/exemptednot").let { call ->
