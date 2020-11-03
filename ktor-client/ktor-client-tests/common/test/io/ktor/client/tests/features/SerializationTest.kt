@@ -10,6 +10,9 @@ import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.modules.*
 import kotlin.test.*
 
 @Serializable
@@ -82,8 +85,9 @@ class SerializationTest : ClientLoader() {
         }
     }
 
+    // polymorphic serializer is broken in native
     @Test
-    fun testPostSealedClass() = clientTests {
+    fun testPostSealedClass() = clientTests(listOf("native")) {
         config {
             install(JsonFeature)
         }
