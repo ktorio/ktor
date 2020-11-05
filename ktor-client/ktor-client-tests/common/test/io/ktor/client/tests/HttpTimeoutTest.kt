@@ -415,6 +415,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testConnectionRefusedException() = clientTests(listOf("Js", "win:*")) {
         config {
             install(HttpTimeout) { connectTimeoutMillis = 1000 }
