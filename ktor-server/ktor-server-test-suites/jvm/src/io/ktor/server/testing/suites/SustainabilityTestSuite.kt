@@ -569,6 +569,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
             val result = getInputStream().reader().readLines().joinToString("\n")
             val expected = listOf(
+                "HTTP/1.1 501",
                 "HTTP/1.1 400",
                 "HTTP/1.0 400"
             )
