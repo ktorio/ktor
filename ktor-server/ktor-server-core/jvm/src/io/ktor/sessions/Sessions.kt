@@ -224,7 +224,7 @@ private suspend fun <S : Any> SessionProviderData<S>.sendSessionData(call: Appli
 
 private data class SessionProviderData<S : Any>(var value: S?, val incoming: Boolean, val provider: SessionProvider<S>)
 
-val SessionKey = AttributeKey<SessionData>("SessionKey")
+private val SessionKey = AttributeKey<SessionData>("SessionKey")
 
 /**
  * This exception is thrown when HTTP response has been already sent but an attempt to modify session is made

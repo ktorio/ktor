@@ -397,7 +397,7 @@ class SessionTest {
 
             application.routing {
                 get("/0") {
-                    call.respondText("It should be no session started")
+                    call.respondText("There should be no session started")
                 }
                 get("/1") {
                     call.sessions.set(TestUserSession("id2", listOf("item1")))
@@ -416,7 +416,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies[cookieName], "It should be no session set by default")
+                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
             }
 
             var sessionId: String
@@ -441,6 +441,46 @@ class SessionTest {
             }.let { call ->
                 assertEquals("no session", call.response.content)
             }
+        }
+    }
+
+    @Test
+    fun testSessionByIdServer() {
+        val sessionStorage = SessionStorageMemory()
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, sessionStorage)
+            }
+            var serverSessionId = "_invalid"
+            application.routing {
+                get("/0") {
+                    call.respondText("There should be no session started")
+                    assertNull(call.attributes.getOrNull(SessionIdKey), "There should be no session set by default")
+                }
+                get("/1") {
+                    call.sessions.set(TestUserSession("id2", listOf("item1")))
+                    call.respondText("ok")
+                    serverSessionId = call.attributes[SessionIdKey]
+                    assertTrue { serverSessionId.matches("[A-Za-z0-9]+".toRegex()) }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/0").let { response ->
+                assertNull(response.response.cookies[cookieName], "There should be no session set by default")
+            }
+
+            handleRequest(HttpMethod.Get, "/1").let { response ->
+                val sessionCookie = response.response.cookies[cookieName]
+                assertNotNull(sessionCookie, "No session id cookie found")
+                val clientSessionId = sessionCookie.value
+                assertEquals(serverSessionId, clientSessionId)
+            }
+
+            val serializedSession = runBlocking {
+                sessionStorage.read(serverSessionId) { it.toInputStream().reader().readText() }
+            }
+            assertNotNull(serializedSession)
+            assertEquals("id2", defaultSessionSerializer<TestUserSession>().deserialize(serializedSession).userId)
         }
     }
 
