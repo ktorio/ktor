@@ -46,7 +46,7 @@ public class CORS(configuration: Configuration) {
     /**
      * Prefix for permitted headers
      */
-    public val headerPredicates : List<Predicate<String>> = configuration.headerPredicates
+    public val headerPredicates: List<(String) -> Boolean> = configuration.headerPredicates
 
     /**
      * All allowed HTTP methods
@@ -151,7 +151,7 @@ public class CORS(configuration: Configuration) {
 
         val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesAPredicate(header) }
 
-        val headersListHeaderValue = listOf(headersList, requestHeadersMatchingPrefix).flatten().sorted().joinToString(", ")
+        val headersListHeaderValue = (headersList + requestHeadersMatchingPrefix).sorted().joinToString(", ")
 
         response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
         accessControlMaxAge()
@@ -207,7 +207,7 @@ public class CORS(configuration: Configuration) {
     }
 
     private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
-        return headerPredicates.any { it.test(header) }
+        return headerPredicates.any { it(header) }
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -377,7 +377,7 @@ public class CORS(configuration: Configuration) {
         /**
          * If present represents the prefix for headers which are permitted in cors requests.
          */
-        public val headerPredicates: MutableList<Predicate<String>> = mutableListOf()
+        public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
 
         /**
          * Max-Age for cached CORS options
@@ -477,7 +477,7 @@ public class CORS(configuration: Configuration) {
         /**
          * Allow headers that match [predicate]
          */
-        public fun allowHeaders(predicate: Predicate<String>) {
+        public fun allowHeaders(predicate: (String) -> Boolean) {
             this.headerPredicates.add(predicate)
         }
 
