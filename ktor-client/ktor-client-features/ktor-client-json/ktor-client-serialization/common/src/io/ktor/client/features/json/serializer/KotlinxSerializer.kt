@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.json.serializer
@@ -43,9 +43,10 @@ public class KotlinxSerializer(
          */
         @Deprecated(
             level = DeprecationLevel.ERROR,
-            message = "DefaultJsonConfiguration is deprecated. Consider using DefaultJson instead."
+            message = "DefaultJsonConfiguration is deprecated. Consider using DefaultJson instead.",
+            replaceWith = ReplaceWith("DefaultJson")
         )
-        @Suppress("DEPRECATION_ERROR")
+        @Suppress("unused")
         public val DefaultJsonConfiguration: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
@@ -53,6 +54,9 @@ public class KotlinxSerializer(
             useArrayPolymorphism = false
         }
 
+        /**
+         * Default [Json] configuration for [KotlinxSerializer].
+         */
         public val DefaultJson: Json = Json {
             isLenient = false
             ignoreUnknownKeys = false
@@ -63,7 +67,6 @@ public class KotlinxSerializer(
 }
 
 @Suppress("UNCHECKED_CAST")
-@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
     is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
@@ -74,11 +77,13 @@ private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<
         val valueSerializer = value.values.elementSerializer(module)
         MapSerializer(keySerializer, valueSerializer)
     }
-    else -> module.getContextual(value::class) ?: value::class.serializer()
+    else -> {
+        @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+        module.getContextual(value::class) ?: value::class.serializer()
+    }
 } as KSerializer<Any>
 
 @OptIn(ExperimentalSerializationApi::class)
-@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { buildSerializer(it, module) }.distinctBy { it.descriptor.serialName }

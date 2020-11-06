@@ -12,7 +12,6 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-@OptIn(ExperimentalStdlibApi::class)
 internal fun serializerByTypeInfo(type: KType): KSerializer<*> {
     val classifierClass = type.classifier as? KClass<*>
     if (classifierClass != null && classifierClass.java.isArray) {
@@ -23,6 +22,7 @@ internal fun serializerByTypeInfo(type: KType): KSerializer<*> {
 }
 
 // NOTE: this should be removed once kotlinx.serialization serializer get support of arrays that is blocked by KT-32839
+@OptIn(ExperimentalSerializationApi::class)
 private fun arraySerializer(type: KType): KSerializer<*> {
     val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
     val elementSerializer = serializerByTypeInfo(elementType)
@@ -35,7 +35,7 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@OptIn(InternalSerializationApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 internal fun serializerForSending(value: Any, module: SerializersModule): KSerializer<*> = when (value) {
     is JsonElement -> JsonElement.serializer()
     is List<*> -> ListSerializer(value.elementSerializer(module))
@@ -56,10 +56,10 @@ internal fun serializerForSending(value: Any, module: SerializersModule): KSeria
             serializerByTypeInfo(componentType) as KSerializer<Any>
         )
     }
-    else -> module.getContextual(value::class) ?: value::class.serializer()
+    else -> module.getContextual(value::class) ?: @OptIn(InternalSerializationApi::class) value::class.serializer()
 }
 
-@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
+@OptIn(ExperimentalSerializationApi::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers = mapNotNull { value ->
         value?.let { serializerForSending(it, module) }

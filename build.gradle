@@ -44,7 +44,6 @@ buildscript {
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
             }
         }
-        maven { url "https://dl.bintray.com/orangy/maven" }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
         jcenter()
     }
@@ -60,6 +59,8 @@ buildscript {
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
         classpath "com.android.tools.build:gradle:$android_gradle_version"
     }
+
+    CacheRedirector.configureBuildScript(buildscript, rootProject)
 }
 
 
@@ -139,7 +140,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url "https://dl.bintray.com/kotlin/kotlinx/"
+            url "https://dl.bintray.com/kotlin/kotlinx"
             credentials {
                 username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
@@ -153,9 +154,10 @@ allprojects {
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
             }
         }
-        maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
     }
+
+    CacheRedirector.configure(project)
 
     if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
 

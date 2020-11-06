@@ -1,6 +1,4 @@
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'signing'
 
 apply from: project.rootProject.file('gradle/pom.gradle')
 
@@ -110,13 +108,17 @@ publishing {
 publish.dependsOn publishToMavenLocal
 
 
-def signingKeyId = System.getenv("SIGN_KEY_ID")
-def signingKey = System.getenv("SIGN_KEY_PASSPHRASE")
-def signingPassword = System.getenv("SIGN_KEY_PRIVATE")
+def signingKey = System.getenv("SIGN_KEY_ID")
+def signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
 
-if (signingKeyId != null) {
+if (signingKey != null) {
+    project.ext["signing.gnupg.keyName"] = signingKey
+    project.ext["signing.gnupg.passphrase"] = signingKeyPassphrase
+
+    apply plugin: 'signing'
+
     signing {
-        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        useGpgCmd()
         sign publishing.publications
     }
 }

@@ -145,9 +145,10 @@ private constructor(
     }
 }
 
-@Suppress("unused", "CONFLICTING_OVERLOADS")
+@Suppress("unused")
 @Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
-public fun ContentNegotiation.Configuration.serialization(
+@JvmName("serialization")
+public fun ContentNegotiation.Configuration.serialization0(
     contentType: ContentType = ContentType.Application.Json,
     json: Json = DefaultJson
 ) {

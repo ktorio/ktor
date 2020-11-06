@@ -19,21 +19,23 @@ public fun Long.toHttpDateString(): String = GMTDate(this).toHttpDate()
 /**
  * Format as HTTP date (GMT)
  */
-@Suppress("CONFLICTING_OVERLOADS", "unused")
+@Suppress("unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Temporal.toHttpDateString(): String = toHttpDateString()
+@JvmName("toHttpDateString")
+public fun Temporal.toHttpDateString0(): String = toHttpDateString()
 
 /**
  * Parse HTTP date to [ZonedDateTime]
  */
-@Suppress("CONFLICTING_OVERLOADS", "unused")
+@Suppress("unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
+@JvmName("fromHttpDateString")
+public fun String.fromHttpDateString0(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
 
 /**
  * Default HTTP date format
  */
-@Suppress("CONFLICTING_OVERLOADS", "REDECLARATION", "unused")
+@Suppress("unused")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public val httpDateFormat: DateTimeFormatter
-    get() = httpDateFormat
+public val httpDateFormat0: DateTimeFormatter
+    @JvmName("getHttpDateFormat") get() = httpDateFormat

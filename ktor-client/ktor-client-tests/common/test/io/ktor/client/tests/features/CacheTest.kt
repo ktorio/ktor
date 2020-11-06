@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.client.tests.features
 
@@ -10,9 +10,11 @@ import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.*
 
 class CacheTest : ClientLoader() {
     var storage: HttpCache.Config? by shared(null)
@@ -315,6 +317,65 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun testExpires() = clientTests {
+        config {
+            install(HttpCache) {
+                storage = this
+            }
+        }
+
+        test { client ->
+            val now = GMTDate() + 2000L
+            val url = Url("$TEST_SERVER/cache/expires")
+
+            @OptIn(ExperimentalTime::class)
+            suspend fun getWithHeader(expires: String): String {
+                delayGMTDate(1)
+
+                return client.get(url) {
+                    header("X-Expires", expires)
+                }
+            }
+
+            val first = getWithHeader(now.toHttpDate())
+            val cache = storage!!.publicStorage.findByUrl(url)
+            assertEquals(1, cache.size)
+
+            // this should be from the cache
+            val second = client.get<String>(url)
+
+            assertEquals(first, second)
+            delay(5000)
+
+            // now it should be already expired
+            val third = client.get<String>(url)
+            assertNotEquals(first, third)
+
+            // illegal values: broken, "0" and blank should be treated as already expired
+            // so shouldn't be cached
+            var previous = third
+            getWithHeader("broken-date").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            getWithHeader("0").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            getWithHeader(" ").let { result ->
+                assertNotEquals(previous, result)
+                previous = result
+            }
+
+            delayGMTDate(1)
+            val last = client.get<String>(url)
+            assertNotEquals(previous, last)
+        }
+    }
+
+    @Test
     fun testPublicAndPrivateCache() = clientTests(listOf("native")) {
         config {
             install(HttpCache) {
@@ -366,5 +427,27 @@ class CacheTest : ClientLoader() {
 
             assertSame(publicCacheEntry, publicCache().first())
         }
+    }
+
+    /**
+     * Does delay and ensures that the [GMTDate] measurements report at least
+     * the specified number of [milliseconds].
+     * The reason why it's not the same is that on some platforms time granularity of GMTDate
+     * is not that high and could be even larger than a millisecond.
+     */
+    private suspend fun delayGMTDate(milliseconds: Long) {
+        var delayValue = milliseconds
+
+        do {
+            val start = GMTDate()
+            delay(delayValue)
+            val end = GMTDate()
+            if (end > start + milliseconds) {
+                break
+            }
+            if (delayValue != 1L) {
+                delayValue = 1L
+            }
+        } while (true)
     }
 }

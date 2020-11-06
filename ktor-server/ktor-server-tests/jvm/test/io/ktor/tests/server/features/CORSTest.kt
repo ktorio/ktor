@@ -469,6 +469,28 @@ class CORSTest {
     }
 
     @Test
+    fun testNonSimpleContentTypeNotAllowedByDefault() {
+        withTestApplication {
+            application.install(CORS) {
+                anyHost()
+            }
+
+            application.routing {
+                post("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Post, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+                addHeader(HttpHeaders.ContentType, "application/json") // non-simple Content-Type value
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+            }
+        }
+    }
+
+    @Test
     fun testPreFlight() {
         withTestApplication {
             application.install(CORS) {
