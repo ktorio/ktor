@@ -29,7 +29,7 @@ public actual abstract class ClientLoader {
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ) {
-        if (skipEngines.contains("native")) return
+        if (skipEngines.any { it.startsWith("native") }) return
 
         val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }.toSet()
         val filteredEngines = engines.filter {
