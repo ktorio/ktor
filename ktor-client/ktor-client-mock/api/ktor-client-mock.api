@@ -40,6 +40,8 @@ public final class io/ktor/client/engine/mock/MockUtilsKt {
 	public static synthetic fun respondError$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Lio/ktor/http/HttpStatusCode;Ljava/lang/String;Lio/ktor/http/Headers;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
 	public static final fun respondOk (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;)Lio/ktor/client/request/HttpResponseData;
 	public static synthetic fun respondOk$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
+	public static final fun respondRedirect (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;)Lio/ktor/client/request/HttpResponseData;
+	public static synthetic fun respondRedirect$default (Lio/ktor/client/engine/mock/MockRequestHandleScope;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/client/request/HttpResponseData;
 	public static final fun toByteArray (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun toByteReadPacket (Lio/ktor/http/content/OutgoingContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
