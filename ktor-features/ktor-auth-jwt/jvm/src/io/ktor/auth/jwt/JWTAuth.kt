@@ -21,6 +21,7 @@ import org.slf4j.*
 import java.security.interfaces.*
 import java.util.*
 import java.util.concurrent.*
+import kotlin.reflect.*
 
 private val JWTAuthKey: Any = "JWTAuth"
 
@@ -121,6 +122,44 @@ public interface JWTPayloadHolder {
      * sensitive string.  Use of this claim is OPTIONAL.
      */
     public val jwtId: String? get() = payload.id
+
+    /**
+     * Retrieve a non-RFC JWT string Claim by its name
+     *
+     * @param name The claim's key as it appears in the JSON object
+     * @return the Claim's value or null if not available or not a string
+     */
+    public operator fun get(name: String): String? {
+        return payload.getClaim(name).asString()
+    }
+
+    /**
+     * Retrieve a non-RFC JWT Claim by its name and attempt to decode as the supplied type
+     *
+     * @param name The claim's key as it appears in the JSON object
+     * @return the Claim's value or null if not available or unable to deserialise
+     */
+    public fun <T : Any> getClaim(name: String, clazz: KClass<T>): T? {
+        return try {
+            payload.getClaim(name).`as`(clazz.javaObjectType)
+        } catch (ex: JWTDecodeException) {
+            null
+        }
+    }
+
+    /**
+     * Retrieve a non-RFC JWT Claim by its name and attempt to decode as a list of the supplied type
+     *
+     * @param name The claim's key as it appears in the JSON object
+     * @return the Claim's value or an empty list if not available or unable to deserialise
+     */
+    public fun <T : Any> getListClaim(name: String, clazz: KClass<T>): List<T> {
+        return try {
+            payload.getClaim(name).asList(clazz.javaObjectType)
+        } catch (ex: JWTDecodeException) {
+            emptyList()
+        }
+    }
 }
 
 /**
