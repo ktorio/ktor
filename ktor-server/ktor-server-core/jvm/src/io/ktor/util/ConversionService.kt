@@ -6,6 +6,7 @@ package io.ktor.util
 
 import java.lang.reflect.*
 import java.math.*
+import java.util.*
 
 /**
  * Data conversion service that does serialization and deserialization to/from list of strings
@@ -38,7 +39,8 @@ public object DefaultConversionService : ConversionService {
                 Long::class.java, java.lang.Long::class.java,
                 Boolean::class.java, java.lang.Boolean::class.java,
                 String::class.java, java.lang.String::class.java,
-                BigInteger::class.java, BigDecimal::class.java -> value.toString()
+                BigInteger::class.java, BigDecimal::class.java,
+                UUID::class.java -> value.toString()
                 else -> {
                     if (type.isEnum) {
                         (value as Enum<*>).name
@@ -75,6 +77,7 @@ public object DefaultConversionService : ConversionService {
         String::class.java, java.lang.String::class.java -> value
         BigDecimal::class.java -> BigDecimal(value)
         BigInteger::class.java -> BigInteger(value)
+        UUID::class.java -> UUID.fromString(value)
         else ->
             if (type is Class<*> && type.isEnum) {
                 type.enumConstants?.firstOrNull { (it as Enum<*>).name == value }
