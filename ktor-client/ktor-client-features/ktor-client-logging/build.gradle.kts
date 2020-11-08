@@ -23,6 +23,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-client:ktor-client-okhttp"))
             implementation(project(":ktor-client:ktor-client-android"))
             implementation(project(":ktor-client:ktor-client-apache"))
+            implementation(project(":ktor-client:ktor-client-java"))
         }
     }
 }
