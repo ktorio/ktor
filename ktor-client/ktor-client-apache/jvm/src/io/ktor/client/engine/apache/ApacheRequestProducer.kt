@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import org.apache.http.*
 import org.apache.http.HttpHeaders
@@ -35,7 +34,6 @@ internal class ApacheRequestProducer(
     private val request: HttpUriRequest = setupRequest()
     private val host = URIUtils.extractHost(request.uri)!!
 
-    private val waiting = atomic(false)
     private val interestController = InterestControllerHolder()
     private val channel: ByteReadChannel
 
@@ -74,7 +72,7 @@ internal class ApacheRequestProducer(
     }
 
     override fun produceContent(encoder: ContentEncoder, ioctrl: IOControl) {
-        if (waiting.value) {
+        if (interestController.outputSuspended) {
             return
         }
 
@@ -93,9 +91,7 @@ internal class ApacheRequestProducer(
         if (result == -1) {
             interestController.suspendOutput(ioctrl)
             launch(Dispatchers.Unconfined) {
-                waiting.getAndSet(true)
                 channel.awaitContent()
-                waiting.getAndSet(false)
                 interestController.resumeOutputIfPossible()
             }
         }
