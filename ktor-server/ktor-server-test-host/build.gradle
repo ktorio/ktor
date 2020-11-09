@@ -10,7 +10,6 @@ kotlin.sourceSets.jvmMain.dependencies {
     api project(':ktor-client:ktor-client-core')
     api project(':ktor-client:ktor-client-jetty')
     api project(':ktor-client:ktor-client-cio')
-    api project(':ktor-client:ktor-client-tests')
 
     // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
     // so shouldn't increase the size of the final artifact.
