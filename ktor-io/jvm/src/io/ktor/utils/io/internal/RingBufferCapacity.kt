@@ -25,6 +25,15 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
         pendingToFlush = 0
     }
 
+    fun tryReadAtLeast(n: Int): Int {
+        val AvailableForRead = AvailableForRead
+        while (true) {
+            val remaining = availableForRead
+            if (remaining < n) return 0
+            if (AvailableForRead.compareAndSet(this, remaining, 0)) return remaining
+        }
+    }
+
     fun tryReadExact(n: Int): Boolean {
         val AvailableForRead = AvailableForRead
         while (true) {

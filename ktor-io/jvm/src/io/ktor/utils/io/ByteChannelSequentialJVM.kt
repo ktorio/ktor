@@ -83,6 +83,25 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
         return readAvailableSuspend(dst)
     }
 
+    override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
+        if (closed) {
+            throw closedCause ?: ClosedSendChannelException("Channel closed for read")
+        }
+
+        if (availableForRead < min) {
+            return 0
+        }
+
+        var result = 0
+        readable.readDirect(min) {
+            val position = it.position()
+            block(it)
+            result = it.position() - position
+        }
+
+        return result
+    }
+
     private suspend fun readAvailableSuspend(dst: ByteBuffer): Int {
         if (!await(1)) return -1
         return readAvailable(dst)
@@ -166,6 +185,10 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
         readable.readDirect(min) { bb ->
             consumer(bb)
         }
+    }
+
+    override suspend fun awaitContent() {
+        await(1)
     }
 
     override fun writeAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
