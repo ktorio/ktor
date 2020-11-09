@@ -33,14 +33,8 @@ internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClien
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        try {
-            val apacheRequest = ApacheRequestProducer(data, config, callContext)
-            return engine.sendRequest(apacheRequest, callContext, data)
-        } catch (cause: Exception) {
-            val mappedCause = mapCause(cause, data)
-            callContext.cancel(CancellationException("Failed to execute request.", mappedCause))
-            throw mappedCause
-        }
+        val apacheRequest = ApacheRequestProducer(data, config, callContext)
+        return engine.sendRequest(apacheRequest, callContext, data)
     }
 
     override fun close() {

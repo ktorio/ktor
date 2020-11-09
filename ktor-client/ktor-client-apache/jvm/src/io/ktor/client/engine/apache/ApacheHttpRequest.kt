@@ -49,8 +49,11 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
 
         val headers = HeadersImpl(rawHeaders)
         return HttpResponseData(status, requestTime, headers, version, consumer.responseChannel, callContext)
-    } finally {
+    } catch (cause: Exception) {
         future.cancel(true)
+        val mappedCause = mapCause(cause, requestData)
+        callContext.cancel(CancellationException("Failed to execute request.", mappedCause))
+        throw mappedCause
     }
 }
 

@@ -67,8 +67,9 @@ internal class ApacheRequestProducer(
     override fun resetRequest() {}
 
     override fun failed(cause: Exception) {
-        channel.cancel(cause)
-        producerJob.completeExceptionally(cause)
+        val mappedCause = mapCause(cause, requestData)
+        channel.cancel(mappedCause)
+        producerJob.completeExceptionally(mappedCause)
     }
 
     override fun produceContent(encoder: ContentEncoder, ioctrl: IOControl) {
