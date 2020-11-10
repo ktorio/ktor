@@ -27,7 +27,6 @@ internal class JavaHttpRequestBodyPublisher(
     }
 
     override fun subscribe(subscriber: Flow.Subscriber<in ByteBuffer>) {
-        println("Subscribing $subscriber")
         try {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially

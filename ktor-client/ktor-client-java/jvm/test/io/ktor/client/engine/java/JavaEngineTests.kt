@@ -49,8 +49,6 @@ class JavaEngineTests {
         val totalNumberOfThreads = Thread.getAllStackTraces().size
         val threadsCreated = totalNumberOfThreads - initialNumberOfThreads
 
-        println("Created $threadsCreated threads")
-
         assertTrue("Number of threads should be less $repeats, but was $threadsCreated") {
             threadsCreated < repeats
         }
