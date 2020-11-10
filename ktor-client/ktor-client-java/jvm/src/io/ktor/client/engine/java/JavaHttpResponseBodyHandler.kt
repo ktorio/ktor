@@ -33,9 +33,8 @@ internal class JavaHttpResponseBodyHandler(
 
         private val consumerJob = Job(callContext[Job])
         override val coroutineContext: CoroutineContext = callContext + consumerJob
-
-        private val channel = ByteChannel().apply {
-                attachJob(consumerJob)
+        private val responseChannel = ByteChannel().apply {
+            attachJob(consumerJob)
         }
 
         private val httpResponse = HttpResponseData(
@@ -47,33 +46,26 @@ internal class JavaHttpResponseBodyHandler(
                 HttpClient.Version.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
-            channel,
+            responseChannel,
             coroutineContext
         )
 
         private val closed = atomic(false)
-        private val subscribed = atomic(false)
         private val subscription = atomic<Flow.Subscription?>(null)
 
         override fun onSubscribe(s: Flow.Subscription) {
             try {
-                if (!subscribed.compareAndSet(expect = false, update = true)) {
+                if (!subscription.compareAndSet(null, s)) {
+                    s.cancel()
+                    return
+                }
+
+                // check whether the stream is already closed.
+                // if so, we should cancel the subscription
+                // immediately.
+                if (closed.value) {
                     s.cancel()
                 } else {
-                    // check whether the stream is already closed.
-                    // if so, we should cancel the subscription
-                    // immediately.
-                    var closed: Boolean
-                    synchronized(this) {
-                        closed = this.closed.value
-                        if (!closed) {
-                            subscription.value = s
-                        }
-                    }
-                    if (closed) {
-                        s.cancel()
-                        return
-                    }
                     s.request(1)
                 }
             } catch (cause: Throwable) {
@@ -91,7 +83,7 @@ internal class JavaHttpResponseBodyHandler(
             runBlocking {
                 try {
                     items.forEach { buffer ->
-                        channel.writeFully(buffer)
+                        responseChannel.writeFully(buffer)
                     }
                 } catch (cause: Throwable) {
                     close(cause)
@@ -107,8 +99,7 @@ internal class JavaHttpResponseBodyHandler(
 
         override fun onComplete() {
             subscription.getAndSet(null)
-            channel.close()
-            consumerJob.complete()
+            responseChannel.close()
         }
 
         override fun getBody(): CompletionStage<HttpResponseData> {
@@ -124,7 +115,7 @@ internal class JavaHttpResponseBodyHandler(
                 subscription.getAndSet(null)?.cancel()
             } finally {
                 consumerJob.completeExceptionally(cause)
-                channel.close(cause)
+                responseChannel.cancel(cause)
             }
         }
     }
