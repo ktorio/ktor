@@ -1,3 +1,9 @@
+# 1.4.2 
+
+> Published 10 Nov 2020
+
+Please see [Change Log on Ktor site](https://ktor.io/changelog/#version-1-4-2)
+
 # 1.4.1
 > Published 23 Sep 2020
 
