@@ -44,12 +44,10 @@ internal suspend fun HttpClient.executeWebSocketRequest(
     val webSocket = JavaHttpWebSocket(coroutineContext, this, requestData)
     try {
         return webSocket.getResponse()
-    } catch (e: HttpConnectTimeoutException) {
-        throw ConnectTimeoutException(requestData, e)
-    } catch (e: HttpTimeoutException) {
-        throw SocketTimeoutException(requestData, e)
-    } catch (e: Exception) {
-        throw e
+    } catch (cause: HttpConnectTimeoutException) {
+        throw ConnectTimeoutException(requestData, cause)
+    } catch (cause: HttpTimeoutException) {
+        throw SocketTimeoutException(requestData, cause)
     }
 }
 
@@ -115,7 +113,7 @@ internal class JavaHttpWebSocket(
         GlobalScope.launch(callContext, start = CoroutineStart.ATOMIC) {
             try {
                 socketJob[Job]!!.join()
-            } catch (e: Exception) {
+            } catch (cause: Exception) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.toInt()
                 webSocket.sendClose(code, "Client failed")
             } finally {

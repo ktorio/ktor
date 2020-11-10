@@ -76,13 +76,13 @@ internal class JavaHttpResponseBodyHandler(
                     }
                     s.request(1)
                 }
-            } catch (t: Throwable) {
+            } catch (cause: Throwable) {
                 try {
-                    close(t)
-                } catch (e: IOException) {
+                    close(cause)
+                } catch (ignored: IOException) {
                     // OK
                 } finally {
-                    onError(t)
+                    onError(cause)
                 }
             }
         }
@@ -93,16 +93,16 @@ internal class JavaHttpResponseBodyHandler(
                     items.forEach { buffer ->
                         channel.writeFully(buffer)
                     }
-                } catch (e: Throwable) {
-                    close(e)
+                } catch (cause: Throwable) {
+                    close(cause)
                 }
 
                 subscription.value?.request(1)
             }
         }
 
-        override fun onError(throwable: Throwable) {
-            close(throwable)
+        override fun onError(cause: Throwable) {
+            close(cause)
         }
 
         override fun onComplete() {
@@ -115,7 +115,7 @@ internal class JavaHttpResponseBodyHandler(
             return CompletableFuture.completedStage(httpResponse)
         }
 
-        private fun close(throwable: Throwable) {
+        private fun close(cause: Throwable) {
             if (!closed.compareAndSet(expect = false, update = true)) {
                 return
             }
@@ -123,8 +123,8 @@ internal class JavaHttpResponseBodyHandler(
             try {
                 subscription.getAndSet(null)?.cancel()
             } finally {
-                consumerJob.completeExceptionally(throwable)
-                channel.close(throwable)
+                consumerJob.completeExceptionally(cause)
+                channel.close(cause)
             }
         }
     }

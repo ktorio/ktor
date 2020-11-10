@@ -17,11 +17,9 @@ internal suspend fun HttpClient.executeHttpRequest(
     val httpRequest = requestData.convertToHttpRequest(callContext)
     return try {
         sendAsync(httpRequest, JavaHttpResponseBodyHandler(callContext)).await().body()
-    } catch (e: HttpConnectTimeoutException) {
-        throw ConnectTimeoutException(requestData, e)
-    } catch (e: HttpTimeoutException) {
-        throw SocketTimeoutException(requestData, e)
-    } catch (e: Exception) {
-        throw e
+    } catch (cause: HttpConnectTimeoutException) {
+        throw ConnectTimeoutException(requestData, cause)
+    } catch (cause: HttpTimeoutException) {
+        throw SocketTimeoutException(requestData, cause)
     }
 }

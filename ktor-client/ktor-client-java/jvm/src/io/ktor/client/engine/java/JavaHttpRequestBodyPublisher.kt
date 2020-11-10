@@ -36,11 +36,11 @@ internal class JavaHttpRequestBodyPublisher(
                 coroutineContext, getChannel(), subscriber
             )
             synchronized(subscription) { subscriber.onSubscribe(subscription) }
-        } catch (e: Exception) {
+        } catch (cause: Exception) {
             // subscribe() must return normally, so we need to signal the
             // failure to open via onError() once onSubscribe() is signaled.
             subscriber.onSubscribe(NullSubscription())
-            subscriber.onError(e)
+            subscriber.onError(cause)
         }
     }
 
@@ -60,11 +60,11 @@ internal class JavaHttpRequestBodyPublisher(
                 return
             }
             if (n < 1) {
-                val ex = IllegalArgumentException(
+                val cause = IllegalArgumentException(
                     "$subscriber violated the Reactive Streams rule 3.9 by requesting "
                         + "a non-positive number of elements."
                 )
-                signalOnError(ex)
+                signalOnError(cause)
             } else {
                 try {
                     // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as
@@ -82,8 +82,8 @@ internal class JavaHttpRequestBodyPublisher(
                             readData()
                         }
                     }
-                } catch (e: Exception) {
-                    signalOnError(e)
+                } catch (cause: Exception) {
+                    signalOnError(cause)
                 }
             }
         }
@@ -108,8 +108,8 @@ internal class JavaHttpRequestBodyPublisher(
                     val buffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
                     val result = try {
                         inputChannel.readAvailable(buffer)
-                    } catch (e: Throwable) {
-                        signalOnError(e)
+                    } catch (cause: Throwable) {
+                        signalOnError(cause)
                         closeChannel()
                         return@launch
                     }
@@ -136,8 +136,8 @@ internal class JavaHttpRequestBodyPublisher(
         private fun closeChannel() {
             try {
                 inputChannel.cancel()
-            } catch (e: Exception) {
-                signalOnError(e)
+            } catch (cause: Exception) {
+                signalOnError(cause)
             }
         }
 
@@ -158,10 +158,10 @@ internal class JavaHttpRequestBodyPublisher(
             }
         }
 
-        private fun signalOnError(t: Throwable) {
+        private fun signalOnError(cause: Throwable) {
             synchronized(this) {
                 if (!done) {
-                    subscriber.onError(t)
+                    subscriber.onError(cause)
                     done = true
                 }
             }
