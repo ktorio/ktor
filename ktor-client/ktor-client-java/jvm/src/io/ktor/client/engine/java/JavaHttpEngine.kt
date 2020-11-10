@@ -7,8 +7,8 @@ package io.ktor.client.engine.java
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import java.io.*
 import java.net.*
@@ -18,14 +18,25 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 
 @InternalAPI
-@Suppress("KDocMissingDocumentation")
 public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEngineBase("ktor-java") {
 
+    private val executorThreadCounter = atomic(0L)
+
+    /**
+     * Exposed for tests only.
+     */
+    internal val executor by lazy {
+        Executors.newFixedThreadPool(config.threadsCount) {
+            val number = executorThreadCounter.getAndIncrement()
+            Thread(it, "ktor-client-java-$number").apply {
+                isDaemon = true
+                setUncaughtExceptionHandler { _, _ -> }
+            }
+        }
+    }
+
     public override val dispatcher: CoroutineDispatcher by lazy {
-        Dispatchers.clientDispatcher(
-            config.threadsCount,
-            "ktor-java-dispatcher"
-        )
+        executor.asCoroutineDispatcher()
     }
 
     public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
@@ -35,16 +46,6 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     private val requestsJob = SilentSupervisor(super.coroutineContext[Job])
 
     private var httpClient: HttpClient? = null
-
-    /**
-     * Exposed for tests only.
-     */
-    internal val executor = Executors.newCachedThreadPool {
-        Thread(it, "ktor-client-java").apply {
-            isDaemon = true
-            setUncaughtExceptionHandler { _, _ -> }
-        }
-    }
 
     init {
         coroutineContext = super.coroutineContext + requestsJob + CoroutineName("java-engine")
