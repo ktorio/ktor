@@ -20,8 +20,15 @@ import kotlin.coroutines.*
 internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
         setOf(
-            "connection", "content-length",
-            "date", "expect", "from", "host", "upgrade", "via", "warning"
+            HttpHeaders.Connection,
+            HttpHeaders.ContentLength,
+            HttpHeaders.Date,
+            HttpHeaders.Expect,
+            HttpHeaders.From,
+            HttpHeaders.Host,
+            HttpHeaders.Upgrade,
+            HttpHeaders.Via,
+            HttpHeaders.Warning
         )
     )
 }

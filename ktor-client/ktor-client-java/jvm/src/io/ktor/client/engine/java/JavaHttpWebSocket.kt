@@ -9,6 +9,7 @@ import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
 import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
 import io.ktor.util.date.*
@@ -28,11 +29,11 @@ import kotlin.text.toByteArray
 private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
         setOf(
-            "Sec-WebSocket-Accept",
-            "Sec-WebSocket-Extensions",
-            "Sec-WebSocket-Key",
-            "Sec-WebSocket-Protocol",
-            "Sec-WebSocket-Version"
+            HttpHeaders.SecWebSocketAccept,
+            HttpHeaders.SecWebSocketExtensions,
+            HttpHeaders.SecWebSocketKey,
+            HttpHeaders.SecWebSocketProtocol,
+            HttpHeaders.SecWebSocketVersion
         )
     )
 }
