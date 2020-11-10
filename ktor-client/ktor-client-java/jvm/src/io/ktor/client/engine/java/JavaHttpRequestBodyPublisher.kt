@@ -48,56 +48,50 @@ internal class JavaHttpRequestBodyPublisher(
         private val inputChannel: ByteReadChannel,
         private val subscriber: Flow.Subscriber<in ByteBuffer>
     ) : Flow.Subscription, CoroutineScope {
-        private val outstandingDemand = atomic(0L)
-        private var writeInProgress = false
 
-        @Volatile
-        private var done = false
+        private val outstandingDemand = atomic(0L)
+        private val writeInProgress = atomic(false)
+        private val done = atomic(false)
 
         override fun request(n: Long) {
-            if (done) {
-                return
-            }
+            if (done.value) return
+
             if (n < 1) {
                 val cause = IllegalArgumentException(
                     "$subscriber violated the Reactive Streams rule 3.9 by requesting "
                         + "a non-positive number of elements."
                 )
                 signalOnError(cause)
-            } else {
-                try {
-                    // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as
-                    // "effectively unbounded"
-                    outstandingDemand.getAndUpdate { initialDemand: Long ->
-                        if (Long.MAX_VALUE - initialDemand < n) {
-                            Long.MAX_VALUE
-                        } else {
-                            initialDemand + n
-                        }
+                return
+            }
+
+            try {
+                // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as
+                // "effectively unbounded"
+                outstandingDemand.getAndUpdate { initialDemand: Long ->
+                    if (Long.MAX_VALUE - initialDemand < n) {
+                        Long.MAX_VALUE
+                    } else {
+                        initialDemand + n
                     }
-                    synchronized(this) {
-                        if (!writeInProgress) {
-                            writeInProgress = true
-                            readData()
-                        }
-                    }
-                } catch (cause: Exception) {
-                    signalOnError(cause)
                 }
+
+                if (writeInProgress.compareAndSet(expect = false, update = true)) {
+                    readData()
+                }
+            } catch (cause: Exception) {
+                signalOnError(cause)
             }
         }
 
         override fun cancel() {
-            synchronized(this) {
-                if (!done) {
-                    done = true
-                    closeChannel()
-                }
+            if (done.compareAndSet(expect = false, update = true)) {
+                closeChannel()
             }
         }
 
         private fun readData() {
-            // It's possible to have another request for data come in after we've closed the file.
+            // It's possible to have another request for data come in after we've closed the channel.
             if (inputChannel.isClosedForRead) {
                 return
             }
@@ -118,16 +112,12 @@ internal class JavaHttpRequestBodyPublisher(
                         signalOnNext(buffer)
                     }
                     // If we have more permits, queue up another read.
-                } while (outstandingDemand.decrementAndGet() > 0)
+                } while (writeInProgress.updateAndGet { outstandingDemand.decrementAndGet() > 0 })
 
                 if (inputChannel.isClosedForRead) {
                     // Reached the end of the channel, notify the subscriber and cleanup
                     signalOnComplete()
                     closeChannel()
-                }
-
-                synchronized(this) {
-                    writeInProgress = false
                 }
             }
         }
@@ -140,29 +130,21 @@ internal class JavaHttpRequestBodyPublisher(
             }
         }
 
-        private fun signalOnNext(bb: ByteBuffer) {
-            synchronized(this) {
-                if (!done) {
-                    subscriber.onNext(bb)
-                }
+        private fun signalOnNext(buffer: ByteBuffer) {
+            if (!done.value) {
+                subscriber.onNext(buffer)
             }
         }
 
         private fun signalOnComplete() {
-            synchronized(this) {
-                if (!done) {
-                    subscriber.onComplete()
-                    done = true
-                }
+            if (done.compareAndSet(expect = false, update = true)) {
+                subscriber.onComplete()
             }
         }
 
         private fun signalOnError(cause: Throwable) {
-            synchronized(this) {
-                if (!done) {
-                    subscriber.onError(cause)
-                    done = true
-                }
+            if (done.compareAndSet(expect = false, update = true)) {
+                subscriber.onError(cause)
             }
         }
     }
