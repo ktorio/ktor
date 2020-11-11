@@ -61,13 +61,30 @@ internal fun HttpRequest.isValid(): Boolean {
     }
 
     val encodings = headers().getAll(io.ktor.http.HttpHeaders.TransferEncoding) ?: return true
+    if (!encodings.hasValidTransferEncoding()) {
+        return false
+    }
 
-    encodings.forEachIndexed { index, header ->
+    return true
+}
+
+internal fun List<String>.hasValidTransferEncoding(): Boolean {
+    forEachIndexed { headerIndex, header ->
         val chunkedStart = header.indexOf(CHUNKED_VALUE)
-
         if (chunkedStart == -1) return@forEachIndexed
 
-        if (index + 1 != encodings.size) return false
+        if (chunkedStart > 0 && !header[chunkedStart - 1].isSeparator()) {
+            return@forEachIndexed
+        }
+
+        val afterChunked: Int = chunkedStart + CHUNKED_VALUE.length
+        if (afterChunked < header.length && !header[afterChunked].isSeparator()) {
+                return@forEachIndexed
+        }
+
+        if (headerIndex + 1 != size) {
+            return false
+        }
 
         val chunkedIsNotLast = chunkedStart + CHUNKED_VALUE.length < header.length
         if (chunkedIsNotLast) {
@@ -77,3 +94,6 @@ internal fun HttpRequest.isValid(): Boolean {
 
     return true
 }
+
+private fun Char.isSeparator(): Boolean =
+    (this == ' ' || this == ',')
