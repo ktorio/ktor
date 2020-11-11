@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class HttpClientFreezingTest : ClientLoader() {
@@ -18,6 +19,18 @@ class HttpClientFreezingTest : ClientLoader() {
             client.makeShared()
             val response = client.get<String>("$TEST_SERVER/content/hello")
             assertEquals("hello", response)
+        }
+    }
+
+    @Test
+    fun testRequestWithDefaultDispatcher() = clientTests {
+        test { client ->
+            withContext(Dispatchers.Default) {
+                val response = client.post<String>("$TEST_SERVER/echo") {
+                    body = "hello"
+                }
+                assertEquals("hello", response)
+            }
         }
     }
 }
