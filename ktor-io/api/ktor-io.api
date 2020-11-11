@@ -56,6 +56,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun isClosedForRead ()Z
 	public fun isClosedForWrite ()Z
 	public final fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun prepareFlushedBytes ()V
 	public fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun readAvailableClosed ()I

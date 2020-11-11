@@ -252,7 +252,6 @@ public actual interface ByteReadChannel {
         max: Long
     ): Long
 
-    @ExperimentalIoApi
     public suspend fun awaitContent()
 
     public actual companion object {

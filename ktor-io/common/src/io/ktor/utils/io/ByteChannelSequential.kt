@@ -116,7 +116,7 @@ public abstract class ByteChannelSequentialBase(
      *
      * This method is reader-only safe.
      */
-    private fun prepareFlushedBytes() {
+    protected fun prepareFlushedBytes() {
         synchronized(flushMutex) {
             readable.unsafeAppend(flushBuffer)
         }

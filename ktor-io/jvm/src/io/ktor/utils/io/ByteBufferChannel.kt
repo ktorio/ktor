@@ -2313,7 +2313,6 @@ internal open class ByteBufferChannel(
         )
     }
 
-    @ExperimentalIoApi
     override suspend fun awaitContent() {
         readSuspend(1)
     }

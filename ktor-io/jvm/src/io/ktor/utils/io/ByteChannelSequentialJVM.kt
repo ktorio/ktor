@@ -89,8 +89,10 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
         }
 
         if (availableForRead < min) {
-            return 0
+            return -1
         }
+
+        prepareFlushedBytes()
 
         var result = 0
         readable.readDirect(min) {
