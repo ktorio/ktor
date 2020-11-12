@@ -123,7 +123,14 @@ internal class NettyHttp2Handler(
         child.setId(promisedStreamId)
 
         val promise = rootContext.newPromise()
-        codec.encoder().writePushPromise(rootContext, streamId, promisedStreamId, headers, 0, promise)
+        val childStream = connection.local().createStream(promisedStreamId, false)
+        if (!child.stream().setStreamAndProperty(codec, childStream)) {
+            childStream.close()
+            child.close()
+            return
+        }
+
+        codec.encoder().frameWriter().writePushPromise(rootContext, streamId, promisedStreamId, headers, 0, promise)
         if (promise.isSuccess) {
             startHttp2(child.pipeline().firstContext(), headers)
         } else {
@@ -138,6 +145,31 @@ internal class NettyHttp2Handler(
     private fun Http2StreamChannel.setId(streamId: Int) {
         val stream = stream()!!
         stream.idField.setInt(stream, streamId)
+    }
+
+    private val streamKeyField: Field? by lazy {
+        try {
+            Http2FrameCodec::class.javaObjectType.getDeclaredField("streamKey")
+                .also { it.isAccessible = true }
+        } catch (cause: Throwable) {
+            null
+        }
+    }
+
+    private fun Http2FrameStream.setStreamAndProperty(codec: Http2FrameCodec, childStream: Http2Stream): Boolean {
+        val streamKey = streamKeyField?.get(codec) as? Http2Connection.PropertyKey ?: return false
+
+        val function = javaClass.declaredMethods
+            .firstOrNull { it.name == "setStreamAndProperty" }
+            ?.also { it.isAccessible = true } ?: return false
+
+        try {
+            function.invoke(this, streamKey, childStream)
+        } catch (cause: Throwable) {
+            return false
+        }
+
+        return true
     }
 
     private val Http2FrameStream.idField: Field

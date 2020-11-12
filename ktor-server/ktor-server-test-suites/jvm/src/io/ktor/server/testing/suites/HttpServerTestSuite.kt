@@ -565,6 +565,16 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
                 call.respondText("test")
             }
         }
+
+        withUrl("/child") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("child", readText())
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("test", readText())
+        }
     }
 
     @Test
