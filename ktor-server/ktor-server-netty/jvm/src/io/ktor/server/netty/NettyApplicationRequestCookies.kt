@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -13,8 +13,7 @@ internal class NettyApplicationRequestCookies(request: ApplicationRequest) : Req
         val cookieHeaders = request.headers.getAll("Cookie") ?: return emptyMap()
         val map = HashMap<String, String>(cookieHeaders.size)
         for (cookieHeader in cookieHeaders) {
-            val cookies = ServerCookieDecoder.LAX.decode(cookieHeader).associateBy({ it.name() }, { it.value() })
-            map.putAll(cookies)
+            ServerCookieDecoder.LAX.decode(cookieHeader).associateByTo(map, { it.name() }, { it.value() })
         }
         return map
     }

@@ -78,7 +78,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
     }
 
     @Test
-    public fun testHeadRequest() {
+    public open fun testHeadRequest() {
         createAndStartServer {
             install(AutoHeadResponse)
             handle {
