@@ -18,7 +18,7 @@ import kotlin.coroutines.*
 internal class NettyApplicationCallHandler(
     userCoroutineContext: CoroutineContext,
     private val enginePipeline: EnginePipeline,
-    private val logger: Logger
+    logger: Logger
 ) : ChannelInboundHandlerAdapter(), CoroutineScope {
     override val coroutineContext: CoroutineContext = userCoroutineContext +
         CallHandlerCoroutineName +
