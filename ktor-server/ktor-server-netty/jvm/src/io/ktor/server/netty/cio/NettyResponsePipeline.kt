@@ -203,6 +203,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
         if (responseMessage is FullHttpResponse) {
             return finishCall(call, null, requestMessageFuture)
+        } else if (responseMessage is Http2HeadersFrame && responseMessage.isEndStream) {
+            return finishCall(call, null, requestMessageFuture)
         }
 
         val responseChannel = response.responseChannel
