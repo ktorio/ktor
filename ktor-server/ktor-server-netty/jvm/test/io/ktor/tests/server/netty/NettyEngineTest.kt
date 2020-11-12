@@ -47,10 +47,6 @@ class NettyHttp2ServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyAp
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
     }
-
-    @Ignore
-    override fun testHeadRequest() {
-    }
 }
 
 class NettySustainabilityTest :
