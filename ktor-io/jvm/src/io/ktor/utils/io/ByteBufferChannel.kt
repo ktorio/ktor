@@ -601,6 +601,45 @@ internal open class ByteBufferChannel(
         }
     }
 
+    override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
+        require(min > 0) { "min should be positive" }
+        require(min <= BYTE_BUFFER_CAPACITY) { "Min($min) shouldn't be greater than $BYTE_BUFFER_CAPACITY" }
+
+        var result = 0
+        val read = reading { state ->
+            val locked = state.tryReadAtLeast(min)
+
+            if (locked > 0 && locked >= min) {
+                // here we have locked all available for read bytes
+                // however we don't know how many bytes will be actually read
+                // so later we have to return (locked - actuallyRead) bytes back
+
+                // it is important to lock bytes to fail concurrent tryLockForRelease
+                // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
+
+                val position = position()
+                val limit = limit()
+                block(this)
+                if (limit != limit()) throw IllegalStateException("buffer limit modified")
+
+                result = position() - position
+                if (result < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
+
+                bytesRead(state, result)
+
+                if (result < locked) {
+                    state.completeWrite(locked - result) // return back extra bytes (see note above)
+                    // we use completeWrite in spite of that it is read block
+                    // we don't need to resume read as we are already in read block
+                }
+                true
+            } else false
+        }
+
+        if (!read) return -1
+        return result
+    }
+
     override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         val consumed = readAsMuchAsPossible(dst, offset, length)
 
@@ -2272,6 +2311,10 @@ internal open class ByteBufferChannel(
         WriteOp.getAndSet(this, null)?.resumeWithException(
             cause ?: ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE)
         )
+    }
+
+    override suspend fun awaitContent() {
+        readSuspend(1)
     }
 
     private suspend fun readSuspend(size: Int): Boolean {
