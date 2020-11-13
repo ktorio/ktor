@@ -1,9 +1,9 @@
 package io.ktor.utils.io
 
-import io.ktor.utils.io.internal.*
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.internal.*
 import java.nio.*
 
 /**
@@ -43,6 +43,22 @@ public actual interface ByteReadChannel {
      */
     @Deprecated("Don't use byte count")
     public actual val totalBytesRead: Long
+
+    /**
+     * Invokes [block] if it is possible to read at least [min] byte
+     * providing byte buffer to it so lambda can read from the buffer
+     * up to [ByteBuffer.available] bytes. If there are no [min] bytes available then the invocation returns 0.
+     *
+     * Warning: it is not guaranteed that all of available bytes will be represented as a single byte buffer
+     * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
+     * in this case you have to invoke read again (with decreased [min] accordingly).
+     *
+     * @param min amount of bytes available for read, should be positive
+     * @param block to be invoked when at least [min] bytes available
+     *
+     * @return number of consumed bytes or -1 if the block wasn't executed.
+     */
+    public fun readAvailable(min: Int = 1, block: (ByteBuffer) -> Unit): Int
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
@@ -235,6 +251,8 @@ public actual interface ByteReadChannel {
         min: Long,
         max: Long
     ): Long
+
+    public suspend fun awaitContent()
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy { ByteChannel().apply { close() } }
