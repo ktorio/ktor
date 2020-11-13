@@ -80,22 +80,22 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             }
         }
 
-        connection.timeoutAwareConnect(data)
+        return connection.timeoutAwareConnection(data) { connection ->
+            val responseCode = connection.responseCode
+            val responseMessage = connection.responseMessage
+            val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) }
+                ?: HttpStatusCode.fromValue(responseCode)
 
-        val responseCode = connection.responseCode
-        val responseMessage = connection.responseMessage
-        val statusCode = responseMessage?.let { HttpStatusCode(responseCode, it) }
-            ?: HttpStatusCode.fromValue(responseCode)
+            val content: ByteReadChannel = connection.content(callContext, data)
+            val headerFields: Map<String, List<String>> = connection.headerFields
+                .mapKeys { it.key?.toLowerCase() ?: "" }
+                .filter { it.key.isNotBlank() }
 
-        val content: ByteReadChannel = connection.content(callContext, data)
-        val headerFields: Map<String, List<String>> = connection.headerFields
-            .mapKeys { it.key?.toLowerCase() ?: "" }
-            .filter { it.key.isNotBlank() }
+            val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
+            val responseHeaders = HeadersImpl(headerFields)
 
-        val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
-        val responseHeaders = HeadersImpl(headerFields)
-
-        return HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
+            HttpResponseData(statusCode, requestTime, responseHeaders, version, content, callContext)
+        }
     }
 
     private fun getProxyAwareConnection(urlString: String): HttpURLConnection {
