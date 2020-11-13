@@ -45,7 +45,7 @@ internal class ApacheResponseConsumer(
     override fun consumeContent(decoder: ContentDecoder, ioctrl: IOControl) {
         check(!waiting.value)
 
-        var result: Int = 0
+        var result: Int
         do {
             result = 0
             channel.writeAvailable {
