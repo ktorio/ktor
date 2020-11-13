@@ -75,4 +75,35 @@ class ByteBufferChannelTest {
         job1.await()
         job2.await()
     }
+
+    @Test
+    fun testReadAvailable() = runBlocking {
+        val channel = ByteBufferChannel(true)
+        channel.writeFully(byteArrayOf(1, 2))
+
+        val read1 = channel.readAvailable(4) { it.position(it.position() + 4) }
+        assertEquals(-1, read1)
+
+        channel.writeFully(byteArrayOf(3, 4))
+        val read2 = channel.readAvailable(4) { it.position(it.position() + 4) }
+        assertEquals(4, read2)
+    }
+
+    @Test
+    fun testAwaitContent() = runBlocking {
+        val channel = ByteBufferChannel(true)
+
+        var awaitingContent = false
+        launch {
+            awaitingContent = true
+            channel.awaitContent()
+            awaitingContent = false
+        }
+
+        yield()
+        assertTrue(awaitingContent)
+        channel.writeByte(1)
+        yield()
+        assertFalse(awaitingContent)
+    }
 }
