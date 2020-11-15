@@ -42,9 +42,6 @@ def skipMingwProjects = [
 def host = getHostName()
 def skipMingw = skipMingwProjects.contains(project.name)
 
-project.ext.nativeTargets = []
-project.ext.nativeCompilations = []
-
 if (host == 'windows' && skipMingw) return
 
 kotlin {

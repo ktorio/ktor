@@ -11,8 +11,12 @@ if (project.name in project.ext.jdk8Modules) {
 apply plugin: "kotlinx-atomicfu"
 
 kotlin {
-    targets {
-        fromPreset(presets.jvm, 'jvm')
+    jvm {
+        if (rootProject.ext.jvm_ir_enabled) {
+            compilations.all {
+                kotlinOptions.useIR = true
+            }
+        }
     }
 
     task jarTest(type: Jar, dependsOn: jvmTestClasses) {
