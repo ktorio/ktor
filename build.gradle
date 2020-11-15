@@ -29,8 +29,9 @@ buildscript {
             }
         }
     }
-    // These two flags are enabled in train builds for JVM IR compiler testing
+    // These three flags are enabled in train builds for JVM IR compiler testing
     ext.jvm_ir_enabled = rootProject.properties['enable_jvm_ir'] != null
+    ext.jvm_ir_api_check_enabled = rootProject.properties['enable_jvm_ir_api_check'] != null
     // This flag is also used in settings.gradle to exclude native-only projects
     ext.native_targets_enabled = rootProject.properties['disable_native_targets'] == null
 
@@ -298,4 +299,15 @@ afterEvaluate {
 
 if (project.hasProperty("enable-coverage")) {
     apply from: "gradle/jacoco.gradle"
+}
+
+// Disable binary compatibility check for JVM IR compiler output by default
+if (jvm_ir_enabled) {
+    subprojects { project ->
+        afterEvaluate {
+            configure(tasks.matching { it.name == "apiCheck" }) {
+                enabled = enabled && jvm_ir_api_check_enabled
+            }
+        }
+    }
 }
