@@ -109,10 +109,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 throw cause
             }
 
-            val requestBody = if (expectedHttpBody || expectedHttpUpgrade)
+            val requestBody = if (expectedHttpBody || expectedHttpUpgrade) {
                 ByteChannel(true)
-            else
+            } else {
                 ByteReadChannel.Empty
+            }
 
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
@@ -155,7 +156,9 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     )
                 } catch (cause: Throwable) {
                     requestBody.close(cause)
-                    throw cause
+                    response.writePacket(BadRequestPacket.copy())
+                    response.close()
+                    break
                 } finally {
                     requestBody.close()
                 }
