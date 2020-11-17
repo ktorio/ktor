@@ -139,6 +139,7 @@ internal fun String.encodeURLParameterValue(
     content.forEach {
         when {
             it in URL_ALPHABET || it in OAUTH_SYMBOLS || it == '='.toByte() -> append(it.toChar())
+            it == ' '.toByte() -> append('+')
             else -> append(it.percentEncode())
         }
     }
