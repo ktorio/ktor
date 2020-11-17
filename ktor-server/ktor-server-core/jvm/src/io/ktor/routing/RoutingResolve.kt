@@ -5,6 +5,7 @@
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 
@@ -50,9 +51,18 @@ public class RoutingResolveContext(
     /**
      * List of path segments parsed out of a [call]
      */
-    public val segments: List<String> = parse(call.request.path())
+    public val segments: List<String>
 
-    private val trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
+    private val trace: RoutingResolveTrace?
+
+    init {
+        try {
+            segments = parse(call.request.path())
+            trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, segments)
+        } catch (cause: URLDecodeException) {
+            throw BadRequestException("Url decode failed for ${call.request.uri}", cause)
+        }
+    }
 
     private fun parse(path: String): List<String> {
         if (path.isEmpty() || path == "/") return listOf()

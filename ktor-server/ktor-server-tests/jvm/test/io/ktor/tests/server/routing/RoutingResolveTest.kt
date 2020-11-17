@@ -4,6 +4,7 @@
 
 package io.ktor.tests.server.routing
 
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -35,6 +36,14 @@ class RoutingResolveTest {
         val result = resolve(root, "/foo/bar")
         assertTrue(result is RoutingResolveResult.Failure)
         assertEquals(root, result.route)
+    }
+
+    @Test
+    fun testMalformedPath() {
+        val root = routing()
+        assertFailsWith<BadRequestException>("Url decode failed for /%uff0") {
+            resolve(root, "/%uff0")
+        }
     }
 
     @Test
