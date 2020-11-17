@@ -82,7 +82,7 @@ internal fun List<String>.hasValidTransferEncoding(): Boolean {
                 return@forEachIndexed
         }
 
-        if (headerIndex + 1 != size) {
+        if (headerIndex != lastIndex) {
             return false
         }
 
