@@ -29,6 +29,11 @@ buildscript {
             }
         }
     }
+    // These three flags are enabled in train builds for JVM IR compiler testing
+    ext.jvm_ir_enabled = rootProject.properties['enable_jvm_ir'] != null
+    ext.jvm_ir_api_check_enabled = rootProject.properties['enable_jvm_ir_api_check'] != null
+    // This flag is also used in settings.gradle to exclude native-only projects
+    ext.native_targets_enabled = rootProject.properties['disable_native_targets'] == null
 
     repositories {
         mavenLocal()
@@ -75,7 +80,12 @@ apply from: 'gradle/verifier.gradle'
  * `darwin` is subset of `posix`.
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
-def platforms = ["common", "jvm", "js", "posix", "darwin"]
+def platforms = ["common", "jvm", "js"]
+
+if (native_targets_enabled) {
+    platforms += ["posix", "darwin"]
+}
+
 ext.skipPublish = ["ktor-server-benchmarks", "ktor-client-benchmarks"]
 ext.nonDefaultProjectStructure = ["ktor-bom"]
 
@@ -164,6 +174,9 @@ allprojects {
     apply plugin: "kotlin-multiplatform"
 
     apply from: rootProject.file("gradle/utility.gradle")
+
+    project.ext.nativeTargets = []
+    project.ext.nativeCompilations = []
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
             configure([it]) {
@@ -286,4 +299,15 @@ afterEvaluate {
 
 if (project.hasProperty("enable-coverage")) {
     apply from: "gradle/jacoco.gradle"
+}
+
+// Disable binary compatibility check for JVM IR compiler output by default
+if (jvm_ir_enabled) {
+    subprojects { project ->
+        afterEvaluate {
+            configure(tasks.matching { it.name == "apiCheck" }) {
+                enabled = enabled && jvm_ir_api_check_enabled
+            }
+        }
+    }
 }

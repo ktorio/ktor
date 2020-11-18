@@ -6,14 +6,19 @@ apiValidation {
         'ktor-client-tests',
         'ktor-client-js',
         'ktor-client-json-tests',
-        'ktor-client-curl',
-        'ktor-client-ios',
         'ktor-client',
         'ktor-client-features',
         'ktor-client-benchmarks',
         'ktor-server-benchmarks',
         'ktor-server-test-suites',
     ].toSet()
+
+    if (rootProject.ext.native_targets_enabled) {
+        excludeList += [
+            'ktor-client-curl',
+            'ktor-client-ios',
+        ]
+    }
 
     def projects = [].toSet()
     def queue = [

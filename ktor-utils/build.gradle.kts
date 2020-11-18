@@ -25,7 +25,7 @@ kotlin {
         }
 
         // Hack: register the Native interop klibs as outputs of Kotlin source sets:
-        if (!ideaActive) {
+        if (!ideaActive && rootProject.ext.get("native_targets_enabled") as Boolean) {
             val utilsInterop by creating
             getByName("posixMain").dependsOn(utilsInterop)
             apply(from = "$rootDir/gradle/interop-as-source-set-klib.gradle")
