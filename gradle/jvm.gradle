@@ -1,12 +1,29 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 apply from: rootProject.file('gradle/jdk.gradle')
 
 def jdk = 6
 
-if (project.name in project.ext.jdk8Modules) {
+if (project.name in project.ext.jdk11Modules) {
+    jdk = 11
+} else if (project.name in project.ext.jdk8Modules) {
     jdk = 8
 } else if (project.name in project.ext.jdk7Modules) {
     jdk = 7
 }
+
+String lookupJdk(int startingFrom) {
+    return (startingFrom..20)
+        .collect { it < 10 ? "JDK_1_$it" : "JDK_$it" }
+        .collect { System.env[it.toString()] }
+        .find { it != null && new File(it).exists() }
+}
+
+def jdkHome = lookupJdk(jdk)
+
+int currentJdk = ext.currentJdk
 
 apply plugin: "kotlinx-atomicfu"
 
@@ -30,16 +47,8 @@ kotlin {
                 def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
                 if (!compileTask.name.endsWith("Jvm")) return
 
-                switch (jdk) {
-                    case 8:
-                        compileTask.kotlinOptions.jdkHome = System.env.JDK_18
-                        break
-                    case 7:
-                        compileTask.kotlinOptions.jdkHome = System.env.JDK_17 ?: System.env.JDK_18
-                        break
-                    default:
-                        compileTask.kotlinOptions.jdkHome = System.env.JDK_16 ?: System.env.JDK_17 ?: System.env.JDK_18
-                        break
+                if (jdkHome != null) {
+                    compileTask.kotlinOptions.jdkHome = jdkHome
                 }
             }
         }
