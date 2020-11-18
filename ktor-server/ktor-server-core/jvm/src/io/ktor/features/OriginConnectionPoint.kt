@@ -81,8 +81,12 @@ internal class OriginConnectionPoint(
  * `X-Forwarded-*` headers support
  * See http://ktor.io/servers/features/forward-headers.html for details
  */
-public object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
-    XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
+public object XForwardedHeaderSupport :
+    ApplicationFeature<
+        ApplicationCallPipeline,
+        XForwardedHeaderSupport.Config,
+        XForwardedHeaderSupport.Config
+        > {
 
     override val key: AttributeKey<Config> = AttributeKey("XForwardedHeaderSupport")
 
@@ -146,7 +150,8 @@ public object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeli
         /**
          * Host name X-header names. Default are `X-Forwarded-Server` and `X-Forwarded-Host`
          */
-        public val hostHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
+        public val hostHeaders: ArrayList<String> =
+            arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
 
         /**
          * Protocol X-header names. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`

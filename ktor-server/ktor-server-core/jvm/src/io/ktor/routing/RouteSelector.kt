@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -68,12 +68,14 @@ public data class RouteSelectorEvaluation(
         /**
          * Route evaluation succeeded for a missing optional value
          */
-        public val Missing: RouteSelectorEvaluation = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
+        public val Missing: RouteSelectorEvaluation =
+            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
 
         /**
          * Route evaluation succeeded for a constant value
          */
-        public val Constant: RouteSelectorEvaluation = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
+        public val Constant: RouteSelectorEvaluation =
+            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
         /**
          * Route evaluation succeeded for a single path segment with a constant value
@@ -113,7 +115,8 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
         it.value
     }
     private val successEvaluationResult = RouteSelectorEvaluation(
-        true, RouteSelectorEvaluation.qualityConstant,
+        true,
+        RouteSelectorEvaluation.qualityConstant,
         segmentIncrement = parts.size
     )
 
@@ -149,8 +152,9 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
 public data class ConstantParameterRouteSelector(val name: String, val value: String) :
     RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.parameters.contains(name, value))
+        if (context.call.parameters.contains(name, value)) {
             return RouteSelectorEvaluation.Constant
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -165,12 +169,13 @@ public data class ParameterRouteSelector(val name: String) :
     RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
-        if (param != null)
+        if (param != null) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -185,12 +190,13 @@ public data class OptionalParameterRouteSelector(val name: String) :
     RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
-        if (param != null)
+        if (param != null) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
+        }
         return RouteSelectorEvaluation.Missing
     }
 
@@ -204,8 +210,9 @@ public data class OptionalParameterRouteSelector(val name: String) :
 public data class PathSegmentConstantRouteSelector(val value: String) :
     RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size && context.segments[segmentIndex] == value)
+        if (segmentIndex < context.segments.size && context.segments[segmentIndex] == value) {
             return RouteSelectorEvaluation.ConstantPath
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -267,8 +274,9 @@ public data class PathSegmentOptionalParameterRouteSelector(
  */
 public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityWildcard) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size)
+        if (segmentIndex < context.segments.size) {
             return RouteSelectorEvaluation.WildcardPath
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -296,17 +304,22 @@ public data class PathSegmentTailcardRouteSelector(val name: String = "", val pr
 
         val values = when {
             name.isEmpty() -> parametersOf()
-            else -> parametersOf(name, context.segments.drop(segmentIndex).mapIndexed { index, segment ->
-                if (index == 0) segment.drop(prefix.length)
-                else segment
-            })
+            else -> parametersOf(
+                name,
+                context.segments.drop(segmentIndex).mapIndexed { index, segment ->
+                    if (index == 0) segment.drop(prefix.length)
+                    else segment
+                }
+            )
         }
         val quality = when {
             segmentIndex < context.segments.size -> RouteSelectorEvaluation.qualityTailcard
             else -> RouteSelectorEvaluation.qualityMissing
         }
         return RouteSelectorEvaluation(
-            true, quality, values,
+            true,
+            quality,
+            values,
             segmentIncrement = context.segments.size - segmentIndex
         )
     }
@@ -323,10 +336,11 @@ public data class OrRouteSelector(val first: RouteSelector, val second: RouteSel
     RouteSelector(first.quality * second.quality) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
-        if (result.succeeded)
+        if (result.succeeded) {
             return result
-        else
+        } else {
             return second.evaluate(context, segmentIndex)
+        }
     }
 
     override fun toString(): String = "{$first | $second}"
@@ -341,11 +355,13 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
     RouteSelector(first.quality * second.quality) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
-        if (!result1.succeeded)
+        if (!result1.succeeded) {
             return result1
+        }
         val result2 = second.evaluate(context, segmentIndex + result1.segmentIncrement)
-        if (!result2.succeeded)
+        if (!result2.succeeded) {
             return result2
+        }
         val resultValues = result1.parameters + result2.parameters
         return RouteSelectorEvaluation(
             true,
@@ -365,8 +381,9 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
 public data class HttpMethodRouteSelector(val method: HttpMethod) :
     RouteSelector(RouteSelectorEvaluation.qualityParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.request.httpMethod == method)
+        if (context.call.request.httpMethod == method) {
             return RouteSelectorEvaluation.Constant
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -384,9 +401,9 @@ public data class HttpHeaderRouteSelector(val name: String, val value: String) :
         val headers = context.call.request.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
         val header = parsedHeaders.firstOrNull { it.value.equals(value, ignoreCase = true) }
-        if (header != null)
-            return RouteSelectorEvaluation(true, header.quality)
-        return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.Failed
+
+        return RouteSelectorEvaluation(true, header.quality)
     }
 
     override fun toString(): String = "(header:$name = $value)"
@@ -403,11 +420,15 @@ public data class HttpAcceptRouteSelector(val contentType: ContentType) :
         try {
             val parsedHeaders = parseAndSortContentTypeHeader(acceptHeaderContent)
 
-            if (parsedHeaders.isEmpty())
+            if (parsedHeaders.isEmpty()) {
                 return RouteSelectorEvaluation.Missing
+            }
+
             val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
-            if (header != null)
+            if (header != null) {
                 return RouteSelectorEvaluation(true, header.quality)
+            }
+
             return RouteSelectorEvaluation.Failed
         } catch (failedToParse: BadContentTypeFormatException) {
             throw BadRequestException("Illegal Accept header format: $acceptHeaderContent", failedToParse)

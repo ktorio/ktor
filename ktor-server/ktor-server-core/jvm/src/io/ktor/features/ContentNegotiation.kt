@@ -234,20 +234,24 @@ public fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQ
         compareByDescending<ContentTypeWithQuality> { it.quality }.thenBy {
             val contentType = it.contentType
             var asterisks = 0
-            if (contentType.contentType == "*")
+            if (contentType.contentType == "*") {
                 asterisks += 2
-            if (contentType.contentSubtype == "*")
+            }
+            if (contentType.contentSubtype == "*") {
                 asterisks++
+            }
             asterisks
-        }.thenByDescending { it.contentType.parameters.size })
+        }.thenByDescending { it.contentType.parameters.size }
+    )
 }
 
 private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
     @Suppress("LoopToCallChain")
     for (element in this) {
         val mapped = block(element)
-        if (mapped != null)
+        if (mapped != null) {
             return mapped
+        }
     }
     return null
 }

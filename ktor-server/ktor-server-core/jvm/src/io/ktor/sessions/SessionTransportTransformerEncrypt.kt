@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -33,7 +33,8 @@ import javax.crypto.spec.*
 public class SessionTransportTransformerEncrypt(
     public val encryptionKeySpec: SecretKeySpec,
     public val signKeySpec: SecretKeySpec,
-    public val ivGenerator: (size: Int) -> ByteArray = { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
+    public val ivGenerator: (size: Int) -> ByteArray =
+        { size -> ByteArray(size).apply { SecureRandom().nextBytes(this) } },
     public val encryptAlgorithm: String = encryptionKeySpec.algorithm,
     public val signAlgorithm: String = signKeySpec.algorithm
 ) : SessionTransportTransformer {

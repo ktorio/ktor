@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -51,10 +51,11 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
     private var routing: RoutingResolveTraceEntry? = null
 
     private fun register(entry: RoutingResolveTraceEntry) {
-        if (stack.empty())
+        if (stack.empty()) {
             routing = entry
-        else
+        } else {
             stack.peek().append(entry)
+        }
     }
 
     /**

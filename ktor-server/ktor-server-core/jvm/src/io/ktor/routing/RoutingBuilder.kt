@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -8,8 +8,8 @@ package io.ktor.routing
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
+import io.ktor.util.pipeline.*
 
 /**
  * Builds a route to match specified [path]

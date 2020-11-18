@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
@@ -30,8 +30,11 @@ public class JarFileContent(
 
     public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { !jarEntry.isDirectory }
 
-    public constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType)
-            : this(zipFilePath.toFile(), resourcePath, contentType)
+    public constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType) : this(
+        zipFilePath.toFile(),
+        resourcePath,
+        contentType
+    )
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -32,7 +32,9 @@ public sealed class RoutingResolveResult(public val route: Route) {
      * @param reason provides information on reason of a failure
      */
     public class Failure(route: Route, public val reason: String) : RoutingResolveResult(route) {
-        override val parameters: Nothing get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
+        override val parameters: Nothing
+            get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
+
         override fun toString(): String = "FAILURE \"$reason\" @ $route)"
     }
 }
@@ -180,8 +182,10 @@ public class RoutingResolveContext(
                 bestResult
             } else {
                 // nothing more to match and no handler, or there are more segments and no matched child
-                val reason =
-                    if (segmentIndex == segments.size) "Segments exhausted but no handlers found" else "Not all segments matched"
+                val reason = when (segmentIndex) {
+                    segments.size -> "Segments exhausted but no handlers found"
+                    else -> "Not all segments matched"
+                }
                 RoutingResolveResult.Failure(failEntry ?: entry, reason)
             }
         }
@@ -189,6 +193,4 @@ public class RoutingResolveContext(
         trace?.finish(entry, segmentIndex, result)
         return result
     }
-
 }
-

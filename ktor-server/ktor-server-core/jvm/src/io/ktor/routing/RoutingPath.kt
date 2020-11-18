@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -26,7 +26,10 @@ public class RoutingPath private constructor(public val parts: List<RoutingPathS
             if (path == "/") return root
             val segments = path.splitToSequence("/").filter { it.isNotEmpty() }.map { segment ->
                 when {
-                    segment.contains('{') && segment.contains('}') -> RoutingPathSegment(segment, RoutingPathSegmentKind.Parameter)
+                    segment.contains('{') && segment.contains('}') -> RoutingPathSegment(
+                        segment,
+                        RoutingPathSegmentKind.Parameter
+                    )
                     else -> RoutingPathSegment(segment.decodeURLPart(), RoutingPathSegmentKind.Constant)
                 }
             }
@@ -59,4 +62,3 @@ public enum class RoutingPathSegmentKind {
      */
     Parameter
 }
-

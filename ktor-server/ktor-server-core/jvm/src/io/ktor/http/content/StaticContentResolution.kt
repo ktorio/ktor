@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -27,8 +27,10 @@ public fun ApplicationCall.resolveResource(
         return null
     }
 
-    val normalizedPath = (resourcePackage.orEmpty().split('.', '/', '\\') +
-        path.split('/', '\\')).normalizePathComponents().joinToString("/")
+    val normalizedPath = (
+        resourcePackage.orEmpty().split('.', '/', '\\') +
+            path.split('/', '\\')
+        ).normalizePathComponents().joinToString("/")
 
     // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
 

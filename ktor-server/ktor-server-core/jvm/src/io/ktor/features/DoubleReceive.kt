@@ -51,7 +51,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
                 val type = request.typeInfo
-                require(request.type != CachedTransformationResult::class) { "CachedTransformationResult can't be received" }
+                require(request.type != CachedTransformationResult::class) {
+                    "CachedTransformationResult can't be received"
+                }
 
                 val cachedResult = call.attributes.getOrNull(LastReceiveCachedResult)
                 when {
@@ -93,7 +95,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
                     !request.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
                 }
 
-                if (finishedRequest.reusableValue && (cachedResult == null || cachedResult !is CachedTransformationResult.Success)) {
+                if (finishedRequest.reusableValue &&
+                    (cachedResult == null || cachedResult !is CachedTransformationResult.Success)
+                ) {
                     @Suppress("UNCHECKED_CAST")
                     call.attributes.put(
                         LastReceiveCachedResult,

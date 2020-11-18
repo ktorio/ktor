@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -39,7 +39,11 @@ private fun List<String>.filterComponentsImpl(startIndex: Int): List<String> {
 }
 
 private fun MutableList<String>.processAndReplaceComponent(component: String) {
-    if (component.isEmpty() || component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords) return
+    if (component.isEmpty() ||
+        component == "." || component == "~" || component.toUpperCasePreservingASCIIRules() in ReservedWords
+    ) {
+        return
+    }
     if (component == "..") {
         if (isNotEmpty()) {
             removeAt(lastIndex)
@@ -76,7 +80,9 @@ private fun String.shouldBeReplaced(): Boolean {
         return true
     }
 
-    if (first in FirstReservedLetters && (this in ReservedWords || this.toUpperCasePreservingASCIIRules() in ReservedWords)) {
+    if (first in FirstReservedLetters &&
+        (this in ReservedWords || this.toUpperCasePreservingASCIIRules() in ReservedWords)
+    ) {
         return true
     }
 

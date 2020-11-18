@@ -263,7 +263,9 @@ public inline fun <S : Any> Sessions.Configuration.header(
  * Cookie session configuration builder
  */
 @Suppress("DEPRECATION")
-public class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) :
+public class CookieIdSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(type: KClass<S>) :
     CookieSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
@@ -283,7 +285,9 @@ public class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions 
  * Cookie session configuration builder
  * @property type - session instance type
  */
-public open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(
+public open class CookieSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(
     public val type: KClass<S>
 ) {
     /**
@@ -315,7 +319,9 @@ public open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functio
  * Header session configuration builder
  * @property type session instance type
  */
-public open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(
+public open class HeaderSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(
     public val type: KClass<S>
 ) {
     /**
@@ -342,8 +348,11 @@ public open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functio
  * Header session configuration builder
  */
 @Suppress("DEPRECATION")
-public class HeaderIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) :
-    @Suppress("DEPRECATION") HeaderSessionBuilder<S>(type) {
+public class HeaderIdSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(type: KClass<S>) :
+    @Suppress("DEPRECATION")
+    HeaderSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
      */

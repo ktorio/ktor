@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -31,21 +31,26 @@ public object DefaultConversionService : ConversionService {
         is Iterable<*> -> value.flatMap { toValues(it) }
         else -> {
             val type = value.javaClass
-            listOf(when (type) {
-                Int::class.java, java.lang.Integer::class.java,
-                Float::class.java, java.lang.Float::class.java,
-                Double::class.java, java.lang.Double::class.java,
-                Long::class.java, java.lang.Long::class.java,
-                Boolean::class.java, java.lang.Boolean::class.java,
-                String::class.java, java.lang.String::class.java,
-                BigInteger::class.java, BigDecimal::class.java -> value.toString()
-                else -> {
-                    if (type.isEnum) {
-                        (value as Enum<*>).name
-                    } else
-                        throw DataConversionException("Type $type is not supported in default data conversion service")
+            listOf(
+                when (type) {
+                    Int::class.java, java.lang.Integer::class.java,
+                    Float::class.java, java.lang.Float::class.java,
+                    Double::class.java, java.lang.Double::class.java,
+                    Long::class.java, java.lang.Long::class.java,
+                    Boolean::class.java, java.lang.Boolean::class.java,
+                    String::class.java, java.lang.String::class.java,
+                    BigInteger::class.java, BigDecimal::class.java -> value.toString()
+                    else -> {
+                        if (type.isEnum) {
+                            (value as Enum<*>).name
+                        } else {
+                            throw DataConversionException(
+                                "Type $type is not supported in default data conversion service"
+                            )
+                        }
+                    }
                 }
-            })
+            )
         }
     }
 
@@ -59,8 +64,10 @@ public object DefaultConversionService : ConversionService {
         }
 
         when {
-            values.isEmpty() -> throw DataConversionException("There are no values when trying to construct single value $type")
-            values.size > 1 -> throw DataConversionException("There are multiple values when trying to construct single value $type")
+            values.isEmpty() ->
+                throw DataConversionException("There are no values when trying to construct single value $type")
+            values.size > 1 ->
+                throw DataConversionException("There are multiple values when trying to construct single value $type")
             else -> return convert(values.single(), type)
         }
     }
@@ -79,10 +86,10 @@ public object DefaultConversionService : ConversionService {
             if (type is Class<*> && type.isEnum) {
                 type.enumConstants?.firstOrNull { (it as Enum<*>).name == value }
                     ?: throw DataConversionException("Value $value is not a enum member name of $type")
-            } else
+            } else {
                 throw DataConversionException("Type $type is not supported in default data conversion service")
+            }
     }
-
 }
 
 /**

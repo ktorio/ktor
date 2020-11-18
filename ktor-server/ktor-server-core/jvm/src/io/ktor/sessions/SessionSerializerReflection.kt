@@ -14,7 +14,6 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-
 /**
  * Creates the the default [SessionSerializer] for type [T]
  */
@@ -27,7 +26,8 @@ public inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflect
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use defaultSessionSerializer<T> instead.", replaceWith = ReplaceWith("defaultSessionSerializer<T>()"))
-public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
+public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> =
+    SessionSerializerReflection(type)
 
 /**
  * Creates the the default [SessionSerializer] for type [T]
@@ -52,8 +52,9 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
         val values = parseQueryString(text)
 
         @Suppress("UNCHECKED_CAST")
-        if (type == Parameters::class)
+        if (type == Parameters::class) {
             return values as T
+        }
 
         val instance = newInstance(values)
 
@@ -70,8 +71,9 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
     }
 
     override fun serialize(session: T): String {
-        if (type == Parameters::class)
+        if (type == Parameters::class) {
             return (session as Parameters).formUrlEncode()
+        }
         val typed = session.cast(type)
         return properties.map { it.name to serializeValue(it.get(typed)) }.formUrlEncode()
     }
@@ -129,7 +131,8 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
                 else -> throw IllegalStateException("Couldn't inject property ${p.name} from value $value")
             }
             p is KMutableProperty1<T, *> -> when {
-                value == null && !p.returnType.isMarkedNullable -> throw IllegalArgumentException("Couldn't inject null to property ${p.name}")
+                value == null && !p.returnType.isMarkedNullable ->
+                    throw IllegalArgumentException("Couldn't inject null to property ${p.name}")
                 else -> p.setter.call(instance, coerceType(p.returnType, value))
             }
             else -> {
@@ -142,11 +145,15 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
             value == null -> null
             isListType(type) -> when {
                 value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
-                value !is List<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+                value !is List<*> -> throw IllegalArgumentException(
+                    "Couldn't coerce type ${value::class.java} to $type"
+                )
 
                 else -> {
                     val contentType = type.arguments.single().type
-                        ?: throw IllegalArgumentException("Star projections are not supported for list element: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for list element: ${type.arguments[0]}"
+                        )
 
                     listOf(type.toJavaClass().kotlin, ArrayList::class)
                         .toTypedList<MutableList<*>>()
@@ -163,7 +170,9 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
 
                 else -> {
                     val contentType = type.arguments.single().type
-                        ?: throw IllegalArgumentException("Star projections are not supported for set element: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for set element: ${type.arguments[0]}"
+                        )
 
                     listOf(type.toJavaClass().kotlin, LinkedHashSet::class, HashSet::class, TreeSet::class)
                         .toTypedList<MutableSet<*>>()
@@ -178,9 +187,14 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
                 !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 else -> {
                     val keyType = type.arguments[0].type
-                        ?: throw IllegalArgumentException("Star projections are not supported for map key: ${type.arguments[0]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for map key: ${type.arguments[0]}"
+                        )
+
                     val valueType = type.arguments[1].type
-                        ?: throw IllegalArgumentException("Star projections are not supported for map value ${type.arguments[1]}")
+                        ?: throw IllegalArgumentException(
+                            "Star projections are not supported for map value ${type.arguments[1]}"
+                        )
 
                     listOf(
                         type.toJavaClass().kotlin,
@@ -194,12 +208,15 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
                         .firstHasNoArgConstructor()
                         ?.callNoArgConstructor()
                         ?.withUnsafe {
-                            putAll(value.mapKeys { coerceType(keyType, it.key) }.mapValues {
-                                coerceType(
-                                    valueType,
-                                    it.value
-                                )
-                            }); this
+                            putAll(
+                                value.mapKeys { coerceType(keyType, it.key) }.mapValues {
+                                    coerceType(
+                                        valueType,
+                                        it.value
+                                    )
+                                }
+                            )
+                            this
                         }
                         ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                 }
@@ -328,7 +345,10 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
         )
 
     private fun serializeMap(value: Map<*, *>): String = value
-        .map { serializeValue(it.key).encodeURLQueryComponent() + "=" + serializeValue(it.value).encodeURLQueryComponent() }
+        .map {
+            serializeValue(it.key).encodeURLQueryComponent() +
+                "=" + serializeValue(it.value).encodeURLQueryComponent()
+        }
         .joinToString("&")
         .encodeURLQueryComponent()
 
@@ -361,8 +381,6 @@ public class SessionSerializerReflection<T : Any>(public val type: KClass<T>) : 
     }
 }
 
-
 @Suppress("UNCHECKED_CAST")
 private fun <T : Any> Any.cast(type: KClass<T>) =
     if (type.java.isInstance(this)) this as T else throw ClassCastException("${this::class} couldn't be cast to $type")
-

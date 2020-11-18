@@ -11,14 +11,16 @@ import com.typesafe.config.*
  */
 public open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
     override fun property(path: String): ApplicationConfigValue {
-        if (!config.hasPath(path))
+        if (!config.hasPath(path)) {
             throw ApplicationConfigurationException("Property $path not found.")
+        }
         return HoconApplicationConfigValue(config, path)
     }
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
-        if (!config.hasPath(path))
+        if (!config.hasPath(path)) {
             return null
+        }
         return HoconApplicationConfigValue(config, path)
     }
 
