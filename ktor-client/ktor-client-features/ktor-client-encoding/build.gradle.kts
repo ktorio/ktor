@@ -17,6 +17,7 @@ kotlin.sourceSets {
             implementation(project(":ktor-client:ktor-client-okhttp"))
             implementation(project(":ktor-client:ktor-client-cio"))
             implementation(project(":ktor-client:ktor-client-apache"))
+            implementation(project(":ktor-client:ktor-client-java"))
 //            implementation(project(":ktor-client:ktor-client-jetty"))
         }
 //        if (!ideaActive) {

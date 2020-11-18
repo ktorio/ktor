@@ -23,6 +23,7 @@ kotlin.sourceSets {
         dependencies {
             api(project(":ktor-client:ktor-client-cio"))
             api(project(":ktor-client:ktor-client-okhttp"))
+            api(project(":ktor-client:ktor-client-java"))
         }
     }
 }
