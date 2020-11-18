@@ -44,7 +44,6 @@ val osName = System.getProperty("os.name")
 kotlin.sourceSets {
     commonMain {
         dependencies {
-            api(project(":ktor-client:ktor-client-core"))
             api(project(":ktor-client:ktor-client-mock"))
             api(project(":ktor-test-dispatcher"))
             api(project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-serialization"))
@@ -72,13 +71,16 @@ kotlin.sourceSets {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:$coroutines_version")
         }
     }
+
     jvmTest {
         dependencies {
             runtimeOnly(project(":ktor-client:ktor-client-apache"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
-            runtimeOnly(project(":ktor-client:ktor-client-java"))
+            if (project.ext["currentJdk"] as Int >= 11) {
+                runtimeOnly(project(":ktor-client:ktor-client-java"))
+            }
 //            runtimeOnly(project(":ktor-client:ktor-client-jetty"))
         }
     }
