@@ -41,11 +41,22 @@ import java.util.concurrent.atomic.*
  *     <li>
  *  <ul>
  */
-public class MicrometerMetrics(
+public class MicrometerMetrics private constructor(
     private val registry: MeterRegistry,
     timerDistributionConfig: DistributionStatisticConfig,
+    private val distinctNotRegisteredRoutes: Boolean,
     private val timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
 ) {
+
+    @Deprecated(
+        "This is going to become internal. " +
+            "Please file a ticket and clarify, why do you need it."
+    )
+    public constructor(
+        registry: MeterRegistry,
+        timerDistributionConfig: DistributionStatisticConfig,
+        timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
+    ): this(registry, timerDistributionConfig, true, timerBuilder)
 
     private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
 
@@ -73,13 +84,16 @@ public class MicrometerMetrics(
      * should enable these instead with [DistributionStatisticConfig.Builder.percentilesHistogram] as client side
      * percentiles cannot be aggregated.
      * @property timers can be used to configure each timer to add custom tags or configure individual SLAs etc
+     * @property distinctNotRegisteredRoutes specifies if requests for non existent routes should
+     * contain request path or fallback to common `n/a` value. `true` by default
      * */
     public class Configuration {
 
         public lateinit var registry: MeterRegistry
 
-        internal fun isRegistryInitialized() = this::registry.isInitialized
+        public var distinctNotRegisteredRoutes: Boolean = true
 
+        internal fun isRegistryInitialized() = this::registry.isInitialized
 
         public var meterBinders: List<MeterBinder> = listOf(
             ClassLoaderMetrics(),
@@ -118,11 +132,12 @@ public class MicrometerMetrics(
         this.apply { timerBuilder(call, throwable) }
 
     private fun Timer.Builder.addDefaultTags(call: ApplicationCall, throwable: Throwable?): Timer.Builder {
+        val route = call.attributes[measureKey].route ?: if (distinctNotRegisteredRoutes) call.request.path() else "n/a"
         tags(
             listOf(
                 of("address", call.request.local.let { "${it.host}:${it.port}" }),
                 of("method", call.request.httpMethod.value),
-                of("route", call.attributes[measureKey].route ?: call.request.path()),
+                of("route", route),
                 of("status", call.response.status()?.value?.toString() ?: "n/a"),
                 of("throwable", throwable?.let { it::class.qualifiedName } ?: "n/a")
             )
@@ -181,6 +196,7 @@ public class MicrometerMetrics(
             val feature = MicrometerMetrics(
                 configuration.registry,
                 configuration.distributionStatisticConfig,
+                configuration.distinctNotRegisteredRoutes,
                 configuration.timerBuilder
             )
 
@@ -219,7 +235,6 @@ public class MicrometerMetrics(
 
 
 }
-
 
 
 private data class CallMeasure(
