@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.jetbrains.kotlin.konan.target.HostManager
 
 buildscript {
@@ -63,6 +67,7 @@ buildscript {
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
         classpath "com.android.tools.build:gradle:$android_gradle_version"
+        classpath("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
     }
 
     CacheRedirector.configureBuildScript(buildscript, rootProject)
@@ -215,6 +220,10 @@ allprojects {
         apply from: rootProject.file('gradle/dokka.gradle')
         apply from: rootProject.file('gradle/publish.gradle')
     }
+}
+
+if (project.hasProperty("enableCodeStyle")) {
+    apply from: 'gradle/codestyle.gradle'
 }
 
 task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport) {
