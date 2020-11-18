@@ -447,7 +447,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "native:CIO")) {
+    fun testSocketTimeoutRead() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
         config {
             install(HttpTimeout) { socketTimeoutMillis = 1000 }
         }
@@ -462,7 +462,7 @@ class HttpTimeoutTest : ClientLoader() {
     }
 
     @Test
-    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "native:CIO")) {
+    fun testSocketTimeoutReadPerRequestAttributes() = clientTests(listOf("Js", "Curl", "native:CIO", "Java")) {
         config {
             install(HttpTimeout)
         }
