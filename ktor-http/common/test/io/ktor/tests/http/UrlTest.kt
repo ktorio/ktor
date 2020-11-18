@@ -122,6 +122,18 @@ class UrlTest {
     }
 
     @Test
+    fun testEqualsInQueryValue() {
+        val urlString =
+            "https://akamai.bintray.com/22/225b067044aa56f36590ef56d41e256cd1d0887b176bfdeec123ecccc6057790?__gda__=exp=1604350711~hmac=417cbd5a97b4c499e2cf7e9eae5dfb9ad95b42cb3ff76c5fb0fae70e2a42db9c&..."
+
+        val url = URLBuilder().apply {
+            takeFrom(urlString)
+        }.build()
+
+        assertEquals(urlString, url.toString())
+    }
+
+    @Test
     fun testHugeUrl() {
         val parts = (0 until 100).map { "this is a very long string" }
         val url = "http://127.0.0.1:8080?a=${parts.joinToString("\n") { it }}"
