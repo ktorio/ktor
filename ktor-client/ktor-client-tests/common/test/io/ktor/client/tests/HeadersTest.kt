@@ -61,7 +61,7 @@ class HeadersTest : ClientLoader() {
     }
 
     @Test
-    fun testSingleHostHeader() = clientTests(listOf("Js", "Android")) {
+    fun testSingleHostHeader() = clientTests(listOf("Js", "Android", "Java")) {
         test { client ->
             client.get("$TEST_SERVER/headers/host") {
                 header(HttpHeaders.Host, "CustomHost")

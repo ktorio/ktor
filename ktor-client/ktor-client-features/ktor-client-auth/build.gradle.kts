@@ -17,6 +17,7 @@ kotlin.sourceSets {
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))
+            runtimeOnly(project(":ktor-client:ktor-client-java"))
         }
     }
 }
