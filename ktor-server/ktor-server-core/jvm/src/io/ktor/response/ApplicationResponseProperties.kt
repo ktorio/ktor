@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -28,7 +28,8 @@ public fun ApplicationResponse.header(name: String, value: Long): Unit = headers
 /**
  * Append HTTP response header with temporal [date] (date, time and so on)
  */
-public fun ApplicationResponse.header(name: String, date: Temporal): Unit = headers.append(name, date.toHttpDateString())
+public fun ApplicationResponse.header(name: String, date: Temporal): Unit =
+    headers.append(name, date.toHttpDateString())
 
 /**
  * Append response `E-Tag` HTTP header [value]
@@ -43,7 +44,8 @@ public fun ApplicationResponse.lastModified(dateTime: ZonedDateTime): Unit = hea
 /**
  * Append response `Cache-Control` HTTP header [value]
  */
-public fun ApplicationResponse.cacheControl(value: CacheControl): Unit = header(HttpHeaders.CacheControl, value.toString())
+public fun ApplicationResponse.cacheControl(value: CacheControl): Unit =
+    header(HttpHeaders.CacheControl, value.toString())
 
 /**
  * Append response `Expires` HTTP header [value]

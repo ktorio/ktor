@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.http.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 private val NEWLINE = "\r\n".toByteArray(Charsets.ISO_8859_1)
 private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + HttpHeaders.ContentRange.length
@@ -45,7 +45,6 @@ internal fun CoroutineScope.writeMultipleRangesImpl(
     channel.writeFully("--$boundary--".toByteArray(Charsets.ISO_8859_1))
     channel.writeFully(NEWLINE)
 }.channel
-
 
 private suspend fun ByteWriteChannel.writeHeaders(
     range: LongRange,

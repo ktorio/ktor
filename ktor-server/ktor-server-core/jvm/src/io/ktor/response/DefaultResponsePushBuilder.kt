@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.response
@@ -25,14 +25,16 @@ public class DefaultResponsePushBuilder(
 
     public constructor(url: URLBuilder, headers: Headers) : this(
         url = url,
-        headers = HeadersBuilder().apply { appendAll(headers) })
+        headers = HeadersBuilder().apply { appendAll(headers) }
+    )
 
     public constructor(call: ApplicationCall) : this(
         url = URLBuilder.createFromCall(call),
         headers = HeadersBuilder().apply {
             appendAll(call.request.headers)
             set(HttpHeaders.Referrer, call.url())
-        })
+        }
+    )
 
     /**
      * List of version information (for conditional headers)

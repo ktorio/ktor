@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -35,4 +35,4 @@ public fun url(block: URLBuilder.() -> Unit): String = URLBuilder().apply(block)
  * and then invokes [block] function on the url builder so amend parameters
  */
 public inline fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String =
-        URLBuilder.createFromCall(this).apply(block).buildString()
+    URLBuilder.createFromCall(this).apply(block).buildString()

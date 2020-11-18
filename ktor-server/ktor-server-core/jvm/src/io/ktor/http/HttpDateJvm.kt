@@ -21,7 +21,7 @@ public fun Temporal.toHttpDateString(): String = httpDateFormat.format(this)
     "This will be removed in future releases. Using it in 2.0.0 will be an error.",
     ReplaceWith("ZonedDateTime.parse(this, httpDateFormat)", "java.time.ZonedDateTime")
 )
-@Suppress( "unused")
+@Suppress("unused")
 public fun String.fromHttpDateString(): ZonedDateTime = ZonedDateTime.parse(this, httpDateFormat)
 
 private val GreenwichMeanTime: ZoneId = ZoneId.of("GMT")

@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 
 /**
  * Root routing node for an [Application]
@@ -87,11 +87,14 @@ public class Routing(
         /**
          * Event definition for when a routing-based call processing starts
          */
-        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> = EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallStarted: EventDefinition<RoutingApplicationCall> =
+            EventDefinition<RoutingApplicationCall>()
+
         /**
          * Event definition for when a routing-based call processing finished
          */
-        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> = EventDefinition<RoutingApplicationCall>()
+        public val RoutingCallFinished: EventDefinition<RoutingApplicationCall> =
+            EventDefinition<RoutingApplicationCall>()
 
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 
@@ -109,8 +112,9 @@ public class Routing(
 public val Route.application: Application
     get() = when {
         this is Routing -> application
-        else -> parent?.application
-            ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
+        else -> parent?.application ?: throw UnsupportedOperationException(
+            "Cannot retrieve application from unattached routing entry"
+        )
     }
 
 /**
@@ -119,4 +123,3 @@ public val Route.application: Application
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
     featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
-

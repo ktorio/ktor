@@ -138,8 +138,9 @@ public class CallId private constructor(
                 if (!verifyCallIdAgainstDictionary(callId, sortedDictionary)) {
                     if (reject) throw RejectedCallIdException(callId)
                     false
-                } else
+                } else {
                     true
+                }
             }
         }
 

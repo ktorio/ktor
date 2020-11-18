@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.response
@@ -39,8 +39,9 @@ public abstract class ResponseHeaders {
      * @param safeOnly `true` by default, prevents from setting unsafe headers
      */
     public fun append(name: String, value: String, safeOnly: Boolean = true) {
-        if (safeOnly && HttpHeaders.isUnsafe(name))
+        if (safeOnly && HttpHeaders.isUnsafe(name)) {
             throw UnsafeHeaderException(name)
+        }
         HttpHeaders.checkHeaderName(name)
         HttpHeaders.checkHeaderValue(value)
         engineAppendHeader(name, value)
@@ -61,4 +62,3 @@ public abstract class ResponseHeaders {
      */
     protected abstract fun getEngineHeaderValues(name: String): List<String>
 }
-

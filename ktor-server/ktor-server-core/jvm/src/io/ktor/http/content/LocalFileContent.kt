@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import java.io.*
 import java.nio.file.*
@@ -38,7 +38,8 @@ public class LocalFileContent(
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
 public fun LocalFileContent(
-    baseDir: File, relativePath: String,
+    baseDir: File,
+    relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent =
     LocalFileContent(baseDir.combineSafe(relativePath), contentType)
@@ -47,7 +48,8 @@ public fun LocalFileContent(
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
 public fun LocalFileContent(
-    baseDir: Path, relativePath: Path,
+    baseDir: Path,
+    relativePath: Path,
     contentType: ContentType = ContentType.defaultForFile(relativePath)
 ): LocalFileContent =
     LocalFileContent(baseDir.combineSafe(relativePath), contentType)

@@ -16,7 +16,10 @@ import kotlinx.coroutines.*
  * @param TFeature is the type for the instance of the Feature object
  */
 @Suppress("AddVarianceModifier")
-public interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TConfiguration : Any, TFeature : Any> {
+public interface ApplicationFeature<
+    in TPipeline : Pipeline<*, ApplicationCall>,
+    out TConfiguration : Any,
+    TFeature : Any> {
     /**
      * Unique key that identifies a feature
      */
@@ -44,7 +47,8 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(featur
 /**
  * Returns feature instance for this pipeline, or null if feature is not installed
  */
-public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
+public fun <A : Pipeline<*, ApplicationCall>,
+    B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
     return attributes.getOrNull(featureRegistryKey)?.getOrNull(feature.key)
 }
 
@@ -63,19 +67,21 @@ public fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
                 @Suppress("DEPRECATION_ERROR")
                 val installed = feature.install(this, configure)
                 registry.put(feature.key, installed)
-                //environment.log.trace("`${feature.name}` feature was installed successfully.")
+                // environment.log.trace("`${feature.name}` feature was installed successfully.")
                 return installed
             } catch (t: Throwable) {
-                //environment.log.error("`${feature.name}` feature failed to install.", t)
+                // environment.log.error("`${feature.name}` feature failed to install.", t)
                 throw t
             }
         }
         feature -> {
-            //environment.log.warning("`${feature.name}` feature is already installed")
+            // environment.log.warning("`${feature.name}` feature is already installed")
             return installedFeature
         }
         else -> {
-            throw DuplicateApplicationFeatureException("Conflicting application feature is already installed with the same key as `${feature.key.name}`")
+            throw DuplicateApplicationFeatureException(
+                "Conflicting application feature is already installed with the same key as `${feature.key.name}`"
+            )
         }
     }
 }
@@ -104,8 +110,9 @@ public fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(
 public fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
-    if (instance is Closeable)
+    if (instance is Closeable) {
         instance.close()
+    }
     registry.remove(key)
 }
 

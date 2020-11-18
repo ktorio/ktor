@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -30,13 +30,17 @@ public class Sessions(public val providers: List<SessionProvider<*>>) {
          */
         public fun register(provider: SessionProvider<*>) {
             registered.firstOrNull { it.name == provider.name }?.let { alreadyRegistered ->
-                throw IllegalArgumentException("There is already registered session provider with " +
-                    "name ${provider.name}: $alreadyRegistered")
+                throw IllegalArgumentException(
+                    "There is already registered session provider with " +
+                        "name ${provider.name}: $alreadyRegistered"
+                )
             }
 
             registered.firstOrNull { it.type == provider.type }?.let { alreadyRegistered ->
-                throw IllegalArgumentException("There is already registered session provider for type" +
-                    " ${provider.type}: $alreadyRegistered")
+                throw IllegalArgumentException(
+                    "There is already registered session provider for type" +
+                        " ${provider.type}: $alreadyRegistered"
+                )
             }
 
             registered.add(provider)
@@ -159,8 +163,10 @@ public inline fun <reified T> CurrentSession.getOrSet(name: String = findName(T:
     }
 }
 
-private data class SessionData(val sessions: Sessions,
-                               val providerData: Map<String, SessionProviderData<*>>) : CurrentSession {
+private data class SessionData(
+    val sessions: Sessions,
+    val providerData: Map<String, SessionProviderData<*>>
+) : CurrentSession {
 
     private var committed = false
 
@@ -169,8 +175,8 @@ private data class SessionData(val sessions: Sessions,
     }
 
     override fun findName(type: KClass<*>): String {
-        val entry = providerData.entries.firstOrNull { it.value.provider.type == type } ?:
-                throw IllegalArgumentException("Session data for type `$type` was not registered")
+        val entry = providerData.entries.firstOrNull { it.value.provider.type == type }
+            ?: throw IllegalArgumentException("Session data for type `$type` was not registered")
         return entry.value.provider.name
     }
 
@@ -178,24 +184,28 @@ private data class SessionData(val sessions: Sessions,
         if (committed) {
             throw TooLateSessionSetException()
         }
-        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val providerData =
+            providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
         setTyped(providerData, value)
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun <S : Any> setTyped(data: SessionProviderData<S>, value: Any?) {
-        if (value != null)
+        if (value != null) {
             data.provider.tracker.validate(value as S)
+        }
         data.value = value as S
     }
 
     override fun get(name: String): Any? {
-        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val providerData =
+            providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
         return providerData.value
     }
 
     override fun clear(name: String) {
-        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val providerData =
+            providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
         providerData.value = null
     }
 }

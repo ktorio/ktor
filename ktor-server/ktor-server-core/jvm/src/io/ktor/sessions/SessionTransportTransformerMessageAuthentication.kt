@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -18,15 +18,20 @@ import javax.crypto.spec.*
  * @property algorithm is a message authentication algorithm name
  */
 public class SessionTransportTransformerMessageAuthentication(
-    public val keySpec: SecretKeySpec, public val algorithm: String = "HmacSHA256"
+    public val keySpec: SecretKeySpec,
+    public val algorithm: String = "HmacSHA256"
 ) : SessionTransportTransformer {
-    public constructor(key: ByteArray, algorithm: String = "HmacSHA256") : this(SecretKeySpec(key, algorithm), algorithm)
+    public constructor(key: ByteArray, algorithm: String = "HmacSHA256") : this(
+        SecretKeySpec(key, algorithm),
+        algorithm
+    )
 
     override fun transformRead(transportValue: String): String? {
         val expectedSignature = transportValue.substringAfterLast('/', "")
         val value = transportValue.substringBeforeLast('/')
-        if (MessageDigest.isEqual(mac(value).toByteArray(), expectedSignature.toByteArray()))
+        if (MessageDigest.isEqual(mac(value).toByteArray(), expectedSignature.toByteArray())) {
             return value
+        }
         return null
     }
 
@@ -39,4 +44,3 @@ public class SessionTransportTransformerMessageAuthentication(
         return hex(mac.doFinal(value.toByteArray()))
     }
 }
-

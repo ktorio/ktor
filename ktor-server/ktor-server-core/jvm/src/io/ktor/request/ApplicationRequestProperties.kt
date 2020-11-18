@@ -8,7 +8,6 @@ package io.ktor.request
 
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 
 /**
@@ -24,7 +23,8 @@ public fun ApplicationRequest.queryString(): String = origin.uri.substringAfter(
 /**
  * Request's content type or `ContentType.Any`
  */
-public fun ApplicationRequest.contentType(): ContentType = header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
+public fun ApplicationRequest.contentType(): ContentType =
+    header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
 
 /**
  * Request's charset
@@ -59,7 +59,8 @@ public fun ApplicationRequest.accept(): String? = header(HttpHeaders.Accept)
 /**
  * Parsed request's `Accept` header and sorted according to quality
  */
-public fun ApplicationRequest.acceptItems(): List<HeaderValue> = parseAndSortContentTypeHeader(header(HttpHeaders.Accept))
+public fun ApplicationRequest.acceptItems(): List<HeaderValue> =
+    parseAndSortContentTypeHeader(header(HttpHeaders.Accept))
 
 /**
  * Request's `Accept-Encoding` header value
@@ -69,7 +70,8 @@ public fun ApplicationRequest.acceptEncoding(): String? = header(HttpHeaders.Acc
 /**
  * Parsed and sorted request's `Accept-Encoding` header value
  */
-public fun ApplicationRequest.acceptEncodingItems(): List<HeaderValue> = parseAndSortHeader(header(HttpHeaders.AcceptEncoding))
+public fun ApplicationRequest.acceptEncodingItems(): List<HeaderValue> =
+    parseAndSortHeader(header(HttpHeaders.AcceptEncoding))
 
 /**
  * Request's `Accept-Language` header value
@@ -79,21 +81,25 @@ public fun ApplicationRequest.acceptLanguage(): String? = header(HttpHeaders.Acc
 /**
  * Parsed and sorted request's `Accept-Language` header value
  */
-public fun ApplicationRequest.acceptLanguageItems(): List<HeaderValue> = parseAndSortHeader(header(HttpHeaders.AcceptLanguage))
+public fun ApplicationRequest.acceptLanguageItems(): List<HeaderValue> =
+    parseAndSortHeader(header(HttpHeaders.AcceptLanguage))
 
 /**
  * Request's `Accept-Charset` header value
  */
 public fun ApplicationRequest.acceptCharset(): String? = header(HttpHeaders.AcceptCharset)
+
 /**
  * Parsed and sorted request's `Accept-Charset` header value
  */
-public fun ApplicationRequest.acceptCharsetItems(): List<HeaderValue> = parseAndSortHeader(header(HttpHeaders.AcceptCharset))
+public fun ApplicationRequest.acceptCharsetItems(): List<HeaderValue> =
+    parseAndSortHeader(header(HttpHeaders.AcceptCharset))
 
 /**
  * Check if request's body is chunk-encoded
  */
-public fun ApplicationRequest.isChunked(): Boolean = header(HttpHeaders.TransferEncoding)?.compareTo("chunked", ignoreCase = true) == 0
+public fun ApplicationRequest.isChunked(): Boolean =
+    header(HttpHeaders.TransferEncoding)?.compareTo("chunked", ignoreCase = true) == 0
 
 /**
  * Check if request body is multipart-encoded
@@ -123,7 +129,8 @@ public fun ApplicationRequest.port(): Int = origin.port
 /**
  * Parsed request's `Range` header value
  */
-public fun ApplicationRequest.ranges(): RangesSpecifier? = header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
+public fun ApplicationRequest.ranges(): RangesSpecifier? =
+    header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
 /**
  * Request's URI (including query string)

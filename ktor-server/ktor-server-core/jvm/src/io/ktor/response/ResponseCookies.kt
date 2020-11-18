@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.response
@@ -11,7 +11,8 @@ import io.ktor.util.date.*
  * Server's response cookies
  */
 public class ResponseCookies(
-    private val response: ApplicationResponse, private val secureTransport: Boolean
+    private val response: ApplicationResponse,
+    private val secureTransport: Boolean
 ) {
     /**
      * Get cookie from response HTTP headers (from `Set-Cookie` header)

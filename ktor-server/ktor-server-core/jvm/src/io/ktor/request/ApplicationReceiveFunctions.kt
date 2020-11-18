@@ -33,7 +33,8 @@ public class ApplicationReceiveRequest constructor(
     /**
      * Star projected class computed from [typeInfo]
      */
-    @Deprecated("Use typeInfo instead as it provides type parameter information",
+    @Deprecated(
+        "Use typeInfo instead as it provides type parameter information",
         ReplaceWith("typeInfo.jvmErasure", "kotlin.reflect.jvm.jvmErasure")
     )
     public val type: KClass<*>
@@ -45,7 +46,8 @@ public class ApplicationReceiveRequest constructor(
  *
  * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
  */
-public open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+public open class ApplicationReceivePipeline :
+    Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
@@ -208,4 +210,6 @@ private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventi
  * Thrown when a request body has been already received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
-public class RequestAlreadyConsumedException : IllegalStateException("Request body has been already consumed (received).")
+public class RequestAlreadyConsumedException : IllegalStateException(
+    "Request body has been already consumed (received)."
+)

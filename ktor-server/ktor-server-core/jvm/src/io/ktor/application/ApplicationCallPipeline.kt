@@ -1,18 +1,24 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.application
 
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.util.pipeline.*
 
 /**
  * Pipeline configuration for executing [ApplicationCall] instances
  */
 @Suppress("PublicApiImplicitType")
-public open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Setup, Monitoring, Features, Call, Fallback) {
+public open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(
+    Setup,
+    Monitoring,
+    Features,
+    Call,
+    Fallback
+) {
     /**
      * Pipeline for receiving content
      */

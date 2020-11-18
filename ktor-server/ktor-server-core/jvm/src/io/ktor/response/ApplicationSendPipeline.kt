@@ -5,13 +5,13 @@
 package io.ktor.response
 
 import io.ktor.application.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
 /**
  * Server response send pipeline
  */
-public open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
+public open class ApplicationSendPipeline :
+    Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     /**
      * Send pipeline phases
      */

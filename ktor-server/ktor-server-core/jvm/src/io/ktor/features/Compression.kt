@@ -64,15 +64,17 @@ public data class CompressionEncoderConfig(
 public class Compression(compression: Configuration) {
     private val options = compression.buildOptions()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
-        { it.second.quality }, { it.first.priority }
+        { it.second.quality },
+        { it.first.priority }
     ).reversed()
 
     private suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
         val message = context.subject
         val acceptEncodingRaw = call.request.acceptEncoding()
-        if (acceptEncodingRaw == null || call.isCompressionSuppressed())
+        if (acceptEncodingRaw == null || call.isCompressionSuppressed()) {
             return
+        }
 
         val encoders = parseHeaderValue(acceptEncodingRaw)
             .filter { it.value == "*" || it.value in options.encoders }
@@ -85,14 +87,15 @@ public class Compression(compression: Configuration) {
             .sortedWith(comparator)
             .map { it.first }
 
-        if (encoders.isEmpty())
+        if (encoders.isEmpty()) {
             return
+        }
 
-        if (message is OutgoingContent
-            && message !is CompressedResponse
-            && options.conditions.all { it(call, message) }
-            && !call.isCompressionSuppressed()
-            && message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
+        if (message is OutgoingContent &&
+            message !is CompressedResponse &&
+            options.conditions.all { it(call, message) } &&
+            !call.isCompressionSuppressed() &&
+            message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
         ) {
             val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
 
@@ -114,7 +117,6 @@ public class Compression(compression: Configuration) {
                 val response = CompressedResponse(message, channel, encoderOptions.name, encoderOptions.encoder)
                 context.proceedWith(response)
             }
-
         }
     }
 
@@ -182,8 +184,9 @@ public class Compression(compression: Configuration) {
         override val key: AttributeKey<Compression> = AttributeKey("Compression")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {
             val config = Configuration().apply(configure)
-            if (config.encoders.none())
+            if (config.encoders.none()) {
                 config.default()
+            }
 
             val feature = Compression(config)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
@@ -252,7 +255,6 @@ public class Compression(compression: Configuration) {
         )
         public fun build(): CompressionOptions = buildOptions()
     }
-
 }
 
 private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionAttribute in attributes
@@ -339,7 +341,8 @@ public interface ConditionsHolderBuilder {
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class CompressionEncoderBuilder internal constructor(
-    public val name: String, public val encoder: CompressionEncoder
+    public val name: String,
+    public val encoder: CompressionEncoder
 ) : ConditionsHolderBuilder {
     /**
      * List of conditions for this encoder
@@ -364,7 +367,6 @@ public class CompressionEncoderBuilder internal constructor(
         return CompressionEncoderConfig(name, encoder, conditions.toList(), priority)
     }
 }
-
 
 /**
  * Appends `gzip` encoder
