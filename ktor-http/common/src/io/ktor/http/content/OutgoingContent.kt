@@ -6,8 +6,8 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 /**
@@ -74,13 +74,16 @@ public sealed class OutgoingContent {
         /**
          * Provides [ByteReadChannel] for the given range of the content
          */
-        public open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) ByteReadChannel.Empty else
+        public open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) {
+            ByteReadChannel.Empty
+        } else {
             GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
                 val source = readFrom()
                 source.discard(range.start)
                 val limit = range.endInclusive - range.start + 1
                 source.copyTo(channel, limit)
             }.channel
+        }
     }
 
     /**

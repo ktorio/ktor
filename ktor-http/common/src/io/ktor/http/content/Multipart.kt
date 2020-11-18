@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -18,14 +18,17 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      * Represents a multipart form item
      * @property value of this field
      */
-    public class FormItem(public val value: String, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders)
+    public class FormItem(public val value: String, dispose: () -> Unit, partHeaders: Headers) :
+        PartData(dispose, partHeaders)
 
     /**
      * Represents a file item
      * @property provider of content bytes
      */
     public class FileItem(
-        public val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers
+        public val provider: () -> Input,
+        dispose: () -> Unit,
+        partHeaders: Headers
     ) : PartData(dispose, partHeaders) {
         /**
          * Original file name if present
@@ -38,7 +41,9 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      * @property provider of content bytes
      */
     public class BinaryItem(
-        public val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers
+        public val provider: () -> Input,
+        dispose: () -> Unit,
+        partHeaders: Headers
     ) : PartData(dispose, partHeaders)
 
     /**
@@ -66,7 +71,8 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated(
-        "Use name property instead", ReplaceWith("name"),
+        "Use name property instead",
+        ReplaceWith("name"),
         level = DeprecationLevel.ERROR
     )
     public val partName: String?
@@ -74,7 +80,8 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated(
-        "Use headers property instead", ReplaceWith("headers"),
+        "Use headers property instead",
+        ReplaceWith("headers"),
         level = DeprecationLevel.ERROR
     )
     public val partHeaders: Headers

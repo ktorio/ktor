@@ -22,8 +22,8 @@ private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
  */
 @SharedImmutable
 private val URL_PROTOCOL_PART = listOf(
-    ':', '/', '?', '#', '[', ']', '@',  // general
-    '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=',  // sub-components
+    ':', '/', '?', '#', '[', ']', '@', // general
+    '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // sub-components
     '-', '.', '_', '~', '+' // unreserved
 ).map { it.toByte() }
 
@@ -150,7 +150,8 @@ internal fun String.encodeURLParameterValue(
  * Decode URL query component
  */
 public fun String.decodeURLQueryComponent(
-    start: Int = 0, end: Int = length,
+    start: Int = 0,
+    end: Int = length,
     plusIsSpace: Boolean = false,
     charset: Charset = Charsets.UTF_8
 ): String = decodeScan(start, end, plusIsSpace, charset)
@@ -160,7 +161,8 @@ public fun String.decodeURLQueryComponent(
  * This function is not intended to decode urlencoded forms so it doesn't decode plus character to space.
  */
 public fun String.decodeURLPart(
-    start: Int = 0, end: Int = length,
+    start: Int = 0,
+    end: Int = length,
     charset: Charset = Charsets.UTF_8
 ): String = decodeScan(start, end, false, charset)
 
@@ -204,8 +206,9 @@ private fun CharSequence.decodeImpl(
             }
             c == '%' -> {
                 // if ByteArray was not needed before, create it with an estimate of remaining string be all hex
-                if (bytes == null)
+                if (bytes == null) {
                     bytes = ByteArray((end - index) / 3)
+                }
 
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0

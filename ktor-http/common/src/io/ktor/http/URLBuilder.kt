@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -141,7 +141,10 @@ public data class Url(
     val trailingQuery: Boolean
 ) {
     init {
-        require(specifiedPort in 1..65536 || specifiedPort == DEFAULT_PORT) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
+        require(
+            specifiedPort in 1..65536 ||
+                specifiedPort == DEFAULT_PORT
+        ) { "port must be between 1 and 65536, or $DEFAULT_PORT if not set" }
     }
 
     val port: Int get() = specifiedPort.takeUnless { it == DEFAULT_PORT } ?: protocol.defaultPort
