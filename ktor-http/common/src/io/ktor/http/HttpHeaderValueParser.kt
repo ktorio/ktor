@@ -13,9 +13,9 @@ import io.ktor.util.*
  */
 public data class HeaderValueParam(val name: String, val value: String) {
     override fun equals(other: Any?): Boolean {
-        return other is HeaderValueParam
-            && other.name.equals(name, ignoreCase = true)
-            && other.value.equals(value, ignoreCase = true)
+        return other is HeaderValueParam &&
+            other.name.equals(name, ignoreCase = true) &&
+            other.value.equals(value, ignoreCase = true)
     }
 
     override fun hashCode(): Int {
@@ -41,7 +41,8 @@ public data class HeaderValue(val value: String, val params: List<HeaderValuePar
 /**
  * Parse header value and sort multiple values according to qualities
  */
-public fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
+public fun parseAndSortHeader(header: String?): List<HeaderValue> =
+    parseHeaderValue(header).sortedByDescending { it.quality }
 
 /**
  * Parse `Content-Type` header values and sort them by quality and asterisks quantity
@@ -50,12 +51,15 @@ public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = p
     compareByDescending<HeaderValue> { it.quality }.thenBy {
         val contentType = ContentType.parse(it.value)
         var asterisks = 0
-        if (contentType.contentType == "*")
+        if (contentType.contentType == "*") {
             asterisks += 2
-        if (contentType.contentSubtype == "*")
+        }
+        if (contentType.contentSubtype == "*") {
             asterisks++
+        }
         asterisks
-    }.thenByDescending { it.params.size })
+    }.thenByDescending { it.params.size }
+)
 
 /**
  * Parse header value respecting multi-values
@@ -155,7 +159,6 @@ private fun parseHeaderValueParameter(text: String, start: Int, parameters: Lazy
     addParam(text, start, position, "")
     return position
 }
-
 
 private fun parseHeaderValueParameterValue(value: String, start: Int): Pair<Int, String> {
     if (value.length == start) {

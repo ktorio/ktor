@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.auth
@@ -43,7 +43,6 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 
     return HttpAuthHeader.Parameterized(authScheme, parameters)
 }
-
 
 /**
  * Describes an authentication header with a mandatory [authScheme] that usually is a standard [AuthScheme].
@@ -182,7 +181,8 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
          * Generates an [AuthScheme.Basic] challenge as a [HttpAuthHeader].
          */
         public fun basicAuthChallenge(realm: String, charset: Charset?): Parameterized = Parameterized(
-            AuthScheme.Basic, LinkedHashMap<String, String>().apply {
+            AuthScheme.Basic,
+            LinkedHashMap<String, String>().apply {
                 put(Parameters.Realm, realm)
                 if (charset != null) {
                     put(Parameters.Charset, charset.name)
@@ -200,20 +200,24 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             opaque: String? = null,
             stale: Boolean? = null,
             algorithm: String = "MD5"
-        ): Parameterized = Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
-            put("realm", realm)
-            put("nonce", nonce)
-            if (domain.isNotEmpty()) {
-                put("domain", domain.joinToString(" "))
-            }
-            if (opaque != null) {
-                put("opaque", opaque)
-            }
-            if (stale != null) {
-                put("stale", stale.toString())
-            }
-            put("algorithm", algorithm)
-        }, HeaderValueEncoding.QUOTED_ALWAYS)
+        ): Parameterized = Parameterized(
+            AuthScheme.Digest,
+            linkedMapOf<String, String>().apply {
+                put("realm", realm)
+                put("nonce", nonce)
+                if (domain.isNotEmpty()) {
+                    put("domain", domain.joinToString(" "))
+                }
+                if (opaque != null) {
+                    put("opaque", opaque)
+                }
+                if (stale != null) {
+                    put("stale", stale.toString())
+                }
+                put("algorithm", algorithm)
+            },
+            HeaderValueEncoding.QUOTED_ALWAYS
+        )
     }
 
     /**
@@ -237,7 +241,6 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         public const val OAuthCallbackConfirmed: String = "oauth_callback_confirmed"
     }
 }
-
 
 private fun String.substringAfterMatch(result: MatchResult): String = drop(
     result.range.last + if (result.range.isEmpty()) 0 else 1

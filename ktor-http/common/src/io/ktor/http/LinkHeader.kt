@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -8,7 +8,8 @@ package io.ktor.http
  * Represents a `Link` header value as per RFC 5988
  */
 public class LinkHeader(
-    uri: String, params: List<HeaderValueParam>
+    uri: String,
+    params: List<HeaderValueParam>
 ) : HeaderValueWithParameters("<$uri>", params) {
 
     @Suppress("unused")
@@ -21,9 +22,12 @@ public class LinkHeader(
 
     @Suppress("unused")
     public constructor(
-        uri: String, rel: List<String>, type: ContentType
+        uri: String,
+        rel: List<String>,
+        type: ContentType
     ) : this(
-        uri, listOf(
+        uri,
+        listOf(
             HeaderValueParam(Parameters.Rel, rel.joinToString(" ")),
             HeaderValueParam(Parameters.Type, type.toString())
         )

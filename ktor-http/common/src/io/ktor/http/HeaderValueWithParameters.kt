@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -27,7 +27,8 @@ public abstract class HeaderValueWithParameters(
     /**
      * The first value for the parameter with [name] comparing case-insensitively or `null` if no such parameters found
      */
-    public fun parameter(name: String): String? = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
+    public fun parameter(name: String): String? =
+        parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content

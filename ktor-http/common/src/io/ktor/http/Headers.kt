@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -46,7 +46,8 @@ public class HeadersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
 
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
-    "Empty headers is internal", replaceWith = ReplaceWith("Headers.Empty"),
+    "Empty headers is internal",
+    replaceWith = ReplaceWith("Headers.Empty"),
     level = DeprecationLevel.ERROR
 )
 public object EmptyHeaders : Headers {
@@ -89,9 +90,8 @@ public class HeadersImpl(
 @InternalAPI
 @Suppress("KDocMissingDocumentation")
 public class HeadersSingleImpl(
-    name: String, values: List<String>
+    name: String,
+    values: List<String>
 ) : Headers, StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Headers ${entries()}"
 }
-
-

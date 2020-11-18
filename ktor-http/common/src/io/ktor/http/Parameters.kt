@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -21,9 +21,9 @@ public interface Parameters : StringValues {
          * Builds a [Parameters] instance with the given [builder] function
          * @param builder specifies a function to build a map
          */
-        public inline fun build(builder: ParametersBuilder.() -> Unit): Parameters = ParametersBuilder().apply(builder).build()
+        public inline fun build(builder: ParametersBuilder.() -> Unit): Parameters =
+            ParametersBuilder().apply(builder).build()
     }
-
 }
 
 @Suppress("KDocMissingDocumentation")
@@ -74,13 +74,15 @@ public fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = 
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
+public class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters,
+    StringValuesImpl(true, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
 @Suppress("KDocMissingDocumentation")
 @InternalAPI
-public class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
+public class ParametersSingleImpl(name: String, values: List<String>) : Parameters,
+    StringValuesSingleImpl(true, name, values) {
     override fun toString(): String = "Parameters ${entries()}"
 }
 
@@ -93,5 +95,9 @@ public operator fun Parameters.plus(other: Parameters): Parameters = when {
         other.isEmpty() -> this
         else -> Parameters.build { appendAll(this@plus); appendAll(other) }
     }
-    else -> throw IllegalArgumentException("Cannot concatenate Parameters with case-sensitive and case-insensitive names")
+    else -> {
+        throw IllegalArgumentException(
+            "Cannot concatenate Parameters with case-sensitive and case-insensitive names"
+        )
+    }
 }

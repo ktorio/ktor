@@ -123,7 +123,8 @@ public object HttpHeaders {
     private val UnsafeHeadersArray: Array<String> = arrayOf(ContentLength, ContentType, TransferEncoding, Upgrade)
 
     @Deprecated("Use UnsafeHeadersList instead.", replaceWith = ReplaceWith("HttpHeaders.UnsafeHeadersList"))
-    public val UnsafeHeaders: Array<String> get() = UnsafeHeadersArray.copyOf()
+    public val UnsafeHeaders: Array<String>
+        get() = UnsafeHeadersArray.copyOf()
 
     /**
      * A list of header names that are not safe to use unless it is low-level engine implementation.
@@ -169,10 +170,11 @@ public class UnsafeHeaderException(header: String) : IllegalArgumentException(
  * @property headerName that was tried to use
  * @property position at which validation failed
  */
-public class IllegalHeaderNameException(public val headerName: String, public val position: Int) : IllegalArgumentException(
-    "Header name '$headerName' contains illegal character '${headerName[position]}'" +
-        " (code ${(headerName[position].toInt() and 0xff)})"
-)
+public class IllegalHeaderNameException(public val headerName: String, public val position: Int) :
+    IllegalArgumentException(
+        "Header name '$headerName' contains illegal character '${headerName[position]}'" +
+            " (code ${(headerName[position].toInt() and 0xff)})"
+    )
 
 /**
  * Thrown when an illegal header value was used.
@@ -180,9 +182,10 @@ public class IllegalHeaderNameException(public val headerName: String, public va
  * @property headerValue that was tried to use
  * @property position at which validation failed
  */
-public class IllegalHeaderValueException(public val headerValue: String, public val position: Int) : IllegalArgumentException(
-    "Header value '$headerValue' contains illegal character '${headerValue[position]}'" +
-        " (code ${(headerValue[position].toInt() and 0xff)})"
-)
+public class IllegalHeaderValueException(public val headerValue: String, public val position: Int) :
+    IllegalArgumentException(
+        "Header value '$headerValue' contains illegal character '${headerValue[position]}'" +
+            " (code ${(headerValue[position].toInt() and 0xff)})"
+    )
 
 private fun isDelimiter(ch: Char): Boolean = ch in "\"(),/:;<=>?@[\\]{}"
