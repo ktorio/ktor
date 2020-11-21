@@ -7,9 +7,10 @@ package io.ktor.client
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import kotlin.test.*
+import kotlinx.coroutines.*
 
 class DefaultRequestTest {
-    private val client = HttpClient {
+    private val client = HttpClient(TestEngine) {
         defaultRequest {
             baseURL("https://jsonplaceholder.typicode.com/todos")
         }
