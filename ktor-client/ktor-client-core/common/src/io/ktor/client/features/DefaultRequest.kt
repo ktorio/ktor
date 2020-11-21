@@ -35,3 +35,44 @@ public fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Un
         block()
     }
 }
+
+/**
+ * Set the [baseUrl] to use it in sub-requests.
+ * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
+ *
+ * The given [baseUrl] cannot have a query or a fragment part.
+ * The given [baseUrl] cannot be the default [URLBuilder].
+ */
+public fun HttpRequestBuilder.baseURL(baseUrl: String) {
+    baseURL(URLBuilder().takeFrom(baseUrl))
+}
+
+/**
+ * Set the [baseUrlBuilder] to use it in sub-requests.
+ * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
+ *
+ * The given [baseUrlBuilder] cannot have a query or a fragment part.
+ * The given [baseUrlBuilder] cannot be the default [URLBuilder].
+ */
+public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
+    val defaultURLBuilder = URLBuilder()
+    require(defaultURLBuilder != baseUrlBuilder) { "The given baseUrlBuilder $baseUrlBuilder cannot be the default URLBuilder $defaultURLBuilder"}
+    require(baseUrlBuilder.parameters.build() == Parameters.Empty && baseUrlBuilder.fragment == "") {
+        "The baseURL cannot have a query or a fragment"
+    }
+
+    url {
+        if(this != defaultURLBuilder && startsWith(defaultURLBuilder)) {
+            val requestedPath = encodedPath
+            takeFrom(baseUrlBuilder)
+            encodedPath += "/$requestedPath"
+        }
+    }
+}
+
+internal fun URLBuilder.startsWith(other: URLBuilder): Boolean =
+    protocol == other.protocol
+        && host == other.host
+        && port == other.port
+        && user == other.user
+        && password == other.password
