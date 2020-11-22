@@ -22,7 +22,7 @@ public const val DEFAULT_PORT: Int = 0
  * @property fragment URL fragment (anchor name)
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
-public class URLBuilder(
+public data class URLBuilder(
     public var protocol: URLProtocol = URLProtocol.HTTP,
     public var host: String = "localhost",
     public var port: Int = DEFAULT_PORT,
@@ -113,7 +113,8 @@ internal expect val URLBuilder.Companion.originHost: String?
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
  */
-public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
+@Deprecated("Use generated copy function instead", ReplaceWith("copy()"))
+public fun URLBuilder.clone(): URLBuilder = copy()
 
 /**
  * Represents an immutable URL
