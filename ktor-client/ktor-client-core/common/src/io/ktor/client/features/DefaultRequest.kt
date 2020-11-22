@@ -55,17 +55,22 @@ public fun HttpRequestBuilder.baseURL(baseUrl: String) {
  * The given [baseUrlBuilder] cannot be the default [URLBuilder].
  */
 public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
-    val defaultURLBuilder = URLBuilder()
-    require(defaultURLBuilder != baseUrlBuilder) { "The given baseUrlBuilder $baseUrlBuilder cannot be the default URLBuilder $defaultURLBuilder"}
-    require(baseUrlBuilder.parameters.build() == Parameters.Empty && baseUrlBuilder.fragment == "") {
+    require(baseUrlBuilder.parameters.build() == Parameters.Empty && baseUrlBuilder.fragment.isEmpty()) {
         "The baseURL cannot have a query or a fragment"
     }
 
     url {
-        if(this != defaultURLBuilder && startsWith(defaultURLBuilder)) {
-            val requestedPath = encodedPath
+        val defaultURLBuilder = URLBuilder()
+        val isDefault = this == defaultURLBuilder
+        val onlyPathSet = startsWith(defaultURLBuilder)
+        if(!isDefault && onlyPathSet) {
+            val requestedPath = encodedPath.removePrefix("/")
             takeFrom(baseUrlBuilder)
-            encodedPath += "/$requestedPath"
+            encodedPath += if (encodedPath.endsWith("/")) {
+                requestedPath
+            } else {
+                "/$requestedPath"
+            }
         }
     }
 }
