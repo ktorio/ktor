@@ -11,7 +11,7 @@ import kotlin.test.*
 
 class DefaultRequestTest {
     @Test
-    fun parameters() {
+    fun testRequiredEquality() {
         assertEquals(ParametersBuilder(), ParametersBuilder())
         assertEquals(URLBuilder(), URLBuilder())
     }
