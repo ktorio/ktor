@@ -45,7 +45,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    @Ignore // wait for KTOR-
+    @Ignore // wait for KTOR-1345
     fun overriddenLocalhostWithPath() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/sub")
