@@ -294,6 +294,8 @@ public final class io/ktor/client/features/DefaultRequest$Feature : io/ktor/clie
 }
 
 public final class io/ktor/client/features/DefaultRequestKt {
+	public static final fun baseURL (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/URLBuilder;)V
+	public static final fun baseURL (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 }
 

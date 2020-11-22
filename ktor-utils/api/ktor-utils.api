@@ -319,11 +319,13 @@ public class io/ktor/util/StringValuesBuilder {
 	public final fun contains (Ljava/lang/String;)Z
 	public final fun contains (Ljava/lang/String;Ljava/lang/String;)Z
 	public final fun entries ()Ljava/util/Set;
+	public fun equals (Ljava/lang/Object;)Z
 	public final fun get (Ljava/lang/String;)Ljava/lang/String;
 	public final fun getAll (Ljava/lang/String;)Ljava/util/List;
 	protected final fun getBuilt ()Z
 	public final fun getCaseInsensitiveName ()Z
 	protected final fun getValues ()Ljava/util/Map;
+	public fun hashCode ()I
 	public final fun isEmpty ()Z
 	public final fun names ()Ljava/util/Set;
 	public final fun remove (Ljava/lang/String;)V
