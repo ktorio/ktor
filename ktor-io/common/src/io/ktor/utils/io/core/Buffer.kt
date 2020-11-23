@@ -16,14 +16,19 @@ import kotlin.contracts.*
  */
 @DangerousInternalIoApi
 public open class Buffer(public val memory: Memory) {
+    private val bufferState: BufferSharedState = BufferSharedState(memory.size32)
+
     /**
      * Current read position. It is always non-negative and will never run ahead of the [writePosition].
      * It is usually greater or equal to [startGap] reservation.
      * This position is affected by [discard], [rewind], [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var readPosition: Int by shared(0)
-        private set
+    public var readPosition: Int
+        get() = bufferState.readPosition
+        private set(value) {
+            bufferState.readPosition = value
+        }
 
     /**
      * Current write position. It is always non-negative and will never run ahead of the [limit].
@@ -31,15 +36,20 @@ public open class Buffer(public val memory: Memory) {
      * * This position is affected by [resetForRead], [resetForWrite], [reserveStartGap]
      * and [reserveEndGap].
      */
-    public var writePosition: Int by shared(0)
-        private set
-
+    public var writePosition: Int
+        get() = bufferState.writePosition
+        private set(value) {
+            bufferState.writePosition = value
+        }
     /**
      * Start gap is a reserved space in the beginning. The reserved space is usually used to write a packet length
      * in the case when it's not known before the packet constructed.
      */
-    public var startGap: Int by shared(0)
-        private set
+    public var startGap: Int
+        get() = bufferState.startGap
+        private set(value) {
+            bufferState.startGap = value
+        }
 
     /**
      * Write position limit. No bytes could be written ahead of this limit. When the limit is less than the [capacity]
@@ -48,8 +58,11 @@ public open class Buffer(public val memory: Memory) {
      * primitive value (e.g. `kotlin.Int`) is separated into two chunks so bytes from the second chain could be copied
      * to the reserved space of the first chunk and then the whole value could be read at once.
      */
-    public var limit: Int by shared(memory.size32)
-        private set
+    public var limit: Int
+        get() = bufferState.limit
+        private set(value) {
+            bufferState.limit = value
+        }
 
     /**
      * Number of bytes reserved in the end.
@@ -76,7 +89,11 @@ public open class Buffer(public val memory: Memory) {
      */
     @Deprecated("Will be removed. Inherit Buffer and add required fields instead.")
     @ExperimentalIoApi
-    public var attachment: Any? by shared(null)
+    public var attachment: Any?
+        get() = bufferState.attachment
+        set(value) {
+            bufferState.attachment = value
+        }
 
     /**
      * Discard [count] readable bytes.

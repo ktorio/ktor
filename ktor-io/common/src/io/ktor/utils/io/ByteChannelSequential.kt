@@ -39,13 +39,18 @@ public abstract class ByteChannelSequentialBase(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     public constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
 
-    protected var closed: Boolean by shared(false)
+    private val state = ByteChannelSequentialBaseSharedState()
+
+    protected var closed: Boolean
+        get() = state.closed
+        set(value) {
+            state.closed = value
+        }
+
     protected val writable: BytePacketBuilder = BytePacketBuilder(0, pool)
     protected val readable: ByteReadPacket = ByteReadPacket(initial, pool)
 
     private val slot = AwaitingSlot()
-
-    private var waitingForRead by shared(1)
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun totalPending(): Int = availableForRead + writable.size
@@ -58,9 +63,17 @@ public abstract class ByteChannelSequentialBase(
     override val availableForWrite: Int
         get() = maxOf(0, EXPECTED_CAPACITY.toInt() - totalPending())
 
-    override var readByteOrder: ByteOrder by shared(ByteOrder.BIG_ENDIAN)
+    override var readByteOrder: ByteOrder
+        get() = state.readByteOrder
+        set(value) {
+            state.readByteOrder = value
+        }
 
-    override var writeByteOrder: ByteOrder by shared(ByteOrder.BIG_ENDIAN)
+    override var writeByteOrder: ByteOrder
+        get() = state.writeByteOrder
+        set(value) {
+            state.writeByteOrder = value
+        }
 
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty && flushSize == 0 && writable.isEmpty
@@ -68,14 +81,27 @@ public abstract class ByteChannelSequentialBase(
     override val isClosedForWrite: Boolean
         get() = closed
 
-    private var _totalBytesRead: Long by shared(0L)
-    override val totalBytesRead: Long get() = _totalBytesRead
+    private var _totalBytesRead: Long
+        get() = state.totalBytesRead
+        set(value) {
+            state.totalBytesRead = value
+        }
 
-    private var _totalBytesWritten: Long by shared(0L)
-    override val totalBytesWritten: Long get() = _totalBytesWritten
+    override val totalBytesRead: Long get() = state.totalBytesRead
 
-    final override var closedCause: Throwable? by shared(null)
-        private set
+    private var _totalBytesWritten: Long
+        get() = state.totalBytesWritten
+        set(value) {
+            state.totalBytesWritten = value
+        }
+
+    override val totalBytesWritten: Long get() = state.totalBytesWritten
+
+    final override var closedCause: Throwable?
+        get() = state.closedCause
+        private set(value) {
+            state.closedCause = value
+        }
 
     private val flushMutex = SynchronizedObject()
     private val flushBuffer: BytePacketBuilder = BytePacketBuilder()
@@ -580,8 +606,17 @@ public abstract class ByteChannelSequentialBase(
         return readBoolean()
     }
 
-    private var lastReadAvailable by shared(0)
-    private var lastReadView: ChunkBuffer by shared(ChunkBuffer.Empty)
+    private var lastReadAvailable: Int
+        get() = state.lastReadAvailable
+        set(value) {
+            state.lastReadAvailable = value
+        }
+
+    private var lastReadView: ChunkBuffer
+        get() = state.lastReadView
+        set(value) {
+            state.lastReadView = value
+        }
 
     private fun completeReading() {
         val remaining = lastReadView.readRemaining

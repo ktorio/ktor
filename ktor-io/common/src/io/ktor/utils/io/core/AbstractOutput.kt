@@ -35,8 +35,19 @@ internal constructor(
      */
     protected abstract fun closeDestination()
 
-    private var _head: ChunkBuffer? by shared(null)
-    private var _tail: ChunkBuffer? by shared(null)
+    private val state = AbstractOutputSharedState()
+
+    private var _head: ChunkBuffer?
+        get() = state.head
+        set(value) {
+            state.head = value
+        }
+
+    private var _tail: ChunkBuffer?
+        get() = state.tail
+        set(value) {
+            state.tail = value
+        }
 
     internal val head: ChunkBuffer
         get() = _head ?: ChunkBuffer.Empty
@@ -55,17 +66,37 @@ internal constructor(
             appendChain(newValue)
         }
 
-    internal var tailMemory: Memory by shared(Memory.Empty)
-    internal var tailPosition by shared(0)
-    internal var tailEndExclusive by shared(0)
-        private set
+    internal var tailMemory: Memory
+        get() = state.tailMemory
+        set(value) {
+            state.tailMemory = value
+        }
 
-    private var tailInitialPosition by shared(0)
+    internal var tailPosition
+        get() = state.tailPosition
+        set(value) {
+            state.tailPosition = value
+        }
 
+    internal var tailEndExclusive
+        get() = state.tailEndExclusive
+        private set(value) {
+            state.tailEndExclusive = value
+        }
+
+    private var tailInitialPosition
+        get() = state.tailInitialPosition
+        set(value) {
+            state.tailInitialPosition = value
+        }
     /**
      * Number of bytes buffered in the chain except the tail chunk
      */
-    private var chainedSize: Int by shared(0)
+    private var chainedSize: Int
+        get() = state.chainedSize
+        set(value) {
+            state.chainedSize = value
+        }
 
     internal inline val tailRemaining: Int get() = tailEndExclusive - tailPosition
 

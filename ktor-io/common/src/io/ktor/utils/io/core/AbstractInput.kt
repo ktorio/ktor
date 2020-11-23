@@ -3,7 +3,6 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.pool.*
@@ -17,6 +16,7 @@ public abstract class AbstractInput(
     remaining: Long = head.remainingAll(),
     public val pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : Input {
+    private val state = AbstractInputSharedState(head, remaining)
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -44,14 +44,13 @@ public abstract class AbstractInput(
     /**
      * Current head chunk reference
      */
-    private final var __head: ChunkBuffer by shared(head)
     private final var _head: ChunkBuffer
-        get() = __head
+        get() = state.head
         set(newHead) {
-            __head = newHead
-            headMemory = newHead.memory
-            headPosition = newHead.readPosition
-            headEndExclusive = newHead.writePosition
+            state.head = newHead
+            state.headMemory = newHead.memory
+            state.headPosition = newHead.readPosition
+            state.headEndExclusive = newHead.writePosition
         }
 
     @PublishedApi
@@ -64,13 +63,25 @@ public abstract class AbstractInput(
         }
 
     @PublishedApi
-    internal final var headMemory: Memory by shared(head.memory)
+    internal final var headMemory: Memory
+        get() = state.headMemory
+        set(value) {
+            state.headMemory = value
+        }
 
     @PublishedApi
-    internal final var headPosition: Int by shared(head.readPosition)
+    internal final var headPosition: Int
+        get() = state.headPosition
+        set(value) {
+            state.headPosition = value
+        }
 
     @PublishedApi
-    internal final var headEndExclusive: Int by shared(head.writePosition)
+    internal final var headEndExclusive: Int
+        get() = state.headEndExclusive
+        set(value) {
+            state.headEndExclusive = value
+        }
 
     @PublishedApi
     @Suppress("DEPRECATION_ERROR")
@@ -81,12 +92,11 @@ public abstract class AbstractInput(
             updateHeadRemaining(newRemaining)
         }
 
-    private var _tailRemaining: Long by shared(remaining - headRemaining)
     private var tailRemaining: Long
-        get() = _tailRemaining
+        get() = state.tailRemaining
         set(newValue) {
             require(newValue >= 0) { "tailRemaining shouldn't be negative: $newValue" }
-            _tailRemaining = newValue
+            state.tailRemaining = newValue
         }
 
     @Deprecated(
