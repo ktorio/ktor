@@ -60,10 +60,7 @@ public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
     }
 
     url {
-        val defaultURLBuilder = URLBuilder()
-        val isDefault = this == defaultURLBuilder
-        val onlyPathSet = startsWith(defaultURLBuilder)
-        if(!isDefault && onlyPathSet) {
+        if(isRelativeURL()) {
             val requestedPath = encodedPath.removePrefix("/")
             takeFrom(baseUrlBuilder)
             encodedPath += if (encodedPath.endsWith("/")) {
@@ -75,9 +72,10 @@ public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
     }
 }
 
-internal fun URLBuilder.startsWith(other: URLBuilder): Boolean =
-    protocol == other.protocol
-        && host == other.host
-        && port == other.port
-        && user == other.user
-        && password == other.password
+internal fun URLBuilder.isRelativeURL(): Boolean {
+    val defaultURLBuilder = URLBuilder()
+    val isDefault = this == defaultURLBuilder
+    val isRelativeURL = (protocol == defaultURLBuilder.protocol
+        && authority == defaultURLBuilder.authority)
+    return !isDefault && isRelativeURL
+}
