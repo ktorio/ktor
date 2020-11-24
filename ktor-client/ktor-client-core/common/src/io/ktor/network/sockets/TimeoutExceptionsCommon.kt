@@ -35,7 +35,7 @@ public fun CoroutineScope.mapEngineExceptions(input: ByteReadChannel, request: H
 
     writer(channel = replacementChannel) {
         try {
-            input.joinTo(replacementChannel, closeOnEnd = true)
+            input.copyAndClose(replacementChannel)
         } catch (cause: Throwable) {
             input.cancel(cause)
         }
@@ -58,7 +58,7 @@ public fun CoroutineScope.mapEngineExceptions(output: ByteWriteChannel, request:
 
     writer(channel = replacementChannel) {
         try {
-            replacementChannel.joinTo(output, closeOnEnd = true)
+            replacementChannel.copyAndClose(output)
         } catch (cause: Throwable) {
             replacementChannel.close(cause)
         }
