@@ -12,6 +12,7 @@ import io.ktor.util.*
 import org.slf4j.*
 import javax.servlet.*
 import javax.servlet.annotation.*
+import kotlin.coroutines.*
 
 /**
  * This servlet need to be installed into a servlet container
@@ -62,6 +63,9 @@ public open class ServletApplicationEngine : KtorServlet() {
     override val application: Application get() = environment.application
 
     override val logger: Logger get() = environment.log
+
+    override val parentCoroutineContext: CoroutineContext
+        get() = environment.parentCoroutineContext
 
     override val enginePipeline: EnginePipeline by lazy {
         defaultEnginePipeline(environment).also {

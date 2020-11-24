@@ -5,6 +5,7 @@
 package io.ktor.server.testing.suites
 
 import io.ktor.application.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.features.*
@@ -710,5 +711,32 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine, TConfigur
             assertEquals(HttpStatusCode.OK, status)
             assertEquals("OK", readText())
         }
+    }
+
+    @Test
+    public fun testParentContextPropagates() {
+        createAndStartServer(
+            parent = TestData("parent")
+        ) {
+
+            get("/") {
+                val valueFromContext = coroutineContext[TestData]!!.name
+                call.respond(HttpStatusCode.OK, valueFromContext)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.OK, status)
+            assertEquals("parent", readText())
+        }
+    }
+
+    private data class TestData(
+        val name: String
+    ) : AbstractCoroutineContextElement(TestData) {
+        /**
+         * Key for [CoroutineName] instance in the coroutine context.
+         */
+        public companion object Key : CoroutineContext.Key<TestData>
     }
 }

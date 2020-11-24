@@ -20,6 +20,7 @@ import org.slf4j.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
+import kotlin.coroutines.*
 
 /**
  * Tomcat application engine that runs it in embedded mode
@@ -52,6 +53,8 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
             get() = DefaultServletUpgrade
         override val logger: Logger
             get() = this@TomcatApplicationEngine.environment.log
+        override val parentCoroutineContext: CoroutineContext
+            get() = environment.parentCoroutineContext
     }
 
     private val server = Tomcat().apply {

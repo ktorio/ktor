@@ -46,10 +46,17 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
-    override val coroutineContext: CoroutineContext =
+    /**
+     * Base context for call handling
+     */
+    protected abstract val parentCoroutineContext: CoroutineContext
+
+    override val coroutineContext: CoroutineContext by lazy {
         Dispatchers.Unconfined + SupervisorJob() +
+            parentCoroutineContext +
             CoroutineName("servlet") +
             DefaultUncaughtExceptionHandler { logger }
+    }
 
     /**
      * Called by the servlet container when loading the servlet (on load)
