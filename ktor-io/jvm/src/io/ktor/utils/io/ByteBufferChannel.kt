@@ -580,29 +580,33 @@ internal open class ByteBufferChannel(
     override suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int {
         val consumed = readAsMuchAsPossible(dst, offset, length)
 
-        if (consumed == 0 && closed != null) {
-            if (state.capacity.flush()) {
-                return readAsMuchAsPossible(dst, offset, length)
-            } else {
-                return -1
+        return when {
+            consumed == 0 && closed != null -> {
+                if (state.capacity.flush()) {
+                    readAsMuchAsPossible(dst, offset, length)
+                } else {
+                    -1
+                }
             }
-        } else if (consumed > 0 || length == 0) return consumed
-
-        return readAvailableSuspend(dst, offset, length)
+            consumed > 0 || length == 0 -> consumed
+            else -> readAvailableSuspend(dst, offset, length)
+        }
     }
 
     override suspend fun readAvailable(dst: ByteBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
-        if (consumed == 0 && closed != null) {
-            if (state.capacity.flush()) {
-                return readAsMuchAsPossible(dst)
-            } else {
-                return -1
+        return when {
+            consumed == 0 && closed != null -> {
+                if (state.capacity.flush()) {
+                    readAsMuchAsPossible(dst)
+                } else {
+                    -1
+                }
             }
-        } else if (consumed > 0 || !dst.hasRemaining()) return consumed
-
-        return readAvailableSuspend(dst)
+            consumed > 0 || !dst.hasRemaining() -> consumed
+            else -> readAvailableSuspend(dst)
+        }
     }
 
     override suspend fun readAvailable(dst: IoBuffer): Int {
@@ -1294,17 +1298,20 @@ internal open class ByteBufferChannel(
     }
 
     internal suspend fun copyDirect(src: ByteBufferChannel, limit: Long, joined: JoiningState?): Long {
+        assert(limit > 0)
+
         if (src.closedCause != null) {
             close(src.closedCause)
             return 0L
         }
-        if (limit == 0L) return 0L
+
         if (src.isClosedForRead) {
             if (joined != null) {
                 check(src.tryCompleteJoining(joined))
             }
             return 0L
         }
+
         if (joined != null && src.tryCompleteJoining(joined)) {
             return 0L
         }
@@ -1396,9 +1403,9 @@ internal open class ByteBufferChannel(
             }
 
             return copied
-        } catch (t: Throwable) {
-            close(t)
-            throw t
+        } catch (cause: Throwable) {
+            close(cause)
+            throw cause
         }
     }
 
