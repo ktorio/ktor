@@ -64,9 +64,6 @@ public open class ServletApplicationEngine : KtorServlet() {
 
     override val logger: Logger get() = environment.log
 
-    override val parentCoroutineContext: CoroutineContext
-        get() = environment.parentCoroutineContext
-
     override val enginePipeline: EnginePipeline by lazy {
         defaultEnginePipeline(environment).also {
             BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
@@ -78,6 +75,9 @@ public open class ServletApplicationEngine : KtorServlet() {
             jettyUpgrade ?: DefaultServletUpgrade
         } else DefaultServletUpgrade
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = super.coroutineContext + environment.parentCoroutineContext
 
     /**
      * Called by the servlet container when loading the servlet (on load)

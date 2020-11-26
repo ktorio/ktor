@@ -53,8 +53,8 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
             get() = DefaultServletUpgrade
         override val logger: Logger
             get() = this@TomcatApplicationEngine.environment.log
-        override val parentCoroutineContext: CoroutineContext
-            get() = environment.parentCoroutineContext
+        override val coroutineContext: CoroutineContext
+            get() = super.coroutineContext + environment.parentCoroutineContext
     }
 
     private val server = Tomcat().apply {
