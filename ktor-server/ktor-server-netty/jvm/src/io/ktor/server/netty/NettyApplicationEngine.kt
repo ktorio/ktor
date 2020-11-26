@@ -80,7 +80,6 @@ public class NettyApplicationEngine(
         EventLoopGroupProxy.create(configuration.connectionGroupSize)
     }
 
-
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */

@@ -6,6 +6,8 @@ package io.ktor.server.netty
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
+import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.http1.*
 import io.ktor.util.pipeline.*
@@ -16,7 +18,7 @@ import kotlinx.coroutines.*
 import org.slf4j.*
 import kotlin.coroutines.*
 
-private const val CHUNKED_VALUE  = "chunked"
+private const val CHUNKED_VALUE = "chunked"
 
 internal class NettyApplicationCallHandler(
     userCoroutineContext: CoroutineContext,
@@ -41,12 +43,27 @@ internal class NettyApplicationCallHandler(
         launch(callContext, start = CoroutineStart.UNDISPATCHED) {
             when {
                 call is NettyHttp1ApplicationCall && !call.request.httpRequest.isValid() -> {
-                    call.response.status(HttpStatusCode.BadRequest)
-                    call.response.sendResponse(chunked = false, ByteReadChannel.Empty)
-                    call.finish()
+                    respondError400BadRequest(call)
                 }
                 else -> enginePipeline.execute(call)
             }
+        }
+    }
+
+    private suspend fun respondError400BadRequest(call: NettyHttp1ApplicationCall) {
+        logCause(call)
+
+        call.response.status(HttpStatusCode.BadRequest)
+        call.response.headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+        call.response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
+        call.response.sendResponse(chunked = false, ByteReadChannel.Empty)
+        call.finish()
+    }
+
+    private fun logCause(call: NettyHttp1ApplicationCall) {
+        if (call.application.log.isTraceEnabled) {
+            val cause = call.request.httpRequest.decoderResult()?.cause() ?: return
+            call.application.log.trace("Failed to decode request", cause)
         }
     }
 
@@ -60,7 +77,7 @@ internal fun HttpRequest.isValid(): Boolean {
         return false
     }
 
-    val encodings = headers().getAll(io.ktor.http.HttpHeaders.TransferEncoding) ?: return true
+    val encodings = headers().getAll(HttpHeaders.TransferEncoding) ?: return true
     if (!encodings.hasValidTransferEncoding()) {
         return false
     }
@@ -79,7 +96,7 @@ internal fun List<String>.hasValidTransferEncoding(): Boolean {
 
         val afterChunked: Int = chunkedStart + CHUNKED_VALUE.length
         if (afterChunked < header.length && !header[afterChunked].isSeparator()) {
-                return@forEachIndexed
+            return@forEachIndexed
         }
 
         if (headerIndex != lastIndex) {

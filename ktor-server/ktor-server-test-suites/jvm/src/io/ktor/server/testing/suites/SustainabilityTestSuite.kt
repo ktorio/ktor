@@ -541,7 +541,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             get("/") {
                 call.respondText("Hello, world!", ContentType.Text.Html)
             }
-            post("/"){
+            post("/") {
                 val post = call.receiveParameters()
                 call.respond("$post")
             }
@@ -575,6 +575,50 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             )
 
             assertTrue(expected.any { result.startsWith(it) }, "Invalid response: $result")
+        }
+    }
+
+    @Test
+    @NoHttp2
+    fun testHeaderIsTooLong() {
+        createAndStartServer {
+            get("/") {
+                call.respondText("Hello, world!", ContentType.Text.Plain)
+            }
+        }
+
+        socket {
+            // we use socket instead of http client to ensure we really send too big header
+            // since a client may crash itself or do something unsuitable for the test here
+
+            launch(Dispatchers.IO) {
+                getOutputStream().writer().apply {
+                    write("GET / HTTP/1.1\r\n")
+                    write("Host: localhost:$port\r\n")
+                    write("MyLongHeader: ")
+                    repeat(10000) {
+                        write("Abc")
+                    }
+                    write("\r\n\r\n")
+                }
+            }
+
+            getInputStream().bufferedReader().apply {
+                // we are expecting either 400 BadRequest or 200 OK Hello, World
+                val status = readLine().trim().split(" ")[1].toInt()
+                assertTrue(
+                    status in listOf(200, 400, 431),
+                    "status should be either 200 or 400 or 431 but it's $status"
+                )
+
+                val contentLength = parseHeadersAndGetContentLength()
+
+                if (contentLength == -1) {
+                    assertEquals(-1, read())
+                } else {
+                    skipHttpResponseContent(contentLength)
+                }
+            }
         }
     }
 }

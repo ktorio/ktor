@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -9,11 +9,11 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
 import java.io.*
 import kotlin.coroutines.*
 
@@ -25,7 +25,8 @@ public abstract class NettyApplicationRequest(
     public val context: ChannelHandlerContext,
     private val requestBodyChannel: ByteReadChannel,
     protected val uri: String,
-    internal val keepAlive: Boolean) : BaseApplicationRequest(call), CoroutineScope {
+    internal val keepAlive: Boolean
+) : BaseApplicationRequest(call), CoroutineScope {
 
     public final override val queryParameters: Parameters = object : Parameters {
         private val decoder = QueryStringDecoder(uri)
