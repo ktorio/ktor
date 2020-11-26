@@ -12,11 +12,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -31,6 +34,11 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
             }
             get("/hello") {
                 call.respondText("hello")
+            }
+            post("/echo") {
+                val text = call.receiveText()
+                println("TEXT $text")
+                call.respondText(text)
             }
         }
     }
@@ -108,4 +116,16 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         assertTrue(newClient.attributes.contains(anotherCustomFeatureKey), "no other custom feature installed")
     }
 
+    @Test
+    fun testErrorInWritingPropagates() = testSuspend {
+        val client = HttpClient(factory)
+        val channel = ByteChannel(true)
+        channel.writeAvailable("text".toByteArray())
+        channel.close(IllegalStateException("Error on write"))
+        assertFailsWith<IllegalStateException>("Error on write") {
+            client.post<String>("http://localhost:$serverPort/echo") {
+                body = channel
+            }
+        }
+    }
 }
