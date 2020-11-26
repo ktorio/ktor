@@ -136,7 +136,8 @@ internal expect val URLBuilder.Companion.originHost: String?
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
- */ public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
+ */
+public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 
 /**
  * Represents an immutable URL

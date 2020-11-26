@@ -41,7 +41,6 @@ public fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Un
  * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
  *
  * The given [baseUrl] cannot have a query or a fragment part.
- * The given [baseUrl] cannot be the default [URLBuilder].
  */
 public fun HttpRequestBuilder.baseURL(baseUrl: String) {
     baseURL(URLBuilder().takeFrom(baseUrl))
@@ -52,7 +51,6 @@ public fun HttpRequestBuilder.baseURL(baseUrl: String) {
  * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
  *
  * The given [baseUrlBuilder] cannot have a query or a fragment part.
- * The given [baseUrlBuilder] cannot be the default [URLBuilder].
  */
 public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
     require(baseUrlBuilder.parameters.build() == Parameters.Empty && baseUrlBuilder.fragment.isEmpty()) {
