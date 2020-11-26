@@ -22,7 +22,7 @@ public const val DEFAULT_PORT: Int = 0
  * @property fragment URL fragment (anchor name)
  * @property trailingQuery keep a trailing question character even if there are no query parameters
  */
-public data class URLBuilder(
+public class URLBuilder(
     public var protocol: URLProtocol = URLProtocol.HTTP,
     public var host: String = "localhost",
     public var port: Int = DEFAULT_PORT,
@@ -99,6 +99,30 @@ public data class URLBuilder(
         protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
     )
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is URLBuilder) return false
+
+        if (protocol != other.protocol) return false
+        if (authority != other.authority) return false
+        if (encodedPath != other.encodedPath) return false
+        if (parameters != other.parameters) return false
+        if (fragment != other.fragment) return false
+        if (trailingQuery != other.trailingQuery) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = protocol.hashCode()
+        result = 31 * result + authority.hashCode()
+        result = 31 * result + encodedPath.hashCode()
+        result = 31 * result + parameters.hashCode()
+        result = 31 * result + fragment.hashCode()
+        result = 31 * result + trailingQuery.hashCode()
+        return result
+    }
+
     // Required to write external extension function
     public companion object
 }
@@ -112,9 +136,7 @@ internal expect val URLBuilder.Companion.originHost: String?
 
 /**
  * Create a copy of this builder. Modifications in a copy is not reflected in the original instance and vise-versa.
- */
-@Deprecated("Use generated copy function instead", ReplaceWith("copy()"))
-public fun URLBuilder.clone(): URLBuilder = copy()
+ */ public fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
 
 /**
  * Represents an immutable URL
