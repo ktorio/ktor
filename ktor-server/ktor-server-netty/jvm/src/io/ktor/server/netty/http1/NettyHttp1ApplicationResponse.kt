@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http1
 
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
@@ -59,7 +59,11 @@ internal class NettyHttp1ApplicationResponse(
 
     override fun responseMessage(chunked: Boolean, data: ByteArray): Any {
         val responseMessage = DefaultFullHttpResponse(
-            protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE
+            protocol,
+            responseStatus,
+            Unpooled.wrappedBuffer(data),
+            responseHeaders,
+            EmptyHttpHeaders.INSTANCE
         )
         if (chunked) {
             setChunked(responseMessage)

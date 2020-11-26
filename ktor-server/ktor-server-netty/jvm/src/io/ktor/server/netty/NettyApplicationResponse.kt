@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -77,7 +77,16 @@ public abstract class NettyApplicationResponse(
     internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
         if (!responseMessageSent) {
             responseChannel = content
-            responseMessage.complete(responseMessage(chunked, content.isClosedForRead))
+            responseMessage.complete(
+                when {
+                    content.isClosedForRead -> {
+                        responseMessage(chunked = false, data = EmptyByteArray)
+                    }
+                    else -> {
+                        responseMessage(chunked, last = false)
+                    }
+                }
+            )
             responseMessageSent = true
         }
     }
