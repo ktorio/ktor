@@ -83,7 +83,9 @@ internal inline fun <T> Timeout?.withTimeout(block: () -> T): T {
     }
 
     start()
-    val result = block()
-    stop()
-    return result
+    return try {
+        block()
+    } finally {
+        stop()
+    }
 }
