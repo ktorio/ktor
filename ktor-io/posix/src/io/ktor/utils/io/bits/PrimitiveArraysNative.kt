@@ -7,7 +7,7 @@ import io.ktor.utils.io.bits.internal.utils.*
 import platform.posix.*
 
 @PublishedApi
-internal const val unalignedAccessSupported = UNALIGNED_ACCESS_ALLOWED == 1
+internal const val unalignedAccessSupported: Boolean = UNALIGNED_ACCESS_ALLOWED == 1
 
 /**
  * Copies shorts integers from this memory range from the specified [offset] and [count]

@@ -8,11 +8,15 @@ import org.gradle.api.artifacts.repositories.*
 import org.gradle.api.initialization.dsl.*
 import java.net.*
 
+
+private val cacheRedirectorAvaialble: Boolean = isCacheRedirectorAvailable()
+
 /**
  * Enabled via environment variable, so that it can be reliably accessed from any piece of the build script,
  * including buildSrc within TeamCity CI.
  */
-private val cacheRedirectorEnabled = System.getenv("CACHE_REDIRECTOR_DISABLED")?.toBoolean() != true
+private val cacheRedirectorEnabled =
+    cacheRedirectorAvaialble && (System.getenv("CACHE_REDIRECTOR_DISABLED")?.toBoolean() != true)
 
 /**
  *  The list of repositories supported by cache redirector should be synced with the list at https://cache-redirector.jetbrains.com/redirects_generated.html
@@ -90,14 +94,13 @@ private val aliases = mapOf(
     "https://kotlin.bintray.com/kotlin-dev" to "https://dl.bintray.com/kotlin/kotlin-dev",
     "https://kotlin.bintray.com/kotlin-eap" to "https://dl.bintray.com/kotlin/kotlin-eap",
     "https://kotlin.bintray.com/kotlinx" to "https://dl.bintray.com/kotlin/kotlinx"
-).also {
-    it.forEach { (key, value) ->
-        require(!key.endsWith('/'))
-        require(!value.endsWith('/'))
-    }
+).onEach { (key, value) ->
+    require(!key.endsWith('/'))
+    require(!value.endsWith('/'))
 }
 
-private fun URI.toCacheRedirectorUri() = URI("https://cache-redirector.jetbrains.com/$host$path")
+private val CACHE_REDIRECTOR_URL = "https://cache-redirector.jetbrains.com/"
+private fun URI.toCacheRedirectorUri() = URI("$CACHE_REDIRECTOR_URL$host$path")
 
 private fun URI.maybeRedirect(): URI? {
     val url = toString().trimEnd('/')
@@ -117,12 +120,14 @@ private fun URI.isCachedOrLocal() = scheme == "file" ||
 
 private fun Project.checkRedirectUrl(url: URI, containerName: String): URI {
     val redirected = url.maybeRedirect()
+
     if (redirected == null && !url.isCachedOrLocal()) {
         val msg = "Repository $url in $containerName should be cached with cache-redirector"
         val details = "Using non cached repository may lead to download failures in CI builds." +
             " Check buildSrc/src/main/kotlin/CacheRedirector.kt for details."
         logger.warn("WARNING - $msg\n$details")
     }
+
     return if (cacheRedirectorEnabled) redirected ?: url else url
 }
 
@@ -130,12 +135,20 @@ private fun Project.checkRedirect(repositories: RepositoryHandler, containerName
     if (cacheRedirectorEnabled) {
         logger.info("Redirecting repositories for $containerName")
     }
+
     for (repository in repositories) {
         when (repository) {
             is MavenArtifactRepository -> repository.url = checkRedirectUrl(repository.url, containerName)
             is IvyArtifactRepository -> repository.url = checkRedirectUrl(repository.url, containerName)
         }
     }
+}
+
+private fun isCacheRedirectorAvailable(): Boolean = try {
+    val address = InetAddress.getByName(CACHE_REDIRECTOR_URL)
+    (address.isReachable(10 * 1000))
+} catch (_: Throwable) {
+    false
 }
 
 // Used from Groovy scripts
