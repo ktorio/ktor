@@ -1318,6 +1318,10 @@ internal open class ByteBufferChannel(
     }
 
     internal suspend fun copyDirect(src: ByteBufferChannel, limit: Long, joined: JoiningState?): Long {
+        if (src.closedCause != null) {
+            close(src.closedCause)
+            return 0L
+        }
         if (limit == 0L) return 0L
         if (src.isClosedForRead) {
             if (joined != null) {
