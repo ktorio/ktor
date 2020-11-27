@@ -28,4 +28,51 @@ class ByteBufferChannelTest {
         }
         Unit
     }
+
+    @Test
+    fun testWriteWriteAvailableRaceCondition() = runBlocking {
+        testWriteXRaceCondition { it.writeAvailable(1) { it.put(1) } }
+    }
+
+    @Test
+    fun testWriteByteRaceCondition() = runBlocking {
+        testWriteXRaceCondition { it.writeByte(1) }
+    }
+
+    @Test
+    fun testWriteIntRaceCondition() = runBlocking {
+        testWriteXRaceCondition { it.writeInt(1) }
+    }
+
+    @Test
+    fun testWriteShortRaceCondition() = runBlocking {
+        testWriteXRaceCondition { it.writeShort(1) }
+    }
+
+    @Test
+    fun testWriteLongRaceCondition() = runBlocking {
+        testWriteXRaceCondition { it.writeLong(1) }
+    }
+
+    private fun testWriteXRaceCondition(writer: suspend (ByteChannel) -> Unit): Unit = runBlocking {
+        val channel = ByteBufferChannel(false)
+
+        val job1 = GlobalScope.async {
+            try {
+                repeat(10_000_000) {
+                    writer(channel)
+                    channel.flush()
+                }
+                channel.close()
+            } catch (cause: Throwable) {
+                channel.close(cause)
+                throw cause
+            }
+        }
+        val job2 = GlobalScope.async {
+            channel.readRemaining()
+        }
+        job1.await()
+        job2.await()
+    }
 }
