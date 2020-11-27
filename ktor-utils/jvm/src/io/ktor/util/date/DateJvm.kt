@@ -64,3 +64,8 @@ public fun Calendar.toDate(timestamp: Long?): GMTDate {
  * Convert to [Date]
  */
 public fun GMTDate.toJvmDate(): Date = Date(timestamp)
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public actual fun getTimeMillis(): Long = System.currentTimeMillis()
