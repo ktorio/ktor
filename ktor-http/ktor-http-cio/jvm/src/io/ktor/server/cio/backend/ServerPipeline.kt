@@ -186,7 +186,7 @@ private suspend fun pipelineWriterLoop(
     while (true) {
         val child = timeout.withTimeout(receiveChildOrNull) ?: break
         try {
-            child.joinTo(connection.output, false)
+            child.copyTo(connection.output)
             connection.output.flush()
         } catch (t: Throwable) {
             if (child is ByteWriteChannel) {

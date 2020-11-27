@@ -267,7 +267,10 @@ private suspend fun ByteReadChannel.joinToImplSuspend(dst: ByteWriteChannel, clo
  */
 public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: Long): Long {
     require(this !== dst)
-    require(limit >= 0L)
+
+    if (limit == 0L) {
+        return 0L
+    }
 
     if (this is ByteBufferChannel && dst is ByteBufferChannel) {
         return dst.copyDirect(this, limit, null)

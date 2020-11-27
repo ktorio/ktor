@@ -120,12 +120,28 @@ public expect fun Memory.fill(offset: Int, count: Int, value: Byte)
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
- * to the [destination] at [destinationOffset].
+ * to the [destination].
  */
-public expect fun Memory.copyTo(destination: ByteArray, offset: Int, length: Int, destinationOffset: Int = 0)
+public fun Memory.copyTo(destination: ByteArray, offset: Int, length: Int) {
+    copyTo(destination, offset, length, destinationOffset = 0)
+}
 
 /**
  * Copies bytes from this memory range from the specified [offset] and [length]
  * to the [destination] at [destinationOffset].
  */
-public expect fun Memory.copyTo(destination: ByteArray, offset: Long, length: Int, destinationOffset: Int = 0)
+public expect fun Memory.copyTo(destination: ByteArray, offset: Int, length: Int, destinationOffset: Int)
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination].
+ */
+public fun Memory.copyTo(destination: ByteArray, offset: Long, length: Int) {
+    copyTo(destination, offset, length, destinationOffset = 0)
+}
+
+/**
+ * Copies bytes from this memory range from the specified [offset] and [length]
+ * to the [destination] at [destinationOffset].
+ */
+public expect fun Memory.copyTo(destination: ByteArray, offset: Long, length: Int, destinationOffset: Int)

@@ -9,14 +9,21 @@ import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.debug.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
 import java.io.*
 import java.nio.*
 import java.util.zip.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class DeflaterReadChannelTest : CoroutineScope {
     private val testJob = Job()
     override val coroutineContext get() = testJob + Dispatchers.Unconfined
+
+    @get:Rule
+    val timeout = CoroutinesTimeout.seconds(60)
 
     @AfterTest
     fun after() {
@@ -88,8 +95,8 @@ class DeflaterReadChannelTest : CoroutineScope {
         testWriteChannel(text, asyncOf(text))
     }
 
-    private fun asyncOf(text: String) = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)))
-    private fun asyncOf(bb: ByteBuffer) = ByteReadChannel(bb)
+    private fun asyncOf(text: String): ByteReadChannel = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)))
+    private fun asyncOf(bb: ByteBuffer): ByteReadChannel = ByteReadChannel(bb)
 
     private fun InputStream.ungzip() = GZIPInputStream(this)
 
