@@ -68,7 +68,9 @@ public fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: suspend CoroutineScope.(
         request: Request,
-        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        upgraded: CompletableDeferred<Boolean>?
     ) -> Unit
 ): HttpServer {
     return httpServer(settings) { request ->
