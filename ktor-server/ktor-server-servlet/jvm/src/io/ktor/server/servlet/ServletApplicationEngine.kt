@@ -12,6 +12,7 @@ import io.ktor.util.*
 import org.slf4j.*
 import javax.servlet.*
 import javax.servlet.annotation.*
+import kotlin.coroutines.*
 
 /**
  * This servlet need to be installed into a servlet container
@@ -74,6 +75,9 @@ public open class ServletApplicationEngine : KtorServlet() {
             jettyUpgrade ?: DefaultServletUpgrade
         } else DefaultServletUpgrade
     }
+
+    override val coroutineContext: CoroutineContext
+        get() = super.coroutineContext + environment.parentCoroutineContext
 
     /**
      * Called by the servlet container when loading the servlet (on load)
