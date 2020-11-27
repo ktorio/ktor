@@ -137,3 +137,8 @@ public operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timesta
  * Truncate to seconds by discarding sub-second part
  */
 public fun GMTDate.truncateToSeconds(): GMTDate = GMTDate(seconds, minutes, hours, dayOfMonth, month, year)
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public expect fun getTimeMillis(): Long

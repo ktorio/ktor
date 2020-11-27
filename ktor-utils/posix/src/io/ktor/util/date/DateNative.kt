@@ -56,3 +56,8 @@ public actual fun GMTDate(
 
     return GMTDate(timestamp * 1000L)
 }
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public actual fun getTimeMillis(): Long = GMTDate().timestamp
