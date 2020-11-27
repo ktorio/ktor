@@ -11,7 +11,7 @@ import java.util.concurrent.*
 @Suppress("KDocMissingDocumentation")
 @WebSocketInternalAPI
 public class Serializer {
-    private val q = ArrayBlockingQueue<Frame>(1024)
+    private val messages = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
@@ -19,17 +19,17 @@ public class Serializer {
     public var masking: Boolean = false
 
     public val hasOutstandingBytes: Boolean
-        get() = q.isNotEmpty() || frameBody != null
+        get() = messages.isNotEmpty() || frameBody != null
 
-    public val remainingCapacity: Int get() = q.remainingCapacity()
+    public val remainingCapacity: Int get() = messages.remainingCapacity()
 
     public fun enqueue(f: Frame) {
-        q.put(f)
+        messages.put(f)
     }
 
     public fun serialize(buffer: ByteBuffer) {
         while (writeCurrentPayload(buffer)) {
-            val frame = q.peek() ?: break
+            val frame = messages.peek() ?: break
             val mask = masking
             setMaskBuffer(mask)
 
@@ -39,7 +39,7 @@ public class Serializer {
             }
 
             serializeHeader(frame, buffer, mask)
-            q.remove()
+            messages.remove()
             frameBody = frame.buffer.maskedIfNeeded()
         }
     }

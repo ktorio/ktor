@@ -38,7 +38,7 @@ internal fun CoroutineScope.writeMultipleRangesImpl(
     for (range in ranges) {
         val current = channelProducer(range)
         channel.writeHeaders(range, boundary, contentType, fullLength)
-        current.joinTo(channel, closeOnEnd = false)
+        current.copyTo(channel)
         channel.writeFully(NEWLINE)
     }
 
