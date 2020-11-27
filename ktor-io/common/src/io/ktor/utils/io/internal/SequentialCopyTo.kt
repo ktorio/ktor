@@ -16,6 +16,10 @@ internal suspend fun ByteChannelSequentialBase.joinToImpl(dst: ByteChannelSequen
  */
 internal suspend fun ByteChannelSequentialBase.copyToSequentialImpl(dst: ByteChannelSequentialBase, limit: Long): Long {
     require(this !== dst)
+    if (closedCause != null) {
+        dst.close(closedCause)
+        return 0L
+    }
 
     var remainingLimit = limit
 

@@ -180,6 +180,7 @@ internal class ApacheRequestProducer(
 
                 ioControl.getAndSet(null)?.requestOutput()
             }
+            bodyChannel.rethrowCloseCause()
         }
 
         result.invokeOnCompletion { cause ->
@@ -197,6 +198,15 @@ internal class ApacheRequestProducer(
         ) {
             HttpClientDefaultPool.recycle(this)
         }
+    }
+
+    private fun ByteReadChannel.rethrowCloseCause() {
+        val cause = when (this) {
+            is ByteChannel -> closedCause
+            is ByteChannelSequentialBase -> closedCause
+            else -> null
+        }
+        if (cause != null) throw cause
     }
 }
 
