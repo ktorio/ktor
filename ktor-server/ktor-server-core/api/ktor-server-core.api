@@ -824,6 +824,16 @@ public final class io/ktor/http/content/CachingOptionsJvmKt {
 	public static synthetic fun CachingOptions$default (Lio/ktor/http/CacheControl;Ljava/time/ZonedDateTime;ILjava/lang/Object;)Lio/ktor/http/content/CachingOptions;
 }
 
+public final class io/ktor/http/content/CompressedFileType : java/lang/Enum {
+	public static final field BROTLI Lio/ktor/http/content/CompressedFileType;
+	public static final field GZIP Lio/ktor/http/content/CompressedFileType;
+	public final fun file (Ljava/io/File;)Ljava/io/File;
+	public final fun getEncoding ()Ljava/lang/String;
+	public final fun getExtension ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/http/content/CompressedFileType;
+	public static fun values ()[Lio/ktor/http/content/CompressedFileType;
+}
+
 public final class io/ktor/http/content/DefaultTransformKt {
 	public static final fun transformDefaultContent (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Lio/ktor/http/content/OutgoingContent;
 }
@@ -878,6 +888,8 @@ public final class io/ktor/http/content/StaticContentKt {
 	public static final fun files (Lio/ktor/routing/Route;Ljava/lang/String;)V
 	public static final fun getStaticBasePackage (Lio/ktor/routing/Route;)Ljava/lang/String;
 	public static final fun getStaticRootFolder (Lio/ktor/routing/Route;)Ljava/io/File;
+	public static final fun preCompressed (Lio/ktor/routing/Route;[Lio/ktor/http/content/CompressedFileType;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun preCompressed$default (Lio/ktor/routing/Route;[Lio/ktor/http/content/CompressedFileType;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static final fun resource (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun resource$default (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public static final fun resources (Lio/ktor/routing/Route;Ljava/lang/String;)V

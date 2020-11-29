@@ -155,6 +155,164 @@ class StaticContentTest {
     }
 
     @Test
+    fun testServeEncodedFileBr() = withTestApplication {
+        val ext = "json"
+        val temp = File.createTempFile("testServeEncodedFile", ".$ext.br")
+
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+
+        application.routing {
+            static {
+                preCompressed {
+                    files(temp.parentFile)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
+            addHeader(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(temp.readText(), result.response.content)
+            assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
+            assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testServeEncodedFileGz() = withTestApplication {
+        val ext = "js"
+        val temp = File.createTempFile("testServeEncodedFile", ".$ext.gz")
+
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+
+        application.routing {
+            static {
+                preCompressed {
+                    files(temp.parentFile)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
+            addHeader(HttpHeaders.AcceptEncoding, "br, gzip, deflate, identity")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(temp.readText(), result.response.content)
+            assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
+            assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+
+    @Test
+    //a.k.a testServeEncodedFileGzWithCompressionNoRecompress
+    fun testSuppressCompressionIfAlreadyCompressed() = withTestApplication {
+        application.install(Compression)
+        val ext = "js"
+        val temp = File.createTempFile("testServeEncodedFile", ".$ext.gz")
+
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).copyTo(temp, true)
+
+        application.routing {
+            static {
+                preCompressed {
+                    files(temp.parentFile)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/${temp.nameWithoutExtension}") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(temp.readText(), result.response.content)
+            assertEquals(ContentType.defaultForFileExtension(ext), result.response.contentType())
+            assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testCompressedTypesOrder() = withTestApplication {
+        val ext = "js"
+        val cType = ContentType.defaultForFileExtension(ext)
+
+        val tempgz = File.createTempFile("testServeEncodedFile", ".$ext.gz")
+        val publicFile = tempgz.nameWithoutExtension
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).copyTo(tempgz, true)
+        tempgz.copyTo(File(tempgz.parentFile, "$publicFile.br"), true)
+
+        application.routing {
+            static("firstgz") {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI) {
+                    files(tempgz.parentFile)
+                }
+            }
+            static("firstbr") {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP) {
+                    files(tempgz.parentFile)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/firstgz/$publicFile") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(cType, result.response.contentType())
+            assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        handleRequest(HttpMethod.Get, "/firstbr/$publicFile") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(cType, result.response.contentType())
+            assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testPreCompressedConfiguresImperatively() = withTestApplication {
+        val tempFile = File.createTempFile("testServeEncodedFile", ".dummy")
+        val publicFile = tempFile.nameWithoutExtension
+        val gzDir = File(tempFile.parentFile, "js").also { it.mkdirs() }
+        val brDir = File(tempFile.parentFile, "css").also { it.mkdirs() }
+
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).run {
+            copyTo(File(gzDir, "$publicFile.js.gz"), true)
+            copyTo(File(brDir, "$publicFile.css.br"), true)
+        }
+
+        application.routing {
+            static("assets") {
+                preCompressed(CompressedFileType.GZIP) {
+                    files(gzDir)
+                }
+                preCompressed(CompressedFileType.BROTLI) {
+                    files(brDir)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/$publicFile.js") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(ContentType.defaultForFileExtension("js"), result.response.contentType())
+            assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/$publicFile.css") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(ContentType.defaultForFileExtension("css"), result.response.contentType())
+            assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
     fun testSendLocalFile() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
             call.respond(
