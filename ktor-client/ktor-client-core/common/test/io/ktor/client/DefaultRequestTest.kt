@@ -16,15 +16,18 @@ class DefaultRequestTest {
         assertEquals(URLBuilder(), URLBuilder())
     }
 
-    private fun HttpRequestBuilder.defaultRequest() = apply {
-        baseURL("https://ktor.io/docs")
+    private fun HttpRequestBuilder.defaultRequest(url: String) = apply {
+        val defaultRequestFeature = DefaultRequest.Builder(this).apply {
+            baseURL(url)
+        }
+        takeFrom(defaultRequestFeature)
     }
 
     @Test
     fun testUsingBaseURL() {
         val todoURL = HttpRequestBuilder().apply {
             url.takeFrom("/sub")
-        }.defaultRequest().build().url
+        }.defaultRequest("https://ktor.io/docs").build().url
         assertEquals("https://ktor.io/docs/sub", todoURL.toString())
     }
 
@@ -32,7 +35,7 @@ class DefaultRequestTest {
     fun overrideOther() {
         val overridden = HttpRequestBuilder().apply {
             url.takeFrom("https://kotlinlang.org/blog")
-        }.defaultRequest().build().url
+        }.defaultRequest("https://ktor.io/docs").build().url
         assertEquals("https://kotlinlang.org/blog", overridden.toString())
     }
 
@@ -40,7 +43,7 @@ class DefaultRequestTest {
     fun overriddenLocalhostOnly() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/")
-        }.defaultRequest().build().url
+        }.defaultRequest("https://ktor.io/docs").build().url
         assertEquals("http://localhost/", localhost.toString())
     }
 
@@ -49,7 +52,7 @@ class DefaultRequestTest {
     fun overriddenLocalhostWithPath() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/sub")
-        }.defaultRequest().build().url
+        }.defaultRequest("https://ktor.io/docs").build().url
         assertEquals("http://localhost/sub", localhost.toString())
     }
 
@@ -57,7 +60,7 @@ class DefaultRequestTest {
     fun useDefaultAsBaseURL() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/sub")
-            baseURL(URLBuilder())
+            takeFrom(DefaultRequest.Builder(this).apply { baseURL(URLBuilder()) })
         }.build().url
         assertEquals("http://localhost/sub", localhost.toString())
     }
