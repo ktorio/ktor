@@ -282,38 +282,27 @@ class RoutingProcessingTest {
     }
 
     @Test
-    fun testRouteWithTypedBody() = withTestApplication({
-        routing {
+    fun testRouteWithTypedBody(): Unit = withTestApplication {
+        application.routing {
             post<String> { answer ->
-                call.respondText(answer)
+                assertEquals("42", answer)
             }
             put<String>("/put") { answer ->
-                call.respondText(answer)
+                assertEquals("42", answer)
             }
             patch<String>("/patching") { answer ->
-                call.respondText(answer)
+                assertEquals("42", answer)
             }
         }
-    }) {
-        with(handleRequest(HttpMethod.Post, "/") {
-            setBody("42")
-        }.response) {
-            assertEquals(HttpStatusCode.OK, status()!!)
-            assertEquals(42.toString(), content!!)
-        }
 
-        with(handleRequest(HttpMethod.Put, "/put") {
+        handleRequest(HttpMethod.Post, "/") {
             setBody("42")
-        }.response) {
-            assertEquals(HttpStatusCode.OK, status()!!)
-            assertEquals(42.toString(), content!!)
         }
-
-        with(handleRequest(HttpMethod.Patch, "/patching") {
+        handleRequest(HttpMethod.Put, "/put") {
             setBody("42")
-        }.response) {
-            assertEquals(HttpStatusCode.OK, status()!!)
-            assertEquals(42.toString(), content!!)
+        }
+        handleRequest(HttpMethod.Patch, "/patching") {
+            setBody("42")
         }
     }
 
