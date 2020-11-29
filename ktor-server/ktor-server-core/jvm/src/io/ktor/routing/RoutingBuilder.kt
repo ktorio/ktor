@@ -118,18 +118,21 @@ public fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationC
 @ContextDsl
 @JvmName("postTyped")
 public inline fun <reified R : Any> Route.post(
-    path: String? = null,
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route {
-    return if(path != null) {
-        post(path) {
-            body(call.receive())
-        }
-    } else {
-        post {
-            body(call.receive())
-        }
-    }
+): Route = post {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("postTypedPath")
+public inline fun <reified R : Any> Route.post(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = post(path) {
+    body(call.receive())
 }
 
 /**
@@ -178,18 +181,21 @@ public fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 @ContextDsl
 @JvmName("putTyped")
 public inline fun <reified R : Any> Route.put(
-    path: String? = null,
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route {
-    return if(path != null) {
-        put(path) {
-            body(call.receive())
-        }
-    } else {
-        put {
-            body(call.receive())
-        }
-    }
+): Route = put {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `PUT` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("putTypedPath")
+public inline fun <reified R : Any> Route.put(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = put(path) {
+    body(call.receive())
 }
 
 /**
@@ -214,18 +220,21 @@ public fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route 
 @ContextDsl
 @JvmName("patchTyped")
 public inline fun <reified R : Any> Route.patch(
-    path: String? = null,
     crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
-): Route {
-    return if(path != null) {
-        patch(path) {
-            body(call.receive())
-        }
-    } else {
-        patch {
-            body(call.receive())
-        }
-    }
+): Route = patch {
+    body(call.receive())
+}
+
+/**
+ * Builds a route to match `PATCH` requests with specified [path] receiving request body content of type [R]
+ */
+@ContextDsl
+@JvmName("patchTypedPath")
+public inline fun <reified R : Any> Route.patch(
+    path: String,
+    crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit
+): Route = patch(path) {
+    body(call.receive())
 }
 
 /**
