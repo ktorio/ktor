@@ -113,7 +113,7 @@ public fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationC
 }
 
 /**
- * Builds a route to match `POST` requests with specified [path] receiving request body content of type [R]
+ * Builds a route to match `POST` requests receiving request body content of type [R]
  */
 @ContextDsl
 @JvmName("postTyped")
@@ -176,7 +176,7 @@ public fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 }
 
 /**
- * Builds a route to match `PUT` requests with specified [path] receiving request body content of type [R]
+ * Builds a route to match `PUT` requests with receiving request body content of type [R]
  */
 @ContextDsl
 @JvmName("putTyped")
@@ -215,7 +215,7 @@ public fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route 
 }
 
 /**
- * Builds a route to match `PATCH` requests with specified [path] receiving request body content of type [R]
+ * Builds a route to match `PATCH` requests receiving request body content of type [R]
  */
 @ContextDsl
 @JvmName("patchTyped")
