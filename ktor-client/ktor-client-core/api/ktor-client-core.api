@@ -285,6 +285,12 @@ public final class io/ktor/client/features/DefaultRequest {
 	public fun <init> (Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/client/features/DefaultRequest$Builder : io/ktor/client/request/HttpRequestBuilder {
+	public fun <init> (Lio/ktor/client/request/HttpRequestBuilder;)V
+	public final fun baseURL (Lio/ktor/http/URLBuilder;)V
+	public final fun baseURL (Ljava/lang/String;)V
+}
+
 public final class io/ktor/client/features/DefaultRequest$Feature : io/ktor/client/features/HttpClientFeature {
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/client/features/DefaultRequest;Lio/ktor/client/HttpClient;)V
@@ -294,8 +300,6 @@ public final class io/ktor/client/features/DefaultRequest$Feature : io/ktor/clie
 }
 
 public final class io/ktor/client/features/DefaultRequestKt {
-	public static final fun baseURL (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/http/URLBuilder;)V
-	public static final fun baseURL (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 	public static final fun defaultRequest (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
 }
 
@@ -790,7 +794,7 @@ public final class io/ktor/client/request/HttpRequest$DefaultImpls {
 	public static synthetic fun getExecutionContext (Lio/ktor/client/request/HttpRequest;)Lkotlinx/coroutines/Job;
 }
 
-public final class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/HttpMessageBuilder {
+public class io/ktor/client/request/HttpRequestBuilder : io/ktor/http/HttpMessageBuilder {
 	public static final field Companion Lio/ktor/client/request/HttpRequestBuilder$Companion;
 	public fun <init> ()V
 	public final fun build ()Lio/ktor/client/request/HttpRequestData;

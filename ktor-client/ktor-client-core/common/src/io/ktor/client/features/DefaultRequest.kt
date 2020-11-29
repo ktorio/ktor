@@ -11,17 +11,64 @@ import io.ktor.http.*
 /**
  * [Feature] is used to set request default parameters.
  */
-public class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) {
+public class DefaultRequest(private val builder: Builder.() -> Unit) {
 
-    public companion object Feature : HttpClientFeature<HttpRequestBuilder, DefaultRequest> {
+    public class Builder(requested: HttpRequestBuilder) : HttpRequestBuilder() {
+        init {
+            takeFrom(requested)
+        }
+
+        /**
+         * Set the [baseUrl] to use it in sub-requests.
+         * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
+         *
+         * The given [baseUrl] cannot have a query or a fragment part.
+         */
+        public fun baseURL(baseUrl: String) {
+            baseURL(URLBuilder().takeFrom(baseUrl))
+        }
+
+        /**
+         * Set the [baseURL] to use it in sub-requests.
+         * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
+         *
+         * The given [baseURL] cannot have a query or a fragment part.
+         */
+        public fun baseURL(baseUrl: URLBuilder) {
+            url {
+                if (isRelativeURL()) {
+                    val requestedPath = encodedPath.removePrefix("/")
+                    takeFrom(baseUrl)
+                    encodedPath += if (encodedPath.endsWith("/")) {
+                        requestedPath
+                    } else {
+                        "/$requestedPath"
+                    }
+                }
+            }
+        }
+
+        private fun URLBuilder.isRelativeURL(): Boolean {
+            val defaultURLBuilder = URLBuilder()
+            val isDefault = this == defaultURLBuilder
+            val isRelativeURL = (protocol == defaultURLBuilder.protocol
+                && authority == defaultURLBuilder.authority)
+            return !isDefault && isRelativeURL
+        }
+    }
+
+    public companion object Feature : HttpClientFeature<Builder, DefaultRequest> {
         override val key: AttributeKey<DefaultRequest> = AttributeKey("DefaultRequest")
 
-        override fun prepare(block: HttpRequestBuilder.() -> Unit): DefaultRequest =
+        override fun prepare(block: Builder.() -> Unit): DefaultRequest =
             DefaultRequest(block)
 
         override fun install(feature: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-                context.apply(feature.builder)
+                context.apply {
+                    val defaultRequest = Builder(this).apply(feature.builder)
+                    takeFrom(defaultRequest)
+                }
             }
         }
     }
@@ -30,50 +77,8 @@ public class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) 
 /**
  * Set request default parameters.
  */
-public fun HttpClientConfig<*>.defaultRequest(block: HttpRequestBuilder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.Builder.() -> Unit) {
     install(DefaultRequest) {
         block()
     }
-}
-
-/**
- * Set the [baseUrl] to use it in sub-requests.
- * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
- *
- * The given [baseUrl] cannot have a query or a fragment part.
- */
-public fun HttpRequestBuilder.baseURL(baseUrl: String) {
-    baseURL(URLBuilder().takeFrom(baseUrl))
-}
-
-/**
- * Set the [baseUrlBuilder] to use it in sub-requests.
- * To override the existing [baseURL] in a sub-request, the full [URL] is needed in the [HttpRequestBuilder].
- *
- * The given [baseUrlBuilder] cannot have a query or a fragment part.
- */
-public fun HttpRequestBuilder.baseURL(baseUrlBuilder: URLBuilder) {
-    require(baseUrlBuilder.parameters.build() == Parameters.Empty && baseUrlBuilder.fragment.isEmpty()) {
-        "The baseURL cannot have a query or a fragment"
-    }
-
-    url {
-        if(isRelativeURL()) {
-            val requestedPath = encodedPath.removePrefix("/")
-            takeFrom(baseUrlBuilder)
-            encodedPath += if (encodedPath.endsWith("/")) {
-                requestedPath
-            } else {
-                "/$requestedPath"
-            }
-        }
-    }
-}
-
-internal fun URLBuilder.isRelativeURL(): Boolean {
-    val defaultURLBuilder = URLBuilder()
-    val isDefault = this == defaultURLBuilder
-    val isRelativeURL = (protocol == defaultURLBuilder.protocol
-        && authority == defaultURLBuilder.authority)
-    return !isDefault && isRelativeURL
 }
