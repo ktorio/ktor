@@ -1,3 +1,32 @@
+# 1.4.3
+> Published 1 Dec 2020
+
+* Client: URL encode / escaping is wrong ([KTOR-341](https://youtrack.jetbrains.com/issue/KTOR-341))
+* HTTP/2 push fails with netty engine ([KTOR-800](https://youtrack.jetbrains.com/issue/KTOR-800))
+* Request headers exceeding expected threshold are not handled correctly ([KTOR-905](https://youtrack.jetbrains.com/issue/KTOR-905))
+* iOS client fails with CoroutinesInternalError when Logging is used ([KTOR-924](https://youtrack.jetbrains.com/issue/KTOR-924))
+* Experimental API and compatibility guarantees ([KTOR-1035](https://youtrack.jetbrains.com/issue/KTOR-1035))
+* CIO: client engine exceptions are both logged and thrown ([KTOR-1127](https://youtrack.jetbrains.com/issue/KTOR-1127))
+* Timeout﻿ feature: android engine throws Java's SocketTimeoutException instead of ConnectTimeoutException ([KTOR-1229](https://youtrack.jetbrains.com/issue/KTOR-1229))
+* Input.readTextExactBytes(n) on empty input different behavior per platform ([KTOR-1235](https://youtrack.jetbrains.com/issue/KTOR-1235))
+* HttpRedirect feature alters Location header value ([KTOR-1236](https://youtrack.jetbrains.com/issue/KTOR-1236))
+* Wrong pool is used to release `IOBuffer` after `ByteChannelSequential.copyTo` from static initialized instance. ([KTOR-1237](https://youtrack.jetbrains.com/issue/KTOR-1237))
+* CIO Engine's HttpClient may fail when trying to send large size binary data. ([KTOR-1247](https://youtrack.jetbrains.com/issue/KTOR-1247))
+* `ByteBufferChannel.readRemaining` doesn't read whole channel ([KTOR-1268](https://youtrack.jetbrains.com/issue/KTOR-1268))
+* Cannot receive content via jackson negotiator since 1.4.2 ([KTOR-1286](https://youtrack.jetbrains.com/issue/KTOR-1286))
+* ktor-io: JVM shared function decrease performance starting from 1.4.0 ([KTOR-1290](https://youtrack.jetbrains.com/issue/KTOR-1290))
+* Sessions + SSL (Netty) ([KTOR-1292](https://youtrack.jetbrains.com/issue/KTOR-1292))
+* Netty HTTP/2 HEAD response hangs ([KTOR-1298](https://youtrack.jetbrains.com/issue/KTOR-1298))
+* Using blocking primitives on this dispatcher is not allowed. Consider using async channel instead or use blocking primitives in withContext(Dispatchers.IO) instead. ([KTOR-1305](https://youtrack.jetbrains.com/issue/KTOR-1305))
+* "Wrong HEX escape": gracefully handle invalid URLs ([KTOR-1308](https://youtrack.jetbrains.com/issue/KTOR-1308))
+* Add build parameter to build ktor with JVM IR compiler ([KTOR-1336](https://youtrack.jetbrains.com/issue/KTOR-1336))
+* Update kotlin to 1.4.20 ([KTOR-1346](https://youtrack.jetbrains.com/issue/KTOR-1346))
+* Fix configuration if project without VPN and cache ([KTOR-1347](https://youtrack.jetbrains.com/issue/KTOR-1347))
+* Client: NPE in FormDataContentKt -> Input.copyTo ([KTOR-1349](https://youtrack.jetbrains.com/issue/KTOR-1349))
+* Upgrade Netty to 4.1.54.Final ([KTOR-1363](https://youtrack.jetbrains.com/issue/KTOR-1363))
+* Handle failure in reading request body ([KTOR-1367](https://youtrack.jetbrains.com/issue/KTOR-1367))
+* Remove copyTo usage from ServerPipeline ([KTOR-1381](https://youtrack.jetbrains.com/issue/KTOR-1381))
+
 # 1.4.2 
 
 > Published 10 Nov 2020
