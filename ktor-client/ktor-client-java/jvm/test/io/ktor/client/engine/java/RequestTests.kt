@@ -39,6 +39,7 @@ class RequestTests : TestWithKtor() {
                         get() = call.request.contentType()
                     override val contentLength: Long?
                         get() = call.request.header(HttpHeaders.ContentLength)?.toLong()
+
                     override fun readFrom(): ByteReadChannel {
                         return readChannel
                     }
@@ -91,12 +92,12 @@ class RequestTests : TestWithKtor() {
         val payload = "ktor"
 
         val response = HttpClient(Java).use { client ->
-           runBlocking {
-               client.post<String>("$testUrl/echo"){
-                   contentType(ContentType.Text.Plain)
-                   body = ByteReadChannel(payload)
-               }
-           }
+            runBlocking {
+                client.post<String>("$testUrl/echo") {
+                    contentType(ContentType.Text.Plain)
+                    body = ByteReadChannel(payload)
+                }
+            }
         }
 
         assertEquals(payload, response)
