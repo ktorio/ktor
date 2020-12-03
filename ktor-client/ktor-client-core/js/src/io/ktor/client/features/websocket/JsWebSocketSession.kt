@@ -23,6 +23,10 @@ internal class JsWebSocketSession(
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
 
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>> get() =
+        error("WebSocket extensions are not supported on Js platform.")
+
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
     override var maxFrameSize: Long
@@ -107,6 +111,10 @@ internal class JsWebSocketSession(
                 websocket.close(CloseReason.Codes.INTERNAL_ERROR.code, "Client failed")
             }
         }
+    }
+
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
     }
 
     override suspend fun flush() {

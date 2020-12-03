@@ -3,6 +3,3 @@
  */
 
 val ideaActive: Boolean by project.extra
-
-kotlin.sourceSets {
-}

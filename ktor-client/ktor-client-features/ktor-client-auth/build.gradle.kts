@@ -3,6 +3,3 @@
  */
 
 description = "Ktor client Auth support"
-
-kotlin.sourceSets {
-}

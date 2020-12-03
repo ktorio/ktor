@@ -11,12 +11,13 @@ import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+internal val ENGINES_WITHOUT_WEBSOCKETS = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
+internal val ENGINES_WITHOUT_WS_EXTENSIONS = ENGINES_WITHOUT_WEBSOCKETS + "OkHttp" + "Java"
+
 @Suppress("PublicApiImplicitType")
 class WebSocketTest : ClientLoader() {
-    private val skipForWebsockets = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
-
     @Test
-    fun testEcho() = clientTests(skipForWebsockets) {
+    fun testEcho() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             install(WebSockets)
         }
@@ -34,7 +35,7 @@ class WebSocketTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testClose() = clientTests(skipForWebsockets) {
+    fun testClose() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             install(WebSockets)
         }
@@ -53,7 +54,7 @@ class WebSocketTest : ClientLoader() {
 
     @Test
     @Ignore
-    fun testCancel() = clientTests(skipForWebsockets + "Js") {
+    fun testCancel() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js") {
         config {
             install(WebSockets)
         }
@@ -73,7 +74,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testEchoWSS() = clientTests(listOf("Apache", "Android", "Js", "iOS", "Curl", "native:CIO")) {
+    fun testEchoWSS() = clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
         config {
             install(WebSockets)
         }
@@ -89,7 +90,7 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testConfiguration() = clientTests(skipForWebsockets) {
+    fun testConfiguration() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
         config {
             WebSockets {
                 pingInterval = 100
@@ -102,4 +103,39 @@ class WebSocketTest : ClientLoader() {
             assertEquals(1024, client[WebSockets].maxFrameSize)
         }
     }
+
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    @Test
+    fun testWebSocketExtensions() = clientTests(ENGINES_WITHOUT_WS_EXTENSIONS) {
+        val testLogger = TestLogger(
+            "Client negotiation",
+            "Process outgoing frame: Frame TEXT (fin=true, buffer len = 12)",
+            "Process incoming frame: Frame TEXT (fin=true, buffer len = 12)"
+        )
+
+        config {
+            WebSockets {
+                extensions {
+                    install(FrameLogger) {
+                        logger = testLogger
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                check(extensionOrNull(FrameLogger) != null)
+
+                send("Hello, world")
+                val frame = incoming.receive()
+                assertEquals("Hello, world", (frame as Frame.Text).readText())
+            }
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
 }

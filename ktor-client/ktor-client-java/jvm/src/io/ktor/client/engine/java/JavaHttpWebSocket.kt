@@ -81,6 +81,10 @@ internal class JavaHttpWebSocket(
     override val outgoing: SendChannel<Frame>
         get() = _outgoing
 
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = error("Java http client doesn't support WebSocket extensions.")
+
     init {
         launch {
             @OptIn(ExperimentalCoroutinesApi::class)

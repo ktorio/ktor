@@ -10,7 +10,7 @@ import kotlin.jvm.*
 /**
  * Helper interface to test client.
  */
-public expect abstract class ClientLoader() {
+public expect abstract class ClientLoader(timeoutSeconds: Int = 60) {
     /**
      * Perform test against all clients from dependencies.
      */

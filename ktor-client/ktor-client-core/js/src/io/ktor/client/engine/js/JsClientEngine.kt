@@ -22,7 +22,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
     override val dispatcher = Dispatchers.Default
 
-    override val supportedCapabilities = setOf(HttpTimeout)
+    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }

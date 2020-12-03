@@ -129,7 +129,7 @@ public class HttpStatement(
         builder.attributes.getOrNull(ENGINE_CAPABILITIES_KEY)?.keys
             ?.filterIsInstance<HttpClientFeature<*, *>>()
             ?.forEach {
-                requireNotNull(client.feature(it as HttpClientFeature<*, *>)) {
+                requireNotNull(client.feature(it)) {
                     "Consider installing $it feature because the request requires it to be installed"
                 }
             }

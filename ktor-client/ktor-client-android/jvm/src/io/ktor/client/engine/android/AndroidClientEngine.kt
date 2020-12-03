@@ -32,7 +32,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
         )
     }
 
-    override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeout)
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()

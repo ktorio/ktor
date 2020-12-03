@@ -7,6 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -33,7 +34,8 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         )
     }
 
-    public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
+        setOf(HttpTimeout, WebSocketCapability)
 
     private val requestsJob: CoroutineContext
 

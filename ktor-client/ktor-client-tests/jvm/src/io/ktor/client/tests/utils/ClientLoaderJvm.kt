@@ -18,13 +18,13 @@ import java.util.*
  * Helper interface to test client.
  */
 @RunWith(Parameterized::class)
-public actual abstract class ClientLoader {
+public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int) {
 
     @Parameterized.Parameter
     public lateinit var engine: HttpClientEngineContainer
 
     @get:Rule
-    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(60)
+    public open val timeout: CoroutinesTimeout = CoroutinesTimeout.seconds(timeoutSeconds)
 
     /**
      * Perform test against all clients from dependencies.
