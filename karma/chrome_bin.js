@@ -14,6 +14,7 @@ config.set({
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
                 "--enable-logging",
+                "--ignore-certificate-errors",
                 "--v=1"
             ]
         }

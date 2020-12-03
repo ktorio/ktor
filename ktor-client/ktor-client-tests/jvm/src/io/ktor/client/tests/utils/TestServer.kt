@@ -5,8 +5,12 @@
 package io.ktor.client.tests.utils
 
 import ch.qos.logback.classic.*
+import io.ktor.application.*
 import io.ktor.client.tests.utils.tests.*
+import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
@@ -73,6 +77,36 @@ private fun setupTLSServer(): ApplicationEngine {
 
             module {
                 tlsTests()
+                cors()
+                routing {
+                    route("/cookies/httponly") {
+                        val cookie = Cookie(
+                            "One",
+                            "value1",
+                            httpOnly = true,
+                            extensions = mapOf("samesite" to "none"),
+                            secure = true
+                        )
+                        get {
+                            with(call.response.cookies) {
+                                append(cookie)
+                            }
+                            call.respondText { "Cookie set" }
+                        }
+                        get("/test") {
+                            if (cookie.value == call.request.cookies[cookie.name]) {
+                                call.respondText { "Cookie matched" }
+                            } else {
+                                call.respondText(status = HttpStatusCode.ExpectationFailed) {
+                                    when (val value = call.request.cookies[cookie.name]) {
+                                        null -> "Cookie ${cookie.name} not found"
+                                        else -> "Cookie value $value does not match ${cookie.value}"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     )

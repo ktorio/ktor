@@ -99,6 +99,27 @@ public fun Application.cookiesTest() {
 
                 context.respond((a - b).toString())
             }
+            route("/httponly") {
+                val cookie = Cookie("One", "value1", httpOnly = true)
+                get {
+                    with(call.response.cookies) {
+                        append(cookie)
+                    }
+                    call.respondText { "Cookie set" }
+                }
+                get("/test") {
+                    if (cookie.value == call.request.cookies[cookie.name]) {
+                        call.respondText { "Cookie matched" }
+                    } else {
+                        call.respondText(status = HttpStatusCode.ExpectationFailed) {
+                            when (val value = call.request.cookies[cookie.name]) {
+                                null -> "Cookie ${cookie.name} not found"
+                                else -> "Cookie value $value does not match ${cookie.value}"
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
