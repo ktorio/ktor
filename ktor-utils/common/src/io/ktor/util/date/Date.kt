@@ -4,7 +4,7 @@
 
 package io.ktor.util.date
 
-import io.ktor.util.*
+import kotlin.time.*
 
 /**
  * According to:
@@ -132,6 +132,19 @@ public operator fun GMTDate.plus(milliseconds: Long): GMTDate = GMTDate(timestam
  * Subtracts the specified number of [milliseconds]
  */
 public operator fun GMTDate.minus(milliseconds: Long): GMTDate = GMTDate(timestamp - milliseconds)
+
+/**
+ * Adds the specified [duration]
+ */
+@ExperimentalTime
+public operator fun GMTDate.plus(duration: Duration): GMTDate = GMTDate(timestamp + duration.toLongMilliseconds())
+
+/**
+ * Subtracts the specified [duration]
+ */
+@ExperimentalTime
+public operator fun GMTDate.minus(duration: Duration): GMTDate = GMTDate(timestamp - duration.toLongMilliseconds())
+
 
 /**
  * Truncate to seconds by discarding sub-second part
