@@ -16,10 +16,8 @@ class DefaultRequestTest {
         assertEquals(URLBuilder(), URLBuilder())
     }
 
-    private fun HttpRequestBuilder.defaultRequest(url: String) = apply {
-        val defaultRequestFeature = DefaultRequest.Builder(this).apply {
-            baseURL(url)
-        }
+    private fun HttpRequestBuilder.defaultRequest(block: DefaultRequest.Builder.() -> Unit) = apply {
+        val defaultRequestFeature = DefaultRequest.Builder(this).apply(block)
         takeFrom(defaultRequestFeature)
     }
 
@@ -27,7 +25,9 @@ class DefaultRequestTest {
     fun testUsingBaseURL() {
         val todoURL = HttpRequestBuilder().apply {
             url.takeFrom("/sub")
-        }.defaultRequest("https://ktor.io/docs").build().url
+        }.defaultRequest {
+            baseURL("https://ktor.io/docs")
+        }.build().url
         assertEquals("https://ktor.io/docs/sub", todoURL.toString())
     }
 
@@ -35,7 +35,9 @@ class DefaultRequestTest {
     fun overrideOther() {
         val overridden = HttpRequestBuilder().apply {
             url.takeFrom("https://kotlinlang.org/blog")
-        }.defaultRequest("https://ktor.io/docs").build().url
+        }.defaultRequest {
+            baseURL("https://ktor.io/docs")
+        }.build().url
         assertEquals("https://kotlinlang.org/blog", overridden.toString())
     }
 
@@ -43,7 +45,9 @@ class DefaultRequestTest {
     fun overriddenLocalhostOnly() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/")
-        }.defaultRequest("https://ktor.io/docs").build().url
+        }.defaultRequest {
+            baseURL("https://ktor.io/docs")
+        }.build().url
         assertEquals("http://localhost/", localhost.toString())
     }
 
@@ -52,7 +56,9 @@ class DefaultRequestTest {
     fun overriddenLocalhostWithPath() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/sub")
-        }.defaultRequest("https://ktor.io/docs").build().url
+        }.defaultRequest {
+            baseURL("https://ktor.io/docs")
+        }.build().url
         assertEquals("http://localhost/sub", localhost.toString())
     }
 
@@ -60,8 +66,20 @@ class DefaultRequestTest {
     fun useDefaultAsBaseURL() {
         val localhost = HttpRequestBuilder().apply {
             url.takeFrom("http://localhost/sub")
-            takeFrom(DefaultRequest.Builder(this).apply { baseURL(URLBuilder()) })
+        }.defaultRequest {
+            baseURL(URLBuilder())
         }.build().url
         assertEquals("http://localhost/sub", localhost.toString())
+    }
+
+    @Test
+    fun malformedBaseURL() {
+        assertFailsWith<IllegalArgumentException> {
+            HttpRequestBuilder().apply {
+                url.takeFrom("http://localhost/sub")
+            }.defaultRequest {
+                baseURL("https://ktor.io?a")
+            }
+        }
     }
 }

@@ -29,15 +29,4 @@ class DefaultRequestTest: ClientLoader() {
             assertEquals("https://kotlinlang.org/", overriddenURL)
         }
     }
-
-    @Test
-    fun testBaseURLConfigWithParameter() = clientTests {
-        config {
-            defaultRequest {
-                assertFailsWith<IllegalArgumentException> {
-                    baseURL("https://ktor.io?a")
-                }
-            }
-        }
-    }
 }
