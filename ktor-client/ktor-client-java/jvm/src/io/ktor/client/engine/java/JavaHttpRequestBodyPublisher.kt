@@ -97,6 +97,7 @@ internal class JavaHttpRequestBodyPublisher(
         private fun readData() {
             // It's possible to have another request for data come in after we've closed the channel.
             if (inputChannel.isClosedForRead) {
+                tryToSignalOnErrorFromChannel()
                 return
             }
 
@@ -149,6 +150,12 @@ internal class JavaHttpRequestBodyPublisher(
         private fun signalOnError(cause: Throwable) {
             if (done.compareAndSet(expect = false, update = true)) {
                 subscriber.onError(cause)
+            }
+        }
+
+        private fun tryToSignalOnErrorFromChannel() {
+            (inputChannel as? ByteWriteChannel)?.closedCause?.let { cause ->
+                signalOnError(cause)
             }
         }
     }
