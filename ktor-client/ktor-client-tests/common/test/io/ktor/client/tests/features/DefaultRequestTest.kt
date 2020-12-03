@@ -15,18 +15,18 @@ class DefaultRequestTest: ClientLoader() {
     fun testBaseURLConfig() = clientTests {
         config {
             defaultRequest {
-                baseURL("https://ktor.io")
+                header("foo", "bar")
+                baseURL(TEST_SERVER)
                 header("something", "42")
             }
         }
 
         test { client ->
-            with(client.get<HttpResponse>("/docs").call.request) {
-                assertEquals("https://ktor.io/docs/", url.toString())
+            with(client.get<HttpResponse>("/echo").call.request) {
+                assertEquals("$TEST_SERVER/echo", url.toString())
                 assertEquals("42", headers["something"])
+                assertEquals("bar", headers["foo"])
             }
-            val overriddenURL = client.get<HttpResponse>("https://jetbrains.com/kotlin").call.request.url.toString()
-            assertEquals("https://kotlinlang.org/", overriddenURL)
         }
     }
 }
