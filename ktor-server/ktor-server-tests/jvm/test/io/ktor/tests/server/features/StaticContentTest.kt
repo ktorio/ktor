@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -291,6 +291,44 @@ class StaticContentTest {
                 }
                 preCompressed(CompressedFileType.BROTLI) {
                     files(brDir)
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/$publicFile.js") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(ContentType.defaultForFileExtension("js"), result.response.contentType())
+            assertEquals("gzip", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/$publicFile.css") {
+            addHeader(HttpHeaders.AcceptEncoding, "gzip, br")
+        }.let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(ContentType.defaultForFileExtension("css"), result.response.contentType())
+            assertEquals("br", result.response.headers[HttpHeaders.ContentEncoding].orEmpty())
+        }
+    }
+
+    @Test
+    fun testPreCompressedConfiguresNested() = withTestApplication {
+        val tempFile = File.createTempFile("testServeEncodedFile", ".dummy")
+        val publicFile = tempFile.nameWithoutExtension
+        val cssDir = File(tempFile.parentFile, "css").also { it.mkdirs() }
+
+        File(basedir, "features/StaticContentTest.kt".replaceSeparators()).run {
+            copyTo(File(cssDir, "$publicFile.js.gz"), true)
+            copyTo(File(cssDir, "$publicFile.css.br"), true)
+        }
+
+        application.routing {
+            static("assets") {
+                preCompressed(CompressedFileType.GZIP) {
+                    preCompressed(CompressedFileType.BROTLI) {
+                        files(cssDir)
+                    }
                 }
             }
         }

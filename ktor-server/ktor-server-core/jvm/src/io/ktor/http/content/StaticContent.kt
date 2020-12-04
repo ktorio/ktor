@@ -24,7 +24,7 @@ private val compressedKey = AttributeKey<List<CompressedFileType>>("StaticConten
  *
  * **See Also:** [Accept-Encoding](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Encoding)
  */
-public enum class CompressedFileType(public val extension: String, public val encoding: String = extension){
+public enum class CompressedFileType(public val extension: String, public val encoding: String = extension) {
     // https://www.theregister.co.uk/2015/10/11/googles_bro_file_format_changed_to_br_after_gender_politics_worries/
     BROTLI("br"),
     GZIP("gz", "gzip");
@@ -46,8 +46,13 @@ public enum class CompressedFileType(public val extension: String, public val en
  *
  * * This can't be disabled in a child route if it was enabled in the root route
  */
-public fun Route.preCompressed(vararg types: CompressedFileType = CompressedFileType.values(), configure: Route.() -> Unit) {
-    attributes.put(compressedKey, types.asList())
+public fun Route.preCompressed(
+    vararg types: CompressedFileType = CompressedFileType.values(),
+    configure: Route.() -> Unit
+) {
+    val existing = staticContentEncodedTypes ?: emptyList()
+    val mixedTypes = (existing + types.asList()).distinct()
+    attributes.put(compressedKey, mixedTypes)
     configure()
     attributes.remove(compressedKey)
 }
@@ -133,7 +138,10 @@ public fun Route.files(folder: File) {
     }
 }
 
-private suspend inline fun ApplicationCall.respondStaticFile(requestedFile: File, compressedTypes: List<CompressedFileType>?) {
+private suspend inline fun ApplicationCall.respondStaticFile(
+    requestedFile: File,
+    compressedTypes: List<CompressedFileType>?
+) {
     val bestCompressionFit = requestedFile.bestCompressionFit(request.acceptEncodingItems(), compressedTypes)
     bestCompressionFit?.run {
         attributes.put(Compression.SuppressionAttribute, true)
@@ -162,16 +170,20 @@ private class PreCompressedResponse(
             }
         } else original.headers
     }
+
     override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
     override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 }
 
-private fun File.bestCompressionFit(acceptEncoding: List<HeaderValue>, compressedTypes: List<CompressedFileType>?): CompressedFileType? {
+private fun File.bestCompressionFit(
+    acceptEncoding: List<HeaderValue>,
+    compressedTypes: List<CompressedFileType>?
+): CompressedFileType? {
     val acceptedEncodings = acceptEncoding.map { it.value }.toSet()
     // We respect the order in compressedTypes, not the one on Accept header
     return compressedTypes?.filter {
         it.encoding in acceptedEncodings
-    }?.firstOrNull{ it.file(this).isFile }
+    }?.firstOrNull { it.file(this).isFile }
 }
 
 private val staticBasePackageName = AttributeKey<String>("BasePackage")
