@@ -6,6 +6,7 @@ package io.ktor.util
 
 import io.ktor.util.date.*
 import kotlin.test.*
+import kotlin.time.*
 
 class GMTDateTest {
 
@@ -43,5 +44,15 @@ class GMTDateTest {
         assertTrue { before < farDate }
         assertTrue { farDate == farDate }
         assertEquals(0, farDate.compareTo(farDate))
+    }
+
+    @ExperimentalTime
+    @Test
+    fun testDurationArithmetic() {
+        val now = GMTDate()
+        val plus10Secs = now + 10.seconds
+        assertTrue { now < plus10Secs }
+        assertEquals(now.plus(10_000), plus10Secs)
+        assertEquals(now, plus10Secs - 10.seconds)
     }
 }

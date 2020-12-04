@@ -573,13 +573,16 @@ public final class io/ktor/util/date/DateJvmKt {
 	public static final fun GMTDate (IIIILio/ktor/util/date/Month;I)Lio/ktor/util/date/GMTDate;
 	public static final fun GMTDate (Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
 	public static synthetic fun GMTDate$default (Ljava/lang/Long;ILjava/lang/Object;)Lio/ktor/util/date/GMTDate;
+	public static final fun getTimeMillis ()J
 	public static final fun toDate (Ljava/util/Calendar;Ljava/lang/Long;)Lio/ktor/util/date/GMTDate;
 	public static final fun toJvmDate (Lio/ktor/util/date/GMTDate;)Ljava/util/Date;
 }
 
 public final class io/ktor/util/date/DateKt {
 	public static final fun minus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun minus-DXA3NOw (Lio/ktor/util/date/GMTDate;D)Lio/ktor/util/date/GMTDate;
 	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun plus-DXA3NOw (Lio/ktor/util/date/GMTDate;D)Lio/ktor/util/date/GMTDate;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
 }
 
