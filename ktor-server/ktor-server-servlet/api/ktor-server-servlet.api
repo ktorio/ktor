@@ -28,6 +28,11 @@ public class io/ktor/server/servlet/AsyncServletApplicationResponse : io/ktor/se
 public final class io/ktor/server/servlet/AsyncServletApplicationResponse$Companion {
 }
 
+public final class io/ktor/server/servlet/AttributesKt {
+	public static final fun getServletRequestAttributes (Lio/ktor/request/ApplicationRequest;)Ljava/util/Map;
+	public static final fun putServletAttributes (Lio/ktor/application/ApplicationCall;Ljavax/servlet/ServletRequest;)V
+}
+
 public final class io/ktor/server/servlet/DefaultServletUpgrade : io/ktor/server/servlet/ServletUpgrade {
 	public static final field INSTANCE Lio/ktor/server/servlet/DefaultServletUpgrade;
 	public fun performUpgrade (Lio/ktor/http/content/OutgoingContent$ProtocolUpgrade;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
