@@ -79,16 +79,17 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 }
 
 /**
- * Add client certificates from [store].
+ * Add client certificates from [store] by using the certificate with specific [alias]
+ * or all certificates, if [alias] is null.
  */
-public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
     keyManagerFactory.init(store, password)
     val managers = keyManagerFactory.keyManagers.filterIsInstance<X509KeyManager>()
 
-    val aliases = store.aliases()!!
+    val aliases = alias?.let { listOf(it) } ?: store.aliases()!!.toList()
     loop@ for (alias in aliases) {
         val chain = store.getCertificateChain(alias)
 
