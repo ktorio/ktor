@@ -60,7 +60,9 @@ private object ProhibitParking : Parking<Thread> {
     }
 
     override fun unpark(token: Thread) {
-        fail()
+        // unpark is always safe as it is non-blocking
+        // and it is required to be able to unpark blocked threads from async threads
+        DefaultParking.unpark(token)
     }
 
     private fun fail(): Nothing {
