@@ -79,31 +79,41 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 }
 
 /**
- * Add client certificates from [store].
+ * Add client certificates from [store] by using all certificates
  */
+@Suppress("unused") // Keep for binary compatibility
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
+    addKeyStore(store, password)
+}
+
+/**
+ * Add client certificates from [store] by using the certificate with specific [alias]
+ * or all certificates, if [alias] is null.
+ */
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
     keyManagerFactory.init(store, password)
     val managers = keyManagerFactory.keyManagers.filterIsInstance<X509KeyManager>()
 
-    val aliases = store.aliases()!!
-    loop@ for (alias in aliases) {
-        val chain = store.getCertificateChain(alias)
+    val aliases = alias?.let { listOf(it) } ?: store.aliases()!!.toList()
+    loop@ for (certAlias in aliases) {
+        val chain = store.getCertificateChain(certAlias)
 
         val allX509 = chain.all { it is X509Certificate }
         check(allX509) { "Fail to add key store $store. Only X509 certificate format supported." }
 
         for (manager in managers) {
-            val key = manager.getPrivateKey(alias) ?: continue
+            val key = manager.getPrivateKey(certAlias) ?: continue
 
             val map = chain.map { it as X509Certificate }
             addCertificateChain(map.toTypedArray(), key)
             continue@loop
         }
 
-        throw NoPrivateKeyException(alias, store)
+        throw NoPrivateKeyException(certAlias, store)
     }
 }
 
