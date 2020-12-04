@@ -10,30 +10,32 @@ import io.ktor.network.tls.extensions.*
 import kotlin.test.*
 
 internal class TLSConfigBuilderTest {
+    private val keyStore = buildKeyStore {
+        certificate("first") {
+            hash = HashAlgorithm.SHA256
+            sign = SignatureAlgorithm.RSA
+            password = ""
+        }
+        certificate("second") {
+            hash = HashAlgorithm.SHA256
+            sign = SignatureAlgorithm.RSA
+            password = ""
+        }
+    }
+
+    @Test
+    fun useAllCertificates() {
+        val config = TLSConfigBuilder().apply {
+            addKeyStore(keyStore, "".toCharArray())
+        }
+        assertEquals(2, config.certificates.size)
+    }
+
     @Test
     fun specificAliasInKeyStore() {
-        val keyStore = buildKeyStore {
-            certificate("first") {
-                hash = HashAlgorithm.SHA256
-                sign = SignatureAlgorithm.RSA
-                password = ""
-            }
-            certificate("second") {
-                hash = HashAlgorithm.SHA256
-                sign = SignatureAlgorithm.RSA
-                password = ""
-            }
-        }
-        with(TLSConfigBuilder().apply {
-            addKeyStore(keyStore, "".toCharArray())
-        }) {
-            assertEquals(2, certificates.size)
-        }
-
-        with(TLSConfigBuilder().apply {
+        val config = TLSConfigBuilder().apply {
             addKeyStore(keyStore, "".toCharArray(), "first")
-        }) {
-            assertEquals(1, certificates.size)
         }
+        assertEquals(1, config.certificates.size)
     }
 }
