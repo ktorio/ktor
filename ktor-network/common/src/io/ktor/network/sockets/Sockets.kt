@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -18,7 +18,6 @@ public interface ASocket : Closeable, DisposableHandle {
     /**
      * Represents a socket lifetime, completes at socket closure
      */
-    @KtorExperimentalAPI
     public val socketContext: Job
 
     public override fun dispose() {
@@ -84,7 +83,6 @@ public interface AReadable {
      * Only one channel could be attached
      * @return a job that does supply data
      */
-    @KtorExperimentalAPI
     public fun attachForReading(channel: ByteChannel): WriterJob
 }
 
@@ -97,7 +95,6 @@ public interface AWritable {
      * Only one channel could be attached
      * @return a job that does transmit data from the channel
      */
-    @KtorExperimentalAPI
     public fun attachForWriting(channel: ByteChannel): ReaderJob
 }
 

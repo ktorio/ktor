@@ -6,10 +6,12 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
     @JvmField
     var availableForRead = 0
 
-    @Volatile @JvmField
+    @Volatile
+    @JvmField
     var availableForWrite = totalCapacity
 
-    @Volatile @JvmField
+    @Volatile
+    @JvmField
     var pendingToFlush = 0
 
     // concurrent unsafe!
@@ -23,6 +25,15 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
         availableForRead = totalCapacity
         availableForWrite = 0
         pendingToFlush = 0
+    }
+
+    fun tryReadAtLeast(n: Int): Int {
+        val AvailableForRead = AvailableForRead
+        while (true) {
+            val remaining = availableForRead
+            if (remaining < n) return 0
+            if (AvailableForRead.compareAndSet(this, remaining, 0)) return remaining
+        }
     }
 
     fun tryReadExact(n: Int): Boolean {
@@ -139,6 +150,9 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
 
     fun isEmpty(): Boolean = availableForWrite == totalCapacity
     fun isFull(): Boolean = availableForWrite == 0
+
+    override fun toString(): String =
+        "RingBufferCapacity[read: $availableForRead, write: $availableForWrite, flush: $pendingToFlush, capacity: $totalCapacity ]"
 
     companion object {
         // todo: replace with atomicfu, remove companion object

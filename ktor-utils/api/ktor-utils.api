@@ -252,6 +252,10 @@ public final class io/ktor/util/PlatformUtils {
 	public final fun getIS_NODE ()Z
 }
 
+public abstract interface annotation class io/ktor/util/PublicAPICandidate : java/lang/annotation/Annotation {
+	public abstract fun version ()Ljava/lang/String;
+}
+
 public final class io/ktor/util/RangesKt {
 	public static final fun contains (Lkotlin/ranges/LongRange;Lkotlin/ranges/LongRange;)Z
 	public static final fun getLength (Lkotlin/ranges/LongRange;)J
@@ -491,8 +495,10 @@ public final class io/ktor/util/collections/ConcurrentList : java/util/List, kot
 	public fun clear ()V
 	public fun contains (Ljava/lang/Object;)Z
 	public fun containsAll (Ljava/util/Collection;)Z
+	public fun equals (Ljava/lang/Object;)Z
 	public fun get (I)Ljava/lang/Object;
 	public fun getSize ()I
+	public fun hashCode ()I
 	public fun indexOf (Ljava/lang/Object;)I
 	public fun isEmpty ()Z
 	public fun iterator ()Ljava/util/Iterator;
@@ -509,6 +515,7 @@ public final class io/ktor/util/collections/ConcurrentList : java/util/List, kot
 	public fun subList (II)Ljava/util/List;
 	public fun toArray ()[Ljava/lang/Object;
 	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotlin/jvm/internal/markers/KMutableMap {
@@ -521,18 +528,21 @@ public final class io/ktor/util/collections/ConcurrentMap : java/util/Map, kotli
 	public fun containsKey (Ljava/lang/Object;)Z
 	public fun containsValue (Ljava/lang/Object;)Z
 	public final fun entrySet ()Ljava/util/Set;
+	public fun equals (Ljava/lang/Object;)Z
 	public fun get (Ljava/lang/Object;)Ljava/lang/Object;
 	public fun getEntries ()Ljava/util/Set;
 	public fun getKeys ()Ljava/util/Set;
 	public final fun getOrDefault (Ljava/lang/Object;Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
 	public fun getSize ()I
 	public fun getValues ()Ljava/util/Collection;
+	public fun hashCode ()I
 	public fun isEmpty ()Z
 	public final fun keySet ()Ljava/util/Set;
 	public fun put (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun putAll (Ljava/util/Map;)V
 	public fun remove (Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun size ()I
+	public fun toString ()Ljava/lang/String;
 	public final fun values ()Ljava/util/Collection;
 }
 
@@ -545,7 +555,9 @@ public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotli
 	public fun clear ()V
 	public fun contains (Ljava/lang/Object;)Z
 	public fun containsAll (Ljava/util/Collection;)Z
+	public fun equals (Ljava/lang/Object;)Z
 	public fun getSize ()I
+	public fun hashCode ()I
 	public fun isEmpty ()Z
 	public fun iterator ()Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
@@ -554,6 +566,7 @@ public final class io/ktor/util/collections/ConcurrentSet : java/util/Set, kotli
 	public final fun size ()I
 	public fun toArray ()[Ljava/lang/Object;
 	public fun toArray ([Ljava/lang/Object;)[Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class io/ktor/util/date/DateJvmKt {

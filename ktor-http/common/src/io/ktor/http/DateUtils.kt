@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -45,7 +45,6 @@ public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
  *
  * @see [fromHttpToGmtDate]
  */
-@KtorExperimentalAPI
 public fun String.fromCookieToGmtDate(): GMTDate = with(trim()) {
     try {
         val parser = CookieDateParser()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -263,7 +263,9 @@ public inline fun <S : Any> Sessions.Configuration.header(
  * Cookie session configuration builder
  */
 @Suppress("DEPRECATION")
-public class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) :
+public class CookieIdSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(type: KClass<S>) :
     CookieSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
@@ -283,13 +285,15 @@ public class CookieIdSessionBuilder<S : Any> @Deprecated("Use builder functions 
  * Cookie session configuration builder
  * @property type - session instance type
  */
-public open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(
+public open class CookieSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(
     public val type: KClass<S>
 ) {
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -315,13 +319,15 @@ public open class CookieSessionBuilder<S : Any> @Deprecated("Use builder functio
  * Header session configuration builder
  * @property type session instance type
  */
-public open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(
+public open class HeaderSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(
     public val type: KClass<S>
 ) {
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -342,8 +348,11 @@ public open class HeaderSessionBuilder<S : Any> @Deprecated("Use builder functio
  * Header session configuration builder
  */
 @Suppress("DEPRECATION")
-public class HeaderIdSessionBuilder<S : Any> @Deprecated("Use builder functions instead.") constructor(type: KClass<S>) :
-    @Suppress("DEPRECATION") HeaderSessionBuilder<S>(type) {
+public class HeaderIdSessionBuilder<S : Any>
+@Deprecated("Use builder functions instead.")
+constructor(type: KClass<S>) :
+    @Suppress("DEPRECATION")
+    HeaderSessionBuilder<S>(type) {
     /**
      * Register session ID generation function
      */

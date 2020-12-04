@@ -12,7 +12,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import org.junit.Test
 import java.lang.IllegalStateException
 import kotlin.test.*
 
@@ -134,12 +133,6 @@ class HeadTest {
             }
             get("/page2") {
                 throw IllegalStateException("page2 failed")
-            }
-        }
-
-        application.intercept(ApplicationCallPipeline.Fallback) {
-            if (call.response.status() == null) {
-                call.respond(HttpStatusCode.NotFound)
             }
         }
 

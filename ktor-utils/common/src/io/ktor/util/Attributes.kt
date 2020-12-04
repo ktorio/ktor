@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -54,13 +54,11 @@ public interface Attributes {
     /**
      * Removes an attribute with the specified [key] and returns its current value, throws an exception if an attribute doesn't exist
      */
-    @KtorExperimentalAPI
     public fun <T : Any> take(key: AttributeKey<T>): T = get(key).also { remove(key) }
 
     /**
      * Removes an attribute with the specified [key] and returns its current value, returns `null` if an attribute doesn't exist
      */
-    @KtorExperimentalAPI
     public fun <T : Any> takeOrNull(key: AttributeKey<T>): T? = getOrNull(key).also { remove(key) }
 
     /**

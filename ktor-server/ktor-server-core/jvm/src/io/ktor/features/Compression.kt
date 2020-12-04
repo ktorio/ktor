@@ -1,21 +1,26 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
-import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import java.util.ArrayList
+import kotlinx.coroutines.*
+import java.util.*
 import kotlin.coroutines.*
+
+/**
+ * The default minimal content size to compress
+ */
+internal const val DEFAULT_MINIMAL_COMPRESSION_SIZE: Long = 200L
 
 /**
  * Compression feature configuration
@@ -57,17 +62,19 @@ public data class CompressionEncoderConfig(
  * Feature to compress a response based on conditions and ability of client to decompress it
  */
 public class Compression(compression: Configuration) {
-    private val options = compression.build()
+    private val options = compression.buildOptions()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
-        { it.second.quality }, { it.first.priority }
+        { it.second.quality },
+        { it.first.priority }
     ).reversed()
 
     private suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
         val message = context.subject
         val acceptEncodingRaw = call.request.acceptEncoding()
-        if (acceptEncodingRaw == null || call.isCompressionSuppressed())
+        if (acceptEncodingRaw == null || call.isCompressionSuppressed()) {
             return
+        }
 
         val encoders = parseHeaderValue(acceptEncodingRaw)
             .filter { it.value == "*" || it.value in options.encoders }
@@ -80,14 +87,15 @@ public class Compression(compression: Configuration) {
             .sortedWith(comparator)
             .map { it.first }
 
-        if (encoders.isEmpty())
+        if (encoders.isEmpty()) {
             return
+        }
 
-        if (message is OutgoingContent
-            && message !is CompressedResponse
-            && options.conditions.all { it(call, message) }
-            && !call.isCompressionSuppressed()
-            && message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
+        if (message is OutgoingContent &&
+            message !is CompressedResponse &&
+            options.conditions.all { it(call, message) } &&
+            !call.isCompressionSuppressed() &&
+            message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
         ) {
             val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
 
@@ -109,7 +117,6 @@ public class Compression(compression: Configuration) {
                 val response = CompressedResponse(message, channel, encoderOptions.name, encoderOptions.encoder)
                 context.proceedWith(response)
             }
-
         }
     }
 
@@ -177,8 +184,9 @@ public class Compression(compression: Configuration) {
         override val key: AttributeKey<Compression> = AttributeKey("Compression")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Compression {
             val config = Configuration().apply(configure)
-            if (config.encoders.none())
+            if (config.encoders.none()) {
                 config.default()
+            }
 
             val feature = Compression(config)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
@@ -202,7 +210,11 @@ public class Compression(compression: Configuration) {
         /**
          * Appends an encoder to the configuration
          */
-        public fun encoder(name: String, encoder: CompressionEncoder, block: CompressionEncoderBuilder.() -> Unit = {}) {
+        public fun encoder(
+            name: String,
+            encoder: CompressionEncoder,
+            block: CompressionEncoderBuilder.() -> Unit = {}
+        ) {
             require(name.isNotBlank()) { "encoder name couldn't be blank" }
             if (name in encoders) {
                 throw IllegalArgumentException("Encoder $name is already registered")
@@ -212,31 +224,37 @@ public class Compression(compression: Configuration) {
         }
 
         /**
-         * Appends default configuration
+         * Appends default configuration having gzip and deflate.
          */
         public fun default() {
             gzip()
             deflate()
             identity()
-
-            excludeContentType(
-                ContentType.Video.Any,
-                ContentType.Image.Any,
-                ContentType.Audio.Any,
-                ContentType.MultiPart.Any,
-                ContentType.Text.EventStream
-            )
         }
 
         /**
          * Builds `CompressionOptions`
          */
-        public fun build(): CompressionOptions = CompressionOptions(
-            encoders = encoders.mapValues { it.value.build() },
+        internal fun buildOptions(): CompressionOptions = CompressionOptions(
+            encoders = encoders.mapValues { (_, builder) ->
+                if (conditions.none() && builder.conditions.none()) {
+                    builder.defaultConditions()
+                }
+
+                builder.buildConfig()
+            },
             conditions = conditions.toList()
         )
-    }
 
+        /**
+         * Builds `CompressionOptions`
+         */
+        @Deprecated(
+            "This is going to become internal. " +
+                "Please stop building it manually or file a ticket with explanation why do you need it."
+        )
+        public fun build(): CompressionOptions = buildOptions()
+    }
 }
 
 private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionAttribute in attributes
@@ -244,7 +262,6 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
 /**
  * Represents a Compression encoder
  */
-@KtorExperimentalAPI
 public interface CompressionEncoder {
     /**
      * May predict compressed length based on the [originalLength] or return `null` if it is impossible.
@@ -294,7 +311,7 @@ public object DeflateEncoder : CompressionEncoder {
  *  Implementation of the identity encoder
  */
 public object IdentityEncoder : CompressionEncoder {
-    override fun predictCompressedLength(originalLength: Long): Long? = originalLength
+    override fun predictCompressedLength(originalLength: Long): Long = originalLength
 
     override fun compress(
         readChannel: ByteReadChannel,
@@ -324,7 +341,8 @@ public interface ConditionsHolderBuilder {
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class CompressionEncoderBuilder internal constructor(
-    public val name: String, public val encoder: CompressionEncoder
+    public val name: String,
+    public val encoder: CompressionEncoder
 ) : ConditionsHolderBuilder {
     /**
      * List of conditions for this encoder
@@ -339,11 +357,16 @@ public class CompressionEncoderBuilder internal constructor(
     /**
      * Builds [CompressionEncoderConfig] instance
      */
-    public fun build(): CompressionEncoderConfig {
+    @Deprecated(
+        "This is going to become internal. " +
+            "Please stop building it manually or file a ticket with explanation why do you need it."
+    )
+    public fun build(): CompressionEncoderConfig = buildConfig()
+
+    internal fun buildConfig(): CompressionEncoderConfig {
         return CompressionEncoderConfig(name, encoder, conditions.toList(), priority)
     }
 }
-
 
 /**
  * Appends `gzip` encoder
@@ -373,20 +396,26 @@ public fun Compression.Configuration.identity(block: CompressionEncoderBuilder.(
  * Appends a custom condition to the encoder or Compression configuration.
  * A predicate returns `true` when a response need to be compressed.
  * If at least one condition is not met then the response compression is skipped.
+ *
+ * Please note that adding a single condition removes the default configuration.
  */
 public fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
 }
 
 /**
- * Appends a minimum size condition to the encoder or Compression configuration
+ * Appends a minimum size condition to the encoder or Compression configuration.
+ *
+ * Please note that adding a single minimum size condition removes the default configuration.
  */
 public fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
     condition { content -> content.contentLength?.let { it >= minSize } ?: true }
 }
 
 /**
- * Appends a content type condition to the encoder or Compression configuration
+ * Appends a content type condition to the encoder or Compression configuration.
+ *
+ * Please note that adding a single match condition removes the default configuration.
  */
 public fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
     condition { content ->
@@ -396,7 +425,9 @@ public fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentTyp
 }
 
 /**
- * Appends a content type exclusion condition to the encoder or Compression configuration
+ * Appends a content type exclusion condition to the encoder or Compression configuration.
+ *
+ * Please note that adding a single match condition removes the default configuration.
  */
 public fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
     condition { content ->
@@ -406,4 +437,20 @@ public fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentT
 
         mimeTypes.none { excludePattern -> contentType.match(excludePattern) }
     }
+}
+
+/**
+ * Configures default compression options
+ */
+private fun ConditionsHolderBuilder.defaultConditions() {
+    excludeContentType(
+        ContentType.Video.Any,
+        ContentType.Image.JPEG,
+        ContentType.Image.PNG,
+        ContentType.Audio.Any,
+        ContentType.MultiPart.Any,
+        ContentType.Text.EventStream
+    )
+
+    minimumSize(DEFAULT_MINIMAL_COMPRESSION_SIZE)
 }

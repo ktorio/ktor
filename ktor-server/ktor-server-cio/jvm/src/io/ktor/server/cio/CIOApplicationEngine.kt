@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio
@@ -57,7 +57,9 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
 
         try {
             environment.connectors.forEach { connectorSpec ->
-                if (connectorSpec.type == ConnectorType.HTTPS) throw UnsupportedOperationException("HTTPS is not supported")
+                if (connectorSpec.type == ConnectorType.HTTPS) {
+                    throw UnsupportedOperationException("HTTPS is not supported")
+                }
                 val connector = startConnector(connectorSpec.port)
 
                 connectors.add(connector)
@@ -154,6 +156,8 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
 
                 try {
                     pipeline.execute(call)
+                } catch (error: Exception) {
+                    handleFailure(call, error)
                 } finally {
                     call.release()
                 }

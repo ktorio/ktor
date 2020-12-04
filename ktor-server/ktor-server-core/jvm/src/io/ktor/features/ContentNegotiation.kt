@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -19,7 +19,6 @@ import kotlin.text.Charsets
  * Functional type for accepted content types contributor
  * @see ContentNegotiation.Configuration.accept
  */
-@KtorExperimentalAPI
 public typealias AcceptHeaderContributor = (
     call: ApplicationCall,
     acceptedContentTypes: List<ContentTypeWithQuality>
@@ -30,7 +29,6 @@ public typealias AcceptHeaderContributor = (
  * @param contentType
  * @param quality
  */
-@KtorExperimentalAPI
 public data class ContentTypeWithQuality(val contentType: ContentType, val quality: Double = 1.0) {
     init {
         require(quality in 0.0..1.0) { "Quality should be in range [0, 1]: $quality" }
@@ -88,7 +86,6 @@ public class ContentNegotiation(
          * Note that the returned list of accepted types will be sorted according to quality using [sortedByQuality]
          * so a custom [contributor] may keep it unsorted and should not rely on input list order.
          */
-        @KtorExperimentalAPI
         public fun accept(contributor: AcceptHeaderContributor) {
             acceptContributors.add(contributor)
         }
@@ -232,26 +229,29 @@ public fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UT
  * Returns a list of content types sorted by quality, number of asterisks and number of parameters.
  * @see parseAndSortContentTypeHeader
  */
-@KtorExperimentalAPI
 public fun List<ContentTypeWithQuality>.sortedByQuality(): List<ContentTypeWithQuality> {
     return sortedWith(
         compareByDescending<ContentTypeWithQuality> { it.quality }.thenBy {
             val contentType = it.contentType
             var asterisks = 0
-            if (contentType.contentType == "*")
+            if (contentType.contentType == "*") {
                 asterisks += 2
-            if (contentType.contentSubtype == "*")
+            }
+            if (contentType.contentSubtype == "*") {
                 asterisks++
+            }
             asterisks
-        }.thenByDescending { it.contentType.parameters.size })
+        }.thenByDescending { it.contentType.parameters.size }
+    )
 }
 
 private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
     @Suppress("LoopToCallChain")
     for (element in this) {
         val mapped = block(element)
-        if (mapped != null)
+        if (mapped != null) {
             return mapped
+        }
     }
     return null
 }

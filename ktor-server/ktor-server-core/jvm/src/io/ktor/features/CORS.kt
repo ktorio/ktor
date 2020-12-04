@@ -43,6 +43,11 @@ public class CORS(configuration: Configuration) {
         }
 
     /**
+     * Prefix for permitted headers
+     */
+    public val headerPredicates: List<(String) -> Boolean> = configuration.headerPredicates
+
+    /**
      * All allowed HTTP methods
      */
     public val methods: Set<HttpMethod> = HashSet<HttpMethod>(configuration.methods + Configuration.CorsDefaultMethods)
@@ -54,11 +59,9 @@ public class CORS(configuration: Configuration) {
 
     private val allowNonSimpleContentTypes: Boolean = configuration.allowNonSimpleContentTypes
 
-    private val headersListHeaderValue =
+    private val headersList =
         configuration.headers.filterNot { it in Configuration.CorsSimpleRequestHeaders }
             .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-            .sorted()
-            .joinToString(", ")
 
     private val methodsListHeaderValue =
         methods.filterNot { it in Configuration.CorsDefaultMethods }
@@ -96,6 +99,16 @@ public class CORS(configuration: Configuration) {
             return
         }
 
+        if (!allowNonSimpleContentTypes) {
+            val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            if (contentType != null) {
+                if (contentType !in Configuration.CorsSimpleContentTypes) {
+                    context.respondCorsFailed()
+                    return
+                }
+            }
+        }
+
         if (call.request.httpMethod == HttpMethod.Options) {
             call.respondPreflight(origin)
             // TODO: it shouldn't be here, because something else can respond to OPTIONS
@@ -118,7 +131,13 @@ public class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-        if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
+
+        val requestHeaders =
+            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
+                it.trim().toLowerCasePreservingASCIIRules()
+            } ?: emptyList()
+
+        if (!corsCheckRequestMethod() || (!corsCheckRequestHeaders(requestHeaders))) {
             respond(HttpStatusCode.Forbidden)
             return
         }
@@ -128,9 +147,12 @@ public class CORS(configuration: Configuration) {
         if (methodsListHeaderValue.isNotEmpty()) {
             response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         }
-        if (headersListHeaderValue.isNotEmpty()) {
-            response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
-        }
+
+        val requestHeadersMatchingPrefix = requestHeaders.filter { header -> headerMatchesAPredicate(header) }
+
+        val headersListHeaderValue = (headersList + requestHeadersMatchingPrefix).sorted().joinToString(", ")
+
+        response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
         accessControlMaxAge()
 
         respond(HttpStatusCode.OK)
@@ -174,13 +196,17 @@ public class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
-        val requestHeaders =
-            request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
-                it.trim().toLowerCasePreservingASCIIRules()
-            } ?: emptyList()
+    private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+
+        requestHeaders.all { header ->
+            return header in allHeadersSet || headerMatchesAPredicate(header)
+        }
 
         return requestHeaders.none { it !in allHeadersSet }
+    }
+
+    private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
+        return headerPredicates.any { it(header) }
     }
 
     private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
@@ -348,6 +374,11 @@ public class CORS(configuration: Configuration) {
         public var allowCredentials: Boolean = false
 
         /**
+         * If present represents the prefix for headers which are permitted in cors requests.
+         */
+        public val headerPredicates: MutableList<(String) -> Boolean> = mutableListOf()
+
+        /**
          * Max-Age for cached CORS options
          */
         @Suppress("unused", "DEPRECATION")
@@ -433,6 +464,20 @@ public class CORS(configuration: Configuration) {
         @Suppress("unused")
         public fun allowXHttpMethodOverride() {
             header(HttpHeaders.XHttpMethodOverride)
+        }
+
+        /**
+         * Allow headers prefixed with [headerPrefix]
+         */
+        public fun allowHeadersPrefixed(headerPrefix: String) {
+            this.headerPredicates.add { name -> name.startsWith(headerPrefix) }
+        }
+
+        /**
+         * Allow headers that match [predicate]
+         */
+        public fun allowHeaders(predicate: (String) -> Boolean) {
+            this.headerPredicates.add(predicate)
         }
 
         /**

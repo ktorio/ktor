@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -105,6 +105,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
         val outputChannel = servletWriter(webConnection.outputStream).channel
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(
                 inputChannel, outputChannel,

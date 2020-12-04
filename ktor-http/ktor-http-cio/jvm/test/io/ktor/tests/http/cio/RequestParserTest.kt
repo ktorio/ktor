@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import org.junit.Test
 import kotlin.test.*
 
 class RequestParserTest {

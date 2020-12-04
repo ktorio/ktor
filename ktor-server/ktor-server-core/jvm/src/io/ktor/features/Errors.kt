@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -29,7 +29,7 @@ public class NotFoundException(message: String? = "Resource not found") : Except
  * This exception is thrown when a required parameter with name [parameterName] is missing
  * @property parameterName of missing request parameter
  */
-@KtorExperimentalAPI
+@OptIn(ExperimentalCoroutinesApi::class)
 public class MissingRequestParameterException(
     public val parameterName: String
 ) : BadRequestException("Request parameter $parameterName is missing"),
@@ -45,7 +45,7 @@ public class MissingRequestParameterException(
  * @property parameterName of missing request parameter
  * @property type this parameter is unable to convert to
  */
-@KtorExperimentalAPI
+@OptIn(ExperimentalCoroutinesApi::class)
 public class ParameterConversionException(
     public val parameterName: String,
     public val type: String,
@@ -66,6 +66,7 @@ public class ParameterConversionException(
  */
 public abstract class ContentTransformationException(message: String) : Exception(message)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class CannotTransformContentToTypeException(
     private val type: KType
 ) : ContentTransformationException("Cannot transform this request's content to $type"),
@@ -84,6 +85,7 @@ internal class CannotTransformContentToTypeException(
  * Thrown when there is no conversion for a content type configured.
  * HTTP status 415 Unsupported Media Type will be replied when this exception is thrown and not caught.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 public class UnsupportedMediaTypeException(
     private val contentType: ContentType
 ) : ContentTransformationException("Content type $contentType is not supported"),

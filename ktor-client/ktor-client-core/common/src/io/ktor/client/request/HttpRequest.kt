@@ -85,7 +85,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * A deferred used to control the execution of this request.
      */
     @KtorExperimentalAPI
-    public var executionContext: Job = Job()
+    public var executionContext: Job = SupervisorJob()
         .also { it.makeShared() }
         internal set(value) {
             value.makeShared()
@@ -149,7 +149,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      */
     @KtorExperimentalAPI
     public fun <T : Any> setCapability(key: HttpClientEngineCapability<T>, capability: T) {
-        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { mutableMapOf() }
+        val capabilities = attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) { sharedMap() }
         capabilities[key] = capability
     }
 

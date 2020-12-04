@@ -6,64 +6,44 @@ package io.ktor.util.collections.internal
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
-import kotlinx.atomicfu.*
 
 internal class SharedForwardList<T : Any> : MutableIterable<T> {
-    private val head: AtomicRef<ListItem<T>?> = atomic(null)
+    internal var head: ForwardListNode<T>? by shared(null)
+    internal var tail by shared(head)
 
     init {
         makeShared()
+
+        head = ForwardListNode(this, null, null, null)
+        tail = head
     }
 
-    public fun appendHead(item: T) {
-        while (true) {
-            val value = head.value
-            val update = ListItem(value, item)
-            if (head.compareAndSet(value, update)) break
+    fun first(): ForwardListNode<T>? {
+        return head!!.next
+    }
+
+    fun last(): ForwardListNode<T>? {
+        if (head == tail) {
+            return null
         }
+
+        return tail
+    }
+
+    fun appendFirst(value: T): ForwardListNode<T> {
+        val newValue = head!!.insertAfter(value)
+        if (head == tail) {
+            tail = newValue
+        }
+
+        return newValue
+    }
+
+    fun appendLast(value: T): ForwardListNode<T> {
+        tail = tail!!.insertAfter(value)
+        return tail!!
     }
 
     override fun iterator(): MutableIterator<T> =
-        ForwardListIterator(head.value)
-}
-
-private class ForwardListIterator<T>(value: ListItem<T>?) : MutableIterator<T> {
-    var last by shared<ListItem<T>?>(null)
-    var current by shared(value)
-
-    init {
-        skipRemoved()
-    }
-
-    override fun hasNext(): Boolean = current?.item != null
-
-    override fun next(): T {
-        last = current
-        current = current?.next
-        skipRemoved()
-
-        return last?.item!!
-    }
-
-    override fun remove() {
-        val lastReturned = last!!
-        lastReturned.removed = true
-    }
-
-    private fun skipRemoved() {
-        while (current != null && current?.removed == true) {
-            current = current?.next
-        }
-    }
-}
-
-private class ListItem<T>(
-    val next: ListItem<T>?,
-    val item: T?
-) {
-    var removed by shared(false)
-
-    init {
-        makeShared()
-    }
+        ForwardListIterator(head!!)
 }

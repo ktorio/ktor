@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth
@@ -17,10 +17,9 @@ import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import org.junit.*
-import org.junit.Test
 import java.time.*
 import java.util.concurrent.*
+import kotlin.math.*
 import kotlin.test.*
 
 class OAuth1aSignatureTest {
@@ -34,7 +33,8 @@ class OAuth1aSignatureTest {
                 "oauth_version" to "1.0"
         ))
 
-        val baseString = signatureBaseString(header, HttpMethod.Post, "https://api.twitter.com/oauth/request_token", emptyList())
+        val baseString = signatureBaseStringInternal(header, HttpMethod.Post,
+            "https://api.twitter.com/oauth/request_token", emptyList())
 
         assertEquals("POST&https%3A%2F%2Fapi.twitter.com%2Foauth%2Frequest_token&oauth_consumer_key%3D1CV4Ud1ZOOzRMwmRyCEe0PY7J%26oauth_nonce%3De685449bf73912c1ebb57220a2158380%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1447068216%26oauth_version%3D1.0", baseString)
     }
@@ -50,16 +50,17 @@ class OAuth1aSignatureTest {
                 "oauth_version" to "1.0"
         ))
 
-        val baseString = signatureBaseString(header, HttpMethod.Post, "https://api.twitter.com/oauth/request_token", emptyList())
+        val baseString = signatureBaseStringInternal(header, HttpMethod.Post,
+            "https://api.twitter.com/oauth/request_token", emptyList())
 
         assertEquals("POST&https%3A%2F%2Fapi.twitter.com%2Foauth%2Frequest_token&oauth_callback%3Dhttp%253A%252F%252Flocalhost%252Fsign-in-with-twitter%252F%26oauth_consumer_key%3D1CV4Ud1ZOOzRMwmRyCEe0PY7J%26oauth_nonce%3D2f085f69a50e55ea6f1bd4e2b3907448%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1447072553%26oauth_version%3D1.0", baseString)
     }
 }
 
 class OAuth1aFlowTest {
-    var testClient: HttpClient? = null
+    private var testClient: HttpClient? = null
 
-    @Before
+    @BeforeTest
     fun createServer() {
         testClient = createOAuthServer(object : TestingOAuthServer {
 
@@ -71,7 +72,7 @@ class OAuth1aFlowTest {
                     throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
                 }
                 val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                if (Math.abs(now - timestamp) > 10000) {
+                if (abs(now - timestamp) > 10000) {
                     throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
                 }
 
@@ -94,7 +95,7 @@ class OAuth1aFlowTest {
                     throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
                 }
                 val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                if (Math.abs(now - timestamp) > 10000) {
+                if (abs(now - timestamp) > 10000) {
                     throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
                 }
                 // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
@@ -113,13 +114,13 @@ class OAuth1aFlowTest {
         })
     }
 
-    @After
+    @AfterTest
     fun destroyServer() {
         testClient?.close()
         testClient = null
     }
 
-    val executor = Executors.newSingleThreadExecutor()!!
+    private val executor = Executors.newSingleThreadExecutor()
     private val dispatcher = executor.asCoroutineDispatcher()
 
     private val settings = OAuthServerSettings.OAuth1aServerSettings(
@@ -132,7 +133,7 @@ class OAuth1aFlowTest {
             consumerSecret = "0xPR3CQaGOilgXCGUt4g6SpBkhti9DOGkWtBCOImNFomedZ3ZU"
     )
 
-    @After
+    @AfterTest
     fun tearDown() {
         executor.shutdownNow()
     }
@@ -222,6 +223,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
+                    @Suppress("DEPRECATION")
                     oauthRespondRedirect(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true")
                 }
             }
@@ -241,6 +243,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
+                    @Suppress("DEPRECATION")
                     oauthHandleCallback(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
@@ -263,6 +266,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
+                    @Suppress("DEPRECATION")
                     oauthHandleCallback(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }

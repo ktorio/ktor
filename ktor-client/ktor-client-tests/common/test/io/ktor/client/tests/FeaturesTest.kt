@@ -26,6 +26,7 @@ class FeaturesTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testIgnoreBodyWithoutPipelining() = clientTests {
         config {
             engine {

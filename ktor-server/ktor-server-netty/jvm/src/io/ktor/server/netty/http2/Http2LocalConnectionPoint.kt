@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty.http2
@@ -9,9 +9,9 @@ import io.netty.handler.codec.http2.*
 import java.net.*
 
 internal class Http2LocalConnectionPoint(
-                    private val nettyHeaders: Http2Headers,
-                    private val localAddress: InetSocketAddress?,
-                    private val remoteAddress: InetSocketAddress?
+    private val nettyHeaders: Http2Headers,
+    private val localAddress: InetSocketAddress?,
+    private val remoteAddress: InetSocketAddress?
 ) : RequestConnectionPoint {
     override val method: HttpMethod = nettyHeaders.method()?.let { HttpMethod.parse(it.toString()) } ?: HttpMethod.Get
 
@@ -25,12 +25,13 @@ internal class Http2LocalConnectionPoint(
         get() = nettyHeaders.path()?.toString() ?: "/"
 
     override val host: String
-        get() = nettyHeaders.authority()?.toString() ?: "localhost"
+        get() = nettyHeaders.authority()?.toString()?.substringBefore(":") ?: "localhost"
 
     override val port: Int
-        get() = nettyHeaders.authority()?.toString()?.substringAfter(":")?.toInt()
-                ?: localAddress?.port
-                ?: 80
+        get() = nettyHeaders.authority()?.toString()
+            ?.substringAfter(":", "")?.takeIf { it.isNotEmpty() }?.toInt()
+            ?: localAddress?.port
+            ?: 80
 
     override val remoteHost: String
         get() = remoteAddress?.let {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -150,14 +150,12 @@ public class Authentication(config: Configuration) {
          * Authenticate phase in that authentication procedures are executed.
          * Please note that referring to the phase is only possible *after* feature installation.
          */
-        @KtorExperimentalAPI
         public val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
         /**
          * Authenticate phase in that auth provider's challenges performing.
          * Please note that referring to the phase is only possible *after* feature installation.
          */
-        @KtorExperimentalAPI
         public val ChallengePhase: PipelinePhase = PipelinePhase("Challenge")
 
         override val key: AttributeKey<Authentication> = AttributeKey("Authentication")
@@ -322,9 +320,9 @@ public fun Route.authenticate(
  * unless you are writing an extension
  * @param names of authentication providers to be applied to this route
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Constant
+        return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
     }
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"

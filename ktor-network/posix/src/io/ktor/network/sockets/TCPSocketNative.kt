@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -34,7 +34,6 @@ internal class TCPSocketNative(
         makeShared()
     }
 
-    @KtorExperimentalAPI
     override fun attachForReading(userChannel: ByteChannel): WriterJob = writer(Dispatchers.Unconfined, userChannel) {
         while (!channel.isClosedForWrite) {
             val count = channel.write { memory, startIndex, endIndex ->
@@ -68,7 +67,6 @@ internal class TCPSocketNative(
         }
     }
 
-    @KtorExperimentalAPI
     override fun attachForWriting(userChannel: ByteChannel): ReaderJob = reader(Dispatchers.Unconfined, userChannel) {
         var sockedClosed = false
         var needSelect = false

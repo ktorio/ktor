@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.features.websocket
@@ -18,7 +18,6 @@ import io.ktor.util.*
  * @property pingInterval - interval between [FrameType.PING] messages.
  * @property maxFrameSize - max size of single websocket frame.
  */
-@KtorExperimentalAPI
 @OptIn(WebSocketInternalAPI::class)
 public class WebSockets(
     public val pingInterval: Long = -1L,

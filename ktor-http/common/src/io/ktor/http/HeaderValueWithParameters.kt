@@ -1,10 +1,16 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
 
 import io.ktor.util.*
+import kotlin.native.concurrent.*
+
+/** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
+@SharedImmutable
+private val HeaderFieldValueSeparators =
+    setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
 
 /**
  * Represents a header value that consist of [content] followed by [parameters].
@@ -21,7 +27,8 @@ public abstract class HeaderValueWithParameters(
     /**
      * The first value for the parameter with [name] comparing case-insensitively or `null` if no such parameters found
      */
-    public fun parameter(name: String): String? = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
+    public fun parameter(name: String): String? =
+        parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content
@@ -79,17 +86,7 @@ private fun String.checkNeedEscape(): Boolean {
     if (isEmpty()) return true
 
     for (index in 0 until length) {
-        when (this[index]) {
-            '\\',
-            '\n',
-            '\r',
-            '\"',
-            ' ',
-            '=',
-            ';',
-            ',',
-            '/' -> return true
-        }
+        if (HeaderFieldValueSeparators.contains(this[index])) return true
     }
 
     return false
@@ -109,6 +106,7 @@ private fun String.quoteTo(out: StringBuilder) {
             '\\' -> out.append("\\\\")
             '\n' -> out.append("\\n")
             '\r' -> out.append("\\r")
+            '\t' -> out.append("\\t")
             '\"' -> out.append("\\\"")
             else -> out.append(ch)
         }

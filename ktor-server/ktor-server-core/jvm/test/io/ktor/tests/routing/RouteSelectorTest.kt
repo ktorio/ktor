@@ -5,7 +5,6 @@
 package io.ktor.tests.routing
 
 import io.ktor.routing.*
-import org.junit.Test
 import kotlin.test.*
 
 internal class RouteSelectorTest {
@@ -18,7 +17,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
@@ -34,7 +35,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -48,7 +51,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -62,7 +67,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = null,
             suffix = null,
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation.succeeded, true)
@@ -77,7 +84,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -91,7 +100,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true
+            isOptional = true,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
@@ -105,7 +116,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true
+            isOptional = true,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
@@ -119,9 +132,45 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true
+            isOptional = true,
+            selectorHasTrailingSlash = false,
+            contextHasTrailingSlash = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
+    }
+
+    @Test
+    fun testEvaluateWithPrefixAndSuffixMatchedTrailingSlashNotMatched() {
+        val evaluation = evaluatePathSegmentParameter(
+            segments = listOf("prefixPARAMsuffix"),
+            segmentIndex = 0,
+            name = "param",
+            prefix = "prefix",
+            suffix = "suffix",
+            isOptional = false,
+            selectorHasTrailingSlash = true,
+            contextHasTrailingSlash = false
+        )
+
+        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
+    }
+
+    @Test
+    fun testEvaluateWithPrefixAndSuffixMatchedTrailingSlashNotMatchedNotLastIndex() {
+        val evaluation = evaluatePathSegmentParameter(
+            segments = listOf("prefixPARAMsuffix", "someOtherPath"),
+            segmentIndex = 0,
+            name = "param",
+            prefix = "prefix",
+            suffix = "suffix",
+            isOptional = false,
+            selectorHasTrailingSlash = true,
+            contextHasTrailingSlash = false
+        )
+
+        assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
+        assertEquals(evaluation.succeeded, true)
+        assertEquals(evaluation.parameters["param"], "PARAM")
     }
 }

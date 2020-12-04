@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -16,7 +16,9 @@ import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
+import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
+import java.lang.reflect.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
@@ -78,7 +80,6 @@ public class NettyApplicationEngine(
         EventLoopGroupProxy.create(configuration.connectionGroupSize)
     }
 
-
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
@@ -121,7 +122,9 @@ public class NettyApplicationEngine(
                 childHandler(
                     NettyChannelInitializer(
                         pipeline, environment,
-                        callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
+                        callEventGroup,
+                        engineDispatcherWithShutdown,
+                        environment.parentCoroutineContext + dispatcherWithShutdown,
                         connector,
                         configuration.requestQueueLimit,
                         configuration.runningLimit,
@@ -204,16 +207,46 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
 
     public companion object {
 
-        public fun create(parallelism: Int): EventLoopGroupProxy = when {
-            KQueue.isAvailable() -> EventLoopGroupProxy(
-                KQueueServerSocketChannel::class,
-                KQueueEventLoopGroup(parallelism)
-            )
-            Epoll.isAvailable() -> EventLoopGroupProxy(
-                EpollServerSocketChannel::class,
-                EpollEventLoopGroup(parallelism)
-            )
-            else -> EventLoopGroupProxy(NioServerSocketChannel::class, NioEventLoopGroup(parallelism))
+        public fun create(parallelism: Int): EventLoopGroupProxy {
+            val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java)
+
+            val factory: ThreadFactory = ThreadFactory { runnable ->
+                defaultFactory.newThread {
+                    markParkingProhibited()
+                    runnable.run()
+                }
+            }
+
+            return when {
+                KQueue.isAvailable() -> EventLoopGroupProxy(
+                    KQueueServerSocketChannel::class,
+                    KQueueEventLoopGroup(parallelism, factory)
+                )
+                Epoll.isAvailable() -> EventLoopGroupProxy(
+                    EpollServerSocketChannel::class,
+                    EpollEventLoopGroup(parallelism, factory)
+                )
+                else -> EventLoopGroupProxy(
+                    NioServerSocketChannel::class,
+                    NioEventLoopGroup(parallelism, factory)
+                )
+            }
+        }
+
+        private val prohibitParkingFunction: Method? by lazy {
+            try {
+                Class.forName("io.ktor.utils.io.jvm.javaio.PollersKt")
+                    .getMethod("prohibitParking")
+            } catch (cause: Throwable) {
+                null
+            }
+        }
+
+        private fun markParkingProhibited() {
+            try {
+                prohibitParkingFunction?.invoke(null)
+            } catch (cause: Throwable) {
+            }
         }
     }
 }

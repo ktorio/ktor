@@ -86,7 +86,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
 
     protected val socketReadTimeout: Int by lazy { TimeUnit.SECONDS.toMillis(timeout).toInt() }
 
-    @Before
+    @BeforeTest
     public fun setUpBase() {
         val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
 
@@ -97,16 +97,11 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
             enableHttp2 = false
         }
 
-        val javaVersion = System.getProperty("java.version")
-        if (enableHttp2 && javaVersion.startsWith("1.8")) {
-            Class.forName("sun.security.ssl.ALPNExtension", true, null)
-        }
-
         testLog.trace("Starting server on port $port (SSL $sslPort)")
         exceptions.clear()
     }
 
-    @After
+    @AfterTest
     public fun tearDownBase() {
         try {
             allConnections.forEach { it.disconnect() }
@@ -131,7 +126,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     }
 
     protected open fun createServer(
-        log: Logger?,
+        log: Logger? = null,
         parent: CoroutineContext = EmptyCoroutineContext,
         module: Application.() -> Unit
     ): TEngine {
@@ -211,7 +206,7 @@ public abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
         throw MultipleFailureException(lastFailures)
     }
 
-    private fun startServer(server: TEngine): List<Throwable> {
+    protected fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test

@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
@@ -129,7 +129,7 @@ public class CallLogging private constructor(
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    withMDC {
+                    withMDC(call) {
                         proceed()
                         feature.logSuccess(call)
                     }
@@ -145,13 +145,17 @@ public class CallLogging private constructor(
         }
     }
 
-
     @Suppress("KDocMissingDocumentation")
     @InternalAPI
     public object Internals {
         @InternalAPI
         public suspend fun <C : PipelineContext<*, ApplicationCall>> C.withMDCBlock(block: suspend C.() -> Unit) {
-            withMDC(block)
+            withMDCBlock(call) { block.invoke(this) }
+        }
+
+        @InternalAPI
+        public suspend fun withMDCBlock(call: ApplicationCall, block: suspend () -> Unit) {
+            withMDC(call, block)
         }
     }
 
@@ -173,8 +177,7 @@ public class CallLogging private constructor(
 /**
  * Invoke suspend [block] with a context having MDC configured.
  */
-private suspend inline fun <C : PipelineContext<*, ApplicationCall>> C.withMDC(crossinline block: suspend C.() -> Unit) {
-    val call = call
+private suspend inline fun withMDC(call: ApplicationCall, crossinline block: suspend () -> Unit) {
     val feature = call.application.featureOrNull(CallLogging) ?: return block()
 
     withContext(MDCSurvivalElement(feature.setupMdc(call))) {

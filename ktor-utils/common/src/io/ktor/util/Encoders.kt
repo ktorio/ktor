@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -7,9 +7,8 @@ package io.ktor.util
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 
-@KtorExperimentalAPI
 /**
- * Empty [Encoder]
+ * Empty [Encoder] that doesn't do any changes.
  */
 public object Identity : Encoder {
     override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel = source
@@ -20,7 +19,6 @@ public object Identity : Encoder {
 /**
  * Content encoder.
  */
-@KtorExperimentalAPI
 public interface Encoder {
     /**
      * Launch coroutine to encode [source] bytes.

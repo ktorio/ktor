@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.cio
@@ -14,7 +14,6 @@ import java.nio.file.*
  * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code
  */
-@KtorExperimentalAPI
 public fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel =
     toFile().readChannel(start, endInclusive)
 
@@ -23,5 +22,4 @@ public fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel =
  * Please note that file reading is blocking so if you are starting it on [Dispatchers.Unconfined] it may block
  * your async code
  */
-@KtorExperimentalAPI
 public fun Path.readChannel(): ByteReadChannel = toFile().readChannel()

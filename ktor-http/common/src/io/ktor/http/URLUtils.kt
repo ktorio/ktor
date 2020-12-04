@@ -98,3 +98,21 @@ internal fun Appendable.appendUrlFullPath(
 
     queryParameters.formUrlEncodeTo(this)
 }
+
+internal fun Appendable.appendUrlFullPath(
+    encodedPath: String,
+    queryParameters: ParametersBuilder,
+    trailingQuery: Boolean
+) {
+    if (encodedPath.isNotBlank() && !encodedPath.startsWith("/")) {
+        append('/')
+    }
+
+    append(encodedPath)
+
+    if (!queryParameters.isEmpty() || trailingQuery) {
+        append("?")
+    }
+
+    queryParameters.formUrlEncodeTo(this)
+}

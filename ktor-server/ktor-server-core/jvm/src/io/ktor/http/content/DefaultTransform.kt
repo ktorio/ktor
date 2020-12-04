@@ -1,13 +1,13 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
 import io.ktor.response.*
+import io.ktor.util.pipeline.*
 import java.io.*
 
 /**
@@ -26,10 +26,10 @@ public fun PipelineContext<Any, ApplicationCall>.transformDefaultContent(value: 
         HttpStatusCodeContent(value)
     }
     is URIFileContent -> {
-        if (value.uri.scheme == "file")
-            LocalFileContent(File(value.uri))
-        else
-            null
+        when (value.uri.scheme) {
+            "file" -> LocalFileContent(File(value.uri))
+            else -> null
+        }
     }
     else -> null
 }

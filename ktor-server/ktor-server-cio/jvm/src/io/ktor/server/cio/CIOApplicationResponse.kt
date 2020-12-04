@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio
@@ -9,16 +9,18 @@ import io.ktor.http.cio.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
-internal class CIOApplicationResponse(call: CIOApplicationCall,
-                             private val output: ByteWriteChannel,
-                             private val input: ByteReadChannel,
-                             private val engineDispatcher: CoroutineContext,
-                             private val userDispatcher: CoroutineContext,
-                             private val upgraded: CompletableDeferred<Boolean>?) : BaseApplicationResponse(call) {
+internal class CIOApplicationResponse(
+    call: CIOApplicationCall,
+    private val output: ByteWriteChannel,
+    private val input: ByteReadChannel,
+    private val engineDispatcher: CoroutineContext,
+    private val userDispatcher: CoroutineContext,
+    private val upgraded: CompletableDeferred<Boolean>?
+) : BaseApplicationResponse(call) {
     private var statusCode: HttpStatusCode = HttpStatusCode.OK
     private val headersNames = ArrayList<String>()
     private val headerValues = ArrayList<String>()
@@ -84,7 +86,10 @@ internal class CIOApplicationResponse(call: CIOApplicationCall,
     }
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
+        upgraded?.complete(true) ?: throw IllegalStateException(
+            "Unable to perform upgrade as it is not requested by the client: " +
+                "request should have Upgrade and Connection headers filled properly"
+        )
 
         sendResponseMessage(contentReady = false)
 

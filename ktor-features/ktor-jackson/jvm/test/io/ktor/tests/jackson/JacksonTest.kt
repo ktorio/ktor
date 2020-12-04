@@ -13,7 +13,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class JacksonTest {
@@ -49,6 +48,49 @@ class JacksonTest {
             addHeader("Accept", "text/plain")
             addHeader("Content-Type", "application/json")
             setBody("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""id=1, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+        }
+    }
+
+    @Test
+    fun testWithUTF16() = withTestApplication {
+        val uc = "\u0422"
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, JacksonConverter())
+        }
+        application.routing {
+
+            val model = mapOf("id" to 1, "title" to "Hello, World!", "unicode" to uc)
+            get("/") {
+                call.respond(model)
+            }
+            post("/") {
+                val map = call.receive<Map<*, *>>()
+                val text = map.entries.joinToString { "${it.key}=${it.value}" }
+                call.respond(text)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+            addHeader("Accept-Charset", "UTF-16" )
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
+            assertNotNull(response.content)
+            assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_16), ContentType.parse(contentTypeText))
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
+            addHeader("Content-Type", "application/json; charset=UTF-16")
+            setBody("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""".toByteArray(charset = Charsets.UTF_16))
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)

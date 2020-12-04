@@ -26,37 +26,19 @@ import java.io.*
  */
 @Suppress("DEPRECATION")
 @InternalAPI
-@OptIn(
-    ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class
-)
 public fun CoroutineScope.startServerConnectionPipeline(
     connection: ServerIncomingConnection,
     timeout: WeakTimeoutQueue,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
+    @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     val outputsActor = actor<ByteReadChannel>(
         context = HttpPipelineWriterCoroutine,
         capacity = 3,
         start = CoroutineStart.UNDISPATCHED
     ) {
         try {
-            val receiveChildOrNull =
-                suspendLambda<CoroutineScope, ByteReadChannel?> {
-                    @Suppress("DEPRECATION")
-                    channel.receiveOrNull()
-                }
-            while (true) {
-                val child = timeout.withTimeout(receiveChildOrNull) ?: break
-                try {
-                    child.joinTo(connection.output, false)
-//                        child.copyTo(output)
-                    connection.output.flush()
-                } catch (t: Throwable) {
-                    if (child is ByteWriteChannel) {
-                        child.close(t)
-                    }
-                }
-            }
+            pipelineWriterLoop(channel, timeout, connection)
         } catch (t: Throwable) {
             connection.output.close(t)
         } finally {
@@ -106,8 +88,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             try {
                 val contentLengthIndex = request.headers.find("Content-Length")
-                connectionOptions =
-                    ConnectionOptions.parse(request.headers["Connection"])
+                connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
+
                 if (contentLengthIndex != -1) {
                     contentLength = request.headers.valueAt(contentLengthIndex).parseDecLong()
                     if (request.headers.find("Content-Length", contentLengthIndex + 1) != -1) {
@@ -119,12 +101,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 expectedHttpBody = expectHttpBody(
                     request.method, contentLength, transferEncoding, connectionOptions, contentType
                 )
-                expectedHttpUpgrade = !expectedHttpBody &&
-                        expectHttpUpgrade(
-                            request.method,
-                            upgrade,
-                            connectionOptions
-                        )
+                expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
             } catch (cause: Throwable) {
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
@@ -132,13 +109,15 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 throw cause
             }
 
-            val requestBody = if (expectedHttpBody || expectedHttpUpgrade)
+            val requestBody = if (expectedHttpBody || expectedHttpUpgrade) {
                 ByteChannel(true)
-            else
+            } else {
                 ByteReadChannel.Empty
+            }
 
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
+            @OptIn(ExperimentalCoroutinesApi::class)
             launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                 val handlerScope = ServerRequestScope(
                     coroutineContext,
@@ -177,7 +156,9 @@ public fun CoroutineScope.startServerConnectionPipeline(
                     )
                 } catch (cause: Throwable) {
                     requestBody.close(cause)
-                    throw cause
+                    response.writePacket(BadRequestPacket.copy())
+                    response.close()
+                    break
                 } finally {
                     requestBody.close()
                 }
@@ -189,6 +170,29 @@ public fun CoroutineScope.startServerConnectionPipeline(
         coroutineContext.cancel()
     } finally {
         outputsActor.close()
+    }
+}
+
+private suspend fun pipelineWriterLoop(
+    channel: ReceiveChannel<ByteReadChannel>,
+    timeout: WeakTimeoutQueue,
+    connection: ServerIncomingConnection
+) {
+    val receiveChildOrNull =
+        suspendLambda<CoroutineScope, ByteReadChannel?> {
+            @OptIn(ExperimentalCoroutinesApi::class)
+            channel.receiveOrNull()
+        }
+    while (true) {
+        val child = timeout.withTimeout(receiveChildOrNull) ?: break
+        try {
+            child.joinTo(connection.output, false)
+            connection.output.flush()
+        } catch (t: Throwable) {
+            if (child is ByteWriteChannel) {
+                child.close(t)
+            }
+        }
     }
 }
 

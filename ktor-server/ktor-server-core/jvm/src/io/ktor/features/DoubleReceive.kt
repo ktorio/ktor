@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -25,7 +25,6 @@ import kotlin.reflect.*
  * When the same receive type requested as the firstly received, the receive pipeline and content transformation are
  * not triggered (except when [Configuration.receiveEntireContent] = `true`).
  */
-@KtorExperimentalAPI
 public class DoubleReceive internal constructor(private val config: Configuration) {
     /**
      * [DoubleReceive] Feature configuration.
@@ -44,7 +43,6 @@ public class DoubleReceive internal constructor(private val config: Configuratio
     /**
      * [DoubleReceive] feature's installation object.
      */
-    @OptIn(ExperimentalStdlibApi::class)
     public companion object Feature : ApplicationFeature<Application, Configuration, DoubleReceive> {
         override val key: AttributeKey<DoubleReceive> = AttributeKey("DoubleReceive")
 
@@ -53,7 +51,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) { request ->
                 val type = request.typeInfo
-                require(request.type != CachedTransformationResult::class) { "CachedTransformationResult can't be received" }
+                require(request.type != CachedTransformationResult::class) {
+                    "CachedTransformationResult can't be received"
+                }
 
                 val cachedResult = call.attributes.getOrNull(LastReceiveCachedResult)
                 when {
@@ -73,6 +73,7 @@ public class DoubleReceive internal constructor(private val config: Configuratio
 
                 if (byteArray == null && feature.config.receiveEntireContent && requestValue is ByteReadChannel) {
                     byteArray = requestValue.toByteArray()
+                    @OptIn(ExperimentalStdlibApi::class)
                     call.attributes.put(
                         LastReceiveCachedResult,
                         CachedTransformationResult.Success(typeOf<ByteArray>(), byteArray)
@@ -94,7 +95,9 @@ public class DoubleReceive internal constructor(private val config: Configuratio
                     !request.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(type)
                 }
 
-                if (finishedRequest.reusableValue && (cachedResult == null || cachedResult !is CachedTransformationResult.Success)) {
+                if (finishedRequest.reusableValue &&
+                    (cachedResult == null || cachedResult !is CachedTransformationResult.Success)
+                ) {
                     @Suppress("UNCHECKED_CAST")
                     call.attributes.put(
                         LastReceiveCachedResult,
@@ -112,7 +115,6 @@ public class DoubleReceive internal constructor(private val config: Configuratio
  * Represents a cached transformation result from a previous [ApplicationCall.receive] invocation.
  * @property type requested by the corresponding [ApplicationCall.receive] invocation
  */
-@KtorExperimentalAPI
 public sealed class CachedTransformationResult<T : Any>(public val type: KType) {
     /**
      * Holds a transformation result [value] after a successful transformation.
@@ -131,7 +133,6 @@ public sealed class CachedTransformationResult<T : Any>(public val type: KType) 
  * Thrown when a request receive was failed during the previous [ApplicationCall.receive] invocation so this
  * receive attempt is simply replaying the previous exception cause.
  */
-@KtorExperimentalAPI
 public class RequestReceiveAlreadyFailedException internal constructor(
     cause: Throwable
 ) : Exception("Request body consumption was failed", cause, false, true)

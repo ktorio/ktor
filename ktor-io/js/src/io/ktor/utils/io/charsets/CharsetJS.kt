@@ -262,5 +262,8 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
         sb.append(decoder.decode())
     }
 
+    if (inputRemaining > 0) {
+        throw EOFException("Not enough bytes available: had only ${inputLength - inputRemaining} instead of $inputLength")
+    }
     return sb.toString()
 }

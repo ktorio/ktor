@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -35,6 +35,14 @@ public sealed class CacheControl(public val visibility: Visibility?) {
         } else {
             "no-cache, ${visibility.headerValue}"
         }
+
+        override fun equals(other: Any?): Boolean {
+            return other is NoCache && visibility == other.visibility
+        }
+
+        override fun hashCode(): Int {
+            return visibility.hashCode()
+        }
     }
 
     /**
@@ -45,6 +53,14 @@ public sealed class CacheControl(public val visibility: Visibility?) {
             "no-store"
         } else {
             "no-store, ${visibility.headerValue}"
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other is NoStore && other.visibility == visibility
+        }
+
+        override fun hashCode(): Int {
+            return visibility.hashCode()
         }
     }
 
@@ -79,6 +95,26 @@ public sealed class CacheControl(public val visibility: Visibility?) {
             }
 
             return parts.joinToString(", ")
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return other === this || (
+                other is MaxAge &&
+                    other.maxAgeSeconds == maxAgeSeconds &&
+                    other.proxyMaxAgeSeconds == proxyMaxAgeSeconds &&
+                    other.mustRevalidate == mustRevalidate &&
+                    other.proxyRevalidate == proxyRevalidate &&
+                    other.visibility == visibility
+                )
+        }
+
+        override fun hashCode(): Int {
+            var result = maxAgeSeconds
+            result = 31 * result + (proxyMaxAgeSeconds ?: 0)
+            result = 31 * result + mustRevalidate.hashCode()
+            result = 31 * result + proxyRevalidate.hashCode()
+            result = 31 * result + visibility.hashCode()
+            return result
         }
     }
 }

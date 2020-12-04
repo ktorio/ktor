@@ -135,6 +135,7 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
             }
         }
 
+        input.rethrowCloseCause()
         output.writeFully(LastChunkBytes)
     } catch (cause: Throwable) {
         output.close(cause)
@@ -142,6 +143,15 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
     } finally {
         output.flush()
     }
+}
+
+private fun ByteReadChannel.rethrowCloseCause() {
+    val cause = when (this) {
+        is ByteChannel -> closedCause
+        is ByteChannelSequentialBase -> closedCause
+        else -> null
+    }
+    if (cause != null) throw cause
 }
 
 @SharedImmutable

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 import org.jetbrains.kotlin.konan.target.HostManager
 
 buildscript {
@@ -29,10 +33,15 @@ buildscript {
             }
         }
     }
+    // These three flags are enabled in train builds for JVM IR compiler testing
+    ext.jvm_ir_enabled = rootProject.properties['enable_jvm_ir'] != null
+    ext.jvm_ir_api_check_enabled = rootProject.properties['enable_jvm_ir_api_check'] != null
+    // This flag is also used in settings.gradle to exclude native-only projects
+    ext.native_targets_enabled = rootProject.properties['disable_native_targets'] == null
 
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
         gradlePluginPortal()
         maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
@@ -44,8 +53,8 @@ buildscript {
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
             }
         }
-        maven { url "https://dl.bintray.com/orangy/maven" }
         maven { url 'https://kotlin.bintray.com/kotlinx' }
+        jcenter()
     }
 
     dependencies {
@@ -58,7 +67,10 @@ buildscript {
         classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
         classpath "com.android.tools.build:gradle:$android_gradle_version"
+        classpath("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
     }
+
+    CacheRedirector.configureBuildScript(buildscript, rootProject)
 }
 
 
@@ -73,7 +85,12 @@ apply from: 'gradle/verifier.gradle'
  * `darwin` is subset of `posix`.
  * Don't create `posix` and `darwin` sourceSets in single project.
  */
-def platforms = ["common", "jvm", "js", "posix", "darwin"]
+def platforms = ["common", "jvm", "js"]
+
+if (native_targets_enabled) {
+    platforms += ["posix", "darwin"]
+}
+
 ext.skipPublish = ["ktor-server-benchmarks", "ktor-client-benchmarks"]
 ext.nonDefaultProjectStructure = ["ktor-bom"]
 
@@ -104,6 +121,7 @@ def disabledExplicitApiModeProjects = [
     "ktor-server-benchmarks",
     "ktor-client-json-tests",
     "ktor-server-test-host",
+    "ktor-server-test-suites",
     "ktor-server-tests"
 ]
 
@@ -135,8 +153,9 @@ allprojects {
 
     repositories {
         mavenLocal()
+        mavenCentral()
         maven {
-            url "https://dl.bintray.com/kotlin/kotlinx/"
+            url "https://dl.bintray.com/kotlin/kotlinx"
             credentials {
                 username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
@@ -150,16 +169,19 @@ allprojects {
                 password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
             }
         }
-        maven { url "https://dl.bintray.com/orangy/maven" }
         jcenter()
-
     }
+
+    CacheRedirector.configure(project)
 
     if (rootProject.ext.nonDefaultProjectStructure.contains(project.name)) return
 
     apply plugin: "kotlin-multiplatform"
 
     apply from: rootProject.file("gradle/utility.gradle")
+
+    project.ext.nativeTargets = []
+    project.ext.nativeCompilations = []
     platforms.each { platform ->
         if (projectNeedsPlatform(project, platform)) {
             configure([it]) {
@@ -198,6 +220,10 @@ allprojects {
         apply from: rootProject.file('gradle/dokka.gradle')
         apply from: rootProject.file('gradle/publish.gradle')
     }
+}
+
+if (project.hasProperty("enableCodeStyle")) {
+    apply from: 'gradle/codestyle.gradle'
 }
 
 task rootAllTest(type: org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport) {
@@ -282,4 +308,15 @@ afterEvaluate {
 
 if (project.hasProperty("enable-coverage")) {
     apply from: "gradle/jacoco.gradle"
+}
+
+// Disable binary compatibility check for JVM IR compiler output by default
+if (jvm_ir_enabled) {
+    subprojects { project ->
+        afterEvaluate {
+            configure(tasks.matching { it.name == "apiCheck" }) {
+                enabled = enabled && jvm_ir_api_check_enabled
+            }
+        }
+    }
 }

@@ -9,10 +9,10 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.client.utils.*
 import io.ktor.client.utils.checkCoroutinesVersion
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -72,7 +72,7 @@ public class HttpClient(
     public val engine: HttpClientEngine,
     private val userConfig: HttpClientConfig<out HttpClientEngineConfig> = HttpClientConfig()
 ) : CoroutineScope, Closeable {
-    private var manageEngine: Boolean = false
+    private var manageEngine: Boolean by shared(false)
 
     internal constructor(
         engine: HttpClientEngine,
@@ -168,8 +168,7 @@ public class HttpClient(
             config.install(this@HttpClient)
         }
 
-        coroutineContext.makeShared()
-        preventFreeze()
+        makeShared()
     }
 
     /**

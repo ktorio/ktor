@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization
@@ -15,7 +15,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.*
 import kotlin.text.Charsets
 
 /**
@@ -55,8 +54,9 @@ public fun SerializationConverter(): SerializationConverter =
  * }
  * ```
  */
-@Suppress("EXPERIMENTAL_API_USAGE_ERROR")
-public class SerializationConverter private constructor(
+@OptIn(ExperimentalSerializationApi::class)
+public class SerializationConverter
+private constructor(
     private val format: SerialFormat,
     private val defaultCharset: Charset = Charsets.UTF_8
 ) : ContentConverter {
@@ -131,7 +131,7 @@ public class SerializationConverter private constructor(
         val channel = request.value as? ByteReadChannel ?: return null
         val charset = context.call.request.contentCharset() ?: defaultCharset
 
-        val serializer = format.serializersModule.getContextual(request.type) ?: serializerByTypeInfo(request.typeInfo)
+        val serializer = format.serializersModule.serializer(request.typeInfo)
         val contentPacket = channel.readRemaining()
 
         return when (format) {
@@ -145,9 +145,10 @@ public class SerializationConverter private constructor(
     }
 }
 
-@Suppress("unused", "CONFLICTING_OVERLOADS")
+@Suppress("unused")
 @Deprecated("Use json function instead.", level = DeprecationLevel.HIDDEN)
-public fun ContentNegotiation.Configuration.serialization(
+@JvmName("serialization")
+public fun ContentNegotiation.Configuration.serialization0(
     contentType: ContentType = ContentType.Application.Json,
     json: Json = DefaultJson
 ) {

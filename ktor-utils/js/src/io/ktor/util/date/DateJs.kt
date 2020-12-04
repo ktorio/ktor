@@ -45,3 +45,8 @@ public actual fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: In
 public class InvalidTimestampException(timestamp: Long) : IllegalStateException(
     "Invalid date timestamp exception: $timestamp"
 )
+
+/**
+ * Gets current system time in milliseconds since certain moment in the past, only delta between two subsequent calls makes sense.
+ */
+public actual fun getTimeMillis(): Long = Date().getTime().toLong()

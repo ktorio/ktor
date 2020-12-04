@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.request
@@ -22,10 +22,10 @@ import kotlin.reflect.jvm.*
  * @param value specifies current value being processed by the pipeline
  * @param reusableValue indicates whether the [value] instance can be reused. For example, a stream can't.
  */
-public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
-    @KtorExperimentalAPI public val typeInfo: KType,
+public class ApplicationReceiveRequest constructor(
+    public val typeInfo: KType,
     public val value: Any,
-    @KtorExperimentalAPI public val reusableValue: Boolean = false
+    public val reusableValue: Boolean = false
 ) {
     @Deprecated("Use typeOf to pass KType instead")
     public constructor(type: KClass<*>, value: Any) : this(type.starProjectedType, value, false)
@@ -33,6 +33,10 @@ public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
     /**
      * Star projected class computed from [typeInfo]
      */
+    @Deprecated(
+        "Use typeInfo instead as it provides type parameter information",
+        ReplaceWith("typeInfo.jvmErasure", "kotlin.reflect.jvm.jvmErasure")
+    )
     public val type: KClass<*>
         get() = typeInfo.jvmErasure
 }
@@ -42,7 +46,8 @@ public class ApplicationReceiveRequest @KtorExperimentalAPI constructor(
  *
  * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
  */
-public open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+public open class ApplicationReceivePipeline :
+    Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */
@@ -205,5 +210,6 @@ private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventi
  * Thrown when a request body has been already received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
-@KtorExperimentalAPI
-public class RequestAlreadyConsumedException : IllegalStateException("Request body has been already consumed (received).")
+public class RequestAlreadyConsumedException : IllegalStateException(
+    "Request body has been already consumed (received)."
+)

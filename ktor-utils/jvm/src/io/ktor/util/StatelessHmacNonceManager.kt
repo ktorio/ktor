@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -16,7 +16,6 @@ import javax.crypto.spec.*
  * @property timeoutMillis specifies the amount of time for a nonce to be considered valid
  * @property nonceGenerator function that produces random values
  */
-@KtorExperimentalAPI
 public class StatelessHmacNonceManager(
     public val keySpec: SecretKeySpec,
     public val algorithm: String = "HmacSHA256",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -58,7 +58,6 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
-@KtorExperimentalAPI
 public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
@@ -101,11 +100,10 @@ public fun ByteReadChannel.deflated(
  * Launch a coroutine on [coroutineContext] that does deflate compression
  * optionally doing CRC and writing GZIP header and trailer if [gzip] = `true`
  */
-@KtorExperimentalAPI
 public fun ByteWriteChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteWriteChannel = GlobalScope.reader(coroutineContext, autoFlush = true) {
-    channel.deflated(gzip, pool, coroutineContext).joinTo(this@deflated, closeOnEnd = true)
+    channel.deflated(gzip, pool, coroutineContext).copyTo(this@deflated)
 }.channel

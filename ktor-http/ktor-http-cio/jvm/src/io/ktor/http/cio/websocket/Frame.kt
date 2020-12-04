@@ -131,6 +131,7 @@ public actual sealed class Frame actual constructor(
     }
 }
 
-@Suppress("CONFLICTING_OVERLOADS", "KDocMissingDocumentation", "unused")
+@Suppress("KDocMissingDocumentation", "unused")
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-public fun Frame.Close.readReason(): CloseReason? = readReason()
+@JvmName("readReason")
+public fun Frame.Close.readReason0(): CloseReason? = readReason()

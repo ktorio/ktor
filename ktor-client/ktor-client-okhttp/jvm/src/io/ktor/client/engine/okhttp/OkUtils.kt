@@ -20,8 +20,13 @@ internal suspend fun OkHttpClient.execute(
     val callback = object : Callback {
 
         override fun onFailure(call: Call, cause: IOException) {
-            if (call.isCanceled()) {
+            if (it.isCancelled) {
                 return
+            }
+            val cause = if (cause.message?.contains("canceled due to ") == true && cause.suppressed.isNotEmpty()) {
+                cause.suppressed[0]
+            } else {
+                cause
             }
 
             val mappedException = when (cause) {

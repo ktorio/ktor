@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http.cio
@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import kotlin.test.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MultipartTest {
     @Test
     fun smokeTest() = runBlocking {
@@ -54,7 +55,6 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)
@@ -124,7 +124,6 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)
@@ -195,7 +194,7 @@ class MultipartTest {
         val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
+        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         val parts = allEvents.filterIsInstance<MultipartEvent.MultipartPart>()
@@ -251,7 +250,7 @@ class MultipartTest {
         val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
-        @OptIn(ObsoleteCoroutinesApi::class)
+        @OptIn(ExperimentalCoroutinesApi::class)
         mp.consumeEach { allEvents.add(it) }
 
         assertEquals(7, allEvents.size)
@@ -312,24 +311,83 @@ class MultipartTest {
                 "multipart/mixed; boundary=" + "0".repeat(70))
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary=" + "0".repeat(71))
+            parseBoundaryInternal("multipart/mixed; boundary=" + "0".repeat(71))
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary=")
+            parseBoundaryInternal("multipart/mixed; boundary=")
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary= ")
+            parseBoundaryInternal("multipart/mixed; boundary= ")
         }
 
         assertFails {
-            parseBoundary("multipart/mixed; boundary= \"\" ")
+            parseBoundaryInternal("multipart/mixed; boundary= \"\" ")
+        }
+    }
+
+    @Test
+    fun testEmptyPayload() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=------------------------abcdef" +
+            "\r\n\r\n"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events")
+        }
+    }
+
+    @Test
+    fun testEpilogueOnly() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=abcdef" +
+            "\r\n\r\n" +
+            "--abcdef--"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events but got $it")
+        }
+    }
+
+    @Test
+    fun testEpilogueOnlyAndDoubleLine() = runBlocking {
+        val body = "POST /add HTTP/1.1\r\n" +
+            "Host: 127.0.0.1:8080\r\n" +
+            "User-Agent: curl/7.46.0\r\n" +
+            "Accept: */*\r\n" +
+            "Content-Type: multipart/form-data; " +
+            "boundary=abcdef" +
+            "\r\n\r\n" +
+            "--abcdef--\r\n\r\n"
+
+        val ch = ByteReadChannel(body.toByteArray())
+        val request = parseRequest(ch)!!
+        val mp = GlobalScope.parseMultipart(ch, request.headers)
+
+        mp.consumeEach {
+            fail("Should be no events but got $it")
         }
     }
 
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
-        val boundary = parseBoundary(headerValue)
+        val boundary = parseBoundaryInternal(headerValue)
         val actualBoundary = String(boundary.array(),
                 boundary.arrayOffset() + boundary.position(), boundary.remaining())
 

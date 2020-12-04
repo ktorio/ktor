@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -11,18 +11,21 @@ import io.ktor.utils.io.charsets.*
 /**
  * Set `Content-Type` header.
  */
-public fun HttpMessageBuilder.contentType(type: ContentType): Unit = headers.set(HttpHeaders.ContentType, type.toString())
+public fun HttpMessageBuilder.contentType(type: ContentType): Unit =
+    headers.set(HttpHeaders.ContentType, type.toString())
 
 @Deprecated(
     "Content-Length is controlled by underlying engine. Don't specify it explicitly.",
     level = DeprecationLevel.ERROR
 )
 @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType", "DeprecatedCallableAddReplaceWith")
-public fun HttpMessageBuilder.contentLength(length: Int): Unit = headers.set(HttpHeaders.ContentLength, length.toString())
+public fun HttpMessageBuilder.contentLength(length: Int): Unit =
+    headers.set(HttpHeaders.ContentLength, length.toString())
 
 @Deprecated("Use content with particular content type and charset instead", level = DeprecationLevel.ERROR)
 @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType", "DeprecatedCallableAddReplaceWith")
-public fun HttpMessageBuilder.charset(charset: Charset): Unit? = contentType()?.let { contentType(it.withCharset(charset)) }
+public fun HttpMessageBuilder.charset(charset: Charset): Unit? =
+    contentType()?.let { contentType(it.withCharset(charset)) }
 
 /**
  * Append `Max-Age` header value.
@@ -42,7 +45,8 @@ public fun HttpMessageBuilder.userAgent(content: String): Unit = headers.set(Htt
 /**
  * Parse `Content-Type` header value.
  */
-public fun HttpMessageBuilder.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+public fun HttpMessageBuilder.contentType(): ContentType? =
+    headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
 
 /**
  * Parse charset from `Content-Type` header value.
@@ -161,4 +165,3 @@ internal fun String.splitSetCookieHeader(): List<String> {
 
     return result
 }
-

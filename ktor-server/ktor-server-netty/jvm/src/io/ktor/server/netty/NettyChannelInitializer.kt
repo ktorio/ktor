@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.netty
@@ -113,14 +113,13 @@ public class NettyChannelInitializer(
 
                 with(pipeline) {
                     //                    addLast(LoggingHandler(LogLevel.WARN))
-                    if(requestReadTimeout > 0) {
+                    if (requestReadTimeout > 0) {
                         addLast("readTimeout", ReadTimeoutHandler(requestReadTimeout))
                     }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
-
                 }
 
                 pipeline.context("codec").fireChannelActive()

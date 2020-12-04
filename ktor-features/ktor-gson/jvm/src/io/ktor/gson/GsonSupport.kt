@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.gson
@@ -15,6 +15,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -33,14 +34,17 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
         val channel = request.value as? ByteReadChannel ?: return null
-        val reader = channel.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
-        val type = request.type
+        val type = request.typeInfo
+        val javaType = type.jvmErasure
 
-        if (gson.isExcluded(type)) {
-            throw ExcludedTypeGsonException(type)
+        if (gson.isExcluded(javaType)) {
+            throw ExcludedTypeGsonException(javaType)
         }
 
-        return gson.fromJson(reader, type.javaObjectType) ?: throw UnsupportedNullValuesException()
+        return withContext(Dispatchers.IO) {
+            val reader = channel.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
+            gson.fromJson(reader, javaType.javaObjectType) ?: throw UnsupportedNullValuesException()
+        }
     }
 }
 
@@ -57,12 +61,13 @@ public fun ContentNegotiation.Configuration.gson(
     register(contentType, converter)
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ExcludedTypeGsonException(
-    val type: KClass<*>
+    private val type: KClass<*>
 ) : Exception("Type ${type.jvmName} is excluded so couldn't be used in receive"),
     CopyableThrowable<ExcludedTypeGsonException> {
 
-    override fun createCopy(): ExcludedTypeGsonException? = ExcludedTypeGsonException(type).also {
+    override fun createCopy(): ExcludedTypeGsonException = ExcludedTypeGsonException(type).also {
         it.initCause(this)
     }
 }

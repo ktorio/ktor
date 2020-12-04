@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -21,7 +21,6 @@ import io.ktor.util.*
  *
  * @throws IllegalArgumentException if the port is outside the range of TCP/UDP ports
  */
-@KtorExperimentalAPI
 public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
     require(port in 1..65535) { "Port $port must be a positive number between 1 and 65,535" }
 
@@ -34,7 +33,6 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
  *
  * @param port the port to match against
  */
-@KtorExperimentalAPI
 public data class LocalPortRouteSelector(val port: Int) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
@@ -49,7 +47,6 @@ public data class LocalPortRouteSelector(val port: Int) : RouteSelector(RouteSel
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request host
          */
-        @KtorExperimentalAPI
         public const val LocalPortParameter: String = "\$LocalPort"
     }
 }

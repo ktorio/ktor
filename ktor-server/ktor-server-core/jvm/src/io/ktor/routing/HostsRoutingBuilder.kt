@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
 
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.util.*
 
 /**
  * Create a route to match request host and port.
@@ -65,7 +64,12 @@ public fun Route.host(hosts: List<String>, ports: List<Int> = emptyList(), build
  *
  * @throws IllegalArgumentException when no constraints were applied in [host], [hostPatterns] and [ports]
  */
-public fun Route.host(hosts: List<String>, hostPatterns: List<Regex>, ports: List<Int> = emptyList(), build: Route.() -> Unit): Route {
+public fun Route.host(
+    hosts: List<String>,
+    hostPatterns: List<Regex>,
+    ports: List<Int> = emptyList(),
+    build: Route.() -> Unit
+): Route {
     val selector = HostRouteSelector(hosts, hostPatterns, ports)
     return createChild(selector).apply(build)
 }
@@ -93,7 +97,11 @@ public fun Route.port(vararg ports: Int, build: Route.() -> Unit): Route {
  * @param hostPatterns contains host patterns to match
  * @param portsList contains possible ports or empty to match all ports
  */
-public data class HostRouteSelector(val hostList: List<String>, val hostPatterns: List<Regex>, val portsList: List<Int>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class HostRouteSelector(
+    val hostList: List<String>,
+    val hostPatterns: List<Regex>,
+    val portsList: List<Int>
+) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     init {
         require(hostList.isNotEmpty() || hostPatterns.isNotEmpty() || portsList.isNotEmpty())
     }
@@ -129,13 +137,11 @@ public data class HostRouteSelector(val hostList: List<String>, val hostPatterns
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request host
          */
-        @KtorExperimentalAPI
         public const val HostNameParameter: String = "\$RequestHost"
 
         /**
          * Parameter name for [RoutingApplicationCall.parameters] for request port
          */
-        @KtorExperimentalAPI
         public const val PortParameter: String = "\$RequestPort"
     }
 }

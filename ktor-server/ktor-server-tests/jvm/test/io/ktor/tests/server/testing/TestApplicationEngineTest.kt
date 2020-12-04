@@ -5,6 +5,8 @@
 package io.ktor.tests.server.testing
 
 import io.ktor.application.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -12,7 +14,6 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
-import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.*
 import kotlin.system.*
@@ -194,6 +195,25 @@ class TestApplicationEngineTest {
                 doRequestAndCheckResponse("0")
                 doRequestAndCheckResponse("1")
                 doRequestAndCheckResponse("2")
+            }
+        }
+    }
+
+    @Test
+    fun accessNotExistingRouteTest() {
+        withTestApplication {
+            application.routing {
+                get("/exist") {
+                    call.respondText("Route exist")
+                }
+            }
+
+            runBlocking {
+                val notExistingResponse = client.get<HttpResponse>("/notExist")
+                assertEquals(HttpStatusCode.NotFound, notExistingResponse.status)
+
+                val existingResponse = client.get<HttpResponse>("/exist")
+                assertEquals(HttpStatusCode.OK, existingResponse.status)
             }
         }
     }

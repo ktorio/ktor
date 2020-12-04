@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("unused")
@@ -231,7 +231,7 @@ public fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineCo
  * Retrieves the current call's location or `null` if it is not available (request is not handled by a location class),
  * or not yet available (invoked too early before the locations feature takes place).
  */
-@KtorExperimentalAPI
+@KtorExperimentalLocationsAPI
 public inline fun <reified T : Any> ApplicationCall.locationOrNull(): T = locationOrNull(T::class)
 
 @PublishedApi

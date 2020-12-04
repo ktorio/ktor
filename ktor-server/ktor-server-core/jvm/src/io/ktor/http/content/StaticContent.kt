@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -20,10 +20,11 @@ private val staticRootFolderKey = AttributeKey<File>("BaseFolder")
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
-        if (value != null)
+        if (value != null) {
             attributes.put(staticRootFolderKey, value)
-        else
+        } else {
             attributes.remove(staticRootFolderKey)
+        }
     }
 
 private fun File?.combine(file: File) = when {
@@ -102,10 +103,11 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
 public var Route.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
-        if (value != null)
+        if (value != null) {
             attributes.put(staticBasePackageName, value)
-        else
+        } else {
             attributes.remove(staticBasePackageName)
+        }
     }
 
 private fun String?.combinePackage(resourcePackage: String?) = when {
@@ -121,8 +123,9 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get(remotePath) {
         val content = call.resolveResource(resource, packageName)
-        if (content != null)
+        if (content != null) {
             call.respond(content)
+        }
     }
 }
 
@@ -134,8 +137,9 @@ public fun Route.resources(resourcePackage: String? = null) {
     get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val content = call.resolveResource(relativePath, packageName)
-        if (content != null)
+        if (content != null) {
             call.respond(content)
+        }
     }
 }
 
@@ -146,7 +150,8 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     get {
         val content = call.resolveResource(resource, packageName)
-        if (content != null)
+        if (content != null) {
             call.respond(content)
+        }
     }
 }

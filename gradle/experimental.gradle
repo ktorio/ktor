@@ -1,9 +1,12 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 ext.experimentalAnnotations = [
     "kotlin.RequiresOptIn",
     "kotlin.ExperimentalUnsignedTypes",
     "io.ktor.util.KtorExperimentalAPI",
     "io.ktor.util.InternalAPI",
-    "kotlinx.coroutines.ExperimentalCoroutinesApi",
     "io.ktor.utils.io.core.ExperimentalIoApi",
     "io.ktor.utils.io.core.internal.DangerousInternalIoApi",
     "kotlin.contracts.ExperimentalContracts"

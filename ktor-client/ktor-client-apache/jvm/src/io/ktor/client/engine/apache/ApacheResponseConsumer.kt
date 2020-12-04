@@ -45,8 +45,9 @@ internal class ApacheResponseConsumer(
     override fun consumeContent(decoder: ContentDecoder, ioctrl: IOControl) {
         check(!waiting.value)
 
-        var result = 0
+        var result: Int
         do {
+            result = 0
             channel.writeAvailable {
                 result = decoder.read(it)
             }
@@ -65,7 +66,6 @@ internal class ApacheResponseConsumer(
                 check(waiting.getAndSet(false))
                 interestController.resumeInputIfPossible()
             }
-
         }
     }
 

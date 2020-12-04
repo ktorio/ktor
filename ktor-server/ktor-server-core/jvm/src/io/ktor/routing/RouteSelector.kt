@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.routing
@@ -32,18 +32,28 @@ public data class RouteSelectorEvaluation(
 
         /**
          * Quality of [RouteSelectorEvaluation] when a query parameter has matched
-         */
-        internal const val qualityQueryParameter = 1.0
+        */
+        public const val qualityQueryParameter: Double = 1.0
 
         /**
          * Quality of [RouteSelectorEvaluation] when a parameter with prefix or suffix has matched
          */
-        internal const val qualityParameterWithPrefixOrSuffix = 0.9
+        public const val qualityParameterWithPrefixOrSuffix: Double = 0.9
 
         /**
-         * Quality of [RouteSelectorEvaluation] when a parameter has matched
+         * Generic quality of [RouteSelectorEvaluation] to use as reference when some specific parameter has matched
          */
         public const val qualityParameter: Double = 0.8
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a path parameter has matched
+         */
+        public const val qualityPathParameter: Double = qualityParameter
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a HTTP method parameter has matched
+         */
+        public const val qualityMethodParameter: Double = qualityParameter
 
         /**
          * Quality of [RouteSelectorEvaluation] when a wildcard has matched
@@ -61,6 +71,11 @@ public data class RouteSelectorEvaluation(
         public const val qualityTailcard: Double = 0.1
 
         /**
+         * Quality of [RouteSelectorEvaluation] that doesn't have it's own priority but should delegate evaluation to it's children
+         */
+        public const val qualityTransparent: Double = -1.0
+
+        /**
          * Route evaluation failed to succeed, route doesn't match a context
          */
         public val Failed: RouteSelectorEvaluation = RouteSelectorEvaluation(false, 0.0)
@@ -68,12 +83,14 @@ public data class RouteSelectorEvaluation(
         /**
          * Route evaluation succeeded for a missing optional value
          */
-        public val Missing: RouteSelectorEvaluation = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
+        public val Missing: RouteSelectorEvaluation =
+            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
 
         /**
          * Route evaluation succeeded for a constant value
          */
-        public val Constant: RouteSelectorEvaluation = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
+        public val Constant: RouteSelectorEvaluation =
+            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
         /**
          * Route evaluation succeeded for a single path segment with a constant value
@@ -112,10 +129,14 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
         }
         it.value
     }
+
     private val successEvaluationResult = RouteSelectorEvaluation(
-        true, RouteSelectorEvaluation.qualityConstant,
+        true,
+        RouteSelectorEvaluation.qualityConstant,
         segmentIncrement = parts.size
     )
+
+    private val hasTrailingSlash = rootPath.endsWith('/')
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         check(segmentIndex == 0) { "Root selector should be evaluated first." }
@@ -125,7 +146,7 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
 
         val parts = parts
         val segments = context.segments
-        if (segments.size < parts.size) {
+        if (segments.size < parts.size || hasTrailingSlash != context.hasTrailingSlash) {
             return RouteSelectorEvaluation.Failed
         }
 
@@ -149,8 +170,9 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
 public data class ConstantParameterRouteSelector(val name: String, val value: String) :
     RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.parameters.contains(name, value))
+        if (context.call.parameters.contains(name, value)) {
             return RouteSelectorEvaluation.Constant
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -165,12 +187,13 @@ public data class ParameterRouteSelector(val name: String) :
     RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
-        if (param != null)
+        if (param != null) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -185,12 +208,13 @@ public data class OptionalParameterRouteSelector(val name: String) :
     RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
-        if (param != null)
+        if (param != null) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,
                 parametersOf(name, param)
             )
+        }
         return RouteSelectorEvaluation.Missing
     }
 
@@ -201,15 +225,43 @@ public data class OptionalParameterRouteSelector(val name: String) :
  * Evaluates a route against a constant path segment
  * @param value is a value of the path segment
  */
-public data class PathSegmentConstantRouteSelector(val value: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size && context.segments[segmentIndex] == value)
-            return RouteSelectorEvaluation.ConstantPath
-        return RouteSelectorEvaluation.Failed
+public data class PathSegmentConstantRouteSelector(val value: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
+    private var hasTrailingSlash: Boolean = false
+
+    public constructor(value: String, hasTrailingSlash: Boolean): this(value) {
+        this.hasTrailingSlash = hasTrailingSlash
+    }
+
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
+        segmentIndex == context.segments.lastIndex && hasTrailingSlash != context.hasTrailingSlash ->
+            RouteSelectorEvaluation.Failed
+        segmentIndex < context.segments.size && context.segments[segmentIndex] == value ->
+            RouteSelectorEvaluation.ConstantPath
+        else -> RouteSelectorEvaluation.Failed
     }
 
     override fun toString(): String = value
+
+    // autogenerated
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PathSegmentConstantRouteSelector
+
+        if (value != other.value) return false
+        if (hasTrailingSlash != other.hasTrailingSlash) return false
+
+        return true
+    }
+
+    // autogenerated
+    override fun hashCode(): Int {
+        var result = value.hashCode()
+        result = 31 * result + hasTrailingSlash.hashCode()
+        return result
+    }
 }
 
 /**
@@ -222,7 +274,14 @@ public data class PathSegmentParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
+
+    private var hasTrailingSlash: Boolean = false
+
+    public constructor(name: String, prefix: String? = null, suffix: String? = null, hasTrailingSlash: Boolean): this(name, prefix, suffix) {
+        this.hasTrailingSlash = hasTrailingSlash
+    }
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
@@ -230,11 +289,37 @@ public data class PathSegmentParameterRouteSelector(
             name = name,
             prefix = prefix,
             suffix = suffix,
-            isOptional = false
+            isOptional = false,
+            selectorHasTrailingSlash = hasTrailingSlash,
+            contextHasTrailingSlash = context.hasTrailingSlash,
         )
     }
 
     override fun toString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
+
+    // autogenerated
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PathSegmentParameterRouteSelector
+
+        if (name != other.name) return false
+        if (prefix != other.prefix) return false
+        if (suffix != other.suffix) return false
+        if (hasTrailingSlash != other.hasTrailingSlash) return false
+
+        return true
+    }
+
+    // autogenerated
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + (prefix?.hashCode() ?: 0)
+        result = 31 * result + (suffix?.hashCode() ?: 0)
+        result = 31 * result + hasTrailingSlash.hashCode()
+        return result
+    }
 }
 
 /**
@@ -247,7 +332,14 @@ public data class PathSegmentOptionalParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
+
+    private var hasTrailingSlash: Boolean = false
+
+    public constructor(name: String, prefix: String? = null, suffix: String? = null, hasTrailingSlash: Boolean): this(name, prefix, suffix) {
+        this.hasTrailingSlash = hasTrailingSlash
+    }
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return evaluatePathSegmentParameter(
             segments = context.segments,
@@ -255,11 +347,37 @@ public data class PathSegmentOptionalParameterRouteSelector(
             name = name,
             prefix = prefix,
             suffix = suffix,
-            isOptional = true
+            isOptional = true,
+            selectorHasTrailingSlash = hasTrailingSlash,
+            contextHasTrailingSlash = context.hasTrailingSlash,
         )
     }
 
     override fun toString(): String = "${prefix ?: ""}{$name?}${suffix ?: ""}"
+
+    // autogenerated
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PathSegmentOptionalParameterRouteSelector
+
+        if (name != other.name) return false
+        if (prefix != other.prefix) return false
+        if (suffix != other.suffix) return false
+        if (hasTrailingSlash != other.hasTrailingSlash) return false
+
+        return true
+    }
+
+    // autogenerated
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + (prefix?.hashCode() ?: 0)
+        result = 31 * result + (suffix?.hashCode() ?: 0)
+        result = 31 * result + hasTrailingSlash.hashCode()
+        return result
+    }
 }
 
 /**
@@ -267,8 +385,9 @@ public data class PathSegmentOptionalParameterRouteSelector(
  */
 public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityWildcard) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (segmentIndex < context.segments.size)
+        if (segmentIndex < context.segments.size) {
             return RouteSelectorEvaluation.WildcardPath
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -280,8 +399,14 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEval
  * @param name is the name of the parameter to capture values to
  * @property prefix before the tailcard (static text)
  */
-public data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") :
-    RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+public data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+
+    private var hasTrailingSlash: Boolean = false
+
+    public constructor(name: String = "", prefix: String = "", hasTrailingSlash: Boolean) : this(name, prefix) {
+        this.hasTrailingSlash = hasTrailingSlash
+    }
+
     init {
         require(prefix.none { it == '/' }) { "Multisegment prefix is not supported" }
     }
@@ -296,22 +421,52 @@ public data class PathSegmentTailcardRouteSelector(val name: String = "", val pr
 
         val values = when {
             name.isEmpty() -> parametersOf()
-            else -> parametersOf(name, context.segments.drop(segmentIndex).mapIndexed { index, segment ->
-                if (index == 0) segment.drop(prefix.length)
-                else segment
-            })
+            else -> parametersOf(
+                name,
+                context.segments.drop(segmentIndex).mapIndexed { index, segment ->
+                    if (index == 0) segment.drop(prefix.length)
+                    else segment
+                }
+            )
         }
         val quality = when {
             segmentIndex < context.segments.size -> RouteSelectorEvaluation.qualityTailcard
             else -> RouteSelectorEvaluation.qualityMissing
         }
+        if (hasTrailingSlash != context.hasTrailingSlash) {
+            return RouteSelectorEvaluation.Failed
+        }
         return RouteSelectorEvaluation(
-            true, quality, values,
+            true,
+            quality,
+            values,
             segmentIncrement = context.segments.size - segmentIndex
         )
     }
 
     override fun toString(): String = "{...}"
+
+    // autogenerated
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PathSegmentTailcardRouteSelector
+
+        if (name != other.name) return false
+        if (prefix != other.prefix) return false
+        if (hasTrailingSlash != other.hasTrailingSlash) return false
+
+        return true
+    }
+
+    // autogenerated
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + prefix.hashCode()
+        result = 31 * result + hasTrailingSlash.hashCode()
+        return result
+    }
 }
 
 /**
@@ -323,10 +478,11 @@ public data class OrRouteSelector(val first: RouteSelector, val second: RouteSel
     RouteSelector(first.quality * second.quality) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
-        if (result.succeeded)
+        if (result.succeeded) {
             return result
-        else
+        } else {
             return second.evaluate(context, segmentIndex)
+        }
     }
 
     override fun toString(): String = "{$first | $second}"
@@ -341,11 +497,13 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
     RouteSelector(first.quality * second.quality) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
-        if (!result1.succeeded)
+        if (!result1.succeeded) {
             return result1
+        }
         val result2 = second.evaluate(context, segmentIndex + result1.segmentIncrement)
-        if (!result2.succeeded)
+        if (!result2.succeeded) {
             return result2
+        }
         val resultValues = result1.parameters + result2.parameters
         return RouteSelectorEvaluation(
             true,
@@ -363,10 +521,11 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
  * @param method is an instance of [HttpMethod]
  */
 public data class HttpMethodRouteSelector(val method: HttpMethod) :
-    RouteSelector(RouteSelectorEvaluation.qualityParameter) {
+    RouteSelector(RouteSelectorEvaluation.qualityMethodParameter) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.request.httpMethod == method)
+        if (context.call.request.httpMethod == method) {
             return RouteSelectorEvaluation.Constant
+        }
         return RouteSelectorEvaluation.Failed
     }
 
@@ -384,9 +543,9 @@ public data class HttpHeaderRouteSelector(val name: String, val value: String) :
         val headers = context.call.request.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
         val header = parsedHeaders.firstOrNull { it.value.equals(value, ignoreCase = true) }
-        if (header != null)
-            return RouteSelectorEvaluation(true, header.quality)
-        return RouteSelectorEvaluation.Failed
+            ?: return RouteSelectorEvaluation.Failed
+
+        return RouteSelectorEvaluation(true, header.quality)
     }
 
     override fun toString(): String = "(header:$name = $value)"
@@ -403,11 +562,15 @@ public data class HttpAcceptRouteSelector(val contentType: ContentType) :
         try {
             val parsedHeaders = parseAndSortContentTypeHeader(acceptHeaderContent)
 
-            if (parsedHeaders.isEmpty())
+            if (parsedHeaders.isEmpty()) {
                 return RouteSelectorEvaluation.Missing
+            }
+
             val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
-            if (header != null)
+            if (header != null) {
                 return RouteSelectorEvaluation(true, header.quality)
+            }
+
             return RouteSelectorEvaluation.Failed
         } catch (failedToParse: BadContentTypeFormatException) {
             throw BadRequestException("Illegal Accept header format: $acceptHeaderContent", failedToParse)
@@ -423,10 +586,16 @@ internal fun evaluatePathSegmentParameter(
     name: String,
     prefix: String?,
     suffix: String?,
-    isOptional: Boolean
+    isOptional: Boolean,
+    selectorHasTrailingSlash: Boolean,
+    contextHasTrailingSlash: Boolean
 ): RouteSelectorEvaluation {
     fun failedEvaluation(): RouteSelectorEvaluation {
         return if (isOptional) RouteSelectorEvaluation.Missing else RouteSelectorEvaluation.Failed
+    }
+
+    if (segmentIndex == segments.lastIndex && selectorHasTrailingSlash != contextHasTrailingSlash) {
+        return RouteSelectorEvaluation.Failed
     }
 
     if (segmentIndex >= segments.size) {
@@ -449,7 +618,7 @@ internal fun evaluatePathSegmentParameter(
     val values = parametersOf(name, suffixChecked)
     return RouteSelectorEvaluation(
         succeeded = true,
-        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityParameter
+        quality = if (prefix.isNullOrEmpty() && suffix.isNullOrEmpty()) RouteSelectorEvaluation.qualityPathParameter
         else RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix,
         parameters = values,
         segmentIncrement = 1

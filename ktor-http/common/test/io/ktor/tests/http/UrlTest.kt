@@ -122,6 +122,18 @@ class UrlTest {
     }
 
     @Test
+    fun testEqualsInQueryValue() {
+        val urlString =
+            "https://akamai.bintray.com/22/225b067044aa56f36590ef56d41e256cd1d0887b176bfdeec123ecccc6057790?__gda__=exp=1604350711~hmac=417cbd5a97b4c499e2cf7e9eae5dfb9ad95b42cb3ff76c5fb0fae70e2a42db9c&..."
+
+        val url = URLBuilder().apply {
+            takeFrom(urlString)
+        }.build()
+
+        assertEquals(urlString, url.toString())
+    }
+
+    @Test
     fun testHugeUrl() {
         val parts = (0 until 100).map { "this is a very long string" }
         val url = "http://127.0.0.1:8080?a=${parts.joinToString("\n") { it }}"
@@ -153,7 +165,10 @@ class UrlTest {
     @Test
     fun testPortRange() {
         fun testPort(n: Int) {
-            assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort)
+            assertEquals(
+                n,
+                Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).specifiedPort
+            )
         }
 
         // smallest port value
@@ -185,5 +200,47 @@ class UrlTest {
             assertEquals(null, user)
             assertEquals(null, password)
         }
+    }
+
+    @Test
+    fun testForFileProtocol() {
+        val expectedUrl = "file:///var/www"
+        val result = Url(expectedUrl)
+        assertEquals("file", result.protocol.name)
+        assertEquals("", result.host)
+        assertEquals("/var/www", result.encodedPath)
+        assertEquals(expectedUrl, result.toString())
+    }
+
+    @Test
+    fun testForFileProtocolWithHost() {
+        val expectedUrl = "file://localhost/var/www"
+        val result = Url(expectedUrl)
+        assertEquals("file", result.protocol.name)
+        assertEquals("localhost", result.host)
+        assertEquals("/var/www", result.encodedPath)
+        assertEquals(expectedUrl, result.toString())
+    }
+
+    @Test
+    fun testForMailProtocol() {
+        val expectedUrl = "mailto:abc@xyz.io"
+        val resultUrl = Url(expectedUrl)
+
+        assertEquals(expectedUrl, resultUrl.toString())
+        assertEquals("abc", resultUrl.user)
+        assertEquals("xyz.io", resultUrl.host)
+        assertEquals("mailto", resultUrl.protocol.name)
+    }
+
+    @Test
+    fun testForMailProtocolWithComplexName() {
+        val expectedUrl = "mailto:Abc Def@xyz.io"
+        val resultUrl = Url(expectedUrl)
+
+        assertEquals("mailto:Abc%20Def@xyz.io", resultUrl.toString())
+        assertEquals("Abc Def", resultUrl.user)
+        assertEquals("xyz.io", resultUrl.host)
+        assertEquals("mailto", resultUrl.protocol.name)
     }
 }

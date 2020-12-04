@@ -1,0 +1,33 @@
+public final class io/ktor/server/tomcat/DevelopmentEngine {
+	public static final field INSTANCE Lio/ktor/server/tomcat/DevelopmentEngine;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/tomcat/EngineMain {
+	public static final field INSTANCE Lio/ktor/server/tomcat/EngineMain;
+	public static final fun main ([Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/tomcat/Tomcat : io/ktor/server/engine/ApplicationEngineFactory {
+	public static final field INSTANCE Lio/ktor/server/tomcat/Tomcat;
+	public synthetic fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/engine/ApplicationEngine;
+	public fun create (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/tomcat/TomcatApplicationEngine;
+}
+
+public final class io/ktor/server/tomcat/TomcatApplicationEngine : io/ktor/server/engine/BaseApplicationEngine {
+	public static final field Companion Lio/ktor/server/tomcat/TomcatApplicationEngine$Companion;
+	public fun <init> (Lio/ktor/server/engine/ApplicationEngineEnvironment;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun start (Z)Lio/ktor/server/engine/ApplicationEngine;
+	public fun start (Z)Lio/ktor/server/tomcat/TomcatApplicationEngine;
+	public fun stop (JJ)V
+}
+
+public final class io/ktor/server/tomcat/TomcatApplicationEngine$Companion {
+}
+
+public final class io/ktor/server/tomcat/TomcatApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
+	public fun <init> ()V
+	public final fun getConfigureTomcat ()Lkotlin/jvm/functions/Function1;
+	public final fun setConfigureTomcat (Lkotlin/jvm/functions/Function1;)V
+}
+

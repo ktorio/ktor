@@ -26,6 +26,8 @@ public fun CoroutineScope.httpServer(
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch: CompletableJob = Job()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     val serverJob = launch(
         context = CoroutineName("server-root-${settings.port}"),
         start = CoroutineStart.UNDISPATCHED
@@ -44,10 +46,13 @@ public fun CoroutineScope.httpServer(
         aSocket(selector).tcp().bind(settings.host, settings.port).use { server ->
             socket.complete(server)
 
+            val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
+                ?: DefaultUncaughtExceptionHandler(logger)
+
             val connectionScope = CoroutineScope(
                 coroutineContext +
                     SupervisorJob(serverJob) +
-                    DefaultUncaughtExceptionHandler(logger) +
+                    exceptionHandler +
                     CoroutineName("request")
             )
 

@@ -6,7 +6,6 @@ package io.ktor.tests.server.routing
 
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.Test
 import kotlin.test.*
 
 class RoutingBuildTest {
@@ -37,8 +36,8 @@ class RoutingBuildTest {
 
         on("adding routing rules manually") {
             val entry = routing()
-            entry.createChild(PathSegmentConstantRouteSelector("foo"))
-                    .createChild(PathSegmentOptionalParameterRouteSelector("new"))
+            entry.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
+                    .createChild(PathSegmentOptionalParameterRouteSelector("new", hasTrailingSlash = false))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {

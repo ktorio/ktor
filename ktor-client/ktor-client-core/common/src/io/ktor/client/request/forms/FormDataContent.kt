@@ -44,7 +44,7 @@ public class MultiPartFormDataContent(
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
     private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n\r\n".toByteArray()
 
-    private val BODY_OVERHEAD_SIZE = RN_BYTES.size * 2 + LAST_BOUNDARY_BYTES.size
+    private val BODY_OVERHEAD_SIZE = LAST_BOUNDARY_BYTES.size
     private val PART_OVERHEAD_SIZE = RN_BYTES.size * 2 + BOUNDARY_BYTES.size
 
     private val rawParts: List<PreparedPart> = parts.map { part ->
@@ -86,11 +86,11 @@ public class MultiPartFormDataContent(
     override val contentType: ContentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     init {
-        var rawLength:Long? = 0
+        var rawLength: Long? = 0
         for (part in rawParts) {
             val size = part.size
             if (size == null) {
-                rawLength =null
+                rawLength = null
                 break
             }
 
@@ -106,9 +106,6 @@ public class MultiPartFormDataContent(
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         try {
-            channel.writeFully(RN_BYTES)
-            channel.writeFully(RN_BYTES)
-
             for (part in rawParts) {
                 channel.writeFully(BOUNDARY_BYTES)
                 channel.writeFully(part.headers)
@@ -148,14 +145,9 @@ private suspend fun Input.copyTo(channel: ByteWriteChannel) {
         return
     }
 
-    channel.writeSuspendSession {
-        while (!this@copyTo.endOfInput) {
-            tryAwait(1)
-            val buffer = request(1)!!
-            val size = this@copyTo.readAvailable(buffer)
-
-            if (size < 0) continue
-            written(size)
+    while (!this@copyTo.endOfInput) {
+        channel.write { freeSpace, startOffset, endExclusive ->
+            this@copyTo.readAvailable(freeSpace, startOffset, endExclusive - startOffset).toInt()
         }
     }
 }

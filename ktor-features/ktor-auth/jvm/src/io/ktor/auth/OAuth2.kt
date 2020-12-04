@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -92,8 +92,16 @@ internal suspend fun oauth2RequestAccessToken(
     usedRedirectUrl: String,
     callbackResponse: OAuthCallback.TokenSingle,
     extraParameters: Map<String, String> = emptyMap(),
-    configure: HttpRequestBuilder.() -> Unit = {}
+    configure: (HttpRequestBuilder.() -> Unit)? = null
 ): OAuthAccessTokenResponse.OAuth2 {
+    val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
+        null -> settings.accessTokenInterceptor
+        else -> fun HttpRequestBuilder.() {
+            settings.accessTokenInterceptor(this)
+            configure()
+        }
+    }
+
     return oauth2RequestAccessToken(
         client,
         settings.requestMethod,
@@ -104,7 +112,7 @@ internal suspend fun oauth2RequestAccessToken(
         callbackResponse.state,
         callbackResponse.token,
         extraParameters,
-        configure,
+        interceptor,
         settings.accessTokenRequiresBasicAuth,
         settings.nonceManager,
         settings.passParamsInURL
@@ -188,7 +196,8 @@ private suspend fun oauth2RequestAccessToken(
             if (passParamsInURL)
                 request.url.parameters.appendAll(urlParameters)
             else
-                request.body = TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
+                request.body =
+                    TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
         }
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
@@ -299,7 +308,7 @@ public suspend fun verifyWithOAuth2(
         clientSecret = settings.clientSecret,
         code = null,
         state = null,
-        configure = {},
+        configure = settings.accessTokenInterceptor,
         extraParameters = mapOf(
             OAuth2RequestParameters.UserName to credential.name,
             OAuth2RequestParameters.Password to credential.password
@@ -354,19 +363,16 @@ private fun throwOAuthError(errorCode: String, parameters: Parameters): Nothing 
  * Represents a error during communicating to OAuth2 server
  * @property errorCode OAuth2 server replied with
  */
-@KtorExperimentalAPI
 public sealed class OAuth2Exception(message: String, public val errorCode: String?) : Exception(message) {
     /**
      * OAuth2 server responded error="invalid_grant"
      */
-    @KtorExperimentalAPI
     public class InvalidGrant(message: String) : OAuth2Exception(message, "invalid_grant")
 
     /**
      * Thrown when an OAuth2 server replied with successful HTTP status and expected content type that was successfully
      * decoded but the response doesn't contain error code nor access token
      */
-    @KtorExperimentalAPI
     public class MissingAccessToken : OAuth2Exception(
         "OAuth2 server response is OK neither error nor access token provided", null
     )
@@ -375,7 +381,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * Throw when an OAuth2 server replied with error "unsupported_grant_type"
      * @param grantType that was passed to the server
      */
-    @KtorExperimentalAPI
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class UnsupportedGrantType(public val grantType: String) : OAuth2Exception(
         "OAuth2 server doesn't support grant type $grantType", "unsupported_grant_type"
     ), CopyableThrowable<UnsupportedGrantType> {
@@ -388,7 +394,7 @@ public sealed class OAuth2Exception(message: String, public val errorCode: Strin
      * OAuth2 server responded with an error code [errorCode]
      * @param errorCode the OAuth2 server replied with
      */
-    @KtorExperimentalAPI
+    @OptIn(ExperimentalCoroutinesApi::class)
     public class UnknownException(
         private val details: String, errorCode: String
     ) : OAuth2Exception("$details (error code = $errorCode)", errorCode), CopyableThrowable<UnknownException> {

@@ -11,7 +11,6 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
-import org.junit.Test
 import kotlin.test.*
 
 class CallIdTest {

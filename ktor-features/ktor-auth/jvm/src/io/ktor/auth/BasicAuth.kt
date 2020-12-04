@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.auth
@@ -103,7 +103,6 @@ public fun Authentication.Configuration.basic(
 /**
  * Retrieves Basic authentication credentials for this [ApplicationRequest]
  */
-@KtorExperimentalAPI
 public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     when (val authHeader = parseAuthorizationHeader()) {
         is HttpAuthHeader.Single -> {

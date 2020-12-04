@@ -4,6 +4,8 @@
 
 package io.ktor.client.features.cookies
 
+import io.ktor.client.utils.*
+import io.ktor.client.utils.sharedList
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
@@ -16,7 +18,7 @@ import kotlin.math.*
  * [CookiesStorage] that stores all the cookies in an in-memory map.
  */
 public class AcceptAllCookiesStorage : CookiesStorage {
-    private val container: MutableList<Cookie> = mutableListOf()
+    private val container: MutableList<Cookie> = sharedList()
     private val oldestCookie: AtomicLong = atomic(0L)
     private val mutex = Mutex()
 

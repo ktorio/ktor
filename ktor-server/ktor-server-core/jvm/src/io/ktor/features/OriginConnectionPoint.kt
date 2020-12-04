@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
@@ -27,7 +27,6 @@ public val MutableOriginConnectionPointKey: AttributeKey<MutableOriginConnection
 /**
  * Represents a [RequestConnectionPoint]. Every it's component is mutable so application features could provide them
  */
-@KtorExperimentalAPI
 public class MutableOriginConnectionPoint
 @Deprecated(
     "Instantiating CP is no longer supported: this will become internal.",
@@ -57,7 +56,7 @@ internal class OriginConnectionPoint(
         get() = local.scheme
 
     override val version: String
-        get() = local.scheme
+        get() = local.version
 
     override val port: Int
         get() = hostHeaderValue?.substringAfter(":", "80")
@@ -82,8 +81,12 @@ internal class OriginConnectionPoint(
  * `X-Forwarded-*` headers support
  * See http://ktor.io/servers/features/forward-headers.html for details
  */
-public object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline,
-    XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
+public object XForwardedHeaderSupport :
+    ApplicationFeature<
+        ApplicationCallPipeline,
+        XForwardedHeaderSupport.Config,
+        XForwardedHeaderSupport.Config
+        > {
 
     override val key: AttributeKey<Config> = AttributeKey("XForwardedHeaderSupport")
 
@@ -147,7 +150,8 @@ public object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeli
         /**
          * Host name X-header names. Default are `X-Forwarded-Server` and `X-Forwarded-Host`
          */
-        public val hostHeaders: ArrayList<String> = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
+        public val hostHeaders: ArrayList<String> =
+            arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
 
         /**
          * Protocol X-header names. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`
@@ -249,7 +253,7 @@ public object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipelin
 }
 
 internal val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
-    get() = attributes.computeIfAbsent(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) {
+    get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) {
         MutableOriginConnectionPoint(
             OriginConnectionPoint(this)
         )

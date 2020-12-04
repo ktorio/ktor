@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.selector
@@ -13,7 +13,6 @@ import kotlin.coroutines.*
 /**
  * Base class for NIO selector managers
  */
-@KtorExperimentalAPI
 public abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     public final override val provider: SelectorProvider = SelectorProvider.provider()
     /**

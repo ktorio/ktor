@@ -9,7 +9,6 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class URLBuilderTest {
@@ -57,6 +56,64 @@ class URLBuilderTest {
     @Test
     fun testPathWithPlus() {
         assertEquals("http://localhost/a+b/c", url { path("a+b", "c") })
+    }
+
+    @Test
+    fun testPathComponentsNoFirstSlash() {
+        val s = url {
+            encodedPath = ""
+            pathComponents("asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathComponentsFirstSlash() {
+        val s = url {
+            encodedPath = "/"
+            pathComponents("/asd")
+        }
+
+        assertEquals("http://localhost/asd", s)
+    }
+
+    @Test
+    fun testPathComponentsFunctionVararg() {
+        val s = url {
+            pathComponents("a", "b")
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathComponentsFunctionList() {
+        val s = url {
+            pathComponents(listOf("a", "b"))
+        }
+
+        assertEquals("http://localhost/a/b", s)
+    }
+
+    @Test
+    fun testPathComponentsWithSpace() {
+        assertEquals("http://localhost/a%20b/c", url { pathComponents("a b", "c") })
+    }
+
+    @Test
+    fun testPathComponentsWithPlus() {
+        assertEquals("http://localhost/a+b/c", url { pathComponents("a+b", "c") })
+    }
+
+    @Test
+    fun testPathComponentsWithTrailingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("asd///") })
+    }
+
+    @Test
+    fun testPathComponentsWithLeadingSlashes() {
+        assertEquals("http://localhost/asd", url { pathComponents("///asd") })
     }
 
     @Test

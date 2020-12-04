@@ -6,7 +6,7 @@ package io.ktor.tests.server.tomcat
 
 import io.ktor.server.testing.suites.*
 import io.ktor.server.tomcat.*
-import org.junit.*
+import kotlin.test.*
 import java.util.logging.*
 
 class TomcatCompressionTest :
@@ -65,5 +65,11 @@ class TomcatSustainabilityTestSuite :
     @Test
     override fun testChunkedWithVSpace() {
         super.testChunkedWithVSpace()
+    }
+
+    @Ignore
+    @Test
+    override fun testBlockingConcurrency() {
+        super.testBlockingConcurrency()
     }
 }

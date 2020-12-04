@@ -1,0 +1,35 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+
+ext.jdk8Modules = [
+    'ktor-client-tests',
+
+    'ktor-server-core', 'ktor-server-host-common', 'ktor-server-servlet', 'ktor-server-netty', 'ktor-server-tomcat',
+    'ktor-server-test-host', 'ktor-server-test-suites',
+
+    'ktor-websockets', 'ktor-webjars', 'ktor-metrics', 'ktor-server-sessions', 'ktor-auth', 'ktor-auth-jwt',
+
+    'ktor-network-tls-certificates'
+]
+
+ext.jdk7Modules = [
+    'ktor-http',
+    'ktor-utils',
+    'ktor-network-tls',
+    'ktor-websockets'
+]
+
+ext.jdk11Modules = [
+    'ktor-client-java'
+]
+
+def versionComponents = System.getProperty('java.version')?.
+    split("\\.")?.
+    take(2)?.
+    findAll { !it.isBlank() }?.
+    collect { Integer.parseInt(it) } ?:
+    [1]
+
+ext.currentJdk = versionComponents[0] == 1 ? versionComponents[1] : versionComponents[0]

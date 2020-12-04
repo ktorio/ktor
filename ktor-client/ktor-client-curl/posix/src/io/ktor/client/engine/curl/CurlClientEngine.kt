@@ -50,10 +50,8 @@ internal class CurlClientEngine(
 
             val status = HttpStatusCode.fromValue(status)
 
-            val headers = buildHeaders {
-                appendAll(CIOHeaders(rawHeaders))
-                rawHeaders.release()
-            }
+            val headers = HeadersImpl(rawHeaders.toMap())
+            rawHeaders.release()
 
             HttpResponseData(
                 status, requestTime, headers, version.fromCurl(),

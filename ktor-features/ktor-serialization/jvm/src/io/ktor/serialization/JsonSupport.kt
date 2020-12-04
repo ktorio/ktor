@@ -18,14 +18,14 @@ import kotlinx.serialization.modules.*
  * - array polymorphism is enabled
  * - keys and values are quoted, non-quoted are not allowed
  *
- * See [JsonConfiguration] for more details.
+ * See [Json] for more details.
  */
 @Deprecated(
     level = DeprecationLevel.ERROR,
     message = "JsonConfiguration is deprecated, consider using DefaultJson instead.",
     replaceWith = ReplaceWith("DefaultJson")
 )
-@Suppress("DEPRECATION_ERROR")
+@Suppress("unused")
 public val DefaultJsonConfiguration: Json = Json {
     encodeDefaults = true
     isLenient = true
@@ -43,7 +43,7 @@ public val DefaultJsonConfiguration: Json = Json {
  * - array polymorphism is enabled
  * - keys and values are quoted, non-quoted are not allowed
  *
- * See [JsonConfiguration] for more details.
+ * See [Json] for more details.
  */
 public val DefaultJson: Json = Json {
     encodeDefaults = true
@@ -67,7 +67,8 @@ public val DefaultJson: Json = Json {
     message = "JsonConfiguration is deprecated, consider using `Json { serializersModule = module }` instead.",
     replaceWith = ReplaceWith("json(Json { serializersModule = module }, contentType)")
 )
-@Suppress("DEPRECATION_ERROR")
+@OptIn(ExperimentalSerializationApi::class)
+@Suppress("unused", "UNUSED_PARAMETER")
 public fun ContentNegotiation.Configuration.json(
     json: Json = Json.Default,
     module: SerializersModule = EmptySerializersModule,
@@ -83,6 +84,7 @@ public fun ContentNegotiation.Configuration.json(
  * @param json format instance (optional)
  * @param contentType to register with, application/json by default
  */
+@OptIn(ExperimentalSerializationApi::class)
 public fun ContentNegotiation.Configuration.json(
     json: Json = DefaultJson,
     contentType: ContentType = ContentType.Application.Json
@@ -112,7 +114,6 @@ public fun ContentNegotiation.Configuration.serialization(
 /**
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  */
-@Suppress("CONFLICTING_OVERLOADS") // conflict with hidden declaration
 @Deprecated("Use json function instead.", ReplaceWith("json(json, contentType)"))
 public fun ContentNegotiation.Configuration.serialization(
     contentType: ContentType,

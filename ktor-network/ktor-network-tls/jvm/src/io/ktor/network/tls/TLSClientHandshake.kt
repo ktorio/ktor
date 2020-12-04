@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -299,7 +299,7 @@ internal class TLSClientHandshake(
         )
         preSecret.fill(0)
 
-        certificateInfo?.let { sendClientCertificateVerify(it, chain!!) }
+        chain?.let { sendClientCertificateVerify(certificateInfo, it) }
 
         sendChangeCipherSpec()
         sendClientFinished(masterSecret)
@@ -312,7 +312,7 @@ internal class TLSClientHandshake(
                 it[0] = 0x03
                 it[1] = 0x03
             }
-            SecretExchangeType.ECDHE -> KeyAgreement.getInstance("ECDH")!!.run {
+            ECDHE -> KeyAgreement.getInstance("ECDH")!!.run {
                 if (encryptionInfo == null) throw TLSException("ECDHE_ECDSA: Encryption info should be provided")
                 init(encryptionInfo.clientPrivate)
                 doPhase(encryptionInfo.serverPublic, true)
@@ -357,7 +357,7 @@ internal class TLSClientHandshake(
 
             if (hasHashAndSignInCommon) return@find false
 
-            info.authorities.isEmpty() || candidate.certificateChain.any { it.issuerDN in info.authorities }
+            info.authorities.isEmpty() || candidate.certificateChain.map { X500Principal(it.issuerDN.name) }.any { it in info.authorities }
         }
 
         sendHandshakeRecord(TLSHandshakeType.Certificate) {
@@ -391,7 +391,13 @@ internal class TLSClientHandshake(
     }
 
     private suspend fun sendChangeCipherSpec() {
-        output.send(TLSRecord(TLSRecordType.ChangeCipherSpec, packet = buildPacket { writeByte(1) }))
+        val packet = buildPacket { writeByte(1) }
+        try {
+            output.send(TLSRecord(TLSRecordType.ChangeCipherSpec, packet = packet))
+        } catch (cause: Throwable) {
+            packet.release()
+            throw cause
+        }
     }
 
     private suspend fun sendClientFinished(masterKey: SecretKeySpec) {
@@ -433,7 +439,12 @@ internal class TLSClientHandshake(
 
         digest.update(recordBody)
         val element = TLSRecord(TLSRecordType.Handshake, packet = recordBody)
-        output.send(element)
+        try {
+            output.send(element)
+        } catch (cause: Throwable) {
+            element.packet.release()
+            throw cause
+        }
     }
 }
 
@@ -488,7 +499,7 @@ internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateIn
     }
 
     val authoritiesSize = packet.readShort().toInt() and 0xFFFF
-    val authorities = mutableSetOf<Principal>()
+    val authorities = mutableSetOf<X500Principal>()
 
     var position = 0
     while (position < authoritiesSize) {

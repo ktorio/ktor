@@ -1,10 +1,9 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
 
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 
 /**
@@ -38,15 +37,12 @@ public fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder()
  * Encode form parameters from a list of pairs to the specified [out] appendable
  */
 public fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
-    joinTo(
-        out, "&"
-    ) {
+    joinTo(out, "&") {
         val key = it.first.encodeURLParameter(spaceToPlus = true)
         if (it.second == null) {
             key
-        }
-        else {
-            val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
+        } else {
+            val value = it.second.toString().encodeURLParameterValue()
             "$key=$value"
         }
     }
@@ -63,7 +59,15 @@ public fun Parameters.formUrlEncode(): String = entries()
  * Encode form parameters to the specified [out] appendable
  */
 public fun Parameters.formUrlEncodeTo(out: Appendable) {
-    entries()
-        .flatMap { e -> if (e.value.isEmpty()) listOf(e.key to null) else e.value.map { e.key to it } }
-        .formUrlEncodeTo(out)
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun ParametersBuilder.formUrlEncodeTo(out: Appendable) {
+    entries().formUrlEncodeTo(out)
+}
+
+internal fun Set<Map.Entry<String, List<String>>>.formUrlEncodeTo(out: Appendable) {
+    flatMap { (key, value) ->
+        if (value.isEmpty()) listOf(key to null) else value.map { key to it }
+    }.formUrlEncodeTo(out)
 }

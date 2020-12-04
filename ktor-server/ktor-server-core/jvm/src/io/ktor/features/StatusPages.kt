@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
 /**
@@ -32,7 +32,8 @@ public class StatusPages(config: Configuration) {
         /**
          * Status handlers by status code
          */
-        public val statuses: MutableMap<HttpStatusCode, suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit> =
+        public val statuses: MutableMap<HttpStatusCode,
+            suspend PipelineContext<*, ApplicationCall>.(HttpStatusCode) -> Unit> =
             mutableMapOf()
 
         /**
@@ -105,12 +106,13 @@ public class StatusPages(config: Configuration) {
             if (handler != null && context.call.response.status() == null) {
                 context.handler(exception)
                 finishIfResponseSent(context)
-            } else
+            } else {
                 throw exception
+            }
         }
     }
 
-    private fun findHandlerByType(clazz: Class<*>): (suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit)? {
+    private fun findHandlerByType(clazz: Class<*>): HandlerFunction? {
         exceptions[clazz]?.let { return it }
         clazz.superclass?.let {
             findHandlerByType(it)?.let { found -> return found }
@@ -162,3 +164,4 @@ public fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, fil
         }
     }
 }
+private typealias HandlerFunction = suspend PipelineContext<Unit, ApplicationCall>.(Throwable) -> Unit

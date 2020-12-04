@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.utils
@@ -7,16 +7,17 @@ package io.ktor.client.utils
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
+import java.io.*
+import kotlin.coroutines.*
 
 /**
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
  */
-@OptIn(InternalCoroutinesApi::class)
 @InternalAPI
 public actual fun Dispatchers.clientDispatcher(
     threadCount: Int,
     dispatcherName: String
-): CoroutineDispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)
+): CoroutineDispatcher = ClosableBlockingDispatcher(threadCount, dispatcherName)
 
 /**
  * Creates [CoroutineDispatcher] based on thread pool of [threadCount] threads.
@@ -31,4 +32,30 @@ public fun Dispatchers.fixedThreadPoolDispatcher(
 }
 
 internal actual fun checkCoroutinesVersion() {
+}
+
+@OptIn(InternalCoroutinesApi::class)
+private class ClosableBlockingDispatcher(
+    threadCount: Int,
+    dispatcherName: String
+) : CoroutineDispatcher(), Closeable {
+    private val dispatcher = ExperimentalCoroutineDispatcher(threadCount, threadCount, dispatcherName)
+    private val blocking = dispatcher.blocking(threadCount)
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        return blocking.dispatch(context, block)
+    }
+
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean {
+        return blocking.isDispatchNeeded(context)
+    }
+
+    override fun dispatchYield(context: CoroutineContext, block: Runnable) {
+        blocking.dispatchYield(context, block)
+    }
+
+    override fun close() {
+        dispatcher.close()
+        // blocking dispatcher is a view and doesn't allow close
+    }
 }

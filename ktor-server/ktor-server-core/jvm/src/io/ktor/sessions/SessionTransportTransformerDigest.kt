@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sessions
@@ -23,7 +23,8 @@ private const val delimiter = '/'
     level = DeprecationLevel.ERROR
 )
 public class SessionTransportTransformerDigest(
-    public val salt: String = "ktor", public val algorithm: String = "SHA-384"
+    public val salt: String = "ktor",
+    public val algorithm: String = "SHA-384"
 ) : SessionTransportTransformer {
 
     override fun transformRead(transportValue: String): String? {
@@ -35,8 +36,9 @@ public class SessionTransportTransformerDigest(
         } catch (e: NumberFormatException) {
             return null
         }
-        if (MessageDigest.isEqual(providedBytes, digest(value)))
+        if (MessageDigest.isEqual(providedBytes, digest(value))) {
             return value
+        }
         return null
     }
 

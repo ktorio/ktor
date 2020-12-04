@@ -1,7 +1,10 @@
+/*
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.internal.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -23,6 +26,10 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = Inp
 public fun ByteWriteChannel.toOutputStream(parent: Job? = null): OutputStream = OutputAdapter(parent, this)
 
 private class InputAdapter(parent: Job?, private val channel: ByteReadChannel) : InputStream() {
+    init {
+        ensureParkingAllowed()
+    }
+
     private val context = Job(parent)
 
     private val loop = object : BlockingAdapter(parent) {
@@ -75,6 +82,10 @@ private val CloseToken = Any()
 private val FlushToken = Any()
 
 private class OutputAdapter(parent: Job?, private val channel: ByteWriteChannel) : OutputStream() {
+    init {
+        ensureParkingAllowed()
+    }
+
     private val loop = object : BlockingAdapter(parent) {
         override suspend fun loop() {
             try {
@@ -147,8 +158,10 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
             }
 
             when (before) {
-                is Thread -> LockSupport.unpark(before)
-                is Continuation<*> -> result.exceptionOrNull()?.let { before.resumeWithException(it) }
+                is Thread -> parkingImpl.unpark(before)
+                is Continuation<*> -> result.exceptionOrNull()?.let {
+                    before.resumeWithException(it)
+                }
             }
 
             if (result.isFailure && result.exceptionOrNull() !is CancellationException) {
@@ -230,16 +243,16 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
         return result.value
     }
 
+    @OptIn(InternalCoroutinesApi::class)
     private fun parkingLoop(thread: Thread) {
         if (state.value !== thread) return
-        val eventLoop = detectEventLoop()
 
         do {
-            val nextEventTimeNanos = eventLoop.processEventLoop()
+            val nextEventTimeNanos = processNextEventInCurrentThread()
             if (state.value !== thread) break
 
             if (nextEventTimeNanos > 0L) {
-                LockSupport.parkNanos(nextEventTimeNanos)
+                parkingImpl.park(nextEventTimeNanos)
             }
         } while (true)
     }
@@ -263,7 +276,7 @@ private abstract class BlockingAdapter(val parent: Job? = null) {
             }
 
             if (thread != null) {
-                LockSupport.unpark(thread)
+                parkingImpl.unpark(thread!!)
             }
 
             COROUTINE_SUSPENDED
@@ -281,5 +294,14 @@ private object UnsafeBlockingTrampoline : CoroutineDispatcher() {
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         block.run()
+    }
+}
+
+private fun ensureParkingAllowed() {
+    if (!isParkingAllowed()) {
+        error(
+            "Using blocking primitives on this dispatcher is not allowed. " +
+                "Consider using async channel instead or use blocking primitives in withContext(Dispatchers.IO) instead."
+        )
     }
 }
