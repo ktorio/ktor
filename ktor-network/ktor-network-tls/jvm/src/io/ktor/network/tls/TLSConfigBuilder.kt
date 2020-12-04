@@ -81,15 +81,17 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 /**
  * Add client certificates from [store] by using all certificates
  */
+@Suppress("unused") // Keep for binary compatibility
+@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
-    addKeyStore(store, password, null)
+    addKeyStore(store, password)
 }
 
 /**
  * Add client certificates from [store] by using the certificate with specific [alias]
  * or all certificates, if [alias] is null.
  */
-public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String?) {
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
