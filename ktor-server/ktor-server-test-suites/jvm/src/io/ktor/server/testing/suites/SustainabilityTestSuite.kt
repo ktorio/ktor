@@ -496,8 +496,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     open fun testChunkedWithVSpace() {
         createAndStartServer {
             post("/") {
-                call.receiveParameters()
-                call.respond(HttpStatusCode.BadRequest, "")
+                try {
+                    val post = call.receiveParameters()
+                    call.respond(HttpStatusCode.BadRequest, "")
+                } catch (cause: Throwable) {
+                    throw cause
+                }
             }
         }
 
@@ -762,28 +766,5 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
-    }
-
-    @Test
-    public fun testRespondBlockingLarge() {
-        val server = createServer {
-            routing {
-                get("/blocking/large") {
-                    call.respondTextWriter(ContentType.Text.Plain, HttpStatusCode.OK) {
-                        repeat(10000) {
-                            write("large string ")
-                        }
-                    }
-                }
-            }
-        }
-        startServer(server)
-
-        withUrl("/blocking/large") {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals(ContentType.Text.Plain, contentType()?.withoutParameters())
-            val result = content.toInputStream().crcWithSize()
-            assertEquals(10000 * 13L, result.second)
-        }
     }
 }
