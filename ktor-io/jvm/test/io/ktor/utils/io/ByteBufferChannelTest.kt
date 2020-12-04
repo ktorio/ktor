@@ -5,10 +5,17 @@
 package io.ktor.utils.io
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
+import org.junit.*
 import java.io.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class ByteBufferChannelTest {
+
+    @get:Rule
+    public val timeoutRule: CoroutinesTimeout by lazy { CoroutinesTimeout.seconds(60) }
+
     @Test
     fun testCompleteExceptionallyJob() {
         val channel = ByteBufferChannel(false)
