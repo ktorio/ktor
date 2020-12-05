@@ -61,9 +61,9 @@ class CallLoggingTest {
             hash = application.toString()
         }
 
-        assertEquals("TRACE: Application started: $hash", messages[1])
-        assertEquals("TRACE: Application stopping: $hash", messages[2])
-        assertEquals("TRACE: Application stopped: $hash", messages[3])
+        assertEquals("TRACE: Application started: $hash", messages[14])
+        assertEquals("TRACE: Application stopping: $hash", messages[15])
+        assertEquals("TRACE: Application stopped: $hash", messages[16])
     }
 
     @Test

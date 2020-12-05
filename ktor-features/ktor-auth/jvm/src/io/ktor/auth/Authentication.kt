@@ -105,7 +105,7 @@ public class Authentication(config: Configuration) {
 
         val authenticationPipeline = when {
             configurations.size == 1 -> configurations[0].pipeline
-            else -> AuthenticationPipeline().apply {
+            else -> AuthenticationPipeline(pipeline.developmentMode).apply {
                 for (provider in configurations) {
                     merge(provider.pipeline)
                 }
@@ -233,7 +233,7 @@ public class Authentication(config: Configuration) {
         } else {
             // rebuild pipeline to skip particular auth methods
 
-            val child = AuthenticationPipeline()
+            val child = AuthenticationPipeline(defaultPipeline.developmentMode)
             var applicableCount = 0
 
             for (idx in 0 until firstSkippedIndex) {

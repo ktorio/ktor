@@ -17,7 +17,11 @@ import io.ktor.util.pipeline.*
  */
 public class Routing(
     public val application: Application
-) : Route(parent = null, selector = RootRouteSelector(application.environment.rootPath)) {
+) : Route(
+    parent = null,
+    selector = RootRouteSelector(application.environment.rootPath)
+    , application.environment.developmentMode
+) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
@@ -45,12 +49,12 @@ public class Routing(
         val receivePipeline = merge(
             context.call.request.pipeline,
             routingCallPipeline.receivePipeline
-        ) { ApplicationReceivePipeline() }
+        ) { ApplicationReceivePipeline(developmentMode) }
 
         val responsePipeline = merge(
             context.call.response.pipeline,
             routingCallPipeline.sendPipeline
-        ) { ApplicationSendPipeline() }
+        ) { ApplicationSendPipeline(developmentMode) }
 
         val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
         application.environment.monitor.raise(RoutingCallStarted, routingCall)
@@ -110,8 +114,8 @@ public class Routing(
  * Gets an [Application] for this [Route] by scanning the hierarchy to the root
  */
 public val Route.application: Application
-    get() = when {
-        this is Routing -> application
+    get() = when (this) {
+        is Routing -> application
         else -> parent?.application ?: throw UnsupportedOperationException(
             "Cannot retrieve application from unattached routing entry"
         )

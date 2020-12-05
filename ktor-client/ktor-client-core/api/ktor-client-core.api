@@ -21,6 +21,7 @@ public final class io/ktor/client/HttpClientConfig {
 	public fun <init> ()V
 	public final fun clone ()Lio/ktor/client/HttpClientConfig;
 	public final fun engine (Lkotlin/jvm/functions/Function1;)V
+	public final fun getDevelopmentMode ()Z
 	public final fun getExpectSuccess ()Z
 	public final fun getFollowRedirects ()Z
 	public final fun getUseDefaultTransformers ()Z
@@ -29,6 +30,7 @@ public final class io/ktor/client/HttpClientConfig {
 	public final fun install (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun install$default (Lio/ktor/client/HttpClientConfig;Lio/ktor/client/features/HttpClientFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun plusAssign (Lio/ktor/client/HttpClientConfig;)V
+	public final fun setDevelopmentMode (Z)V
 	public final fun setExpectSuccess (Z)V
 	public final fun setFollowRedirects (Z)V
 	public final fun setUseDefaultTransformers (Z)V
@@ -819,6 +821,9 @@ public final class io/ktor/client/request/HttpRequestKt {
 public final class io/ktor/client/request/HttpRequestPipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Phases Lio/ktor/client/request/HttpRequestPipeline$Phases;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 }
 
 public final class io/ktor/client/request/HttpRequestPipeline$Phases {
@@ -844,6 +849,9 @@ public final class io/ktor/client/request/HttpResponseData {
 public final class io/ktor/client/request/HttpSendPipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Phases Lio/ktor/client/request/HttpSendPipeline$Phases;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 }
 
 public final class io/ktor/client/request/HttpSendPipeline$Phases {
@@ -962,6 +970,9 @@ public final class io/ktor/client/statement/DefaultHttpResponse : io/ktor/client
 public final class io/ktor/client/statement/HttpReceivePipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Phases Lio/ktor/client/statement/HttpReceivePipeline$Phases;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 }
 
 public final class io/ktor/client/statement/HttpReceivePipeline$Phases {
@@ -1005,6 +1016,9 @@ public final class io/ktor/client/statement/HttpResponseKt {
 public final class io/ktor/client/statement/HttpResponsePipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Phases Lio/ktor/client/statement/HttpResponsePipeline$Phases;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 }
 
 public final class io/ktor/client/statement/HttpResponsePipeline$Phases {

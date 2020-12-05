@@ -71,6 +71,9 @@ public final class io/ktor/auth/AuthenticationKt {
 public final class io/ktor/auth/AuthenticationPipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Companion Lio/ktor/auth/AuthenticationPipeline$Companion;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 }
 
 public final class io/ktor/auth/AuthenticationPipeline$Companion {

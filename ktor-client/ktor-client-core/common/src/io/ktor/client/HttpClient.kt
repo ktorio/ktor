@@ -91,22 +91,22 @@ public class HttpClient(
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
+    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for processing all the responses sent by the server.
      */
-    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
+    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for sending the request.
      */
-    public val sendPipeline: HttpSendPipeline = HttpSendPipeline()
+    public val sendPipeline: HttpSendPipeline = HttpSendPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for receiving request.
      */
-    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
+    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline(userConfig.developmentMode)
 
     /**
      * Typed attributes used as a lightweight container for this client.

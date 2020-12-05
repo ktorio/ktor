@@ -46,8 +46,9 @@ public class ApplicationReceiveRequest constructor(
  *
  * When executed, this pipeline starts with an instance of [ByteReadChannel] and should finish with the requested type.
  */
-public open class ApplicationReceivePipeline :
-    Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
+public open class ApplicationReceivePipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     /**
      * Pipeline phases
      */

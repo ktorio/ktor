@@ -6,38 +6,39 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.util.PlatformUtils
 import org.slf4j.*
 import kotlin.coroutines.*
 
 /**
- * Represents an environment in which engine runs
+ * Represents an environment in which engine runs.
  */
 public interface ApplicationEngineEnvironment : ApplicationEnvironment {
     /**
-     * Connectors that describers where and how server should listen
+     * Connectors that describers where and how server should listen.
      */
     public val connectors: List<EngineConnectorConfig>
 
     /**
-     * Running [Application]
+     * Running [Application].
      *
-     * Throws an exception if environment has not been started
+     * @throws an exception if environment has not been started.
      */
     public val application: Application
 
     /**
-     * Starts [ApplicationEngineEnvironment] and creates an application
+     * Starts [ApplicationEngineEnvironment] and creates an application.
      */
     public fun start()
 
     /**
-     * Stops [ApplicationEngineEnvironment] and destroys any running application
+     * Stops [ApplicationEngineEnvironment] and destroys any running application.
      */
     public fun stop()
 }
 
 /**
- * Creates [ApplicationEngineEnvironment] using [ApplicationEngineEnvironmentBuilder]
+ * Creates [ApplicationEngineEnvironment] using [ApplicationEngineEnvironmentBuilder].
  */
 public fun applicationEngineEnvironment(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
     return ApplicationEngineEnvironmentBuilder().build(builder)
@@ -89,6 +90,11 @@ public class ApplicationEngineEnvironmentBuilder {
     public var rootPath: String = ""
 
     /**
+     * Development mode enabled.
+     */
+    public var developmentMode: Boolean = PlatformUtils.IS_DEVELOPMENT_MODE
+
+    /**
      * Install application module
      */
     public fun module(body: Application.() -> Unit) {
@@ -102,7 +108,7 @@ public class ApplicationEngineEnvironmentBuilder {
         builder(this)
         return ApplicationEngineEnvironmentReloading(
             classLoader, log, config, connectors, modules, watchPaths,
-            parentCoroutineContext, rootPath
+            parentCoroutineContext, rootPath, developmentMode
         )
     }
 }
