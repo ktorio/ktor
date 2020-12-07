@@ -78,9 +78,6 @@ public class HttpCallValidator(
         }
 
         override fun install(feature: HttpCallValidator, scope: HttpClient) {
-            val BeforeReceive = PipelinePhase("BeforeReceive")
-            scope.responsePipeline.insertPhaseBefore(HttpResponsePipeline.Receive, BeforeReceive)
-
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {
                     proceedWith(it)
@@ -91,15 +88,21 @@ public class HttpCallValidator(
                 }
             }
 
+            val BeforeReceive = PipelinePhase("BeforeReceive")
+            scope.responsePipeline.insertPhaseBefore(HttpResponsePipeline.Receive, BeforeReceive)
             scope.responsePipeline.intercept(BeforeReceive) { container ->
                 try {
-                    feature.validateResponse(context.response)
                     proceedWith(container)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
                     feature.processException(unwrappedCause)
                     throw unwrappedCause
                 }
+            }
+
+            scope[HttpSend].intercept { call, _ ->
+                feature.validateResponse(call.response)
+                call
             }
         }
     }

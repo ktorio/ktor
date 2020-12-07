@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -78,7 +79,7 @@ class CallValidatorTest {
     }
 
     @Test
-    fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
+    fun testExceptionFromResponsePipeline() = testWithEngine(MockEngine) {
         config {
             engine {
                 addHandler { respondOk() }
@@ -92,6 +93,30 @@ class CallValidatorTest {
         }
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
+            try {
+                client.get<String>()
+            } catch (_: CallValidatorTestException) {
+            }
+
+            assertTrue(handleTriggered)
+        }
+    }
+
+    @Test
+    fun testExceptionFromReceivePipeline() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler { respondOk() }
+            }
+            HttpResponseValidator {
+                handleResponseException {
+                    assertTrue(it is CallValidatorTestException)
+                    handleTriggered = true
+                }
+            }
+        }
+        test { client ->
+            client.receivePipeline.intercept(HttpReceivePipeline.State) { throw CallValidatorTestException() }
             try {
                 client.get<String>()
             } catch (_: CallValidatorTestException) {
@@ -159,6 +184,76 @@ class CallValidatorTest {
             val response = client.get<String>()
             assertEquals("Awesome response", response)
             assertEquals(1, validator)
+        }
+    }
+
+    @Test
+    fun testResponseValidationOnHttpResponse() = testWithEngine(MockEngine) {
+        config {
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(42, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+
+            HttpResponseValidator {
+                validateResponse {
+                    assertEquals(42, it.status.value)
+                    validator++
+                }
+            }
+        }
+
+        test { client ->
+            client.get<HttpResponse>()
+            assertEquals(1, validator)
+        }
+    }
+
+    @Test
+    fun testResponseValidationThrowsResponseException() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<HttpResponse>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseValidationThrowsResponseExceptionOnReceive() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
         }
     }
 }

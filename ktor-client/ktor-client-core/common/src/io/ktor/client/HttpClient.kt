@@ -154,10 +154,6 @@ public class HttpClient(
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) {
-                config.addDefaultResponseValidation()
-            }
-
             config.install(HttpSend)
 
             if (followRedirects) {
@@ -165,6 +161,12 @@ public class HttpClient(
             }
 
             config += this
+
+            if (expectSuccess) {
+                // it's important to install validators last
+                config.addDefaultResponseValidation()
+            }
+
             config.install(this@HttpClient)
         }
 
