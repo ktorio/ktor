@@ -11,6 +11,7 @@ import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 
 /**
  * Response validator method.
@@ -29,10 +30,26 @@ public typealias CallExceptionHandler = suspend (cause: Throwable) -> Unit
  *
  * See also [Config] for additional details.
  */
-public class HttpCallValidator(
+public class HttpCallValidator internal constructor(
     private val responseValidators: List<ResponseValidator>,
-    private val callExceptionHandlers: List<CallExceptionHandler>
+    private val callExceptionHandlers: List<CallExceptionHandler>,
+    private val expectSuccess: Boolean
 ) {
+
+    /**
+     * Response validator feature is used for validate response and handle response exceptions.
+     *
+     * See also [Config] for additional details.
+     */
+    @Deprecated(
+        "This is going to become internal. " +
+            "Please file a ticket and clarify, why do you need it."
+    )
+    public constructor(
+        responseValidators: List<ResponseValidator>,
+        callExceptionHandlers: List<CallExceptionHandler>
+    ) : this(responseValidators, callExceptionHandlers, true)
+
     private suspend fun validateResponse(response: HttpResponse) {
         responseValidators.forEach { it(response) }
     }
@@ -47,6 +64,11 @@ public class HttpCallValidator(
     public class Config {
         internal val responseValidators: MutableList<ResponseValidator> = mutableListOf()
         internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()
+
+        /**
+         * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+         */
+        public var expectSuccess: Boolean = true
 
         /**
          * Add [CallExceptionHandler].
@@ -73,7 +95,8 @@ public class HttpCallValidator(
 
             return HttpCallValidator(
                 config.responseValidators.reversed(),
-                config.responseExceptionHandlers.reversed()
+                config.responseExceptionHandlers.reversed(),
+                config.expectSuccess
             )
         }
 
@@ -101,7 +124,10 @@ public class HttpCallValidator(
             }
 
             scope[HttpSend].intercept { call, _ ->
-                feature.validateResponse(call.response)
+                val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: feature.expectSuccess
+                if (expectSuccess) {
+                    feature.validateResponse(call.response)
+                }
                 call
             }
         }
@@ -114,3 +140,10 @@ public class HttpCallValidator(
 public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Config.() -> Unit) {
     install(HttpCallValidator, block)
 }
+
+public var HttpRequestBuilder.expectSuccess: Boolean
+    get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true
+    set(value) = attributes.put(ExpectSuccessAttributeKey, value)
+
+@SharedImmutable
+private val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")

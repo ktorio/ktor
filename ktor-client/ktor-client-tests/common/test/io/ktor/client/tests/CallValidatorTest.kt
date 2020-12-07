@@ -256,6 +256,66 @@ class CallValidatorTest {
             }
         }
     }
+
+    @Test
+    fun testResponseValidationPerRequestConfigFromFalseToTrue() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = false
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            // expectSuccess default
+            val response = client.get<HttpResponse>()
+            assertEquals(900, response.status.value)
+
+            // expectSuccess overwritten
+            try {
+                client.get<HttpResponse> {
+                    expectSuccess = true
+                }
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseValidationPerRequestConfigFromTrueToFalse() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+        }
+
+        test { client ->
+            // expectSuccess overwritten
+            val response = client.get<HttpResponse> {
+                expectSuccess = false
+            }
+            assertEquals(900, response.status.value)
+
+            // expectSuccess default
+            try {
+                client.get<HttpResponse>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
 }
 
 internal class CallValidatorTestException : Throwable()
