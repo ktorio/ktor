@@ -13,6 +13,7 @@ import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.rules.*
 import java.net.ServerSocket
+import java.net.InetSocketAddress
 import java.nio.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
@@ -25,7 +26,7 @@ class ClientSocketTest {
     private var server: Pair<ServerSocket, Thread>? = null
 
     @get:Rule
-    val timeout = CoroutinesTimeout.seconds(15)
+    val timeout = CoroutinesTimeout.seconds(600)
 
     @get:Rule
     val errors = ErrorCollector()
@@ -88,6 +89,53 @@ class ClientSocketTest {
 
         client { socket ->
             assertEquals("0123456789", socket.openReadChannel().readUTF8Line())
+        }
+    }
+
+    @Test
+    fun testSelfConnect() {
+        runBlocking {
+            // Find a port that would be used as a local address.
+            val port = getAvailablePort()
+
+            val tcpSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
+            // Try to connect to that address repeatedly.
+            for (i in 0 until 100000) {
+                try {
+                    val socket = tcpSocketBuilder.connect(InetSocketAddress("127.0.0.1", port))
+                    assertTrue(false, "connect to self succeed: ${socket.localAddress} to ${socket.remoteAddress}")
+                    break
+                } catch (ex: Exception) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    // since new linux kernel version introduce a feature, new bind port number will always be odd number
+    // and connect port will always be even, so we find a random even port with while loop
+    // see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=07f4c90062f8fc7c8c26f8f95324cbe8fa3145a5
+    private fun getAvailablePort(): Int {
+        while (true) {
+            val port = ServerSocket().apply {
+                bind(InetSocketAddress("127.0.0.1", 0))
+                close()
+            }.localPort
+
+            if (port % 2 == 0) {
+                return port
+            }
+
+            try {
+                // try bind the next even port
+                ServerSocket().apply {
+                    bind(InetSocketAddress("127.0.0.1", port + 1))
+                    close()
+                }
+                return port + 1
+            } catch (ex: Exception) {
+                // ignore
+            }
         }
     }
 
