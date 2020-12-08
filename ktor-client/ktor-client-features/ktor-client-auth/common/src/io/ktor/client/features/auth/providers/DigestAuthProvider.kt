@@ -55,11 +55,18 @@ public class DigestAuthProvider(
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth !is HttpAuthHeader.Parameterized ||
-            auth.parameter("realm") != realm ||
             auth.authScheme != AuthScheme.Digest
         ) return false
 
         val newNonce = auth.parameter("nonce") ?: return false
+        val newRealm = auth.parameter("realm") ?: return false
+        if (realm == null) {
+            realm = newRealm
+        } else {
+            if (newRealm != realm) {
+                return false
+            }
+        }
         val newQop = auth.parameter("qop")
         val newOpaque = auth.parameter("opaque")
 
