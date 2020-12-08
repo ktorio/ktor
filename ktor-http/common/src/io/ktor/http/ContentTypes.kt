@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -47,7 +47,10 @@ public class ContentType private constructor(
     /**
      * Creates a copy of `this` type without any parameters
      */
-    public fun withoutParameters(): ContentType = ContentType(contentType, contentSubtype)
+    public fun withoutParameters(): ContentType = when {
+        parameters.isEmpty() -> this
+        else -> ContentType(contentType, contentSubtype)
+    }
 
     /**
      * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.

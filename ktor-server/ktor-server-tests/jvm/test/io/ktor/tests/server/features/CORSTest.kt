@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.features
@@ -485,6 +485,20 @@ class CORSTest {
                 addHeader(HttpHeaders.ContentType, "application/json") // non-simple Content-Type value
             }.let { call ->
                 assertEquals(HttpStatusCode.Forbidden, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Post, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+                addHeader(HttpHeaders.ContentType, "text/plain") // simple Content-Type value
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Post, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+                addHeader(HttpHeaders.ContentType, "text/plain;charset=utf-8") // still simple Content-Type value
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
             }
         }
     }

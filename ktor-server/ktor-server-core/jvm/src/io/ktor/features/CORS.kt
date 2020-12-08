@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("MemberVisibilityCanBePrivate")
@@ -102,7 +102,7 @@ public class CORS(configuration: Configuration) {
         if (!allowNonSimpleContentTypes) {
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             if (contentType != null) {
-                if (contentType !in Configuration.CorsSimpleContentTypes) {
+                if (contentType.withoutParameters() !in Configuration.CorsSimpleContentTypes) {
                     context.respondCorsFailed()
                     return
                 }
