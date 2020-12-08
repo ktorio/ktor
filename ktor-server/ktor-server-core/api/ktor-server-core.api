@@ -1110,6 +1110,9 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 	public abstract fun setMethod (Lio/ktor/http/HttpMethod;)V
 }
 
+public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
+}
+
 public final class io/ktor/routing/AndRouteSelector : io/ktor/routing/RouteSelector {
 	public fun <init> (Lio/ktor/routing/RouteSelector;Lio/ktor/routing/RouteSelector;)V
 	public final fun component1 ()Lio/ktor/routing/RouteSelector;

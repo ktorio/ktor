@@ -237,6 +237,7 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
      */
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         link(builder.url.buildString(), LinkHeader.Rel.Prefetch)
     }

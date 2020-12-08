@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet.v4
@@ -12,6 +12,7 @@ import javax.servlet.http.*
 @Suppress("unused", "KDocMissingDocumentation")
 @EngineAPI
 @InternalAPI
+@UseHttp2Push
 public fun doPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
     request.newPushBuilder()?.apply {
         this.method(builder.method.value)
