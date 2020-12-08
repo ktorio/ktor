@@ -95,12 +95,14 @@ public open class AsyncServletApplicationResponse(
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
     }
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         if (!tryPush(servletRequest, builder)) {
             super.push(builder)
         }
     }
 
+    @UseHttp2Push
     private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
         return foundPushImpls.any { function ->
             tryInvoke(function, request, builder)
@@ -123,6 +125,7 @@ public open class AsyncServletApplicationResponse(
             null
         }
 
+        @UseHttp2Push
         private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
             function.invoke(null, request, builder) as Boolean
         } catch (ignore: ReflectiveOperationException) {

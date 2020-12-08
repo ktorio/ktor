@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -13,6 +13,7 @@ import io.ktor.util.*
  * or does nothing.
  * Exact behaviour is up to engine implementation.
  */
+@UseHttp2Push
 public fun ApplicationCall.push(pathAndQuery: String) {
     val (path, query) = pathAndQuery.chomp("?") { pathAndQuery to "" }
     push(path, parseQueryString(query))
@@ -23,6 +24,7 @@ public fun ApplicationCall.push(pathAndQuery: String) {
  * or does nothing.
  * Exact behaviour is up to engine implementation.
  */
+@UseHttp2Push
 public fun ApplicationCall.push(encodedPath: String, parameters: Parameters) {
     push {
         url.encodedPath = encodedPath
@@ -36,6 +38,7 @@ public fun ApplicationCall.push(encodedPath: String, parameters: Parameters) {
  * or does nothing (may call or not call [block]).
  * Exact behaviour is up to engine implementation.
  */
+@UseHttp2Push
 public fun ApplicationCall.push(block: ResponsePushBuilder.() -> Unit) {
     response.push(DefaultResponsePushBuilder(this).apply(block))
 }
