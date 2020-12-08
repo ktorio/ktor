@@ -5,12 +5,12 @@
 package io.ktor.client.engine.js.node
 
 import io.ktor.client.engine.js.*
-import io.ktor.client.fetch.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
+import org.w3c.fetch.*
 
 internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = writer {
     val body: dynamic = response.body ?: error("Fail to get body")
@@ -41,6 +41,4 @@ internal fun CoroutineScope.readBodyNode(response: Response): ByteReadChannel = 
         body.destroy(cause)
         throw cause
     }
-
-    Unit
 }.channel

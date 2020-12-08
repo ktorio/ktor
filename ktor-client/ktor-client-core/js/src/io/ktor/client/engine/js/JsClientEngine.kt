@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.engine.js.node.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -56,21 +57,6 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         )
     }
 
-    // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
-    // so it can be accessed inside js("") function
-    @Suppress("UNUSED_PARAMETER", "UnsafeCastFromDynamic", "UNUSED_VARIABLE", "LocalVariableName")
-    private fun createWebSocket(urlString_capturingHack: String, headers: Headers): WebSocket =
-        if (PlatformUtils.IS_NODE) {
-            val ws_capturingHack = js("eval('require')('ws')")
-            val headers_capturingHack: dynamic = object {}
-            headers.forEach { name, values ->
-                headers_capturingHack[name] = values.joinToString(",")
-            }
-            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
-        } else {
-            js("new WebSocket(urlString_capturingHack)")
-        }
-
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
         callContext: CoroutineContext
@@ -78,7 +64,11 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket: WebSocket = createWebSocket(urlString, request.headers)
+        val socket: WebSocket = if (PlatformUtils.IS_NODE) {
+            NodeWebsocket(urlString, headers = request.headers.toMap()).unsafeCast<WebSocket>()
+        } else {
+            WebSocket(urlString)
+        }
 
         try {
             socket.awaitConnection()
@@ -123,7 +113,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     }
 }
 
-private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
