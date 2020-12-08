@@ -6,9 +6,9 @@ package io.ktor.client.engine.js.browser
 
 import io.ktor.client.engine.js.*
 import io.ktor.client.engine.js.ReadableStream
-import io.ktor.client.fetch.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import org.w3c.fetch.*
 
 internal fun CoroutineScope.readBodyBrowser(response: Response): ByteReadChannel {
     @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")

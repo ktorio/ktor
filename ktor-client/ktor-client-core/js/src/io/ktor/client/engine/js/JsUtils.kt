@@ -5,7 +5,6 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.fetch.RequestInit
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*

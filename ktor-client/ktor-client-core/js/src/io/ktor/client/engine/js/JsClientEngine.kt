@@ -60,9 +60,10 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
     private fun createWebSocket(urlString_capturingHack: String): WebSocket {
         return if (PlatformUtils.IS_NODE) {
             val ws_capturingHack = js("require('ws')")
+            @Suppress("UnsafeCastFromDynamic") // WebSocket is defined in org.w3c.dom
             js("new ws_capturingHack(urlString_capturingHack)")
         } else {
-            js("new WebSocket(urlString_capturingHack)")
+            js("new WebSocket(urlString_capturingHack)") as WebSocket
         }
     }
 
@@ -118,7 +119,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     }
 }
 
-private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
