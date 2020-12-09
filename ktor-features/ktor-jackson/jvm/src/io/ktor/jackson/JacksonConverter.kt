@@ -66,9 +66,7 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
     }
 }
 
-public class JsonTransformationException(message: String) : ContentTransformationException(message) {
-
-}
+private class JsonTransformationException(message: String) : ContentTransformationException(message)
 /**
  * Register Jackson converter into [ContentNegotiation] feature
  */
