@@ -8,11 +8,12 @@ import com.fasterxml.jackson.core.util.*
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
+import io.ktor.features.ContentTransformationException
 import io.ktor.http.*
-import io.ktor.util.pipeline.*
+import io.ktor.http.content.*
 import io.ktor.request.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
@@ -55,12 +56,19 @@ public class JacksonConverter(private val objectmapper: ObjectMapper = jacksonOb
         val type = request.typeInfo
         val value = request.value as? ByteReadChannel ?: return null
         return withContext(Dispatchers.IO) {
-            val reader = value.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
-            objectmapper.readValue(reader, type.jvmErasure.javaObjectType)
+            try {
+                val reader = value.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
+                objectmapper.readValue(reader, type.jvmErasure.javaObjectType)
+            } catch (e: JsonMappingException) {
+                throw JsonTransformationException("error parsing json request body: ${e.pathReference}")
+            }
         }
     }
 }
 
+public class JsonTransformationException(message: String) : ContentTransformationException(message) {
+
+}
 /**
  * Register Jackson converter into [ContentNegotiation] feature
  */

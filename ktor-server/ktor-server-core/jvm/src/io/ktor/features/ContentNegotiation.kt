@@ -110,6 +110,8 @@ public class ContentNegotiation(
                     proceed()
                 } catch (e: UnsupportedMediaTypeException) {
                     call.respond(HttpStatusCode.UnsupportedMediaType)
+                } catch (e: ContentTransformationException) {
+                    call.respond(HttpStatusCode.BadRequest, e.message ?: "Error transforming content")
                 }
             }
 
