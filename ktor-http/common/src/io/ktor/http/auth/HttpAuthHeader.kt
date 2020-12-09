@@ -5,6 +5,7 @@
 package io.ktor.http.auth
 
 import io.ktor.http.*
+import io.ktor.http.parsing.*
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import kotlin.native.concurrent.*
@@ -25,6 +26,8 @@ private val escapeRegex: Regex = "\\\\.".toRegex()
 
 /**
  * Parses an authorization header [headerValue] into a [HttpAuthHeader].
+ * @return [HttpAuthHeader] or `null` if argument string is blank.
+ * @throws [ParseException] on invalid header
  */
 public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     val schemeRegion = authSchemePattern.find(headerValue) ?: return null
@@ -53,7 +56,9 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
  */
 public sealed class HttpAuthHeader(public val authScheme: String) {
     init {
-        require(authScheme.matches(token68Pattern)) { "invalid authScheme value: it should be token" }
+        if (!authScheme.matches(token68Pattern)) {
+            throw ParseException("invalid authScheme value: it should be token but it is $authScheme")
+        }
     }
 
     /**
@@ -62,7 +67,9 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
      */
     public class Single(authScheme: String, public val blob: String) : HttpAuthHeader(authScheme) {
         init {
-            require(blob.matches(token68Pattern)) { "invalid blob value: it should be token68 but it is $blob" }
+            if (!blob.matches(token68Pattern)) {
+                throw ParseException("invalid blob value: it should be token68 but it is $blob")
+            }
         }
 
         override fun render(): String = "$authScheme $blob"
@@ -97,7 +104,9 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
 
         init {
             parameters.forEach {
-                require(it.name.matches(token68Pattern)) { "parameter name should be a token but it is ${it.name}" }
+                if (!it.name.matches(token68Pattern)) {
+                    throw ParseException("parameter name should be a token but it is ${it.name}")
+                }
             }
         }
 

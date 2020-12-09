@@ -197,6 +197,18 @@ class DigestTest {
     }
 
     @Test
+    fun testBadRequestOnInvalidHeader() {
+        withTestApplication {
+            application.configureDigestServer()
+
+            val call = handleRequest { addHeader(HttpHeaders.Authorization, "D<gest code") }
+
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+    }
+
+    @Test
     fun testDigestFromRFCExampleAuthFailed() {
         withTestApplication {
             application.configureDigestServer()
