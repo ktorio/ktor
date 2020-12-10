@@ -90,6 +90,9 @@ public fun Application.cookiesTest() {
             get("/encoded") {
                 context.respond(context.request.header(HttpHeaders.Cookie) ?: fail())
             }
+            get("/respond-single-cookie") {
+                context.respond(context.request.cookies["single"] ?: fail())
+            }
         }
     }
 }

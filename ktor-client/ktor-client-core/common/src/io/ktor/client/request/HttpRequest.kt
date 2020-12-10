@@ -217,6 +217,39 @@ public class HttpResponseData constructor(
  */
 public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
+/**
+ * Executes a [block] that configures the [CookiesBuilder] associated to this request.
+ */
+public fun HttpRequestBuilder.cookies(block: CookiesBuilder.() -> Unit): HeadersBuilder =
+    CookiesBuilder(headers).apply(block).headersBuilder
+
+public class CookiesBuilder(internal val headersBuilder: HeadersBuilder) {
+    public fun append(
+        name: String,
+        value: String,
+        maxAge: Int = 0,
+        expires: GMTDate? = null,
+        domain: String? = null,
+        path: String? = null,
+        secure: Boolean = false,
+        httpOnly: Boolean = false,
+        extensions: Map<String, String?> = emptyMap()
+    ) {
+        val cookie = Cookie(
+            name = name,
+            value = value,
+            maxAge = maxAge,
+            expires = expires,
+            domain = domain,
+            path = path,
+            secure = secure,
+            httpOnly = httpOnly,
+            extensions = extensions
+        )
+        headersBuilder.append(HttpHeaders.Cookie, renderSetCookieHeader(cookie))
+    }
+}
+
 
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
