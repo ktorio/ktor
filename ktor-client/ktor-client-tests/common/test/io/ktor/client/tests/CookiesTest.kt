@@ -204,9 +204,7 @@ class CookiesTest : ClientLoader() {
     fun testRequestBuilderSingleCookie() = clientTests(listOf("Js")) {
         test { client ->
             val result = client.get<String>("$TEST_HOST/respond-single-cookie") {
-                cookies {
-                    append("single", value = "abacaba")
-                }
+                cookie("single", value = "abacaba")
             }
             assertEquals("abacaba", result)
         }
