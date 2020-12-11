@@ -1299,6 +1299,13 @@ public final class io/ktor/http/content/WriterContent : io/ktor/http/content/Out
 	public fun writeTo (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/http/parsing/ParseException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
+}
+
 public final class io/ktor/http/websocket/UtilsKt {
 	public static final fun websocketServerAccept (Ljava/lang/String;)Ljava/lang/String;
 }

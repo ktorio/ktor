@@ -107,6 +107,18 @@ class BasicAuthTest {
     }
 
     @Test
+    fun testBadRequestOnInvalidHeader() {
+        withTestApplication {
+            application.configureServer()
+
+            val call = handleRequest { addHeader(HttpHeaders.Authorization, "B<sic code") }
+
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+    }
+
+    @Test
     fun testUtf8Charset() {
         withTestApplication {
             val user = "Лира"
