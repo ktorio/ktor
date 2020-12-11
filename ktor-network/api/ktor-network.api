@@ -149,6 +149,13 @@ public final class io/ktor/network/sockets/ConnectedDatagramSocket$DefaultImpls 
 	public static fun send (Lio/ktor/network/sockets/ConnectedDatagramSocket;Lio/ktor/network/sockets/Datagram;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/network/sockets/Connection {
+	public fun <init> (Lio/ktor/network/sockets/Socket;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;)V
+	public final fun getInput ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getOutput ()Lio/ktor/utils/io/ByteWriteChannel;
+	public final fun getSocket ()Lio/ktor/network/sockets/Socket;
+}
+
 public final class io/ktor/network/sockets/Datagram {
 	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;Ljava/net/SocketAddress;)V
 	public final fun getAddress ()Ljava/net/SocketAddress;
@@ -260,6 +267,7 @@ public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/k
 
 public final class io/ktor/network/sockets/SocketsKt {
 	public static final fun awaitClosed (Lio/ktor/network/sockets/ASocket;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun connection (Lio/ktor/network/sockets/Socket;)Lio/ktor/network/sockets/Connection;
 	public static final fun isClosed (Lio/ktor/network/sockets/ASocket;)Z
 	public static final fun openReadChannel (Lio/ktor/network/sockets/AReadable;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun openWriteChannel (Lio/ktor/network/sockets/AWritable;Z)Lio/ktor/utils/io/ByteWriteChannel;

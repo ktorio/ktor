@@ -126,3 +126,17 @@ public interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
 
 @Suppress("EXPECT_WITHOUT_ACTUAL", "KDocMissingDocumentation")
 public expect class SocketTimeoutException(message: String) : IOException
+
+/**
+ * Represents a connected socket with its input and output
+ */
+public class Connection(
+    public val socket: Socket,
+    public val input: ByteReadChannel,
+    public val output: ByteWriteChannel
+)
+
+/**
+ * Opens socket input and output channels and returns connection object
+ */
+public fun Socket.connection(): Connection = Connection(this, openReadChannel(), openWriteChannel())

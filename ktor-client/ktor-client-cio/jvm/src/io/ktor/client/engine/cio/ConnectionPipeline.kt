@@ -25,15 +25,15 @@ import kotlin.coroutines.*
 internal actual class ConnectionPipeline actual constructor(
     keepAliveTime: Long,
     pipelineMaxSize: Int,
-    socket: Socket,
+    connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
     parentContext: CoroutineContext
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = parentContext + Job()
 
-    private val networkInput = socket.openReadChannel()
-    private val networkOutput = socket.openWriteChannel()
+    private val networkInput = connection.input
+    private val networkOutput = connection.output
     private val requestLimit = Semaphore(pipelineMaxSize)
     private val responseChannel = Channel<ConnectionResponseTask>(Channel.UNLIMITED)
 
@@ -137,7 +137,7 @@ internal actual class ConnectionPipeline actual constructor(
             }
         } finally {
             networkOutput.close()
-            socket.close()
+            connection.socket.close()
         }
     }
 
