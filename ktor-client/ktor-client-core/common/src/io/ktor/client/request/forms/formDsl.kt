@@ -27,7 +27,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
 
     values.forEach { (key, value, headers) ->
         val partHeaders = HeadersBuilder().apply {
-            append(HttpHeaders.ContentDisposition, "form-data; name=$key")
+            append(HttpHeaders.ContentDisposition, "form-data; name=${key.escapeIfNeeded()}")
             appendAll(headers)
         }
         val part = when (value) {
@@ -185,7 +185,7 @@ public fun FormBuilder.append(
     }
 
     val headersBuilder = HeadersBuilder()
-    headersBuilder[HttpHeaders.ContentDisposition] = "filename=$filename"
+    headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.escapeIfNeeded()}"
     contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
     val headers = headersBuilder.build()
 
