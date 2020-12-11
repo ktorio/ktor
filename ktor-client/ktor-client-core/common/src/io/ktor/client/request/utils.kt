@@ -57,7 +57,12 @@ public fun HttpRequestBuilder.cookie(
         extensions = extensions
     ).let(::renderCookieHeader)
 
-    headers.append(HttpHeaders.Cookie, renderedCookie)
+    if (HttpHeaders.Cookie !in headers) {
+        headers.append(HttpHeaders.Cookie, renderedCookie)
+        return
+    }
+    // Client cookies are stored in a single header "Cookies" and multiple values are separated with ";"
+    headers[HttpHeaders.Cookie] = headers[HttpHeaders.Cookie] + "; " + renderedCookie
 }
 
 /**
