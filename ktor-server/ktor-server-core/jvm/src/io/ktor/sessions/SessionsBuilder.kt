@@ -277,7 +277,7 @@ constructor(type: KClass<S>) :
     /**
      * Current session ID provider function
      */
-    public var sessionIdProvider: () -> String = { generateNonce() }
+    public var sessionIdProvider: () -> String = { generateSessionId() }
         private set
 }
 
@@ -363,6 +363,6 @@ constructor(type: KClass<S>) :
     /**
      * Current session ID provider function
      */
-    public var sessionIdProvider: () -> String = { generateNonce() }
+    public var sessionIdProvider: () -> String = { generateSessionId() }
         private set
 }

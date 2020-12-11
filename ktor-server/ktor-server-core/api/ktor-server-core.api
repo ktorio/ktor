@@ -1661,6 +1661,10 @@ public final class io/ktor/sessions/JavaTimeMigrationKt {
 	public static final fun setDuration (Lio/ktor/sessions/CookieConfiguration;Ljava/time/temporal/TemporalAmount;)V
 }
 
+public final class io/ktor/sessions/SessionIdProviderKt {
+	public static final fun generateSessionId ()Ljava/lang/String;
+}
+
 public final class io/ktor/sessions/SessionNotYetConfiguredException : java/lang/IllegalStateException {
 	public fun <init> ()V
 }
