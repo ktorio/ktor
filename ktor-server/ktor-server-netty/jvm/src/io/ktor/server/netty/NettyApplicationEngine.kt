@@ -66,6 +66,14 @@ public class NettyApplicationEngine(
         public var requestReadTimeoutSeconds: Int = 0
 
         /**
+         * If set to `true`, enables TCP keep alive for connections so all
+         * dead client connections will be discarded.
+         * The timeout period is configured by the system so configure
+         * your host accordingly.
+         */
+        public var tcpKeepAlive: Boolean = false
+
+        /**
          * User-provided function to configure Netty's [HttpServerCodec]
          */
         public var httpServerCodec: () -> HttpServerCodec = ::HttpServerCodec
@@ -133,6 +141,9 @@ public class NettyApplicationEngine(
                         configuration.httpServerCodec
                     )
                 )
+                if (configuration.tcpKeepAlive) {
+                    option(NioChannelOption.SO_KEEPALIVE, true)
+                }
             }
         }
     }
@@ -210,7 +221,7 @@ public class EventLoopGroupProxy(public val channel: KClass<out ServerSocketChan
         public fun create(parallelism: Int): EventLoopGroupProxy {
             val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java)
 
-            val factory: ThreadFactory = ThreadFactory { runnable ->
+            val factory = ThreadFactory { runnable ->
                 defaultFactory.newThread {
                     markParkingProhibited()
                     runnable.run()

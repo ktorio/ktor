@@ -35,6 +35,7 @@ class NettyHttpServerTest : HttpServerTestSuite<NettyApplicationEngine, NettyApp
 
     override fun configure(configuration: NettyApplicationEngine.Configuration) {
         configuration.shareWorkGroup = true
+        configuration.tcpKeepAlive = true
     }
 }
 
