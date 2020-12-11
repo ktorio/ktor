@@ -43,7 +43,7 @@ public fun <T : HttpClientEngineConfig> HttpClient(
     val client = HttpClient(engine, config, manageEngine = true)
 
     // If the engine was created using factory Ktor is responsible for its lifecycle management. Otherwise user has to
-    // close engine by himself.
+    // close engine by themself.
     client.coroutineContext[Job]!!.invokeOnCompletion {
         engine.close()
     }
