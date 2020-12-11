@@ -60,6 +60,7 @@ public class io/ktor/server/servlet/ServletApplicationEngine : io/ktor/server/se
 	public fun <init> ()V
 	public fun destroy ()V
 	protected fun getApplication ()Lio/ktor/application/Application;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	protected fun getEnginePipeline ()Lio/ktor/server/engine/EnginePipeline;
 	protected fun getLogger ()Lorg/slf4j/Logger;
 	protected fun getUpgrade ()Lio/ktor/server/servlet/ServletUpgrade;
