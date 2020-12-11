@@ -20,6 +20,8 @@ private val ValidateMark = AttributeKey<Unit>("ValidateMark")
  */
 public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
+        expectSuccess = this@addDefaultResponseValidation.expectSuccess
+
         validateResponse { response ->
             val statusCode = response.status.value
             val originCall = response.call

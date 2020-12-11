@@ -45,7 +45,7 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     public var useDefaultTransformers: Boolean by shared(true)
 
     /**
-     * Terminate [HttpClient.responsePipeline] if status code is not success(>=300).
+     * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
      */
     public var expectSuccess: Boolean by shared(true)
 
