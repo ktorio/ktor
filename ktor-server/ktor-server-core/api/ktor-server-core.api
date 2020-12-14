@@ -1110,12 +1110,12 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 	public abstract fun setMethod (Lio/ktor/http/HttpMethod;)V
 }
 
-public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
-}
-
 public final class io/ktor/response/ResponseTypeKt {
 	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lkotlin/reflect/KType;
 	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lkotlin/reflect/KType;)V
+}
+
+public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/routing/AndRouteSelector : io/ktor/routing/RouteSelector {

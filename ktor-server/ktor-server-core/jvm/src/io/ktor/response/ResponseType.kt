@@ -10,11 +10,12 @@ import kotlin.reflect.*
 private val ResponseTypeAttributeKey: AttributeKey<KType> = AttributeKey("ResponseTypeAttributeKey")
 
 /**
- * Type of the response object that was passed in [respond] function
+ * Type of the response object that was passed in [respond] function.
+ * Can be useful for custom serializations.
  */
 public var ApplicationResponse.responseType: KType?
     get() = call.attributes.getOrNull(ResponseTypeAttributeKey)
-    set(value) {
+    @InternalAPI set(value) {
         if (value != null) {
             call.attributes.put(ResponseTypeAttributeKey, value)
         } else {
