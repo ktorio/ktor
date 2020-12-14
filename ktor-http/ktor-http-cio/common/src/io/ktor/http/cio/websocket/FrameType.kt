@@ -35,10 +35,16 @@ public enum class FrameType(public val controlFrame: Boolean, public val opcode:
      */
     PONG(true, 0xa);
 
+    // WA: lazy delegate instead of just assignment
+    // https://youtrack.jetbrains.com/issue/KT-43901
     public companion object {
-        private val maxOpcode = values().maxBy { it.opcode }!!.opcode
+        private val maxOpcode by lazy {
+            values().maxBy { it.opcode }!!.opcode
+        }
 
-        private val byOpcodeArray = Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }
+        private val byOpcodeArray by lazy {
+            Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }
+        }
 
         /**
          * Find [FrameType] instance by numeric [opcode]
