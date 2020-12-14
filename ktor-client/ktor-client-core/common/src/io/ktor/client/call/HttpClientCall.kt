@@ -38,7 +38,7 @@ internal fun HttpClientCall(
 public open class HttpClientCall internal constructor(
     client: HttpClient
 ) : CoroutineScope {
-    private val received = atomic(false)
+    private val received: AtomicBoolean = atomic(false)
 
     public val client: HttpClient? by threadLocal(client)
 
@@ -61,6 +61,10 @@ public open class HttpClientCall internal constructor(
     public lateinit var response: HttpResponse
         internal set
 
+    protected open val allowDoubleReceive: Boolean = false
+
+    protected open suspend fun getResponseContent(): ByteReadChannel = response.content
+
     /**
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
@@ -71,10 +75,11 @@ public open class HttpClientCall internal constructor(
     public suspend fun receive(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
-            if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
+            if (!allowDoubleReceive && !received.compareAndSet(false, true))
+                throw DoubleReceiveException(this)
 
             @Suppress("DEPRECATION")
-            val responseData = attributes.getOrNull(CustomResponse) ?: response.content
+            val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
             val currentClient = client ?: error("Failed to receive call($this) in different native thread.")

@@ -52,4 +52,4 @@ private fun createResponseException(): ResponseException = ResponseException(obj
         get() = TODO("Not yet implemented")
 
     override fun toString(): String = "FakeCall"
-})
+}, cachedResponseText = "Fake text")
