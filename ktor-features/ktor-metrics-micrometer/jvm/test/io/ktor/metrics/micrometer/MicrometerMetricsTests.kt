@@ -201,7 +201,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `no handler results in status 404 and no exception`(): Unit = withTestApplication {
+    fun `no handler results in status 404 and no exception by default`(): Unit = withTestApplication {
 
         val testRegistry = SimpleMeterRegistry()
 
@@ -224,6 +224,40 @@ class MicrometerMetricsTests {
                 assertTag("throwable", "n/a")
                 assertTag("status", "404")
                 assertTag("route", "/uri")
+                assertTag("method", "GET")
+                assertTag("address", "localhost:80")
+            }
+        }
+
+        assertNull(throwableCaughtInEngine)
+        assertTrue(noHandlerHandledReqeust)
+    }
+
+    @Test
+    fun `no handler results in status 404 no route and no exception if distinctNotRegisteredRoutes is false`(): Unit = withTestApplication {
+
+        val testRegistry = SimpleMeterRegistry()
+
+        application.install(MicrometerMetrics) {
+            registry = testRegistry
+            distinctNotRegisteredRoutes = false
+        }
+
+
+        installDefaultBehaviour()
+
+        // no routing config
+
+        handleRequest {
+            uri = "/uri"
+        }
+
+        with(testRegistry.find(MicrometerMetrics.requestTimerName).timers()) {
+            assertEquals(1, size)
+            this.first().run {
+                assertTag("throwable", "n/a")
+                assertTag("status", "404")
+                assertTag("route", "n/a")
                 assertTag("method", "GET")
                 assertTag("address", "localhost:80")
             }
