@@ -36,6 +36,10 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
             first.close()
             second.close()
         }
+    }.invokeOnCompletion {
+        it ?: return@invokeOnCompletion
+        first.cancel(it)
+        second.cancel(it)
     }
 
     return first to second
@@ -67,6 +71,10 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
             first.close()
             second.close()
         }
+    }.invokeOnCompletion {
+        it ?: return@invokeOnCompletion
+        first.close(it)
+        second.close(it)
     }
 }
 
