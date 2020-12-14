@@ -442,27 +442,6 @@ class LoggingTest : ClientLoader() {
     }
 
     @Test
-    fun testCustomServer() = clientTests(listOf("iOS", "native:CIO")) {
-        config {
-            Logging {
-                level = LogLevel.ALL
-                logger = Logger.EMPTY
-            }
-        }
-
-        test { client ->
-            client.request<HttpStatement> {
-                method = HttpMethod.Get
-                url("https://jigsaw.w3.org/HTTP/ChunkedScript")
-            }.execute { response ->
-                val responseBytes = ByteArray(65536)
-                val body = response.content
-                body.readFully(responseBytes)
-            }
-        }
-    }
-
-    @Test
     fun testRequestContentTypeInLog() = clientTests(listOf("iOS", "native:CIO")) {
         val testLogger = TestLogger(
             "REQUEST: http://127.0.0.1:8080/content/echo",
