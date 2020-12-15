@@ -92,17 +92,16 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
         channel.writeSuspendSession {
             while (true) {
                 var rc = 0
+                val buffer = request(1)
+                if (buffer == null) {
+                    if (channel.isClosedForWrite) break
+                    channel.flush()
+                    tryAwait(1)
+                    continue
+                }
 
                 timeout.withTimeout {
                     do {
-                        val buffer = request(1)
-                        if (buffer == null) {
-                            if (channel.isClosedForWrite) break
-                            channel.flush()
-                            tryAwait(1)
-                            continue
-                        }
-
                         rc = nioChannel.read(buffer)
                         if (rc == 0) {
                             channel.flush()
