@@ -104,6 +104,10 @@ private fun CoroutineScope.inflate(
             readBuffer.compact()
         }
 
+        if (source is ByteChannel) {
+            source.closedCause?.let { throw it }
+        }
+
         readBuffer.flip()
 
         while (!inflater.finished()) {

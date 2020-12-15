@@ -20,4 +20,8 @@ public suspend inline fun ByteReadChannel.pass(buffer: ByteBuffer, block: (ByteB
         buffer.flip()
         block(buffer)
     }
+
+    if (this is ByteChannel) {
+        closedCause?.let { throw it }
+    }
 }

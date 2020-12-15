@@ -5,6 +5,7 @@
 package io.ktor.util
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 
@@ -27,6 +28,10 @@ public fun ByteReadChannel.split(coroutineScope: CoroutineScope): Pair<ByteReadC
                         async { second.writePacket(chunk.copy()) }
                     ).awaitAll()
                 }
+            }
+
+            if (this is ByteChannel) {
+                closedCause?.let { throw it }
             }
         } catch (cause: Throwable) {
             this@split.cancel(cause)
@@ -63,6 +68,10 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
                         second.close(cause)
                     }
                 }
+            }
+
+            if (this is ByteChannel) {
+                closedCause?.let { throw it }
             }
         } catch (cause: Throwable) {
             first.close(cause)
