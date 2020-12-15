@@ -701,8 +701,12 @@ public abstract class ByteChannelSequentialBase(
     override suspend fun discard(max: Long): Long {
         val discarded = readable.discard(max)
 
-        return if (discarded == max || isClosedForRead) return discarded
-        else discardSuspend(max, discarded)
+        return if (discarded == max || isClosedForRead) {
+            ensureNotFailed()
+            return discarded
+        } else {
+            discardSuspend(max, discarded)
+        }
     }
 
     private suspend fun discardSuspend(max: Long, discarded0: Long): Long {
@@ -712,6 +716,8 @@ public abstract class ByteChannelSequentialBase(
             if (!await(1)) break
             discarded += readable.discard(max - discarded)
         } while (discarded < max && !isClosedForRead)
+
+        ensureNotFailed()
 
         return discarded
     }

@@ -7,6 +7,7 @@ package io.ktor.server.jetty.internal
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import org.eclipse.jetty.io.*
@@ -105,14 +106,20 @@ internal fun CoroutineScope.endPointWriter(
     pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
 ): ReaderJob = reader(EndpointWriterCoroutineName + Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
-        while (!channel.isClosedForRead) {
+        val source = channel
+
+        while (!source.isClosedForRead) {
             buffer.clear()
-            if (channel.readAvailable(buffer) == -1) break
+            if (source.readAvailable(buffer) == -1) break
 
             buffer.flip()
             endPoint.write(buffer)
         }
         endPoint.flush()
+
+        if (source is ByteChannel) {
+            source.closedCause?.let { throw it }
+        }
     }
 }
 

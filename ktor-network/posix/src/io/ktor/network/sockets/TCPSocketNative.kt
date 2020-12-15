@@ -68,11 +68,12 @@ internal class TCPSocketNative(
     }
 
     override fun attachForWriting(userChannel: ByteChannel): ReaderJob = reader(Dispatchers.Unconfined, userChannel) {
+        val source = channel
         var sockedClosed = false
         var needSelect = false
         var total = 0
-        while (!sockedClosed && !channel.isClosedForRead) {
-            val count = channel.read { memory, start, stop ->
+        while (!sockedClosed && !source.isClosedForRead) {
+            val count = source.read { memory, start, stop ->
                 val bufferStart = memory.pointer + start
                 val remaining = stop - start
                 val result = if (remaining > 0) {
@@ -100,10 +101,14 @@ internal class TCPSocketNative(
             }
         }
 
-        if (!channel.isClosedForRead) {
-            val availableForRead = channel.availableForRead
+        if (!source.isClosedForRead) {
+            val availableForRead = source.availableForRead
             val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
-            channel.cancel(cause)
+            source.cancel(cause)
+        } else {
+            if (source is ByteChannel) {
+                source.closedCause?.let { throw it }
+            }
         }
 
     }.apply {

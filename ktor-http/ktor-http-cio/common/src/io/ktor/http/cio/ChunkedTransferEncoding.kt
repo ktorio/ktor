@@ -148,7 +148,6 @@ public suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChanne
 private fun ByteReadChannel.rethrowCloseCause() {
     val cause = when (this) {
         is ByteChannel -> closedCause
-        is ByteChannelSequentialBase -> closedCause
         else -> null
     }
     if (cause != null) throw cause
