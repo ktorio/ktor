@@ -47,6 +47,7 @@ if (host == 'windows' && skipMingw) return
 kotlin {
     targets {
         if (project.ext.ideaActive) {
+            project.ext.hostname = host
             fromPreset(project.ext.ideaPreset, 'posix')
             project.ext.nativeTargets = [posix]
         } else {
