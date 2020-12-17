@@ -12,7 +12,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 internal val ENGINES_WITHOUT_WEBSOCKETS = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
-internal val ENGINES_WITHOUT_WS_EXTENSIONS = ENGINES_WITHOUT_WEBSOCKETS + "OkHttp" + "Java"
+internal val ENGINES_WITHOUT_WS_EXTENSIONS = ENGINES_WITHOUT_WEBSOCKETS + "OkHttp" + "Java" + "Js"
 
 @Suppress("PublicApiImplicitType")
 class WebSocketTest : ClientLoader() {

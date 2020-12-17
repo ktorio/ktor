@@ -29,7 +29,7 @@ private typealias ExtensionInstaller = () -> WebSocketExtension<*>
  * Usually this interface implemented in `companion object` of the origin [WebSocketExtension].
  */
 @ExperimentalWebSocketExtensionApi
-public interface WebSocketExtensionFactory<ConfigType: Any, ExtensionType: WebSocketExtension<ConfigType>> {
+public interface WebSocketExtensionFactory<ConfigType : Any, ExtensionType : WebSocketExtension<ConfigType>> {
     /**
      * Key is used to locate extension.
      */
@@ -86,7 +86,7 @@ public interface WebSocketExtension<ConfigType : Any> {
     /**
      * This method is called only for a client, when it receives the WebSocket upgrade response.
      *
-     * @param negotiatedProtocols contains list of negotiated extensions from server(can be empty).
+     * @param negotiatedProtocols contains list of negotiated extensions from server (can be empty).
      *
      * It's up to extension to decide if it should be used or not.
      * @return `true` if the extension should be used by the client.
@@ -96,9 +96,9 @@ public interface WebSocketExtension<ConfigType : Any> {
     /**
      * This method is called only for a server, when it receives websocket session.
      *
-     * @param requestedProtocols contains list of requested extensions from client(can be empty).
+     * @param requestedProtocols contains list of requested extensions from client (can be empty).
      *
-     * @return list of protocols(with parameters) which server prefer to use for current client request.
+     * @return list of protocols (with parameters) which server prefer to use for current client request.
      */
     public fun serverNegotiation(
         requestedProtocols: List<WebSocketExtensionHeader>

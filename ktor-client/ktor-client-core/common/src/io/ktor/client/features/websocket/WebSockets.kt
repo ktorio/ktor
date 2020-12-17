@@ -59,8 +59,11 @@ internal constructor(
         maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     ) : this(pingInterval,maxFrameSize, WebSocketExtensionsConfig())
 
-    init {
-    }
+    /**
+     * Client WebSocket feature.
+     */
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    public constructor() : this(-1L, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
 
     @ExperimentalWebSocketExtensionApi
     private fun installExtensions(context: HttpRequestBuilder) {

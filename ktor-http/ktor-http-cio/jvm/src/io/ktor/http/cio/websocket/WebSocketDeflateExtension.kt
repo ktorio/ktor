@@ -140,12 +140,12 @@ public class WebSocketDeflateExtension internal constructor(
      */
     public class Config {
         /**
-         * Specify if the client drops the deflater state(reset the window) after each frame.
+         * Specify if the client drops the deflater state (reset the window) after each frame.
          */
         public var clientNoContextTakeOver: Boolean = false
 
         /**
-         * Specify if the server drops the deflater state(reset the window) after each frame.
+         * Specify if the server drops the deflater state (reset the window) after each frame.
          */
         public var serverNoContextTakeOver: Boolean = false
 

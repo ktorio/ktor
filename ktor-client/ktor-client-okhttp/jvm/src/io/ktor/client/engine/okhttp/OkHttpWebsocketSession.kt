@@ -51,7 +51,7 @@ internal class OkHttpWebsocketSession(
 
     @OptIn(ExperimentalWebSocketExtensionApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
-        require(negotiatedExtensions.isEmpty())
+        require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
 
     @OptIn(ObsoleteCoroutinesApi::class)
