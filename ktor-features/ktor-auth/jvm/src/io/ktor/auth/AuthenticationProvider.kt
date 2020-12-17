@@ -37,7 +37,9 @@ public open class AuthenticationProvider(config: Configuration) {
     /**
      * Authentication pipeline for this provider
      */
-    public val pipeline: AuthenticationPipeline = AuthenticationPipeline().also { pipeline ->
+    public val pipeline: AuthenticationPipeline = AuthenticationPipeline(
+        config.pipeline.developmentMode
+    ).also { pipeline ->
         pipeline.merge(config.pipeline)
     }
 
@@ -67,9 +69,9 @@ public open class AuthenticationProvider(config: Configuration) {
      */
     public open class Configuration protected constructor(public val name: String?) {
         /**
-         * Authentication pipeline for this provider
+         * Authentication pipeline for this provider.
          */
-        public val pipeline: AuthenticationPipeline = AuthenticationPipeline()
+        public val pipeline: AuthenticationPipeline = AuthenticationPipeline(developmentMode = false)
 
         /**
          * Authentication filters specifying if authentication is required for particular [ApplicationCall]

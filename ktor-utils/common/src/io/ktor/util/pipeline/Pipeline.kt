@@ -9,6 +9,7 @@ import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
+import kotlin.coroutines.*
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
@@ -20,6 +21,11 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * Provides common place to store pipeline attributes
      */
     public val attributes: Attributes = Attributes(concurrent = true)
+
+    /**
+     * Indicated if debug mode is enabled. In debug mode users will get more details in the stacktrace.
+     */
+    public open val developmentMode: Boolean = false
 
     private val phasesRaw: MutableList<Any> = sharedListOf(*phases)
 
@@ -59,10 +65,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      */
     private var interceptorsListSharedPhase: PipelinePhase? by shared(null)
 
-    init {
-        makeShared()
-    }
-
     public constructor(
         phase: PipelinePhase,
         interceptors: List<PipelineInterceptor<TSubject, TContext>>
@@ -74,7 +76,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * Executes this pipeline in the given [context] and with the given [subject]
      */
     public suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        createContext(context, subject).execute(subject)
+        createContext(context, subject, coroutineContext).execute(subject)
 
     /**
      * Adds [phase] to the end of this pipeline
@@ -203,8 +205,10 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     @Suppress("DEPRECATION")
     private fun createContext(
         context: TContext,
-        subject: TSubject
-    ): PipelineExecutor<TSubject> = pipelineExecutorFor(context, sharedInterceptorsList(), subject)
+        subject: TSubject,
+        coroutineContext: CoroutineContext
+    ): PipelineExecutor<TSubject> =
+        pipelineExecutorFor(context, sharedInterceptorsList(), subject, coroutineContext, developmentMode)
 
     private fun findPhase(phase: PipelinePhase): PhaseContent<TSubject, TContext>? {
         val phasesList = phasesRaw
@@ -284,13 +288,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         notSharedInterceptorsList(destination)
         return destination
     }
-
-//    private fun <E> ArrayList<E>.addAllAF(from: ArrayList<E>) {
-//        ensureCapacity(size + from.size)
-//        for (index in 0 until from.size) {
-//            add(from[index])
-//        }
-//    }
 
     private fun fastPathMerge(from: Pipeline<TSubject, TContext>): Boolean {
         if (from.phasesRaw.isEmpty()) {

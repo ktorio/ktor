@@ -8,13 +8,29 @@ import io.ktor.application.*
 import io.ktor.util.pipeline.*
 
 /**
- * Describes a node in a routing tree
+ * Describes a node in a routing tree.
  *
- * @param parent is a parent node in the tree, or null for root node
- * @param selector is an instance of [RouteSelector] for this node
+ * @param parent is a parent node in the tree, or null for root node.
+ * @param selector is an instance of [RouteSelector] for this node.
+ * @param developmentMode is flag to switch report level for stack traces.
  */
 @ContextDsl
-public open class Route(public val parent: Route?, public val selector: RouteSelector) : ApplicationCallPipeline() {
+public open class Route(
+    public val parent: Route?,
+    public val selector: RouteSelector,
+    developmentMode: Boolean,
+) : ApplicationCallPipeline(developmentMode) {
+
+    /**
+     * Describes a node in a routing tree.
+     *
+     * @param parent is a parent node in the tree, or null for root node.
+     * @param selector is an instance of [RouteSelector] for this node.
+     */
+    public constructor(
+        parent: Route?,
+        selector: RouteSelector,
+    ) : this(parent, selector, developmentMode = false)
 
     /**
      * List of child routes for this node
@@ -71,7 +87,7 @@ public open class Route(public val parent: Route?, public val selector: RouteSel
     internal fun buildPipeline(): ApplicationCallPipeline {
         return cachedPipeline ?: run {
             var current: Route? = this
-            val pipeline = ApplicationCallPipeline()
+            val pipeline = ApplicationCallPipeline(developmentMode)
             val routePipelines = mutableListOf<ApplicationCallPipeline>()
             while (current != null) {
                 routePipelines.add(current)

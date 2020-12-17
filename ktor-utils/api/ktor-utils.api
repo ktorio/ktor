@@ -247,6 +247,7 @@ public final class io/ktor/util/PathKt {
 public final class io/ktor/util/PlatformUtils {
 	public static final field INSTANCE Lio/ktor/util/PlatformUtils;
 	public final fun getIS_BROWSER ()Z
+	public final fun getIS_DEVELOPMENT_MODE ()Z
 	public final fun getIS_JVM ()Z
 	public final fun getIS_NATIVE ()Z
 	public final fun getIS_NODE ()Z
@@ -810,6 +811,7 @@ public class io/ktor/util/pipeline/Pipeline {
 	public fun afterIntercepted ()V
 	public final fun execute (Ljava/lang/Object;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
+	public fun getDevelopmentMode ()Z
 	public final fun getItems ()Ljava/util/List;
 	public final fun insertPhaseAfter (Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V
 	public final fun insertPhaseBefore (Lio/ktor/util/pipeline/PipelinePhase;Lio/ktor/util/pipeline/PipelinePhase;)V

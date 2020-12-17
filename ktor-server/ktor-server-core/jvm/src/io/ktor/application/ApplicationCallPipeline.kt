@@ -12,7 +12,9 @@ import io.ktor.util.pipeline.*
  * Pipeline configuration for executing [ApplicationCall] instances
  */
 @Suppress("PublicApiImplicitType")
-public open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(
+public open class ApplicationCallPipeline(
+    final override val developmentMode: Boolean = false
+) : Pipeline<Unit, ApplicationCall>(
     Setup,
     Monitoring,
     Features,
@@ -22,12 +24,12 @@ public open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(
     /**
      * Pipeline for receiving content
      */
-    public val receivePipeline: ApplicationReceivePipeline = ApplicationReceivePipeline()
+    public val receivePipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(developmentMode)
 
     /**
      * Pipeline for sending content
      */
-    public val sendPipeline: ApplicationSendPipeline = ApplicationSendPipeline()
+    public val sendPipeline: ApplicationSendPipeline = ApplicationSendPipeline(developmentMode)
 
     /**
      * Standard phases for application call pipelines

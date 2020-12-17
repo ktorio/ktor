@@ -11,7 +11,9 @@ import io.ktor.util.pipeline.*
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
  */
-public class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(
+public class HttpResponsePipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<HttpResponseContainer, HttpClientCall>(
     Receive,
     Parse,
     Transform,
@@ -49,11 +51,9 @@ public class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCa
 /**
  * [HttpClient] Pipeline used for receiving [HttpResponse] without any processing.
  */
-public class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(
-    Before,
-    State,
-    After
-) {
+public class HttpReceivePipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<HttpResponse, HttpClientCall>(Before, State, After) {
     public companion object Phases {
         /**
          * The earliest phase that happens before any other

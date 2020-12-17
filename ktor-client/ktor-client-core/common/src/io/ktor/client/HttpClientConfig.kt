@@ -50,6 +50,11 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     public var expectSuccess: Boolean by shared(true)
 
     /**
+     * Indicate if client should use development mode. In development mode client pipelines have advanced stack traces.
+     */
+    public var developmentMode: Boolean by shared(PlatformUtils.IS_DEVELOPMENT_MODE)
+
+    /**
      * Installs a specific [feature] and optionally [configure] it.
      */
     public fun <TBuilder : Any, TFeature : Any> install(

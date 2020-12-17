@@ -36,6 +36,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public final fun getClassLoader ()Ljava/lang/ClassLoader;
 	public final fun getConfig ()Lio/ktor/config/ApplicationConfig;
 	public final fun getConnectors ()Ljava/util/List;
+	public final fun getDevelopmentMode ()Z
 	public final fun getLog ()Lorg/slf4j/Logger;
 	public final fun getModules ()Ljava/util/List;
 	public final fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -44,6 +45,7 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentBuilder {
 	public final fun module (Lkotlin/jvm/functions/Function1;)V
 	public final fun setClassLoader (Ljava/lang/ClassLoader;)V
 	public final fun setConfig (Lio/ktor/config/ApplicationConfig;)V
+	public final fun setDevelopmentMode (Z)V
 	public final fun setLog (Lorg/slf4j/Logger;)V
 	public final fun setParentCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setRootPath (Ljava/lang/String;)V
@@ -58,10 +60,13 @@ public final class io/ktor/server/engine/ApplicationEngineEnvironmentReloading :
 	public static final field Companion Lio/ktor/server/engine/ApplicationEngineEnvironmentReloading$Companion;
 	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/ClassLoader;Lorg/slf4j/Logger;Lio/ktor/config/ApplicationConfig;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getApplication ()Lio/ktor/application/Application;
 	public fun getClassLoader ()Ljava/lang/ClassLoader;
 	public fun getConfig ()Lio/ktor/config/ApplicationConfig;
 	public fun getConnectors ()Ljava/util/List;
+	public fun getDevelopmentMode ()Z
 	public fun getLog ()Lorg/slf4j/Logger;
 	public fun getMonitor ()Lio/ktor/application/ApplicationEvents;
 	public fun getParentCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
@@ -108,7 +113,7 @@ public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor
 
 public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/request/ApplicationRequest {
 	public fun <init> (Lio/ktor/application/ApplicationCall;)V
-	public fun getCall ()Lio/ktor/application/ApplicationCall;
+	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public fun getPipeline ()Lio/ktor/request/ApplicationReceivePipeline;
 }
 
@@ -117,7 +122,7 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/re
 	public fun <init> (Lio/ktor/application/ApplicationCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
 	protected fun getBufferPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public fun getCall ()Lio/ktor/application/ApplicationCall;
+	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public fun getCookies ()Lio/ktor/response/ResponseCookies;
 	public final fun getPipeline ()Lio/ktor/response/ApplicationSendPipeline;
 	public fun push (Lio/ktor/response/ResponsePushBuilder;)V
@@ -248,6 +253,9 @@ public final class io/ktor/server/engine/EngineContextCancellationHelperKt {
 public final class io/ktor/server/engine/EnginePipeline : io/ktor/util/pipeline/Pipeline {
 	public static final field Companion Lio/ktor/server/engine/EnginePipeline$Companion;
 	public fun <init> ()V
+	public fun <init> (Z)V
+	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDevelopmentMode ()Z
 	public final fun getReceivePipeline ()Lio/ktor/request/ApplicationReceivePipeline;
 	public final fun getSendPipeline ()Lio/ktor/response/ApplicationSendPipeline;
 }
