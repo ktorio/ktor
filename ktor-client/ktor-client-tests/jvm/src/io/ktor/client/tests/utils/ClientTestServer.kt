@@ -38,6 +38,7 @@ internal fun Application.tests() {
     uploadTest()
     jsonTest()
     multithreadedTest()
+    retryTests()
 
     routing {
         post("/echo") {
