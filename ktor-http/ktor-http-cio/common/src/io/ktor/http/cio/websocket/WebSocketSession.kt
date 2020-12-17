@@ -29,6 +29,12 @@ public expect interface WebSocketSession : CoroutineScope {
     public val outgoing: SendChannel<Frame>
 
     /**
+     * Negotiated WebSocket extensions.
+     */
+    @ExperimentalWebSocketExtensionApi
+    public val extensions: List<WebSocketExtension<*>>
+
+    /**
      * Enqueue frame, may suspend if outgoing queue is full. May throw an exception if outgoing channel is already
      * closed so it is impossible to transfer any message. Frames that were sent after close frame could be silently
      * ignored. Please note that close frame could be sent automatically in reply to a peer close frame unless it is
@@ -53,6 +59,27 @@ public expect interface WebSocketSession : CoroutineScope {
     )
     public fun terminate()
 }
+
+/**
+ * Find the extensions using [WebSocketExtensionFactory].
+ *
+ * @return extension instance.
+ * @throws [IllegalStateException] if the extension is not found.
+ */
+@ExperimentalWebSocketExtensionApi
+public fun <T : WebSocketExtension<*>> WebSocketSession.extension(extension: WebSocketExtensionFactory<*, T>): T =
+    extensionOrNull(extension) ?: error("Extension $extension not found.")
+
+/**
+ * Search the extensions using [WebSocketExtensionFactory].
+ *
+ * @return extension instance or `null` if the extension is not installed.
+ */
+@Suppress("UNCHECKED_CAST")
+@ExperimentalWebSocketExtensionApi
+public fun <T : WebSocketExtension<*>> WebSocketSession.extensionOrNull(
+    extension: WebSocketExtensionFactory<*, T>
+): T? = extensions.firstOrNull { it.factory.key === extension.key } as? T?
 
 /**
  * Enqueues a text frame for sending with the specified [content].

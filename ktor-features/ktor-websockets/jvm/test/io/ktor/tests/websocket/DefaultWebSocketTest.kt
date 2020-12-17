@@ -35,6 +35,8 @@ class DefaultWebSocketTest {
         server = DefaultWebSocketSession(
             RawWebSocket(client2server, server2client, coroutineContext = parent), -1L, 1000L
         )
+        server.start()
+
         client = RawWebSocket(server2client, client2server, coroutineContext = parent)
     }
 

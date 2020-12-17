@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
@@ -48,6 +49,11 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+    }
+
     @OptIn(ObsoleteCoroutinesApi::class)
     override val outgoing: SendChannel<Frame> = actor {
         val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
@@ -69,6 +75,10 @@ internal class OkHttpWebsocketSession(
             websocket.close(CloseReason.Codes.INTERNAL_ERROR.code.toInt(), "Client failure")
         }
     }
+
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)

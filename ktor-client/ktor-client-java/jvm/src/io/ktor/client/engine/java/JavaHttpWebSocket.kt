@@ -81,6 +81,10 @@ internal class JavaHttpWebSocket(
     override val outgoing: SendChannel<Frame>
         get() = _outgoing
 
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
+
     init {
         launch {
             @OptIn(ExperimentalCoroutinesApi::class)

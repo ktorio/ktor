@@ -4,6 +4,7 @@
 
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -104,7 +105,11 @@ public class WebSocketReader(
     private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state = State.HEADER
-            queue.send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
+            val frame = with(frameParser) {
+                Frame.byType(fin, frameType, collector.take(maskKey).moveToByteArray(), rsv1, rsv2, rsv3)
+            }
+
+            queue.send(frame)
             frameParser.bodyComplete()
         }
     }

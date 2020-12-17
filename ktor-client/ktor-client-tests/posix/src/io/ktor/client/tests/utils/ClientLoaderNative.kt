@@ -21,7 +21,7 @@ private class TestFailure(val name: String, val cause: Throwable) {
 /**
  * Helper interface to test client.
  */
-public actual abstract class ClientLoader {
+public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
     /**
      * Perform test against all clients from dependencies.
      */
@@ -41,7 +41,7 @@ public actual abstract class ClientLoader {
         for (engine in filteredEngines) {
             val result = runCatching {
                 testWithEngine(engine) {
-                    withTimeout(3000) {
+                    withTimeout(timeoutSeconds.toLong() * 1000L) {
                         block()
                     }
                 }

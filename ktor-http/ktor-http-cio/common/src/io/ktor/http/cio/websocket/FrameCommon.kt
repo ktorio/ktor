@@ -19,11 +19,32 @@ public expect sealed class Frame private constructor(
     fin: Boolean,
     frameType: FrameType,
     data: ByteArray,
-    disposableHandle: DisposableHandle = NonDisposableHandle
+    disposableHandle: DisposableHandle = NonDisposableHandle,
+    rsv1: Boolean = false,
+    rsv2: Boolean = false,
+    rsv3: Boolean = false
 ) {
     public val fin: Boolean
+
+    /**
+     * First extension bit.
+     */
+    public val rsv1: Boolean
+
+    /**
+     * Second extension bit.
+     */
+    public val rsv2: Boolean
+
+    /**
+     * Third extension bit.
+     */
+    public val rsv3: Boolean
+
     public val frameType: FrameType
+
     public val data: ByteArray
+
     public val disposableHandle: DisposableHandle
 
     /**
@@ -32,7 +53,14 @@ public expect sealed class Frame private constructor(
      * (separated into several text frames so they have [fin] = false except the last one).
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
      */
-    public class Binary(fin: Boolean, data: ByteArray) : Frame {
+    public class Binary public constructor(
+        fin: Boolean,
+        data: ByteArray,
+        rsv1: Boolean = false,
+        rsv2: Boolean = false,
+        rsv3: Boolean = false
+    ) : Frame {
+        public constructor(fin: Boolean, data: ByteArray)
         public constructor(fin: Boolean, packet: ByteReadPacket)
     }
 
@@ -44,7 +72,14 @@ public expect sealed class Frame private constructor(
      * so don't apply String constructor to every fragment but use decoder loop instead of concatenate fragments first.
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
      */
-    public class Text(fin: Boolean, data: ByteArray) : Frame {
+    public class Text public constructor(
+        fin: Boolean,
+        data: ByteArray,
+        rsv1: Boolean = false,
+        rsv2: Boolean = false,
+        rsv3: Boolean = false,
+    ) : Frame {
+        public constructor(fin: Boolean, data: ByteArray)
         public constructor(text: String)
         public constructor(fin: Boolean, packet: ByteReadPacket)
     }
@@ -72,7 +107,8 @@ public expect sealed class Frame private constructor(
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
      */
     public class Pong(
-        data: ByteArray, disposableHandle: DisposableHandle = NonDisposableHandle
+        data: ByteArray,
+        disposableHandle: DisposableHandle = NonDisposableHandle
     ) : Frame {
         public constructor(packet: ByteReadPacket)
     }
@@ -87,6 +123,16 @@ public expect sealed class Frame private constructor(
          * Create a particular [Frame] instance by frame type
          */
         public fun byType(fin: Boolean, frameType: FrameType, data: ByteArray): Frame
+
+        /**
+         * Create a particular [Frame] instance by frame type
+         */
+        public fun byType(
+            fin: Boolean,
+            frameType: FrameType,
+            data: ByteArray,
+            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+        ): Frame
     }
 }
 

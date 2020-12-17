@@ -35,11 +35,15 @@ public final class io/ktor/websocket/RoutingKt {
 	public static synthetic fun webSocket$default (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static synthetic fun webSocket$default (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;ILjava/lang/Object;)V
 	public static final fun webSocketRaw (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
+	public static final fun webSocketRaw (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
 	public static final fun webSocketRaw (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static final fun webSocketRaw (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;)V
+	public static final fun webSocketRaw (Lio/ktor/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
 	public static synthetic fun webSocketRaw$default (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/routing/Route;Ljava/lang/String;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static synthetic fun webSocketRaw$default (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static synthetic fun webSocketRaw$default (Lio/ktor/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Ljava/lang/Void;ILjava/lang/Object;)V
+	public static synthetic fun webSocketRaw$default (Lio/ktor/routing/Route;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 }
 
 public abstract interface class io/ktor/websocket/WebSocketServerSession : io/ktor/http/cio/websocket/WebSocketSession {
@@ -58,6 +62,8 @@ public final class io/ktor/websocket/WebSocketUpgrade : io/ktor/http/content/Out
 	public static final field Companion Lio/ktor/websocket/WebSocketUpgrade$Companion;
 	public fun <init> (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public synthetic fun <init> (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;)V
+	public synthetic fun <init> (Lio/ktor/application/ApplicationCall;Ljava/lang/String;ZLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public final fun getHandle ()Lkotlin/jvm/functions/Function2;
 	public fun getHeaders ()Lio/ktor/http/Headers;
@@ -71,7 +77,9 @@ public final class io/ktor/websocket/WebSocketUpgrade$Companion {
 public final class io/ktor/websocket/WebSockets : kotlinx/coroutines/CoroutineScope {
 	public static final field Feature Lio/ktor/websocket/WebSockets$Feature;
 	public fun <init> (JJJZ)V
+	public fun <init> (JJJZLio/ktor/http/cio/websocket/WebSocketExtensionsConfig;)V
 	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public final fun getExtensionsConfig ()Lio/ktor/http/cio/websocket/WebSocketExtensionsConfig;
 	public final fun getMasking ()Z
 	public final fun getMaxFrameSize ()J
 	public final fun getPingIntervalMillis ()J
@@ -79,6 +87,7 @@ public final class io/ktor/websocket/WebSockets : kotlinx/coroutines/CoroutineSc
 }
 
 public final class io/ktor/websocket/WebSockets$Feature : io/ktor/application/ApplicationFeature {
+	public final fun getEXTENSIONS_KEY ()Lio/ktor/util/AttributeKey;
 	public fun getKey ()Lio/ktor/util/AttributeKey;
 	public fun install (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/websocket/WebSockets;
 	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
@@ -86,6 +95,7 @@ public final class io/ktor/websocket/WebSockets$Feature : io/ktor/application/Ap
 
 public final class io/ktor/websocket/WebSockets$WebSocketOptions {
 	public fun <init> ()V
+	public final fun extensions (Lkotlin/jvm/functions/Function1;)V
 	public final fun getMasking ()Z
 	public final fun getMaxFrameSize ()J
 	public final synthetic fun getPingPeriod ()Ljava/time/Duration;

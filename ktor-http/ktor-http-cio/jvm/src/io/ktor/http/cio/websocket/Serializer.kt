@@ -46,23 +46,24 @@ public class Serializer {
 
     private fun serializeHeader(frame: Frame, buffer: ByteBuffer, mask: Boolean) {
         val size = frame.buffer.remaining()
-        val length1 = when {
+        val formattedLength = when {
             size < 126 -> size
             size <= 0xffff -> 126
             else -> 127
         }
 
-        buffer.put(
-            (frame.fin.flagAt(7) or frame.frameType.opcode).toByte()
-        )
-        buffer.put(
-            (mask.flagAt(7) or length1).toByte()
-        )
+        val header = frame.fin.flagAt(7) or
+            frame.rsv1.flagAt(6) or
+            frame.rsv2.flagAt(5) or
+            frame.rsv3.flagAt(4) or
+            frame.frameType.opcode
 
-        if (length1 == 126) {
-            buffer.putShort(frame.buffer.remaining().toShort())
-        } else if (length1 == 127) {
-            buffer.putLong(frame.buffer.remaining().toLong())
+        buffer.put(header.toByte())
+        buffer.put((mask.flagAt(7) or formattedLength).toByte())
+
+        when (formattedLength) {
+            126 -> buffer.putShort(frame.buffer.remaining().toShort())
+            127 -> buffer.putLong(frame.buffer.remaining().toLong())
         }
 
         maskBuffer?.duplicate()?.moveTo(buffer)

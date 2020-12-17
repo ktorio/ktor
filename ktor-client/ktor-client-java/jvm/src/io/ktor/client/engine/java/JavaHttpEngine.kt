@@ -6,6 +6,7 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
@@ -39,7 +40,8 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         executor.asCoroutineDispatcher()
     }
 
-    public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
+    public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
+        setOf(HttpTimeout, WebSocketCapability)
 
     override val coroutineContext: CoroutineContext
 
