@@ -113,9 +113,13 @@ kotlin.sourceSets {
         } else {
             val posixTest by getting {
                 dependencies {
+                    val hostname: String by project.ext
                     // api(project(":ktor-client:ktor-client-ios"))
                     api(project(":ktor-client:ktor-client-curl"))
-                    api(project(":ktor-client:ktor-client-cio"))
+
+                    if (!hostname.startsWith("win")) {
+                        api(project(":ktor-client:ktor-client-cio"))
+                    }
                 }
             }
         }
