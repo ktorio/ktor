@@ -83,7 +83,7 @@ internal class JavaHttpWebSocket(
 
     @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
-        get() = error("Java http client doesn't support WebSocket extensions.")
+        get() = emptyList()
 
     init {
         launch {

@@ -24,8 +24,7 @@ internal class JsWebSocketSession(
     override val outgoing: SendChannel<Frame> = _outgoing
 
     @ExperimentalWebSocketExtensionApi
-    override val extensions: List<WebSocketExtension<*>> get() =
-        error("WebSocket extensions are not supported on Js platform.")
+    override val extensions: List<WebSocketExtension<*>> get() = emptyList()
 
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
@@ -115,6 +114,7 @@ internal class JsWebSocketSession(
 
     @OptIn(ExperimentalWebSocketExtensionApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty())
     }
 
     override suspend fun flush() {

@@ -57,7 +57,10 @@ internal constructor(
     public constructor(
         pingInterval: Long = -1L,
         maxFrameSize: Long = Int.MAX_VALUE.toLong(),
-    ) : this(pingInterval, maxFrameSize, WebSocketExtensionsConfig())
+    ) : this(pingInterval,maxFrameSize, WebSocketExtensionsConfig())
+
+    init {
+    }
 
     @ExperimentalWebSocketExtensionApi
     private fun installExtensions(context: HttpRequestBuilder) {
@@ -94,6 +97,9 @@ internal constructor(
         return DefaultWebSocketSession(session, pingInterval, timeoutMillis = pingInterval * 2).also {
             it.maxFrameSize = this@WebSockets.maxFrameSize
         }
+    }
+
+    init {
     }
 
     /**

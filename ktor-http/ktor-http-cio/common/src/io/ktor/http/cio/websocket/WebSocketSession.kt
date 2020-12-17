@@ -68,7 +68,7 @@ public expect interface WebSocketSession : CoroutineScope {
  */
 @ExperimentalWebSocketExtensionApi
 public fun <T : WebSocketExtension<*>> WebSocketSession.extension(extension: WebSocketExtensionFactory<*, T>): T =
-    extensionOrNull(extension) ?: error("Extension $extension no found.")
+    extensionOrNull(extension) ?: error("Extension $extension not found.")
 
 /**
  * Search the extensions using [WebSocketExtensionFactory].

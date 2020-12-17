@@ -51,6 +51,7 @@ internal class OkHttpWebsocketSession(
 
     @OptIn(ExperimentalWebSocketExtensionApi::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty())
     }
 
     @OptIn(ObsoleteCoroutinesApi::class)
@@ -77,7 +78,7 @@ internal class OkHttpWebsocketSession(
 
     @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
-        get() = error("WebSocket extensions are not supported on OkHttp")
+        get() = emptyList()
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)

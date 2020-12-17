@@ -12,9 +12,9 @@ import io.ktor.util.*
  * with [KTOR-1035](https://youtrack.jetbrains.com/issue/KTOR-1035).
  */
 @RequiresOptIn(
-    message = "WebSocket extensions API is experimental according to []()." +
+    message = "WebSocket extensions API is experimental according to https://youtrack.jetbrains.com/issue/KTOR-688." +
         "To get more information about Ktor experimental guarantees consult " +
-        "with [KTOR-1035](https://youtrack.jetbrains.com/issue/KTOR-1035)",
+        "with https://youtrack.jetbrains.com/issue/KTOR-1035",
     level = RequiresOptIn.Level.ERROR
 )
 public annotation class ExperimentalWebSocketExtensionApi
@@ -50,6 +50,7 @@ public interface WebSocketExtensionFactory<ConfigType: Any, ExtensionType: WebSo
      * To set the flag value please consult with specification of the extension you're using.
      */
     public val rsv2: Boolean
+
     /**
      * Third extension bit used by current extension.
      *

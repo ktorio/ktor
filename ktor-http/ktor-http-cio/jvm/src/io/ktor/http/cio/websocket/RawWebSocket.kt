@@ -35,7 +35,7 @@ public class RawWebSocket(
 
     @ExperimentalWebSocketExtensionApi
     override val extensions: List<WebSocketExtension<*>>
-        get() = error("Extensions are not supported in raw WebSocket session")
+        get() = emptyList()
 
     override var maxFrameSize: Long by Delegates.observable(maxFrameSize) { _, _, newValue ->
         reader.maxFrameSize = newValue
