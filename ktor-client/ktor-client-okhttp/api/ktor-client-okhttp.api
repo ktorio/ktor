@@ -10,8 +10,10 @@ public final class io/ktor/client/engine/okhttp/OkHttpConfig : io/ktor/client/en
 	public final fun config (Lkotlin/jvm/functions/Function1;)V
 	public final fun getClientCacheSize ()I
 	public final fun getPreconfigured ()Lokhttp3/OkHttpClient;
+	public final fun getWebSocketFactory ()Lokhttp3/WebSocket$Factory;
 	public final fun setClientCacheSize (I)V
 	public final fun setPreconfigured (Lokhttp3/OkHttpClient;)V
+	public final fun setWebSocketFactory (Lokhttp3/WebSocket$Factory;)V
 }
 
 public final class io/ktor/client/engine/okhttp/OkHttpEngine : io/ktor/client/engine/HttpClientEngineBase {

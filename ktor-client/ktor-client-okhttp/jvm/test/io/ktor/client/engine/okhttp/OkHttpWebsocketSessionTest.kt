@@ -15,7 +15,7 @@ class OkHttpWebsocketSessionTest {
         val client = OkHttpClient()
         val request = Request.Builder().url("ws://google.com").build()
         val coroutineContext = Job()
-        val session = OkHttpWebsocketSession(client, request, coroutineContext)
+        val session = OkHttpWebsocketSession(client, client, request, coroutineContext)
         val webSocket = client.newWebSocket(request, object : WebSocketListener() {})
         val exception = RuntimeException()
         session.onFailure(webSocket, exception, null)
