@@ -61,6 +61,8 @@ internal class TCPSocketNative(
 
             channel.flush()
         }
+
+        channel.closedCause?.let { throw it }
     }.apply {
         invokeOnCompletion {
             shutdown(descriptor, SHUT_RD)
