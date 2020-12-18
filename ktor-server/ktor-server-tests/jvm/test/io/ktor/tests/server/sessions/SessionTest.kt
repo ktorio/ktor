@@ -445,6 +445,32 @@ class SessionTest {
     }
 
     @Test
+    fun testSessionByIdAccessors() {
+        val sessionStorage = SessionStorageMemory()
+
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, sessionStorage)
+            }
+
+            application.routing {
+                get("/0") {
+                    assertNull(call.sessionId, "There should be no session set by default")
+                    assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
+                    assertFails {
+                        call.sessionId<EmptySession>()
+                    }
+                    call.respondText("There should be no session started")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/0").let { call ->
+                assertEquals("There should be no session started", call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testSessionByIdServer() {
         val sessionStorage = SessionStorageMemory()
         withTestApplication {
@@ -454,13 +480,14 @@ class SessionTest {
             var serverSessionId = "_invalid"
             application.routing {
                 get("/0") {
+                    assertNull(call.sessionId, "There should be no session set by default")
+                    assertNull(call.sessionId<TestUserSession>(), "There should be no session set by default")
                     call.respondText("There should be no session started")
-                    assertNull(call.attributes.getOrNull(SessionIdKey), "There should be no session set by default")
                 }
                 get("/1") {
                     call.sessions.set(TestUserSession("id2", listOf("item1")))
                     call.respondText("ok")
-                    serverSessionId = call.attributes[SessionIdKey]
+                    serverSessionId = call.sessionId ?: error("No session id found.")
                     assertTrue { serverSessionId.matches("[A-Za-z0-9]+".toRegex()) }
                 }
             }
@@ -519,8 +546,6 @@ class SessionTest {
                 assertTrue("Expires cookie parameter value should be in the specified dates range") {
                     sessionCookie.expires!! in before.plusAndDiscardMillis() .. after.plusAndDiscardMillis()
                 }
-
-                1
             }
         }
     }
@@ -607,6 +632,18 @@ class SessionTest {
                 get("/2") {
                     val userSession = call.sessions.get<TestUserSession>()
                     val emptySession = call.sessions.get<EmptySession>()
+                    if (userSession != null) {
+                        assertNotNull(call.sessionId)
+                        assertNotNull(call.sessionId<TestUserSession>())
+                    } else {
+                        assertNull(call.sessionId)
+                        assertNull(call.sessionId<TestUserSession>())
+                    }
+
+                    assertFails {
+                        call.sessionId<EmptySession>()
+                    }
+
                     call.respondText("ok, ${userSession?.userId}, ${emptySession != null}")
                 }
             }

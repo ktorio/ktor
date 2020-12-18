@@ -1739,6 +1739,11 @@ public final class io/ktor/sessions/SessionTrackerById : io/ktor/sessions/Sessio
 	public fun validate (Ljava/lang/Object;)V
 }
 
+public final class io/ktor/sessions/SessionTrackerByIdKt {
+	public static final fun getSessionId (Lio/ktor/application/ApplicationCall;)Ljava/lang/String;
+	public static final fun sessionId (Lio/ktor/application/ApplicationCall;Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class io/ktor/sessions/SessionTrackerByValue : io/ktor/sessions/SessionTracker {
 	public fun <init> (Lkotlin/reflect/KClass;Lio/ktor/sessions/SessionSerializer;)V
 	public fun clear (Lio/ktor/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
