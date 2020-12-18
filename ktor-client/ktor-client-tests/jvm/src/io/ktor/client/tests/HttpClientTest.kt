@@ -37,7 +37,6 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
             }
             post("/echo") {
                 val text = call.receiveText()
-                println("TEXT $text")
                 call.respondText(text)
             }
         }
@@ -121,11 +120,13 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         val client = HttpClient(factory)
         val channel = ByteChannel(true)
         channel.writeAvailable("text".toByteArray())
-        channel.close(IllegalStateException("Error on write"))
-        assertFailsWith<IllegalStateException>("Error on write") {
+        channel.close(SendException())
+        assertFailsWith<SendException>("Error on write") {
             client.post<String>("http://localhost:$serverPort/echo") {
                 body = channel
             }
         }
     }
+
+    private class SendException : RuntimeException("Error on write")
 }

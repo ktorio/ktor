@@ -88,6 +88,7 @@ internal suspend fun HttpRequestData.write(
             chunkedJob?.join()
         }
     } finally {
+        output.closedCause?.let { throw it }
         if (closeChannel) {
             output.close()
         }
