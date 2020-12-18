@@ -1010,8 +1010,8 @@ public abstract interface class io/ktor/response/ApplicationResponse {
 
 public final class io/ktor/response/ApplicationResponseFunctionsKt {
 	public static final fun defaultTextContentType (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;)Lio/ktor/http/ContentType;
-	public static final fun respond (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun respond (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Lio/ktor/http/HttpStatusCode;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun respond (Lio/ktor/application/ApplicationCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun respondBytes (Lio/ktor/application/ApplicationCall;[BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondBytes$default (Lio/ktor/application/ApplicationCall;Lio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -1118,6 +1118,11 @@ public abstract interface class io/ktor/response/ResponsePushBuilder {
 	public abstract fun getUrl ()Lio/ktor/http/URLBuilder;
 	public abstract fun getVersions ()Ljava/util/List;
 	public abstract fun setMethod (Lio/ktor/http/HttpMethod;)V
+}
+
+public final class io/ktor/response/ResponseTypeKt {
+	public static final fun getResponseType (Lio/ktor/response/ApplicationResponse;)Lkotlin/reflect/KType;
+	public static final fun setResponseType (Lio/ktor/response/ApplicationResponse;Lkotlin/reflect/KType;)V
 }
 
 public abstract interface annotation class io/ktor/response/UseHttp2Push : java/lang/annotation/Annotation {

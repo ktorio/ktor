@@ -14,6 +14,7 @@ import io.ktor.serialization.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlin.reflect.*
 import kotlin.test.*
 
 class SerializationTest {
@@ -378,7 +379,7 @@ class SerializationTest {
             get("/array") {
                 call.respond(buildJsonObject {
                     put("a", "1")
-                    put("b",  buildJsonArray {
+                    put("b", buildJsonArray {
                         add("c")
                         add(JsonPrimitive(2))
                     })
@@ -403,11 +404,13 @@ class SerializationTest {
         }
         application.routing {
             get("/map") {
-                call.respond(mapOf(
-                    "a" to "1",
-                    null to "2",
-                    "b" to null
-                ))
+                call.respond(
+                    mapOf(
+                        "a" to "1",
+                        null to "2",
+                        "b" to null
+                    )
+                )
             }
         }
 
@@ -416,13 +419,135 @@ class SerializationTest {
             assertEquals("""{"a":"1",null:"2","b":null}""", it.response.content)
         }
     }
+
+    @Test
+    fun testRespondPolymorphic(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/sealed") {
+                call.respond(listOf(TestSealed.A("valueA"), TestSealed.B("valueB")))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/sealed") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals(
+                """[{"type":"io.ktor.tests.serialization.TestSealed.A","valueA":"valueA"},{"type":"io.ktor.tests.serialization.TestSealed.B","valueB":"valueB"}]""",
+                call.response.content
+            )
+        }
+    }
+
+    @Test
+    fun testRespondAny(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                call.respond(listOf(TextPlainData(777), TextPlainData(888)) as Any)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals(
+                """[{"x":777},{"x":888}]""",
+                call.response.content
+            )
+        }
+    }
+
+    @Test
+    fun testRespondDifferentRuntimeTypes(): Unit = withTestApplication {
+        var counter = 0
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                call.respond(
+                    when (counter) {
+                        0 -> TextPlainData(777)
+                        1 -> TestSealed.A("A")
+                        2 -> TestSealed.B("B")
+                        else -> HttpStatusCode.Accepted
+                    }
+                )
+                counter++
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"x":777}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueA":"A"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""{"valueB":"B"}""", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("Accept", "application/json")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Accepted, call.response.status())
+            assertNull(call.response.content)
+        }
+    }
+
+    @Test
+    fun testGeneric(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            json()
+        }
+        application.routing {
+            get("/generic") {
+                call.respond(GenericEntity(id = 1, data = "asd"))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/generic").let {
+            assertEquals(HttpStatusCode.OK, it.response.status())
+            assertEquals("""{"id":1,"data":"asd"}""", it.response.content)
+        }
+    }
 }
+
+@Serializable
+data class GenericEntity<T>(val id: Int, val data: T)
 
 @Serializable
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 
 @Serializable
 data class ChildEntity(val item: String, val quantity: Int)
+
+@Serializable
+sealed class TestSealed {
+    @Serializable
+    data class A(val valueA: String) : TestSealed()
+
+    @Serializable
+    data class B(val valueB: String) : TestSealed()
+}
 
 private fun SerializationConverter(): SerializationConverter =
     SerializationConverter(DefaultJson)
