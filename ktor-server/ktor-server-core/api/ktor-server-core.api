@@ -1620,16 +1620,19 @@ public final class io/ktor/sessions/CookieConfiguration {
 
 public final class io/ktor/sessions/CookieIdSessionBuilder : io/ktor/sessions/CookieSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
 	public final fun identity (Lkotlin/jvm/functions/Function0;)V
 }
 
 public class io/ktor/sessions/CookieSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getCookie ()Lio/ktor/sessions/CookieConfiguration;
 	public final fun getSerializer ()Lio/ktor/sessions/SessionSerializer;
 	public final fun getTransformers ()Ljava/util/List;
 	public final fun getType ()Lkotlin/reflect/KClass;
+	public final fun getTypeInfo ()Lkotlin/reflect/KType;
 	public final fun setSerializer (Lio/ktor/sessions/SessionSerializer;)V
 	public final fun transform (Lio/ktor/sessions/SessionTransportTransformer;)V
 }
@@ -1643,15 +1646,18 @@ public abstract interface class io/ktor/sessions/CurrentSession {
 
 public final class io/ktor/sessions/HeaderIdSessionBuilder : io/ktor/sessions/HeaderSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getSessionIdProvider ()Lkotlin/jvm/functions/Function0;
 	public final fun identity (Lkotlin/jvm/functions/Function0;)V
 }
 
 public class io/ktor/sessions/HeaderSessionBuilder {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public final fun getSerializer ()Lio/ktor/sessions/SessionSerializer;
 	public final fun getTransformers ()Ljava/util/List;
 	public final fun getType ()Lkotlin/reflect/KClass;
+	public final fun getTypeInfo ()Lkotlin/reflect/KType;
 	public final fun setSerializer (Lio/ktor/sessions/SessionSerializer;)V
 	public final fun transform (Lio/ktor/sessions/SessionTransportTransformer;)V
 }
@@ -1692,6 +1698,7 @@ public final class io/ktor/sessions/SessionSerializerReflection : io/ktor/sessio
 
 public final class io/ktor/sessions/SessionSerializerReflectionKt {
 	public static final fun autoSerializerOf (Lkotlin/reflect/KClass;)Lio/ktor/sessions/SessionSerializerReflection;
+	public static final fun defaultSessionSerializer (Lkotlin/reflect/KType;)Lio/ktor/sessions/SessionSerializer;
 }
 
 public abstract interface class io/ktor/sessions/SessionStorage {
