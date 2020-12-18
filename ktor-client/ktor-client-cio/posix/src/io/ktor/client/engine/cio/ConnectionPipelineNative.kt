@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 internal actual class ConnectionPipeline actual constructor(
     keepAliveTime: Long,
     pipelineMaxSize: Int,
-    socket: Socket,
+    connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
     parentContext: CoroutineContext
