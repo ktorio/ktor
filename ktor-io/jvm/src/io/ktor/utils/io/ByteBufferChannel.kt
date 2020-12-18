@@ -2235,14 +2235,11 @@ internal open class ByteBufferChannel(
         return sb.toString()
     }
 
-    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
-        val result = if (isClosedForWrite) {
-            remainingPacket(limit, headerSizeHint)
-        } else {
-            readRemainingSuspend(limit, headerSizeHint)
-        }
-
-        return result
+    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket = if (isClosedForWrite) {
+        closedCause?.let { throw it }
+        remainingPacket(limit, headerSizeHint)
+    } else {
+        readRemainingSuspend(limit, headerSizeHint)
     }
 
     private fun remainingPacket(limit: Long, headerSizeHint: Int): ByteReadPacket = buildPacket(headerSizeHint) {
