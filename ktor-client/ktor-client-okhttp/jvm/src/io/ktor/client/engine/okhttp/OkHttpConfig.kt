@@ -32,7 +32,7 @@ public class OkHttpConfig : HttpClientEngineConfig() {
      * If provided, this [WebSocket.Factory] will be used to create [WebSocket] instances.
      * Otherwise, [OkHttpClient] is used directly.
      */
-    var webSocketFactory: WebSocket.Factory? = null
+    public var webSocketFactory: WebSocket.Factory? = null
 
     /**
      * Configure [OkHttpClient] using [OkHttpClient.Builder].

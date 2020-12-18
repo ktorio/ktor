@@ -4,12 +4,17 @@
 
 package io.ktor.client.engine.okhttp
 
+import io.ktor.client.*
+import io.ktor.client.features.websocket.*
+import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import java.lang.RuntimeException
 import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 class OkHttpWebsocketSessionTest {
+
     @Test
     fun testOnFailure() {
         val client = OkHttpClient()
@@ -27,4 +32,28 @@ class OkHttpWebsocketSessionTest {
         }
         runBlocking { job.join() }
     }
+
+    @Test
+    fun testWebSocketFactory() {
+        val client = HttpClient(OkHttp) {
+            install(WebSockets)
+
+            engine {
+                webSocketFactory = object : WebSocket.Factory {
+                    override fun newWebSocket(request: Request, listener: WebSocketListener): WebSocket {
+                        throw FactoryUsedException()
+                    }
+                }
+            }
+        }
+
+        runBlocking {
+            assertFailsWith<FactoryUsedException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                }
+            }
+        }
+    }
 }
+
+private class FactoryUsedException : Exception()
