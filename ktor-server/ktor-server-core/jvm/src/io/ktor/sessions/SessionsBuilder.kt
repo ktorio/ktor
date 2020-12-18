@@ -6,6 +6,7 @@ package io.ktor.sessions
 
 import io.ktor.util.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 
 /**
  * Configure sessions to get it from cookie using session [storage]
@@ -293,7 +294,7 @@ constructor(
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = defaultSessionSerializer(type.starProjectedType)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
@@ -327,7 +328,7 @@ constructor(
     /**
      * Session instance serializer
      */
-    public var serializer: SessionSerializer<S> = @Suppress("DEPRECATION") SessionSerializerReflection(type)
+    public var serializer: SessionSerializer<S> = defaultSessionSerializer(type.starProjectedType)
 
     private val _transformers = mutableListOf<SessionTransportTransformer>()
 
