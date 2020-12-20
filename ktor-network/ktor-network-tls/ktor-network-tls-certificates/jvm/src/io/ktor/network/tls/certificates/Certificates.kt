@@ -171,7 +171,7 @@ public fun KeyStore.trustStore(file: File? = null, password: CharArray = "change
         trustStore.setCertificateEntry(alias, cert)
     }
     file?.parentFile?.mkdirs()
-    file?.outputStream().use {
+    file?.outputStream()?.use {
         trustStore.store(it, password)
     }
     return trustStore
