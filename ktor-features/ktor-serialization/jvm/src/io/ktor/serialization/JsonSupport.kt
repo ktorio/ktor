@@ -93,6 +93,21 @@ public fun ContentNegotiation.Configuration.json(
 }
 
 /**
+ * Register `application/json` (or another specified [contentType]) content type
+ * to [ContentNegotiation] feature using kotlinx.serialization.
+ *
+ * @param contentType to register with, application/json by default
+ * @param jsonBuilder to configure the json instance
+ */
+@OptIn(ExperimentalSerializationApi::class)
+public inline fun ContentNegotiation.Configuration.json(
+    contentType: ContentType = ContentType.Application.Json,
+    crossinline jsonBuilder: JsonBuilder.() -> Unit
+) {
+    json(Json { jsonBuilder() }, contentType)
+}
+
+/**
  * Register kotlinx.serialization converter into [ContentNegotiation] feature
  */
 @Suppress("unused")
