@@ -36,6 +36,19 @@ public val DefaultJsonConfiguration: Json = Json {
 }
 
 /**
+ * Applies the default json configuration for Ktor to this [JsonBuilder].
+ * @see DefaultJson
+ */
+public fun JsonBuilder.setKtorDefaults() {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
+    useArrayPolymorphism = true
+}
+
+/**
  * The default json configuration used in [SerializationConverter]. The settings are:
  * - defaults are serialized
  * - mode is not strict so extra json fields are ignored
@@ -46,12 +59,7 @@ public val DefaultJsonConfiguration: Json = Json {
  * See [Json] for more details.
  */
 public val DefaultJson: Json = Json {
-    encodeDefaults = true
-    isLenient = true
-    allowSpecialFloatingPointValues = true
-    allowStructuredMapKeys = true
-    prettyPrint = false
-    useArrayPolymorphism = true
+    setKtorDefaults()
 }
 
 /**
@@ -97,14 +105,23 @@ public fun ContentNegotiation.Configuration.json(
  * to [ContentNegotiation] feature using kotlinx.serialization.
  *
  * @param contentType to register with, application/json by default
+ * @param applyDefaultConfiguration specifies whether the standard configuration for ktor should be applied
  * @param jsonBuilder to configure the json instance
  */
 @OptIn(ExperimentalSerializationApi::class)
 public inline fun ContentNegotiation.Configuration.json(
     contentType: ContentType = ContentType.Application.Json,
+    applyDefaultConfiguration: Boolean = true,
     crossinline jsonBuilder: JsonBuilder.() -> Unit
 ) {
-    json(Json { jsonBuilder() }, contentType)
+    json(
+        Json {
+            if (applyDefaultConfiguration)
+                setKtorDefaults()
+            jsonBuilder()
+        },
+        contentType
+    )
 }
 
 /**
