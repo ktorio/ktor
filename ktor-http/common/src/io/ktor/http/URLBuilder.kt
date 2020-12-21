@@ -54,7 +54,7 @@ public class URLBuilder(
      * Encode [components] to [encodedPath]
      */
     public fun path(components: List<String>): URLBuilder {
-        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
+        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLPath() }
 
         return this
     }
