@@ -33,12 +33,15 @@ public fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflect
     defaultSessionSerializer<T>(type.starProjectedType) as SessionSerializerReflection<T>
 
 /**
- * Creates the the default [SessionSerializer] for type [T]
+ * Creates the default [SessionSerializer] for type [T]
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified T : Any> defaultSessionSerializer(): SessionSerializer<T> =
     defaultSessionSerializer(typeOf<T>())
 
+/**
+ * Creates the default [SessionSerializer] by [typeInfo]
+ */
 @Suppress("DEPRECATION")
 public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerializer<T> =
     SessionSerializerReflection(typeInfo)
