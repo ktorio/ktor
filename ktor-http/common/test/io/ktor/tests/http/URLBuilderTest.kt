@@ -180,6 +180,17 @@ internal class URLBuilderTest {
         assertEquals("/path/%F0%9F%90%95", url.encodedPath)
     }
 
+    @Test
+    fun testPathEncoding() {
+        val url = URLBuilder().apply {
+            host = "ktor.io"
+            port = 80
+            path("id+test&test~test#test")
+        }.buildString()
+
+        assertEquals("http://ktor.io/id+test&test~test%23test", url)
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */
