@@ -1,3 +1,39 @@
+# 1.5.0
+> Published 22 Dec 2020
+
+* Fixed crash when sending large responses in 1.4.2 ([KTOR-1369](https://youtrack.jetbrains.com/issue/KTOR-1369))
+* Introduced URLBuilder function to append paths ([KTOR-403](https://youtrack.jetbrains.com/issue/KTOR-403))
+* Allowed `OkHttpConfig` to configure `WebSocket.Factory` ([KTOR-951](https://youtrack.jetbrains.com/issue/KTOR-951))
+* Get client certificate information from request ([KTOR-424](https://youtrack.jetbrains.com/issue/KTOR-424))
+* Fixed quoting `Content-Disposition` additional parameters ([KTOR-455](https://youtrack.jetbrains.com/issue/KTOR-455))
+* Support Java HTTP Client ([KTOR-348](https://youtrack.jetbrains.com/issue/KTOR-348))
+* Serializing collections of different element types ([KTOR-1163](https://youtrack.jetbrains.com/issue/KTOR-1163))
+* Introduced Netty `tcpKeepAlive` option ([KTOR-368](https://youtrack.jetbrains.com/issue/KTOR-368))
+* Implemented development mode for Ktor ([KTOR-1184](https://youtrack.jetbrains.com/issue/KTOR-1184))
+* Implemented proper unhandled exception handling strategy ([KTOR-835](https://youtrack.jetbrains.com/issue/KTOR-835))
+* Added OAuth feature config to avoid Dropbox issue ([KTOR-715](https://youtrack.jetbrains.com/issue/KTOR-715))
+* Fixed trailing slashes handling in routing ([KTOR-372](https://youtrack.jetbrains.com/issue/KTOR-372))
+* Added CIO client proxy tunneling support ([KTOR-1458](https://youtrack.jetbrains.com/issue/KTOR-1458))
+* Supported Sealed Classes inside Session-Objects ([KTOR-826](https://youtrack.jetbrains.com/issue/KTOR-826))
+* Fixed code autoreload ([KTOR-664](https://youtrack.jetbrains.com/issue/KTOR-664))
+* Added response text to the message of `ResponseException` and derived
+  exceptions ([KTOR-844](https://youtrack.jetbrains.com/issue/KTOR-844))
+* Added ability to send cookies with `HttpRequestBuilder` ([KTOR-926](https://youtrack.jetbrains.com/issue/KTOR-926))
+* Added warning to HTTP/2 push API ([KTOR-1329](https://youtrack.jetbrains.com/issue/KTOR-1329))
+* Fixed parsing Authorization header diagnostics ([KTOR-1406](https://youtrack.jetbrains.com/issue/KTOR-1406))
+* Fixed CORS character encoding issue ([KTOR-1370](https://youtrack.jetbrains.com/issue/KTOR-1370))
+* Added CORS `anyHeader` in feature configuration ([KTOR-977](https://youtrack.jetbrains.com/issue/KTOR-977),
+  [KTOR-1263](https://youtrack.jetbrains.com/issue/KTOR-1263))
+* Added curl engine option sslVerify ([KTOR-1093](https://youtrack.jetbrains.com/issue/KTOR-1093))
+* Fixed client response validation in some cases ([KTOR-1412](https://youtrack.jetbrains.com/issue/KTOR-1412))
+* Introduced support for pre-compresed files ([KTOR-1447](https://youtrack.jetbrains.com/issue/KTOR-1447))
+* Fixed Apache client engine sometimes hits an unrecoverable socket timeout when using
+  ChannelWriterContent ([KTOR-1149](https://youtrack.jetbrains.com/issue/KTOR-1149))
+* Fixed typo `val socketTimeout` in `CIOEngineConfig` cause it's a property in the
+  config ([KTOR-1240](https://youtrack.jetbrains.com/issue/KTOR-1240))
+* Added excludeSuffix to HttpsRedirect feature ([KTOR-1197](https://youtrack.jetbrains.com/issue/KTOR-1197))
+* Fixed CIO client connectRetryAttempts = 0 handling ([KTOR-1125](https://youtrack.jetbrains.com/issue/KTOR-1125))
+
 # 1.4.3
 > Published 1 Dec 2020
 
