@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
 import io.ktor.utils.io.concurrent.*
+import kotlin.jvm.*
 import kotlin.native.concurrent.*
 
 @SharedImmutable
@@ -57,6 +58,7 @@ public open class ResponseException(
     @Deprecated(level = DeprecationLevel.WARNING, message = DEPRECATED_EXCEPTION_CTOR)
     public constructor(response: HttpResponse): this(response, NO_RESPONSE_TEXT)
 
+    @delegate:Transient
     private val _response: HttpResponse? by threadLocal(response)
     public val response: HttpResponse
         get() = _response ?: error("Failed to access response from a different native thread")
