@@ -33,6 +33,7 @@
   config ([KTOR-1240](https://youtrack.jetbrains.com/issue/KTOR-1240))
 * Added excludeSuffix to HttpsRedirect feature ([KTOR-1197](https://youtrack.jetbrains.com/issue/KTOR-1197))
 * Fixed CIO client connectRetryAttempts = 0 handling ([KTOR-1125](https://youtrack.jetbrains.com/issue/KTOR-1125))
+* CIO TLSConfigBuilder JVM Use only specific alias ([KTOR-941](https://youtrack.jetbrains.com/issue/KTOR-941))
 
 # 1.4.3
 > Published 1 Dec 2020
