@@ -16,6 +16,7 @@ import kotlinx.serialization.modules.*
  */
 public fun JsonBuilder.setKtorDefaults() {
     encodeDefaults = true
+    ignoreUnknownKeys = true
     isLenient = true
     allowSpecialFloatingPointValues = true
     allowStructuredMapKeys = true
