@@ -2,17 +2,27 @@ package io.ktor.utils.io.internal
 
 @Suppress("LocalVariableName")
 internal class RingBufferCapacity(private val totalCapacity: Int) {
-    @Volatile
-    @JvmField
-    var availableForRead = 0
+    val _availableForRead: AtomicInt = atomic(0)
+    val _availableForWrite: AtomicInt = atomic(totalCapacity)
+    val _pendingToFlush: AtomicInt = atomic(0)
 
-    @Volatile
-    @JvmField
-    var availableForWrite = totalCapacity
+    inline var availableForRead: Int
+        get() = _availableForRead.value
+        set(value) {
+            _availableForRead.value = value
+        }
 
-    @Volatile
-    @JvmField
-    var pendingToFlush = 0
+    inline var availableForWrite: Int
+        get() = _availableForWrite.value
+        set(value) {
+            _availableForWrite.value = value
+        }
+
+    inline var pendingToFlush: Int
+        get() = _pendingToFlush.value
+        set(value) {
+            _pendingToFlush.value = value
+        }
 
     // concurrent unsafe!
     fun resetForWrite() {
