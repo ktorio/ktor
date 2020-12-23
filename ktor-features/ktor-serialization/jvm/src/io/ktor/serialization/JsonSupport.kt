@@ -11,6 +11,19 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 
 /**
+ * Applies the default json configuration for Ktor to this [JsonBuilder].
+ * @see DefaultJson
+ */
+public fun JsonBuilder.setKtorDefaults() {
+    encodeDefaults = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    allowStructuredMapKeys = true
+    prettyPrint = false
+    useArrayPolymorphism = true
+}
+
+/**
  * The default json configuration used in [SerializationConverter]. The settings are:
  * - defaults are serialized
  * - mode is not strict so extra json fields are ignored
@@ -27,25 +40,7 @@ import kotlinx.serialization.modules.*
 )
 @Suppress("unused")
 public val DefaultJsonConfiguration: Json = Json {
-    encodeDefaults = true
-    isLenient = true
-    allowSpecialFloatingPointValues = true
-    allowStructuredMapKeys = true
-    prettyPrint = false
-    useArrayPolymorphism = true
-}
-
-/**
- * Applies the default json configuration for Ktor to this [JsonBuilder].
- * @see DefaultJson
- */
-public fun JsonBuilder.setKtorDefaults() {
-    encodeDefaults = true
-    isLenient = true
-    allowSpecialFloatingPointValues = true
-    allowStructuredMapKeys = true
-    prettyPrint = false
-    useArrayPolymorphism = true
+    setKtorDefaults()
 }
 
 /**
