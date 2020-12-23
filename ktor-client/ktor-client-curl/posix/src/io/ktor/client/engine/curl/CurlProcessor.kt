@@ -60,6 +60,7 @@ internal class CurlProcessor(
 
     public fun close() {
         worker.execute(TransferMode.SAFE, { Unit }) { curlApi.close() }
+        worker.requestTermination()
     }
 
     private fun poll(): Future<List<CurlResponseData>> =
