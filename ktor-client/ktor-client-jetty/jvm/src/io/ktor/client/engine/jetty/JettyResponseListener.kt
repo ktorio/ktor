@@ -79,6 +79,20 @@ internal class JettyResponseListener(
         }
     }
 
+    override fun onFailure(stream: Stream?, error: Int, reason: String?, failure: Throwable?, callback: Callback?) {
+        callback?.succeeded()
+
+        val messagePrefix = reason ?: "HTTP/2 failure"
+        val message = when (error) {
+            0 -> messagePrefix
+            else -> "$messagePrefix, code $error"
+        }
+
+        val cause = IOException(message, failure)
+        backendChannel.close(cause)
+        onHeadersReceived.completeExceptionally(cause)
+    }
+
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
         frame.metaData.fields.forEach { field ->
             headersBuilder.append(field.name, field.value)
