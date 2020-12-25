@@ -493,32 +493,34 @@ internal open class ByteBufferChannel(
         return consumed
     }
 
-    private tailrec fun readAsMuchAsPossible(dst: Buffer, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
-        var consumed = 0
+    private fun readAsMuchAsPossible(dst: Buffer, consumed: Int = 0, max: Int = dst.writeRemaining): Int {
+        var currentConsumed = consumed
+        var currentMax = max
 
-        val rc = reading {
-            val dstSize = dst.writeRemaining
-            val part = it.tryReadAtMost(minOf(remaining(), dstSize, max))
-            if (part > 0) {
-                consumed += part
+        do {
+            var part = 0
+            val count = reading {
+                val dstSize = dst.writeRemaining
+                part = it.tryReadAtMost(minOf(remaining(), dstSize, currentMax))
+                if (part <= 0) {
+                    return@reading false
+                }
 
                 if (dstSize < remaining()) {
                     limit(position() + dstSize)
                 }
+
                 dst.writeFully(this)
 
                 bytesRead(it, part)
-                true
-            } else {
-                false
+                return@reading true
             }
-        }
 
-        return if (rc && dst.canWrite() && state.capacity.availableForRead > 0) {
-            readAsMuchAsPossible(dst, consumed0 + consumed, max - consumed)
-        } else {
-            consumed + consumed0
-        }
+            currentConsumed += part
+            currentMax -= part
+        } while (count && dst.canWrite() && state.capacity.availableForRead > 0)
+
+        return currentConsumed
     }
 
     private fun readAsMuchAsPossible(dst: ByteArray, offset: Int, length: Int): Int {
@@ -601,14 +603,20 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private tailrec suspend fun readFullySuspend(dst: ByteArray, offset: Int, length: Int) {
-        if (!readSuspend(1)) throw ClosedReceiveChannelException("Unexpected EOF: expected $length more bytes")
+    private suspend fun readFullySuspend(dst: ByteArray, offset: Int, length: Int) {
+        var currentOffset = offset
+        var currentLength = length
 
-        val consumed = readAsMuchAsPossible(dst, offset, length)
+        var consumed = 0
+        do {
+            if (!readSuspend(1)) {
+                throw ClosedReceiveChannelException("Unexpected EOF: expected $currentLength more bytes")
+            }
+            currentOffset += consumed
+            currentLength -= consumed
 
-        if (consumed < length) {
-            readFullySuspend(dst, offset + consumed, length - consumed)
-        }
+            consumed = readAsMuchAsPossible(dst, currentOffset, currentLength)
+        } while (consumed < currentLength)
     }
 
     override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
@@ -696,7 +704,7 @@ internal open class ByteBufferChannel(
                     -1
                 }
             }
-            (consumed > 0 || !dst.canWrite()) -> consumed
+            consumed > 0 || !dst.canWrite() -> consumed
             else -> readAvailableSuspend(dst)
         }
     }
@@ -818,31 +826,31 @@ internal open class ByteBufferChannel(
         return longBitsToDouble(readPrimitive(8, ByteBuffer::getLong))
     }
 
-    private tailrec suspend fun <T : Number> readPrimitive(
+    private suspend inline fun <T : Number> readPrimitive(
         size: Int,
         getter: ByteBuffer.() -> T
     ): T {
-        lateinit var result: T
+        while (true) {
+            lateinit var result: T
 
-        val rc = reading {
-            if (!it.tryReadExact(size)) {
-                return@reading false
+            val rc = reading {
+                if (!it.tryReadExact(size)) {
+                    return@reading false
+                }
+
+                if (remaining() < size) rollBytes(size)
+                result = getter()
+                bytesRead(it, size)
+                return@reading true
             }
 
-            if (remaining() < size) rollBytes(size)
-            result = getter()
-            bytesRead(it, size)
-            return@reading true
+            if (rc) {
+                return result
+            }
+            if (!readSuspend(size)) {
+                throw ClosedReceiveChannelException("EOF while $size bytes expected")
+            }
         }
-
-        if (rc) {
-            return result
-        }
-        if (!readSuspend(size)) {
-            throw ClosedReceiveChannelException("EOF while $size bytes expected")
-        }
-
-        return readPrimitive(size, getter)
     }
 
     private fun ByteBuffer.rollBytes(n: Int) {
@@ -1224,7 +1232,7 @@ internal open class ByteBufferChannel(
                                 srcBuffer.bytesRead(srcState, n)
                             }
 
-                            return@reading  true
+                            return@reading true
                         }
 
                         if (partSize <= 0) {
@@ -1407,10 +1415,16 @@ internal open class ByteBufferChannel(
         return writeFullySuspend(src, off, rem)
     }
 
-    private tailrec suspend fun writeFullySuspend(src: ByteArray, offset: Int, length: Int) {
-        if (length == 0) return
-        val copied = writeAvailable(src, offset, length)
-        return writeFullySuspend(src, offset + copied, length - copied)
+    private suspend fun writeFullySuspend(src: ByteArray, offset: Int, length: Int) {
+        var offset = offset
+        var length = length
+
+        while (length > 0) {
+            val copied = writeAvailable(src, offset, length)
+
+            offset += copied
+            length -= copied
+        }
     }
 
     override suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int {
@@ -1461,7 +1475,7 @@ internal open class ByteBufferChannel(
             check(l == dst.limit()) { "Buffer limit modified" }
 
             result = dst.position() - position
-            check(result >= 0) { "Position has been moved backward: pushback is not supported"}
+            check(result >= 0) { "Position has been moved backward: pushback is not supported" }
             if (result < 0) throw IllegalStateException()
 
             dst.bytesWritten(state, result)
@@ -1558,7 +1572,7 @@ internal open class ByteBufferChannel(
                 throw cause
             }
 
-            check (dst.limit() == l) { "Buffer limit modified." }
+            check(dst.limit() == l) { "Buffer limit modified." }
             val actuallyWritten = dst.position() - position
             check(actuallyWritten >= 0) { "Position has been moved backward: pushback is not supported." }
 
@@ -2176,21 +2190,21 @@ internal open class ByteBufferChannel(
         return readSuspendLoop(size)
     }
 
-    private tailrec suspend fun readSuspendLoop(size: Int): Boolean {
-        val capacity = state.capacity
-        if (capacity.availableForRead >= size) return true
+    private suspend fun readSuspendLoop(size: Int): Boolean {
+        do {
+            val capacity = state.capacity
+            if (capacity.availableForRead >= size) return true
 
-        closed?.let { value ->
-            if (value.cause != null) rethrowClosed(value.cause)
-            val afterCapacity = state.capacity
-            val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
-            if (readOp != null) throw IllegalStateException("Read operation is already in progress")
-            return result
-        }
+            closed?.let { value ->
+                if (value.cause != null) rethrowClosed(value.cause)
+                val afterCapacity = state.capacity
+                val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
+                if (readOp != null) throw IllegalStateException("Read operation is already in progress")
+                return result
+            }
 
-        if (!readSuspendImpl(size)) return false
-
-        return readSuspendLoop(size)
+            if (!readSuspendImpl(size)) return false
+        } while (true)
     }
 
     private val readSuspendContinuationCache = CancellableReusableContinuation<Boolean>()
@@ -2199,11 +2213,10 @@ internal open class ByteBufferChannel(
     private inline fun readSuspendPredicate(size: Int): Boolean {
         val state = state
 
-        return (state.capacity.availableForRead < size &&
-            joining == null ||
-            writeOp == null ||
-            state !== ReadWriteBufferState.IdleEmpty &&
-            state !is ReadWriteBufferState.IdleNonEmpty)
+        return state.capacity.availableForRead < size &&
+            (joining == null ||
+                writeOp == null ||
+                (state !== ReadWriteBufferState.IdleEmpty && state !is ReadWriteBufferState.IdleNonEmpty))
     }
 
     private fun suspensionForSize(size: Int, continuation: Continuation<Boolean>): Any {
@@ -2331,7 +2344,7 @@ internal open class ByteBufferChannel(
         while (true) {
             val current = getter()
             if (current != null) {
-                throw IllegalStateException("Operation is already in progress")
+                throw IllegalStateException("Operation is already in progress" )
             }
 
             if (!predicate()) {
