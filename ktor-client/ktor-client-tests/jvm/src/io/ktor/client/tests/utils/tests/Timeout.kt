@@ -61,7 +61,7 @@ internal fun Application.timeoutTest() {
                     count += read
                     if (count >= 1024 * 1024) {
                         count = 0
-                        delay(1000)
+                        delay(2000)
                     }
                 }
 
