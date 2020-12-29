@@ -82,7 +82,7 @@ public suspend fun parseHttpBody(
             transferEncoding.equalsLowerCase(other = "identity") -> {
                 // do nothing special
             }
-            else -> out.close(IllegalStateException("Unsupported transfer-encoding $transferEncoding"))
+            else -> throw IllegalArgumentException("Unsupported transfer-encoding $transferEncoding")
         }
     }
 
