@@ -15,6 +15,8 @@ import kotlin.native.concurrent.*
 public class ParserException(message: String) : Exception(message)
 
 private const val HTTP_LINE_LIMIT = 8192
+private const val HTTP_STATUS_CODE_MIN_RANGE = 100
+private const val HTTP_STATUS_CODE_MAX_RANGE = 599
 
 /**
  * Parse an HTTP request line and headers
@@ -190,6 +192,10 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
     for (idx in range.start until range.end) {
         val ch = text[idx]
         if (ch == ' ') {
+            if (statusOutOfRange(status)) {
+                throw ParserException("Status code must have a value between $HTTP_STATUS_CODE_MIN_RANGE and $HTTP_STATUS_CODE_MAX_RANGE." +
+                    " Status received: $status.")
+            }
             newStart = idx
             break
         } else if (ch in '0'..'9') {
@@ -204,6 +210,7 @@ private fun parseStatusCode(text: CharSequence, range: MutableRange): Int {
     return status
 }
 
+private fun statusOutOfRange(code: Int) = code < HTTP_STATUS_CODE_MIN_RANGE || code > HTTP_STATUS_CODE_MAX_RANGE
 
 /**
  * Returns index of the next character after the last header name character,
