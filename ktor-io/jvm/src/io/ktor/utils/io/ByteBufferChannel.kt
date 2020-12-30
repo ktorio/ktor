@@ -5,6 +5,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
@@ -17,6 +18,7 @@ import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
+import kotlin.require
 
 internal const val DEFAULT_CLOSE_MESSAGE: String = "Byte channel was closed"
 private const val BYTE_BUFFER_CAPACITY: Int = 4088
@@ -2412,8 +2414,14 @@ internal open class ByteBufferChannel(
             if (nioBuffer.remaining() > offset) {
                 val view = nioBuffer.duplicate()!!
                 view.position(view.position() + offset.toInt())
+
+                val oldLimit = view.limit()
+                val canCopyToDestination = minOf(max, destination.size - destinationOffset)
+                val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
+                view.limit(newLimit.toInt())
                 bytesCopied = view.remaining()
                 view.copyTo(destination, destinationOffset.toInt())
+                view.limit(oldLimit)
             }
         }
 

@@ -12,6 +12,11 @@ import kotlin.contracts.contract
  * By default, if neither [offset] nor [length] specified, the whole array is used.
  * An instance of [Memory] provided into the [block] should be never captured and used outside of lambda.
  */
+/**
+ * TODO: Solve design problems
+ * 1. length has no default
+ * 2. no inline -> can't suspend inside block
+ */
 @ExperimentalIoApi
 public expect fun <R> ByteArray.useMemory(offset: Int = 0, length: Int, block: (Memory) -> R): R
 
