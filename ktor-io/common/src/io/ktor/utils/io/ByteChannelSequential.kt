@@ -108,7 +108,9 @@ public abstract class ByteChannelSequentialBase(
 
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
         while (availableForWrite < count && !closed) {
-            slot.sleep()
+            if (!flushImpl()) {
+                slot.sleep()
+            }
         }
     }
 
@@ -119,10 +121,17 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override fun flush() {
-        if (writable.isNotEmpty) {
-            flushWrittenBytes()
-            slot.resume()
+        flushImpl()
+    }
+
+    private fun flushImpl(): Boolean {
+        if (writable.isEmpty) {
+            return false
         }
+
+        flushWrittenBytes()
+        slot.resume()
+        return true
     }
 
     /**
@@ -870,9 +879,8 @@ public abstract class ByteChannelSequentialBase(
 
             val buffer = request(1) ?: IoBuffer.Empty
             if (buffer.readRemaining > offset) {
-                buffer.discardExact(offset)
-                bytesCopied = minOf(buffer.readRemaining.toLong(), max)
-                buffer.memory.copyTo(destination, buffer.readPosition.toLong(), bytesCopied, destinationOffset)
+                bytesCopied = minOf(buffer.readRemaining.toLong() - offset, max, destination.size - destinationOffset)
+                buffer.memory.copyTo(destination, offset, bytesCopied, destinationOffset)
             }
         }
 
