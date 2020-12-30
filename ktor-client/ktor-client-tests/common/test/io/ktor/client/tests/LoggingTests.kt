@@ -434,6 +434,7 @@ class LoggingTest : ClientLoader() {
                 url("$TEST_SERVER/content/echo")
             }
             assertNotNull(response)
+            assertEquals("test", response.readRemaining().readText())
         }
 
         after {
