@@ -486,6 +486,7 @@ class LoggingTest : ClientLoader() {
             }
 
             assertNotNull(response)
+            response.discard()
         }
 
         after {
