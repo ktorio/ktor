@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.http
@@ -10,13 +10,14 @@ import kotlin.test.*
 class ParametersBuilderTest {
 
     private val original = "abc=def&efg=hij;klm=nop/qrs=tu v"
-    private val encoded = original.encodeURLParameter(spaceToPlus = true)
+    private val encodedKey = original.encodeURLParameter(spaceToPlus = true)
+    private val encodedValue = original.encodeURLParameterValue()
 
     private fun assertEncodedQuery(option: UrlEncodingOption?, expectedKey: String, expectedValue: String) {
         // given that a builder is constructed with the UrlEncodingOption
-        val builder = option
-            ?.let { ParametersBuilder(urlEncodingOption = it) }
-            ?: ParametersBuilder()
+        val builder =
+            if (option == null) ParametersBuilder()
+            else ParametersBuilder(urlEncodingOption = option)
 
         // when the original string is added to the parameters as a key and value
         builder.append(original, original)
@@ -28,22 +29,22 @@ class ParametersBuilderTest {
 
     @Test
     fun defaultConstructorTest() {
-        assertEncodedQuery(null, encoded, encoded)
+        assertEncodedQuery(null, encodedKey, encodedValue)
     }
 
     @Test
     fun defaultEncodingTest() {
-        assertEncodedQuery(UrlEncodingOption.DEFAULT, encoded, encoded)
+        assertEncodedQuery(UrlEncodingOption.DEFAULT, encodedKey, encodedValue)
     }
 
     @Test
     fun keyOnlyEncodingTest() {
-        assertEncodedQuery(UrlEncodingOption.KEY_ONLY, encoded, original)
+        assertEncodedQuery(UrlEncodingOption.KEY_ONLY, encodedKey, original)
     }
 
     @Test
     fun valueOnlyEncodingTest() {
-        assertEncodedQuery(UrlEncodingOption.VALUE_ONLY, original, encoded)
+        assertEncodedQuery(UrlEncodingOption.VALUE_ONLY, original, encodedValue)
     }
 
     @Test

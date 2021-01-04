@@ -800,6 +800,7 @@ public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBui
 	public synthetic fun <init> (ILio/ktor/http/UrlEncodingOption;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun build ()Lio/ktor/http/Parameters;
 	public synthetic fun build ()Lio/ktor/util/StringValues;
+	public final fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
 }
 
 public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, io/ktor/http/Parameters {

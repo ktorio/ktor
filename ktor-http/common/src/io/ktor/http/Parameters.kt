@@ -34,13 +34,13 @@ public interface Parameters : StringValues {
 }
 
 @Suppress("KDocMissingDocumentation")
-class ParametersBuilder(
+public class ParametersBuilder(
     size: Int = 8,
-    private val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+    public val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
 ) : StringValuesBuilder(true, size) {
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    constructor(size: Int = 8) : this(size)
+    public constructor(size: Int = 8) : this(size, UrlEncodingOption.DEFAULT)
 
     override fun build(): Parameters {
         require(!built) { "ParametersBuilder can only build a single Parameters instance" }
@@ -94,7 +94,7 @@ public class ParametersImpl(
 ) : Parameters, StringValuesImpl(true, values) {
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    constructor(values: Map<String, List<String>> = emptyMap()) : this(values)
+    public constructor(values: Map<String, List<String>> = emptyMap()) : this(values, UrlEncodingOption.DEFAULT)
 
     override fun toString(): String = "Parameters ${entries()}"
 }
