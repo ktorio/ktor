@@ -82,8 +82,7 @@ private suspend fun handleProxyTunnel(
     output.writeStringUtf8("HTTP/1.1 200 Connection established\r\n\r\n")
     output.flush()
 
-    val hostPort = statusLine.split(" ")[1].substringAfter("://").dropLastWhile { it == '/' }
-
+    val hostPort = statusLine.split(" ")[1]
     val host = hostPort.substringBefore(":")
     val port = hostPort.substringAfter(":", "80").toInt()
 
