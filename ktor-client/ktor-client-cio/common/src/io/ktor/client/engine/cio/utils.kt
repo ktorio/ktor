@@ -146,9 +146,7 @@ internal suspend fun startTunnel(
     val builder = RequestResponseBuilder()
 
     try {
-        val urlString = request.url.toString()
-
-        builder.requestLine(HttpMethod("CONNECT"), urlString, HttpProtocolVersion.HTTP_1_1.toString())
+        builder.requestLine(HttpMethod("CONNECT"), request.url.hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
         // this will only add the port to the host header if the port is non-standard for the protocol
         val host = if (request.url.protocol.defaultPort == request.url.port) {
             request.url.host
