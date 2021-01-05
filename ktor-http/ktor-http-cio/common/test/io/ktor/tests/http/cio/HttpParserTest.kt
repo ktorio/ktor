@@ -145,7 +145,7 @@ class HttpParserTest {
             HTTP/1.1 100 OK
             """.trimIndent(),
                 """
-            HTTP/1.1 599 OK
+            HTTP/1.1 999 OK
             """.trimIndent()
         ).forEach {
             val response = parseResponse(ByteReadChannel(it))!!
@@ -156,13 +156,20 @@ class HttpParserTest {
     @Test
     fun parseStatusCodeShouldFailWhenOutOfRange(): Unit = test {
         assertFailsWith<ParserException> {
+            parseResponse(ByteReadChannel("HTTP/1.1 0 OK"))!!
+        }
+        assertFailsWith<ParserException> {
             parseResponse(ByteReadChannel("HTTP/1.1 99 OK"))!!
         }
         assertFailsWith<ParserException> {
-            parseResponse(ByteReadChannel("HTTP/1.1 600 OK"))!!
-        }
-        assertFailsWith<ParserException> {
             parseResponse(ByteReadChannel("HTTP/1.1 1000 OK"))!!
+        }
+    }
+
+    @Test
+    fun parseStatusCodeShouldFailWhenStatusCodeIsNegative(): Unit = test {
+        assertFailsWith<NumberFormatException> {
+            parseResponse(ByteReadChannel("HTTP/1.1 -100 OK"))!!
         }
     }
 
