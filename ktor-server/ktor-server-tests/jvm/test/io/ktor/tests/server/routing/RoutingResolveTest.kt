@@ -56,7 +56,7 @@ class RoutingResolveTest {
     @Test
     fun testEmptyRoutingWithHandle() {
         val root = routing()
-        root.handle {  }
+        root.handle { }
         val result = resolve(root, "/")
         assertTrue(result is RoutingResolveResult.Success)
         assertEquals(root, result.route)
@@ -65,7 +65,7 @@ class RoutingResolveTest {
     @Test
     fun singleSlashRoutingWithHandle() {
         val root = routing("/")
-        root.handle {  }
+        root.handle { }
         val result = resolve(root, "/")
         assertTrue(result is RoutingResolveResult.Success)
         assertEquals(root, result.route)
@@ -972,6 +972,39 @@ class RoutingResolveTest {
             }
             it("baz/ should not be called") {
                 assertFalse(result.requestHandled)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingWithSlashSingleCharacterInTheMiddle() = withTestApplication {
+        application.routing {
+            route("/") {
+                get("/foo") {
+                    call.respondText("foo")
+                }
+                handle {
+                    call.respondText("bar")
+                }
+            }
+        }
+
+        on("making / request") {
+            val result = handleRequest {
+                uri = "/"
+                method = HttpMethod.Get
+            }
+            it("/ should be called") {
+                assertEquals("bar", result.response.content)
+            }
+        }
+        on("making foo request") {
+            val result = handleRequest {
+                uri = "/foo"
+                method = HttpMethod.Get
+            }
+            it("foo should be called") {
+                assertEquals("foo", result.response.content)
             }
         }
     }

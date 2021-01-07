@@ -251,7 +251,8 @@ internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluati
         context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Constant
         segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
-        context.segments[segmentIndex].isEmpty() && context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
+        context.segments[segmentIndex].isNotEmpty() -> RouteSelectorEvaluation.Constant
+        context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
         else -> RouteSelectorEvaluation.Failed
     }
 
