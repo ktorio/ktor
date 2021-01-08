@@ -538,8 +538,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 call.respondText("Hello, world!", ContentType.Text.Html)
             }
             post("/") {
-                val post = call.receiveParameters()
-                call.respond("$post")
+                call.receiveParameters()
+                fail("We should NOT receive any content")
             }
         }
 

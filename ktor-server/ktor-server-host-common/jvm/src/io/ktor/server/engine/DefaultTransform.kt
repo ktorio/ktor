@@ -15,10 +15,12 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
 import java.io.*
+import kotlin.reflect.jvm.*
 import kotlin.text.*
 
 private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters::class)
@@ -43,7 +45,7 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
 
-        val transformed: Any? = when (query.type) {
+        val transformed: Any? = when (query.typeInfo.jvmErasure) {
             ByteReadChannel::class -> channel
             ByteArray::class -> channel.toByteArray()
             InputStream::class -> receiveGuardedInputStream(channel)
@@ -120,9 +122,10 @@ private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChanne
 private suspend fun ByteReadChannel.readText(
     charset: Charset
 ): String {
-    if (isClosedForRead) return ""
-
     val content = readRemaining(Long.MAX_VALUE)
+    if (content.isEmpty) {
+        return ""
+    }
 
     return try {
         if (charset == Charsets.UTF_8) content.readText()

@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -155,7 +156,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                         requestBody
                     )
                 } catch (cause: Throwable) {
-                    requestBody.close(cause)
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
                     response.writePacket(BadRequestPacket.copy())
                     response.close()
                     break

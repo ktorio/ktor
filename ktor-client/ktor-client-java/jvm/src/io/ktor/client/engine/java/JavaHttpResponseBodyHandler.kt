@@ -27,7 +27,7 @@ internal class JavaHttpResponseBodyHandler(
     }
 
     private class JavaHttpResponseBodySubscriber(
-        callContext: CoroutineContext,
+        private val callContext: CoroutineContext,
         response: HttpResponse.ResponseInfo,
         requestTime: GMTDate
     ) : HttpResponse.BodySubscriber<HttpResponseData>, CoroutineScope {
@@ -48,7 +48,7 @@ internal class JavaHttpResponseBodyHandler(
                 else -> throw IllegalStateException("Unknown HTTP protocol version ${version.name}")
             },
             responseChannel,
-            coroutineContext
+            callContext
         )
 
         private val closed = atomic(false)
@@ -75,6 +75,7 @@ internal class JavaHttpResponseBodyHandler(
             }.apply {
                 invokeOnCompletion {
                     responseChannel.close(it)
+                    consumerJob.complete()
                 }
             }
         }

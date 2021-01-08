@@ -18,7 +18,7 @@ internal class HttpRequestLifecycle {
     /**
      * Companion object for feature installation.
      */
-    public companion object Feature : HttpClientFeature<Unit, HttpRequestLifecycle> {
+    companion object Feature : HttpClientFeature<Unit, HttpRequestLifecycle> {
 
         override val key: AttributeKey<HttpRequestLifecycle> = AttributeKey("RequestLifecycle")
 
