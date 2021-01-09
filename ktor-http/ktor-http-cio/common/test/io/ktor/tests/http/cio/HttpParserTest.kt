@@ -129,6 +129,18 @@ class HttpParserTest {
     }
 
     @Test
+    fun parseHeadersEmptyHeaderNameShouldBeProhibited(): Unit = test {
+        val encodedHeaders = """
+            : value
+        """.trimIndent() + "\r\n\r\n"
+        val channel = ByteReadChannel(encodedHeaders)
+
+        assertFailsWith<ParserException> {
+            parseHeaders(channel).release()
+        }
+    }
+
+    @Test
     fun parseHeadersFoldingShouldBeProhibited(): Unit = test {
         val encodedHeaders = "A:\r\n folding\r\n\r\n"
         val channel = ByteReadChannel(encodedHeaders)
