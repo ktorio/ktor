@@ -221,7 +221,7 @@ internal fun parseHeaderName(text: CharArrayBuilder, range: MutableRange): Int {
 
     while (index < end) {
         val ch = text[index]
-        if (ch == ':') {
+        if (ch == ':' && index != range.start) {
             range.start = index + 1
             return index
         }
