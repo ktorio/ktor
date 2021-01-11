@@ -123,6 +123,7 @@ public abstract class RouteSelector(public val quality: Double) {
  */
 @InternalAPI
 public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
     private val parts = RoutingPath.parse(rootPath).parts.map {
         require(it.kind == RoutingPathSegmentKind.Constant) {
             "rootPath should be constant, no wildcards supported."
@@ -165,8 +166,11 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
  * @param name is a name of the query parameter
  * @param value is a value of the query parameter
  */
-public data class ConstantParameterRouteSelector(val name: String, val value: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class ConstantParameterRouteSelector(
+    val name: String,
+    val value: String
+) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.parameters.contains(name, value)) {
             return RouteSelectorEvaluation.Constant
@@ -181,8 +185,10 @@ public data class ConstantParameterRouteSelector(val name: String, val value: St
  * Evaluates a route against a query parameter value and captures its value
  * @param name is a name of the query parameter
  */
-public data class ParameterRouteSelector(val name: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+public data class ParameterRouteSelector(
+    val name: String
+) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
@@ -202,8 +208,10 @@ public data class ParameterRouteSelector(val name: String) :
  * Evaluates a route against an optional query parameter value and captures its value, if found
  * @param name is a name of the query parameter
  */
-public data class OptionalParameterRouteSelector(val name: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+public data class OptionalParameterRouteSelector(
+    val name: String
+) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null) {
@@ -223,8 +231,9 @@ public data class OptionalParameterRouteSelector(val name: String) :
  * Evaluates a route against a constant path segment
  * @param value is a value of the path segment
  */
-public data class PathSegmentConstantRouteSelector(val value: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class PathSegmentConstantRouteSelector(
+    val value: String
+) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -347,8 +356,10 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEval
  * @param name is the name of the parameter to capture values to
  * @property prefix before the tailcard (static text)
  */
-public data class PathSegmentTailcardRouteSelector(val name: String = "", val prefix: String = "") :
-    RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+public data class PathSegmentTailcardRouteSelector(
+    val name: String = "",
+    val prefix: String = ""
+) : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -400,8 +411,11 @@ public data class PathSegmentTailcardRouteSelector(val name: String = "", val pr
  * @param first is a first selector
  * @param second is a second selector
  */
-public data class OrRouteSelector(val first: RouteSelector, val second: RouteSelector) :
-    RouteSelector(first.quality * second.quality) {
+public data class OrRouteSelector(
+    val first: RouteSelector,
+    val second: RouteSelector
+) : RouteSelector(first.quality * second.quality) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
         if (result.succeeded) {
@@ -419,8 +433,11 @@ public data class OrRouteSelector(val first: RouteSelector, val second: RouteSel
  * @param first is a first selector
  * @param second is a second selector
  */
-public data class AndRouteSelector(val first: RouteSelector, val second: RouteSelector) :
-    RouteSelector(first.quality * second.quality) {
+public data class AndRouteSelector(
+    val first: RouteSelector,
+    val second: RouteSelector
+) : RouteSelector(first.quality * second.quality) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
         if (!result1.succeeded) {
@@ -446,8 +463,10 @@ public data class AndRouteSelector(val first: RouteSelector, val second: RouteSe
  * Evaluates a route against an [HttpMethod]
  * @param method is an instance of [HttpMethod]
  */
-public data class HttpMethodRouteSelector(val method: HttpMethod) :
-    RouteSelector(RouteSelectorEvaluation.qualityMethodParameter) {
+public data class HttpMethodRouteSelector(
+    val method: HttpMethod
+) : RouteSelector(RouteSelectorEvaluation.qualityMethodParameter) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.request.httpMethod == method) {
             return RouteSelectorEvaluation.Constant
@@ -463,8 +482,11 @@ public data class HttpMethodRouteSelector(val method: HttpMethod) :
  * @param name is a name of the header
  * @param value is a value of the header
  */
-public data class HttpHeaderRouteSelector(val name: String, val value: String) :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class HttpHeaderRouteSelector(
+    val name: String,
+    val value: String
+) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val headers = context.call.request.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
@@ -481,8 +503,10 @@ public data class HttpHeaderRouteSelector(val name: String, val value: String) :
  * Evaluates a route against a content-type in the [HttpHeaders.Accept] header in the request
  * @param contentType is an instance of [ContentType]
  */
-public data class HttpAcceptRouteSelector(val contentType: ContentType) :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public data class HttpAcceptRouteSelector(
+    val contentType: ContentType
+) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val acceptHeaderContent = context.call.request.headers[HttpHeaders.Accept]
         try {
