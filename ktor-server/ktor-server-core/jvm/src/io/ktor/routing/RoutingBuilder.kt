@@ -224,13 +224,15 @@ public fun Route.createRouteFromPath(path: String): Route {
     var current: Route = this
     for (index in parts.indices) {
         val (value, kind) = parts[index]
-        val hasTrailingSlash = index == parts.lastIndex && path.endsWith('/')
         val selector = when (kind) {
-            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value, hasTrailingSlash)
-            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value, hasTrailingSlash)
+            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value)
+            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value)
         }
         // there may already be entry with same selector, so join them
         current = current.createChild(selector)
+    }
+    if (path.endsWith("/")) {
+        current = current.createChild(TrailingSlashRouteSelector)
     }
     return current
 }
@@ -242,12 +244,7 @@ public object PathSegmentSelectorBuilder {
     /**
      * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix and a name
      */
-    public fun parseParameter(value: String): RouteSelector = parseParameter(value, false)
-
-    /**
-     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any
-     */
-    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector {
+    public fun parseParameter(value: String): RouteSelector {
         val prefixIndex = value.indexOf('{')
         val suffixIndex = value.lastIndexOf('}')
 
@@ -256,29 +253,44 @@ public object PathSegmentSelectorBuilder {
 
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
-            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix, hasTrailingSlash)
+            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
             signature.endsWith("...") -> {
                 if (suffix != null && suffix.isNotEmpty()) {
                     throw IllegalArgumentException("Suffix after tailcard is not supported")
                 }
-                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "", hasTrailingSlash)
+                PathSegmentTailcardRouteSelector(signature.dropLast(3), prefix ?: "")
             }
-            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix, hasTrailingSlash)
+            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
         }
     }
 
     /**
+     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix, name and trailing slash if any
+     */
+    @Deprecated(
+        "hasTrailingSlash is not used anymore. This is going to be removed",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("parseParameter(value)")
+    )
+    public fun parseParameter(value: String, hasTrailingSlash: Boolean): RouteSelector = parseParameter(value)
+
+    /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter
      */
-    public fun parseConstant(value: String): RouteSelector = parseConstant(value, false)
+    public fun parseConstant(value: String): RouteSelector = when (value) {
+        "*" -> PathSegmentWildcardRouteSelector
+        else -> PathSegmentConstantRouteSelector(value)
+    }
 
     /**
      * Builds a [RouteSelector] to match a constant or wildcard segment parameter and trailing slash if any
      */
-    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = when (value) {
-        "*" -> PathSegmentWildcardRouteSelector
-        else -> PathSegmentConstantRouteSelector(value, hasTrailingSlash)
-    }
+    @Deprecated(
+        "hasTrailingSlash is not used anymore. This is going to be removed",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("parseConstant(value)")
+    )
+    public fun parseConstant(value: String, hasTrailingSlash: Boolean): RouteSelector = parseConstant(value)
 
     /**
      * Parses a name out of segment specification

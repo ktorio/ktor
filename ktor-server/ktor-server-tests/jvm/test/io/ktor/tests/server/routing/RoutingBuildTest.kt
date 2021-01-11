@@ -36,8 +36,8 @@ class RoutingBuildTest {
 
         on("adding routing rules manually") {
             val entry = routing()
-            entry.createChild(PathSegmentConstantRouteSelector("foo", hasTrailingSlash = false))
-                    .createChild(PathSegmentOptionalParameterRouteSelector("new", hasTrailingSlash = false))
+            entry.createChild(PathSegmentConstantRouteSelector("foo"))
+                    .createChild(PathSegmentOptionalParameterRouteSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {

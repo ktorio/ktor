@@ -19,8 +19,8 @@ public class Routing(
     public val application: Application
 ) : Route(
     parent = null,
-    selector = RootRouteSelector(application.environment.rootPath)
-    , application.environment.developmentMode
+    selector = RootRouteSelector(application.environment.rootPath),
+    application.environment.developmentMode
 ) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 

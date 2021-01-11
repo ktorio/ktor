@@ -16,7 +16,7 @@ import kotlin.test.*
 public fun Application.cookiesTest() {
     routing {
         route("cookies") {
-            get("/") {
+            get {
                 val cookie = Cookie("hello-cookie", "my-awesome-value", domain = "127.0.0.1")
                 context.response.cookies.append(cookie)
 

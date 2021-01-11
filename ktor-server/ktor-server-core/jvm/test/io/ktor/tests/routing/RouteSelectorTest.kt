@@ -17,9 +17,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = false
         )
 
         assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
@@ -35,9 +33,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -51,9 +47,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -67,9 +61,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = null,
             suffix = null,
-            isOptional = false,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = false
         )
 
         assertEquals(evaluation.succeeded, true)
@@ -84,9 +76,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = false
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Failed)
@@ -100,9 +90,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = true
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
@@ -116,9 +104,7 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = true
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
@@ -132,45 +118,9 @@ internal class RouteSelectorTest {
             name = "param",
             prefix = "prefix",
             suffix = "suffix",
-            isOptional = true,
-            selectorHasTrailingSlash = false,
-            contextHasTrailingSlash = false
+            isOptional = true
         )
 
         assertEquals(evaluation, RouteSelectorEvaluation.Missing)
-    }
-
-    @Test
-    fun testEvaluateWithPrefixAndSuffixMatchedTrailingSlashNotMatched() {
-        val evaluation = evaluatePathSegmentParameter(
-            segments = listOf("prefixPARAMsuffix"),
-            segmentIndex = 0,
-            name = "param",
-            prefix = "prefix",
-            suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = true,
-            contextHasTrailingSlash = false
-        )
-
-        assertEquals(evaluation, RouteSelectorEvaluation.Failed)
-    }
-
-    @Test
-    fun testEvaluateWithPrefixAndSuffixMatchedTrailingSlashNotMatchedNotLastIndex() {
-        val evaluation = evaluatePathSegmentParameter(
-            segments = listOf("prefixPARAMsuffix", "someOtherPath"),
-            segmentIndex = 0,
-            name = "param",
-            prefix = "prefix",
-            suffix = "suffix",
-            isOptional = false,
-            selectorHasTrailingSlash = true,
-            contextHasTrailingSlash = false
-        )
-
-        assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
-        assertEquals(evaluation.succeeded, true)
-        assertEquals(evaluation.parameters["param"], "PARAM")
     }
 }
