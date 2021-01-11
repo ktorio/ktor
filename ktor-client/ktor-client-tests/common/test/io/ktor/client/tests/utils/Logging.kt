@@ -53,7 +53,7 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
                 continue
             }
 
-            if (expected != actual) {
+            if (!expected.equals(actual, ignoreCase = true)) {
                 message.appendLine(">>> Expected log:")
                 expectedLog.forEach {
                     message.appendLine(it)
@@ -67,6 +67,8 @@ internal class TestLogger(private vararg val expectedLog: String) : Logger {
                 message.appendLine(
                     "Expected log doesn't match actual at lines: expected $expectedIndex, actual $actualIndex"
                 )
+                message.appendLine("Expected: $expected")
+                message.appendLine("Actual: $actual")
 
                 fail(message.toString())
             }
