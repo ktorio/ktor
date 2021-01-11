@@ -55,16 +55,10 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         )
     }
 
-    // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
-    // so it can be accessed inside js("") function
-    private fun createWebSocket(urlString_capturingHack: String): WebSocket {
-        return if (PlatformUtils.IS_NODE) {
-            val ws_capturingHack = js("require('ws')")
-            @Suppress("UnsafeCastFromDynamic") // WebSocket is defined in org.w3c.dom
-            js("new ws_capturingHack(urlString_capturingHack)")
-        } else {
-            js("new WebSocket(urlString_capturingHack)") as WebSocket
-        }
+    private fun createWebSocket(urlString: String): WebSocket = if (PlatformUtils.IS_NODE) {
+        NodeWebsocket(urlString)
+    } else {
+        WebSocket(urlString)
     }
 
     private suspend fun executeWebSocketRequest(
@@ -132,3 +126,7 @@ private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
  * @property origin: fail reason
  */
 public class JsError(public val origin: dynamic) : Throwable("Error from javascript[$origin].")
+
+@JsModule("ws")
+@JsNonModule
+private external class NodeWebsocket(url: String) : WebSocket

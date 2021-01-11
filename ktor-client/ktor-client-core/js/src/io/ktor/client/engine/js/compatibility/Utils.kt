@@ -29,7 +29,7 @@ internal suspend fun commonFetch(
     val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
         window.fetch(input, init)
     } else {
-        jsRequireNodeFetch()(input, init) as Promise<Response>
+        nodeFetch(input, init)
     }
 
     promise.then(
@@ -46,8 +46,7 @@ internal fun AbortController(): AbortController {
     return if (PlatformUtils.IS_BROWSER) {
         js("new AbortController()") as AbortController
     } else {
-        val controller = js("require('abort-controller')")
-        js("new controller()") as AbortController
+        NodeAbortController()
     }
 }
 
@@ -57,12 +56,6 @@ internal fun CoroutineScope.readBody(
     readBodyBrowser(response)
 } else {
     readBodyNode(response)
-}
-
-private fun jsRequireNodeFetch(): dynamic = try {
-    js("require('node-fetch')")
-} catch (cause: dynamic) {
-    throw Error("Error loading module 'node-fetch': $cause")
 }
 
 // https://youtrack.jetbrains.com/issue/KT-29243
