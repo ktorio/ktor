@@ -4,19 +4,19 @@ import kotlinx.atomicfu.*
 
 @Suppress("LocalVariableName")
 internal class RingBufferCapacity(private val totalCapacity: Int) {
-    val _availableForRead: AtomicInt = atomic(0)
-    val _availableForWrite: AtomicInt = atomic(totalCapacity)
-    val _pendingToFlush: AtomicInt = atomic(0)
+    private val _availableForRead: AtomicInt = atomic(0)
+    private val _availableForWrite: AtomicInt = atomic(totalCapacity)
+    private val _pendingToFlush: AtomicInt = atomic(0)
 
     inline var availableForRead: Int
         get() = _availableForRead.value
-        set(value) {
+        private set(value) {
             _availableForRead.value = value
         }
 
     inline var availableForWrite: Int
         get() = _availableForWrite.value
-        set(value) {
+        private set(value) {
             _availableForWrite.value = value
         }
 
@@ -109,7 +109,7 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
         }
     }
 
-    private fun completeReadOverflow(pending: Int, n: Int): Nothing {
+    private fun completeWriteOverflow(pending: Int, n: Int): Nothing {
         throw IllegalArgumentException("Complete write overflow: $pending + $n > $totalCapacity")
     }
 
