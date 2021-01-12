@@ -1594,6 +1594,7 @@ public final class io/ktor/utils/io/core/OutputPrimitivesKt {
 
 public final class io/ktor/utils/io/core/PacketDirectKt {
 	public static final fun read (Lio/ktor/utils/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;)V
+	public static synthetic fun read$default (Lio/ktor/utils/io/core/AbstractInput;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/utils/io/core/PacketJVMKt {
