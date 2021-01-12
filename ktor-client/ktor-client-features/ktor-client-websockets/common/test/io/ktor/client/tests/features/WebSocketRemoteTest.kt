@@ -95,6 +95,19 @@ class WebSocketRemoteTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testBadCloseReason() = clientTests(skipEngines) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket(host = echoWebsocket) {
+                close(CloseReason(1005, "Reserved close code"))
+            }
+        }
+    }
+
     private suspend fun WebSocketSession.ping(salt: String) {
         outgoing.send(Frame.Text("text: $salt"))
         val frame = incoming.receive()
