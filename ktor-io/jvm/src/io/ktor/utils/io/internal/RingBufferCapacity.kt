@@ -29,8 +29,8 @@ internal class RingBufferCapacity(private val totalCapacity: Int) {
     // concurrent unsafe!
     fun resetForWrite() {
         _availableForRead.value = 0
-        _availableForWrite.value = totalCapacity
         _pendingToFlush.value = 0
+        _availableForWrite.value = totalCapacity
     }
 
     fun resetForRead() {
