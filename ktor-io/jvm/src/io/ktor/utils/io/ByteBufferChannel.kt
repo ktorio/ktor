@@ -31,7 +31,7 @@ internal open class ByteBufferChannel(
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession, HasReadSession, HasWriteSession {
 
     constructor(content: ByteBuffer) : this(false, BufferObjectNoPool, 0) {
-        state = ReadWriteBufferState.Initial(content.slice(), 0).apply {
+        _state.value = ReadWriteBufferState.Initial(content.slice(), 0).apply {
             capacity.resetForRead()
         }.startWriting()
         restoreStateAfterWrite()
@@ -41,11 +41,8 @@ internal open class ByteBufferChannel(
 
     private val _state: AtomicRef<ReadWriteBufferState> = atomic(ReadWriteBufferState.IdleEmpty)
 
-    private var state: ReadWriteBufferState
+    private val state: ReadWriteBufferState
         get() = _state.value
-        set(value) {
-            _state.value = value
-        }
 
     private val _closed: AtomicRef<ClosedElement?> = atomic(null)
     private var closed: ClosedElement?
