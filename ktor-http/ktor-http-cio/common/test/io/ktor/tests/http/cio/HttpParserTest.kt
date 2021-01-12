@@ -185,6 +185,39 @@ class HttpParserTest {
         }
     }
 
+    @Test
+    fun parseRequestWithNonUsAsciiCharactersShouldBeProhibited(): Unit = test {
+
+        val request =
+            """
+            POST /ёîôãáÊâö.txt HTTP/1.1
+            Host: www.exampééôle.com
+            
+            
+            """.trimIndent()
+
+        assertFailsWith<ParserException> {
+            parseRequest(ByteReadChannel(request))!!
+        }
+    }
+
+    @Test
+    fun parseResponseWithNonUsAsciiCharactersShouldBeProhibited(): Unit = test {
+
+        val response =
+            """
+            HTTP/1.1 200 OK
+            Vary: Aúthoörization,Accept
+            Transfer-Encoding: ёncoding
+            
+            
+            """.trimIndent()
+
+        assertFailsWith<ParserException> {
+            parseResponse(ByteReadChannel(response))!!
+        }
+    }
+
     @OptIn(InternalCoroutinesApi::class)
     private fun test(block: suspend () -> Unit) {
         var completed = false

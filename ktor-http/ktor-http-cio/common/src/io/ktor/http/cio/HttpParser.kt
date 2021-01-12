@@ -47,6 +47,8 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
 
             val headers = parseHeaders(input, builder, range) ?: return null
 
+            checkForNonUsAsciiCharacters(builder)
+
             return Request(method, uri, version, headers, builder)
         }
     } catch (t: Throwable) {
@@ -73,6 +75,8 @@ public suspend fun parseResponse(input: ByteReadChannel): Response? {
         range.start = range.end
 
         val headers = parseHeaders(input, builder, range) ?: HttpHeadersMap(builder)
+
+        checkForNonUsAsciiCharacters(builder)
 
         return Response(version, statusCode, statusText, headers, builder)
     } catch (t: Throwable) {
@@ -284,4 +288,9 @@ private fun characterIsNotAllowed(text: CharSequence, ch: Char): Nothing =
 
 private fun isDelimiter(ch: Char): Boolean {
     return ch <= ' ' || ch in "\"(),/:;<=>?@[\\]{}"
+}
+
+private fun checkForNonUsAsciiCharacters(builder: CharArrayBuilder) {
+    val badCharacters = builder.filter { it.toInt() !in 0..127 }
+    if (badCharacters.isNotEmpty()) throw ParserException("Non US-ASCII characters are not allowed. Characters found: $badCharacters")
 }
