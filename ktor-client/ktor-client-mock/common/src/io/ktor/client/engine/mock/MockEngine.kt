@@ -7,6 +7,7 @@ package io.ktor.client.engine.mock
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.concurrent.*
@@ -16,7 +17,7 @@ import kotlinx.coroutines.*
  * [HttpClientEngine] for writing tests without network.
  */
 public class MockEngine(override val config: MockEngineConfig) : HttpClientEngineBase("ktor-mock") {
-    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
+    override val dispatcher: CoroutineDispatcher = Dispatchers.clientDispatcher(config.threadsCount)
     override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
     private val mutex = Lock()
     private val contextState: CompletableJob = Job()

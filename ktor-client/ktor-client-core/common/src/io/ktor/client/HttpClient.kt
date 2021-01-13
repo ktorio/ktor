@@ -84,7 +84,7 @@ public class HttpClient(
 
     private val closed = atomic(false)
 
-    private val clientJob: CompletableJob = Job()
+    private val clientJob: CompletableJob = Job(engine.coroutineContext[Job])
 
     public override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
 
@@ -134,9 +134,13 @@ public class HttpClient(
     init {
         checkCoroutinesVersion()
 
-        val engineJob = engine.coroutineContext[Job]!!
-        @Suppress("DEPRECATION_ERROR")
-        clientJob.attachChild(engineJob as ChildJob)
+        if (manageEngine) {
+            clientJob.invokeOnCompletion {
+                if (it != null) {
+                    engine.cancel()
+                }
+            }
+        }
 
         engine.install(this)
 
