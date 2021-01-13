@@ -6,6 +6,7 @@ package io.ktor.client.engine
 
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
@@ -15,17 +16,20 @@ import kotlin.coroutines.*
  * custom [HttpClientEngine] implementations.
  */
 public abstract class HttpClientEngineBase(private val engineName: String) : HttpClientEngine {
+    private val closed = atomic(false)
 
     override val coroutineContext: CoroutineContext by lazy {
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
 
     override fun close() {
-        (coroutineContext[Job] as CompletableJob).apply {
-            complete()
-            invokeOnCompletion {
-                dispatcher.close()
-            }
+        if (!closed.compareAndSet(false, true)) return
+
+        val requestJob = coroutineContext[Job] as? CompletableJob ?: return
+
+        requestJob.complete()
+        requestJob.invokeOnCompletion {
+            dispatcher.close()
         }
     }
 }
