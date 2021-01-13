@@ -198,7 +198,10 @@ class CORSTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
-                assertEquals(setOf(HttpHeaders.ETag, HttpHeaders.Vary), call.response.headers[HttpHeaders.AccessControlExposeHeaders]?.split(", ")?.toSet())
+                assertEquals(
+                    setOf(HttpHeaders.ETag, HttpHeaders.Vary),
+                    call.response.headers[HttpHeaders.AccessControlExposeHeaders]?.split(", ")?.toSet()
+                )
                 assertEquals("OK", call.response.content)
             }
         }
@@ -520,8 +523,10 @@ class CORSTest {
         handleRequest(HttpMethod.Options, "/") {
             addHeader(HttpHeaders.Origin, "http://my-host")
             addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
-            addHeader(HttpHeaders.AccessControlRequestHeaders,
-                "${HttpHeaders.Accept},${HttpHeaders.ContentType}")
+            addHeader(
+                HttpHeaders.AccessControlRequestHeaders,
+                "${HttpHeaders.Accept},${HttpHeaders.ContentType}"
+            )
         }.let { call ->
             assertEquals(HttpStatusCode.Forbidden, call.response.status())
         }
@@ -750,7 +755,10 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-header1, custom-header2")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals(
+                    "custom-header1, custom-header2",
+                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                )
             }
         }
     }
@@ -776,7 +784,10 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "custom-header1, custom-header2")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("Range, custom-header1, custom-header2", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals(
+                    "Range, custom-header1, custom-header2",
+                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                )
             }
         }
     }
@@ -851,7 +862,10 @@ class CORSTest {
                 addHeader(HttpHeaders.AccessControlRequestHeaders, "custom1-header, custom2-header")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals("custom1-header, custom2-header", call.response.headers.get(HttpHeaders.AccessControlAllowHeaders))
+                assertEquals(
+                    "custom1-header, custom2-header",
+                    call.response.headers.get(HttpHeaders.AccessControlAllowHeaders)
+                )
             }
         }
     }
@@ -861,7 +875,7 @@ class CORSTest {
         withTestApplication {
             application.install(CORS) {
                 anyHost()
-                allowHeaders { name -> name.startsWith("custom-matcher")}
+                allowHeaders { name -> name.startsWith("custom-matcher") }
             }
 
             application.routing {
