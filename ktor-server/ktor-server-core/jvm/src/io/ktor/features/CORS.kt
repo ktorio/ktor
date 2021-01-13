@@ -196,16 +196,13 @@ public class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
-
-        requestHeaders.all { header ->
-            return header in allHeadersSet || headerMatchesAPredicate(header)
+    private fun corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+        return requestHeaders.all { header ->
+            header in allHeadersSet || headerMatchesAPredicate(header)
         }
-
-        return requestHeaders.none { it !in allHeadersSet }
     }
 
-    private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
+    private fun headerMatchesAPredicate(header: String): Boolean {
         return headerPredicates.any { it(header) }
     }
 

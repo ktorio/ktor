@@ -504,6 +504,30 @@ class CORSTest {
     }
 
     @Test
+    fun testPreFlightMultipleHeadersRegression(): Unit = withTestApplication {
+        application.install(CORS) {
+            anyHost()
+            header(HttpHeaders.Range)
+        }
+
+        application.routing {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        // simple `Content-Type` request header is not allowed by default
+        handleRequest(HttpMethod.Options, "/") {
+            addHeader(HttpHeaders.Origin, "http://my-host")
+            addHeader(HttpHeaders.AccessControlRequestMethod, "GET")
+            addHeader(HttpHeaders.AccessControlRequestHeaders,
+                "${HttpHeaders.Accept},${HttpHeaders.ContentType}")
+        }.let { call ->
+            assertEquals(HttpStatusCode.Forbidden, call.response.status())
+        }
+    }
+
+    @Test
     fun testPreFlight() {
         withTestApplication {
             application.install(CORS) {
