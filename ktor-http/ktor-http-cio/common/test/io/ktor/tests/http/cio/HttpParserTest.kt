@@ -137,6 +137,8 @@ class HttpParserTest {
 
         assertFailsWith<ParserException> {
             parseHeaders(channel).release()
+        }.let {
+            assertTrue("Empty header names are not allowed" in it.message.orEmpty())
         }
     }
 
