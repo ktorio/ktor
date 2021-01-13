@@ -237,6 +237,9 @@ internal fun parseHeaderName(text: CharArrayBuilder, range: MutableRange): Int {
 }
 
 private fun parseHeaderNameFailed(text: CharArrayBuilder, index: Int, start: Int, ch: Char): Nothing {
+    if (ch == ':') {
+        throw ParserException("Empty header names are not allowed as per RFC7230.")
+    }
     if (index == start) {
         throw ParserException("Multiline headers via line folding is not supported " +
             "since it is deprecated as per RFC7230.")
