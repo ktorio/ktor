@@ -97,7 +97,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            client.webSocket(host = echoWebsocket) {
+            client.webSocket(echoWebsocket) {
                 close(CloseReason(1005, "Reserved close code"))
             }
         }
