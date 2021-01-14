@@ -94,7 +94,11 @@ internal class JsWebSocketSession(
                         val code = data.readShort()
                         val reason = data.readText()
                         _closeReason.complete(CloseReason(code, reason))
-                        websocket.close(code, reason)
+                        if (code.isReservedStatusCode()) {
+                            websocket.close()
+                        } else {
+                            websocket.close(code, reason)
+                        }
                     }
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
@@ -129,5 +133,12 @@ internal class JsWebSocketSession(
         _outgoing.cancel()
         _closeReason.cancel("WebSocket terminated")
         websocket.close()
+    }
+
+    private fun Short.isReservedStatusCode(): Boolean {
+        return CloseReason.Codes.byCode(this).let { resolved ->
+            @Suppress("DEPRECATION")
+            resolved == null || resolved == CloseReason.Codes.CLOSED_ABNORMALLY
+        }
     }
 }
