@@ -586,6 +586,7 @@ class LoggingTest : ClientLoader() {
             "FROM: http://127.0.0.1:8080/content/echo",
             "COMMON HEADERS",
             "???-> connection: keep-alive",
+            "???-> connection: close",
             "-> content-length: 15",
             "BODY Content-Type: null",
             "BODY START",
