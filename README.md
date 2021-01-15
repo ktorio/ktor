@@ -76,7 +76,7 @@ Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations
 
 ## Reporting Issues / Support
 
-Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommmend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
+Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
 
 There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
 
