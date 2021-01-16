@@ -54,12 +54,22 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         )
     }
 
-    // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
-    // so it can be accessed inside js("") function
-    private fun createWebSocket(urlString_capturingHack: String): WebSocket {
+    @Suppress(
+        // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
+        // so it can be accessed inside js("") function
+        "LocalVariableName",
+        // used in js() calls
+        "UNUSED_VARIABLE", "UNUSED_PARAMETER",
+    )
+    private fun createWebSocket(urlString_capturingHack: String, headers: Headers): WebSocket {
         return if (PlatformUtils.IS_NODE) {
             val ws_capturingHack = js("require('ws')")
-            js("new ws_capturingHack(urlString_capturingHack)")
+            val headers_capturingHack: dynamic = object {}
+            headers.forEach { name, values ->
+                val value = values.first()
+                headers_capturingHack[name] = value
+            }
+            js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")
         } else {
             js("new WebSocket(urlString_capturingHack)")
         }
@@ -72,7 +82,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket: WebSocket = createWebSocket(urlString)
+        val socket: WebSocket = createWebSocket(urlString, request.headers)
 
         try {
             socket.awaitConnection()
