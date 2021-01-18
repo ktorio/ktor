@@ -54,6 +54,33 @@ public suspend inline fun <reified T> HttpClient.request(
 )
 
 /**
+ * Executes a [HttpClient] request, with the information from the [builder]
+ */
+public suspend fun HttpClient.requestRaw(
+    builder: HttpRequestBuilder = HttpRequestBuilder()
+): HttpResponse = request(builder)
+
+/**
+ * Executes a [HttpClient] request, with the information configured in [builder] block
+ */
+public suspend fun HttpClient.requestRaw(block: HttpRequestBuilder.() -> Unit): HttpResponse =
+    request(block)
+
+/**
+ * Executes a [HttpClient] request, with the [urlString] and the information configured in builder [block]
+ */
+public suspend fun HttpClient.requestRaw(
+    urlString: String, block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = request(urlString, block)
+
+/**
+ * Executes a [HttpClient] request, with the [url] and the information configured in builder [block]
+ */
+public suspend fun HttpClient.requestRaw(
+    url: Url, block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = request(url, block)
+
+/**
  * Executes a [HttpClient] GET request, with the information from the [builder]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
@@ -115,6 +142,41 @@ public suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilde
     builder.method = HttpMethod.Head
     return request(builder)
 }
+
+/**
+ * Executes a [HttpClient] GET request, with the information from the [builder]
+ */
+public suspend fun HttpClient.getRaw(builder: HttpRequestBuilder): HttpResponse = get(builder)
+
+/**
+ * Executes a [HttpClient] POST request, with the information from the [builder]
+ */
+public suspend fun HttpClient.postRaw(builder: HttpRequestBuilder): HttpResponse = post(builder)
+
+/**
+ * Executes a [HttpClient] PUT request, with the information from the [builder]
+ */
+public suspend fun HttpClient.putRaw(builder: HttpRequestBuilder): HttpResponse = put(builder)
+
+/**
+ * Executes a [HttpClient] DELETE request, with the information from the [builder]
+ */
+public suspend fun HttpClient.deleteRaw(builder: HttpRequestBuilder): HttpResponse = delete(builder)
+
+/**
+ * Executes a [HttpClient] OPTIONS request, with the information from the [builder]
+ */
+public suspend fun HttpClient.optionsRaw(builder: HttpRequestBuilder): HttpResponse = options(builder)
+
+/**
+ * Executes a [HttpClient] PATCH request, with the information from the [builder]
+ */
+public suspend fun HttpClient.patchRaw(builder: HttpRequestBuilder): HttpResponse = patch(builder)
+
+/**
+ * Executes a [HttpClient] HEAD request, with the information from the [builder]
+ */
+public suspend fun HttpClient.headRaw(builder: HttpRequestBuilder): HttpResponse = head(builder)
 
 /**
  * Executes a [HttpClient] GET request, with the specified [scheme], [host], [port], [path] and [body].
@@ -358,3 +420,66 @@ public suspend inline fun <reified T> HttpClient.head(
     url.takeFrom(urlString)
     block()
 }
+
+/**
+ * Executes a [HttpClient] GET request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.getRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = get(urlString, block)
+
+/**
+ * Executes a [HttpClient] POST request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.postRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = post(urlString, block)
+
+/**
+ * Executes a [HttpClient] PUT request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.putRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = put(urlString, block)
+
+/**
+ * Executes a [HttpClient] DELETE request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.deleteRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = delete(urlString, block)
+
+/**
+ * Executes a [HttpClient] OPTIONS request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.optionsRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = options(urlString, block)
+
+/**
+ * Executes a [HttpClient] PATCH request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.patchRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = patch(urlString, block)
+
+/**
+ * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.headRaw(
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = head(urlString, block)

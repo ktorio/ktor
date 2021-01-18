@@ -21,7 +21,7 @@ public suspend inline fun <reified T> HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request {
+): T = request<T> {
     if (encodeInQuery) {
         method = HttpMethod.Get
         url.parameters.appendAll(formParameters)

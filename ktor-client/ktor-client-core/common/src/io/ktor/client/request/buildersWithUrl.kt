@@ -5,6 +5,7 @@
 package io.ktor.client.request
 
 import io.ktor.client.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 
 /**
@@ -22,6 +23,15 @@ public suspend inline fun <reified T> HttpClient.get(
 }
 
 /**
+ * Executes a [HttpClient] GET request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.getRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = get(url, block)
+
+/**
  * Executes a [HttpClient] POST request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
@@ -34,6 +44,15 @@ public suspend inline fun <reified T> HttpClient.post(
     this.url.takeFrom(url)
     block()
 }
+
+/**
+ * Executes a [HttpClient] POST request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.postRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = post(url, block)
 
 /**
  * Executes a [HttpClient] PUT request, with the specified [url] as Url and
@@ -50,6 +69,15 @@ public suspend inline fun <reified T> HttpClient.put(
 }
 
 /**
+ * Executes a [HttpClient] PUT request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.putRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = put(url, block)
+
+/**
  * Executes a [HttpClient] PATCH request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
@@ -64,6 +92,15 @@ public suspend inline fun <reified T> HttpClient.patch(
 }
 
 /**
+ * Executes a [HttpClient] PATCH request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.patchRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = patch(url, block)
+
+/**
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
@@ -76,6 +113,15 @@ public suspend inline fun <reified T> HttpClient.options(
     this.url.takeFrom(url)
     block()
 }
+
+/**
+ * Executes a [HttpClient] OPTIONS request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.optionsRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = options(url, block)
 
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
@@ -94,6 +140,15 @@ public suspend inline fun <reified T> HttpClient.head(
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.headRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = head(url, block)
+
+/**
+ * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
@@ -104,6 +159,15 @@ public suspend inline fun <reified T> HttpClient.delete(
     this.url.takeFrom(url)
     block()
 }
+
+/**
+ * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.deleteRaw(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse = delete(url, block)
 
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
