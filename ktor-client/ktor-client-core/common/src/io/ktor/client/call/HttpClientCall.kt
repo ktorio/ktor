@@ -167,7 +167,8 @@ public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit 
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-public suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
+@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
+public suspend inline fun <reified T> HttpClientCall.receive(): T = bodyAs()
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -175,7 +176,24 @@ public suspend inline fun <reified T> HttpClientCall.receive(): T = receive(type
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-public suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo<T>()) as T
+@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
+public suspend inline fun <reified T> HttpResponse.receive(): T = bodyAs()
+
+/**
+ * Tries to receive the payload of the [response] as an specific type [T].
+ *
+ * @throws NoTransformationFoundException If no transformation is found for the type [T].
+ * @throws DoubleReceiveException If already called [receive].
+ */
+public suspend inline fun <reified T> HttpClientCall.bodyAs(): T = receive(typeInfo<T>()) as T
+
+/**
+ * Tries to receive the payload of the [response] as an specific type [T].
+ *
+ * @throws NoTransformationFoundException If no transformation is found for the type [T].
+ * @throws DoubleReceiveException If already called [receive].
+ */
+public suspend inline fun <reified T> HttpResponse.bodyAs(): T = call.receive(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.

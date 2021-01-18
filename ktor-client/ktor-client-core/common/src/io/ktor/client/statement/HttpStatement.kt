@@ -84,15 +84,8 @@ public class HttpStatement(
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
-    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R {
-        val response: HttpResponse = executeUnsafe()
-        try {
-            val result = response.receive<T>()
-            return block(result)
-        } finally {
-            response.cleanup()
-        }
-    }
+    @Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
+    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R = bodyAs(block)
 
     /**
      * Return [HttpResponse] with open streaming body.
@@ -171,4 +164,26 @@ public suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): Stri
     val input = receive<Input>()
 
     return decoder.decode(input)
+}
+
+/**
+ * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
+ *
+ * Note if T is a streaming type, you should manage how to close it manually.
+ */
+public suspend inline fun <reified T> HttpStatement.bodyAs(): T = receive()
+
+/**
+ * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
+ *
+ * Note if T is a streaming type, you should manage how to close it manually.
+ */
+public suspend inline fun <reified T, R> HttpStatement.bodyAs(crossinline block: suspend (response: T) -> R): R {
+    val response: HttpResponse = executeUnsafe()
+    try {
+        val result = response.receive<T>()
+        return block(result)
+    } finally {
+        response.cleanup()
+    }
 }
