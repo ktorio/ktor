@@ -235,6 +235,17 @@ class HeadersTest {
     }
 
     @Test
+    fun testRenderDoesNotDoubleQuote() {
+        val separators = setOf('(', ')', '<', '>', '@', ',', ';', ':', '/', '[', ']', '?', '=', '{', '}', ' ')
+        separators.forEach { separator ->
+            assertEquals(
+                "file; k=\"v${separator}v\"",
+                ContentDisposition.File.withParameter("k", "\"v${separator}v\"").toString()
+            )
+        }
+    }
+
+    @Test
     fun headersOfShouldBeCaseInsensitive() {
         val value = "world"
         assertEquals(value, headersOf("hello", value)["HELLO"])
