@@ -6,13 +6,19 @@ package io.ktor.client.tests
 
 import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
+import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 
 internal val ENGINES_WITHOUT_WEBSOCKETS = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
 internal val ENGINES_WITHOUT_WS_EXTENSIONS = ENGINES_WITHOUT_WEBSOCKETS + "OkHttp" + "Java" + "Js"
+private const val CUSTOM_HEADER = "X-Custom-Header"
+private const val CUSTOM_HEADER_VALUE = "custom_header_value"
 
 @Suppress("PublicApiImplicitType")
 class WebSocketTest : ClientLoader() {
@@ -83,6 +89,54 @@ class WebSocketTest : ClientLoader() {
             client.webSocket("wss://echo.websocket.org") {
                 outgoing.send(Frame.Text("PING"))
                 val frame = incoming.receive()
+                assertTrue(frame is Frame.Text)
+                assertEquals("PING", frame.readText())
+            }
+        }
+    }
+
+    @Test
+    fun testWsHandshakeHeaders() {
+        if(PlatformUtils.IS_ BROWSER) return // browser websocket client does not support custom headers so the test get's ignored
+        clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
+            config {
+                install(WebSockets)
+            }
+
+            test { client ->
+                val session = client.webSocketSession {
+                    url("$TEST_WEBSOCKET_SERVER/websockets/headers")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                }
+
+                val frame = session.incoming.receive()
+                assertTrue(frame is Frame.Text)
+                val headers = Json.decodeFromString<Map<String, String>>(frame.readText())
+                assertEquals(headers[CUSTOM_HEADER], CUSTOM_HEADER_VALUE)
+            }
+        }
+    }
+
+    @Test
+    fun testEchoWSSWithHeader() {
+        println("entry")
+        clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
+            config {
+                install(WebSockets)
+            }
+
+            test { client ->
+                val session = client.webSocketSession {
+                    url("wss://echo.websocket.org")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
+                }
+
+                val customHeader = session.call.request.headers[CUSTOM_HEADER]
+                println("Header is: $customHeader")
+                assertEquals(customHeader, CUSTOM_HEADER_VALUE)
+
+                session.outgoing.send(Frame.Text("PING"))
+                val frame = session.incoming.receive()
                 assertTrue(frame is Frame.Text)
                 assertEquals("PING", frame.readText())
             }
