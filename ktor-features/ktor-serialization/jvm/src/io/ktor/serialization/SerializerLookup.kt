@@ -37,28 +37,29 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-internal fun serializerForSending(
+internal fun serializerFromResponseType(
     context: PipelineContext<Any, ApplicationCall>,
+    module: SerializersModule
+): KSerializer<*>? {
+    val responseType = context.call.response.responseType ?: return null
+    return module.serializer(responseType)
+}
+
+internal fun guessSerializer(
     value: Any,
     module: SerializersModule
 ): KSerializer<*> {
-    val responseType = context.call.response.responseType
-    if (responseType != null) try {
-        return module.serializer(responseType)
-    } catch (_: SerializationException) {
-        // right now there is no better way to check if serializer is available (https://github.com/Kotlin/kotlinx.serialization/issues/1163)
-        // if serializer for type was not found, fallback to manual search
-    }
-
     return when (value) {
         is JsonElement -> JsonElement.serializer()
-        is List<*> -> ListSerializer(value.elementSerializer(context, module))
-        is Set<*> -> SetSerializer(value.elementSerializer(context, module))
-        is Map<*, *> -> MapSerializer(value.keys.elementSerializer(context, module), value.values.elementSerializer(context, module))
+        is List<*> -> ListSerializer(value.elementSerializer(module))
+        is Set<*> -> SetSerializer(value.elementSerializer(module))
+        is Map<*, *> -> MapSerializer(
+            value.keys.elementSerializer(module),
+            value.values.elementSerializer(module)
+        )
         is Map.Entry<*, *> -> MapEntrySerializer(
-            serializerForSending(context, value.key ?: error("Map.Entry(null, ...) is not supported"), module),
-            serializerForSending(context, value.value ?: error("Map.Entry(..., null) is not supported)"), module)
+            guessSerializer(value.key ?: error("Map.Entry(null, ...) is not supported"), module),
+            guessSerializer(value.value ?: error("Map.Entry(..., null) is not supported)"), module)
         )
         is Array<*> -> {
             val componentType = value.javaClass.componentType.kotlin.starProjectedType
@@ -76,12 +77,9 @@ internal fun serializerForSending(
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-private fun Collection<*>.elementSerializer(
-    context: PipelineContext<Any, ApplicationCall>,
-    module: SerializersModule
-): KSerializer<*> {
+private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers = mapNotNull { value ->
-        value?.let { serializerForSending(context, it, module) }
+        value?.let { guessSerializer(it, module) }
     }.distinctBy { it.descriptor.serialName }
 
     if (serializers.size > 1) {

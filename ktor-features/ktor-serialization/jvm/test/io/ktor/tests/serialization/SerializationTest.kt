@@ -529,6 +529,24 @@ class SerializationTest {
             assertEquals("""{"id":1,"data":"asd"}""", it.response.content)
         }
     }
+
+    @Test
+    fun testRespondCollection(): Unit = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, SerializationConverter(Json))
+        }
+        application.routing {
+            get("/") {
+                val collection: Collection<String> = listOf("a", "b")
+                call.respond(collection)
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("""["a","b"]""", call.response.content)
+        }
+    }
 }
 
 @Serializable
