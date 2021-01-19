@@ -84,6 +84,7 @@ private inline fun String.escapeIfNeededTo(out: StringBuilder) {
 
 private fun String.checkNeedEscape(): Boolean {
     if (isEmpty()) return true
+    if (isQuoted()) return false
 
     for (index in 0 until length) {
         if (HeaderFieldValueSeparators.contains(this[index])) return true
@@ -91,6 +92,8 @@ private fun String.checkNeedEscape(): Boolean {
 
     return false
 }
+
+private fun String.isQuoted(): Boolean = length > 1 && first() == '\"' && last() == '\"'
 
 /**
  * Escape string using double quotes
