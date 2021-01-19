@@ -110,16 +110,39 @@ private constructor(
         contentType: ContentType,
         value: Any
     ): Any? {
-        @Suppress("UNCHECKED_CAST")
-        val serializer = serializerForSending(context, value, format.serializersModule) as KSerializer<Any>
+        val result = try {
+            serializerFromResponseType(context, format.serializersModule)?.let {
+                serializeContent(it, format, value, contentType, context)
+            }
+        } catch (cause: SerializationException) {
+            // can fail due to
+            // 1. https://github.com/Kotlin/kotlinx.serialization/issues/1163)
+            // 2. mismatching between compile-time and runtime types of the response.
+            null
+        }
+        if (result != null) {
+            return result
+        }
 
+        val guessedSearchSerializer = guessSerializer(value, format.serializersModule)
+        return serializeContent(guessedSearchSerializer, format, value, contentType, context)
+    }
+
+    private fun serializeContent(
+        serializer: KSerializer<*>,
+        format: SerialFormat,
+        value: Any,
+        contentType: ContentType,
+        context: PipelineContext<Any, ApplicationCall>
+    ): OutgoingContent.ByteArrayContent {
+        @Suppress("UNCHECKED_CAST")
         return when (format) {
             is StringFormat -> {
-                val content = format.encodeToString(serializer, value)
+                val content = format.encodeToString(serializer as KSerializer<Any>, value)
                 TextContent(content, contentType.withCharset(context.call.suitableCharset()))
             }
             is BinaryFormat -> {
-                val content = format.encodeToByteArray(serializer, value)
+                val content = format.encodeToByteArray(serializer as KSerializer<Any>, value)
                 ByteArrayContent(content, contentType)
             }
             else -> error("Unsupported format $format")
