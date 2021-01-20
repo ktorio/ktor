@@ -107,7 +107,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 request.release()
                 response.writePacket(BadRequestPacket.copy())
                 response.close()
-                throw cause
+                break
             }
 
             val requestBody = if (expectedHttpBody || expectedHttpUpgrade) {
