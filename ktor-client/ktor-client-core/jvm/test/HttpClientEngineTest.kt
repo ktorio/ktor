@@ -25,14 +25,14 @@ class HttpClientEngineTest {
         assertFalse(dispatcher.closed)
 
         val first = Job()
-        val second = client.async {
+        client.launch {
             first.join()
             assertFalse(dispatcher.closed)
         }
 
         client.close()
         first.complete()
-        second.await()
+        client.coroutineContext.job.join()
         assertTrue(dispatcher.closed)
     }
 }
