@@ -111,34 +111,35 @@ class WebSocketTest : ClientLoader() {
 
                 val frame = session.incoming.receive()
                 assertTrue(frame is Frame.Text)
-                val headers = Json.decodeFromString<Map<String, String>>(frame.readText())
-                assertEquals(headers[CUSTOM_HEADER], CUSTOM_HEADER_VALUE)
+                val headers =
+                    Json.decodeFromString<Map<String, List<String>>>(frame.readText())
+                val header = headers[CUSTOM_HEADER]?.first()
+                assertEquals(CUSTOM_HEADER_VALUE, header)
             }
         }
     }
 
     @Test
-    fun testEchoWSSWithHeader() {
-        println("entry")
-        clientTests(ENGINES_WITHOUT_WEBSOCKETS + "Js" + "native:CIO") {
+    fun testWsHandshakeHeadersWithMultipleValues() {
+        if (PlatformUtils.IS_BROWSER) return // browser websocket client does not support custom headers so the test gets ignored
+        clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
             config {
                 install(WebSockets)
             }
 
             test { client ->
                 val session = client.webSocketSession {
-                    url("wss://echo.websocket.org")
+                    url("$TEST_WEBSOCKET_SERVER/websockets/headers")
+                    header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
                     header(CUSTOM_HEADER, CUSTOM_HEADER_VALUE)
                 }
 
-                val customHeader = session.call.request.headers[CUSTOM_HEADER]
-                println("Header is: $customHeader")
-                assertEquals(customHeader, CUSTOM_HEADER_VALUE)
-
-                session.outgoing.send(Frame.Text("PING"))
                 val frame = session.incoming.receive()
                 assertTrue(frame is Frame.Text)
-                assertEquals("PING", frame.readText())
+                val headers =
+                    Json.decodeFromString<Map<String, List<String>>>(frame.readText())
+                val header = headers[CUSTOM_HEADER]
+                assertEquals(listOf(CUSTOM_HEADER_VALUE, CUSTOM_HEADER_VALUE), header)
             }
         }
     }

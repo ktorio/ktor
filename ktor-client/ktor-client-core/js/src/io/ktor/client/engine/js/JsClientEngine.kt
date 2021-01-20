@@ -66,7 +66,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             val ws_capturingHack = js("require('ws')")
             val headers_capturingHack: dynamic = object {}
             headers.forEach { name, values ->
-                val value = values.first()
+                val value = values.joinToString(",")
                 headers_capturingHack[name] = value
             }
             js("new ws_capturingHack(urlString_capturingHack, { headers: headers_capturingHack })")

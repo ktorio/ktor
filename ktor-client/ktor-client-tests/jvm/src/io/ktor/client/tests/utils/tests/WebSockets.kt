@@ -25,7 +25,7 @@ internal fun Application.webSockets() {
             }
 
             webSocket("headers") {
-                val headers = call.request.headers.toMap().mapValues {it.value.first()}
+                val headers = call.request.headers.toMap()
                 val headersJson = Json.encodeToString(headers)
                 send(Frame.Text(headersJson))
             }
