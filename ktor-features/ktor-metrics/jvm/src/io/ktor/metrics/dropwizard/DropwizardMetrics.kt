@@ -55,11 +55,15 @@ public class DropwizardMetrics(
             val configuration = Configuration().apply(configure)
             val feature = DropwizardMetrics(configuration.registry, configuration.baseName)
 
-            configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
-            configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
-            configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
-            configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
-            configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
+            listOf<Pair<String, () -> Metric>>(
+                "jvm.memory" to ::MemoryUsageGaugeSet,
+                "jvm.garbage" to ::GarbageCollectorMetricSet,
+                "jvm.threads" to ::ThreadStatesGaugeSet,
+                "jvm.files" to ::FileDescriptorRatioGauge,
+                "jvm.attributes" to ::JvmAttributeGaugeSet
+            )
+                .filter { (name, _) -> !configuration.registry.names.any { existingName -> existingName.startsWith(name) } }
+                .forEach { (name, metric) -> configuration.registry.register(name, metric()) }
 
             val phase = PipelinePhase("DropwizardMetrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
