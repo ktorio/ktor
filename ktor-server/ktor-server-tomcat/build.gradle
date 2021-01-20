@@ -4,7 +4,7 @@ kotlin.sourceSets {
     jvmMain.dependencies {
         api project(':ktor-server:ktor-server-host-common')
         api project(':ktor-server:ktor-server-servlet')
-        api group: 'org.apache.tomcat', name: 'tomcat-catalina', version: '9.0.37'
+        api group: 'org.apache.tomcat', name: 'tomcat-catalina', version: '10.0.0'
         api group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.37'
     }
     jvmTest.dependencies {
