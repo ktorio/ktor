@@ -388,7 +388,7 @@ public suspend inline fun <reified T> HttpClient.options(
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request<T> {
+): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Options
     this.body = body

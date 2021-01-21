@@ -12,21 +12,6 @@ import kotlin.reflect.*
 
 internal val BodyTypeAttributeKey: AttributeKey<KType> = AttributeKey("BodyTypeAttributeKey")
 
-public data class TypedBody<T : Any> @PublishedApi internal constructor(
-    val body: T,
-    val type: KType?
-) {
-
-    public companion object {
-        public inline operator fun <reified T : Any> invoke(value: T): TypedBody<T> = bodyOf(value)
-    }
-}
-
-public inline fun <reified T : Any> bodyOf(value: T): TypedBody<T> = TypedBody(
-    body = value,
-    type = tryGetType(value)
-)
-
 @PublishedApi
 @OptIn(ExperimentalStdlibApi::class)
 internal inline fun <reified T : Any> tryGetType(ignored: T): KType? = try {
@@ -40,10 +25,6 @@ public inline fun <reified T> HttpRequestBuilder.body(body: T) {
     when (body) {
         null -> {
             this.body = EmptyContent
-        }
-        is TypedBody<*> -> {
-            this.body = body.body
-            this.bodyType = body.type
         }
         is String,
         is OutgoingContent,
