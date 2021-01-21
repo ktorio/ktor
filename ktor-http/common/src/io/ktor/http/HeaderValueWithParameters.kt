@@ -93,7 +93,27 @@ private fun String.checkNeedEscape(): Boolean {
     return false
 }
 
-private fun String.isQuoted(): Boolean = length > 1 && first() == '\"' && last() == '\"'
+private fun String.isQuoted(): Boolean {
+    if (length < 2) {
+        return false
+    }
+    if (first() != '"' || last() != '"') {
+        return false
+    }
+    var startIndex = 1
+    do {
+        val index = indexOf('"', startIndex)
+        if (index == -1 || index == lastIndex) {
+            break
+        }
+        if (this[index - 1] != '\\') {
+            return false
+        }
+        startIndex = index + 1
+    } while (startIndex < length)
+
+    return true
+}
 
 /**
  * Escape string using double quotes
