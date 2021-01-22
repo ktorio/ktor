@@ -246,6 +246,39 @@ class HeadersTest {
     }
 
     @Test
+    fun testRenderQuotesIfHasUnescapedQuotes() {
+        // first
+        assertEquals(
+            """file; k="\"\"vv\""""",
+            ContentDisposition.File.withParameter("k", """""vv"""").toString()
+        )
+        // middle
+        assertEquals(
+            """file; k="\"v\"v\""""",
+            ContentDisposition.File.withParameter("k", """"v"v"""").toString()
+        )
+        // last
+        assertEquals(
+            """file; k="\"vv\"\""""",
+            ContentDisposition.File.withParameter("k", """"vv""""").toString()
+        )
+        // escaped slash
+        assertEquals(
+            """file; k="\"v\\\\\"v\""""",
+            ContentDisposition.File.withParameter("k", """"v\\"v"""").toString()
+        )
+    }
+
+    @Test
+    fun testDoesNotRenderQuotesIfHasEscapedQuotes() {
+        // middle
+        assertEquals(
+            """file; k="v\"v"""",
+            ContentDisposition.File.withParameter("k", """"v\"v"""").toString()
+        )
+    }
+
+    @Test
     fun headersOfShouldBeCaseInsensitive() {
         val value = "world"
         assertEquals(value, headersOf("hello", value)["HELLO"])
