@@ -463,7 +463,6 @@ internal fun Buffer.endGapReservationFailedDueToCapacity(endGap: Int) {
     throw IllegalArgumentException("End gap $endGap is too big: capacity is $capacity")
 }
 
-
 internal fun Buffer.endGapReservationFailedDueToStartGap(endGap: Int) {
     throw IllegalArgumentException(
         "End gap $endGap is too big: there are already $startGap bytes reserved in the beginning"

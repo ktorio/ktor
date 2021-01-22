@@ -156,7 +156,11 @@ public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit
 
 @Suppress("unused", "DEPRECATION_ERROR")
 @Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
-public fun Input.readUTF8UntilDelimiterTo(out: BytePacketBuilderBase, delimiters: String, limit: Int = Int.MAX_VALUE): Int {
+public fun Input.readUTF8UntilDelimiterTo(
+    out: BytePacketBuilderBase,
+    delimiters: String,
+    limit: Int = Int.MAX_VALUE
+): Int {
     return readUTF8UntilDelimiterTo(out as Output, delimiters, limit)
 }
 
@@ -302,10 +306,18 @@ public fun Input.readTextExactBytes(bytesCount: Int, charset: Charset = Charsets
  */
 @Deprecated(
     "Use the implementation with Charset instead",
-    ReplaceWith("writeText(text, fromIndex, toIndex, encoder.charset)", "io.ktor.utils.io.charsets.charset"),
+    ReplaceWith(
+        "writeText(text, fromIndex, toIndex, encoder.charset)",
+        "io.ktor.utils.io.charsets.charset"
+    ),
     level = DeprecationLevel.ERROR
 )
-public fun Output.writeText(text: CharSequence, fromIndex: Int = 0, toIndex: Int = text.length, encoder: CharsetEncoder) {
+public fun Output.writeText(
+    text: CharSequence,
+    fromIndex: Int = 0,
+    toIndex: Int = text.length,
+    encoder: CharsetEncoder
+) {
     encoder.encodeToImpl(this, text, fromIndex, toIndex)
 }
 
@@ -362,7 +374,6 @@ private fun Output.writeTextUtf8(text: CharSequence, fromIndex: Int, toIndex: In
 }
 
 internal expect fun String.getCharsInternal(dst: CharArray, dstOffset: Int)
-
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Char.isAsciiChar() = toInt() <= 0x7f

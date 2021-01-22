@@ -16,9 +16,9 @@
 
 package io.ktor.utils.io
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * Channel for asynchronous reading and writing of sequences of bytes.
@@ -60,14 +60,13 @@ public expect fun ByteReadChannel(content: ByteArray, offset: Int, length: Int):
 public fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): ByteReadChannel =
     ByteReadChannel(text.toByteArray(charset)) // TODO optimize to encode parts on demand
 
-
 /**
  * Byte channel that is always empty.
  */
 @Deprecated(
-    "Use ByteReadChannel.Empty instead", ReplaceWith("ByteReadChannel.Empty"),
+    "Use ByteReadChannel.Empty instead",
+    ReplaceWith("ByteReadChannel.Empty"),
     level = DeprecationLevel.ERROR
 )
 public val EmptyByteReadChannel: ByteReadChannel
     get() = ByteReadChannel.Empty
-

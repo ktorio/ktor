@@ -4,7 +4,6 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 
@@ -89,6 +88,7 @@ internal constructor(
         set(value) {
             state.tailInitialPosition = value
         }
+
     /**
      * Number of bytes buffered in the chain except the tail chunk
      */
@@ -532,9 +532,11 @@ internal constructor(
     }
 
     @Suppress("DEPRECATION")
-    @Deprecated("Use appendNewChunk instead",
+    @Deprecated(
+        "Use appendNewChunk instead",
         replaceWith = ReplaceWith("appendNewChunk()"),
-        level = DeprecationLevel.HIDDEN)
+        level = DeprecationLevel.HIDDEN
+    )
     public fun appendNewBuffer(): IoBuffer = appendNewChunk() as IoBuffer
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)

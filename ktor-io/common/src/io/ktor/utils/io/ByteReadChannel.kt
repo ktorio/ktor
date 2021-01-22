@@ -108,7 +108,6 @@ public expect interface ByteReadChannel {
      */
     public suspend fun readFloat(): Float
 
-
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately
      * event if there are no bytes available for read yet.

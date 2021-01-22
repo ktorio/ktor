@@ -350,7 +350,6 @@ private fun Input.peekCharUtf8Impl(first: Int): Char {
     return rc
 }
 
-
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
 public fun Input.readAvailable(dst: IoBuffer, size: Int = dst.writeRemaining): Int = readAvailable(dst, size)
@@ -385,7 +384,6 @@ public fun Input.readAvailableOld(dst: LongArray, offset: Int = 0, length: Int =
 @JvmName("readAvailable")
 public fun Input.readAvailableOld(dst: FloatArray, offset: Int = 0, length: Int = dst.size - offset): Int =
     readAvailable(dst, offset, length)
-
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
@@ -432,4 +430,3 @@ public fun Input.readFullyOld(dst: FloatArray, offset: Int = 0, length: Int = ds
 @JvmName("readFully")
 public fun Input.readFullyOld(dst: DoubleArray, offset: Int = 0, length: Int = dst.size - offset): Unit =
     readFully(dst, offset, length)
-
