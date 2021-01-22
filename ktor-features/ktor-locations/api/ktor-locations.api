@@ -38,6 +38,7 @@ public final class io/ktor/locations/LocationKt {
 	public static final fun href (Lio/ktor/util/pipeline/PipelineContext;Ljava/lang/Object;)Ljava/lang/String;
 	public static final fun location (Lio/ktor/routing/Route;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Route;
 	public static final fun locationOrNull (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
+	public static final fun locationOrThrow (Lio/ktor/application/ApplicationCall;Lkotlin/reflect/KClass;)Ljava/lang/Object;
 }
 
 public abstract class io/ktor/locations/LocationPropertyInfo {
