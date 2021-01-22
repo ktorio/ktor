@@ -118,7 +118,8 @@ public suspend fun parseHttpBody(
     headers["Content-Length"]?.parseDecLong() ?: -1,
     headers["Transfer-Encoding"],
     ConnectionOptions.parse(headers["Connection"]),
-    input, out
+    input,
+    out
 )
 
 private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
