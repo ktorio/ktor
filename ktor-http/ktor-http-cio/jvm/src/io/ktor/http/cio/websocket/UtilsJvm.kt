@@ -18,4 +18,3 @@ internal fun ByteBuffer.xor(other: ByteBuffer) {
         bb.put(i, bb.get(i) xor mask[i % maskSize])
     }
 }
-

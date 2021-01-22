@@ -20,7 +20,8 @@ import kotlin.properties.*
  */
 @OptIn(WebSocketInternalAPI::class)
 public class RawWebSocket(
-    input: ByteReadChannel, output: ByteWriteChannel,
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
     coroutineContext: CoroutineContext,

@@ -334,7 +334,6 @@ public data class PathSegmentOptionalParameterRouteSelector(
     }
 
     override fun toString(): String = "${prefix ?: ""}{$name?}${suffix ?: ""}"
-
 }
 
 /**

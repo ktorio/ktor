@@ -131,7 +131,6 @@ public class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-
         val requestHeaders =
             request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
                 it.trim().toLowerCasePreservingASCIIRules()

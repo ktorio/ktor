@@ -61,7 +61,9 @@ public fun CoroutineScope.startConnectionPipeline(
     timeout: WeakTimeoutQueue,
     handler: suspend CoroutineScope.(
         request: Request,
-        input: ByteReadChannel, output: ByteWriteChannel, upgraded: CompletableDeferred<Boolean>?
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        upgraded: CompletableDeferred<Boolean>?
     ) -> Unit
 ): Job {
     val pipeline = ServerIncomingConnection(input, output, null, null)
@@ -69,4 +71,3 @@ public fun CoroutineScope.startConnectionPipeline(
         handler(this, request, input, output, upgraded)
     }
 }
-

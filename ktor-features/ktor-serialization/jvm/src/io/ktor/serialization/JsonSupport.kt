@@ -121,4 +121,3 @@ public fun ContentNegotiation.Configuration.serialization(
 ) {
     json(json, contentType)
 }
-
