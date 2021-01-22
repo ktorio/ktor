@@ -4,7 +4,6 @@
 
 package io.ktor.network.sockets
 
-import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.*
@@ -72,5 +71,5 @@ public interface BoundDatagramSocket : ASocket, ABoundSocket, AReadable, Datagra
 /**
  * Represents a connected datagram socket.
  */
-public interface ConnectedDatagramSocket
-    : ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel
+public interface ConnectedDatagramSocket :
+    ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel
