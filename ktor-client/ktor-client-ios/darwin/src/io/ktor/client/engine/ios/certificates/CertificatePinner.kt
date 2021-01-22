@@ -168,7 +168,7 @@ public data class CertificatePinner internal constructor(
             return
         }
 
-        val result = check(certificates)
+        val result = hasOnePinnedCertificate(certificates)
         if (result) {
             completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
         } else {
@@ -179,9 +179,9 @@ public data class CertificatePinner internal constructor(
     }
 
     /**
-     * Confirms that at least one of the certificates pinned
+     * Confirms that at least one of the certificates is pinned
      */
-    private fun check(
+    private fun hasOnePinnedCertificate(
         certificates: List<SecCertificateRef>
     ): Boolean = certificates.any { certificate ->
         val publicKey = certificate.getPublicKeyBytes() ?: return@any false
