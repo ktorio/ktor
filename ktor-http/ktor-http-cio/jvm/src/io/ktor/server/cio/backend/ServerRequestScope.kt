@@ -32,6 +32,10 @@ public class ServerRequestScope internal constructor(
     public fun withContext(coroutineContext: CoroutineContext): ServerRequestScope =
         ServerRequestScope(
             this.coroutineContext + coroutineContext,
-            input, output, remoteAddress, localAddress, upgraded
+            input,
+            output,
+            remoteAddress,
+            localAddress,
+            upgraded
         )
 }

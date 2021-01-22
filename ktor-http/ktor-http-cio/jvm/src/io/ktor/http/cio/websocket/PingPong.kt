@@ -6,9 +6,9 @@ package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 import java.util.concurrent.CancellationException
@@ -23,7 +23,8 @@ private val PingerCoroutineName = CoroutineName("ws-pinger")
  * It is acting for every client's ping frame and replying with corresponding pong
  */
 @OptIn(
-    ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class
+    ExperimentalCoroutinesApi::class,
+    ObsoleteCoroutinesApi::class
 )
 public fun CoroutineScope.ponger(
     outgoing: SendChannel<Frame.Pong>,
@@ -32,11 +33,16 @@ public fun CoroutineScope.ponger(
     try {
         consumeEach { frame ->
             val buffer = frame.buffer.copy(pool)
-            outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
-                override fun dispose() {
-                    pool.recycle(buffer)
-                }
-            }))
+            outgoing.send(
+                Frame.Pong(
+                    buffer,
+                    object : DisposableHandle {
+                        override fun dispose() {
+                            pool.recycle(buffer)
+                        }
+                    }
+                )
+            )
         }
     } catch (_: ClosedSendChannelException) {
     }
@@ -53,9 +59,12 @@ public fun CoroutineScope.pinger(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): SendChannel<Frame.Pong> {
     val actorJob = Job()
+
     @OptIn(ObsoleteCoroutinesApi::class)
     val result = actor<Frame.Pong>(
-        actorJob + PingerCoroutineName, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY
+        actorJob + PingerCoroutineName,
+        capacity = Channel.UNLIMITED,
+        start = CoroutineStart.LAZY
     ) {
         // note that this coroutine need to be lazy
         val buffer = pool.borrow()

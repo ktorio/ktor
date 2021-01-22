@@ -16,7 +16,9 @@ public actual fun DefaultWebSocketSession(
     pingInterval: Long,
     timeoutMillis: Long
 ): DefaultWebSocketSession = DefaultWebSocketSessionImpl(
-    session, pingInterval, timeoutMillis
+    session,
+    pingInterval,
+    timeoutMillis
 )
 
 /**
