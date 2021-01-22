@@ -103,12 +103,20 @@ private fun String.isQuoted(): Boolean {
     var startIndex = 1
     do {
         val index = indexOf('"', startIndex)
-        if (index == -1 || index == lastIndex) {
+        if (index == lastIndex) {
             break
         }
-        if (this[index - 1] != '\\') {
+
+        var slashesCount = 0
+        var slashIndex = index - 1
+        while (this[slashIndex] == '\\') {
+            slashesCount++
+            slashIndex--
+        }
+        if (slashesCount % 2 == 0) {
             return false
         }
+
         startIndex = index + 1
     } while (startIndex < length)
 

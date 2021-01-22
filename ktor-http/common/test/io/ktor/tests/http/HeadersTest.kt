@@ -262,6 +262,20 @@ class HeadersTest {
             """file; k="\"vv\"\""""",
             ContentDisposition.File.withParameter("k", """"vv""""").toString()
         )
+        // escaped slash
+        assertEquals(
+            """file; k="\"v\\\\\"v\""""",
+            ContentDisposition.File.withParameter("k", """"v\\"v"""").toString()
+        )
+    }
+
+    @Test
+    fun testDoesNotRenderQuotesIfHasEscapedQuotes() {
+        // middle
+        assertEquals(
+            """file; k="v\"v"""",
+            ContentDisposition.File.withParameter("k", """"v\"v"""").toString()
+        )
     }
 
     @Test
