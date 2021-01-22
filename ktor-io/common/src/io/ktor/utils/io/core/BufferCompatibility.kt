@@ -6,7 +6,6 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.core.internal.require
-import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.pool.*
 
 /**
@@ -14,7 +13,9 @@ import io.ktor.utils.io.pool.*
  */
 public fun Buffer.fill(times: Int, value: Byte) {
     require(times >= 0) { "times shouldn't be negative: $times" }
-    require(times <= writeRemaining) { "times shouldn't be greater than the write remaining space: $times > $writeRemaining" }
+    require(times <= writeRemaining) {
+        "times shouldn't be greater than the write remaining space: $times > $writeRemaining"
+    }
 
     memory.fill(writePosition, times, value)
     commitWritten(times)
@@ -110,7 +111,12 @@ public fun Buffer.append(csq: CharArray, start: Int, end: Int): Buffer {
 }
 
 @Deprecated("This is no longer supported. Read from a packet instead.")
-public fun Buffer.readText(decoder: CharsetDecoder, out: Appendable, lastBuffer: Boolean, max: Int = Int.MAX_VALUE): Int {
+public fun Buffer.readText(
+    decoder: CharsetDecoder,
+    out: Appendable,
+    lastBuffer: Boolean,
+    max: Int = Int.MAX_VALUE
+): Int {
     return decoder.decodeBuffer(this, out, lastBuffer, max)
 }
 

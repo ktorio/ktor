@@ -101,4 +101,3 @@ private inline fun ByteWriteChannel.writeSessionFor(): WriterSuspendSession? = w
     this is HasWriteSession -> beginWriteSession()
     else -> null
 }
-

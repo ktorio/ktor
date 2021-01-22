@@ -20,9 +20,11 @@ public abstract class AbstractInput(
 
     @Suppress("DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(head: IoBuffer = IoBuffer.Empty,
-                remaining: Long = head.remainingAll(),
-                pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool) : this(head as ChunkBuffer, remaining, pool)
+    public constructor(
+        head: IoBuffer = IoBuffer.Empty,
+        remaining: Long = head.remainingAll(),
+        pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
+    ) : this(head as ChunkBuffer, remaining, pool)
 
     /**
      * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
@@ -348,7 +350,9 @@ public abstract class AbstractInput(
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     final override fun readFully(dst: ByteArray, offset: Int, length: Int) {
         val rc = readAvailable(dst, offset, length)
-        if (rc != length) throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        if (rc != length) {
+            throw EOFException("Not enough data in packet to fill buffer: ${length - rc} more bytes required")
+        }
     }
 
     /**
@@ -447,7 +451,7 @@ public abstract class AbstractInput(
      */
     public fun readText(out: Appendable, min: Int = 0, max: Int = Int.MAX_VALUE): Int {
         if (max.toLong() >= remaining) {
-            val s = readTextExactBytes(bytesCount = remaining.toInt() )
+            val s = readTextExactBytes(bytesCount = remaining.toInt())
             out.append(s)
             return s.length
         }
@@ -467,7 +471,7 @@ public abstract class AbstractInput(
     public fun readText(min: Int = 0, max: Int = Int.MAX_VALUE): String {
         if (min == 0 && (max == 0 || endOfInput)) return ""
         val remaining = remaining
-        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt() )
+        if (remaining > 0 && max.toLong() >= remaining) return readTextExactBytes(bytesCount = remaining.toInt())
 
         return buildString(min.coerceAtLeast(16).coerceAtMost(max)) {
             readASCII(this, min, max)
