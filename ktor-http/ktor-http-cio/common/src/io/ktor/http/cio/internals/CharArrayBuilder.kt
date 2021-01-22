@@ -163,7 +163,6 @@ internal class CharArrayBuilder(val pool: ObjectPool<CharArray> = CharArrayPool)
         override fun hashCode() = stringified?.hashCode() ?: hashCodeImpl(start, end)
     }
 
-
     private fun bufferForIndex(index: Int): CharArray {
         val list = buffers
 

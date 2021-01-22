@@ -4,9 +4,9 @@
 
 package io.ktor.http.cio.websocket
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
