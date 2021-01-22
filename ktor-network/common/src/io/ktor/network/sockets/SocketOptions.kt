@@ -62,7 +62,9 @@ public sealed class SocketOptions(
     /**
      * TCP server socket options
      */
-    public class AcceptorOptions internal constructor(customOptions: MutableMap<Any, Any?>) : SocketOptions(customOptions) {
+    public class AcceptorOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
                 copyCommon(this@AcceptorOptions)
@@ -73,8 +75,9 @@ public sealed class SocketOptions(
     /**
      * Represents TCP client or UDP socket options
      */
-    public open class PeerSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        SocketOptions(customOptions) {
+    public open class PeerSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
 
         /**
          * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
