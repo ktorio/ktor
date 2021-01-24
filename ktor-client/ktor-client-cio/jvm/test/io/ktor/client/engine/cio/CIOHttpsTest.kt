@@ -156,7 +156,8 @@ class CIOHttpsTest : TestWithKtor() {
             "https://google.com",
             "https://facebook.com",
             "https://elster.de",
-            "https://freenode.net"
+            "https://freenode.net",
+            "https://tls-v1-2.badssl.com:1012/"
         )
 
         config {

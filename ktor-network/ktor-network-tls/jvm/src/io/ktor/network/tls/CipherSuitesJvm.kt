@@ -7,6 +7,6 @@ package io.ktor.network.tls
 import io.ktor.network.tls.platform.*
 
 internal actual fun CipherSuite.isSupported(): Boolean = when (platformVersion.major) {
-    "1.8.0" -> platformVersion.minor >= 161 || keyStrength <= 128
-    else -> keyStrength <= 128
+    "1.8.0" -> platformVersion.minor >= 161 || keyStrength <= 256
+    else -> keyStrength <= 256
 }
