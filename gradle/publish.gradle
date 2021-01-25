@@ -47,8 +47,8 @@ tasks.withType(AbstractPublishToMaven).all {
     onlyIf { isAvailableForPublication(publication) }
 }
 
-def sonatypeUser = System.getenv('PUBLISHING_USER')
-def sonatypePassword = System.getenv('PUBLISHING_PASSWORD')
+def publishingUser = System.getenv('PUBLISHING_USER')
+def publishingPassword = System.getenv('PUBLISHING_PASSWORD')
 
 publishing {
     repositories {
@@ -58,8 +58,8 @@ publishing {
             } else {
                 url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
                 credentials {
-                    username = sonatypeUser
-                    password = sonatypePassword
+                    username = publishingUser
+                    password = publishingPassword
                 }
             }
         }
