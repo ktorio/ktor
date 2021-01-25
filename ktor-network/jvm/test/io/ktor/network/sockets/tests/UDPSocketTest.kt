@@ -38,6 +38,10 @@ class UDPSocketTest : CoroutineScope {
 
     @Test
     fun testBroadcastFails(): Unit = runBlocking {
+        if (OS_NAME == "win") {
+            return@runBlocking
+        }
+
         retryIgnoringBindException {
             lateinit var socket: BoundDatagramSocket
             var denied = false
@@ -188,3 +192,14 @@ internal inline fun retryIgnoringBindException(block: () -> Unit) {
         done = true
     }
 }
+
+private val OS_NAME: String
+    get() {
+        val os = System.getProperty("os.name", "unknown").toLowerCase()
+        return when {
+            os.contains("win") -> "win"
+            os.contains("mac") -> "mac"
+            os.contains("nux") -> "unix"
+            else -> "unknown"
+        }
+    }
