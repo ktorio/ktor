@@ -9,6 +9,7 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlin.test.*
 
 internal val ENGINES_WITHOUT_WEBSOCKETS = listOf("Apache", "Android", "iOS", "Curl", "native:CIO")
@@ -138,4 +139,26 @@ class WebSocketTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testExplicitClose() = clientTests(ENGINES_WITHOUT_WEBSOCKETS) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.ws("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(Frame.Text("Hello World"))
+                delay(1000) // wait for server response
+                close()
+
+                var packetsCount = 0
+                incoming.consumeEach {
+                    val text = (it as? Frame.Text)?.readText() ?: return@consumeEach
+                    assertEquals("Hello World", text)
+                    packetsCount++
+                }
+                assertEquals(1, packetsCount)
+            }
+        }
+    }
 }
