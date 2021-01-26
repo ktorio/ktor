@@ -78,7 +78,7 @@ class MultipartTest {
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
 
         val epilogue = allEvents[6] as MultipartEvent.Epilogue
-        assertEquals("\r\nepilogue", epilogue.body.readText())
+        assertEquals("epilogue", epilogue.body.readText())
     }
 
     @Test
@@ -274,7 +274,7 @@ class MultipartTest {
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
 
         val epilogue = allEvents[6] as MultipartEvent.Epilogue
-        assertEquals("\r\nepilogue", epilogue.body.readText())
+        assertEquals("epilogue", epilogue.body.readText())
     }
 
     @Test

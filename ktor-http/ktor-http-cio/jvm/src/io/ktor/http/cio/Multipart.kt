@@ -375,6 +375,7 @@ public fun CoroutineScope.parseMultipart(
 
         body.close()
     } while (!skipBoundary(boundaryPrefixed, input))
+    input.skipDelimiter(CrLf)
 
     if (totalLength != null) {
         @Suppress("DEPRECATION")
