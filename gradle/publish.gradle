@@ -49,6 +49,7 @@ tasks.withType(AbstractPublishToMaven).all {
 
 def publishingUser = System.getenv('PUBLISHING_USER')
 def publishingPassword = System.getenv('PUBLISHING_PASSWORD')
+def publishingUrl = System.getenv("PUBLISHING_URL")
 
 publishing {
     repositories {
@@ -56,7 +57,7 @@ publishing {
             if (publishLocal) {
                 url globalM2
             } else {
-                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                url = publishingUrl
                 credentials {
                     username = publishingUser
                     password = publishingPassword
