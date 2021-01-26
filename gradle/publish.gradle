@@ -112,7 +112,7 @@ publish.dependsOn publishToMavenLocal
 def signingKey = System.getenv("SIGN_KEY_ID")
 def signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
 
-if (signingKey != null) {
+if (signingKey != null && signingKey != "") {
     project.ext["signing.gnupg.keyName"] = signingKey
     project.ext["signing.gnupg.passphrase"] = signingKeyPassphrase
 
