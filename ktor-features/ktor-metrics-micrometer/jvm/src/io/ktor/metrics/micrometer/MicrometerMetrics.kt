@@ -88,6 +88,8 @@ public class MicrometerMetrics private constructor(
      * */
     public class Configuration {
 
+        public var baseName: String = "ktor.http.server"
+
         public lateinit var registry: MeterRegistry
 
         public var distinctNotRegisteredRoutes: Boolean = true
@@ -166,17 +168,19 @@ public class MicrometerMetrics private constructor(
      * Micrometer feature installation object
      */
     public companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
-        private const val baseName: String = "ktor.http.server"
+        private lateinit var baseName: String
 
         /**
          * Request time timer name
          */
-        public const val requestTimerName: String = "$baseName.requests"
+        public val requestTimerName: String
+            get() = "$baseName.requests"
 
         /**
          * Active requests gauge name
          */
-        public const val activeGaugeName: String = "$baseName.requests.active"
+        public val activeGaugeName: String
+            get() = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -184,6 +188,14 @@ public class MicrometerMetrics private constructor(
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
             val configuration = Configuration().apply(configure)
+
+            if (configuration.baseName.isBlank()) {
+                throw IllegalArgumentException(
+                    "Base name should be defined"
+                )
+            }
+
+            baseName = configuration.baseName
 
             if (!configuration.isRegistryInitialized()) {
                 throw IllegalArgumentException(

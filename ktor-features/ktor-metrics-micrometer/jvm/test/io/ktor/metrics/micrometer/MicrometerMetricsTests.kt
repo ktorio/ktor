@@ -21,12 +21,12 @@ import kotlin.test.*
 
 class MicrometerMetricsTests {
 
-    var noHandlerHandledReqeust = false
+    var noHandlerHandledRequest = false
     var throwableCaughtInEngine: Throwable? = null
 
     @BeforeTest
     fun reset() {
-        noHandlerHandledReqeust = false
+        noHandlerHandledRequest = false
         throwableCaughtInEngine = null
     }
 
@@ -226,7 +226,7 @@ class MicrometerMetricsTests {
         }
 
         assertNull(throwableCaughtInEngine)
-        assertTrue(noHandlerHandledReqeust)
+        assertTrue(noHandlerHandledRequest)
     }
 
     @Test
@@ -259,7 +259,7 @@ class MicrometerMetricsTests {
             }
 
             assertNull(throwableCaughtInEngine)
-            assertTrue(noHandlerHandledReqeust)
+            assertTrue(noHandlerHandledRequest)
         }
 
     private fun TestApplicationEngine.installDefaultBehaviour() {
@@ -267,7 +267,7 @@ class MicrometerMetricsTests {
             try {
                 call.application.execute(call)
                 if (call.response.status() == HttpStatusCode.NotFound) {
-                    noHandlerHandledReqeust = true
+                    noHandlerHandledRequest = true
                 }
             } catch (t: Throwable) {
                 throwableCaughtInEngine = t
@@ -322,6 +322,30 @@ class MicrometerMetricsTests {
             "jvm.threads.states"
         )
     }
+
+    @Test
+    fun `Throws exception when base name is not defined`(): Unit = withTestApplication {
+        val exception = assertFails {
+            application.install(MicrometerMetrics) {
+                baseName = "   "
+            }
+        }
+
+        assertTrue(exception is IllegalArgumentException)
+    }
+
+    @Test
+    fun `Timer and gauge metric names are configurable`(): Unit = withTestApplication {
+        val newBaseName = "custom.http.server"
+        application.install(MicrometerMetrics) {
+            registry = SimpleMeterRegistry()
+            baseName = newBaseName
+        }
+
+        assertEquals("$newBaseName.requests", MicrometerMetrics.requestTimerName)
+        assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeGaugeName)
+    }
+
 
     private fun TestApplicationEngine.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
