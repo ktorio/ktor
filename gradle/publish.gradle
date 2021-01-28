@@ -47,8 +47,9 @@ tasks.withType(AbstractPublishToMaven).all {
     onlyIf { isAvailableForPublication(publication) }
 }
 
-def sonatypeUser = System.getenv('SONATYPE_USER')
-def sonatypePassword = System.getenv('SONATYPE_PASSWORD')
+def publishingUser = System.getenv('PUBLISHING_USER')
+def publishingPassword = System.getenv('PUBLISHING_PASSWORD')
+def publishingUrl = System.getenv("PUBLISHING_URL")
 
 publishing {
     repositories {
@@ -56,10 +57,10 @@ publishing {
             if (publishLocal) {
                 url globalM2
             } else {
-                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                url = publishingUrl
                 credentials {
-                    username = sonatypeUser
-                    password = sonatypePassword
+                    username = publishingUser
+                    password = publishingPassword
                 }
             }
         }
@@ -111,7 +112,7 @@ publish.dependsOn publishToMavenLocal
 def signingKey = System.getenv("SIGN_KEY_ID")
 def signingKeyPassphrase = System.getenv("SIGN_KEY_PASSPHRASE")
 
-if (signingKey != null) {
+if (signingKey != null && signingKey != "") {
     project.ext["signing.gnupg.keyName"] = signingKey
     project.ext["signing.gnupg.passphrase"] = signingKeyPassphrase
 
