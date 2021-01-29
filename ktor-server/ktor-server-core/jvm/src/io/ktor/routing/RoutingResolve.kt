@@ -43,12 +43,21 @@ public sealed class RoutingResolveResult(public val route: Route) {
  * Represents a context in which routing resolution is being performed
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
+ * @param isTrailingSlashMatters shows if slash at the end of the url matters during routing.
  */
 public class RoutingResolveContext(
     public val routing: Route,
     public val call: ApplicationCall,
-    private val tracers: List<(RoutingResolveTrace) -> Unit>
+    private val tracers: List<(RoutingResolveTrace) -> Unit>,
+    private val isTrailingSlashMatters: Boolean = true
 ) {
+
+    @Deprecated(message = "Please use overload with isTrailingSlashMatters parameter", level = DeprecationLevel.HIDDEN)
+    public constructor(
+        route: Route,
+        call: ApplicationCall,
+        tracers: List<(RoutingResolveTrace) -> Unit>
+    ) : this(route, call, tracers, true)
 
     /**
      * List of path segments parsed out of a [call]
@@ -92,7 +101,7 @@ public class RoutingResolveContext(
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
-        if (path.endsWith("/")) {
+        if (isTrailingSlashMatters && path.endsWith("/")) {
             segments.add("")
         }
         return segments
@@ -140,7 +149,7 @@ public class RoutingResolveContext(
             }
 
             val immediateSelectQuality = when (selectorResult.quality) {
-                // handlers of route with qualityTransparent should be treated as ones with qualityConstant
+                // handlers of routes with qualityTransparent should be treated as ones with qualityConstant
                 RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
                 else -> selectorResult.quality
             }
@@ -208,7 +217,7 @@ public class RoutingResolveContext(
     }
 
     private fun flattenChildren(children: List<Route>): List<Route> {
-        // to avoid unnecessary allocations, first check in flattening is required
+        // to avoid unnecessary allocations, first check if flattening is required
         // iterate using indices to avoid creating iterator
         var hasTransparentChildren = false
         for (childIndex in 0..children.lastIndex) {

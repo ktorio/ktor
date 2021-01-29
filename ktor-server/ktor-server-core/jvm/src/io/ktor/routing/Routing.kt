@@ -25,6 +25,12 @@ public class Routing(
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
+     * Shows if slash at the end of the url matters during routing.
+     */
+    public var isTrailingSlashMatters: Boolean = true
+        internal set
+
+    /**
      * Register a route resolution trace function.
      * See https://ktor.io/servers/features/routing.html#tracing for details
      */
@@ -33,7 +39,7 @@ public class Routing(
     }
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers, isTrailingSlashMatters)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
@@ -124,6 +130,26 @@ public val Route.application: Application
 /**
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
  */
+@Deprecated(message = "Please use overload with isTrailingSlashMatters parameter", level = DeprecationLevel.HIDDEN)
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
-    featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
+    routing(true, configuration)
+
+
+/**
+ * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
+ */
+@ContextDsl
+public fun Application.routing(isTrailingSlashMatters: Boolean = true, configuration: Routing.() -> Unit): Routing {
+    val existingRouting = featureOrNull(Routing) ?: return install(Routing) {
+        this.isTrailingSlashMatters = isTrailingSlashMatters
+        configuration()
+    }
+    if (existingRouting.isTrailingSlashMatters != isTrailingSlashMatters) {
+        throw IllegalStateException(
+            "isTrailingSlashMatters can not be changed after first install. " +
+                "Old value: ${existingRouting.isTrailingSlashMatters}, new value: $isTrailingSlashMatters"
+        )
+    }
+    return existingRouting.apply(configuration)
+}

@@ -121,3 +121,6 @@ public open class Route(
         else -> "$parent/$selector"
     }
 }
+
+internal val Route.isTrailingSlashMatters: Boolean
+    get() = if (this is Routing) this.isTrailingSlashMatters else parent?.isTrailingSlashMatters ?: true

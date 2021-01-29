@@ -779,6 +779,56 @@ class RoutingResolveTest {
     }
 
     @Test
+    fun testRoutingTrailingSlashInLeafRouteAndTrailingSlashDoesNotMatter() = withTestApplication {
+        application.routing(isTrailingSlashMatters = false) {
+            get("foo/") {
+                call.respondText("foo/")
+            }
+            get("bar") {
+                call.respondText("bar")
+            }
+        }
+
+        on("making /foo/ request") {
+            val result = handleRequest {
+                uri = "/foo/"
+                method = HttpMethod.Get
+            }
+            it("/foo/ should be called") {
+                assertEquals("foo/", result.response.content)
+            }
+        }
+        on("making /foo request") {
+            val result = handleRequest {
+                uri = "/foo"
+                method = HttpMethod.Get
+            }
+            it("/foo/ should be called") {
+                assertEquals("foo/", result.response.content)
+            }
+        }
+
+        on("making /bar request") {
+            val result = handleRequest {
+                uri = "/bar"
+                method = HttpMethod.Get
+            }
+            it("/bar should not be called") {
+                assertEquals("bar", result.response.content)
+            }
+        }
+        on("making /bar/ request") {
+            val result = handleRequest {
+                uri = "/bar/"
+                method = HttpMethod.Get
+            }
+            it("/bar should be called") {
+                assertEquals("bar", result.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testRoutingWithAndWithoutTrailingSlashInLeafRoute() = withTestApplication {
         application.routing {
             get("foo/") {
@@ -849,6 +899,50 @@ class RoutingResolveTest {
             }
             it("/foo/ should not be called") {
                 assertFalse(result.requestHandled)
+            }
+        }
+    }
+
+    @Test
+    fun testRoutingWithTrailingSlashInNonLeafRouteAndTrailingSlashDoesNotMatter() = withTestApplication {
+        application.routing(isTrailingSlashMatters = false) {
+            route("foo/") {
+                get("bar/") {
+                    call.respondText("foo/bar/")
+                }
+                handle {
+                    call.respondText("foo/")
+                }
+            }
+        }
+
+        on("making /foo/bar/ request") {
+            val result = handleRequest {
+                uri = "/foo/bar/"
+                method = HttpMethod.Get
+            }
+            it("/foo/bar should be called") {
+                assertEquals("foo/bar/", result.response.content)
+            }
+        }
+
+        on("making /foo/ request") {
+            val result = handleRequest {
+                uri = "/foo/"
+                method = HttpMethod.Get
+            }
+            it("/foo/ should be called") {
+                assertEquals("foo/", result.response.content)
+            }
+        }
+
+        on("making /foo request") {
+            val result = handleRequest {
+                uri = "/foo"
+                method = HttpMethod.Get
+            }
+            it("/foo/ should be called") {
+                assertEquals("foo/", result.response.content)
             }
         }
     }

@@ -4,12 +4,14 @@
 
 package io.ktor.tests.server.routing
 
+import io.ktor.application.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
 class RoutingBuildTest {
-    @Test fun `build routing`() {
+    @Test
+    fun `build routing`() {
         fun On.itShouldHaveSpecificStructure(entry: Route) {
             it("should have single child at root") {
                 assertEquals(1, entry.children.size)
@@ -30,14 +32,17 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentOptionalParameterRouteSelector)
             }
             it("should have second level child with name 'new'") {
-                assertEquals("new", (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name)
+                assertEquals(
+                    "new",
+                    (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name
+                )
             }
         }
 
         on("adding routing rules manually") {
             val entry = routing()
             entry.createChild(PathSegmentConstantRouteSelector("foo"))
-                    .createChild(PathSegmentOptionalParameterRouteSelector("new"))
+                .createChild(PathSegmentOptionalParameterRouteSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {
@@ -97,6 +102,49 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentTailcardRouteSelector)
             }
         }
+    }
 
+    @Test
+    fun testOverwriteIsTrailingSlashMattersFromTrueToFalse() = withTestApplication {
+        application.routing(isTrailingSlashMatters = true) {}
+        val error = assertFailsWith<IllegalStateException> {
+            application.routing(isTrailingSlashMatters = false) {}
+        }
+        assertEquals(
+            "isTrailingSlashMatters can not be changed after first install. Old value: true, new value: false",
+            error.message
+        )
+    }
+
+    @Test
+    fun testOverwriteIsTrailingSlashMattersFromFalseToTrue() = withTestApplication {
+        application.routing(isTrailingSlashMatters = false) {}
+        val error = assertFailsWith<IllegalStateException> {
+            application.routing(isTrailingSlashMatters = true) {}
+        }
+        assertEquals(
+            "isTrailingSlashMatters can not be changed after first install. Old value: false, new value: true",
+            error.message
+        )
+    }
+
+    @Test
+    fun testIsTrailingSlashMattersTrueByDefault() = withTestApplication {
+        application.routing {}
+        assertTrue(application.feature(Routing).isTrailingSlashMatters)
+    }
+
+    @Test
+    fun testKeepIsTrailingSlashMattersTrue() = withTestApplication {
+        application.routing(isTrailingSlashMatters = true) {}
+        application.routing(isTrailingSlashMatters = true) {}
+        assertTrue(application.feature(Routing).isTrailingSlashMatters)
+    }
+
+    @Test
+    fun testKeepIsTrailingSlashMattersFalse() = withTestApplication {
+        application.routing(isTrailingSlashMatters = false) {}
+        application.routing(isTrailingSlashMatters = false) {}
+        assertFalse(application.feature(Routing).isTrailingSlashMatters)
     }
 }
