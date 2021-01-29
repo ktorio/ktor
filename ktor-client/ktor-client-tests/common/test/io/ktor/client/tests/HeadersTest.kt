@@ -50,7 +50,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testAcceptMerge() = clientTests(listOf("Js")) {
         test { client ->
-            val lines = client.get<String>("$HTTP_PROXY_SERVER/headers-merge") {
+            val lines = client.get<String>("$TCP_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
                 accept(ContentType.Application.Json)
             }.split("\n")

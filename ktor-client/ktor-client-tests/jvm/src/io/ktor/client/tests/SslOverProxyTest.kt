@@ -38,7 +38,7 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(private val factory:
     fun testHttpsOverProxy() = testWithEngine(factory) {
         config {
             engine {
-                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
+                proxy = ProxyBuilder.http(TCP_SERVER)
                 disableCertificatePinning()
             }
         }

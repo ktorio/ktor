@@ -208,8 +208,8 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<Unit>("$HTTP_PROXY_SERVER/wrong-value")
-            val cookies = client[HttpCookies].get(Url(HTTP_PROXY_SERVER))
+            client.get<Unit>("$TCP_SERVER/wrong-value")
+            val cookies = client[HttpCookies].get(Url(TCP_SERVER))
             val expected = Cookie(
                 "___utmvazauvysSB",
                 "kDu\u0001xSkE",

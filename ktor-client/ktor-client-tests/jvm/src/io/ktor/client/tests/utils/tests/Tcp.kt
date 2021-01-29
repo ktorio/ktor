@@ -11,10 +11,9 @@ import io.ktor.network.sockets.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlin.coroutines.*
 import kotlin.time.*
 
-public suspend fun proxyHandler(socket: Socket) {
+internal suspend fun tcpServerHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 
@@ -40,9 +39,11 @@ public suspend fun proxyHandler(socket: Socket) {
     val response = when (statusLine) {
         "GET http://google.com/ HTTP/1.1" -> buildResponse(HttpStatusCode.OK)
         "GET http://google.com/json HTTP/1.1" -> buildResponse(
-            HttpStatusCode.OK, buildHeaders {
+            HttpStatusCode.OK,
+            buildHeaders {
                 append(HttpHeaders.ContentType, ContentType.Application.Json)
-            }, "{\"status\": \"ok\"}"
+            },
+            "{\"status\": \"ok\"}"
         )
         "GET /?ktor-test-tunnel HTTP/1.1" -> buildResponse(HttpStatusCode.OK, listOf("X-Proxy: yes\r\n"))
         "GET /headers-merge HTTP/1.1" -> buildResponse(
@@ -55,6 +56,14 @@ public suspend fun proxyHandler(socket: Socket) {
         "GET /wrong-value HTTP/1.1" -> buildResponse(
             HttpStatusCode.OK,
             listOf("${HttpHeaders.SetCookie}: ___utmvazauvysSB=kDu\u0001xSkE; path=/; Max-Age=900\r\n")
+        )
+        "GET /errors/few-bytes HTTP/1.1" -> buildResponse(
+            HttpStatusCode.OK,
+            buildHeaders {
+                append(HttpHeaders.ContentType, ContentType.Text.Plain)
+                append(HttpHeaders.ContentLength, "100")
+            },
+            "Hello, world!"
         )
         else -> buildResponse(HttpStatusCode.BadRequest)
     }
