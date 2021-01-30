@@ -1440,6 +1440,7 @@ public final class io/ktor/routing/Routing : io/ktor/routing/Route {
 	public fun <init> (Lio/ktor/application/Application;)V
 	public final fun getApplication ()Lio/ktor/application/Application;
 	public final fun interceptor (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun isTrailingSlashMatters ()Z
 	public final fun trace (Lkotlin/jvm/functions/Function1;)V
 }
 
@@ -1517,7 +1518,9 @@ public final class io/ktor/routing/RoutingBuilderKt {
 
 public final class io/ktor/routing/RoutingKt {
 	public static final fun getApplication (Lio/ktor/routing/Route;)Lio/ktor/application/Application;
-	public static final fun routing (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Routing;
+	public static final synthetic fun routing (Lio/ktor/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/Routing;
+	public static final fun routing (Lio/ktor/application/Application;ZLkotlin/jvm/functions/Function1;)Lio/ktor/routing/Routing;
+	public static synthetic fun routing$default (Lio/ktor/application/Application;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/routing/Routing;
 }
 
 public final class io/ktor/routing/RoutingPath {
@@ -1553,7 +1556,9 @@ public final class io/ktor/routing/RoutingPathSegmentKind : java/lang/Enum {
 }
 
 public final class io/ktor/routing/RoutingResolveContext {
-	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/application/ApplicationCall;Ljava/util/List;)V
+	public synthetic fun <init> (Lio/ktor/routing/Route;Lio/ktor/application/ApplicationCall;Ljava/util/List;)V
+	public fun <init> (Lio/ktor/routing/Route;Lio/ktor/application/ApplicationCall;Ljava/util/List;Z)V
+	public synthetic fun <init> (Lio/ktor/routing/Route;Lio/ktor/application/ApplicationCall;Ljava/util/List;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public final fun getHasTrailingSlash ()Z
 	public final fun getRouting ()Lio/ktor/routing/Route;
