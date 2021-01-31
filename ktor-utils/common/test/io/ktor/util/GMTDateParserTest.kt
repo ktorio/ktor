@@ -48,6 +48,5 @@ class GMTDateParserTest {
 
             assertEquals(expected, date)
         }
-
     }
 }

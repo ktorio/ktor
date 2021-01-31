@@ -87,7 +87,6 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
     }
 }
 
-
 /**
  * Read channel to byte array.
  */

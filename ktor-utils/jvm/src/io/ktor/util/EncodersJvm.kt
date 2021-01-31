@@ -5,9 +5,9 @@
 package io.ktor.util
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import java.nio.*
 import java.util.zip.*
 
@@ -33,7 +33,6 @@ public val Deflate: Encoder = object : Encoder {
 
     override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel =
         inflate(source, gzip = false)
-
 }
 
 /**
@@ -129,7 +128,6 @@ private fun CoroutineScope.inflate(
         } else {
             check(!readBuffer.hasRemaining())
         }
-
     } catch (cause: Throwable) {
         throw cause
     } finally {

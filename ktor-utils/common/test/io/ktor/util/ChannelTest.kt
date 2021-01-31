@@ -57,7 +57,6 @@ class ChannelTest {
                 first.readRemaining().readBytes()
             }
             firstResult.await()
-
         }
 
         assertFailsWithMessage(message) {

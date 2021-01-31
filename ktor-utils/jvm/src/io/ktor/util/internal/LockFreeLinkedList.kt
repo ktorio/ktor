@@ -2,7 +2,6 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-
 package io.ktor.util.internal
 
 /*
@@ -10,7 +9,6 @@ package io.ktor.util.internal
  *
  * Copied from kotlinx.coroutines
  */
-
 
 import io.ktor.util.*
 import kotlinx.atomicfu.*
@@ -49,7 +47,6 @@ public typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
 private class Symbol(val symbol: String) {
     override fun toString(): String = symbol
 }
-
 
 /**
  * The most abstract operation that can be in process. Other threads observing an instance of this
@@ -121,7 +118,6 @@ public abstract class AtomicDesc {
     public abstract fun complete(op: AtomicOp<*>, failure: Any?) // decision == null if success
 }
 
-
 /**
  * Doubly-linked concurrent list node with remove support.
  * Based on paper
@@ -156,7 +152,7 @@ public open class LockFreeLinkedListNode {
         override fun complete(affected: Node, failure: Any?) {
             val success = failure == null
             val update = if (success) newNode else oldNext
-            if (update != null && affected._next.compareAndSet( this, update)) {
+            if (update != null && affected._next.compareAndSet(this, update)) {
                 // only the thread the makes this update actually finishes add operation
                 if (success) newNode.finishAdd(oldNext!!)
             }
@@ -322,7 +318,10 @@ public open class LockFreeLinkedListNode {
     public open fun remove(): Boolean {
         while (true) { // lock-free loop on next
             val next = this.next
-            if (next is Removed) return false // was already removed -- don't try to help (original thread will take care)
+            // was already removed -- don't try to help (original thread will take care)
+            if (next is Removed) {
+                return false
+            }
             if (next === this) return false // was not even added
             val removed = (next as Node).removed()
             if (_next.compareAndSet(next, removed)) {
@@ -338,7 +337,7 @@ public open class LockFreeLinkedListNode {
         finishRemove(removed.ref)
     }
 
-    public open fun describeRemove() : AtomicDesc? {
+    public open fun describeRemove(): AtomicDesc? {
         if (isRemoved) return null // fast path if was already removed
         return object : AbstractAtomicDesc() {
             private val _originalNext = atomic<Node?>(null)
@@ -737,7 +736,8 @@ public open class LockFreeLinkedListNode {
         check(next === this._next.value)
     }
 
-    override fun toString(): String = "${this::class.java.simpleName}@${Integer.toHexString(System.identityHashCode(this))}"
+    override fun toString(): String =
+        "${this::class.java.simpleName}@${Integer.toHexString(System.identityHashCode(this))}"
 }
 
 private class Removed(@JvmField val ref: Node) {

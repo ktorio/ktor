@@ -20,7 +20,8 @@ public interface StringValues {
          * @param builder specifies a function to build a map
          */
         public inline fun build(
-            caseInsensitiveName: Boolean = false, builder: StringValuesBuilder.() -> Unit
+            caseInsensitiveName: Boolean = false,
+            builder: StringValuesBuilder.() -> Unit
         ): StringValues = StringValuesBuilder(caseInsensitiveName).apply(builder).build()
     }
 
@@ -38,7 +39,6 @@ public interface StringValues {
      * Gets all values associated with the [name], or null if the name is not present
      */
     public fun getAll(name: String): List<String>?
-
 
     /**
      * Gets all names from the map
@@ -83,11 +83,13 @@ public open class StringValuesSingleImpl(
 
     override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveName)) values else null
 
-    override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
-        override val key: String = name
-        override val value: List<String> = values
-        override fun toString() = "$key=$value"
-    })
+    override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(
+        object : Map.Entry<String, List<String>> {
+            override val key: String = name
+            override val value: List<String> = values
+            override fun toString() = "$key=$value"
+        }
+    )
 
     override fun isEmpty(): Boolean = false
 
@@ -248,8 +250,10 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
     }
 
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
-        if (built)
+        if (built) {
             throw IllegalStateException("Cannot modify a builder when final structure has already been built")
+        }
+
         return values[name] ?: ArrayList<String>(size).also { validateName(name); values[name] = it }
     }
 }
@@ -326,8 +330,9 @@ public fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, S
 
     entries.forEach { entry ->
         val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
-        if (keepEmpty || list.isNotEmpty())
+        if (keepEmpty || list.isNotEmpty()) {
             values.put(entry.key, list)
+        }
     }
 
     return StringValuesImpl(caseInsensitiveName, values)
@@ -344,8 +349,9 @@ public fun StringValuesBuilder.appendFiltered(
 ) {
     source.forEach { name, value ->
         val list = value.filterTo(ArrayList(value.size)) { predicate(name, it) }
-        if (keepEmpty || list.isNotEmpty())
+        if (keepEmpty || list.isNotEmpty()) {
             appendAll(name, list)
+        }
     }
 }
 

@@ -43,10 +43,13 @@ class ConcurrentSetTest {
     fun testToString() {
         assertEquals(emptySet<String>().toString(), ConcurrentSet<String>().toString())
 
-        assertEquals("[0, 1, 2, 3, 4]", ConcurrentSet<Int>().apply {
-            repeat(5) {
-                add(it)
-            }
-        }.toString())
+        assertEquals(
+            "[0, 1, 2, 3, 4]",
+            ConcurrentSet<Int>().apply {
+                repeat(5) {
+                    add(it)
+                }
+            }.toString()
+        )
     }
 }

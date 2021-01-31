@@ -4,9 +4,8 @@
 
 package io.ktor.util.pipeline
 
-import kotlin.coroutines.*
 import kotlinx.coroutines.internal.*
-
+import kotlin.coroutines.*
 
 /**
  * Recreates the exception with the original cause to keep exception structure.

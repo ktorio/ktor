@@ -35,4 +35,3 @@ public actual val NetworkAddress.hostname: String get() = hostname
 public actual val NetworkAddress.port: Int get() = port
 
 public actual class UnresolvedAddressException : IllegalArgumentException()
-

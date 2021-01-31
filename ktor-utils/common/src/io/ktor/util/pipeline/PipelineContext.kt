@@ -58,8 +58,9 @@ public fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
     context: TContext,
     interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject,
-): @Suppress("DEPRECATION") PipelineExecutor<TSubject> = SuspendFunctionGun(subject, context, interceptors)
-
+):
+    @Suppress("DEPRECATION")
+    PipelineExecutor<TSubject> = SuspendFunctionGun(subject, context, interceptors)
 
 /**
  * Build a pipeline of the specified [interceptors] and create executor.
@@ -70,8 +71,10 @@ internal fun <TSubject : Any, TContext : Any> pipelineExecutorFor(
     subject: TSubject,
     coroutineContext: CoroutineContext,
     debugMode: Boolean = false
-): @Suppress("DEPRECATION") PipelineExecutor<TSubject> = if (debugMode) {
-    DebugPipelineContext(context, interceptors, subject, coroutineContext)
-} else {
-    SuspendFunctionGun(subject, context, interceptors)
-}
+):
+    @Suppress("DEPRECATION")
+    PipelineExecutor<TSubject> = if (debugMode) {
+        DebugPipelineContext(context, interceptors, subject, coroutineContext)
+    } else {
+        SuspendFunctionGun(subject, context, interceptors)
+    }

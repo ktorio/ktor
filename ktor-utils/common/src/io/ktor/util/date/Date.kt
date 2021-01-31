@@ -145,7 +145,6 @@ public operator fun GMTDate.plus(duration: Duration): GMTDate = GMTDate(timestam
 @ExperimentalTime
 public operator fun GMTDate.minus(duration: Duration): GMTDate = GMTDate(timestamp - duration.toLongMilliseconds())
 
-
 /**
  * Truncate to seconds by discarding sub-second part
  */
