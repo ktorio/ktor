@@ -102,7 +102,7 @@ public actual fun Memory.loadLongArray(
         for (index in 0 until count * 2 step 2) {
             destination[index / 2 + destinationOffset] =
                 (typed[index + 1].reverseByteOrder().toLong() and 0xffffffffL) or
-                    (typed[index].reverseByteOrder().toLong() shl 32)
+                (typed[index].reverseByteOrder().toLong() shl 32)
         }
     } else {
         for (index in 0 until count * 2 step 2) {

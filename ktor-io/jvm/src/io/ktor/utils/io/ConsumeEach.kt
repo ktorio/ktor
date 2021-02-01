@@ -36,6 +36,5 @@ public suspend inline fun ByteReadChannel.consumeEachBufferRange(visitor: Consum
         if (lastChunkReported && isClosedForRead) {
             break
         }
-
     } while (continueFlag)
 }

@@ -7,7 +7,8 @@ import java.nio.*
 
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @ExperimentalIoApi
-public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : ByteChannelSequentialBase(initial, autoFlush) {
+public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) :
+    ByteChannelSequentialBase(initial, autoFlush) {
 
     @Volatile
     private var attachedJob: Job? = null
@@ -37,7 +38,6 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
         awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)
     }
-
 
     override suspend fun writeFully(src: ByteBuffer) {
         tryWriteAvailable(src)
@@ -172,11 +172,11 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
     }
 
     override fun <R> lookAhead(visitor: LookAheadSession.() -> R): R {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override suspend fun <R> lookAheadSuspend(visitor: suspend LookAheadSuspendSession.() -> R): R {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override suspend fun read(min: Int, consumer: (ByteBuffer) -> Unit) {
@@ -238,6 +238,4 @@ public class ByteChannelSequentialJVM(initial: IoBuffer, autoFlush: Boolean) : B
             if (!shouldContinue) break
         }
     }
-
 }
-

@@ -1,7 +1,8 @@
+// ktlint-disable filename
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.Memory
+import kotlinx.cinterop.*
 
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 public actual interface Input : Closeable {

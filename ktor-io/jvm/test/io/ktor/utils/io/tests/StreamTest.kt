@@ -69,7 +69,10 @@ class StreamTest {
 
         while (true) {
             Thread.sleep(100)
-            if (th.state === Thread.State.BLOCKED || th.state === Thread.State.WAITING || th.state === Thread.State.TIMED_WAITING) break
+            if (th.state === Thread.State.BLOCKED ||
+                th.state === Thread.State.WAITING ||
+                th.state === Thread.State.TIMED_WAITING
+            ) break
         }
 
         outputStream.write(byteArrayOf(0x33, 0x44))

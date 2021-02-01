@@ -63,4 +63,3 @@ public suspend inline fun LookAheadSuspendSession.consumeEachRemaining(visitor: 
         if (!rc) break
     } while (true)
 }
-

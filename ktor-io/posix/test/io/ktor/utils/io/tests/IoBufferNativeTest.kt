@@ -1,9 +1,9 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class IoBufferNativeTest {

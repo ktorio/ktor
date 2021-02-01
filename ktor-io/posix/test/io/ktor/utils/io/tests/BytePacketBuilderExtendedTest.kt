@@ -1,12 +1,12 @@
 package io.ktor.utils.io.tests
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.test.Test
+import kotlinx.cinterop.*
 import kotlin.test.*
+import kotlin.test.Test
 
-class BytePacketBuildTestExtended : BytePacketBuildTest() {
+class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
     override val pool = VerifyingObjectPool(ChunkBuffer.Pool)
 
     private val buffer = nativeHeap.allocArray<ByteVar>(8888)

@@ -83,16 +83,18 @@ class ChannelsTest {
 
     private fun verificationFailed(buffer: Buffer, errorIndex: Int): Nothing {
         buffer.read { memory, start, endExclusive ->
-            print(buildString(endExclusive - start + errorIndex + 3) {
-                for (index in start until endExclusive) {
-                    append(memory.loadAt(index).toInt().toChar())
+            print(
+                buildString(endExclusive - start + errorIndex + 3) {
+                    for (index in start until endExclusive) {
+                        append(memory.loadAt(index).toInt().toChar())
+                    }
+                    append('\n')
+                    repeat(errorIndex) {
+                        append(' ')
+                    }
+                    append("^\n")
                 }
-                append('\n')
-                repeat(errorIndex) {
-                    append(' ')
-                }
-                append("^\n")
-            })
+            )
             0
         }
 

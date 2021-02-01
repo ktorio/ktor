@@ -20,8 +20,9 @@ public actual val CharsetEncoder.charset: Charset get() = charset()
 public actual fun CharsetEncoder.encodeToByteArray(input: CharSequence, fromIndex: Int, toIndex: Int): ByteArray {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     if (input is String) {
-        if (fromIndex == 0 && toIndex == input.length)
+        if (fromIndex == 0 && toIndex == input.length) {
             return (input as java.lang.String).getBytes(charset())
+        }
         return (input.substring(fromIndex, toIndex) as java.lang.String).getBytes(charset())
     }
 
@@ -185,7 +186,6 @@ public actual fun CharsetDecoder.decode(input: Input, dst: Appendable, max: Int)
         val rem = max - copied
         if (rem == 0) return@takeWhileSize 0
 
-
         buffer.readDirect { bb: ByteBuffer ->
             cb.clear()
             if (rem < DECODE_CHAR_BUFFER_SIZE) {
@@ -306,7 +306,9 @@ private fun CharsetDecoder.decodeImplSlow(input: Input, inputLength: Int): Strin
     }
 
     if (remainingInputBytes > 0) {
-        throw EOFException("Not enough bytes available: had only ${inputLength - remainingInputBytes} instead of $inputLength")
+        throw EOFException(
+            "Not enough bytes available: had only ${inputLength - remainingInputBytes} instead of $inputLength"
+        )
     }
     if (remainingInputBytes < 0) {
         throw AssertionError("remainingInputBytes < 0")
@@ -329,7 +331,8 @@ private fun CoderResult.throwExceptionWrapped() {
 public actual typealias Charsets = kotlin.text.Charsets
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
-public actual open class MalformedInputException actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
+public actual open class MalformedInputException
+actual constructor(message: String) : java.nio.charset.MalformedInputException(0) {
     private val _message = message
 
     override val message: String?

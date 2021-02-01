@@ -18,7 +18,3 @@ public inline fun MessageEvent.packet(): ByteReadPacket {
     @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "UnsafeCastFromDynamic", "DEPRECATION")
     return ByteReadPacket(IoBuffer(Memory.of(data.asDynamic() as DataView), null), ChunkBuffer.NoPool)
 }
-
-
-
-

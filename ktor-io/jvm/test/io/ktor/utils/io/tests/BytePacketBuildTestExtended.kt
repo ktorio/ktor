@@ -2,10 +2,10 @@ package io.ktor.utils.io.tests
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.test.Test
 import org.junit.Rule
 import java.nio.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
     @get:Rule

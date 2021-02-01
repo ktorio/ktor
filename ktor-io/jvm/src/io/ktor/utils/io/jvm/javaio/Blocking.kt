@@ -301,7 +301,8 @@ private fun ensureParkingAllowed() {
     if (!isParkingAllowed()) {
         error(
             "Using blocking primitives on this dispatcher is not allowed. " +
-                "Consider using async channel instead or use blocking primitives in withContext(Dispatchers.IO) instead."
+                "Consider using async channel instead or " +
+                "use blocking primitives in withContext(Dispatchers.IO) instead."
         )
     }
 }

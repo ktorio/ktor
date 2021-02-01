@@ -21,5 +21,4 @@ class ByteChannelTextTest {
             channel.readUTF8Line(50)
         }
     }
-
 }

@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
@@ -114,7 +115,6 @@ public actual interface ByteReadChannel {
      * and not enough bytes.
      */
     public actual suspend fun readFloat(): Float
-
 
     /**
      * Starts non-suspendable read session. After channel preparation [consumer] lambda will be invoked immediately

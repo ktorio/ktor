@@ -424,12 +424,14 @@ internal open class ByteBufferChannel(
             when {
                 state === ReadWriteBufferState.Terminated -> return true
                 state === ReadWriteBufferState.IdleEmpty -> ReadWriteBufferState.Terminated
-                closed != null && state is ReadWriteBufferState.IdleNonEmpty && (state.capacity.tryLockForRelease() || closed.cause != null) -> {
+                closed != null && state is ReadWriteBufferState.IdleNonEmpty &&
+                    (state.capacity.tryLockForRelease() || closed.cause != null) -> {
                     if (closed.cause != null) state.capacity.forceLockForRelease()
                     toRelease = state.initial
                     ReadWriteBufferState.Terminated
                 }
-                forceTermination && state is ReadWriteBufferState.IdleNonEmpty && state.capacity.tryLockForRelease() -> {
+                forceTermination && state is ReadWriteBufferState.IdleNonEmpty &&
+                    state.capacity.tryLockForRelease() -> {
                     toRelease = state.initial
                     ReadWriteBufferState.Terminated
                 }
@@ -1837,7 +1839,9 @@ internal open class ByteBufferChannel(
                 val stateSnapshot = state
 
                 if (!stateSnapshot.idle && stateSnapshot !== ReadWriteBufferState.Terminated) {
-                    if (stateSnapshot is ReadWriteBufferState.Reading || stateSnapshot is ReadWriteBufferState.ReadingWriting) {
+                    if (stateSnapshot is ReadWriteBufferState.Reading ||
+                        stateSnapshot is ReadWriteBufferState.ReadingWriting
+                    ) {
                         restoreStateAfterRead()
                     }
                     tryTerminate()
@@ -1867,7 +1871,9 @@ internal open class ByteBufferChannel(
         require(n >= 0)
 
         state.let { s ->
-            if (!s.capacity.tryReadExact(n)) throw IllegalStateException("Unable to consume $n bytes: not enough available bytes")
+            if (!s.capacity.tryReadExact(n)) throw IllegalStateException(
+                "Unable to consume $n bytes: not enough available bytes"
+            )
             if (n > 0) {
                 s.readBuffer.bytesRead(s.capacity, n)
             }
@@ -1987,10 +1993,16 @@ internal open class ByteBufferChannel(
         var eol = false
 
         lookAhead {
-            eol = readLineLoop(out, array, buffer,
+            eol = readLineLoop(
+                out,
+                array,
+                buffer,
                 await = { expected -> availableForRead >= expected },
                 addConsumed = { consumed += it },
-                decode = { it.decodeASCIILine(array, 0, minOf(array.size, limit - consumed)) })
+                decode = {
+                    it.decodeASCIILine(array, 0, minOf(array.size, limit - consumed))
+                }
+            )
         }
 
         if (eol) return true
@@ -2063,7 +2075,9 @@ internal open class ByteBufferChannel(
 
         lookAheadSuspend {
             val rc = readLineLoop(
-                out, ca, cb,
+                out,
+                ca,
+                cb,
                 await = { awaitAtLeast(it) },
                 addConsumed = { consumed1 += it },
                 decode = { it.decodeUTF8Line(ca, 0, minOf(ca.size, limit - consumed1)) }
@@ -2128,7 +2142,8 @@ internal open class ByteBufferChannel(
     }
 
     private suspend fun readRemainingSuspend(
-        limit: Long, headerSizeHint: Int
+        limit: Long,
+        headerSizeHint: Int
     ): ByteReadPacket = buildPacket(headerSizeHint) {
         var remaining = limit
         writeWhile { buffer ->
@@ -2240,9 +2255,11 @@ internal open class ByteBufferChannel(
         val state = state
 
         return state.capacity.availableForRead < size &&
-            (joining == null ||
-                writeOp == null ||
-                (state !== ReadWriteBufferState.IdleEmpty && state !is ReadWriteBufferState.IdleNonEmpty))
+            (
+                joining == null ||
+                    writeOp == null ||
+                    (state !== ReadWriteBufferState.IdleEmpty && state !is ReadWriteBufferState.IdleNonEmpty)
+                )
     }
 
     private fun suspensionForSize(size: Int, continuation: Continuation<Boolean>): Any {
@@ -2291,9 +2308,10 @@ internal open class ByteBufferChannel(
         return when {
             closed != null -> false
             joined == null -> state.capacity.availableForWrite < size && state !== ReadWriteBufferState.IdleEmpty
-            else -> state !== ReadWriteBufferState.Terminated &&
-                state !is ReadWriteBufferState.Writing &&
-                state !is ReadWriteBufferState.ReadingWriting
+            else ->
+                state !== ReadWriteBufferState.Terminated &&
+                    state !is ReadWriteBufferState.Writing &&
+                    state !is ReadWriteBufferState.ReadingWriting
         }
     }
 

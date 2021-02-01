@@ -83,9 +83,11 @@ open class StringsTest : ByteChannelTestBase(true) {
                 assertNotEquals(0, packet.remaining, "Unexpected EOF. Expected >= 0")
             }
 
-            assertEquals(expectedRemaining,
-                    Charsets.UTF_8.newDecoder().decode(packet),
-                    "Remaining bytes after readLine comparison failed.")
+            assertEquals(
+                expectedRemaining,
+                Charsets.UTF_8.newDecoder().decode(packet),
+                "Remaining bytes after readLine comparison failed."
+            )
         } finally {
             packet.release()
         }

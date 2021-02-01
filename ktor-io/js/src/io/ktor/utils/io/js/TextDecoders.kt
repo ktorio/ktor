@@ -8,10 +8,25 @@ private val IS_NODE: Boolean = js(
     "typeof process !== 'undefined' && process.versions != null && process.versions.node != null"
 ) as Boolean
 
-@Deprecated("Use readText with charset instead", ReplaceWith("readText(Charset.forName(encoding), max)", "io.ktor.utils.io.core.readText", "io.ktor.utils.io.charsets.Charset"))
-public fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String = readText(Charset.forName(encoding), max)
+@Deprecated(
+    "Use readText with charset instead",
+    ReplaceWith(
+        "readText(Charset.forName(encoding), max)",
+        "io.ktor.utils.io.core.readText",
+        "io.ktor.utils.io.charsets.Charset"
+    )
+)
+public fun ByteReadPacket.readText(encoding: String, max: Int = Int.MAX_VALUE): String =
+    readText(Charset.forName(encoding), max)
 
-@Deprecated("Use readText with charset instead", ReplaceWith("readText(out, Charset.forName(encoding), max)", "io.ktor.utils.io.core.readText", "io.ktor.utils.io.charsets.Charset"))
+@Deprecated(
+    "Use readText with charset instead",
+    ReplaceWith(
+        "readText(out, Charset.forName(encoding), max)",
+        "io.ktor.utils.io.core.readText",
+        "io.ktor.utils.io.charsets.Charset"
+    )
+)
 public fun ByteReadPacket.readText(encoding: String = "UTF-8", out: Appendable, max: Int = Int.MAX_VALUE): Int {
     return readText(out, Charset.forName(encoding), max)
 }
@@ -43,7 +58,9 @@ internal fun TextDecoderFatal(encoding: String, fatal: Boolean = true): TextDeco
     // Node.js [TextDecoder] doesn't support ISO-8859-1
     if (IS_NODE || js("typeof TextDecoder") == "undefined") {
         val module = js("require('text-encoding')")
-        if (module.TextDecoder === undefined) throw IllegalStateException("TextDecoder is not supported by your browser and no text-encoding module found")
+        if (module.TextDecoder === undefined) throw IllegalStateException(
+            "TextDecoder is not supported by your browser and no text-encoding module found"
+        )
         val ctor = module.TextDecoder
         val objPrototype = js("Object").create(ctor.prototype)
 

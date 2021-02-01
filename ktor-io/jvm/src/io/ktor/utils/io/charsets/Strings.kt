@@ -145,5 +145,3 @@ private inline fun ByteBuffer.decodeASCII3_buffer(
 
     return pos - offset
 }
-
-

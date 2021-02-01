@@ -57,8 +57,12 @@ public actual class IoBuffer actual constructor(
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     override fun readFully(dst: ArrayBufferView, offset: Int, length: Int) {
-        if (readRemaining < length) throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
-        if (length > dst.byteLength) throw IllegalArgumentException("Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}")
+        if (readRemaining < length) throw IllegalStateException(
+            "Not enough bytes available ($readRemaining) to read $length bytes"
+        )
+        if (length > dst.byteLength) throw IllegalArgumentException(
+            "Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}"
+        )
         require(offset >= 0) { "offset should be positive" }
         require(offset + length <= dst.byteLength) { throw IndexOutOfBoundsException("") }
 
@@ -390,8 +394,12 @@ public actual class IoBuffer actual constructor(
             override fun validateInstance(instance: IoBuffer) {
                 super.validateInstance(instance)
 
-                require(instance.referenceCount == 0) { "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})" }
-                require(instance.origin == null) { "Unable to recycle buffer view: view copy shouldn't be recycled" }
+                require(instance.referenceCount == 0) {
+                    "unable to recycle buffer: buffer view is in use (refCount = ${instance.referenceCount})"
+                }
+                require(instance.origin == null) {
+                    "Unable to recycle buffer view: view copy shouldn't be recycled"
+                }
             }
 
             override fun disposeInstance(instance: IoBuffer) {
@@ -491,7 +499,6 @@ public inline fun Buffer.readDirect(block: (DataView) -> Int): Int {
         block(memory.slice(start, endExclusive - start).view)
     }
 }
-
 
 public inline fun Buffer.writeDirectInt8Array(block: (Int8Array) -> Int): Int {
     contract {

@@ -44,7 +44,9 @@ class AbstractInputTest {
     @Test
     fun testCopy() {
         val items = arrayListOf(
-            "test.", "123.", "zxc."
+            "test.",
+            "123.",
+            "zxc."
         )
 
         val input = object : AbstractInput(pool = pool) {

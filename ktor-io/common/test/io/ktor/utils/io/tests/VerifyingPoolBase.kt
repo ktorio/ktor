@@ -23,7 +23,9 @@ abstract class VerifyingPoolBase<T : Any> constructor(private val delegate: Obje
 
     final override fun recycle(instance: T) {
         if (!allocated.remove(IdentityWrapper(instance))) {
-            throw AssertionError("Instance $instance hasn't been borrowed but tried to recycle (possibly double recycle)")
+            throw AssertionError(
+                "Instance $instance hasn't been borrowed but tried to recycle (possibly double recycle)"
+            )
         }
         delegate.recycle(instance)
     }

@@ -1,8 +1,8 @@
 package io.ktor.utils.io.errors
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.internal.utils.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.native.concurrent.*
 
@@ -96,7 +96,10 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
          * @return an instance of [PosixException] or it's subtype
          */
         @ExperimentalIoApi
-        public fun forErrno(errno: Int = platform.posix.errno, posixFunctionName: String? = null): PosixException = memScoped {
+        public fun forErrno(
+            errno: Int = platform.posix.errno,
+            posixFunctionName: String? = null
+        ): PosixException = memScoped {
             val posixConstantName = KnownPosixErrors[errno]
             val posixErrorCodeMessage = when {
                 posixConstantName == null -> "POSIX error $errno"
