@@ -103,7 +103,7 @@ class ClientSocketTest {
             for (i in 0 until 100000) {
                 try {
                     val socket = tcpSocketBuilder.connect(InetSocketAddress("127.0.0.1", port))
-                    assertTrue(false, "connect to self succeed: ${socket.localAddress} to ${socket.remoteAddress}")
+                    fail("connect to self succeed: ${socket.localAddress} to ${socket.remoteAddress}")
                     break
                 } catch (ex: Exception) {
                     // ignore
