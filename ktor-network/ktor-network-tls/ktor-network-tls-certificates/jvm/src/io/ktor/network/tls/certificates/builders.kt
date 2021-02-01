@@ -55,7 +55,10 @@ public class CertificateBuilder internal constructor() {
         }.genKeyPair()!!
 
         val id = Counterparty(
-            country = "RU", organization = "JetBrains", organizationUnit = "Kotlin", commonName = "localhost"
+            country = "RU",
+            organization = "JetBrains",
+            organizationUnit = "Kotlin",
+            commonName = "localhost"
         )
 
         val from = Date()
@@ -63,10 +66,12 @@ public class CertificateBuilder internal constructor() {
 
         val certificateBytes = buildPacket {
             writeCertificate(
-                issuer = id, subject = id,
+                issuer = id,
+                subject = id,
                 keyPair = keys,
                 algorithm = algorithm.name,
-                from = from, to = to,
+                from = from,
+                to = to,
                 domains = listOf("localhost"),
                 ipAddresses = listOf(Inet4Address.getByName("127.0.0.1"))
             )

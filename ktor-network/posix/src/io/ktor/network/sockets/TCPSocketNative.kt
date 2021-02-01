@@ -112,7 +112,6 @@ internal class TCPSocketNative(
                 source.closedCause?.let { throw it }
             }
         }
-
     }.apply {
         invokeOnCompletion {
             shutdown(descriptor, SHUT_WR)
@@ -127,4 +126,3 @@ internal class TCPSocketNative(
         }
     }
 }
-

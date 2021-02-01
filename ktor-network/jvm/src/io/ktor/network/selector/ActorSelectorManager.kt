@@ -148,7 +148,6 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
         }
     }
 
-
     private suspend fun LockFreeMPSCQueue<Selectable>.receiveOrNull(): Selectable? {
         return removeFirstOrNull() ?: receiveOrNullSuspend()
     }

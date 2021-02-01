@@ -18,7 +18,6 @@ public actual class TLSConfigBuilder {
      * Create [TLSConfig].
      */
     public actual fun build(): TLSConfig = TLSConfig()
-
 }
 
 /**

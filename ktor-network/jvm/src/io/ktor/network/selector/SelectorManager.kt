@@ -46,7 +46,10 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
  * Creates a NIO entity via [create] and calls [setup] on it. If any exception happens then the entity will be closed
  * and an exception will be propagated.
  */
-public inline fun <C : Closeable, R> SelectorManager.buildOrClose(create: SelectorProvider.() -> C, setup: C.() -> R): R {
+public inline fun <C : Closeable, R> SelectorManager.buildOrClose(
+    create: SelectorProvider.() -> C,
+    setup: C.() -> R
+): R {
     while (true) {
         val result = create(provider)
 

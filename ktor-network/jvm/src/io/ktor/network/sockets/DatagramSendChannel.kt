@@ -55,7 +55,6 @@ internal class DatagramSendChannel(
         return true
     }
 
-
     override fun offer(element: Datagram): Boolean {
         if (!lock.tryLock()) return false
 

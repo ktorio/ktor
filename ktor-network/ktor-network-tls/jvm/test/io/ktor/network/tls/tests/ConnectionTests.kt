@@ -36,7 +36,6 @@ class ConnectionTests {
 
     @Test
     fun tlsWithoutCloseTest(): Unit = runBlocking {
-
         val selectorManager = ActorSelectorManager(Dispatchers.IO)
         val socket = aSocket(selectorManager)
             .tcp()
@@ -73,7 +72,6 @@ class ConnectionTests {
                 addKeyStore(keyStore, "changeit".toCharArray())
             }
 
-
         val input = socket.openReadChannel()
         val output = socket.openWriteChannel(autoFlush = true)
         output.close()
@@ -89,23 +87,28 @@ class ConnectionTests {
         val certs = certsChain.toTypedArray()
         val password = "changeit".toCharArray()
         val privateKey = keyStore.getKey("mykey", password) as PrivateKey
-        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()).also { it.init(keyStore) }
+        val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            .also { it.init(keyStore) }
         val workerGroup: EventLoopGroup = NioEventLoopGroup()
         val port = firstFreePort()
         try {
             ServerBootstrap()
                 .group(workerGroup)
                 .channel(NioServerSocketChannel::class.java)
-                .childHandler(object : ChannelInitializer<SocketChannel>() {
-                    override fun initChannel(ch: SocketChannel) {
-                        val sslContext = SslContextBuilder.forServer(privateKey, *certs).trustManager(trustManagerFactory).build()
-                        val sslEngine = sslContext.newEngine(ch.alloc()).apply {
-                            useClientMode = false
-                            needClientAuth = true
+                .childHandler(
+                    object : ChannelInitializer<SocketChannel>() {
+                        override fun initChannel(ch: SocketChannel) {
+                            val sslContext = SslContextBuilder.forServer(privateKey, *certs)
+                                .trustManager(trustManagerFactory)
+                                .build()
+                            val sslEngine = sslContext.newEngine(ch.alloc()).apply {
+                                useClientMode = false
+                                needClientAuth = true
+                            }
+                            ch.pipeline().addLast(SslHandler(sslEngine))
                         }
-                        ch.pipeline().addLast(SslHandler(sslEngine))
                     }
-                })
+                )
                 .bind(port)
                 .sync()
 
@@ -115,13 +118,16 @@ class ConnectionTests {
                 tryToConnect(port, trustManagerFactory)
                 fail("TLSException was expected because client has no certificate to authenticate")
             } catch (expected: TLSException) {}
-
         } finally {
             workerGroup.shutdownGracefully()
         }
     }
 
-    private fun tryToConnect(port: Int, trustManagerFactory: TrustManagerFactory, keyStoreAndPassword: Pair<KeyStore, CharArray>? = null) {
+    private fun tryToConnect(
+        port: Int,
+        trustManagerFactory: TrustManagerFactory,
+        keyStoreAndPassword: Pair<KeyStore, CharArray>? = null
+    ) {
         runBlocking {
             aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
                 .connect(InetSocketAddress("127.0.0.1", port))
@@ -132,13 +138,13 @@ class ConnectionTests {
                         .filterIsInstance<X509TrustManager>()
                         .first()
                 }
-            }.use {
-                it.openWriteChannel(autoFlush = true).use { close() }
-            }
+        }.use {
+            it.openWriteChannel(autoFlush = true).use { close() }
+        }
     }
 
     private fun firstFreePort(): Int {
-        while(true) {
+        while (true) {
             try {
                 val socket = ServerSocket(0, 1)
                 val port = socket.localPort

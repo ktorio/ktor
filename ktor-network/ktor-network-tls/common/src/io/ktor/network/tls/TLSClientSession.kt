@@ -10,7 +10,8 @@ import kotlin.coroutines.*
 
 internal expect suspend fun openTLSSession(
     socket: Socket,
-    input: ByteReadChannel, output: ByteWriteChannel,
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     config: TLSConfig,
     context: CoroutineContext
 ): Socket
