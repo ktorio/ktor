@@ -779,8 +779,8 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingTrailingSlashInLeafRouteAndTrailingSlashDoesNotMatter() = withTestApplication {
-        application.routing(isTrailingSlashMatters = false) {
+    fun testRoutingTrailingSlashInLeafRouteAndIgnoredTrailingSlash() = withTestApplication {
+        application.routing(ignoreTrailingSlash = true) {
             get("foo/") {
                 call.respondText("foo/")
             }
@@ -904,8 +904,8 @@ class RoutingResolveTest {
     }
 
     @Test
-    fun testRoutingWithTrailingSlashInNonLeafRouteAndTrailingSlashDoesNotMatter() = withTestApplication {
-        application.routing(isTrailingSlashMatters = false) {
+    fun testRoutingWithTrailingSlashInNonLeafRouteAndDoNotIgnoreTrailing() = withTestApplication {
+        application.routing(ignoreTrailingSlash = true) {
             route("foo/") {
                 get("bar/") {
                     call.respondText("foo/bar/")

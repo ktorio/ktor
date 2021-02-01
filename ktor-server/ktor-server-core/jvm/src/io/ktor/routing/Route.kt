@@ -122,5 +122,5 @@ public open class Route(
     }
 }
 
-internal val Route.isTrailingSlashMatters: Boolean
-    get() = if (this is Routing) this.isTrailingSlashMatters else parent?.isTrailingSlashMatters ?: true
+internal val Route.ignoreTrailingSlash: Boolean
+    get() = if (this is Routing) this.ignoreTrailingSlash else parent?.ignoreTrailingSlash ?: false

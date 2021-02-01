@@ -105,46 +105,46 @@ class RoutingBuildTest {
     }
 
     @Test
-    fun testOverwriteIsTrailingSlashMattersFromTrueToFalse() = withTestApplication {
-        application.routing(isTrailingSlashMatters = true) {}
+    fun testOverwriteIgnoreTrailingSlashFromTrueToFalse() = withTestApplication {
+        application.routing(ignoreTrailingSlash = true) {}
         val error = assertFailsWith<IllegalStateException> {
-            application.routing(isTrailingSlashMatters = false) {}
+            application.routing(ignoreTrailingSlash = false) {}
         }
         assertEquals(
-            "isTrailingSlashMatters can not be changed after first install. Old value: true, new value: false",
+            "ignoreTrailingSlash can not be changed after first install. Old value: true, new value: false",
             error.message
         )
     }
 
     @Test
-    fun testOverwriteIsTrailingSlashMattersFromFalseToTrue() = withTestApplication {
-        application.routing(isTrailingSlashMatters = false) {}
+    fun testOverwriteIgnoreTrailingSlashFromFalseToTrue() = withTestApplication {
+        application.routing(ignoreTrailingSlash = false) {}
         val error = assertFailsWith<IllegalStateException> {
-            application.routing(isTrailingSlashMatters = true) {}
+            application.routing(ignoreTrailingSlash = true) {}
         }
         assertEquals(
-            "isTrailingSlashMatters can not be changed after first install. Old value: false, new value: true",
+            "ignoreTrailingSlash can not be changed after first install. Old value: false, new value: true",
             error.message
         )
     }
 
     @Test
-    fun testIsTrailingSlashMattersTrueByDefault() = withTestApplication {
+    fun testIgnoreTrailingSlashFalseByDefault() = withTestApplication {
         application.routing {}
-        assertTrue(application.feature(Routing).isTrailingSlashMatters)
+        assertFalse(application.feature(Routing).ignoreTrailingSlash)
     }
 
     @Test
-    fun testKeepIsTrailingSlashMattersTrue() = withTestApplication {
-        application.routing(isTrailingSlashMatters = true) {}
-        application.routing(isTrailingSlashMatters = true) {}
-        assertTrue(application.feature(Routing).isTrailingSlashMatters)
+    fun testKeepIgnoreTrailingSlashTrue() = withTestApplication {
+        application.routing(ignoreTrailingSlash = true) {}
+        application.routing(ignoreTrailingSlash = true) {}
+        assertTrue(application.feature(Routing).ignoreTrailingSlash)
     }
 
     @Test
-    fun testKeepIsTrailingSlashMattersFalse() = withTestApplication {
-        application.routing(isTrailingSlashMatters = false) {}
-        application.routing(isTrailingSlashMatters = false) {}
-        assertFalse(application.feature(Routing).isTrailingSlashMatters)
+    fun testKeepIgnoreTrailingSlashFalse() = withTestApplication {
+        application.routing(ignoreTrailingSlash = false) {}
+        application.routing(ignoreTrailingSlash = false) {}
+        assertFalse(application.feature(Routing).ignoreTrailingSlash)
     }
 }

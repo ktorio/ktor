@@ -1439,8 +1439,8 @@ public final class io/ktor/routing/Routing : io/ktor/routing/Route {
 	public static final field Feature Lio/ktor/routing/Routing$Feature;
 	public fun <init> (Lio/ktor/application/Application;)V
 	public final fun getApplication ()Lio/ktor/application/Application;
+	public final fun getIgnoreTrailingSlash ()Z
 	public final fun interceptor (Lio/ktor/util/pipeline/PipelineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun isTrailingSlashMatters ()Z
 	public final fun trace (Lkotlin/jvm/functions/Function1;)V
 }
 

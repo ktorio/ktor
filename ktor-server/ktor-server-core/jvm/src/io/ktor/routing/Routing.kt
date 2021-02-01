@@ -25,9 +25,9 @@ public class Routing(
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
-     * Shows if slash at the end of the url matters during routing.
+     * Shows if the slash at the end of the url is important when resolving routing.
      */
-    public var isTrailingSlashMatters: Boolean = true
+    public var ignoreTrailingSlash: Boolean = false
         internal set
 
     /**
@@ -39,7 +39,7 @@ public class Routing(
     }
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers, isTrailingSlashMatters)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers, ignoreTrailingSlash)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
@@ -130,7 +130,7 @@ public val Route.application: Application
 /**
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
  */
-@Deprecated(message = "Please use overload with isTrailingSlashMatters parameter", level = DeprecationLevel.HIDDEN)
+@Deprecated(message = "Please use overload with ignoreTrailingSlash parameter", level = DeprecationLevel.HIDDEN)
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
     routing(true, configuration)
@@ -140,15 +140,15 @@ public fun Application.routing(configuration: Routing.() -> Unit): Routing =
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
  */
 @ContextDsl
-public fun Application.routing(isTrailingSlashMatters: Boolean = true, configuration: Routing.() -> Unit): Routing {
+public fun Application.routing(ignoreTrailingSlash: Boolean = false, configuration: Routing.() -> Unit): Routing {
     val existingRouting = featureOrNull(Routing) ?: return install(Routing) {
-        this.isTrailingSlashMatters = isTrailingSlashMatters
+        this.ignoreTrailingSlash = ignoreTrailingSlash
         configuration()
     }
-    if (existingRouting.isTrailingSlashMatters != isTrailingSlashMatters) {
+    if (existingRouting.ignoreTrailingSlash != ignoreTrailingSlash) {
         throw IllegalStateException(
-            "isTrailingSlashMatters can not be changed after first install. " +
-                "Old value: ${existingRouting.isTrailingSlashMatters}, new value: $isTrailingSlashMatters"
+            "ignoreTrailingSlash can not be changed after first install. " +
+                "Old value: ${existingRouting.ignoreTrailingSlash}, new value: $ignoreTrailingSlash"
         )
     }
     return existingRouting.apply(configuration)

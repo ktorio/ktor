@@ -43,16 +43,16 @@ public sealed class RoutingResolveResult(public val route: Route) {
  * Represents a context in which routing resolution is being performed
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
- * @param isTrailingSlashMatters shows if slash at the end of the url matters during routing.
+ * @param ignoreTrailingSlash shows if the slash at the end of the url is important when resolving routing.
  */
 public class RoutingResolveContext(
     public val routing: Route,
     public val call: ApplicationCall,
     private val tracers: List<(RoutingResolveTrace) -> Unit>,
-    private val isTrailingSlashMatters: Boolean = true
+    private val ignoreTrailingSlash: Boolean = false
 ) {
 
-    @Deprecated(message = "Please use overload with isTrailingSlashMatters parameter", level = DeprecationLevel.HIDDEN)
+    @Deprecated(message = "Please use overload with ignoreTrailingSlash parameter", level = DeprecationLevel.HIDDEN)
     public constructor(
         route: Route,
         call: ApplicationCall,
@@ -101,7 +101,7 @@ public class RoutingResolveContext(
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
-        if (isTrailingSlashMatters && path.endsWith("/")) {
+        if (!ignoreTrailingSlash && path.endsWith("/")) {
             segments.add("")
         }
         return segments

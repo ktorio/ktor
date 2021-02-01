@@ -231,7 +231,7 @@ public fun Route.createRouteFromPath(path: String): Route {
         // there may already be entry with same selector, so join them
         current = current.createChild(selector)
     }
-    if (isTrailingSlashMatters && path.endsWith("/")) {
+    if (!ignoreTrailingSlash && path.endsWith("/")) {
         current = current.createChild(TrailingSlashRouteSelector)
     }
     return current
