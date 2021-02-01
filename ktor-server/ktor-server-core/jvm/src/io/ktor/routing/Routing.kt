@@ -25,12 +25,6 @@ public class Routing(
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
     /**
-     * Shows if the slash at the end of the url is important when resolving routing.
-     */
-    public var ignoreTrailingSlash: Boolean = false
-        internal set
-
-    /**
      * Register a route resolution trace function.
      * See https://ktor.io/servers/features/routing.html#tracing for details
      */
@@ -39,7 +33,7 @@ public class Routing(
     }
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers, ignoreTrailingSlash)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
@@ -132,28 +126,4 @@ public val Route.application: Application
  */
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
-    routing(null, configuration)
-
-/**
- * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
- * @param ignoreTrailingSlash shows if the slash at the end of the url is important when resolving routing.
- */
-@ContextDsl
-public fun Application.routing(ignoreTrailingSlash: Boolean, configuration: Routing.() -> Unit): Routing {
-    return routing(ignoreTrailingSlash as Boolean?, configuration)
-}
-
-@ContextDsl
-private fun Application.routing(ignoreTrailingSlash: Boolean? = null, configuration: Routing.() -> Unit): Routing {
-    val existingRouting = featureOrNull(Routing) ?: return install(Routing) {
-        this.ignoreTrailingSlash = ignoreTrailingSlash ?: false
-        configuration()
-    }
-    if (ignoreTrailingSlash != null && existingRouting.ignoreTrailingSlash != ignoreTrailingSlash) {
-        throw IllegalStateException(
-            "ignoreTrailingSlash can not be changed after first install. " +
-                "Old value: ${existingRouting.ignoreTrailingSlash}, new value: $ignoreTrailingSlash"
-        )
-    }
-    return existingRouting.apply(configuration)
-}
+    featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)

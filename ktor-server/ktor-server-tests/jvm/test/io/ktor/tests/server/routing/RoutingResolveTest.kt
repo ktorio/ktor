@@ -780,7 +780,8 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingTrailingSlashInLeafRouteAndIgnoredTrailingSlash() = withTestApplication {
-        application.routing(ignoreTrailingSlash = true) {
+        application.install(IgnoreTrailingSlash)
+        application.routing {
             get("foo/") {
                 call.respondText("foo/")
             }
@@ -905,7 +906,8 @@ class RoutingResolveTest {
 
     @Test
     fun testRoutingWithTrailingSlashInNonLeafRouteAndDoNotIgnoreTrailing() = withTestApplication {
-        application.routing(ignoreTrailingSlash = true) {
+        application.install(IgnoreTrailingSlash)
+        application.routing {
             route("foo/") {
                 get("bar/") {
                     call.respondText("foo/bar/")
@@ -1077,8 +1079,11 @@ class RoutingResolveTest {
                 get("/foo") {
                     call.respondText("foo")
                 }
+                get("/bar/") {
+                    call.respondText("bar/")
+                }
                 handle {
-                    call.respondText("bar")
+                    call.respondText("baz")
                 }
             }
         }
@@ -1089,7 +1094,7 @@ class RoutingResolveTest {
                 method = HttpMethod.Get
             }
             it("/ should be called") {
-                assertEquals("bar", result.response.content)
+                assertEquals("baz", result.response.content)
             }
         }
         on("making foo request") {
@@ -1099,6 +1104,15 @@ class RoutingResolveTest {
             }
             it("foo should be called") {
                 assertEquals("foo", result.response.content)
+            }
+        }
+        on("making bar/ request") {
+            val result = handleRequest {
+                uri = "/bar/"
+                method = HttpMethod.Get
+            }
+            it("bar/ should be called") {
+                assertEquals("bar/", result.response.content)
             }
         }
     }

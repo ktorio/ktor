@@ -121,6 +121,3 @@ public open class Route(
         else -> "$parent/$selector"
     }
 }
-
-internal val Route.ignoreTrailingSlash: Boolean
-    get() = if (this is Routing) this.ignoreTrailingSlash else parent?.ignoreTrailingSlash ?: false

@@ -4,7 +4,6 @@
 
 package io.ktor.tests.server.routing
 
-import io.ktor.application.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
@@ -102,61 +101,5 @@ class RoutingBuildTest {
                 assertTrue(entry.children[0].children[0].selector is PathSegmentTailcardRouteSelector)
             }
         }
-    }
-
-    @Test
-    fun testOverwriteIgnoreTrailingSlashFromTrueToFalse() = withTestApplication {
-        application.routing(ignoreTrailingSlash = true) {}
-        val error = assertFailsWith<IllegalStateException> {
-            application.routing(ignoreTrailingSlash = false) {}
-        }
-        assertEquals(
-            "ignoreTrailingSlash can not be changed after first install. Old value: true, new value: false",
-            error.message
-        )
-    }
-
-    @Test
-    fun testOverwriteIgnoreTrailingSlashFromFalseToTrue() = withTestApplication {
-        application.routing(ignoreTrailingSlash = false) {}
-        val error = assertFailsWith<IllegalStateException> {
-            application.routing(ignoreTrailingSlash = true) {}
-        }
-        assertEquals(
-            "ignoreTrailingSlash can not be changed after first install. Old value: false, new value: true",
-            error.message
-        )
-    }
-
-    @Test
-    fun testIgnoreTrailingSlashFalseByDefault() = withTestApplication {
-        application.routing {}
-        assertFalse(application.feature(Routing).ignoreTrailingSlash)
-    }
-
-    @Test
-    fun testKeepIgnoreTrailingSlashTrue() = withTestApplication {
-        application.routing(ignoreTrailingSlash = true) {}
-        application.routing(ignoreTrailingSlash = true) {}
-        assertTrue(application.feature(Routing).ignoreTrailingSlash)
-    }
-
-    @Test
-    fun testKeepIgnoreTrailingSlashFalse() = withTestApplication {
-        application.routing(ignoreTrailingSlash = false) {}
-        application.routing(ignoreTrailingSlash = false) {}
-        assertFalse(application.feature(Routing).ignoreTrailingSlash)
-    }
-
-    @Test
-    fun testGetInstalledRoutingIgnoreTrailingSlashFalse() = withTestApplication {
-        application.routing(ignoreTrailingSlash = false) {}
-        assertFalse(application.routing {  }.ignoreTrailingSlash)
-    }
-
-    @Test
-    fun testGetInstalledRoutingIgnoreTrailingSlashTrue() = withTestApplication {
-        application.routing(ignoreTrailingSlash = true) {}
-        assertTrue(application.routing {  }.ignoreTrailingSlash)
     }
 }
