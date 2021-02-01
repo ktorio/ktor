@@ -104,7 +104,6 @@ class ClientSocketTest {
                 try {
                     val socket = tcpSocketBuilder.connect(InetSocketAddress("127.0.0.1", port))
                     fail("connect to self succeed: ${socket.localAddress} to ${socket.remoteAddress}")
-                    break
                 } catch (ex: Exception) {
                     // ignore
                 }
