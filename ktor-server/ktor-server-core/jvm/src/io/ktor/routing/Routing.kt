@@ -130,22 +130,26 @@ public val Route.application: Application
 /**
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
  */
-@Deprecated(message = "Please use overload with ignoreTrailingSlash parameter", level = DeprecationLevel.HIDDEN)
 @ContextDsl
 public fun Application.routing(configuration: Routing.() -> Unit): Routing =
-    routing(true, configuration)
-
+    routing(null, configuration)
 
 /**
  * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
+ * @param ignoreTrailingSlash shows if the slash at the end of the url is important when resolving routing.
  */
 @ContextDsl
-public fun Application.routing(ignoreTrailingSlash: Boolean = false, configuration: Routing.() -> Unit): Routing {
+public fun Application.routing(ignoreTrailingSlash: Boolean, configuration: Routing.() -> Unit): Routing {
+    return routing(ignoreTrailingSlash as Boolean?, configuration)
+}
+
+@ContextDsl
+private fun Application.routing(ignoreTrailingSlash: Boolean? = null, configuration: Routing.() -> Unit): Routing {
     val existingRouting = featureOrNull(Routing) ?: return install(Routing) {
-        this.ignoreTrailingSlash = ignoreTrailingSlash
+        this.ignoreTrailingSlash = ignoreTrailingSlash ?: false
         configuration()
     }
-    if (existingRouting.ignoreTrailingSlash != ignoreTrailingSlash) {
+    if (ignoreTrailingSlash != null && existingRouting.ignoreTrailingSlash != ignoreTrailingSlash) {
         throw IllegalStateException(
             "ignoreTrailingSlash can not be changed after first install. " +
                 "Old value: ${existingRouting.ignoreTrailingSlash}, new value: $ignoreTrailingSlash"

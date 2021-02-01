@@ -147,4 +147,16 @@ class RoutingBuildTest {
         application.routing(ignoreTrailingSlash = false) {}
         assertFalse(application.feature(Routing).ignoreTrailingSlash)
     }
+
+    @Test
+    fun testGetInstalledRoutingIgnoreTrailingSlashFalse() = withTestApplication {
+        application.routing(ignoreTrailingSlash = false) {}
+        assertFalse(application.routing {  }.ignoreTrailingSlash)
+    }
+
+    @Test
+    fun testGetInstalledRoutingIgnoreTrailingSlashTrue() = withTestApplication {
+        application.routing(ignoreTrailingSlash = true) {}
+        assertTrue(application.routing {  }.ignoreTrailingSlash)
+    }
 }
