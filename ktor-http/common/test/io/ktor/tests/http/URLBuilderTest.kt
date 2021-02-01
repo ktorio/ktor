@@ -111,7 +111,6 @@ internal class URLBuilderTest {
 
         url.takeFrom("/")
         assertEquals("https://httpstat.us/", url.buildString())
-
     }
 
     @Test

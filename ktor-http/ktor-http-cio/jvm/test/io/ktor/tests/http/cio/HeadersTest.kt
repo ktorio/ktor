@@ -238,7 +238,6 @@ class HeadersTest {
         headers.release()
     }
 
-
     @Test
     fun testWrongHeader() = runBlocking<Unit> {
         ch.writeStringUtf8("Hello world\r\n\r\n")
@@ -249,5 +248,4 @@ class HeadersTest {
             }
         }
     }
-
 }

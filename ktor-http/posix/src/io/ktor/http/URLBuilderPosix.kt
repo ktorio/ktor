@@ -4,7 +4,6 @@
 
 package io.ktor.http
 
-
 /**
  * Hostname of current origin.
  *

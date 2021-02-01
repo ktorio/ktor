@@ -19,7 +19,8 @@ private fun formatHttpDate(date: Date): String = HTTP_DATE_FORMAT.format(date)
 /**
  * Set `If-Modified-Since` header.
  */
-public fun HttpMessageBuilder.ifModifiedSince(date: Date): Unit = headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
+public fun HttpMessageBuilder.ifModifiedSince(date: Date): Unit =
+    headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
 
 /**
  * Parse `Last-Modified` header.
@@ -45,4 +46,3 @@ public fun HttpMessage.expires(): Date? = headers[HttpHeaders.Expires]?.let { pa
  * Parse `Date` header.
  */
 public fun HttpMessage.date(): Date? = headers[HttpHeaders.Date]?.let { parseHttpDate(it) }
-

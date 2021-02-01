@@ -4,8 +4,8 @@
 
 package io.ktor.tests.http.cio.websocket
 
-import kotlin.test.*
 import io.ktor.http.cio.websocket.*
+import kotlin.test.*
 
 class FrameCloseTest {
     @Test

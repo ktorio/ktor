@@ -19,7 +19,6 @@ class BlockingContentParkingTest {
         channel.discard()
     }
 
-
     @AfterTest
     fun cleanup() {
         channel.cancel()
@@ -29,10 +28,13 @@ class BlockingContentParkingTest {
 
     @Test
     fun testOutputStreamContentAllowed() {
-        val content = OutputStreamContent({
-            ensureNotProhibited()
-            write(ByteArray(99999))
-        }, ContentType.Application.OctetStream)
+        val content = OutputStreamContent(
+            {
+                ensureNotProhibited()
+                write(ByteArray(99999))
+            },
+            ContentType.Application.OctetStream
+        )
 
         testOnThread {
             content.writeTo(channel)
@@ -41,10 +43,13 @@ class BlockingContentParkingTest {
 
     @Test
     fun testOutputStreamContentProhibited() {
-        val content = OutputStreamContent({
-            ensureNotProhibited()
-            write(ByteArray(99999))
-        }, ContentType.Application.OctetStream)
+        val content = OutputStreamContent(
+            {
+                ensureNotProhibited()
+                write(ByteArray(99999))
+            },
+            ContentType.Application.OctetStream
+        )
 
         testOnThread {
             markParkingProhibited()
@@ -54,10 +59,13 @@ class BlockingContentParkingTest {
 
     @Test
     fun testWriterContentAllowed() {
-        val content = WriterContent({
-            ensureNotProhibited()
-            write(CharArray(99999))
-        }, ContentType.Application.OctetStream)
+        val content = WriterContent(
+            {
+                ensureNotProhibited()
+                write(CharArray(99999))
+            },
+            ContentType.Application.OctetStream
+        )
 
         testOnThread {
             content.writeTo(channel)
@@ -66,10 +74,13 @@ class BlockingContentParkingTest {
 
     @Test
     fun testWriterContentProhibited() {
-        val content = WriterContent({
-            ensureNotProhibited()
-            write(CharArray(99999))
-        }, ContentType.Application.OctetStream)
+        val content = WriterContent(
+            {
+                ensureNotProhibited()
+                write(CharArray(99999))
+            },
+            ContentType.Application.OctetStream
+        )
 
         testOnThread {
             markParkingProhibited()
@@ -95,8 +106,10 @@ class BlockingContentParkingTest {
     }
 
     private fun ensureNotProhibited() {
-        check(Class.forName("io.ktor.utils.io.jvm.javaio.PollersKt")
-            .getMethod("isParkingAllowed")
-            .invoke(null) == true) { "Parking is now allowed here." }
+        check(
+            Class.forName("io.ktor.utils.io.jvm.javaio.PollersKt")
+                .getMethod("isParkingAllowed")
+                .invoke(null) == true
+        ) { "Parking is now allowed here." }
     }
 }

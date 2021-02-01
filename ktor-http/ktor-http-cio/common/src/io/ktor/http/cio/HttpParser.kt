@@ -135,7 +135,6 @@ internal suspend fun parseHeaders(
     }
 }
 
-
 private fun parseHttpMethod(text: CharSequence, range: MutableRange): HttpMethod {
     skipSpaces(text, range)
     val exact = DefaultHttpMethods.search(text, range.start, range.end) { ch, _ -> ch == ' ' }.singleOrNull()

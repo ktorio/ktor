@@ -12,7 +12,6 @@ class CookieDateParserTest {
 
     @Test
     fun testHttpGmtFormats() {
-
         val eleven = GMTDate(1, 45, 12, 11, Month.APRIL, 2018)
         val first = GMTDate(1, 45, 12, 1, Month.APRIL, 2018)
 

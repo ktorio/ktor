@@ -240,7 +240,6 @@ public val URLBuilder.authority: String
         }
     }
 
-
 /**
  * Adds [components] to current [encodedPath]
  */
@@ -252,13 +251,12 @@ public fun URLBuilder.pathComponents(components: List<String>): URLBuilder {
 
     // make sure that there's a slash separator at the end of current path
     if (!encodedPath.endsWith('/')) {
-        paths = "/${paths}"
+        paths = "/$paths"
     }
     encodedPath += paths
 
     return this
 }
-
 
 /**
  * Adds [components] to current [encodedPath]
