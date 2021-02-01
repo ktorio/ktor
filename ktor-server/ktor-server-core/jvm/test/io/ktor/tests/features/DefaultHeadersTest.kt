@@ -32,7 +32,7 @@ class DefaultHeadersTest {
     fun addsServerHeaderWithFallbackPackageNameAndVersion() {
         DefaultHeaders.Feature.install(app) {}
         executePipeline()
-        assertEquals("ktor/debug", call.response.headers["Server"])
+        assertEquals("Ktor/debug", call.response.headers["Server"])
     }
 
     @Test
