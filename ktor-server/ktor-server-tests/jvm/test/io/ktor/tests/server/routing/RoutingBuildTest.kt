@@ -9,7 +9,8 @@ import io.ktor.server.testing.*
 import kotlin.test.*
 
 class RoutingBuildTest {
-    @Test fun `build routing`() {
+    @Test
+    fun `build routing`() {
         fun On.itShouldHaveSpecificStructure(entry: Route) {
             it("should have single child at root") {
                 assertEquals(1, entry.children.size)
