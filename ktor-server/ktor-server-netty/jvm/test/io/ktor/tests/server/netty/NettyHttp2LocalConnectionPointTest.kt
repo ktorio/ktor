@@ -128,7 +128,10 @@ class NettyHttp2LocalConnectionPointTest {
 
     @Test
     fun testRemoteAddressResolved() {
-        val address = InetSocketAddress(Inet4Address.getByAddress("z", byteArrayOf(192.toByte(), 168.toByte(), 1, 1)), 7777)
+        val address = InetSocketAddress(
+            Inet4Address.getByAddress("z", byteArrayOf(192.toByte(), 168.toByte(), 1, 1)),
+            7777
+        )
         val point = point(remoteAddress = address) {
         }
 

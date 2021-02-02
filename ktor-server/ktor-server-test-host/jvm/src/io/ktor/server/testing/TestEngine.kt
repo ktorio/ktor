@@ -88,6 +88,7 @@ public fun <R> withTestApplication(
  */
 public object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
     override fun create(
-        environment: ApplicationEngineEnvironment, configure: TestApplicationEngine.Configuration.() -> Unit
+        environment: ApplicationEngineEnvironment,
+        configure: TestApplicationEngine.Configuration.() -> Unit
     ): TestApplicationEngine = TestApplicationEngine(environment, configure)
 }

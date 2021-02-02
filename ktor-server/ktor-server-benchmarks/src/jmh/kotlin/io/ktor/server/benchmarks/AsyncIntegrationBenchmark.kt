@@ -7,8 +7,8 @@ package io.ktor.server.benchmarks
 import ch.qos.logback.classic.Level
 import io.ktor.application.*
 import io.ktor.client.engine.cio.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.benchmarks.cio.*
@@ -59,7 +59,7 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
                 get("/query") {
                     val parameters = call.parameters
                     val message = parameters["message"]
-                            ?: throw IllegalArgumentException("GET request should have `message` parameter")
+                        ?: throw IllegalArgumentException("GET request should have `message` parameter")
                     call.respondText(message)
                 }
                 static {
@@ -102,7 +102,9 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
 
     @Benchmark
     @Group("queryGroup")
-    fun queryLoad() = load("$localhost/query?utm_source=Google&utm_medium=cpc&utm_campaign=ok%2B+plus&utm_content=obshie&message=OK")
+    fun queryLoad() = load(
+        "$localhost/query?utm_source=Google&utm_medium=cpc&utm_campaign=ok%2B+plus&utm_content=obshie&message=OK"
+    )
 
     @Benchmark
     @Group("thinkOKGroup")

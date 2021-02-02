@@ -5,9 +5,9 @@
 package io.ktor.server.benchmarks
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import org.openjdk.jmh.annotations.*
 import java.io.*
 import java.nio.ByteBuffer
@@ -136,4 +136,3 @@ fun main(args: Array<String>) {
         run<ChannelBenchmarks>()
     }
 }
-

@@ -19,14 +19,12 @@ class NettyUtilityTest {
         assertTrue(listOf("chunkedz, chunked").hasValidTransferEncoding())
         assertTrue(listOf("chunkedz", "chunked").hasValidTransferEncoding())
 
-
         assertFalse(listOf("chunked,zchunked").hasValidTransferEncoding())
         assertFalse(listOf("chunked,chunkedz").hasValidTransferEncoding())
         assertFalse(listOf("chunked, zchunked").hasValidTransferEncoding())
         assertFalse(listOf("chunked", "zchunked").hasValidTransferEncoding())
         assertFalse(listOf("chunked, chunkedz").hasValidTransferEncoding())
         assertFalse(listOf("chunked", "chunkedz").hasValidTransferEncoding())
-
 
         assertFalse(listOf("chunked", "gzip").hasValidTransferEncoding())
 

@@ -5,9 +5,9 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
@@ -37,9 +37,11 @@ class PartialContentTest {
                     handle {
                         val file = basedir.resolve(localPath)
                         if (file.isFile) {
-                            call.respond(LocalFileContent(file).apply {
-                                versions += EntityTagVersion(fileEtag)
-                            })
+                            call.respond(
+                                LocalFileContent(file).apply {
+                                    versions += EntityTagVersion(fileEtag)
+                                }
+                            )
                         }
                     }
                 }
@@ -121,7 +123,7 @@ class PartialContentTest {
     @Test
     fun testUnsatisfiableRange(): Unit = withRangeApplication { file ->
         handleRequest(HttpMethod.Get, localPath) {
-            addHeader(HttpHeaders.Range, "bytes=1000000-1000004")  // unsatisfiable
+            addHeader(HttpHeaders.Range, "bytes=1000000-1000004") // unsatisfiable
         }.let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
@@ -346,11 +348,13 @@ class PartialContentTest {
             val length = range.first.length.toInt()
             require(length > 0) { "range shouldn't be empty" }
 
-            parts.add(buildString {
-                repeat(length) {
-                    append(read().toChar())
+            parts.add(
+                buildString {
+                    repeat(length) {
+                        append(read().toChar())
+                    }
                 }
-            })
+            )
         } while (true)
 
         return parts
@@ -366,8 +370,7 @@ class PartialContentTest {
     private fun BufferedReader.scanHeaders() = Headers.build {
         do {
             val line = readLine()
-            if (line.isNullOrBlank())
-                break
+            if (line.isNullOrBlank()) break
 
             val (header, value) = line.chomp(":") { throw IOException("Illegal header line $line") }
             append(header.trimEnd(), value.trimStart())

@@ -4,12 +4,12 @@
 
 package io.ktor.server.netty.cio
 
+import io.ktor.utils.io.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.*
@@ -80,7 +80,9 @@ internal class RequestBodyHandler(
     private fun tryOfferChannelOrToken(token: Any) {
         try {
             if (!queue.offer(token)) {
-                throw IllegalStateException("Unable to start request processing: failed to offer $token to the HTTP pipeline queue")
+                throw IllegalStateException(
+                    "Unable to start request processing: failed to offer $token to the HTTP pipeline queue"
+                )
             }
         } catch (closedCause: ClosedSendChannelException) {
             throw CancellationException("HTTP pipeline has been terminated.", closedCause)

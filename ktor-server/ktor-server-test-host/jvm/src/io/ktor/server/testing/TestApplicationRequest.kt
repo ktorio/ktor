@@ -9,11 +9,11 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 
 /**
  * Represents a test application request
@@ -24,11 +24,11 @@ import io.ktor.utils.io.core.*
  * @property protocol HTTP protocol to be used or was used
  */
 public class TestApplicationRequest constructor(
-        call: TestApplicationCall,
-        closeRequest: Boolean,
-        var method: HttpMethod = HttpMethod.Get,
-        var uri: String = "/",
-        var version: String = "HTTP/1.1"
+    call: TestApplicationCall,
+    closeRequest: Boolean,
+    var method: HttpMethod = HttpMethod.Get,
+    var uri: String = "/",
+    var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call), CoroutineScope by call {
     var protocol: String = "http"
 
@@ -117,17 +117,19 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                     append("$key: ${values.joinToString(";")}\r\n")
                 }
                 append("\r\n")
-                append(when (it) {
-                    is PartData.FileItem -> {
-                        it.provider().asStream().copyTo(channel.toOutputStream())
-                        ""
+                append(
+                    when (it) {
+                        is PartData.FileItem -> {
+                            it.provider().asStream().copyTo(channel.toOutputStream())
+                            ""
+                        }
+                        is PartData.BinaryItem -> {
+                            it.provider().asStream().copyTo(channel.toOutputStream())
+                            ""
+                        }
+                        is PartData.FormItem -> it.value
                     }
-                    is PartData.BinaryItem -> {
-                        it.provider().asStream().copyTo(channel.toOutputStream())
-                        ""
-                    }
-                    is PartData.FormItem -> it.value
-                })
+                )
                 append("\r\n")
             }
 

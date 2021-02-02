@@ -171,7 +171,7 @@ public class ApplicationEngineEnvironmentReloading(
             kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
             Logger::class.java, // slf4j
             ByteReadChannel::class.java,
-            Input::class.java,  // kotlinx-io
+            Input::class.java, // kotlinx-io
             Attributes::class.java
         ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
 
@@ -403,24 +403,31 @@ public class ApplicationEngineEnvironmentReloading(
     }
 
     private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R =
-        entryPoint.callBy(entryPoint.parameters.filterNot { it.isOptional }.associateBy({ it }, { parameter ->
-            when {
-                parameter.kind == KParameter.Kind.INSTANCE -> instance
-                isApplicationEnvironment(parameter) -> this
-                isApplication(parameter) -> application
-                parameter.type.toString().contains("Application") -> {
-                    // It is possible that type is okay, but classloader is not
-                    val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
-                    throw IllegalArgumentException(
-                        "Parameter type ${parameter.type}:{$classLoader} is not supported." +
-                            "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
-                    )
+        entryPoint.callBy(
+            entryPoint.parameters.filterNot { it.isOptional }.associateBy(
+                { it },
+                { parameter ->
+                    when {
+                        parameter.kind == KParameter.Kind.INSTANCE -> instance
+                        isApplicationEnvironment(parameter) -> this
+                        isApplication(parameter) -> application
+                        parameter.type.toString().contains("Application") -> {
+                            // It is possible that type is okay, but classloader is not
+                            val classLoader = (parameter.type.javaType as? Class<*>)?.classLoader
+                            throw IllegalArgumentException(
+                                "Parameter type ${parameter.type}:{$classLoader} is not supported." +
+                                    "Application is loaded as " +
+                                    "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
+                            )
+                        }
+                        else -> throw IllegalArgumentException(
+                            "Parameter type '${parameter.type}' of parameter " +
+                                "'${parameter.name ?: "<receiver>"}' is not supported"
+                        )
+                    }
                 }
-                else -> throw IllegalArgumentException(
-                    "Parameter type '${parameter.type}' of parameter '${parameter.name ?: "<receiver>"}' is not supported"
-                )
-            }
-        }))
+            )
+        )
 
     public companion object
 }

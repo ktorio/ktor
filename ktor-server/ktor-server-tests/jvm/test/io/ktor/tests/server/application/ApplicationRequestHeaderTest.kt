@@ -142,6 +142,4 @@ class ApplicationRequestHeaderTest {
             }
         }
     }
-
 }
-

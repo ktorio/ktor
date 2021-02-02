@@ -39,7 +39,9 @@ internal class NettyHttp1ApplicationResponse(
         override fun engineAppendHeader(name: String, value: String) {
             if (responseMessageSent) {
                 if (responseMessage.isCancelled) throw CancellationException("Call execution has been cancelled")
-                throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
+                throw UnsupportedOperationException(
+                    "Headers can no longer be set because response was already completed"
+                )
             }
             responseHeaders.add(name, value)
         }

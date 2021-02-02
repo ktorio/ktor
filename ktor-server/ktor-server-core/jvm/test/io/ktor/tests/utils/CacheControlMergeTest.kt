@@ -48,20 +48,21 @@ class CacheControlMergeTest {
     @Test
     fun testTripleMergeNoMaxAge() {
         assertEquals(
-            listOf(NoCache(Visibility.Private)), merge(
+            listOf(NoCache(Visibility.Private)),
+            merge(
                 NoCache(Visibility.Private),
                 NoCache(null),
                 NoCache(Visibility.Public),
             )
         )
         assertEquals(
-            listOf(NoCache(Visibility.Public)), merge(
+            listOf(NoCache(Visibility.Public)),
+            merge(
                 NoCache(Visibility.Public),
                 NoCache(null),
                 NoCache(Visibility.Public),
             )
         )
-
     }
 
     @Test

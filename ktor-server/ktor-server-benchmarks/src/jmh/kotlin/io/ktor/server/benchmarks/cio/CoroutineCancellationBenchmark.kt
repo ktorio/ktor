@@ -15,16 +15,16 @@ import kotlin.coroutines.intrinsics.*
 
 private const val REPEAT_COUNT: Int = 1000
 private const val MAX_CONSUME_CPU_CYCLE_COUNT: Int = 10
+
 private const val SUSPEND_FACTOR: Int = 100 // every 1/100th should suspend
 
-
 /**
-    Run > ./gradle runBenchmark -PbenchmarkName=cio.CoroutineCancellationBenchmark
+Run > ./gradle runBenchmark -PbenchmarkName=cio.CoroutineCancellationBenchmark
 
-    Sample results:
-    Benchmark                                                       Mode  Cnt    Score    Error   Units
-    CoroutineCancellationBenchmark.customCancellationHandler       thrpt   20  275,802 ± 23,465  ops/ms
-    CoroutineCancellationBenchmark.regularCancellableContinuation  thrpt   20   52,506 ±  5,350  ops/ms
+Sample results:
+Benchmark                                                       Mode  Cnt    Score    Error   Units
+CoroutineCancellationBenchmark.customCancellationHandler       thrpt   20  275,802 ± 23,465  ops/ms
+CoroutineCancellationBenchmark.regularCancellableContinuation  thrpt   20   52,506 ±  5,350  ops/ms
  */
 @State(Scope.Benchmark)
 class CoroutineCancellationBenchmark {
@@ -94,7 +94,4 @@ fun main(args: Array<String>) {
         jmhOptions.jvmArgsAppend("-Xmx32m")
         run<CoroutineCancellationBenchmark>()
     }
-
-//    CoroutineCancellationBenchmark().regularCancellableContinuation()
 }
-

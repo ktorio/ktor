@@ -72,7 +72,6 @@ class RoutingProcessingTest {
                 assertEquals("john", username)
             }
         }
-
     }
 
     @Test
@@ -92,7 +91,6 @@ class RoutingProcessingTest {
                 assertEquals("john", username)
             }
         }
-
     }
 
     @Test
@@ -252,7 +250,6 @@ class RoutingProcessingTest {
 
     @Test
     fun testRoutingOnGETUserUsernameWithInterceptors() = withTestApplication {
-
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var userName = ""
@@ -403,7 +400,6 @@ class RoutingProcessingTest {
 
     @Test
     fun testInterceptReceivePipeline() = withTestApplication {
-
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
@@ -440,7 +436,6 @@ class RoutingProcessingTest {
             assertTrue(rootIntercepted, "should have processed root interceptor")
             assertNotNull(instance)
         }
-
     }
 
     @Test
@@ -515,26 +510,34 @@ class RoutingProcessingTest {
             route("/") {
                 host("my-host", 8080) {
                     get("1") {
-                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
-                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                        call.respond(
+                            "host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                                "port = ${call.parameters[HostRouteSelector.PortParameter]}"
+                        )
                     }
                 }
                 host("(www\\.)?my-host.net".toRegex()) {
                     get("3") {
-                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
-                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                        call.respond(
+                            "host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                                "port = ${call.parameters[HostRouteSelector.PortParameter]}"
+                        )
                     }
                 }
                 host(listOf("www.my-host.net", "my-host.net")) {
                     get("4") {
-                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
-                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                        call.respond(
+                            "host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                                "port = ${call.parameters[HostRouteSelector.PortParameter]}"
+                        )
                     }
                 }
                 port(9090) {
                     get("2") {
-                        call.respond("host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
-                            "port = ${call.parameters[HostRouteSelector.PortParameter]}")
+                        call.respond(
+                            "host = ${call.parameters[HostRouteSelector.HostNameParameter]}, " +
+                                "port = ${call.parameters[HostRouteSelector.PortParameter]}"
+                        )
                     }
                 }
             }
@@ -661,7 +664,6 @@ class RoutingProcessingTest {
             get("/{param}/x") { call.respond("/{param}/x") }
             get("/{param}/x/z") { call.respond("/{param}/x/z") }
             get("/*/extra") { call.respond("/*/extra") }
-
         }
 
         handleRequest {
@@ -669,14 +671,17 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/bar", it.response.content)
-            assertEquals("""Trace for [bar]
+            assertEquals(
+                """Trace for [bar]
 /, segment:0 -> SUCCESS @ /bar/(method:GET))
   /bar, segment:1 -> SUCCESS @ /bar/(method:GET))
     /bar/(method:GET), segment:1 -> SUCCESS @ /bar/(method:GET))
   /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -684,7 +689,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/{param}/x", it.response.content)
-            assertEquals("""Trace for [bar, x]
+            assertEquals(
+                """Trace for [bar, x]
 /, segment:0 -> SUCCESS; Parameters [param=[bar]] @ /{param}/x/(method:GET))
   /bar, segment:1 -> FAILURE "Not all segments matched" @ /bar/(method:GET))
     /bar/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /bar/(method:GET))
@@ -695,7 +701,9 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -703,7 +711,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/baz/x", it.response.content)
-            assertEquals("""Trace for [baz, x]
+            assertEquals(
+                """Trace for [baz, x]
 /, segment:0 -> SUCCESS @ /baz/x/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:1 -> SUCCESS @ /baz/x/(method:GET))
@@ -714,7 +723,9 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -722,7 +733,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/baz/{y}", it.response.content)
-            assertEquals("""Trace for [baz, doo]
+            assertEquals(
+                """Trace for [baz, doo]
 /, segment:0 -> SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:1 -> SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET))
@@ -733,7 +745,9 @@ class RoutingProcessingTest {
       /baz/{y}/value, segment:2 -> FAILURE "Selector didn't match" @ /baz/{y}/value)
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -741,7 +755,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/baz/x/{optional?}", it.response.content)
-            assertEquals("""Trace for [baz, x, z]
+            assertEquals(
+                """Trace for [baz, x, z]
 /, segment:0 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:1 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET))
@@ -753,7 +768,9 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -761,7 +778,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/baz/x/{optional?}", it.response.content)
-            assertEquals("""Trace for [baz, x, value]
+            assertEquals(
+                """Trace for [baz, x, value]
 /, segment:0 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:1 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET))
@@ -773,7 +791,9 @@ class RoutingProcessingTest {
     /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
   /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -781,7 +801,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/{param}", it.response.content)
-            assertEquals("""Trace for [p]
+            assertEquals(
+                """Trace for [p]
 /, segment:0 -> SUCCESS; Parameters [param=[p]] @ /{param}/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
@@ -789,7 +810,9 @@ class RoutingProcessingTest {
     /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET))
     /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
 
         handleRequest {
@@ -797,7 +820,8 @@ class RoutingProcessingTest {
             method = HttpMethod.Get
         }.let {
             assertEquals("/{param}/x", it.response.content)
-            assertEquals("""Trace for [p, x]
+            assertEquals(
+                """Trace for [p, x]
 /, segment:0 -> SUCCESS; Parameters [param=[p]] @ /{param}/x/(method:GET))
   /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
   /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
@@ -807,7 +831,9 @@ class RoutingProcessingTest {
       /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
       /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
   /*, segment:0 -> FAILURE "Better match was already found" @ /*)
-""".toPlatformLineSeparators(), trace?.buildText())
+""".toPlatformLineSeparators(),
+                trace?.buildText()
+            )
         }
     }
 
@@ -844,11 +870,13 @@ class RoutingProcessingTest {
     private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
 
     private fun Route.transparent(build: Route.() -> Unit): Route {
-        val route = createChild(object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
-            override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+        val route = createChild(
+            object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+                override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                    return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+                }
             }
-        })
+        )
         route.build()
         return route
     }

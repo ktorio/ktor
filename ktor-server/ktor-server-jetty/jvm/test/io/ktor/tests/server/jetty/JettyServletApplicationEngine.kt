@@ -33,22 +33,27 @@ internal class JettyServletApplicationEngine(
             setAttribute(ServletApplicationEngine.ApplicationEngineEnvironmentAttributeKey, environment)
             setAttribute(ServletApplicationEngine.ApplicationEnginePipelineAttributeKey, pipeline)
 
-            insertHandler(ServletHandler().apply {
-                val holder = ServletHolder(
-                    "ktor-servlet", ServletApplicationEngine::class.java
-                ).apply {
-                    isAsyncSupported = async
-                    registration.setLoadOnStartup(1)
-                    registration.setMultipartConfig(MultipartConfigElement(System.getProperty("java.io.tmpdir")))
-                    registration.setAsyncSupported(async)
-                }
+            insertHandler(
+                ServletHandler().apply {
+                    val holder = ServletHolder(
+                        "ktor-servlet",
+                        ServletApplicationEngine::class.java
+                    ).apply {
+                        isAsyncSupported = async
+                        registration.setLoadOnStartup(1)
+                        registration.setMultipartConfig(MultipartConfigElement(System.getProperty("java.io.tmpdir")))
+                        registration.setAsyncSupported(async)
+                    }
 
-                addServlet(holder)
-                addServletMapping(ServletMapping().apply {
-                    pathSpecs = arrayOf("*.", "/*")
-                    servletName = "ktor-servlet"
-                })
-            })
+                    addServlet(holder)
+                    addServletMapping(
+                        ServletMapping().apply {
+                            pathSpecs = arrayOf("*.", "/*")
+                            servletName = "ktor-servlet"
+                        }
+                    )
+                }
+            )
         }
     }
 }

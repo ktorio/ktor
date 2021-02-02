@@ -49,7 +49,8 @@ internal class NettyHttp2ApplicationRequest(
 
     @OptIn(ObsoleteCoroutinesApi::class)
     val contentActor = actor<Http2DataFrame>(
-        Dispatchers.Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
+        Dispatchers.Unconfined,
+        kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http2frameLoop(contentByteChannel)
     }
@@ -72,4 +73,3 @@ internal class NettyHttp2ApplicationRequest(
         return HttpPostMultipartRequestDecoder(request)
     }
 }
-

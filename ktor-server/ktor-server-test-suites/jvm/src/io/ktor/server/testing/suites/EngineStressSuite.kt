@@ -15,9 +15,9 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
@@ -203,24 +203,26 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     public fun testHttpUpgrade() {
         createAndStartServer {
             handle {
-                call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(
-                        input: ByteReadChannel,
-                        output: ByteWriteChannel,
-                        engineContext: CoroutineContext,
-                        userContext: CoroutineContext
-                    ): Job {
-                        return launch(engineContext) {
-                            try {
-                                output.writeFully(endMarkerCrLfBytes)
-                                output.flush()
-                                delay(200)
-                            } finally {
-                                output.close()
+                call.respond(
+                    object : OutgoingContent.ProtocolUpgrade() {
+                        override suspend fun upgrade(
+                            input: ByteReadChannel,
+                            output: ByteWriteChannel,
+                            engineContext: CoroutineContext,
+                            userContext: CoroutineContext
+                        ): Job {
+                            return launch(engineContext) {
+                                try {
+                                    output.writeFully(endMarkerCrLfBytes)
+                                    output.flush()
+                                    delay(200)
+                                } finally {
+                                    output.close()
+                                }
                             }
                         }
                     }
-                })
+                )
             }
         }
 
@@ -288,21 +290,23 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     public fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        val bb: ByteBuffer = ByteBuffer.allocate(1024)
-                        Random().nextBytes(bb.array())
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            val bb: ByteBuffer = ByteBuffer.allocate(1024)
+                            Random().nextBytes(bb.array())
 
-                        for (i in 1..1024 * 1024) {
-                            bb.clear()
-                            while (bb.hasRemaining()) {
-                                channel.writeFully(bb)
+                            for (i in 1..1024 * 1024) {
+                                bb.clear()
+                                while (bb.hasRemaining()) {
+                                    channel.writeFully(bb)
+                                }
                             }
-                        }
 
-                        channel.close()
+                            channel.close()
+                        }
                     }
-                })
+                )
             }
             get("/") {
                 call.respondText("OK")

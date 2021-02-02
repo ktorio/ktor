@@ -13,7 +13,8 @@ import kotlin.coroutines.*
  * Represents a test application call that is used in [withTestApplication] and [handleRequest]
  */
 public class TestApplicationCall(
-    application: Application, readResponse: Boolean = false,
+    application: Application,
+    readResponse: Boolean = false,
     closeRequest: Boolean = true,
     override val coroutineContext: CoroutineContext
 ) : BaseApplicationCall(application), CoroutineScope {

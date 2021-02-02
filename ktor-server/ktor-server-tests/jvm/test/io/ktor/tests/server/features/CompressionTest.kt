@@ -5,14 +5,14 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.time.*
 import java.util.zip.*
 import kotlin.coroutines.*
@@ -163,17 +163,20 @@ class CompressionTest {
         withTestApplication {
             application.install(Compression) {
                 default()
-                encoder("special", object : CompressionEncoder {
-                    override fun compress(
-                        readChannel: ByteReadChannel,
-                        coroutineContext: CoroutineContext
-                    ) = readChannel
+                encoder(
+                    "special",
+                    object : CompressionEncoder {
+                        override fun compress(
+                            readChannel: ByteReadChannel,
+                            coroutineContext: CoroutineContext
+                        ) = readChannel
 
-                    override fun compress(
-                        writeChannel: ByteWriteChannel,
-                        coroutineContext: CoroutineContext
-                    ) = writeChannel
-                })
+                        override fun compress(
+                            writeChannel: ByteWriteChannel,
+                            coroutineContext: CoroutineContext
+                        ) = writeChannel
+                    }
+                )
             }
             application.routing {
                 get("/") {
@@ -407,19 +410,21 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object : OutgoingContent.ReadChannelContent() {
-                        init {
-                            versions += LastModifiedVersion(dateTime)
-                            caching = CachingOptions(
-                                cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
-                                expires = dateTime
-                            )
-                        }
+                    call.respond(
+                        object : OutgoingContent.ReadChannelContent() {
+                            init {
+                                versions += LastModifiedVersion(dateTime)
+                                caching = CachingOptions(
+                                    cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public),
+                                    expires = dateTime
+                                )
+                            }
 
-                        override val contentType = ContentType.Text.Plain
-                        override val contentLength = textToCompressAsBytes.size.toLong()
-                        override fun readFrom() = ByteReadChannel(textToCompressAsBytes)
-                    })
+                            override val contentType = ContentType.Text.Plain
+                            override val contentLength = textToCompressAsBytes.size.toLong()
+                            override fun readFrom() = ByteReadChannel(textToCompressAsBytes)
+                        }
+                    )
                 }
             }
 
@@ -505,11 +510,13 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object: OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeStringUtf8("Hello!")
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("Hello!")
+                        }
                     }
-                })
+                )
             }
         }
 
@@ -539,18 +546,20 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object: OutgoingContent.ByteArrayContent() {
-                    override val headers: Headers
-                        get() = Headers.build {
-                            appendAll(super.headers)
-                            append(HttpHeaders.ContentEncoding, "identity")
-                        }
+                call.respond(
+                    object : OutgoingContent.ByteArrayContent() {
+                        override val headers: Headers
+                            get() = Headers.build {
+                                appendAll(super.headers)
+                                append(HttpHeaders.ContentEncoding, "identity")
+                            }
 
-                    override fun bytes(): ByteArray = "Hello!".toByteArray()
+                        override fun bytes(): ByteArray = "Hello!".toByteArray()
 
-                    override val contentLength: Long?
-                        get() = 6
-                })
+                        override val contentLength: Long?
+                            get() = 6
+                    }
+                )
             }
         }
 
@@ -563,18 +572,20 @@ class CompressionTest {
 
         application.routing {
             get("/") {
-                call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override suspend fun upgrade(
-                        input: ByteReadChannel,
-                        output: ByteWriteChannel,
-                        engineContext: CoroutineContext,
-                        userContext: CoroutineContext
-                    ): Job {
-                        return launch {
-                            output.close()
+                call.respond(
+                    object : OutgoingContent.ProtocolUpgrade() {
+                        override suspend fun upgrade(
+                            input: ByteReadChannel,
+                            output: ByteWriteChannel,
+                            engineContext: CoroutineContext,
+                            userContext: CoroutineContext
+                        ): Job {
+                            return launch {
+                                output.close()
+                            }
                         }
                     }
-                })
+                )
             }
         }
 
@@ -622,7 +633,12 @@ class CompressionTest {
         }
     }
 
-    private fun TestApplicationEngine.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
+    private fun TestApplicationEngine.handleAndAssert(
+        url: String,
+        acceptHeader: String?,
+        expectedEncoding: String?,
+        expectedContent: String
+    ): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
                 addHeader(HttpHeaders.AcceptEncoding, acceptHeader)
@@ -658,6 +674,7 @@ class CompressionTest {
     }
 
     private fun TestApplicationResponse.readIdentity() = byteContent!!.inputStream().reader().readText()
-    private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
+    private fun TestApplicationResponse.readDeflate() =
+        InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }

@@ -65,36 +65,38 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
             }
 
             environment.connectors.forEach { ktorConnector ->
-                addConnector(Connector().apply {
-                    port = ktorConnector.port
+                addConnector(
+                    Connector().apply {
+                        port = ktorConnector.port
 
-                    if (ktorConnector is EngineSSLConnectorConfig) {
-                        secure = true
-                        scheme = "https"
+                        if (ktorConnector is EngineSSLConnectorConfig) {
+                            secure = true
+                            scheme = "https"
 
-                        if (ktorConnector.keyStorePath == null) {
-                            throw IllegalArgumentException("Tomcat requires keyStorePath")
+                            if (ktorConnector.keyStorePath == null) {
+                                throw IllegalArgumentException("Tomcat requires keyStorePath")
+                            }
+
+                            setAttribute("keyAlias", ktorConnector.keyAlias)
+                            setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
+                            setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
+                            setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                            setAttribute("clientAuth", false)
+                            setAttribute("sslProtocol", "TLS")
+                            setAttribute("SSLEnabled", true)
+
+                            val sslImpl = chooseSSLImplementation()
+
+                            setAttribute("sslImplementationName", sslImpl.name)
+
+                            if (sslImpl.simpleName == "OpenSSLImplementation") {
+                                addUpgradeProtocol(Http2Protocol())
+                            }
+                        } else {
+                            scheme = "http"
                         }
-
-                        setAttribute("keyAlias", ktorConnector.keyAlias)
-                        setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
-                        setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
-                        setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
-                        setAttribute("clientAuth", false)
-                        setAttribute("sslProtocol", "TLS")
-                        setAttribute("SSLEnabled", true)
-
-                        val sslImpl = chooseSSLImplementation()
-
-                        setAttribute("sslImplementationName", sslImpl.name)
-
-                        if (sslImpl.simpleName == "OpenSSLImplementation") {
-                            addUpgradeProtocol(Http2Protocol())
-                        }
-                    } else {
-                        scheme = "http"
                     }
-                })
+                )
             }
         }
 

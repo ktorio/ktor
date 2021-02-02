@@ -355,8 +355,8 @@ class ParserServerSetCookieTest {
 
     @Test
     fun testParseExpires() {
-        val header =
-            "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
+        val header = "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; " +
+            "Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
         val expires = parsed.expires
