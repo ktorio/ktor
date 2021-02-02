@@ -92,7 +92,7 @@ public class RoutingResolveContext(
             segments.add(segment)
             beginSegment = nextSegment + 1
         }
-        if (path.endsWith("/")) {
+        if (!call.ignoreTrailingSlash && path.endsWith("/")) {
             segments.add("")
         }
         return segments
@@ -140,7 +140,7 @@ public class RoutingResolveContext(
             }
 
             val immediateSelectQuality = when (selectorResult.quality) {
-                // handlers of route with qualityTransparent should be treated as ones with qualityConstant
+                // handlers of routes with qualityTransparent should be treated as ones with qualityConstant
                 RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
                 else -> selectorResult.quality
             }
@@ -208,7 +208,7 @@ public class RoutingResolveContext(
     }
 
     private fun flattenChildren(children: List<Route>): List<Route> {
-        // to avoid unnecessary allocations, first check in flattening is required
+        // to avoid unnecessary allocations, first check if flattening is required
         // iterate using indices to avoid creating iterator
         var hasTransparentChildren = false
         for (childIndex in 0..children.lastIndex) {
