@@ -6,8 +6,8 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.util.network.*
-import java.net.SocketAddress
 import java.net.InetSocketAddress
+import java.net.SocketAddress
 import java.nio.channels.*
 
 internal class SocketImpl<out S : SocketChannel>(

@@ -12,8 +12,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.rules.*
-import java.net.ServerSocket
 import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.nio.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
