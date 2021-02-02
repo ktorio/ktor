@@ -55,6 +55,7 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
         override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
     }
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         context.executor().execute {
             handler.startHttp2PushPromise(this@NettyHttp2ApplicationResponse.context, builder)

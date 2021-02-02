@@ -108,7 +108,9 @@ public abstract class ByteChannelSequentialBase(
 
     internal suspend fun awaitAtLeastNBytesAvailableForWrite(count: Int) {
         while (availableForWrite < count && !closed) {
-            slot.sleep()
+            if (!flushImpl()) {
+                slot.sleep()
+            }
         }
     }
 
@@ -119,10 +121,17 @@ public abstract class ByteChannelSequentialBase(
     }
 
     override fun flush() {
-        if (writable.isNotEmpty) {
-            flushWrittenBytes()
-            slot.resume()
+        flushImpl()
+    }
+
+    private fun flushImpl(): Boolean {
+        if (writable.isEmpty) {
+            return false
         }
+
+        flushWrittenBytes()
+        slot.resume()
+        return true
     }
 
     /**
@@ -551,7 +560,9 @@ public abstract class ByteChannelSequentialBase(
         return when {
             closedCause != null -> throw closedCause!!
             readable.remaining >= n -> readable.readFully(dst, n).also { afterRead(n) }
-            closed -> throw EOFException("Channel is closed and not enough bytes available: required $n but $availableForRead available")
+            closed -> throw EOFException(
+                "Channel is closed and not enough bytes available: required $n but $availableForRead available"
+            )
             else -> readFullySuspend(dst, n)
         }
     }
@@ -633,7 +644,9 @@ public abstract class ByteChannelSequentialBase(
 
     override suspend fun await(atLeast: Int): Boolean {
         require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast" }
-        require(atLeast <= EXPECTED_CAPACITY) { "atLeast parameter shouldn't be larger than max buffer size of $EXPECTED_CAPACITY: $atLeast" }
+        require(atLeast <= EXPECTED_CAPACITY) {
+            "atLeast parameter shouldn't be larger than max buffer size of $EXPECTED_CAPACITY: $atLeast"
+        }
 
         completeReading()
 
@@ -701,8 +714,12 @@ public abstract class ByteChannelSequentialBase(
     override suspend fun discard(max: Long): Long {
         val discarded = readable.discard(max)
 
-        return if (discarded == max || isClosedForRead) return discarded
-        else discardSuspend(max, discarded)
+        return if (discarded == max || isClosedForRead) {
+            ensureNotFailed()
+            return discarded
+        } else {
+            discardSuspend(max, discarded)
+        }
     }
 
     private suspend fun discardSuspend(max: Long, discarded0: Long): Long {
@@ -712,6 +729,8 @@ public abstract class ByteChannelSequentialBase(
             if (!await(1)) break
             discarded += readable.discard(max - discarded)
         } while (discarded < max && !isClosedForRead)
+
+        ensureNotFailed()
 
         return discarded
     }
@@ -864,9 +883,8 @@ public abstract class ByteChannelSequentialBase(
 
             val buffer = request(1) ?: IoBuffer.Empty
             if (buffer.readRemaining > offset) {
-                buffer.discardExact(offset)
-                bytesCopied = minOf(buffer.readRemaining.toLong(), max)
-                buffer.memory.copyTo(destination, buffer.readPosition.toLong(), bytesCopied, destinationOffset)
+                bytesCopied = minOf(buffer.readRemaining.toLong() - offset, max, destination.size - destinationOffset)
+                buffer.memory.copyTo(destination, offset, bytesCopied, destinationOffset)
             }
         }
 

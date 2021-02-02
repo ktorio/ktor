@@ -13,7 +13,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 
 class WebSocketRemoteTest : ClientLoader() {
-    private val echoWebsocket = "echo.websocket.org"
+    private val echoWebsocket = "$TEST_WEBSOCKET_SERVER/websockets/echo"
     private val skipEngines = listOf("Android", "Apache")
 
     @Test
@@ -23,7 +23,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            client.ws(host = echoWebsocket) {
+            client.ws(echoWebsocket) {
                 repeat(10) {
                     ping(it.toString())
                 }
@@ -32,13 +32,14 @@ class WebSocketRemoteTest : ClientLoader() {
     }
 
     @Test
+    @Ignore
     fun testSecureRemotePingPong() = clientTests(skipEngines) {
         config {
             install(WebSockets)
         }
 
         test { client ->
-            client.wss(host = echoWebsocket) {
+            client.wss(echoWebsocket) {
                 repeat(10) {
                     ping(it.toString())
                 }
@@ -57,7 +58,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            client.wss(host = echoWebsocket) {
+            client.wss(echoWebsocket) {
                 ping("hello, world")
             }
         }
@@ -70,10 +71,7 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            val session = client.webSocket(host = echoWebsocket, request = {
-                url.protocol = URLProtocol.WSS
-                url.port = DEFAULT_PORT
-            }) {
+            val session = client.webSocket(echoWebsocket) {
                 close(CloseReason(CloseReason.Codes.NORMAL, "OK"))
             }
         }
@@ -86,11 +84,21 @@ class WebSocketRemoteTest : ClientLoader() {
         }
 
         test { client ->
-            client.webSocket(host = echoWebsocket, request = {
-                url.protocol = URLProtocol.WSS
-                url.port = DEFAULT_PORT
-            }) {
+            client.webSocket(echoWebsocket) {
                 cancel()
+            }
+        }
+    }
+
+    @Test
+    fun testBadCloseReason() = clientTests(skipEngines) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket(echoWebsocket) {
+                close(CloseReason(1005, "Reserved close code"))
             }
         }
     }

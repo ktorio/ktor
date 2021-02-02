@@ -7,18 +7,6 @@ import kotlin.reflect.*
 
 internal fun ByteBuffer.isEmpty() = !hasRemaining()
 
-internal inline fun <reified Owner : Any> longUpdater(p: KProperty1<Owner, Long>): AtomicLongFieldUpdater<Owner> {
-    return AtomicLongFieldUpdater.newUpdater(Owner::class.java, p.name)
-}
-
-internal inline fun <reified Owner : Any> intUpdater(p: KProperty1<Owner, Int>): AtomicIntegerFieldUpdater<Owner> {
-    return AtomicIntegerFieldUpdater.newUpdater(Owner::class.java, p.name)
-}
-
-internal inline fun <reified Owner : Any, reified T> updater(p: KProperty1<Owner, T>): AtomicReferenceFieldUpdater<Owner, T> {
-    return AtomicReferenceFieldUpdater.newUpdater(Owner::class.java, T::class.java, p.name)
-}
-
 internal fun getIOIntProperty(name: String, default: Int): Int =
     try { System.getProperty("io.ktor.utils.io.$name") }
     catch (e: SecurityException) { null }
@@ -81,5 +69,3 @@ internal fun ByteBuffer.putAtMost(src: ByteBuffer, n: Int = src.remaining()): In
 internal fun ByteBuffer.putLimited(src: ByteBuffer, limit: Int = limit()): Int {
     return putAtMost(src, limit - src.position())
 }
-
-internal fun ByteArray.asByteBuffer(offset: Int = 0, length: Int = size): ByteBuffer = ByteBuffer.wrap(this, offset, length)

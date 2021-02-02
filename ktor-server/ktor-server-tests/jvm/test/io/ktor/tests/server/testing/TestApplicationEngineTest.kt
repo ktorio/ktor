@@ -208,6 +208,7 @@ class TestApplicationEngineTest {
                 }
             }
 
+            val client = client.config { expectSuccess = false }
             runBlocking {
                 val notExistingResponse = client.get<HttpResponse>("/notExist")
                 assertEquals(HttpStatusCode.NotFound, notExistingResponse.status)

@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import okhttp3.*
@@ -15,6 +16,7 @@ import kotlin.coroutines.*
 
 internal class OkHttpWebsocketSession(
     private val engine: OkHttpClient,
+    private val webSocketFactory: WebSocket.Factory,
     engineRequest: Request,
     override val coroutineContext: CoroutineContext
 ) : DefaultWebSocketSession, WebSocketListener() {
@@ -48,9 +50,15 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+    }
+
     @OptIn(ObsoleteCoroutinesApi::class)
     override val outgoing: SendChannel<Frame> = actor {
-        val websocket: WebSocket = engine.newWebSocket(engineRequest, self.await())
+        val websocket: WebSocket = webSocketFactory.newWebSocket(engineRequest, self.await())
+        var closeReason = DEFAULT_CLOSE_REASON_ERROR
 
         try {
             for (frame in channel) {
@@ -58,17 +66,28 @@ internal class OkHttpWebsocketSession(
                     is Frame.Binary -> websocket.send(frame.data.toByteString(0, frame.data.size))
                     is Frame.Text -> websocket.send(String(frame.data))
                     is Frame.Close -> {
-                        val reason = frame.readReason()!!
-                        websocket.close(reason.code.toInt(), reason.message)
+                        val outgoingCloseReason = frame.readReason()!!
+                        if (!outgoingCloseReason.isReserved()) {
+                            closeReason = outgoingCloseReason
+                        }
                         return@actor
                     }
                     else -> throw UnsupportedFrameTypeException(frame)
                 }
             }
         } finally {
-            websocket.close(CloseReason.Codes.INTERNAL_ERROR.code.toInt(), "Client failure")
+            try {
+                websocket.close(closeReason.code.toInt(), closeReason.message)
+            } catch (cause: Throwable) {
+                websocket.cancel()
+                throw cause
+            }
         }
     }
+
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>>
+        get() = emptyList()
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)
@@ -145,3 +164,11 @@ public class UnsupportedFrameTypeException(
         it.initCause(this)
     }
 }
+
+@Suppress("DEPRECATION")
+private fun CloseReason.isReserved() = CloseReason.Codes.byCode(code).let { recognized ->
+    recognized == null || recognized == CloseReason.Codes.CLOSED_ABNORMALLY
+}
+
+private val DEFAULT_CLOSE_REASON_ERROR: CloseReason =
+    CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Client failure")

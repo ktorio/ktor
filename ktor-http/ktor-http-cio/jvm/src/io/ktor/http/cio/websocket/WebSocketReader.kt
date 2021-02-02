@@ -4,12 +4,13 @@
 
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.*
 import java.nio.*
 import java.nio.channels.*
 import kotlin.coroutines.*
@@ -104,7 +105,11 @@ public class WebSocketReader(
     private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state = State.HEADER
-            queue.send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
+            val frame = with(frameParser) {
+                Frame.byType(fin, frameType, collector.take(maskKey).moveToByteArray(), rsv1, rsv2, rsv3)
+            }
+
+            queue.send(frame)
             frameParser.bodyComplete()
         }
     }
@@ -114,7 +119,9 @@ public class WebSocketReader(
      * @param frameSize size of received or posted frame that is too big
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class FrameTooBigException(public val frameSize: Long) : Exception(), CopyableThrowable<FrameTooBigException> {
+    public class FrameTooBigException(
+        public val frameSize: Long
+    ) : Exception(), CopyableThrowable<FrameTooBigException> {
 
         override val message: String
             get() = "Frame is too big: $frameSize"

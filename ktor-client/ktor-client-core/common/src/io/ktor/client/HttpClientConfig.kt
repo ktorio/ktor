@@ -45,9 +45,14 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
     public var useDefaultTransformers: Boolean by shared(true)
 
     /**
-     * Terminate [HttpClient.responsePipeline] if status code is not success(>=300).
+     * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
      */
     public var expectSuccess: Boolean by shared(true)
+
+    /**
+     * Indicate if client should use development mode. In development mode client pipelines have advanced stack traces.
+     */
+    public var developmentMode: Boolean by shared(PlatformUtils.IS_DEVELOPMENT_MODE)
 
     /**
      * Installs a specific [feature] and optionally [configure] it.

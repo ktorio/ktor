@@ -7,10 +7,12 @@ package io.ktor.server.engine
 import com.typesafe.config.*
 import io.ktor.application.*
 import io.ktor.config.*
+import io.ktor.util.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
+import kotlin.text.toCharArray
 
 /**
  * Creates an [ApplicationEngineEnvironment] instance from command line arguments
@@ -45,6 +47,8 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
     val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
     val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
     val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
+
+    val developmentModeKey = "ktor.development"
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val appLog = LoggerFactory.getLogger(applicationId)
@@ -81,6 +85,9 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
         val sslKeyStorePassword = combinedConfig.tryGetString(hostSslKeyStorePassword)?.trim()
         val sslPrivateKeyPassword = combinedConfig.tryGetString(hostSslPrivateKeyPassword)?.trim()
         val sslKeyAlias = combinedConfig.tryGetString(hostSslKeyAlias) ?: "mykey"
+
+        developmentMode = combinedConfig.tryGetString(developmentModeKey)
+            ?.let { it.toBoolean() } ?: PlatformUtils.IS_DEVELOPMENT_MODE
 
         if (port != null) {
             connector {

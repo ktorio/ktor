@@ -4,7 +4,6 @@
 
 package io.ktor.network.sockets
 
-import io.ktor.util.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -36,7 +35,7 @@ public val ASocket.isClosed: Boolean get() = socketContext.isCompleted
 /**
  * Await until socket close
  */
-public suspend fun ASocket.awaitClosed(): Unit {
+public suspend fun ASocket.awaitClosed() {
     socketContext.join()
 
     @OptIn(InternalCoroutinesApi::class)
@@ -112,7 +111,8 @@ public fun AReadable.openReadChannel(): ByteReadChannel = ByteChannel(false).als
  * Open a write channel, could be opened only once
  * @param autoFlush whether returned channel do flush for every write operation
  */
-public fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChannel = ByteChannel(autoFlush).also { attachForWriting(it) }
+public fun AWritable.openWriteChannel(autoFlush: Boolean = false): ByteWriteChannel =
+    ByteChannel(autoFlush).also { attachForWriting(it) }
 
 /**
  * Represents a connected socket
@@ -126,3 +126,17 @@ public interface ServerSocket : ASocket, ABoundSocket, Acceptable<Socket>
 
 @Suppress("EXPECT_WITHOUT_ACTUAL", "KDocMissingDocumentation")
 public expect class SocketTimeoutException(message: String) : IOException
+
+/**
+ * Represents a connected socket with its input and output
+ */
+public class Connection(
+    public val socket: Socket,
+    public val input: ByteReadChannel,
+    public val output: ByteWriteChannel
+)
+
+/**
+ * Opens socket input and output channels and returns connection object
+ */
+public fun Socket.connection(): Connection = Connection(this, openReadChannel(), openWriteChannel())

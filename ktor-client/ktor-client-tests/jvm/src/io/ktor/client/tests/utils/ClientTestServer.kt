@@ -8,15 +8,20 @@ import io.ktor.application.*
 import io.ktor.client.tests.utils.tests.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import java.util.concurrent.atomic.*
 
+@OptIn(ExperimentalWebSocketExtensionApi::class)
 internal fun Application.tests() {
     install(WebSockets) {
         maxFrameSize = 4 * 1024
+
+        extensions {
+            install(WebSocketDeflateExtension)
+        }
     }
 
     authTestServer()

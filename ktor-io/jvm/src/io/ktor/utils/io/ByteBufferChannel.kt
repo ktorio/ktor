@@ -5,19 +5,23 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.Buffer
 import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.EOFException
+import java.lang.Double.*
+import java.lang.Float.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
+import kotlin.require
 
-internal const val DEFAULT_CLOSE_MESSAGE = "Byte channel was closed"
-private const val BYTE_BUFFER_CAPACITY = 4088
+internal const val DEFAULT_CLOSE_MESSAGE: String = "Byte channel was closed"
+private const val BYTE_BUFFER_CAPACITY: Int = 4088
 
 // implementation for ByteChannel
 internal open class ByteBufferChannel(
@@ -26,8 +30,8 @@ internal open class ByteBufferChannel(
     internal val reservedSize: Int = RESERVED_SIZE
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, LookAheadSuspendSession, HasReadSession, HasWriteSession {
 
-    public constructor(content: ByteBuffer) : this(false, BufferObjectNoPool, 0) {
-        state = ReadWriteBufferState.Initial(content.slice(), 0).apply {
+    constructor(content: ByteBuffer) : this(false, BufferObjectNoPool, 0) {
+        _state.value = ReadWriteBufferState.Initial(content.slice(), 0).apply {
             capacity.resetForRead()
         }.startWriting()
         restoreStateAfterWrite()
@@ -35,20 +39,35 @@ internal open class ByteBufferChannel(
         tryTerminate()
     }
 
-    @Volatile
-    private var state: ReadWriteBufferState = ReadWriteBufferState.IdleEmpty
+    private val _state: AtomicRef<ReadWriteBufferState> = atomic(ReadWriteBufferState.IdleEmpty)
 
-    @Volatile
-    private var closed: ClosedElement? = null
+    private val state: ReadWriteBufferState
+        get() = _state.value
+
+    private val _closed: AtomicRef<ClosedElement?> = atomic(null)
+    private var closed: ClosedElement?
+        get() = _closed.value
+        set(value) {
+            _closed.value = value
+        }
 
     @Volatile
     private var joining: JoiningState? = null
 
-    @Volatile
-    private var readOp: Continuation<Boolean>? = null
+    private val _readOp: AtomicRef<Continuation<Boolean>?> = atomic(null)
+    private var readOp: Continuation<Boolean>?
+        get() = _readOp.value
+        set(value) {
+            _readOp.value = value
+        }
 
-    @Volatile
-    private var writeOp: Continuation<Unit>? = null
+    private val _writeOp: AtomicRef<Continuation<Unit>?> = atomic(null)
+
+    private var writeOp: Continuation<Unit>?
+        get() = _writeOp.value
+        set(value) {
+            _writeOp.value = value
+        }
 
     private var readPosition = 0
     private var writePosition = 0
@@ -116,12 +135,26 @@ internal open class ByteBufferChannel(
         get() = closed?.cause
 
     override fun close(cause: Throwable?): Boolean {
-        if (closed != null) return false
-        val newClosed = if (cause == null) ClosedElement.EmptyCause else ClosedElement(cause)
+        if (closed != null) {
+            return false
+        }
+
+        val newClosed = if (cause == null) {
+            ClosedElement.EmptyCause
+        } else {
+            ClosedElement(cause)
+        }
+
         state.capacity.flush()
-        if (!Closed.compareAndSet(this, null, newClosed)) return false
+        if (!_closed.compareAndSet(null, newClosed)) {
+            return false
+        }
+
         state.capacity.flush()
-        if (state.capacity.isEmpty() || cause != null) tryTerminate()
+        if (state.capacity.isEmpty() || cause != null) {
+            tryTerminate()
+        }
+
         resumeClosed(cause)
 
         if (state === ReadWriteBufferState.Terminated) {
@@ -133,17 +166,17 @@ internal open class ByteBufferChannel(
 
             readSuspendContinuationCache.close(cause)
             writeSuspendContinuationCache.close(cause)
-        } else {
-            // don't cancel job
-
-            // any further attempt to suspend should be resumed immediately
-            // with exception for write
-            writeSuspendContinuationCache.close(ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE))
-
-            // and with computed result for read
-            readSuspendContinuationCache.close(state.capacity.flush())
+            return true
         }
 
+        // don't cancel job
+
+        // any further attempt to suspend should be resumed immediately
+        // with exception for write
+        writeSuspendContinuationCache.close(ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE))
+
+        // and with computed result for read
+        readSuspendContinuationCache.close(state.capacity.flush())
         return true
     }
 
@@ -151,34 +184,42 @@ internal open class ByteBufferChannel(
         return close(cause ?: CancellationException("Channel has been cancelled"))
     }
 
-    private fun flushImpl(minReadSize: Int, minWriteSize: Int) {
+    private fun flushImpl(minWriteSize: Int) {
         joining?.delegatedTo?.flush()
 
         val avw: Int
         val avr: Int
 
         while (true) {
-            val s = state
-            if (s === ReadWriteBufferState.Terminated) return
-            s.capacity.flush()
-            if (s === state) {
-                avw = s.capacity.availableForWrite
-                avr = s.capacity.availableForRead
+            val currentState = state
+            if (currentState === ReadWriteBufferState.Terminated) {
+                return
+            }
+
+            currentState.capacity.flush()
+            if (currentState === state) {
+                avw = currentState.capacity.availableForWrite
+                avr = currentState.capacity.availableForRead
                 break
             }
         }
 
-        if (avr >= minReadSize) resumeReadOp()
+        if (avr >= 1) {
+            resumeReadOp()
+        }
+
         val joining = joining
-        if (avw >= minWriteSize && (joining == null || state === ReadWriteBufferState.Terminated)) resumeWriteOp()
+        if (avw >= minWriteSize && (joining == null || state === ReadWriteBufferState.Terminated)) {
+            resumeWriteOp()
+        }
     }
 
     override fun flush() {
-        flushImpl(1, 1)
+        flushImpl(minWriteSize = 1)
     }
 
-    @Suppress("DEPRECATION_ERROR")
     internal fun prepareWriteBuffer(buffer: ByteBuffer, lockedSpace: Int) {
+        @Suppress("DEPRECATION_ERROR")
         buffer.prepareBuffer(writeByteOrder, writePosition, lockedSpace)
     }
 
@@ -199,27 +240,32 @@ internal open class ByteBufferChannel(
             throw IllegalStateException("Write operation is already in progress: $existing")
         }
 
-        var _allocated: ReadWriteBufferState.Initial? = null
-        val (old, newState) = updateState { state ->
+        var allocatedState: ReadWriteBufferState.Initial? = null
+        lateinit var old: ReadWriteBufferState
+
+        val newState = _state.updateAndGet { state ->
+            old = state
             when {
                 joining != null -> {
-                    _allocated?.let { releaseBuffer(it) }
+                    allocatedState?.let { releaseBuffer(it) }
                     return null
                 }
                 closed != null -> {
-                    _allocated?.let { releaseBuffer(it) }
+                    allocatedState?.let { releaseBuffer(it) }
                     rethrowClosed(closed!!.sendException)
                 }
                 state === ReadWriteBufferState.IdleEmpty -> {
-                    val allocated = _allocated ?: newBuffer().also { _allocated = it }
+                    val allocated = allocatedState ?: newBuffer().also { allocatedState = it }
                     allocated.startWriting()
                 }
                 state === ReadWriteBufferState.Terminated -> {
-                    _allocated?.let { releaseBuffer(it) }
+                    allocatedState?.let { releaseBuffer(it) }
                     if (joining != null) return null
                     rethrowClosed(closed!!.sendException)
                 }
-                else -> state.startWriting()
+                else -> {
+                    state.startWriting()
+                }
             }
         }
 
@@ -232,7 +278,7 @@ internal open class ByteBufferChannel(
 
         val buffer = newState.writeBuffer
 
-        _allocated?.let { allocated ->
+        allocatedState?.let { allocated ->
             if (old !== ReadWriteBufferState.IdleEmpty) {
                 releaseBuffer(allocated)
             }
@@ -246,7 +292,7 @@ internal open class ByteBufferChannel(
     internal fun restoreStateAfterWrite() {
         var toRelease: ReadWriteBufferState.IdleNonEmpty? = null
 
-        val (_, newState) = updateState {
+        val newState = _state.updateAndGet {
             val writeStopped = it.stopWriting()
             if (writeStopped is ReadWriteBufferState.IdleNonEmpty && writeStopped.capacity.isEmpty()) {
                 toRelease = writeStopped
@@ -262,7 +308,7 @@ internal open class ByteBufferChannel(
     }
 
     private fun setupStateForRead(): ByteBuffer? {
-        val newState = updateStateAndGet { state ->
+        val newState = _state.updateAndGet { state ->
             when (state) {
                 ReadWriteBufferState.Terminated -> closed?.cause?.let { rethrowClosed(it) } ?: return null
                 ReadWriteBufferState.IdleEmpty -> closed?.cause?.let { rethrowClosed(it) } ?: return null
@@ -283,7 +329,7 @@ internal open class ByteBufferChannel(
     private fun restoreStateAfterRead() {
         var toRelease: ReadWriteBufferState.IdleNonEmpty? = null
 
-        val newState = updateStateAndGet { state ->
+        val newState = _state.updateAndGet { state ->
             toRelease?.let {
                 it.capacity.resetForWrite()
                 resumeWriteOp()
@@ -292,13 +338,11 @@ internal open class ByteBufferChannel(
 
             val readStopped = state.stopReading()
 
-            if (readStopped is ReadWriteBufferState.IdleNonEmpty) {
-                if (this.state === state && readStopped.capacity.tryLockForRelease()) {
-                    toRelease = readStopped
-                    ReadWriteBufferState.IdleEmpty
-                } else {
-                    readStopped
-                }
+            if (readStopped is ReadWriteBufferState.IdleNonEmpty &&
+                this.state === state && readStopped.capacity.tryLockForRelease()
+            ) {
+                toRelease = readStopped
+                ReadWriteBufferState.IdleEmpty
             } else {
                 readStopped
             }
@@ -307,19 +351,17 @@ internal open class ByteBufferChannel(
         if (newState === ReadWriteBufferState.IdleEmpty) {
             toRelease?.let { releaseBuffer(it.initial) }
             resumeWriteOp()
-        } else {
-            if (newState is ReadWriteBufferState.IdleNonEmpty && newState.capacity.isEmpty()) {
-                if (newState.capacity.tryLockForRelease() && State.compareAndSet(
-                        this,
-                        newState,
-                        ReadWriteBufferState.IdleEmpty
-                    )
-                ) {
-                    newState.capacity.resetForWrite()
-                    releaseBuffer(newState.initial)
-                    resumeWriteOp()
-                }
-            }
+            return
+        }
+
+        if (newState is ReadWriteBufferState.IdleNonEmpty &&
+            newState.capacity.isEmpty() &&
+            newState.capacity.tryLockForRelease() &&
+            _state.compareAndSet(newState, ReadWriteBufferState.IdleEmpty)
+        ) {
+            newState.capacity.resetForWrite()
+            releaseBuffer(newState.initial)
+            resumeWriteOp()
         }
     }
 
@@ -332,12 +374,15 @@ internal open class ByteBufferChannel(
         this.joining = joined
 
         val alreadyClosed = closed
-        if (alreadyClosed != null) {
-            if (alreadyClosed.cause != null) delegate.close(alreadyClosed.cause)
-            else if (delegateClose && state === ReadWriteBufferState.Terminated) delegate.close()
-            else delegate.flush()
-        } else {
+        if (alreadyClosed == null) {
             flush()
+            return joined
+        }
+
+        when {
+            alreadyClosed.cause != null -> delegate.close(alreadyClosed.cause)
+            delegateClose && state === ReadWriteBufferState.Terminated -> delegate.close()
+            else -> delegate.flush()
         }
 
         return joined
@@ -354,22 +399,21 @@ internal open class ByteBufferChannel(
     }
 
     internal fun tryTerminate(): Boolean {
-        if (closed == null) return false
-
-        if (!tryReleaseBuffer(false)) return false
+        if (closed == null || !tryReleaseBuffer(false)) {
+            return false
+        }
 
         joining?.let { ensureClosedJoined(it) }
 
         resumeReadOp()
         resumeWriteOp()
-
         return true
     }
 
     private fun tryReleaseBuffer(forceTermination: Boolean): Boolean {
         var toRelease: ReadWriteBufferState.Initial? = null
 
-        updateState { state ->
+        _state.update { state ->
             toRelease?.let { buffer ->
                 toRelease = null
                 buffer.capacity.resetForWrite()
@@ -402,7 +446,7 @@ internal open class ByteBufferChannel(
         return true
     }
 
-    private fun ByteBuffer.carryIndex(idx: Int) =
+    private fun ByteBuffer.carryIndex(idx: Int): Int =
         if (idx >= capacity() - reservedSize) idx - (capacity() - reservedSize) else idx
 
     private inline fun writing(block: ByteBufferChannel.(ByteBuffer, RingBufferCapacity) -> Unit) {
@@ -469,32 +513,35 @@ internal open class ByteBufferChannel(
         return consumed
     }
 
-    private tailrec fun readAsMuchAsPossible(dst: Buffer, consumed0: Int = 0, max: Int = dst.writeRemaining): Int {
-        var consumed = 0
+    private fun readAsMuchAsPossible(dst: Buffer, consumed: Int = 0, max: Int = dst.writeRemaining): Int {
+        var currentConsumed = consumed
+        var currentMax = max
 
-        val rc = reading {
-            val dstSize = dst.writeRemaining
-            val part = it.tryReadAtMost(minOf(remaining(), dstSize, max))
-            if (part > 0) {
-                consumed += part
+        do {
+            var part = 0
+            val count = reading {
+                val dstSize = dst.writeRemaining
+                part = it.tryReadAtMost(minOf(remaining(), dstSize, currentMax))
+                if (part <= 0) {
+                    return@reading false
+                }
 
                 if (dstSize < remaining()) {
                     limit(position() + dstSize)
                 }
+
                 dst.writeFully(this)
 
                 bytesRead(it, part)
-                true
-            } else {
-                false
+                return@reading true
             }
-        }
 
-        return if (rc && dst.canWrite() && state.capacity.availableForRead > 0)
-            readAsMuchAsPossible(dst, consumed0 + consumed, max - consumed)
-        else consumed + consumed0
+            currentConsumed += part
+            currentMax -= part
+        } while (count && dst.canWrite() && state.capacity.availableForRead > 0)
+
+        return currentConsumed
     }
-
 
     private fun readAsMuchAsPossible(dst: ByteArray, offset: Int, length: Int): Int {
         var consumed = 0
@@ -530,7 +577,7 @@ internal open class ByteBufferChannel(
         val consumed = readAsMuchAsPossible(dst, offset, length)
 
         if (consumed < length) {
-            return readFullySuspend(dst, offset + consumed, length - consumed)
+            readFullySuspend(dst, offset + consumed, length - consumed)
         }
     }
 
@@ -545,7 +592,10 @@ internal open class ByteBufferChannel(
         var copied = rc0
 
         while (dst.hasRemaining()) {
-            if (!readSuspend(1)) throw ClosedReceiveChannelException("Unexpected EOF: expected ${dst.remaining()} more bytes")
+            if (!readSuspend(1)) {
+                throw ClosedReceiveChannelException("Unexpected EOF: expected ${dst.remaining()} more bytes")
+            }
+
             copied += readAsMuchAsPossible(dst)
         }
 
@@ -554,27 +604,39 @@ internal open class ByteBufferChannel(
 
     override suspend fun readFully(dst: IoBuffer, n: Int) {
         val rc = readAsMuchAsPossible(dst, max = n)
-        if (rc == n) return
-        return readFullySuspend(dst, n - rc)
+        if (rc == n) {
+            return
+        }
+
+        readFullySuspend(dst, n - rc)
     }
 
     private suspend fun readFullySuspend(dst: IoBuffer, n: Int) {
         var copied = 0
 
         while (dst.canWrite() && copied < n) {
-            if (!readSuspend(1)) throw ClosedReceiveChannelException("Unexpected EOF: expected ${n - copied} more bytes")
+            if (!readSuspend(1)) {
+                throw ClosedReceiveChannelException("Unexpected EOF: expected ${n - copied} more bytes")
+            }
+
             copied += readAsMuchAsPossible(dst, max = n - copied)
         }
     }
 
-    private tailrec suspend fun readFullySuspend(dst: ByteArray, offset: Int, length: Int) {
-        if (!readSuspend(1)) throw ClosedReceiveChannelException("Unexpected EOF: expected $length more bytes")
+    private suspend fun readFullySuspend(dst: ByteArray, offset: Int, length: Int) {
+        var currentOffset = offset
+        var currentLength = length
 
-        val consumed = readAsMuchAsPossible(dst, offset, length)
+        var consumed = 0
+        do {
+            if (!readSuspend(1)) {
+                throw ClosedReceiveChannelException("Unexpected EOF: expected $currentLength more bytes")
+            }
+            currentOffset += consumed
+            currentLength -= consumed
 
-        if (consumed < length) {
-            readFullySuspend(dst, offset + consumed, length - consumed)
-        }
+            consumed = readAsMuchAsPossible(dst, currentOffset, currentLength)
+        } while (consumed < currentLength)
     }
 
     override fun readAvailable(min: Int, block: (ByteBuffer) -> Unit): Int {
@@ -585,31 +647,34 @@ internal open class ByteBufferChannel(
         val read = reading { state ->
             val locked = state.tryReadAtLeast(min)
 
-            if (locked > 0 && locked >= min) {
-                // here we have locked all available for read bytes
-                // however we don't know how many bytes will be actually read
-                // so later we have to return (locked - actuallyRead) bytes back
+            if (locked <= 0 || locked < min) {
+                return@reading false
+            }
 
-                // it is important to lock bytes to fail concurrent tryLockForRelease
-                // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
+            // here we have locked all available for read bytes
+            // however we don't know how many bytes will be actually read
+            // so later we have to return (locked - actuallyRead) bytes back
 
-                val position = position()
-                val limit = limit()
-                block(this)
-                if (limit != limit()) throw IllegalStateException("buffer limit modified")
+            // it is important to lock bytes to fail concurrent tryLockForRelease
+            // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
 
-                result = position() - position
-                if (result < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
+            val position = position()
+            val limit = limit()
+            block(this)
+            check(limit == limit()) { "Buffer limit shouldn't be modified." }
 
-                bytesRead(state, result)
+            result = position() - position
+            check(result >= 0) { "Position shouldn't been moved backwards." }
 
-                if (result < locked) {
-                    state.completeWrite(locked - result) // return back extra bytes (see note above)
-                    // we use completeWrite in spite of that it is read block
-                    // we don't need to resume read as we are already in read block
-                }
-                true
-            } else false
+            bytesRead(state, result)
+
+            if (result < locked) {
+                state.completeWrite(locked - result) // return back extra bytes (see note above)
+                // we use completeWrite in spite of that it is read block
+                // we don't need to resume read as we are already in read block
+            }
+
+            return@reading true
         }
 
         if (!read) return -1
@@ -651,29 +716,40 @@ internal open class ByteBufferChannel(
     override suspend fun readAvailable(dst: IoBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
-        if (consumed == 0 && closed != null) {
-            if (state.capacity.flush()) {
-                return readAsMuchAsPossible(dst)
-            } else {
-                return -1
+        return when {
+            consumed == 0 && closed != null -> {
+                if (state.capacity.flush()) {
+                    readAsMuchAsPossible(dst)
+                } else {
+                    -1
+                }
             }
-        } else if (consumed > 0 || !dst.canWrite()) return consumed
-
-        return readAvailableSuspend(dst)
+            consumed > 0 || !dst.canWrite() -> consumed
+            else -> readAvailableSuspend(dst)
+        }
     }
 
     private suspend fun readAvailableSuspend(dst: ByteArray, offset: Int, length: Int): Int {
-        if (!readSuspend(1)) return -1
+        if (!readSuspend(1)) {
+            return -1
+        }
+
         return readAvailable(dst, offset, length)
     }
 
     private suspend fun readAvailableSuspend(dst: ByteBuffer): Int {
-        if (!readSuspend(1)) return -1
+        if (!readSuspend(1)) {
+            return -1
+        }
+
         return readAvailable(dst)
     }
 
     private suspend fun readAvailableSuspend(dst: IoBuffer): Int {
-        if (!readSuspend(1)) return -1
+        if (!readSuspend(1)) {
+            return -1
+        }
+
         return readAvailable(dst)
     }
 
@@ -701,17 +777,17 @@ internal open class ByteBufferChannel(
 
                 remaining -= rc
             }
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             BufferPool.recycle(buffer)
             builder.release()
-            throw t
+            throw cause
         }
 
         return if (remaining == 0) {
             BufferPool.recycle(buffer)
             builder.build()
         } else {
-            return readPacketSuspend(remaining, builder, buffer)
+            readPacketSuspend(remaining, builder, buffer)
         }
     }
 
@@ -733,187 +809,75 @@ internal open class ByteBufferChannel(
                 remaining -= rc
             }
 
-
             return builder.build()
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             builder.release()
-            throw t
+            throw cause
         } finally {
             BufferPool.recycle(buffer)
         }
     }
 
-    final override suspend fun readByte(): Byte {
-        var b: Byte = 0
-
-        val rc = reading {
-            if (it.tryReadExact(1)) {
-                b = get()
-                bytesRead(it, 1)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return b
-        } else {
-            return readByteSuspend()
-        }
-    }
-
-    private suspend fun readByteSuspend(): Byte {
-        if (!readSuspend(1)) throw ClosedReceiveChannelException("EOF: one byte required")
-        return readByte()
-    }
-
     final override suspend fun readBoolean(): Boolean {
-        var b = false
-
-        val rc = reading {
-            if (it.tryReadExact(1)) {
-                b = get() != 0.toByte()
-                bytesRead(it, 1)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return b
-        } else {
-            return readBooleanSuspend()
-        }
+        return readByte() != 0.toByte()
     }
 
-    private suspend fun readBooleanSuspend(): Boolean {
-        if (!readSuspend(1)) throw ClosedReceiveChannelException("EOF: one byte required")
-        return readBoolean()
+    final override suspend fun readByte(): Byte {
+        return readPrimitive(1, ByteBuffer::get)
     }
 
     final override suspend fun readShort(): Short {
-        var sh: Short = 0
-
-        val rc = reading {
-            if (it.tryReadExact(2)) {
-                if (remaining() < 2) rollBytes(2)
-                sh = getShort()
-                bytesRead(it, 2)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return sh
-        } else {
-            return readShortSuspend()
-        }
-    }
-
-    private suspend fun readShortSuspend(): Short {
-        if (!readSuspend(2)) throw ClosedReceiveChannelException("EOF while byte expected")
-        return readShort()
+        return readPrimitive(2, ByteBuffer::getShort)
     }
 
     final override suspend fun readInt(): Int {
-        var i = 0
-
-        val rc = reading {
-            if (it.tryReadExact(4)) {
-                if (remaining() < 4) rollBytes(4)
-                i = getInt()
-                bytesRead(it, 4)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return i
-        } else {
-            return readIntSuspend()
-        }
-    }
-
-    private suspend fun readIntSuspend(): Int {
-        if (!readSuspend(4)) throw ClosedReceiveChannelException("EOF while an int expected")
-        return readInt()
+        return readPrimitive(4, ByteBuffer::getInt)
     }
 
     final override suspend fun readLong(): Long {
-        var i = 0L
-
-        val rc = reading {
-            if (it.tryReadExact(8)) {
-                if (remaining() < 8) rollBytes(8)
-                i = getLong()
-                bytesRead(it, 8)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return i
-        } else {
-            return readLongSuspend()
-        }
-    }
-
-    private suspend fun readLongSuspend(): Long {
-        if (!readSuspend(8)) throw ClosedReceiveChannelException("EOF while a long expected")
-        return readLong()
-    }
-
-    final override suspend fun readDouble(): Double {
-        var d = 0.0
-
-        val rc = reading {
-            if (it.tryReadExact(8)) {
-                if (remaining() < 8) rollBytes(8)
-                d = getDouble()
-                bytesRead(it, 8)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return d
-        } else {
-            return readDoubleSuspend()
-        }
-    }
-
-    private suspend fun readDoubleSuspend(): Double {
-        if (!readSuspend(8)) throw ClosedReceiveChannelException("EOF while a double expected")
-        return readDouble()
+        return readPrimitive(8, ByteBuffer::getLong)
     }
 
     final override suspend fun readFloat(): Float {
-        var f = 0.0f
-
-        val rc = reading {
-            if (it.tryReadExact(4)) {
-                if (remaining() < 4) rollBytes(4)
-                f = getFloat()
-                bytesRead(it, 4)
-                true
-            } else false
-        }
-
-        if (rc) {
-            return f
-        } else {
-            return readFloatSuspend()
-        }
+        return intBitsToFloat(readPrimitive(4, ByteBuffer::getInt))
     }
 
-    private suspend fun readFloatSuspend(): Float {
-        if (!readSuspend(4)) throw ClosedReceiveChannelException("EOF while an int expected")
-        return readFloat()
+    final override suspend fun readDouble(): Double {
+        return longBitsToDouble(readPrimitive(8, ByteBuffer::getLong))
+    }
+
+    private suspend inline fun <T : Number> readPrimitive(
+        size: Int,
+        getter: ByteBuffer.() -> T
+    ): T {
+        while (true) {
+            lateinit var result: T
+
+            val rc = reading {
+                if (!it.tryReadExact(size)) {
+                    return@reading false
+                }
+
+                if (remaining() < size) rollBytes(size)
+                result = getter()
+                bytesRead(it, size)
+                return@reading true
+            }
+
+            if (rc) {
+                return result
+            }
+            if (!readSuspend(size)) {
+                throw ClosedReceiveChannelException("EOF while $size bytes expected")
+            }
+        }
     }
 
     private fun ByteBuffer.rollBytes(n: Int) {
-        val rem = remaining()
+        val remaining = remaining()
 
         limit(position() + n)
-        for (i in 0 until n - rem) {
+        for (i in 0 until n - remaining) {
             put(capacity() + ReservedLongIndex + i, get(i))
         }
     }
@@ -925,7 +889,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    internal fun bytesWrittenFromSesion(buffer: ByteBuffer, capacity: RingBufferCapacity, count: Int) {
+    internal fun bytesWrittenFromSession(buffer: ByteBuffer, capacity: RingBufferCapacity, count: Int) {
         buffer.bytesWritten(capacity, count)
     }
 
@@ -934,7 +898,6 @@ internal open class ByteBufferChannel(
 
         writePosition = carryIndex(writePosition + count)
         capacity.completeWrite(count)
-        @Suppress("DEPRECATION")
         totalBytesWritten += count
     }
 
@@ -943,7 +906,6 @@ internal open class ByteBufferChannel(
 
         readPosition = carryIndex(readPosition + count)
         capacity.completeRead(count)
-        @Suppress("DEPRECATION")
         totalBytesRead += count
         resumeWriteOp()
     }
@@ -952,23 +914,22 @@ internal open class ByteBufferChannel(
         return joining?.let { resolveDelegation(this, it) } ?: this
     }
 
-    private tailrec fun resolveDelegation(current: ByteBufferChannel, joining: JoiningState): ByteBufferChannel? {
-        if (current.state === ReadWriteBufferState.Terminated) {
-            val joinedTo = joining.delegatedTo
-            val nextJoining = joinedTo.joining ?: return joinedTo
-            return resolveDelegation(joinedTo, nextJoining)
+    private fun resolveDelegation(current: ByteBufferChannel, joining: JoiningState): ByteBufferChannel? {
+        var currentChannel: ByteBufferChannel = current
+        var currentJoining: JoiningState = joining
+
+        while (true) {
+            if (currentChannel.state !== ReadWriteBufferState.Terminated) {
+                return null
+            }
+
+            val joinedTo = currentJoining.delegatedTo
+            currentJoining = joinedTo.joining ?: return joinedTo
+            currentChannel = joinedTo
         }
-
-        return null
     }
 
-    private suspend fun delegateByte(value: Byte) {
-        val joined = joining!!
-        if (state === ReadWriteBufferState.Terminated) return joined.delegatedTo.writeByte(value)
-        return delegateSuspend(joined) { writeByte(value) }
-    }
-
-    private suspend fun delegateSuspend(joined: JoiningState, block: suspend ByteBufferChannel.() -> Unit) {
+    private suspend inline fun delegateSuspend(joined: JoiningState, block: ByteBufferChannel.() -> Unit) {
         while (true) {
             if (state === ReadWriteBufferState.Terminated) return block(joined.delegatedTo)
             writeSuspend(1)
@@ -976,243 +937,115 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun writeByte(b: Byte) {
-        joining?.let { resolveDelegation(this, it)?.let { return it.writeByte(b) } }
-
-        val buffer = setupStateForWrite() ?: return delegateByte(b)
-        val c = state.capacity
-
-        return tryWriteByte(buffer, b, c)
-    }
-
-    private suspend fun tryWriteByte(buffer: ByteBuffer, value: Byte, capacity: RingBufferCapacity) {
-        if (!capacity.tryWriteExact(1)) {
-            return writeByteSuspend(buffer, value, capacity)
-        }
-
-        prepareWriteBuffer(buffer, 1)
-        doWrite(buffer, value, capacity)
-    }
-
-    private fun doWrite(buffer: ByteBuffer, value: Byte, capacity: RingBufferCapacity) {
-        buffer.put(value)
-        buffer.bytesWritten(capacity, 1)
-        if (capacity.isFull() || autoFlush) flush()
-        restoreStateAfterWrite()
-    }
-
-    private suspend fun writeByteSuspend(buffer: ByteBuffer, value: Byte, capacity: RingBufferCapacity) {
-        try {
-            writeSuspend(1)
-        } catch (t: Throwable) {
-            restoreStateAfterWrite()
-            tryTerminate()
-            throw t
-        }
-
-        if (joining != null) {
-            restoreStateAfterWrite()
-            return delegateByte(value)
-        }
-
-        return tryWriteByte(buffer, value, capacity)
-    }
-
-    private suspend fun delegateShort(value: Short) {
-        val joined = joining!!
-        if (state === ReadWriteBufferState.Terminated) return joined.delegatedTo.writeShort(value)
-        return delegateSuspend(joined) { writeShort(value) }
+        writePrimitive(1, { writeByte(b) }, { put(b) })
     }
 
     override suspend fun writeShort(s: Short) {
-        joining?.let { resolveDelegation(this, it)?.let { return it.writeShort(s) } }
-
-        val buffer = setupStateForWrite() ?: return delegateShort(s)
-        val c = state.capacity
-
-        return tryWriteShort(buffer, s, c)
-    }
-
-    private fun doWrite(buffer: ByteBuffer, value: Short, capacity: RingBufferCapacity) {
-        buffer.apply {
-            if (remaining() < 2) {
-                limit(capacity())
-                putShort(value)
-                carry()
-            } else {
-                putShort(value)
-            }
-
-            bytesWritten(capacity, 2)
-        }
-
-        if (capacity.isFull() || autoFlush) flush()
-        restoreStateAfterWrite()
-    }
-
-    private suspend fun tryWriteShort(buffer: ByteBuffer, value: Short, capacity: RingBufferCapacity) {
-        if (!capacity.tryWriteExact(2)) {
-            return writeShortSuspend(buffer, value, capacity)
-        }
-
-        prepareWriteBuffer(buffer, 2)
-        return doWrite(buffer, value, capacity)
-    }
-
-    private suspend fun writeShortSuspend(buffer: ByteBuffer, value: Short, capacity: RingBufferCapacity) {
-        try {
-            writeSuspend(2)
-        } catch (t: Throwable) {
-            restoreStateAfterWrite()
-            tryTerminate()
-            throw t
-        }
-
-        if (joining != null) {
-            restoreStateAfterWrite()
-            return delegateShort(value)
-        }
-
-        return tryWriteShort(buffer, value, capacity)
-    }
-
-    private suspend fun delegateInt(value: Int) {
-        val joined = joining!!
-        if (state === ReadWriteBufferState.Terminated) return joined.delegatedTo.writeInt(value)
-        return delegateSuspend(joined) { writeInt(value) }
-    }
-
-    private fun ByteBuffer.tryWriteInt(value: Int, capacity: RingBufferCapacity): Boolean {
-        if (!capacity.tryWriteExact(4)) {
-            return false
-        }
-
-        prepareWriteBuffer(this, 4)
-        doWrite(this, value, capacity)
-        return true
-    }
-
-    private fun doWrite(buffer: ByteBuffer, value: Int, capacity: RingBufferCapacity) {
-        buffer.apply {
-            if (remaining() < 4) {
-                limit(capacity())
-                putInt(value)
-                carry()
-            } else {
-                putInt(value)
-            }
-
-            bytesWritten(capacity, 4)
-        }
-
-        if (capacity.isFull() || autoFlush) flush()
-        restoreStateAfterWrite()
-        tryTerminate()
+        writePrimitive(2, { writeShort(s) }, { putShort(s) })
     }
 
     override suspend fun writeInt(i: Int) {
-        val buffer = setupStateForWrite()
-        if (buffer == null) {
-            val delegation = resolveDelegation(this, joining!!)
-            @Suppress("SuspiciousEqualsCombination")
-            if (delegation != null && delegation !== this) return delegation.writeInt(i)
-            else return delegateSuspend(joining!!, { writeInt(i) })
-        }
-        val c = state.capacity
-
-        if (buffer.tryWriteInt(i, c)) {
-            return
-        }
-        return buffer.writeIntSuspend(i, c)
+        writePrimitive(4, { writeInt(i) }, { putInt(i) })
     }
 
-    private tailrec suspend fun ByteBuffer.writeIntSuspend(value: Int, capacity: RingBufferCapacity) {
-        try {
-            writeSuspend(4)
-        } catch (t: Throwable) {
-            restoreStateAfterWrite()
-            tryTerminate()
-            throw t
-        }
+    override suspend fun writeLong(l: Long) {
+        writePrimitive(8, { writeLong(l) }, { putLong(l) })
+    }
 
-        if (joining != null) {
-            restoreStateAfterWrite()
-            return delegateInt(value)
-        }
+    override suspend fun writeDouble(d: Double) {
+        writeLong(doubleToRawLongBits(d))
+    }
 
-        if (!tryWriteInt(value, capacity)) {
-            return writeIntSuspend(value, capacity)
+    override suspend fun writeFloat(f: Float) {
+        writeInt(floatToRawIntBits(f))
+    }
+
+    private suspend inline fun writePrimitive(
+        size: Int,
+        channelWriter: ByteBufferChannel.() -> Unit,
+        bufferWriter: ByteBuffer.() -> Unit
+    ) {
+        joining?.let { resolveDelegation(this, it)?.let { return it.channelWriter() } }
+
+        val buffer = setupStateForWrite() ?: return delegatePrimitive(channelWriter)
+        val capacity = state.capacity
+
+        if (!buffer.tryWritePrimitive(size, capacity, bufferWriter)) {
+            buffer.writeSuspendPrimitive(size, capacity, channelWriter, bufferWriter)
         }
     }
 
-    private suspend fun delegateLong(value: Long) {
-        val joined = joining!!
-        if (state === ReadWriteBufferState.Terminated) return joined.delegatedTo.writeLong(value)
-        return delegateSuspend(joined) { writeLong(value) }
-    }
-
-    private fun ByteBuffer.tryWriteLong(value: Long, capacity: RingBufferCapacity): Boolean {
-        if (!capacity.tryWriteExact(8)) {
+    private inline fun ByteBuffer.tryWritePrimitive(
+        size: Int,
+        capacity: RingBufferCapacity,
+        writer: ByteBuffer.() -> Unit
+    ): Boolean {
+        if (!capacity.tryWriteExact(size)) {
             return false
         }
-        prepareWriteBuffer(this, 8)
-        doWrite(this, value, capacity)
+        prepareWriteBuffer(this, size)
+        doWritePrimitive(size, this, capacity, writer)
         return true
     }
 
-    private fun doWrite(buffer: ByteBuffer, value: Long, capacity: RingBufferCapacity) {
+    private inline fun doWritePrimitive(
+        size: Int,
+        buffer: ByteBuffer,
+        capacity: RingBufferCapacity,
+        writer: ByteBuffer.() -> Unit
+    ) {
         buffer.apply {
-            if (remaining() < 8) {
+            if (remaining() < size) {
                 limit(capacity())
-                putLong(value)
+                writer()
                 carry()
             } else {
-                putLong(value)
+                writer()
             }
 
-            bytesWritten(capacity, 8)
+            bytesWritten(capacity, size)
         }
 
-        if (capacity.isFull() || autoFlush || joining != null) flush()
+        if (capacity.isFull() || autoFlush) {
+            flush()
+        }
         restoreStateAfterWrite()
         tryTerminate()
     }
 
-    override suspend fun writeLong(l: Long) {
-        joining?.let { resolveDelegation(this, it)?.let { return it.writeLong(l) } }
+    private suspend inline fun ByteBuffer.writeSuspendPrimitive(
+        size: Int,
+        capacity: RingBufferCapacity,
+        channelWriter: ByteBufferChannel.() -> Unit,
+        bufferWriter: ByteBuffer.() -> Unit
+    ) {
+        do {
+            try {
+                writeSuspend(size)
+            } catch (cause: Throwable) {
+                restoreStateAfterWrite()
+                tryTerminate()
+                throw cause
+            }
 
-        val buffer = setupStateForWrite() ?: return delegateLong(l)
-        val c = state.capacity
-
-        if (!buffer.tryWriteLong(l, c)) {
-            return buffer.writeLongSuspend(l, c)
-        }
+            if (joining != null) {
+                restoreStateAfterWrite()
+                delegatePrimitive(channelWriter)
+                return
+            }
+        } while (!tryWritePrimitive(size, capacity, bufferWriter))
     }
 
-    private tailrec suspend fun ByteBuffer.writeLongSuspend(value: Long, capacity: RingBufferCapacity) {
-        try {
-            writeSuspend(8)
-        } catch (t: Throwable) {
-            restoreStateAfterWrite()
-            tryTerminate()
-            throw t
+    private suspend inline fun delegatePrimitive(channelWriter: ByteBufferChannel.() -> Unit) {
+        val joined = joining!!
+        if (state === ReadWriteBufferState.Terminated) {
+            joined.delegatedTo.channelWriter()
+            return
         }
 
-        if (joining != null) {
-            restoreStateAfterWrite()
-            return delegateLong(value)
+        delegateSuspend(joined) {
+            channelWriter()
         }
-
-        if (!tryWriteLong(value, capacity)) {
-            return writeLongSuspend(value, capacity)
-        }
-    }
-
-    override suspend fun writeDouble(d: Double) {
-        return writeLong(java.lang.Double.doubleToRawLongBits(d))
-    }
-
-    override suspend fun writeFloat(f: Float) {
-        return writeInt(java.lang.Float.floatToRawIntBits(f))
     }
 
     @ExperimentalIoApi
@@ -1280,9 +1113,12 @@ internal open class ByteBufferChannel(
 
     override suspend fun writeFully(src: IoBuffer) {
         writeAsMuchAsPossible(src)
-        if (!src.canRead()) return
 
-        return writeFullySuspend(src)
+        if (!src.canRead()) {
+            return
+        }
+
+        writeFullySuspend(src)
     }
 
     private suspend fun writeFullySuspend(src: ByteBuffer) {
@@ -1309,11 +1145,12 @@ internal open class ByteBufferChannel(
         if (closed != null) return
         val joined = joining
 
-        if (joined != null) {
-            return joined.awaitClose()
-        } else if (closed == null) {
-            error("Only works for joined")
+        if (joined == null) {
+            check(closed != null) { "Only works for joined." }
+            return
         }
+
+        joined.awaitClose()
     }
 
     internal suspend fun joinFrom(src: ByteBufferChannel, delegateClose: Boolean) {
@@ -1328,10 +1165,11 @@ internal open class ByteBufferChannel(
 
         val joined = src.setupDelegateTo(this, delegateClose)
         if (src.tryCompleteJoining(joined)) {
-            return src.awaitClose()
+            src.awaitClose()
+            return
         }
 
-        return joinFromSuspend(src, delegateClose, joined)
+        joinFromSuspend(src, delegateClose, joined)
     }
 
     private suspend fun joinFromSuspend(src: ByteBufferChannel, delegateClose: Boolean, joined: JoiningState) {
@@ -1339,10 +1177,11 @@ internal open class ByteBufferChannel(
 
         if (delegateClose && src.isClosedForRead) {
             close()
-        } else {
-            flush()
-            src.awaitClose()
+            return
         }
+
+        flush()
+        src.awaitClose()
     }
 
     internal suspend fun copyDirect(src: ByteBufferChannel, limit: Long, joined: JoiningState?): Long {
@@ -1394,38 +1233,49 @@ internal open class ByteBufferChannel(
                                 limit - copied
                             ).toInt()
                             val n = state.tryWriteAtMost(rem)
-                            if (n > 0) {
-                                if (!srcState.tryReadExact(n)) throw AssertionError()
 
-                                srcBuffer.limit(srcBuffer.position() + n)
-
-                                dstBuffer.put(srcBuffer)
-                                partSize = n
-
-                                with(src) {
-                                    srcBuffer.bytesRead(srcState, n)
-                                }
+                            if (n <= 0) {
+                                return@reading true
                             }
 
-                            true
+                            if (!srcState.tryReadExact(n)) {
+                                // TODO: Why do we have assertion error here?
+                                throw AssertionError()
+                            }
+
+                            srcBuffer.limit(srcBuffer.position() + n)
+
+                            dstBuffer.put(srcBuffer)
+                            partSize = n
+
+                            with(src) {
+                                srcBuffer.bytesRead(srcState, n)
+                            }
+
+                            return@reading true
                         }
 
-                        if (partSize > 0) {
-                            dstBuffer.bytesWritten(state, partSize)
-                            copied += partSize
-
-                            if (avWBefore - partSize == 0 || autoFlush) {
-                                flush()
-                            }
-                        } else {
+                        if (partSize <= 0) {
                             break
+                        }
+
+                        dstBuffer.bytesWritten(state, partSize)
+                        copied += partSize
+
+                        if (avWBefore - partSize == 0 || autoFlush) {
+                            flush()
                         }
                     }
                 }
 
                 if (joined != null) {
-                    if (src.tryCompleteJoining(joined)) break
-                    else if (src.state.capacity.flush()) { // force flush src to read-up all the bytes
+                    // force flush src to read-up all the bytes
+                    if (src.tryCompleteJoining(joined)) {
+                        break
+                    }
+
+                    // force flush src to read-up all the bytes
+                    if (src.state.capacity.flush()) {
                         src.resumeWriteOp()
                         continue
                     }
@@ -1438,7 +1288,9 @@ internal open class ByteBufferChannel(
                 if (src.availableForRead == 0) {
                     if (src.readSuspendImpl(1)) {
                         if (joined != null && src.tryCompleteJoining(joined)) break
-                    } else if (joined == null || src.tryCompleteJoining(joined)) break
+                    } else {
+                        if (joined == null || src.tryCompleteJoining(joined)) break
+                    }
                 }
 
                 if (joining != null) {
@@ -1461,19 +1313,22 @@ internal open class ByteBufferChannel(
         val closed = closed ?: return
         this.joining = null
 
-        if (joined.delegateClose) {
-            // writing state could be if we are inside of copyDirect loop
-            // so in this case we shouldn't close channel
-            // otherwise few bytes could be lost
-            // it will be closed later in copyDirect's finalization
-            // so we only do flush
-            val writing =
-                joined.delegatedTo.state.let { it is ReadWriteBufferState.Writing || it is ReadWriteBufferState.ReadingWriting }
-            if (closed.cause != null || !writing) {
-                joined.delegatedTo.close(closed.cause)
-            } else {
-                joined.delegatedTo.flush()
-            }
+        if (!joined.delegateClose) {
+            joined.delegatedTo.flush()
+            joined.complete()
+            return
+        }
+
+        // writing state could be if we are inside of copyDirect loop
+        // so in this case we shouldn't close channel
+        // otherwise few bytes could be lost
+        // it will be closed later in copyDirect's finalization
+        // so we only do flush
+        val writing = joined.delegatedTo.state.let {
+            it is ReadWriteBufferState.Writing || it is ReadWriteBufferState.ReadingWriting
+        }
+        if (closed.cause != null || !writing) {
+            joined.delegatedTo.close(closed.cause)
         } else {
             joined.delegatedTo.flush()
         }
@@ -1580,10 +1435,16 @@ internal open class ByteBufferChannel(
         return writeFullySuspend(src, off, rem)
     }
 
-    private tailrec suspend fun writeFullySuspend(src: ByteArray, offset: Int, length: Int) {
-        if (length == 0) return
-        val copied = writeAvailable(src, offset, length)
-        return writeFullySuspend(src, offset + copied, length - copied)
+    private suspend fun writeFullySuspend(src: ByteArray, offset: Int, length: Int) {
+        var currentOffset = offset
+        var currentLength = length
+
+        while (currentLength > 0) {
+            val copied = writeAvailable(src, currentOffset, currentLength)
+
+            currentOffset += copied
+            currentLength -= copied
+        }
     }
 
     override suspend fun writeAvailable(src: ByteArray, offset: Int, length: Int): Int {
@@ -1614,39 +1475,44 @@ internal open class ByteBufferChannel(
 
         writing { dst, state ->
             val locked = state.tryWriteAtLeast(min)
-
-            if (locked > 0) {
-                // here we have locked all remaining for write bytes
-                // however we don't know how many bytes will be actually written
-                // so later we have to return (locked - actuallyWritten) bytes back
-
-                // it is important to lock bytes to fail concurrent tryLockForRelease
-                // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
-
-                @Suppress("DEPRECATION_ERROR")
-                dst.prepareBuffer(writeByteOrder, writePosition, locked)
-
-                val position = dst.position()
-                val l = dst.limit()
-                block(dst)
-                if (l != dst.limit()) throw IllegalStateException("buffer limit modified")
-
-                result = dst.position() - position
-                if (result < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
-
-                dst.bytesWritten(state, result)
-
-                if (result < locked) {
-                    state.completeRead(locked - result) // return back extra bytes (see note above)
-                    // we use completeRead in spite of that it is write block
-                    // we don't need to resume write as we are already in writing block
-                }
-
-                written = true
+            if (locked <= 0) {
+                return@writing
             }
+
+            // here we have locked all remaining for write bytes
+            // however we don't know how many bytes will be actually written
+            // so later we have to return (locked - actuallyWritten) bytes back
+
+            // it is important to lock bytes to fail concurrent tryLockForRelease
+            // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
+
+            @Suppress("DEPRECATION_ERROR")
+            dst.prepareBuffer(writeByteOrder, writePosition, locked)
+
+            val position = dst.position()
+            val l = dst.limit()
+            block(dst)
+            check(l == dst.limit()) { "Buffer limit modified" }
+
+            result = dst.position() - position
+            check(result >= 0) { "Position has been moved backward: pushback is not supported" }
+            if (result < 0) throw IllegalStateException()
+
+            dst.bytesWritten(state, result)
+
+            if (result < locked) {
+                state.completeRead(locked - result) // return back extra bytes (see note above)
+                // we use completeRead in spite of that it is write block
+                // we don't need to resume write as we are already in writing block
+            }
+
+            written = true
         }
 
-        if (!written) return -1
+        if (!written) {
+            return -1
+        }
+
         return result
     }
 
@@ -1721,14 +1587,14 @@ internal open class ByteBufferChannel(
 
             continueWriting = try {
                 block(dst)
-            } catch (t: Throwable) {
+            } catch (cause: Throwable) {
                 capacity.completeRead(locked)
-                throw t
+                throw cause
             }
 
-            if (dst.limit() != l) throw IllegalStateException("buffer limit modified")
+            check(dst.limit() == l) { "Buffer limit modified." }
             val actuallyWritten = dst.position() - position
-            if (actuallyWritten < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
+            check(actuallyWritten >= 0) { "Position has been moved backward: pushback is not supported." }
 
             dst.bytesWritten(capacity, actuallyWritten)
             if (actuallyWritten < locked) {
@@ -1795,23 +1661,31 @@ internal open class ByteBufferChannel(
 
         val read = reading {
             val av = it.availableForRead
-            if (av > 0 && av >= min) {
-                val position = this.position()
-                val l = this.limit()
-                consumer(this)
-                if (l != this.limit()) throw IllegalStateException("buffer limit modified")
-                val delta = position() - position
-                if (delta < 0) throw IllegalStateException("position has been moved backward: pushback is not supported")
+            if (av <= 0 || av < min) {
+                return@reading false
+            }
 
-                if (!it.tryReadExact(delta)) throw IllegalStateException()
-                bytesRead(it, delta)
-                true
-            } else false
+            val position = this.position()
+            val oldLimit = this.limit()
+            consumer(this)
+
+            check(oldLimit == this.limit()) { "Buffer limit modified." }
+            val delta = position() - position
+
+            check(delta >= 0) { "Position has been moved backward: pushback is not supported." }
+            check(it.tryReadExact(delta))
+
+            bytesRead(it, delta)
+
+            return@reading true
         }
 
         if (!read) {
-            if (isClosedForRead) return
-            return readBlockSuspend(min, consumer)
+            if (isClosedForRead) {
+                return
+            }
+
+            readBlockSuspend(min, consumer)
         }
     }
 
@@ -1827,7 +1701,9 @@ internal open class ByteBufferChannel(
             true
         }
 
-        if (discarded == max || isClosedForRead) return discarded
+        if (discarded == max || isClosedForRead) {
+            return discarded
+        }
 
         return discardSuspend(discarded, max)
     }
@@ -1854,9 +1730,11 @@ internal open class ByteBufferChannel(
 
     private suspend fun readBlockSuspend(min: Int, block: (ByteBuffer) -> Unit) {
         if (!readSuspend(min.coerceAtLeast(1))) {
-            if (min > 0)
+            if (min > 0) {
                 throw EOFException("Got EOF but at least $min bytes were expected")
-            else return
+            }
+
+            return
         }
 
         read(min, block)
@@ -1869,9 +1747,9 @@ internal open class ByteBufferChannel(
             while (packet.isNotEmpty) {
                 if (tryWritePacketPart(packet) == 0) break
             }
-        } catch (t: Throwable) {
+        } catch (cause: Throwable) {
             packet.release()
-            throw t
+            throw cause
         }
 
         if (packet.remaining > 0) {
@@ -1949,7 +1827,10 @@ internal open class ByteBufferChannel(
         }
 
         if (!rc) {
-            if (closed != null || state === ReadWriteBufferState.Terminated) return visitor(TerminatedLookAhead)
+            if (closed != null || state === ReadWriteBufferState.Terminated) {
+                return visitor(TerminatedLookAhead)
+            }
+
             try {
                 result = visitor(this)
             } finally {
@@ -2002,9 +1883,11 @@ internal open class ByteBufferChannel(
             return true
         }
 
-        if (state.idle || state is ReadWriteBufferState.Writing) return awaitAtLeastSuspend(n)
-        else if (n == 1) return readSuspendImpl(1)
-        else return readSuspend(n)
+        return when {
+            state.idle || state is ReadWriteBufferState.Writing -> awaitAtLeastSuspend(n)
+            n == 1 -> readSuspendImpl(1)
+            else -> readSuspend(n)
+        }
     }
 
     private suspend fun awaitAtLeastSuspend(n: Int): Boolean {
@@ -2042,11 +1925,13 @@ internal open class ByteBufferChannel(
     ): Boolean {
         val rc = reading {
             do {
-                if (hasRemaining() || last) {
-                    val rc = visitor(this, last)
-                    afterBufferVisited(this, it)
-                    if (!rc || (last && !hasRemaining())) return true
-                } else break
+                if (!hasRemaining() && !last) break
+
+                val rc = visitor(this, last)
+                afterBufferVisited(this, it)
+                if (!rc || (last && !hasRemaining())) {
+                    return true
+                }
             } while (true)
 
             last
@@ -2059,18 +1944,6 @@ internal open class ByteBufferChannel(
 
         return rc
     }
-
-//    private suspend fun consumeEachBufferRangeSuspendLoop(visitor: RendezvousChannel<ConsumeEachBufferVisitor>) {
-//        var last = false
-//
-//        do {
-//            if (consumeEachBufferRangeFast(last, visitor)) return
-//            if (last) return
-//            if (!readSuspend(1)) {
-//                last = true
-//            }
-//        } while (true)
-//    }
 
     private suspend fun consumeEachBufferRangeSuspend(visitor: (buffer: ByteBuffer, last: Boolean) -> Boolean) {
         var last = false
@@ -2154,14 +2027,13 @@ internal open class ByteBufferChannel(
             val decoded = (rc shr 32).toInt()
             val rcRequired = (rc and 0xffffffffL).toInt()
 
-            if (rcRequired == -1) { // EOL
-                required = 0
-            } else if (rcRequired == 0 && buffer.hasRemaining()) {
+            required = when {
+                // EOL
+                rcRequired == -1 -> 0
                 // no EOL, no demands but untouched bytes
                 // for ascii decoder that could mean that there was non-ASCII character encountered
-                required = -1
-            } else {
-                required = maxOf(1, rcRequired)
+                rcRequired == 0 && buffer.hasRemaining() -> -1
+                else -> maxOf(1, rcRequired)
             }
 
             addConsumed(decoded)
@@ -2235,14 +2107,11 @@ internal open class ByteBufferChannel(
         return sb.toString()
     }
 
-    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket {
-        val result = if (isClosedForWrite) {
-            remainingPacket(limit, headerSizeHint)
-        } else {
-            readRemainingSuspend(limit, headerSizeHint)
-        }
-
-        return result
+    override suspend fun readRemaining(limit: Long, headerSizeHint: Int): ByteReadPacket = if (isClosedForWrite) {
+        closedCause?.let { throw it }
+        remainingPacket(limit, headerSizeHint)
+    } else {
+        readRemainingSuspend(limit, headerSizeHint)
     }
 
     private fun remainingPacket(limit: Long, headerSizeHint: Int): ByteReadPacket = buildPacket(headerSizeHint) {
@@ -2275,7 +2144,7 @@ internal open class ByteBufferChannel(
     }
 
     private fun resumeReadOp() {
-        ReadOp.getAndSet(this, null)?.apply {
+        _readOp.getAndSet(null)?.apply {
             val closedCause = closed?.cause
             when {
                 closedCause != null -> resumeWithException(closedCause)
@@ -2285,7 +2154,7 @@ internal open class ByteBufferChannel(
     }
 
     private inline fun resumeReadOp(exception: () -> Throwable) {
-        ReadOp.getAndSet(this, null)?.resumeWithException(exception())
+        _readOp.getAndSet(null)?.resumeWithException(exception())
     }
 
     private fun resumeWriteOp() {
@@ -2294,10 +2163,15 @@ internal open class ByteBufferChannel(
             val closed = closed
             if (closed == null && joining != null) {
                 val state = state
-                if (state is ReadWriteBufferState.Writing || state is ReadWriteBufferState.ReadingWriting) {
-                } else if (state !== ReadWriteBufferState.Terminated) return
+                if (state !is ReadWriteBufferState.Writing &&
+                    state !is ReadWriteBufferState.ReadingWriting &&
+                    state !== ReadWriteBufferState.Terminated
+                ) {
+                    return
+                }
             }
-            if (WriteOp.compareAndSet(this, writeOp, null)) {
+
+            if (_writeOp.compareAndSet(writeOp, null)) {
                 if (closed == null) writeOp.resume(Unit) else writeOp.resumeWithException(closed.sendException)
                 return
             }
@@ -2305,14 +2179,15 @@ internal open class ByteBufferChannel(
     }
 
     private fun resumeClosed(cause: Throwable?) {
-        ReadOp.getAndSet(this, null)?.let { c ->
-            if (cause != null)
-                c.resumeWithException(cause)
-            else
-                c.resume(state.capacity.availableForRead > 0)
+        _readOp.getAndSet(null)?.let { continuation ->
+            if (cause != null) {
+                continuation.resumeWithException(cause)
+            } else {
+                continuation.resume(state.capacity.availableForRead > 0)
+            }
         }
 
-        WriteOp.getAndSet(this, null)?.resumeWithException(
+        _writeOp.getAndSet(null)?.resumeWithException(
             cause ?: ClosedWriteChannelException(DEFAULT_CLOSE_MESSAGE)
         )
     }
@@ -2341,21 +2216,21 @@ internal open class ByteBufferChannel(
         return readSuspendLoop(size)
     }
 
-    private tailrec suspend fun readSuspendLoop(size: Int): Boolean {
-        val capacity = state.capacity
-        if (capacity.availableForRead >= size) return true
+    private suspend fun readSuspendLoop(size: Int): Boolean {
+        do {
+            val capacity = state.capacity
+            if (capacity.availableForRead >= size) return true
 
-        closed?.let { value ->
-            if (value.cause != null) rethrowClosed(value.cause)
-            val afterCapacity = state.capacity
-            val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
-            if (readOp != null) throw IllegalStateException("Read operation is already in progress")
-            return result
-        }
+            closed?.let { value ->
+                if (value.cause != null) rethrowClosed(value.cause)
+                val afterCapacity = state.capacity
+                val result = afterCapacity.flush() && afterCapacity.availableForRead >= size
+                if (readOp != null) throw IllegalStateException("Read operation is already in progress")
+                return result
+            }
 
-        if (!readSuspendImpl(size)) return false
-
-        return readSuspendLoop(size)
+            if (!readSuspendImpl(size)) return false
+        } while (true)
     }
 
     private val readSuspendContinuationCache = CancellableReusableContinuation<Boolean>()
@@ -2364,12 +2239,10 @@ internal open class ByteBufferChannel(
     private inline fun readSuspendPredicate(size: Int): Boolean {
         val state = state
 
-        if (state.capacity.availableForRead >= size) return false
-        if (joining != null && writeOp != null &&
-            (state === ReadWriteBufferState.IdleEmpty || state is ReadWriteBufferState.IdleNonEmpty)
-        ) return false
-
-        return true
+        return state.capacity.availableForRead < size &&
+            (joining == null ||
+                writeOp == null ||
+                (state !== ReadWriteBufferState.IdleEmpty && state !is ReadWriteBufferState.IdleNonEmpty))
     }
 
     private fun suspensionForSize(size: Int, continuation: Continuation<Boolean>): Any {
@@ -2382,15 +2255,15 @@ internal open class ByteBufferChannel(
             closed?.let {
                 if (it.cause != null) {
                     continuation.resumeWithException(it.cause)
-                } else {
-                    val flush = state.capacity.flush()
-                    val hasEnoughBytes = state.capacity.availableForRead >= size
-                    continuation.resume(flush && hasEnoughBytes)
+                    return COROUTINE_SUSPENDED
                 }
 
+                val flush = state.capacity.flush()
+                val hasEnoughBytes = state.capacity.availableForRead >= size
+                continuation.resume(flush && hasEnoughBytes)
                 return COROUTINE_SUSPENDED
             }
-        } while (!setContinuation({ readOp }, ReadOp, continuation, { closed == null && readSuspendPredicate(size) }))
+        } while (!setContinuation({ readOp }, _readOp, continuation, { closed == null && readSuspendPredicate(size) }))
 
         return COROUTINE_SUSPENDED
     }
@@ -2407,7 +2280,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private fun shouldResumeReadOp() = joining != null &&
+    private fun shouldResumeReadOp(): Boolean = joining != null &&
         (state === ReadWriteBufferState.IdleEmpty || state is ReadWriteBufferState.IdleNonEmpty)
 
     private fun writeSuspendPredicate(size: Int): Boolean {
@@ -2418,7 +2291,9 @@ internal open class ByteBufferChannel(
         return when {
             closed != null -> false
             joined == null -> state.capacity.availableForWrite < size && state !== ReadWriteBufferState.IdleEmpty
-            else -> state !== ReadWriteBufferState.Terminated && state !is ReadWriteBufferState.Writing && state !is ReadWriteBufferState.ReadingWriting
+            else -> state !== ReadWriteBufferState.Terminated &&
+                state !is ReadWriteBufferState.Writing &&
+                state !is ReadWriteBufferState.ReadingWriting
         }
     }
 
@@ -2435,9 +2310,9 @@ internal open class ByteBufferChannel(
                 ucont.resume(Unit)
                 break
             }
-        } while (!setContinuation({ writeOp }, WriteOp, ucont.intercepted(), { writeSuspendPredicate(size) }))
+        } while (!setContinuation({ writeOp }, _writeOp, ucont.intercepted(), { writeSuspendPredicate(size) }))
 
-        flushImpl(1, minWriteSize = size)
+        flushImpl(minWriteSize = size)
 
         if (shouldResumeReadOp()) {
             resumeReadOp()
@@ -2473,9 +2348,9 @@ internal open class ByteBufferChannel(
                         c.resume(Unit)
                         break
                     }
-                } while (!setContinuation({ writeOp }, WriteOp, c, { writeSuspendPredicate(size) }))
+                } while (!setContinuation({ writeOp }, _writeOp, c, { writeSuspendPredicate(size) }))
 
-                flushImpl(1, minWriteSize = size)
+                flushImpl(minWriteSize = size)
 
                 if (shouldResumeReadOp()) {
                     resumeReadOp()
@@ -2488,27 +2363,20 @@ internal open class ByteBufferChannel(
 
     private inline fun <T, C : Continuation<T>> setContinuation(
         getter: () -> C?,
-        updater: AtomicReferenceFieldUpdater<ByteBufferChannel, C?>,
+        updater: AtomicRef<C?>,
         continuation: C,
         predicate: () -> Boolean
     ): Boolean {
         while (true) {
             val current = getter()
-            if (current != null) throw IllegalStateException("Operation is already in progress")
+            check(current == null) { "Operation is already in progress" }
 
             if (!predicate()) {
                 return false
             }
 
-            if (updater.compareAndSet(this, null, continuation)) {
-                if (predicate() || !updater.compareAndSet(this, continuation, null)) {
-                    //if (attachedJob == null && continuation is CancellableContinuation<*>) {
-                    // continuation.initCancellability()
-                    //}
-                    return true
-                }
-
-                return false
+            if (updater.compareAndSet(null, continuation)) {
+                return (predicate() || !updater.compareAndSet(continuation, null))
             }
         }
     }
@@ -2529,32 +2397,6 @@ internal open class ByteBufferChannel(
         pool.recycle(buffer)
     }
 
-    private inline fun updateStateAndGet(block: (ReadWriteBufferState) -> ReadWriteBufferState?): ReadWriteBufferState {
-        val updater = State
-        while (true) {
-            val old = state
-            val newState = block(old) ?: continue
-            if (old === newState || updater.compareAndSet(this, old, newState)) return newState
-        }
-    }
-
-    // todo: replace with atomicfu
-    private inline fun updateState(block: (ReadWriteBufferState) -> ReadWriteBufferState?):
-        Pair<ReadWriteBufferState, ReadWriteBufferState> = update({ state }, State, block)
-
-    // todo: replace with atomicfu
-    private inline fun <T : Any> update(
-        getter: () -> T,
-        updater: AtomicReferenceFieldUpdater<ByteBufferChannel, T>,
-        block: (old: T) -> T?
-    ): Pair<T, T> {
-        while (true) {
-            val old = getter()
-            val newValue = block(old) ?: continue
-            if (old === newValue || updater.compareAndSet(this, old, newValue)) return Pair(old, newValue)
-        }
-    }
-
     override suspend fun peekTo(
         destination: Memory,
         destinationOffset: Long,
@@ -2569,8 +2411,14 @@ internal open class ByteBufferChannel(
             if (nioBuffer.remaining() > offset) {
                 val view = nioBuffer.duplicate()!!
                 view.position(view.position() + offset.toInt())
+
+                val oldLimit = view.limit()
+                val canCopyToDestination = minOf(max, destination.size - destinationOffset)
+                val newLimit = minOf(view.limit().toLong(), canCopyToDestination + offset)
+                view.limit(newLimit.toInt())
                 bytesCopied = view.remaining()
                 view.copyTo(destination, destinationOffset.toInt())
+                view.limit(oldLimit)
             }
         }
 
@@ -2579,69 +2427,8 @@ internal open class ByteBufferChannel(
 
     override fun toString(): String = "ByteBufferChannel(${hashCode()}, $state)"
 
-    public companion object {
-
-        private const val ReservedLongIndex = -8
-
-        // todo: replace with atomicfu, remove companion object
-        private val State = updater(ByteBufferChannel::state)
-        private val WriteOp = updater(ByteBufferChannel::writeOp)
-        private val ReadOp = updater(ByteBufferChannel::readOp)
-        private val Closed = updater(ByteBufferChannel::closed)
-    }
-
-    private object TerminatedLookAhead : LookAheadSuspendSession {
-        override fun consumed(n: Int) {
-            if (n > 0) throw IllegalStateException("Unable to mark $n bytes consumed for already terminated channel")
-        }
-
-        override fun request(skip: Int, atLeast: Int): ByteBuffer? = null
-
-        override suspend fun awaitAtLeast(n: Int): Boolean {
-            require(n >= 0) { "atLeast parameter shouldn't be negative: $n" }
-            require(n <= 4088) { "atLeast parameter shouldn't be larger than max buffer size of 4088: $n" }
-
-            return false
-        }
-    }
-
-    private class ClosedElement(val cause: Throwable?) {
-        val sendException: Throwable
-            get() = cause ?: ClosedWriteChannelException("The channel was closed")
-
-        override fun toString(): String = "Closed[$sendException]"
-
-        companion object {
-            val EmptyCause = ClosedElement(null)
-        }
-    }
-
-    internal class JoiningState(val delegatedTo: ByteBufferChannel, val delegateClose: Boolean) {
-        private val _closeWaitJob = atomic<Job?>(null)
-        private val closed = atomic(0)
-
-        private val closeWaitJob: Job
-            get() {
-                while (true) {
-                    val current = _closeWaitJob.value
-                    if (current != null) return current
-                    val newJob = Job()
-                    if (_closeWaitJob.compareAndSet(null, newJob)) {
-                        if (closed.value == 1) newJob.cancel()
-                        return newJob
-                    }
-                }
-            }
-
-        fun complete() {
-            closed.value = 1
-            _closeWaitJob.getAndSet(null)?.cancel()
-        }
-
-        suspend fun awaitClose() {
-            if (closed.value == 1) return
-            return closeWaitJob.join()
-        }
+    companion object {
+        private const val ReservedLongIndex: Int = -8
     }
 }
 

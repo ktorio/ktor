@@ -19,7 +19,7 @@ import java.nio.*
 /**
  * Base class for implementing an [ApplicationResponse]
  */
-public abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
+public abstract class BaseApplicationResponse(final override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
 
     override val cookies: ResponseCookies by lazy {
@@ -34,7 +34,9 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
 
     private var responded = false
 
-    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline().apply {
+    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
+        call.application.environment.developmentMode
+    ).apply {
         merge(call.application.sendPipeline)
     }
 
@@ -237,6 +239,7 @@ public abstract class BaseApplicationResponse(override val call: ApplicationCall
      */
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         link(builder.url.buildString(), LinkHeader.Rel.Prefetch)
     }

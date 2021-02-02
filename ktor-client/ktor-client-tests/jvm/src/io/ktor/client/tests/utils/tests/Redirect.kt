@@ -12,7 +12,7 @@ import io.ktor.routing.*
 internal fun Application.redirectTest() {
     routing {
         route("/redirect") {
-            get("/") {
+            get {
                 call.respondRedirect("/redirect/get")
             }
             get("/get") {

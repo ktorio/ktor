@@ -65,6 +65,10 @@ public suspend fun proxyHandler(socket: Socket) {
     while (!input.isClosedForRead) {
         input.readUTF8Line()
     }
+
+    if (input is ByteChannel) {
+        input.closedCause?.let { throw it }
+    }
 }
 
 @OptIn(ExperimentalTime::class)
@@ -79,7 +83,6 @@ private suspend fun handleProxyTunnel(
     output.flush()
 
     val hostPort = statusLine.split(" ")[1]
-
     val host = hostPort.substringBefore(":")
     val port = hostPort.substringAfter(":", "80").toInt()
 

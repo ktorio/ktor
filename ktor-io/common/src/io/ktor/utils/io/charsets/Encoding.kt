@@ -55,7 +55,9 @@ public expect fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output)
 
 @ExperimentalIoApi
 public fun CharsetEncoder.encode(
-    input: CharSequence, fromIndex: Int = 0, toIndex: Int = input.length
+    input: CharSequence,
+    fromIndex: Int = 0,
+    toIndex: Int = input.length
 ): ByteReadPacket = buildPacket {
     encodeToImpl(this, input, fromIndex, toIndex)
 }
@@ -64,7 +66,6 @@ public fun CharsetEncoder.encode(
 public fun CharsetEncoder.encodeUTF8(input: ByteReadPacket): ByteReadPacket = buildPacket {
     encodeUTF8(input, this)
 }
-
 
 @ExperimentalIoApi
 public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int, dst: Output) {
@@ -85,7 +86,6 @@ public fun CharsetEncoder.encode(input: CharArray, fromIndex: Int, toIndex: Int,
 
     encodeCompleteImpl(dst)
 }
-
 
 // ----------------------------- DECODER -------------------------------------------------------------------------------
 
@@ -116,7 +116,6 @@ public expect object Charsets {
 }
 
 public expect open class MalformedInputException(message: String) : Throwable
-
 
 public class TooLongLineException(message: String) : MalformedInputException(message)
 
@@ -170,7 +169,6 @@ internal fun Input.sizeEstimate(): Long = when (this) {
     is AbstractInput -> maxOf(remaining, 16)
     else -> 16
 }
-
 
 private fun CharsetEncoder.encodeCompleteImpl(dst: Output): Int {
     var size = 1

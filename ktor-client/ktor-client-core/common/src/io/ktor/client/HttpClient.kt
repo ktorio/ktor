@@ -43,7 +43,7 @@ public fun <T : HttpClientEngineConfig> HttpClient(
     val client = HttpClient(engine, config, manageEngine = true)
 
     // If the engine was created using factory Ktor is responsible for its lifecycle management. Otherwise user has to
-    // close engine by himself.
+    // close engine by themself.
     client.coroutineContext[Job]!!.invokeOnCompletion {
         engine.close()
     }
@@ -84,29 +84,29 @@ public class HttpClient(
 
     private val closed = atomic(false)
 
-    private val clientJob: CompletableJob = Job()
+    private val clientJob: CompletableJob = Job(engine.coroutineContext[Job])
 
     public override val coroutineContext: CoroutineContext = engine.coroutineContext + clientJob
 
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
+    public val requestPipeline: HttpRequestPipeline = HttpRequestPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for processing all the responses sent by the server.
      */
-    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
+    public val responsePipeline: HttpResponsePipeline = HttpResponsePipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for sending the request.
      */
-    public val sendPipeline: HttpSendPipeline = HttpSendPipeline()
+    public val sendPipeline: HttpSendPipeline = HttpSendPipeline(userConfig.developmentMode)
 
     /**
      * Pipeline used for receiving request.
      */
-    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
+    public val receivePipeline: HttpReceivePipeline = HttpReceivePipeline(userConfig.developmentMode)
 
     /**
      * Typed attributes used as a lightweight container for this client.
@@ -134,9 +134,13 @@ public class HttpClient(
     init {
         checkCoroutinesVersion()
 
-        val engineJob = engine.coroutineContext[Job]!!
-        @Suppress("DEPRECATION_ERROR")
-        clientJob.attachChild(engineJob as ChildJob)
+        if (manageEngine) {
+            clientJob.invokeOnCompletion {
+                if (it != null) {
+                    engine.cancel()
+                }
+            }
+        }
 
         engine.install(this)
 
@@ -154,10 +158,6 @@ public class HttpClient(
                 config.install("DefaultTransformers") { defaultTransformers() }
             }
 
-            if (expectSuccess) {
-                config.addDefaultResponseValidation()
-            }
-
             config.install(HttpSend)
 
             if (followRedirects) {
@@ -165,6 +165,9 @@ public class HttpClient(
             }
 
             config += this
+
+            config.addDefaultResponseValidation()
+
             config.install(this@HttpClient)
         }
 

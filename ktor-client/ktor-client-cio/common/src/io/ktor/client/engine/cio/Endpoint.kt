@@ -4,15 +4,21 @@
 
 package io.ktor.client.engine.cio
 
+import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.http.content.*
 import io.ktor.network.sockets.*
+import io.ktor.network.sockets.Connection
 import io.ktor.network.tls.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -22,7 +28,7 @@ import kotlin.coroutines.*
 internal class Endpoint(
     private val host: String,
     private val port: Int,
-    private val overProxy: Boolean,
+    private val proxy: ProxyConfig?,
     private val secure: Boolean,
     private val config: CIOEngineConfig,
     private val connectionFactory: ConnectionFactory,
@@ -98,8 +104,8 @@ internal class Endpoint(
         val (request, response, callContext) = task
         try {
             val connection = connect(request)
-            val input = this@Endpoint.mapEngineExceptions(connection.openReadChannel(), request)
-            val originOutput = this@Endpoint.mapEngineExceptions(connection.openWriteChannel(), request)
+            val input = this@Endpoint.mapEngineExceptions(connection.input, request)
+            val originOutput = this@Endpoint.mapEngineExceptions(connection.output, request)
 
             val output = originOutput.handleHalfClosed(
                 callContext, config.endpoint.allowHalfClose
@@ -109,7 +115,7 @@ internal class Endpoint(
                 try {
                     input.cancel(cause)
                     originOutput.close(cause)
-                    connection.close()
+                    connection.socket.close()
                     releaseConnection()
                 } catch (_: Throwable) {
                 }
@@ -132,18 +138,18 @@ internal class Endpoint(
         input: ByteReadChannel, originOutput: ByteWriteChannel
     ): HttpResponseData {
         val requestTime = GMTDate()
-        request.write(output, callContext, overProxy)
+        request.write(output, callContext, proxy != null)
 
         return readResponse(requestTime, request, input, originOutput, callContext)
     }
 
     private suspend fun createPipeline(request: HttpRequestData) {
-        val socket = connect(request)
+        val connection = connect(request)
 
         val pipeline = ConnectionPipeline(
             config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
-            socket,
-            overProxy,
+            connection,
+            proxy != null,
             deliveryPoint,
             coroutineContext
         )
@@ -151,7 +157,7 @@ internal class Endpoint(
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
     }
 
-    private suspend fun connect(requestData: HttpRequestData): Socket {
+    private suspend fun connect(requestData: HttpRequestData): Connection {
         val connectAttempts = config.endpoint.connectAttempts
         val (connectTimeout, socketTimeout) = retrieveTimeouts(requestData)
         var timeoutFails = 0
@@ -166,7 +172,7 @@ internal class Endpoint(
                     }
                 }
 
-                val connection = when (connectTimeout) {
+                val socket = when (connectTimeout) {
                     HttpTimeout.INFINITE_TIMEOUT_MS -> connect()
                     else -> {
                         val connection = withTimeoutOrNull(connectTimeout, connect)
@@ -178,16 +184,23 @@ internal class Endpoint(
                     }
                 }
 
-                if (!secure) return@connect connection
+                val connection = socket.connection()
+                if (!secure) {
+                    return@connect connection
+                }
 
                 try {
-                    return connection.tls(coroutineContext) {
+                    if (proxy?.type == ProxyType.HTTP) {
+                        startTunnel(requestData, connection.output, connection.input)
+                    }
+                    val tlsSocket = connection.tls(coroutineContext) {
                         takeFrom(config.https)
                         serverName = serverName ?: address.hostname
                     }
+                    return tlsSocket.connection()
                 } catch (cause: Throwable) {
                     try {
-                        connection.close()
+                        socket.close()
                     } catch (_: Throwable) {
                     }
 

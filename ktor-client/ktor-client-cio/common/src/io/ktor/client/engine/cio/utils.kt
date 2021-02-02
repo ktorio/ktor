@@ -88,6 +88,7 @@ internal suspend fun HttpRequestData.write(
             chunkedJob?.join()
         }
     } finally {
+        output.closedCause?.let { throw it }
         if (closeChannel) {
             output.close()
         }
@@ -134,6 +135,53 @@ internal suspend fun readResponse(
         }
 
         return HttpResponseData(status, requestTime, headers, version, body, callContext)
+    }
+}
+
+internal suspend fun startTunnel(
+    request: HttpRequestData,
+    output: ByteWriteChannel,
+    input: ByteReadChannel
+) {
+    val builder = RequestResponseBuilder()
+
+    try {
+        builder.requestLine(HttpMethod("CONNECT"), request.url.hostWithPort, HttpProtocolVersion.HTTP_1_1.toString())
+        // this will only add the port to the host header if the port is non-standard for the protocol
+        val host = if (request.url.protocol.defaultPort == request.url.port) {
+            request.url.host
+        } else {
+            request.url.hostWithPort
+        }
+
+        builder.headerLine(HttpHeaders.Host, host)
+        builder.headerLine("Proxy-Connection", "Keep-Alive") // For HTTP/1.0 proxies like Squid.
+        request.headers[HttpHeaders.UserAgent]?.let {
+            builder.headerLine(HttpHeaders.UserAgent, it)
+        }
+        request.headers[HttpHeaders.ProxyAuthenticate]?.let {
+            builder.headerLine(HttpHeaders.ProxyAuthenticate, it)
+        }
+        request.headers[HttpHeaders.ProxyAuthorization]?.let {
+            builder.headerLine(HttpHeaders.ProxyAuthorization, it)
+        }
+
+        builder.emptyLine()
+        output.writePacket(builder.build())
+        output.flush()
+
+        val rawResponse = parseResponse(input)
+            ?: throw EOFException("Failed to parse CONNECT response: unexpected EOF")
+        rawResponse.use {
+            if (rawResponse.status / 200 != 1) {
+                throw IOException("Can not establish tunnel connection")
+            }
+            rawResponse.headers[HttpHeaders.ContentLength]?.let {
+                input.discard(it.toString().toLong())
+            }
+        }
+    } finally {
+        builder.release()
     }
 }
 

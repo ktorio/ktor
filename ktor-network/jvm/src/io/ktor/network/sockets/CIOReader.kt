@@ -89,37 +89,29 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
         } else {
             null
         }
-        channel.writeSuspendSession {
-            while (true) {
-                var rc = 0
 
-                timeout.withTimeout {
-                    do {
-                        val buffer = request(1)
-                        if (buffer == null) {
-                            if (channel.isClosedForWrite) break
-                            channel.flush()
-                            tryAwait(1)
-                            continue
-                        }
+        while (!channel.isClosedForWrite) {
+            timeout.withTimeout {
+                val rc = channel.readFrom(nioChannel)
 
-                        rc = nioChannel.read(buffer)
-                        if (rc == 0) {
-                            channel.flush()
-                            selectable.interestOp(SelectInterest.READ, true)
-                            selector.select(selectable, SelectInterest.READ)
-                        }
-                    } while (rc == 0)
-                }
                 if (rc == -1) {
-                    break
-                } else {
-                    written(rc)
+                    channel.close()
+                    return@withTimeout
+                }
+
+                if (rc > 0) return@withTimeout
+
+                channel.flush()
+
+                while (true) {
+                    selectForRead(selectable, selector)
+                    if (channel.readFrom(nioChannel) != 0) break
                 }
             }
         }
 
         timeout?.finish()
+        channel.closedCause?.let { throw it }
         channel.close()
     } finally {
         if (nioChannel is SocketChannel) {
@@ -129,4 +121,18 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
             }
         }
     }
+}
+
+private suspend fun ByteWriteChannel.readFrom(nioChannel: ReadableByteChannel): Int {
+    var count = 0
+    write { buffer ->
+        count = nioChannel.read(buffer)
+    }
+
+    return count
+}
+
+private suspend fun selectForRead(selectable: Selectable, selector: SelectorManager) {
+    selectable.interestOp(SelectInterest.READ, true)
+    selector.select(selectable, SelectInterest.READ)
 }

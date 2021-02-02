@@ -200,5 +200,26 @@ class CookiesTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun testRequestBuilderSingleCookie() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get<String>("$TEST_HOST/respond-single-cookie") {
+                cookie("single", value = "abacaba")
+            }
+            assertEquals("abacaba", result)
+        }
+    }
+
+    @Test
+    fun testRequestBuilderMultipleCookies() = clientTests(listOf("Js")) {
+        test { client ->
+            val result = client.get<String>("$TEST_HOST/respond-a-minus-b") {
+                cookie("a", value = "10")
+                cookie("b", value = "4")
+            }
+            assertEquals("6", result)
+        }
+    }
+
     private suspend fun HttpClient.getId() = cookies(hostname)["id"]!!.value.toInt()
 }

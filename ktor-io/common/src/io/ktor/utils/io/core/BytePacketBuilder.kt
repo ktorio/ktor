@@ -2,7 +2,7 @@
 
 package io.ktor.utils.io.core
 
-import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.pool.*
@@ -13,9 +13,9 @@ import kotlin.Deprecated
 import kotlin.DeprecationLevel
 import kotlin.Int
 import kotlin.PublishedApi
+import kotlin.String
 import kotlin.Suppress
-import kotlin.check
-import kotlin.jvm.JvmName
+import kotlin.jvm.*
 
 /**
  * A builder that provides ability to build byte packets with no knowledge of it's size.
@@ -35,7 +35,8 @@ import kotlin.jvm.JvmName
  * ```
  */
 public class BytePacketBuilder(private var headerSizeHint: Int = 0, pool: ObjectPool<ChunkBuffer>) :
-    @Suppress("DEPRECATION_ERROR") BytePacketBuilderPlatformBase(pool) {
+    @Suppress("DEPRECATION_ERROR")
+    BytePacketBuilderPlatformBase(pool) {
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
     }

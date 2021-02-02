@@ -44,4 +44,9 @@ public interface ApplicationEnvironment {
      * Application's root path (prefix, context path in servlet container).
      */
     public val rootPath: String
+
+    /**
+     * Indicates if development mode is enabled.
+     */
+    public val developmentMode: Boolean
 }

@@ -26,17 +26,45 @@ import kotlin.coroutines.*
  *
  * @param call that is starting web socket session
  * @param protocol web socket negotiated protocol name (optional)
+ * @param installExtensions specifies if WebSocket extensions should be installed in current session.
  * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
  */
+@OptIn(ExperimentalWebSocketExtensionApi::class)
 public class WebSocketUpgrade(
     public val call: ApplicationCall,
-    public val protocol: String? = null,
+    @Suppress("MemberVisibilityCanBePrivate") public val protocol: String? = null,
+    private val installExtensions: Boolean = false,
     public val handle: suspend WebSocketSession.() -> Unit
 ) : OutgoingContent.ProtocolUpgrade() {
+
+    /**
+     * An [OutgoingContent] response object that could be used to `respond()`: it will cause application engine to
+     * perform HTTP upgrade and start websocket RAW session.
+     *
+     * Please note that you generally shouldn't use this object directly but use [WebSockets] feature with routing builders
+     * [webSocket] instead.
+     *
+     * [handle] function is applied to a session and as far as it is a RAW session, you should handle all low-level
+     * frames yourself and deal with ping/pongs, timeouts, close frames, frame fragmentation and so on.
+     *
+     * @param call that is starting web socket session
+     * @param protocol web socket negotiated protocol name (optional)
+     * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
+     */
+    @Suppress("unused")
+    public constructor(
+        call: ApplicationCall,
+        protocol: String? = null,
+        handle: suspend WebSocketSession.() -> Unit
+    ) : this(call, protocol, installExtensions = false, handle)
+
     private val key = call.request.header(HttpHeaders.SecWebSocketKey)
+    private val feature = call.application.feature(WebSockets)
 
     override val headers: Headers
-        get() = Headers.build {
+
+    init {
+        headers = Headers.build {
             append(HttpHeaders.Upgrade, "websocket")
             append(HttpHeaders.Connection, "Upgrade")
             if (key != null) {
@@ -45,7 +73,11 @@ public class WebSocketUpgrade(
             if (protocol != null) {
                 append(HttpHeaders.SecWebSocketProtocol, protocol)
             }
+
+            val extensionsToUse = writeExtensions()
+            call.attributes.put(WebSockets.EXTENSIONS_KEY, extensionsToUse)
         }
+    }
 
     override suspend fun upgrade(
         input: ByteReadChannel,
@@ -53,8 +85,6 @@ public class WebSocketUpgrade(
         engineContext: CoroutineContext,
         userContext: CoroutineContext
     ): Job {
-        val feature = call.application.feature(WebSockets)
-
         val webSocket = RawWebSocket(
             input, output,
             feature.maxFrameSize, feature.masking,
@@ -69,6 +99,31 @@ public class WebSocketUpgrade(
         }
 
         return webSocket.coroutineContext[Job]!!
+    }
+
+    private fun HeadersBuilder.writeExtensions(): List<WebSocketExtension<*>> {
+        if (!installExtensions) return emptyList()
+
+        val requestedExtensions = call.request.header(HttpHeaders.SecWebSocketExtensions)
+            ?.let { parseWebSocketExtensions(it) } ?: emptyList()
+
+        val extensionsCandidates = feature.extensionsConfig.build()
+        val extensionHeaders = mutableListOf<WebSocketExtensionHeader>()
+        val extensionsToUse = mutableListOf<WebSocketExtension<*>>()
+
+        extensionsCandidates.forEach {
+            val headers = it.serverNegotiation(requestedExtensions)
+            if (headers.isEmpty()) return@forEach
+
+            extensionsToUse.add(it)
+            extensionHeaders.addAll(headers)
+        }
+
+        if (extensionHeaders.isNotEmpty()) {
+            append(HttpHeaders.SecWebSocketExtensions, extensionHeaders.joinToString(";"))
+        }
+
+        return extensionsToUse
     }
 
     public companion object {

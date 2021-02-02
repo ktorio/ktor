@@ -50,11 +50,30 @@ class CurlProxyTest {
     }
 
     @Test
+    fun httpsOverTunnelTestSecured() {
+        val client = HttpClient(Curl) {
+            engine {
+                forceProxyTunneling = true
+                sslVerify = true
+
+                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
+            }
+        }
+
+        runBlocking {
+            client.use {
+                @Suppress("DEPRECATION")
+                assertFailsWith<CurlIllegalStateException> {
+                    client.get<HttpResponse>("https://localhost:8089/")
+                }
+            }
+        }
+    }
+
+    @Test
     fun httpsOverTunnelTest() {
         val client = HttpClient(Curl) {
             engine {
-                this as CurlClientEngineConfig
-
                 forceProxyTunneling = true
                 sslVerify = false
 

@@ -4,6 +4,7 @@
 
 package io.ktor.http.cio.websocket
 
+import io.ktor.util.*
 import kotlinx.coroutines.*
 
 /**
@@ -15,7 +16,9 @@ public actual fun DefaultWebSocketSession(
     pingInterval: Long,
     timeoutMillis: Long
 ): DefaultWebSocketSession = DefaultWebSocketSessionImpl(
-    session, pingInterval, timeoutMillis
+    session,
+    pingInterval,
+    timeoutMillis
 )
 
 /**
@@ -36,4 +39,13 @@ public actual interface DefaultWebSocketSession : WebSocketSession {
      * (for example due to connection failure).
      */
     public actual val closeReason: Deferred<CloseReason?>
+
+    /**
+     * Start WebSocket conversation.
+     *
+     * @param negotiatedExtensions specify negotiated extensions list to use in current session.
+     */
+    @InternalAPI
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    public actual fun start(negotiatedExtensions: List<WebSocketExtension<*>>)
 }

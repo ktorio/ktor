@@ -15,8 +15,27 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
+internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
+    /**
+     * Equals [HttpResponse.content] in case [receive] was never called before or equals it's copy if [receive] was
+     * already called at least once.
+     * */
+    private var responseContent: ByteReadChannel? = null
 
-internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client)
+    /**
+     * Saves [responseContent] and returns it's copy that is safe to use without loosing [responseContent] data.
+     * */
+    override suspend fun getResponseContent(): ByteReadChannel {
+        if (responseContent == null) {
+            responseContent = response.content
+        }
+        val contentBytes = responseContent!!.toByteArray()
+        responseContent = ByteReadChannel(contentBytes)
+        return ByteReadChannel(contentBytes)
+    }
+
+    override val allowDoubleReceive: Boolean = true
+}
 
 internal class SavedHttpRequest(
     override val call: SavedHttpCall, origin: HttpRequest
@@ -51,6 +70,7 @@ public suspend fun HttpClientCall.save(): HttpClientCall {
 
     return SavedHttpCall(currentClient).also { result ->
         val content = response.content.readRemaining()
+
         result.request = SavedHttpRequest(result, request)
         result.response = SavedHttpResponse(result, content.readBytes(), response)
     }

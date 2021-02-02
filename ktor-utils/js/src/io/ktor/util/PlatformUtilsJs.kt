@@ -15,4 +15,5 @@ public actual object PlatformUtils {
 
     public actual val IS_JVM: Boolean = false
     public actual val IS_NATIVE: Boolean = false
+    public actual val IS_DEVELOPMENT_MODE: Boolean = false
 }

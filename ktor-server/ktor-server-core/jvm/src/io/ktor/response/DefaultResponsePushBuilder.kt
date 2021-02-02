@@ -16,6 +16,7 @@ import io.ktor.util.*
  * @property headers builder
  */
 @InternalAPI
+@UseHttp2Push
 public class DefaultResponsePushBuilder(
     override var method: HttpMethod = HttpMethod.Get,
     override val url: URLBuilder = URLBuilder(),

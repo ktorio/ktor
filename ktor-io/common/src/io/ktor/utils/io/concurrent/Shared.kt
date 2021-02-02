@@ -19,7 +19,6 @@ import kotlin.properties.*
 @DangerousInternalIoApi
 public expect inline fun <T> shared(value: T): ReadWriteProperty<Any, T>
 
-
 /**
  * Allow to create thread local reference without freezing.
  * Please note that reference is thread-local only in kotlin-native. Otherwise it will be simple [value] reference.

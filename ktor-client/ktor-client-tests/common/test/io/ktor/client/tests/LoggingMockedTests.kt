@@ -80,11 +80,11 @@ class LoggingMockedTests {
             "METHOD: HttpMethod(value=GET)",
             "FROM: http://localhost/",
             "COMMON HEADERS",
+            "+++RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]",
             "BODY Content-Type: null",
             "BODY START",
             "Hello",
-            "BODY END",
-            "RESPONSE http://localhost/ failed with exception: CustomError[PARSE ERROR]"
+            "BODY END"
         )
 
         config {

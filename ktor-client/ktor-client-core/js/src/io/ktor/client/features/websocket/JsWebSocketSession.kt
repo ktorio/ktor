@@ -23,6 +23,9 @@ internal class JsWebSocketSession(
     override val incoming: ReceiveChannel<Frame> = _incoming
     override val outgoing: SendChannel<Frame> = _outgoing
 
+    @ExperimentalWebSocketExtensionApi
+    override val extensions: List<WebSocketExtension<*>> get() = emptyList()
+
     override val closeReason: Deferred<CloseReason?> = _closeReason
 
     override var maxFrameSize: Long
@@ -91,7 +94,11 @@ internal class JsWebSocketSession(
                         val code = data.readShort()
                         val reason = data.readText()
                         _closeReason.complete(CloseReason(code, reason))
-                        websocket.close(code, reason)
+                        if (code.isReservedStatusCode()) {
+                            websocket.close()
+                        } else {
+                            websocket.close(code, reason)
+                        }
                     }
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
@@ -109,6 +116,11 @@ internal class JsWebSocketSession(
         }
     }
 
+    @OptIn(ExperimentalWebSocketExtensionApi::class)
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
+    }
+
     override suspend fun flush() {
     }
 
@@ -121,5 +133,12 @@ internal class JsWebSocketSession(
         _outgoing.cancel()
         _closeReason.cancel("WebSocket terminated")
         websocket.close()
+    }
+
+    private fun Short.isReservedStatusCode(): Boolean {
+        return CloseReason.Codes.byCode(this).let { resolved ->
+            @Suppress("DEPRECATION")
+            resolved == null || resolved == CloseReason.Codes.CLOSED_ABNORMALLY
+        }
     }
 }

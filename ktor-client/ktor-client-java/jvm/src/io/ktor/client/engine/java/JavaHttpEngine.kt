@@ -6,6 +6,7 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
+import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
@@ -39,26 +40,14 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         executor.asCoroutineDispatcher()
     }
 
-    public override val supportedCapabilities: Set<HttpTimeout.Feature> = setOf(HttpTimeout)
-
-    override val coroutineContext: CoroutineContext
-
-    private val requestsJob = SilentSupervisor(super.coroutineContext[Job])
+    public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
+        setOf(HttpTimeout, WebSocketCapability)
 
     private var httpClient: HttpClient? = null
 
     init {
-        coroutineContext = super.coroutineContext + requestsJob + CoroutineName("java-engine")
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        GlobalScope.launch(super.coroutineContext, start = CoroutineStart.ATOMIC) {
-            try {
-                requestsJob[Job]!!.join()
-            } finally {
-                httpClient = null
-                (dispatcher as Closeable).close()
-                executor.shutdown()
-            }
+        coroutineContext.job.invokeOnCompletion {
+            httpClient = null
         }
     }
 
@@ -66,17 +55,16 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         val engine = getJavaHttpClient(data)
         val callContext = callContext()
 
-        return if (data.isUpgradeRequest()) {
-            engine.executeWebSocketRequest(callContext, data)
-        } else {
-            engine.executeHttpRequest(callContext, data)
+        return try {
+            if (data.isUpgradeRequest()) {
+                engine.executeWebSocketRequest(callContext, data)
+            } else {
+                engine.executeHttpRequest(callContext, data)
+            }
+        } catch (cause: Throwable) {
+            callContext.cancel(CancellationException("Failed to execute request", cause))
+            throw cause
         }
-    }
-
-    override fun close() {
-        super.close()
-
-        (requestsJob[Job] as CompletableJob).complete()
     }
 
     private fun getJavaHttpClient(data: HttpRequestData): HttpClient {

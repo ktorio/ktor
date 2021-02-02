@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.curl
@@ -23,12 +23,12 @@ private val initHook = Curl
  * [HttpClientEngineFactory] using a curl library in implementation
  * with the the associated configuration [HttpClientEngineConfig].
  */
-public object Curl : HttpClientEngineFactory<HttpClientEngineConfig> {
+public object Curl : HttpClientEngineFactory<CurlClientEngineConfig> {
     init {
         engines.append(this)
     }
 
-    override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine {
+    override fun create(block: CurlClientEngineConfig.() -> Unit): HttpClientEngine {
         @Suppress("DEPRECATION")
         if (curlGlobalInitReturnCode != 0U) {
             throw CurlRuntimeException("curl_global_init() returned non-zero verify: $curlGlobalInitReturnCode")

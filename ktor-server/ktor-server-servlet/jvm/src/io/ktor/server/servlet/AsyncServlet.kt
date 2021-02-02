@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -41,6 +41,10 @@ public open class AsyncServletApplicationCall(
         ).also {
             putResponseAttribute(it)
         }
+    }
+
+    init {
+        putServletAttributes(servletRequest)
     }
 }
 
@@ -91,12 +95,14 @@ public open class AsyncServletApplicationResponse(
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
     }
 
+    @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         if (!tryPush(servletRequest, builder)) {
             super.push(builder)
         }
     }
 
+    @UseHttp2Push
     private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
         return foundPushImpls.any { function ->
             tryInvoke(function, request, builder)
@@ -119,6 +125,7 @@ public open class AsyncServletApplicationResponse(
             null
         }
 
+        @UseHttp2Push
         private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
             function.invoke(null, request, builder) as Boolean
         } catch (ignore: ReflectiveOperationException) {

@@ -14,11 +14,14 @@ import io.ktor.utils.io.core.*
  * @property data - a frame content or fragment content
  * @property disposableHandle could be invoked when the frame is processed
  */
-public actual sealed class Frame private actual constructor(
+public actual sealed class Frame actual constructor(
     public actual val fin: Boolean,
     public actual val frameType: FrameType,
     public actual val data: ByteArray,
-    public actual val disposableHandle: DisposableHandle
+    public actual val disposableHandle: DisposableHandle,
+    public actual open val rsv1: Boolean,
+    public actual open val rsv2: Boolean,
+    public actual open val rsv3: Boolean
 ) {
     /**
      * Represents an application level binary frame.
@@ -26,7 +29,14 @@ public actual sealed class Frame private actual constructor(
      * (separated into several text frames so they have [fin] = false except the last one).
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
      */
-    public actual class Binary actual constructor(fin: Boolean, data: ByteArray) : Frame(fin, FrameType.BINARY, data) {
+    public actual class Binary actual constructor(
+        fin: Boolean,
+        data: ByteArray,
+        rsv1: Boolean,
+        rsv2: Boolean,
+        rsv3: Boolean
+    ) : Frame(fin, FrameType.BINARY, data, NonDisposableHandle, rsv1, rsv2, rsv3) {
+        public actual constructor(fin: Boolean, data: ByteArray) : this(fin, data, false, false, false)
         public actual constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readBytes())
     }
 
@@ -38,7 +48,14 @@ public actual sealed class Frame private actual constructor(
      * so don't apply String constructor to every fragment but use decoder loop instead of concatenate fragments first.
      * Note that usually there is no need to handle fragments unless you have a RAW web socket session.
      */
-    public actual class Text actual constructor(fin: Boolean, data: ByteArray) : Frame(fin, FrameType.TEXT, data) {
+    public actual class Text actual constructor(
+        fin: Boolean,
+        data: ByteArray,
+        rsv1: Boolean,
+        rsv2: Boolean,
+        rsv3: Boolean
+    ) : Frame(fin, FrameType.TEXT, data, NonDisposableHandle, rsv1, rsv2, rsv3) {
+        public actual constructor(fin: Boolean, data: ByteArray) : this(fin, data, false, false, false)
         public actual constructor(text: String) : this(true, text.toByteArray())
         public actual constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readBytes())
     }
@@ -47,7 +64,9 @@ public actual sealed class Frame private actual constructor(
      * Represents a low-level level close frame. It could be sent to indicate web socket session end.
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
      */
-    public actual class Close actual constructor(data: ByteArray) : Frame(true, FrameType.CLOSE, data) {
+    public actual class Close actual constructor(
+        data: ByteArray
+    ) : Frame(true, FrameType.CLOSE, data, NonDisposableHandle, false, false, false) {
         public actual constructor(reason: CloseReason) : this(buildPacket {
             writeShort(reason.code)
             writeText(reason.message)
@@ -61,7 +80,9 @@ public actual sealed class Frame private actual constructor(
      * Represents a low-level ping frame. Could be sent to test connection (peer should reply with [Pong]).
      * Usually there is no need to send/handle it unless you have a RAW web socket session.
      */
-    public actual class Ping actual constructor(data: ByteArray) : Frame(true, FrameType.PING, data) {
+    public actual class Ping actual constructor(
+        data: ByteArray
+    ) : Frame(true, FrameType.PING, data, NonDisposableHandle, false, false, false) {
         public actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
     }
 
@@ -72,22 +93,22 @@ public actual sealed class Frame private actual constructor(
     public actual class Pong actual constructor(
         data: ByteArray,
         disposableHandle: DisposableHandle
-    ) : Frame(true, FrameType.PONG, data, disposableHandle) {
-        public actual constructor(packet: ByteReadPacket) : this(packet.readBytes())
+    ) : Frame(true, FrameType.PONG, data, disposableHandle, false, false, false) {
+        public actual constructor(packet: ByteReadPacket) : this(packet.readBytes(), NonDisposableHandle)
     }
 
     override fun toString(): String = "Frame $frameType (fin=$fin, buffer len = ${data.size})"
 
     /**
-     * Creates a frame copy
+     * Creates a frame copy.
      */
-    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf())
+    public actual fun copy(): Frame = byType(fin, frameType, data.copyOf(), rsv1, rsv2, rsv3)
 
     public actual companion object {
         private val Empty: ByteArray = ByteArray(0)
 
         /**
-         * Create a particular [Frame] instance by frame type
+         * Create a particular [Frame] instance by frame type.
          */
         public actual fun byType(
             fin: Boolean,
@@ -98,7 +119,23 @@ public actual sealed class Frame private actual constructor(
             FrameType.TEXT -> Text(fin, data)
             FrameType.CLOSE -> Close(data)
             FrameType.PING -> Ping(data)
-            FrameType.PONG -> Pong(data)
+            FrameType.PONG -> Pong(data, NonDisposableHandle)
+        }
+
+        /**
+         * Create a particular [Frame] instance by frame type.
+         */
+        public actual fun byType(
+            fin: Boolean,
+            frameType: FrameType,
+            data: ByteArray,
+            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+        ): Frame = when (frameType) {
+            FrameType.BINARY -> Binary(fin, data, rsv1, rsv2, rsv3)
+            FrameType.TEXT -> Text(fin, data, rsv1, rsv2, rsv3)
+            FrameType.CLOSE -> Close(data)
+            FrameType.PING -> Ping(data)
+            FrameType.PONG -> Pong(data, NonDisposableHandle)
         }
     }
 }

@@ -12,7 +12,7 @@ import kotlin.coroutines.*
 internal expect class ConnectionPipeline(
     keepAliveTime: Long,
     pipelineMaxSize: Int,
-    socket: Socket,
+    connection: Connection,
     overProxy: Boolean,
     tasks: Channel<RequestTask>,
     parentContext: CoroutineContext

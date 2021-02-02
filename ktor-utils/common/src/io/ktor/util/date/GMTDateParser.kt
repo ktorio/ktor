@@ -105,7 +105,6 @@ public class GMTDateParser(private val pattern: String) {
 
         public const val ANY: Char = '*'
     }
-
 }
 
 internal class GMTDateBuilder {

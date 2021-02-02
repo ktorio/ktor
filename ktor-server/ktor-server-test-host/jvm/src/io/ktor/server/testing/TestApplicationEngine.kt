@@ -28,7 +28,7 @@ import kotlin.coroutines.*
 public class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
-) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
+) : BaseApplicationEngine(environment, EnginePipeline(environment.developmentMode)), CoroutineScope {
 
     private val testEngineJob = Job(environment.parentCoroutineContext[Job])
     private var cancellationDeferred: CompletableJob? = null

@@ -1,12 +1,13 @@
 <img src="https://repository-images.githubusercontent.com/40136600/f3f5fd00-c59e-11e9-8284-cb297d193133" alt="Ktor" width="500" style="max-width:100%;">
 
 [![Official JetBrains project](http://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
-[![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Maven Central](https://img.shields.io/maven-central/v/io.ktor/ktor)](https://mvnrepository.com/artifact/io.ktor)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.4.20-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Slack channel](https://img.shields.io/badge/chat-slack-green.svg?logo=slack)](https://kotlinlang.slack.com/messages/ktor/)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
+Ktor is an asynchronous framework for creating microservices, web applications and more. Written in Kotlin from the ground up.
+
 
 ```kotlin
 import io.ktor.server.netty.*
@@ -60,6 +61,11 @@ extent without actually doing any networking. It provides easy way to test an ap
 too much stuff, and still achieve good performance while validating application calls. Running integration tests with a real 
 embedded web server are of course possible, too.
 
+## JetBrains Product
+
+Ktor is an official [JetBrains](https://jetbrains.com) product and is primarily developed by the team at JetBrains, with contributions
+from the community. 
+
 ## Documentation
 
 Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
@@ -70,7 +76,7 @@ Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations
 
 ## Reporting Issues / Support
 
-Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommmend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
+Please use [our issue tracker](https://youtrack.jetbrains.com/issues/KTOR) for filing feature requests and bugs. If you'd like to ask a question, we recommend [StackOverflow](https://stackoverflow.com/questions/tagged/ktor) where members of the team monitor frequently.
 
 There is also community support on the [Kotlin Slack Ktor channel](https://app.slack.com/client/T09229ZC6/C0A974TJ9)
 

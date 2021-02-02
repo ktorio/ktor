@@ -11,7 +11,9 @@ import io.ktor.util.pipeline.*
 /**
  * [HttpClient] Pipeline used for executing [HttpRequest].
  */
-public class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
+public class HttpRequestPipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
     /**
      * All interceptors accept payload as [subject] and try to convert it to [OutgoingContent]
      * Last phase should proceed with [HttpClientCall]
@@ -47,7 +49,9 @@ public class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, Sta
 /**
  * [HttpClient] Pipeline used for sending [HttpRequest] to remote server.
  */
-public class HttpSendPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Monitoring, Engine, Receive) {
+public class HttpSendPipeline(
+    override val developmentMode: Boolean = false
+) : Pipeline<Any, HttpRequestBuilder>(Before, State, Monitoring, Engine, Receive) {
 
     public companion object Phases {
         /**

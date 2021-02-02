@@ -23,7 +23,7 @@ import java.util.concurrent.*
  */
 @EngineAPI
 public fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
-    val pipeline = EnginePipeline()
+    val pipeline = EnginePipeline(environment.developmentMode)
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
         pipeline.install(ShutDownUrl.EngineFeature) {

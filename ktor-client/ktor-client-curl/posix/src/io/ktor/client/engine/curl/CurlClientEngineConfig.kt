@@ -14,7 +14,13 @@ public class CurlClientEngineConfig : HttpClientEngineConfig() {
 
     /**
      * Enable TLS host and certificate verification by setting options
-     * CURLOPT_SSL_VERIFYPEER and CURLOPT_SSL_VERIFYHOST
+     * CURLOPT_SSL_VERIFYPEER and CURLOPT_SSL_VERIFYHOST.
+     * Similar to `-k/--insecure` curl option.
+     *
+     * Setting this to `false` disables TLS verification so all connections will be insecure.
+     *
+     * While this is generally suitable for testing purpose,
+     * we do not recommend using this in production.
      */
-    internal var sslVerify: Boolean = true
+    public var sslVerify: Boolean = true
 }

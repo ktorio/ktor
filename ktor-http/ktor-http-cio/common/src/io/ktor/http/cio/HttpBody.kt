@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 
 /**
  * @return `true` if an http upgrade is expected accoding to request [method], [upgrade] header value and
@@ -40,7 +41,11 @@ public fun expectHttpBody(
     connectionOptions: ConnectionOptions?,
     contentType: CharSequence?
 ): Boolean {
-    if (transferEncoding != null) return true
+    if (transferEncoding != null) {
+        // verify header value
+        isTransferEncodingChunked(transferEncoding)
+        return true
+    }
     if (contentLength != -1L) return contentLength > 0L
     if (contentType != null) return true
 
@@ -76,14 +81,8 @@ public suspend fun parseHttpBody(
     input: ByteReadChannel,
     out: ByteWriteChannel
 ) {
-    if (transferEncoding != null) {
-        when {
-            transferEncoding.equalsLowerCase(other = "chunked") -> return decodeChunked(input, out)
-            transferEncoding.equalsLowerCase(other = "identity") -> {
-                // do nothing special
-            }
-            else -> out.close(IllegalStateException("Unsupported transfer-encoding $transferEncoding"))
-        }
+    if (transferEncoding != null && isTransferEncodingChunked(transferEncoding)) {
+        return decodeChunked(input, out)
     }
 
     if (contentLength != -1L) {
@@ -119,5 +118,33 @@ public suspend fun parseHttpBody(
     headers["Content-Length"]?.parseDecLong() ?: -1,
     headers["Transfer-Encoding"],
     ConnectionOptions.parse(headers["Connection"]),
-    input, out
+    input,
+    out
 )
+
+private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
+    if (transferEncoding.equalsLowerCase(other = "chunked")) {
+        return true
+    }
+    if (transferEncoding.equalsLowerCase(other = "identity")) {
+        return false
+    }
+
+    var chunked = false
+    transferEncoding.split(",").forEach {
+        when (val name = it.trim().toLowerCase()) {
+            "chunked" -> {
+                if (chunked) {
+                    throw IllegalArgumentException("Double-chunked TE is not supported: $transferEncoding")
+                }
+                chunked = true
+            }
+            "identity" -> {
+                // ignore this token
+            }
+            else -> throw IllegalArgumentException("Unsupported transfer encoding $name")
+        }
+    }
+
+    return chunked
+}

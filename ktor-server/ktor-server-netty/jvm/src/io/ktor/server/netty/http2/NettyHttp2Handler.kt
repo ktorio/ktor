@@ -88,6 +88,7 @@ internal class NettyHttp2Handler(
         responseWriter.ensureRunning()
     }
 
+    @UseHttp2Push
     internal fun startHttp2PushPromise(context: ChannelHandlerContext, builder: ResponsePushBuilder) {
         val channel = context.channel() as Http2StreamChannel
         val streamId = channel.stream().id()

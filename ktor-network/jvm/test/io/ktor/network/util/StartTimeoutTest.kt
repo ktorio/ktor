@@ -6,7 +6,6 @@ package io.ktor.network.util
 
 import kotlinx.coroutines.*
 import kotlin.test.*
-import org.junit.Test
 
 class StartTimeoutTest {
 
@@ -106,12 +105,11 @@ class StartTimeoutTest {
         val scope = CoroutineScope(GlobalScope.coroutineContext)
         val timeout = scope.createTimeout("test", timeoutMs, clock::timeMs) { timeoutInvoked = true }
         timeout.start()
-        yield()
 
-        clock.timeMs += timeoutMs
         runCatching { scope.cancel(CancellationException()) }
+        clock.timeMs += timeoutMs
+
         delay(timeoutMs)
-        yield()
         assertFalse(timeoutInvoked)
     }
 }

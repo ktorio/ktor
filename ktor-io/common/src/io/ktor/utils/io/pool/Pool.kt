@@ -1,7 +1,7 @@
 package io.ktor.utils.io.pool
 
-import kotlinx.atomicfu.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 import kotlin.jvm.*
 
 public interface ObjectPool<T : Any> : Closeable {
@@ -165,4 +165,3 @@ public inline fun <T : Any, R> ObjectPool<T>.useInstance(block: (T) -> R): R {
         recycle(instance)
     }
 }
-

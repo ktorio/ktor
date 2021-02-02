@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("MemberVisibilityCanBePrivate")
@@ -102,7 +102,7 @@ public class CORS(configuration: Configuration) {
         if (!allowNonSimpleContentTypes) {
             val contentType = call.request.header(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
             if (contentType != null) {
-                if (contentType !in Configuration.CorsSimpleContentTypes) {
+                if (contentType.withoutParameters() !in Configuration.CorsSimpleContentTypes) {
                     context.respondCorsFailed()
                     return
                 }
@@ -131,7 +131,6 @@ public class CORS(configuration: Configuration) {
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
-
         val requestHeaders =
             request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map {
                 it.trim().toLowerCasePreservingASCIIRules()
@@ -196,16 +195,13 @@ public class CORS(configuration: Configuration) {
         return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    private fun ApplicationCall.corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
-
-        requestHeaders.all { header ->
-            return header in allHeadersSet || headerMatchesAPredicate(header)
+    private fun corsCheckRequestHeaders(requestHeaders: List<String>): Boolean {
+        return requestHeaders.all { header ->
+            header in allHeadersSet || headerMatchesAPredicate(header)
         }
-
-        return requestHeaders.none { it !in allHeadersSet }
     }
 
-    private fun ApplicationCall.headerMatchesAPredicate(header: String): Boolean {
+    private fun headerMatchesAPredicate(header: String): Boolean {
         return headerPredicates.any { it(header) }
     }
 

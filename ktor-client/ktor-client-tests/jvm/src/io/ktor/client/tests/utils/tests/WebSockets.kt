@@ -5,13 +5,19 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 
-public fun Application.webSockets() {
+internal fun Application.webSockets() {
     routing {
         route("websockets") {
             webSocket("echo") {
-                for (packet in incoming) {
-                    val data = packet.data
-                    send(Frame.Text(fin = true, data = data))
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val text = frame.readText()
+                            send(Frame.Text(text))
+                        }
+                        is Frame.Binary -> send(Frame.Binary(fin = true, frame.data))
+                        else -> error("Unsupported frame type: ${frame.frameType}.")
+                    }
                 }
             }
 

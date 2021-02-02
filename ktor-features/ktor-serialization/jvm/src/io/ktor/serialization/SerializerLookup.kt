@@ -4,6 +4,9 @@
 
 package io.ktor.serialization
 
+import io.ktor.application.*
+import io.ktor.response.*
+import io.ktor.util.pipeline.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.json.*
@@ -27,7 +30,6 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     val elementType = type.arguments[0].type ?: error("Array<*> is not supported")
     val elementSerializer = serializerByTypeInfo(elementType)
 
-
     @Suppress("UNCHECKED_CAST")
     return ArraySerializer(
         elementType.jvmErasure as KClass<Any>,
@@ -35,34 +37,49 @@ private fun arraySerializer(type: KType): KSerializer<*> {
     )
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-internal fun serializerForSending(value: Any, module: SerializersModule): KSerializer<*> = when (value) {
-    is JsonElement -> JsonElement.serializer()
-    is List<*> -> ListSerializer(value.elementSerializer(module))
-    is Set<*> -> SetSerializer(value.elementSerializer(module))
-    is Map<*, *> -> MapSerializer(value.keys.elementSerializer(module), value.values.elementSerializer(module))
-    is Map.Entry<*, *> -> MapEntrySerializer(
-        serializerForSending(value.key ?: error("Map.Entry(null, ...) is not supported"), module),
-        serializerForSending(value.value ?: error("Map.Entry(..., null) is not supported)"), module)
-    )
-    is Array<*> -> {
-        val componentType = value.javaClass.componentType.kotlin.starProjectedType
-        val componentClass =
-            componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
+internal fun serializerFromResponseType(
+    context: PipelineContext<Any, ApplicationCall>,
+    module: SerializersModule
+): KSerializer<*>? {
+    val responseType = context.call.response.responseType ?: return null
+    return module.serializer(responseType)
+}
 
-        @Suppress("UNCHECKED_CAST")
-        ArraySerializer(
-            componentClass as KClass<Any>,
-            serializerByTypeInfo(componentType) as KSerializer<Any>
+internal fun guessSerializer(
+    value: Any,
+    module: SerializersModule
+): KSerializer<*> {
+    return when (value) {
+        is JsonElement -> JsonElement.serializer()
+        is List<*> -> ListSerializer(value.elementSerializer(module))
+        is Set<*> -> SetSerializer(value.elementSerializer(module))
+        is Map<*, *> -> MapSerializer(
+            value.keys.elementSerializer(module),
+            value.values.elementSerializer(module)
         )
+        is Map.Entry<*, *> -> MapEntrySerializer(
+            guessSerializer(value.key ?: error("Map.Entry(null, ...) is not supported"), module),
+            guessSerializer(value.value ?: error("Map.Entry(..., null) is not supported)"), module)
+        )
+        is Array<*> -> {
+            val componentType = value.javaClass.componentType.kotlin.starProjectedType
+            val componentClass =
+                componentType.classifier as? KClass<*> ?: error("Unsupported component type $componentType")
+
+            @Suppress("UNCHECKED_CAST")
+            ArraySerializer(
+                componentClass as KClass<Any>,
+                serializerByTypeInfo(componentType) as KSerializer<Any>
+            )
+        }
+        else -> module.getContextual(value::class) ?: @OptIn(InternalSerializationApi::class) value::class.serializer()
     }
-    else -> module.getContextual(value::class) ?: @OptIn(InternalSerializationApi::class) value::class.serializer()
 }
 
 @OptIn(ExperimentalSerializationApi::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers = mapNotNull { value ->
-        value?.let { serializerForSending(it, module) }
+        value?.let { guessSerializer(it, module) }
     }.distinctBy { it.descriptor.serialName }
 
     if (serializers.size > 1) {

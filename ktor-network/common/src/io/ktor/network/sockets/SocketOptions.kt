@@ -37,8 +37,9 @@ public sealed class SocketOptions(
         }
     }
 
-    private class GeneralSocketOptions constructor(customOptions: MutableMap<Any, Any?>) :
-        SocketOptions(customOptions) {
+    private class GeneralSocketOptions constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
         override fun copy(): GeneralSocketOptions = GeneralSocketOptions(HashMap(customOptions)).apply {
             copyCommon(this@GeneralSocketOptions)
         }
@@ -62,7 +63,9 @@ public sealed class SocketOptions(
     /**
      * TCP server socket options
      */
-    public class AcceptorOptions internal constructor(customOptions: MutableMap<Any, Any?>) : SocketOptions(customOptions) {
+    public class AcceptorOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
                 copyCommon(this@AcceptorOptions)
@@ -73,8 +76,9 @@ public sealed class SocketOptions(
     /**
      * Represents TCP client or UDP socket options
      */
-    public open class PeerSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        SocketOptions(customOptions) {
+    public open class PeerSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : SocketOptions(customOptions) {
 
         /**
          * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
@@ -117,8 +121,9 @@ public sealed class SocketOptions(
     /**
      * Represents UDP socket options
      */
-    public class UDPSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        PeerSocketOptions(customOptions) {
+    public class UDPSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : PeerSocketOptions(customOptions) {
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)
@@ -129,8 +134,9 @@ public sealed class SocketOptions(
     /**
      * Represents TCP client socket options
      */
-    public class TCPClientSocketOptions internal constructor(customOptions: MutableMap<Any, Any?>) :
-        PeerSocketOptions(customOptions) {
+    public class TCPClientSocketOptions internal constructor(
+        customOptions: MutableMap<Any, Any?>
+    ) : PeerSocketOptions(customOptions) {
         /**
          * TCP_NODELAY socket option, useful to disable Nagle
          */

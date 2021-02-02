@@ -297,7 +297,7 @@ class JWTAuthTest {
             application.configureServerJwt()
             val token = getToken().replace("Bearer", "Bearer:")
             val response = handleRequestWithToken(token)
-            verifyResponseUnauthorized(response)
+            verifyResponseBadRequest(response)
         }
     }
 
@@ -330,7 +330,7 @@ class JWTAuthTest {
             application.configureServerJwk(mock = true)
             val token = getJwkToken(true).replace("Bearer", "Bearer:")
             val response = handleRequestWithToken(token)
-            verifyResponseUnauthorized(response)
+            verifyResponseBadRequest(response)
         }
     }
 
@@ -465,6 +465,12 @@ class JWTAuthTest {
     private fun verifyResponseUnauthorized(response: TestApplicationCall) {
         assertTrue(response.requestHandled)
         assertEquals(HttpStatusCode.Unauthorized, response.response.status())
+        assertNull(response.response.content)
+    }
+
+    private fun verifyResponseBadRequest(response: TestApplicationCall) {
+        assertTrue(response.requestHandled)
+        assertEquals(HttpStatusCode.BadRequest, response.response.status())
         assertNull(response.response.content)
     }
 

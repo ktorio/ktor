@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.servlet
@@ -16,7 +16,6 @@ public abstract class ServletApplicationRequest(
     call: ApplicationCall,
     public val servletRequest: HttpServletRequest
 ) : BaseApplicationRequest(call) {
-
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters: Parameters by lazy {

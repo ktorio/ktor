@@ -61,9 +61,22 @@ class CallLoggingTest {
             hash = application.toString()
         }
 
-        assertEquals("TRACE: Application started: $hash", messages[1])
-        assertEquals("TRACE: Application stopping: $hash", messages[2])
-        assertEquals("TRACE: Application stopped: $hash", messages[3])
+        assertTrue(messages.size >= 3, "It should be at least 3 message logged:\n$messages")
+        assertEquals(
+            "TRACE: Application started: $hash",
+            messages[messages.size - 3],
+            "No started message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopping: $hash",
+            messages[messages.size - 2],
+            "No stopping message logged:\n$messages"
+        )
+        assertEquals(
+            "TRACE: Application stopped: $hash",
+            messages[messages.size - 1],
+            "No stopped message logged:\n$messages"
+        )
     }
 
     @Test

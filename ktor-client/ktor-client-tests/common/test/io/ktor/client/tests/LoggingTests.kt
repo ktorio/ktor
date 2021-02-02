@@ -5,6 +5,8 @@
 package io.ktor.client.tests
 
 import io.ktor.client.call.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -14,6 +16,7 @@ import io.ktor.http.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
 import kotlin.test.*
 
 class LoggingTest : ClientLoader() {
@@ -434,31 +437,11 @@ class LoggingTest : ClientLoader() {
                 url("$TEST_SERVER/content/echo")
             }
             assertNotNull(response)
+            assertEquals("test", response.readRemaining().readText())
         }
 
         after {
             testLogger.verify()
-        }
-    }
-
-    @Test
-    fun testCustomServer() = clientTests(listOf("iOS", "native:CIO")) {
-        config {
-            Logging {
-                level = LogLevel.ALL
-                logger = Logger.EMPTY
-            }
-        }
-
-        test { client ->
-            client.request<HttpStatement> {
-                method = HttpMethod.Get
-                url("https://jigsaw.w3.org/HTTP/ChunkedScript")
-            }.execute { response ->
-                val responseBytes = ByteArray(65536)
-                val body = response.content
-                body.readFully(responseBytes)
-            }
         }
     }
 
@@ -506,6 +489,7 @@ class LoggingTest : ClientLoader() {
             }
 
             assertNotNull(response)
+            response.discard()
         }
 
         after {
@@ -572,6 +556,64 @@ class LoggingTest : ClientLoader() {
 
                 body?.let { this@request.body = body }
             }
+        }
+
+        after {
+            testLogger.verify()
+        }
+    }
+
+    @Serializable
+    data class User(val name: String)
+
+    @Test
+    fun testLogPostBodyWithJson() = clientTests {
+        val testLogger = TestLogger(
+            "REQUEST: http://127.0.0.1:8080/content/echo",
+            "METHOD: HttpMethod(value=POST)",
+            "COMMON HEADERS",
+            "-> Accept: application/json",
+            "-> Accept-Charset: UTF-8",
+            "CONTENT HEADERS",
+            "-> Content-Length: 15",
+            "-> Content-Type: application/json",
+            "BODY Content-Type: application/json",
+            "BODY START",
+            "{\"name\":\"Ktor\"}",
+            "BODY END",
+            "RESPONSE: 200 OK",
+            "METHOD: HttpMethod(value=POST)",
+            "FROM: http://127.0.0.1:8080/content/echo",
+            "COMMON HEADERS",
+            "???-> connection: keep-alive",
+            "???-> connection: close",
+            "-> content-length: 15",
+            "BODY Content-Type: null",
+            "BODY START",
+            "{\"name\":\"Ktor\"}",
+            "BODY END"
+        )
+
+        config {
+            Json {
+                serializer = KotlinxSerializer()
+            }
+
+            Logging {
+                logger = testLogger
+                level = LogLevel.ALL
+            }
+        }
+
+        test { client ->
+            val response = client.request<ByteReadChannel> {
+                method = HttpMethod.Post
+                body = User("Ktor")
+                contentType(ContentType.Application.Json)
+                url("$TEST_SERVER/content/echo")
+            }
+
+            assertNotNull(response)
         }
 
         after {

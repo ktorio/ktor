@@ -25,7 +25,9 @@ import java.nio.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.executeRequest(
-    client: HTTP2Client, config: JettyEngineConfig, callContext: CoroutineContext
+    client: HTTP2Client,
+    config: JettyEngineConfig,
+    callContext: CoroutineContext
 ): HttpResponseData {
     val requestTime = GMTDate()
     val session: HTTP2ClientSession = client.connect(url, config).apply {
