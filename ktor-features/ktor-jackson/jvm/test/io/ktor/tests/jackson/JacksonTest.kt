@@ -163,9 +163,34 @@ class JacksonTest {
             assertEquals("{\n  \"a\" : 1,\n  \"b\" : 2\n}", response.content)
         }
     }
+
+    @Test
+    fun testEntityErrorHandling() = withTestApplication {
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, JacksonConverter())
+        }
+
+        application.routing {
+            post("/") {
+                val entity = call.receive<MyEntity>()
+                call.respond(entity.toString())
+            }
+
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader("Content-Type", "application/json")
+            setBody("""{"id":777,"nam":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2},{"item":"blah","quantity":3}]}""")
+        }.response.let { response ->
+            assertEquals(HttpStatusCode.BadRequest, response.status())
+            assertEquals("error parsing json request body: io.ktor.tests.jackson.MyEntity[\"name\"]", response.content)
+        }
+
+    }
 }
 
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
+
 
