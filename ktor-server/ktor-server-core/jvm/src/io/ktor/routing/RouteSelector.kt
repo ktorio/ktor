@@ -257,6 +257,7 @@ public data class PathSegmentConstantRouteSelector(
 internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
+        context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Constant
         context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Constant
         segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
@@ -265,7 +266,7 @@ internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluati
         else -> RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "/"
+    override fun toString(): String = "<slash>"
 }
 
 /**
