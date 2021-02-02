@@ -11,9 +11,10 @@ private val IgnoreTrailingSlashAttributeKey: AttributeKey<Unit> = AttributeKey("
 
 internal var ApplicationCall.ignoreTrailingSlash: Boolean
     get() = attributes.contains(IgnoreTrailingSlashAttributeKey)
-    private set(value) = when (value) {
-        true -> attributes.put(IgnoreTrailingSlashAttributeKey, Unit)
-        false -> attributes.remove(IgnoreTrailingSlashAttributeKey)
+    private set(value) = if (value) {
+        attributes.put(IgnoreTrailingSlashAttributeKey, Unit)
+    } else {
+        attributes.remove(IgnoreTrailingSlashAttributeKey)
     }
 
 /**
@@ -29,7 +30,10 @@ public class IgnoreTrailingSlash private constructor() {
     public companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, IgnoreTrailingSlash> {
         override val key: AttributeKey<IgnoreTrailingSlash> = AttributeKey("IgnoreTrailingSlash")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): IgnoreTrailingSlash {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            configure: Configuration.() -> Unit
+        ): IgnoreTrailingSlash {
             val feature = IgnoreTrailingSlash()
             pipeline.intercept(ApplicationCallPipeline.Features) {
                 call.ignoreTrailingSlash = true
