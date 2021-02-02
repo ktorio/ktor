@@ -1228,6 +1228,20 @@ public final class io/ktor/routing/HttpMethodRouteSelector : io/ktor/routing/Rou
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/routing/IgnoreTrailingSlash {
+	public static final field Feature Lio/ktor/routing/IgnoreTrailingSlash$Feature;
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Configuration {
+	public fun <init> ()V
+}
+
+public final class io/ktor/routing/IgnoreTrailingSlash$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/routing/IgnoreTrailingSlash;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
 public final class io/ktor/routing/LocalPortRouteSelector : io/ktor/routing/RouteSelector {
 	public static final field Companion Lio/ktor/routing/LocalPortRouteSelector$Companion;
 	public static final field LocalPortParameter Ljava/lang/String;
