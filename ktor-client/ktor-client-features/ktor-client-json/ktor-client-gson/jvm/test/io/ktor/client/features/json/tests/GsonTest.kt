@@ -6,6 +6,6 @@ package io.ktor.client.features.json.tests
 
 import io.ktor.client.features.json.*
 
-class GsonTest: JsonTest() {
+class GsonTest : JsonTest() {
     override val serializerImpl = GsonSerializer()
 }

@@ -4,7 +4,6 @@
 
 package io.ktor.client.features.logging
 
-
 /**
  * [HttpClient] Logger.
  */

@@ -14,10 +14,10 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 import kotlin.reflect.*
 import kotlin.test.*
-import kotlin.coroutines.*
-import kotlinx.coroutines.*
 
 class ExceptionsTest : ClientLoader() {
 
@@ -90,7 +90,6 @@ class ExceptionsTest : ClientLoader() {
         """.trimIndent(),
         exceptionType = ResponseException::class
     )
-
 
     private fun testTextInException(
         code: HttpStatusCode,

@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 
-
 /**
  * [Feature] is used to set request default parameters.
  */
@@ -26,7 +25,6 @@ public class DefaultRequest(private val builder: HttpRequestBuilder.() -> Unit) 
             }
         }
     }
-
 }
 
 /**

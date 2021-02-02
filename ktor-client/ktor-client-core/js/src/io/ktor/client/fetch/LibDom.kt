@@ -6,7 +6,7 @@ package io.ktor.client.fetch
 
 import kotlin.js.Promise
 
-//external fun fetch(input: Request, init: RequestInit? = definedExternally): Promise<Response>
+// external fun fetch(input: Request, init: RequestInit? = definedExternally): Promise<Response>
 
 public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<Response>
 
@@ -95,13 +95,20 @@ public external interface FormData {
     public fun has(name: String): Boolean
     public fun set(name: String, value: String, fileName: String? = definedExternally)
     public fun set(name: String, value: Blob, fileName: String? = definedExternally)
-    public fun forEach(callbackfn: (value: dynamic /* File | String */, key: String, parent: FormData) -> Unit, thisArg: Any? = definedExternally)
+    public fun forEach(
+        callbackfn: (value: dynamic /* File | String */, key: String, parent: FormData) -> Unit,
+        thisArg: Any? = definedExternally
+    )
 }
 
 public external interface Blob {
     public var size: Number
     public var type: String
-    public fun slice(start: Number? = definedExternally, end: Number? = definedExternally, contentType: String? = definedExternally): Blob
+    public fun slice(
+        start: Number? = definedExternally,
+        end: Number? = definedExternally,
+        contentType: String? = definedExternally
+    ): Blob
 }
 
 public external interface ReadableStream<R> {
@@ -176,7 +183,10 @@ public external interface Headers {
     public fun get(name: String): String?
     public fun has(name: String): Boolean
     public fun set(name: String, value: String)
-    public fun forEach(callbackfn: (value: String, key: String, parent: Headers) -> Unit, thisArg: Any? = definedExternally)
+    public fun forEach(
+        callbackfn: (value: String, key: String, parent: Headers) -> Unit,
+        thisArg: Any? = definedExternally
+    )
 }
 
 public external interface RequestInit {
@@ -292,7 +302,12 @@ public external interface AbortSignal : EventTarget {
 
 public external interface EventTarget {
     public fun addEventListener(type: String, listener: EventListener, options: Boolean? = definedExternally)
-    public fun addEventListener(type: String, listener: EventListener, options: AddEventListenerOptions? = definedExternally)
+    public fun addEventListener(
+        type: String,
+        listener: EventListener,
+        options: AddEventListenerOptions? = definedExternally
+    )
+
     public fun addEventListener(type: String, listener: EventListenerObject, options: Boolean? = definedExternally)
     public fun addEventListener(
         type: String,
@@ -301,7 +316,12 @@ public external interface EventTarget {
     )
 
     public fun dispatchEvent(event: Event): Boolean
-    public fun removeEventListener(type: String, callback: EventListener, options: EventListenerOptions? = definedExternally)
+    public fun removeEventListener(
+        type: String,
+        callback: EventListener,
+        options: EventListenerOptions? = definedExternally
+    )
+
     public fun removeEventListener(type: String, callback: EventListener, options: Boolean? = definedExternally)
     public fun removeEventListener(
         type: String,

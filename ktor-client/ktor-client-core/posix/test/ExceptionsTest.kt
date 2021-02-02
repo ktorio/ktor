@@ -32,24 +32,26 @@ class ExceptionsTest {
     }
 }
 
+private fun createResponseException(): ResponseException = ResponseException(
+    object : HttpResponse() {
+        override val call: HttpClientCall
+            get() = TODO("Not yet implemented")
+        override val status: HttpStatusCode
+            get() = TODO("Not yet implemented")
+        override val version: HttpProtocolVersion
+            get() = TODO("Not yet implemented")
+        override val requestTime: GMTDate
+            get() = TODO("Not yet implemented")
+        override val responseTime: GMTDate
+            get() = TODO("Not yet implemented")
+        override val content: ByteReadChannel
+            get() = TODO("Not yet implemented")
+        override val headers: Headers
+            get() = TODO("Not yet implemented")
+        override val coroutineContext: CoroutineContext
+            get() = TODO("Not yet implemented")
 
-private fun createResponseException(): ResponseException = ResponseException(object : HttpResponse() {
-    override val call: HttpClientCall
-        get() = TODO("Not yet implemented")
-    override val status: HttpStatusCode
-        get() = TODO("Not yet implemented")
-    override val version: HttpProtocolVersion
-        get() = TODO("Not yet implemented")
-    override val requestTime: GMTDate
-        get() = TODO("Not yet implemented")
-    override val responseTime: GMTDate
-        get() = TODO("Not yet implemented")
-    override val content: ByteReadChannel
-        get() = TODO("Not yet implemented")
-    override val headers: Headers
-        get() = TODO("Not yet implemented")
-    override val coroutineContext: CoroutineContext
-        get() = TODO("Not yet implemented")
-
-    override fun toString(): String = "FakeCall"
-}, cachedResponseText = "Fake text")
+        override fun toString(): String = "FakeCall"
+    },
+    cachedResponseText = "Fake text"
+)

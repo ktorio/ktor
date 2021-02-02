@@ -212,14 +212,22 @@ class HttpRedirectMockedTest {
         engine {
             addHandler { request ->
                 if (request.url.fullPath.endsWith("child")) {
-                    respond("OK", HttpStatusCode.OK, headers = Headers.build {
-                        append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
-                    })
+                    respond(
+                        "OK",
+                        HttpStatusCode.OK,
+                        headers = Headers.build {
+                            append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
+                        }
+                    )
                 } else {
-                    respond("redirect", HttpStatusCode.PermanentRedirect, headers = Headers.build {
-                        append(HttpHeaders.Location, block(request))
-                        append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
-                    })
+                    respond(
+                        "redirect",
+                        HttpStatusCode.PermanentRedirect,
+                        headers = Headers.build {
+                            append(HttpHeaders.Location, block(request))
+                            append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
+                        }
+                    )
                 }
             }
         }

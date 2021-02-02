@@ -9,8 +9,8 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class PostTest : ClientLoader() {
@@ -42,7 +42,6 @@ class PostTest : ClientLoader() {
                         channel.close()
                     }
                 }
-
             }
 
             assertEquals(content + content, response)

@@ -75,7 +75,6 @@ public fun HttpResponse.use(block: () -> Unit) {
 public val HttpResponse.response: HttpResponse
     get() = this
 
-
 @InternalAPI
 @PublishedApi
 internal fun HttpResponse.complete() {

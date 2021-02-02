@@ -53,7 +53,7 @@ class RequestProducerTest {
         assertEquals("{}", String(result))
     }
 
-    private class ByteArraySubscriber:  Flow.Subscriber<ByteBuffer> {
+    private class ByteArraySubscriber : Flow.Subscriber<ByteBuffer> {
 
         private val buffers = mutableListOf<ByteBuffer>()
         private var throwable: Throwable? = null

@@ -56,9 +56,7 @@ public class HttpPlainText internal constructor(
         }
 
         requestCharset = sendCharset
-            ?: withoutQuality.firstOrNull()
-                ?: withQuality.firstOrNull()?.first
-                ?: Charsets.UTF_8
+            ?: withoutQuality.firstOrNull() ?: withQuality.firstOrNull()?.first ?: Charsets.UTF_8
     }
 
     /**
@@ -117,8 +115,10 @@ public class HttpPlainText internal constructor(
 
             with(config) {
                 return HttpPlainText(
-                    charsets, charsetQuality,
-                    sendCharset, responseCharsetFallback
+                    charsets,
+                    charsetQuality,
+                    sendCharset,
+                    responseCharsetFallback
                 )
             }
         }
@@ -132,7 +132,9 @@ public class HttpPlainText internal constructor(
                 }
 
                 val contentType = context.contentType()
-                if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) return@intercept
+                if (contentType != null && contentType.contentType != ContentType.Text.Plain.contentType) {
+                    return@intercept
+                }
 
                 val contentCharset = contentType?.charset()
                 proceedWith(feature.wrapContent(content, contentCharset))

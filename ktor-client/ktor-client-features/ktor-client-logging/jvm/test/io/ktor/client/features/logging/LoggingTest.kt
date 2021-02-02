@@ -3,10 +3,11 @@
  */
 
 package io.ktor.client.features.logging
+
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlin.test.*
 import kotlinx.coroutines.*
+import kotlin.test.*
 
 class LoggingTest {
 
@@ -23,5 +24,4 @@ class LoggingTest {
         val result = channel.tryReadText(Charsets.UTF_8)
         assertEquals(result, "test")
     }
-
 }

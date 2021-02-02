@@ -113,7 +113,8 @@ public class HttpTimeout(
     /**
      * Companion object for feature installation.
      */
-    public companion object Feature : HttpClientFeature<HttpTimeoutCapabilityConfiguration, HttpTimeout>,
+    public companion object Feature :
+        HttpClientFeature<HttpTimeoutCapabilityConfiguration, HttpTimeout>,
         HttpClientEngineCapability<HttpTimeoutCapabilityConfiguration> {
 
         override val key: AttributeKey<HttpTimeout> = AttributeKey("TimeoutFeature")
@@ -169,24 +170,19 @@ public fun HttpRequestBuilder.timeout(block: HttpTimeout.HttpTimeoutCapabilityCo
 public class HttpRequestTimeoutException(
     request: HttpRequestBuilder
 ) : CancellationException(
-    "Request timeout has been expired [url=${request.url.buildString()}, request_timeout=${
-        request.getCapabilityOrNull(
-            HttpTimeout
-        )?.requestTimeoutMillis ?: "unknown"
-    } ms]"
+    "Request timeout has been expired [url=${request.url.buildString()}, " +
+        "request_timeout=${request.getCapabilityOrNull(HttpTimeout)?.requestTimeoutMillis ?: "unknown"} ms]"
 )
 
 /**
  * This exception is thrown in case connect timeout exceeded.
  */
 public fun ConnectTimeoutException(
-    request: HttpRequestData, cause: Throwable? = null
+    request: HttpRequestData,
+    cause: Throwable? = null
 ): ConnectTimeoutException = ConnectTimeoutException(
-    "Connect timeout has been expired [url=${request.url}, connect_timeout=${
-        request.getCapabilityOrNull(
-            HttpTimeout
-        )?.connectTimeoutMillis ?: "unknown"
-    } ms]",
+    "Connect timeout has been expired [url=${request.url}, " +
+        "connect_timeout=${request.getCapabilityOrNull(HttpTimeout)?.connectTimeoutMillis ?: "unknown"} ms]",
     cause
 )
 
@@ -194,7 +190,9 @@ public fun ConnectTimeoutException(
  * This exception is thrown in case connect timeout exceeded.
  */
 public fun ConnectTimeoutException(
-    url: String, timeout: Long?, cause: Throwable? = null
+    url: String,
+    timeout: Long?,
+    cause: Throwable? = null
 ): ConnectTimeoutException = ConnectTimeoutException(
     "Connect timeout has been expired [url=$url, connect_timeout=${timeout ?: "unknown"} ms]",
     cause
@@ -207,11 +205,8 @@ public fun SocketTimeoutException(
     request: HttpRequestData,
     cause: Throwable? = null
 ): SocketTimeoutException = SocketTimeoutException(
-    "Socket timeout has been expired [url=${request.url}, socket_timeout=${
-        request.getCapabilityOrNull(
-            HttpTimeout
-        )?.socketTimeoutMillis ?: "unknown"
-    }] ms",
+    "Socket timeout has been expired [url=${request.url}, " +
+        "socket_timeout=${request.getCapabilityOrNull(HttpTimeout)?.socketTimeoutMillis ?: "unknown"}] ms",
     cause
 )
 

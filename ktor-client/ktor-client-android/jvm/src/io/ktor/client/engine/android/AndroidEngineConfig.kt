@@ -8,7 +8,6 @@ import io.ktor.client.engine.*
 import java.net.*
 import javax.net.ssl.*
 
-
 /**
  * Configuration for [Android] client engine.
  */
@@ -24,7 +23,6 @@ public class AndroidEngineConfig : HttpClientEngineConfig() {
      * A value of 0 represents infinite.
      */
     public var socketTimeout: Int = 100_000
-
 
     /**
      * Https connection manipulator. inherited methods are not permitted.

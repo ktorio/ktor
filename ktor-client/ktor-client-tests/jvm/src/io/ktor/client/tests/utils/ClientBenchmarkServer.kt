@@ -11,8 +11,8 @@ import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.websocket.*
 import io.ktor.utils.io.*
+import io.ktor.websocket.*
 
 internal fun Application.benchmarks() {
     routing {
@@ -53,11 +53,13 @@ internal fun Application.benchmarks() {
              */
             get("/bytes") {
                 val size = call.request.queryParameters["size"]!!.toInt()
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeFully(testBytes, 0, size * 1024)
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeFully(testBytes, 0, size * 1024)
+                        }
                     }
-                })
+                )
             }
 
             /**
@@ -72,11 +74,12 @@ internal fun Application.benchmarks() {
              * Upload file
              */
             post("/echo") {
-
                 val channel = call.request.receiveChannel()
-                call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override fun readFrom(): ByteReadChannel = channel
-                })
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom(): ByteReadChannel = channel
+                    }
+                )
             }
 
             route("/websockets") {

@@ -5,9 +5,9 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.core.*
 import org.khronos.webgl.*
 import org.w3c.dom.*
 import kotlin.coroutines.*
@@ -35,43 +35,52 @@ internal class JsWebSocketSession(
     init {
         websocket.binaryType = BinaryType.ARRAYBUFFER
 
-        websocket.addEventListener("message", callback = {
-            val event = it.unsafeCast<MessageEvent>()
+        websocket.addEventListener(
+            "message",
+            callback = {
+                val event = it.unsafeCast<MessageEvent>()
 
-            launch {
-                val data = event.data
+                launch {
+                    val data = event.data
 
-                val frame: Frame = when (data) {
-                    is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
-                    is String -> Frame.Text(data)
-                    else -> {
-                        val error = IllegalStateException("Unknown frame type: ${event.type}")
-                        _closeReason.completeExceptionally(error)
-                        throw error
+                    val frame: Frame = when (data) {
+                        is ArrayBuffer -> Frame.Binary(false, Int8Array(data).unsafeCast<ByteArray>())
+                        is String -> Frame.Text(data)
+                        else -> {
+                            val error = IllegalStateException("Unknown frame type: ${event.type}")
+                            _closeReason.completeExceptionally(error)
+                            throw error
+                        }
                     }
+
+                    _incoming.offer(frame)
                 }
-
-                _incoming.offer(frame)
             }
-        })
+        )
 
-        websocket.addEventListener("error", callback = {
-            val cause = WebSocketException("$it")
-            _closeReason.completeExceptionally(cause)
-            _incoming.close(cause)
-            _outgoing.cancel()
-        })
-
-        websocket.addEventListener("close", callback = { event: dynamic ->
-            launch {
-                val reason = CloseReason(event.code as Short, event.reason as String)
-                _closeReason.complete(reason)
-                _incoming.send(Frame.Close(reason))
-                _incoming.close()
-
+        websocket.addEventListener(
+            "error",
+            callback = {
+                val cause = WebSocketException("$it")
+                _closeReason.completeExceptionally(cause)
+                _incoming.close(cause)
                 _outgoing.cancel()
             }
-        })
+        )
+
+        websocket.addEventListener(
+            "close",
+            callback = { event: dynamic ->
+                launch {
+                    val reason = CloseReason(event.code as Short, event.reason as String)
+                    _closeReason.complete(reason)
+                    _incoming.send(Frame.Close(reason))
+                    _incoming.close()
+
+                    _outgoing.cancel()
+                }
+            }
+        )
 
         launch {
             @OptIn(ExperimentalCoroutinesApi::class)
@@ -84,7 +93,8 @@ internal class JsWebSocketSession(
                     FrameType.BINARY -> {
                         val source = it.data as Int8Array
                         val frameData = source.buffer.slice(
-                            source.byteOffset, source.byteOffset + source.byteLength
+                            source.byteOffset,
+                            source.byteOffset + source.byteLength
                         )
 
                         websocket.send(frameData)

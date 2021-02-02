@@ -77,7 +77,10 @@ public class EndpointConfig {
     /**
      * Maximum number of connection attempts.
      */
-    @Deprecated("This is deprecated due to the misleading name. Use connectAttempts instead.", replaceWith = ReplaceWith("connectAttempts"))
+    @Deprecated(
+        "This is deprecated due to the misleading name. Use connectAttempts instead.",
+        replaceWith = ReplaceWith("connectAttempts")
+    )
     public var connectRetryAttempts: Int
         get() = connectAttempts
         set(value) {

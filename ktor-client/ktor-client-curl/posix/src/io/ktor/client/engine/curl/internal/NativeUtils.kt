@@ -16,4 +16,3 @@ internal fun ByteArray.copyToBuffer(buffer: CPointer<ByteVar>, size: ULong, posi
 internal inline fun <T : Any> T.asStablePointer(): COpaquePointer = StableRef.create(this).asCPointer()
 
 internal inline fun <reified T : Any> COpaquePointer.fromCPointer(): T = asStableRef<T>().get()
-

@@ -26,5 +26,6 @@ public class DefaultClientWebSocketSession(
 ) : ClientWebSocketSession, DefaultWebSocketSession by delegate
 
 internal class DelegatingClientWebSocketSession(
-    override val call: HttpClientCall, session: WebSocketSession
+    override val call: HttpClientCall,
+    session: WebSocketSession
 ) : ClientWebSocketSession, WebSocketSession by session

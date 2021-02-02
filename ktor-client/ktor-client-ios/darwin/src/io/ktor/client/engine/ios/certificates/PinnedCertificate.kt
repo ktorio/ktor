@@ -95,8 +95,7 @@ public data class PinnedCertificate(
                     )
                 }
                 else -> throw IllegalArgumentException(
-                    "Pins must start with '${HASH_ALGORITHM_SHA_256}' or " +
-                        "'${HASH_ALGORITHM_SHA_1}': $pin"
+                    "Pins must start with '$HASH_ALGORITHM_SHA_256' or '$HASH_ALGORITHM_SHA_1': $pin"
                 )
             }
         }

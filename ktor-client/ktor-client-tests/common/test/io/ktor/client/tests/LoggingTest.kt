@@ -372,7 +372,10 @@ class LoggingTest : ClientLoader() {
             "-> Expires: -1",
             "-> P3P: CP=\"This is not a P3P policy! See g.co/p3phelp for more info.\"",
             "-> Server: gws",
-            "!!!-> Set-Cookie: 1P_JAR=2020-03-23-07; expires=Wed, 22-Apr-2020 07:36:35 GMT; path=/; domain=.google.com; Secure; NID=200=iPPuoTmF9xZOGdMHGAYjAwwyxiYdIG_OQ4xtq4Xtm8vAnz5zsyM_ciT4sySPdEVNEAg1fIn2rhh7roSbzG4Dv9RoQEqJmovWTmFWK72fYd8EMozgZ_93BetHhJgzAfW9r8wduUg-xCDnonFSMST6KjpxkBQSRQ88cdmnX5f9nO4; expires=Tue, 22-Sep-2020 07:36:35 GMT; path=/; domain=.google.com; HttpOnly",
+            "!!!-> Set-Cookie: 1P_JAR=2020-03-23-07; expires=Wed, 22-Apr-2020 07:36:35 GMT; path=/; " +
+                "domain=.google.com; Secure; NID=200=iPPuoTmF9xZOGdMHGAYjAwwyxiYdIG_OQ4xtq4Xtm8vAnz5zsyM_ciT4sySPdEVN" +
+                "EAg1fIn2rhh7roSbzG4Dv9RoQEqJmovWTmFWK72fYd8EMozgZ_93BetHhJgzAfW9r8wduUg-xCDnonFSMST6KjpxkBQSRQ88cdmn" +
+                "X5f9nO4; expires=Tue, 22-Sep-2020 07:36:35 GMT; path=/; domain=.google.com; HttpOnly",
             "???-> Transfer-Encoding: chunked",
             "???-> Vary: Accept-Encoding",
             "-> X-Frame-Options: SAMEORIGIN",
@@ -515,9 +518,11 @@ class LoggingTest : ClientLoader() {
 
         test { client ->
             val response = client.post<HttpResponse>("$TEST_SERVER/content/echo") {
-                body = MultiPartFormDataContent(formData {
-                    append("file", "123")
-                })
+                body = MultiPartFormDataContent(
+                    formData {
+                        append("file", "123")
+                    }
+                )
             }
 
             assertNotNull(response.receive<String>())
@@ -536,7 +541,9 @@ class LoggingTest : ClientLoader() {
     private fun TestClientBuilder<*>.checkLog(
         testLogger: TestLogger,
         requestMethod: HttpMethod,
-        path: String, body: String?, logLevel: LogLevel
+        path: String,
+        body: String?,
+        logLevel: LogLevel
     ) {
         config {
             install(Logging) {
@@ -621,4 +628,3 @@ class LoggingTest : ClientLoader() {
         }
     }
 }
-

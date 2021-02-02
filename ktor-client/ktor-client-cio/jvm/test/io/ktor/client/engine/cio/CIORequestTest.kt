@@ -31,9 +31,11 @@ class CIORequestTest : TestWithKtor() {
         routing {
             get("/") {
                 val longHeader = call.request.headers["LongHeader"]!!
-                call.respond(object : OutgoingContent.NoContent() {
-                    override val headers: Headers = headersOf("LongHeader", longHeader)
-                })
+                call.respond(
+                    object : OutgoingContent.NoContent() {
+                        override val headers: Headers = headersOf("LongHeader", longHeader)
+                    }
+                )
             }
             get("/echo") {
                 call.respond("OK")

@@ -75,8 +75,9 @@ public open class HttpClientCall internal constructor(
     public suspend fun receive(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
-            if (!allowDoubleReceive && !received.compareAndSet(false, true))
+            if (!allowDoubleReceive && !received.compareAndSet(false, true)) {
                 throw DoubleReceiveException(this)
+            }
 
             @Suppress("DEPRECATION")
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
@@ -190,7 +191,8 @@ public class ReceivePipelineException(
 @Suppress("KDocMissingDocumentation")
 public class NoTransformationFoundException(
     response: HttpResponse,
-    from: KClass<*>, to: KClass<*>
+    from: KClass<*>,
+    to: KClass<*>
 ) : UnsupportedOperationException() {
     override val message: String? = """No transformation found: $from -> $to
         |with response from ${response.request.url}:

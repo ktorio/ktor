@@ -147,10 +147,10 @@ public class HttpStatement(
 public fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
 }
 
-
 @Deprecated(
     "Unbound [HttpResponse] is deprecated. Consider using [execute()] instead.",
-    level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("this.execute()")
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("this.execute()")
 )
 @Suppress("KDocMissingDocumentation", "unused")
 public val HttpStatement.response: HttpResponse

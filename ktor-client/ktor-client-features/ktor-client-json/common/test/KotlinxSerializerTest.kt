@@ -81,7 +81,6 @@ class KotlinxSerializerTest : ClientLoader() {
 
             assertTrue(throwed, "Connection exception expected.")
         }
-
     }
 
     @Test

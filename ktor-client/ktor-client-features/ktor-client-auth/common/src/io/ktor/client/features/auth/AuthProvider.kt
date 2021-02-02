@@ -5,8 +5,8 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.request.*
-import io.ktor.http.auth.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 
 /**
  * Authentication provider interface.

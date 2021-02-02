@@ -192,8 +192,10 @@ class LoggingMockedTests {
             "-> Accept: */*",
             "-> Accept-Charset: UTF-8",
             "CONTENT HEADERS",
-            "!!!-> Content-Type: multipart/form-data; boundary=27e7dfaa-451f2057-3dabbd0c2b3cae572a4935af6a57b2d4bb335c34480373360863",
-            "!!! BODY Content-Type: multipart/form-data; boundary=41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5",
+            "!!!-> Content-Type: multipart/form-data; " +
+                "boundary=27e7dfaa-451f2057-3dabbd0c2b3cae572a4935af6a57b2d4bb335c34480373360863",
+            "!!! BODY Content-Type: multipart/form-data; " +
+                "boundary=41a55fb5-2ae7bc4b-5b124e524086ca1e-6879a99a75b8a0a028a6a7d7-63d38251-5",
             "BODY START",
             """!!!
                 
@@ -234,7 +236,8 @@ class LoggingMockedTests {
 
         test { client ->
             val input = buildPacket { writeText("Hello") }
-            client.submitFormWithBinaryData<String>("http://localhost/",
+            client.submitFormWithBinaryData<String>(
+                "http://localhost/",
                 formData {
                     appendInput(
                         "file",

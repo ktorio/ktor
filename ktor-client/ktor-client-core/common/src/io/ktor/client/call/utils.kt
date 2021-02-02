@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 
-
 @Suppress("KDocMissingDocumentation")
 public class UnsupportedContentTypeException(content: OutgoingContent) :
     IllegalStateException("Failed to write body: ${content::class}")
@@ -40,7 +39,8 @@ public suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpClientCall 
     "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(urlString, block)] instead.",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith(
-        "this.request<HttpResponse>(urlString, block)", "io.ktor.client.statement.*"
+        "this.request<HttpResponse>(urlString, block)",
+        "io.ktor.client.statement.*"
     )
 )
 @Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")

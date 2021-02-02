@@ -4,19 +4,21 @@
 
 package io.ktor.client.engine.curl.internal
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.*
 import platform.posix.*
 
 internal fun onHeadersReceived(
     buffer: CPointer<ByteVar>,
-    size: size_t, count: size_t,
+    size: size_t,
+    count: size_t,
     userdata: COpaquePointer
 ): Long = selectPacket(buffer, size, count, userdata) { it.headersBytes }
 
 internal fun onBodyChunkReceived(
     buffer: CPointer<ByteVar>,
-    size: size_t, count: size_t,
+    size: size_t,
+    count: size_t,
     userdata: COpaquePointer
 ): Long = selectPacket(buffer, size, count, userdata) { it.bodyBytes }
 
@@ -35,7 +37,8 @@ internal inline fun selectPacket(
 
 internal fun onBodyChunkRequested(
     buffer: CPointer<ByteVar>,
-    size: size_t, count: size_t,
+    size: size_t,
+    count: size_t,
     dataRef: COpaquePointer
 ): Long {
     val body: ByteReadPacket = dataRef.fromCPointer()

@@ -32,7 +32,9 @@ internal class JavaHttpRequestBodyPublisher(
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
             val subscription = ReadableByteChannelSubscription(
-                coroutineContext, getChannel(), subscriber
+                coroutineContext,
+                getChannel(),
+                subscriber
             )
             synchronized(subscription) { subscriber.onSubscribe(subscription) }
         } catch (cause: Exception) {
@@ -58,8 +60,8 @@ internal class JavaHttpRequestBodyPublisher(
 
             if (n < 1) {
                 val cause = IllegalArgumentException(
-                    "$subscriber violated the Reactive Streams rule 3.9 by requesting "
-                        + "a non-positive number of elements."
+                    "$subscriber violated the Reactive Streams rule 3.9 by requesting " +
+                        "a non-positive number of elements."
                 )
                 signalOnError(cause)
                 return

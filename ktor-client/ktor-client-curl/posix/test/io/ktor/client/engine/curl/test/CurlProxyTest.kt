@@ -25,7 +25,6 @@ class CurlProxyTest {
      */
     private val TEST_SERVER: String = "http://127.0.0.1:8080"
 
-
     /**
      * Proxy server url for tests.
      * Copied from ktor-client-tests

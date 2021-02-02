@@ -34,7 +34,5 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
     }
 }
 
-private fun OutgoingContent.WriteChannelContent.toReadChannel(
-): ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined) {
-    writeTo(channel)
-}.channel
+private fun OutgoingContent.WriteChannelContent.toReadChannel():
+    ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined) { writeTo(channel) }.channel

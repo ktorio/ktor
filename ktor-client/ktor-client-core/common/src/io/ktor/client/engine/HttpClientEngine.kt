@@ -108,7 +108,9 @@ public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
  * Creates a new [HttpClientEngineFactory] based on this one
  * with further configurations from the [nested] block.
  */
-public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> {
+public fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(
+    nested: T.() -> Unit
+): HttpClientEngineFactory<T> {
     val parent = this
 
     return object : HttpClientEngineFactory<T> {

@@ -11,7 +11,6 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.*
 import kotlin.test.*
 
-
 @Serializable
 data class UserData(val id: Int, val name: String)
 

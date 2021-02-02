@@ -12,7 +12,8 @@ import kotlinx.coroutines.*
  */
 @InternalAPI
 public expect fun Dispatchers.clientDispatcher(
-    threadCount: Int, dispatcherName: String = "ktor-client-dispatcher"
+    threadCount: Int,
+    dispatcherName: String = "ktor-client-dispatcher"
 ): CoroutineDispatcher
 
 /**

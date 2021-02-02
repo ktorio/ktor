@@ -25,7 +25,14 @@ class ResponseConsumerTest {
             }
         }
 
-        val requestData = HttpRequestData(URLBuilder().build(), HttpMethod.Get, Headers.Empty, body, Job(), Attributes())
+        val requestData = HttpRequestData(
+            URLBuilder().build(),
+            HttpMethod.Get,
+            Headers.Empty,
+            body,
+            Job(),
+            Attributes()
+        )
         val consumer = ApacheResponseConsumer(parentContext, requestData)
 
         val decoder = object : ContentDecoder {

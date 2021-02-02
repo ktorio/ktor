@@ -57,18 +57,25 @@ public fun main() {
 private fun setupTLSServer(): ApplicationEngine {
     val file = File("build/client-tls-test-server.jks")
     val testKeyStore = generateCertificate(file)
-    val tlsServer = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(testKeyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }, {
-            this.port = DEFAULT_TLS_PORT
-            this.keyStorePath = file
-        })
+    val tlsServer = embeddedServer(
+        Jetty,
+        applicationEngineEnvironment {
+            sslConnector(
+                testKeyStore,
+                "mykey",
+                { "changeit".toCharArray() },
+                { "changeit".toCharArray() },
+                {
+                    this.port = DEFAULT_TLS_PORT
+                    this.keyStorePath = file
+                }
+            )
 
-        module {
-            tlsTests()
+            module {
+                tlsTests()
+            }
         }
-    })
+    )
 
     return tlsServer
 }
-
-

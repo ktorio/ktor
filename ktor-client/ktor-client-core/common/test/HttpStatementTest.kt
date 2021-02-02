@@ -18,4 +18,3 @@ class HttpStatementTest {
         assertEquals("HttpStatement[${builder.url.buildString()}]", statement.toString())
     }
 }
-

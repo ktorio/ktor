@@ -222,7 +222,6 @@ class CookiesTest : ClientLoader() {
             assertEquals(1, cookies.size)
             assertEquals(expected, cookies.first())
         }
-
     }
 
     private suspend fun HttpClient.getId() = cookies(hostname)["id"]!!.value.toInt()

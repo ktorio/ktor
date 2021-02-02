@@ -12,9 +12,11 @@ class MultiPartFormDataContentTest {
 
     @Test
     fun testMultiPartFormDataContentHasCorrectPrefix() = testSuspend {
-        val formData = MultiPartFormDataContent(formData {
-            append("Hello", "World")
-        })
+        val formData = MultiPartFormDataContent(
+            formData {
+                append("Hello", "World")
+            }
+        )
 
         val channel = ByteChannel()
         formData.writeTo(channel)

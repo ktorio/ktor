@@ -86,8 +86,10 @@ public class MockEngine(override val config: MockEngineConfig) : HttpClientEngin
          */
         public operator fun invoke(
             handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData
-        ): MockEngine = MockEngine(MockEngineConfig().apply {
-            requestHandlers.add(handler)
-        })
+        ): MockEngine = MockEngine(
+            MockEngineConfig().apply {
+                requestHandlers.add(handler)
+            }
+        )
     }
 }

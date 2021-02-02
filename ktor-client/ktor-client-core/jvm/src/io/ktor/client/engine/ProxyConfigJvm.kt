@@ -23,7 +23,8 @@ public actual object ProxyBuilder {
     /**
      * Create socks proxy from [host] and [port].
      */
-    public actual fun socks(host: String, port: Int): ProxyConfig = Proxy(Proxy.Type.SOCKS, InetSocketAddress(host, port))
+    public actual fun socks(host: String, port: Int): ProxyConfig =
+        Proxy(Proxy.Type.SOCKS, InetSocketAddress(host, port))
 }
 
 /**

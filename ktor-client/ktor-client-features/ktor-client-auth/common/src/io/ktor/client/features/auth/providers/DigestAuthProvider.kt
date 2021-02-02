@@ -9,9 +9,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
-import kotlinx.atomicfu.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.atomicfu.*
 
 /**
  * Install client [DigestAuthProvider].
@@ -83,20 +83,30 @@ public class DigestAuthProvider(
 
         val start = hex(credential)
         val end = hex(makeDigest("$methodName:${url.fullPath}"))
-        val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
+        val tokenSequence = if (actualQop == null) listOf(start, nonce, end) else listOf(
+            start,
+            nonce,
+            nonceCount,
+            clientNonce,
+            actualQop,
+            end
+        )
         val token = makeDigest(tokenSequence.joinToString(":"))
 
-        val auth = HttpAuthHeader.Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
-            realm?.let { this["realm"] = it }
-            serverOpaque?.let { this["opaque"] = it }
-            this["username"] = username
-            this["nonce"] = nonce
-            this["cnonce"] = clientNonce
-            this["response"] = hex(token)
-            this["uri"] = url.fullPath
-            actualQop?.let { this["qop"] = it }
-            this["nc"] = nonceCount.toString()
-        })
+        val auth = HttpAuthHeader.Parameterized(
+            AuthScheme.Digest,
+            linkedMapOf<String, String>().apply {
+                realm?.let { this["realm"] = it }
+                serverOpaque?.let { this["opaque"] = it }
+                this["username"] = username
+                this["nonce"] = nonce
+                this["cnonce"] = clientNonce
+                this["response"] = hex(token)
+                this["uri"] = url.fullPath
+                actualQop?.let { this["qop"] = it }
+                this["nc"] = nonceCount.toString()
+            }
+        )
 
         request.headers {
             append(HttpHeaders.Authorization, auth.render())
