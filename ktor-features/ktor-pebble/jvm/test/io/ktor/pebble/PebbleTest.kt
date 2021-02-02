@@ -74,7 +74,6 @@ class PebbleTest {
         }
     }
 
-
     @Test
     fun `Render empty model`() {
         withTestApplication {
@@ -130,7 +129,6 @@ class PebbleTest {
             application.install(ConditionalHeaders)
 
             application.routing {
-
                 get("/") {
                     call.respond(PebbleContent(TemplateWithPlaceholder, DefaultModel))
                 }

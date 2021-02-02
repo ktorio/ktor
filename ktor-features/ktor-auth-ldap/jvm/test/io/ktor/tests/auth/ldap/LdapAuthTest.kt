@@ -25,16 +25,14 @@ import javax.naming.ldap.*
 import kotlin.test.*
 
 @RunWith(FrameworkRunner::class)
-@CreateLdapServer(
-        transports = arrayOf(
-                CreateTransport(protocol = "LDAP")
-        ))
+@CreateLdapServer(transports = arrayOf(CreateTransport(protocol = "LDAP")))
 @Ignore("LdapAuthTest is ignored because it is very slow. Run it explicitly when you need.")
 class LdapAuthTest {
     @BeforeTest
     fun setUp() {
         // notice: it is just a test: never keep user password but message digest or hash with salt
-        apply(ldapServer.directoryService,
+        apply(
+            ldapServer.directoryService,
             getUserAddLdif("uid=user-test,ou=users,ou=system", "test".toByteArray(), "Test user", "test")
         )
     }
@@ -72,22 +70,42 @@ class LdapAuthTest {
                 }
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("admin", result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
@@ -116,7 +134,8 @@ class LdapAuthTest {
                             }
 
                             users.search("", "(uid=user-test)", controls).asSequence().firstOrNull {
-                                val ldapPassword = (it.attributes.get("userPassword")?.get() as ByteArray?)?.toString(Charsets.ISO_8859_1)
+                                val ldapPassword = (it.attributes.get("userPassword")?.get() as ByteArray?)
+                                    ?.toString(Charsets.ISO_8859_1)
                                 ldapPassword == credential.password
                             }?.let { UserIdPrincipal(credential.name) }
                         }
@@ -132,20 +151,40 @@ class LdapAuthTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("user-test", result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())) }).let { result ->
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    "Basic " + Base64.getEncoder().encodeToString(" \",; \u0419:pass".toByteArray())
+                )
+            }.let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
@@ -162,7 +201,12 @@ class LdapAuthTest {
         env.put("java.naming.security.credentials", "secret")
         env.put("java.naming.security.authentication", "simple")
 
-        val ctx = (InitialLdapContext(env, JndiUtils.toJndiControls(ldapServer.directoryService.ldapCodecService)).lookup("ou=system") as LdapContext).lookup("ou=users") as LdapContext
+        val ctx = (
+            InitialLdapContext(
+                env,
+                JndiUtils.toJndiControls(ldapServer.directoryService.ldapCodecService)
+            ).lookup("ou=system") as LdapContext
+            ).lookup("ou=users") as LdapContext
 
         val controls = SearchControls()
         controls.searchScope = SearchControls.ONELEVEL_SCOPE

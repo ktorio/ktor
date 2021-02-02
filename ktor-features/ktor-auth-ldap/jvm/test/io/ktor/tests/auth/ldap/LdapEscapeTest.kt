@@ -18,8 +18,10 @@ class LdapEscapeTest {
         assertEquals("\\ space\\ in\\ the\\ beginning", ldapEscape(" space in the beginning"))
         assertEquals("space\\ in\\ the\\ end\\ ", ldapEscape("space in the end "))
 
-        assertEquals("slash\\\\quote\\\"hash\\#plus\\+comma\\,semi\\;less\\<eq\\=gt\\>",
-            ldapEscape("slash\\quote\"hash#plus+comma,semi;less<eq=gt>"))
+        assertEquals(
+            "slash\\\\quote\\\"hash\\#plus\\+comma\\,semi\\;less\\<eq\\=gt\\>",
+            ldapEscape("slash\\quote\"hash#plus+comma,semi;less<eq=gt>")
+        )
 
         assertEquals("null\\00", ldapEscape("null\u0000"))
     }

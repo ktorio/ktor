@@ -54,7 +54,8 @@ class AuthorizeHeaderParserTest {
     @Test fun testGarbage() {
         Random().let { rnd ->
             repeat(10000) {
-                val random = rnd.nextString(3 + rnd.nextInt(7)) + " " + rnd.nextString(10, ('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf(',', ' ', '/'))
+                val random = rnd.nextString(3 + rnd.nextInt(7)) + " " +
+                    rnd.nextString(10, ('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf(',', ' ', '/'))
                 parseAuthorizationHeader(random)
             }
         }
@@ -84,13 +85,16 @@ class AuthorizeHeaderParserTest {
         }
     }
 
-    private fun Random.nextString(length: Int, possible: Iterable<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')) = possible.toList().let { possibleElements ->
+    private fun Random.nextString(
+        length: Int,
+        possible: Iterable<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    ) = possible.toList().let { possibleElements ->
         (0..length - 1).map { nextFrom(possibleElements) }.joinToString("")
     }
 
     private fun Random.nextString(length: Int, possible: String) = nextString(length, possible.toList())
 
     private fun <T> Random.nextFrom(possibleElements: List<T>): T =
-            if (possibleElements.isEmpty()) throw NoSuchElementException()
-            else possibleElements[nextInt(possibleElements.size)]
+        if (possibleElements.isEmpty()) throw NoSuchElementException()
+        else possibleElements[nextInt(possibleElements.size)]
 }

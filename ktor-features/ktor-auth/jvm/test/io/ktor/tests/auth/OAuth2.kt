@@ -92,68 +92,75 @@ class OAuth2Test {
         }
     )
 
-    private val testClient = createOAuth2Server(object : OAuth2Server {
-        override fun requestToken(
-            clientId: String,
-            clientSecret: String,
-            grantType: String,
-            state: String?,
-            code: String?,
-            redirectUri: String?,
-            userName: String?,
-            password: String?
-        ): OAuthAccessTokenResponse.OAuth2 {
-            if (clientId != "clientId1") {
-                throw OAuth2Exception.InvalidGrant("Wrong clientId $clientId")
-            }
-            if (clientSecret != "clientSecret1") {
-                throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
-            }
-            if (grantType == OAuthGrantTypes.AuthorizationCode) {
-                if (state != "state1" && state != null) {
-                    throw OAuth2Exception.InvalidGrant("Wrong state $state")
+    private val testClient = createOAuth2Server(
+        object : OAuth2Server {
+            override fun requestToken(
+                clientId: String,
+                clientSecret: String,
+                grantType: String,
+                state: String?,
+                code: String?,
+                redirectUri: String?,
+                userName: String?,
+                password: String?
+            ): OAuthAccessTokenResponse.OAuth2 {
+                if (clientId != "clientId1") {
+                    throw OAuth2Exception.InvalidGrant("Wrong clientId $clientId")
                 }
-                if (code != "code1" && code != "code2") {
-                    throw OAuth2Exception.InvalidGrant("Wrong code $code")
+                if (clientSecret != "clientSecret1") {
+                    throw OAuth2Exception.InvalidGrant("Wrong client secret $clientSecret")
                 }
-                if ((code == "code1" && state == null) || (code == "code2" && state != null)) {
-                    throw OAuth2Exception.InvalidGrant("Wrong code $code or state $state")
-                }
-                if (redirectUri != "http://localhost/login") {
-                    throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
-                }
-                if (userName != null || password != null) {
-                    throw OAuth2Exception.UnknownException(
-                        "User/password shouldn't be specified for authorization_code grant type.", "none"
-                    )
-                }
-
-                return OAuthAccessTokenResponse.OAuth2(
-                    "accessToken1", "type", Long.MAX_VALUE, null,
-                    when (state) {
-                        null -> parametersOf("noState", "Had no state")
-                        else -> Parameters.Empty
+                if (grantType == OAuthGrantTypes.AuthorizationCode) {
+                    if (state != "state1" && state != null) {
+                        throw OAuth2Exception.InvalidGrant("Wrong state $state")
                     }
-                )
-            } else if (grantType == OAuthGrantTypes.Password) {
-                if (userName != "user1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong username $userName")
-                }
-                if (password != "password1") {
-                    throw OAuth2Exception.InvalidGrant("Wrong password $password")
-                }
-                if (state != null || code != null) {
-                    throw OAuth2Exception.UnknownException(
-                        "State/code shouldn't be specified for password grant type.", "none"
-                    )
-                }
+                    if (code != "code1" && code != "code2") {
+                        throw OAuth2Exception.InvalidGrant("Wrong code $code")
+                    }
+                    if ((code == "code1" && state == null) || (code == "code2" && state != null)) {
+                        throw OAuth2Exception.InvalidGrant("Wrong code $code or state $state")
+                    }
+                    if (redirectUri != "http://localhost/login") {
+                        throw OAuth2Exception.InvalidGrant("Wrong redirect $redirectUri")
+                    }
+                    if (userName != null || password != null) {
+                        throw OAuth2Exception.UnknownException(
+                            "User/password shouldn't be specified for authorization_code grant type.",
+                            "none"
+                        )
+                    }
 
-                return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-            } else {
-                throw OAuth2Exception.UnsupportedGrantType(grantType)
+                    return OAuthAccessTokenResponse.OAuth2(
+                        "accessToken1",
+                        "type",
+                        Long.MAX_VALUE,
+                        null,
+                        when (state) {
+                            null -> parametersOf("noState", "Had no state")
+                            else -> Parameters.Empty
+                        }
+                    )
+                } else if (grantType == OAuthGrantTypes.Password) {
+                    if (userName != "user1") {
+                        throw OAuth2Exception.InvalidGrant("Wrong username $userName")
+                    }
+                    if (password != "password1") {
+                        throw OAuth2Exception.InvalidGrant("Wrong password $password")
+                    }
+                    if (state != null || code != null) {
+                        throw OAuth2Exception.UnknownException(
+                            "State/code shouldn't be specified for password grant type.",
+                            "none"
+                        )
+                    }
+
+                    return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
+                } else {
+                    throw OAuth2Exception.UnsupportedGrantType(grantType)
+                }
             }
         }
-    })
+    )
 
     val failures = ArrayList<Throwable>()
     fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
@@ -359,7 +366,8 @@ class OAuth2Test {
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -392,7 +400,8 @@ class OAuth2Test {
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code2",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -435,16 +444,22 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     @Suppress("DEPRECATION")
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["badContentType"] = "true"
-                    }) { token ->
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["badContentType"] = "true" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -465,16 +480,22 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     @Suppress("DEPRECATION")
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["respondHttpStatus"] = "500"
-                    }) { token ->
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["respondHttpStatus"] = "500" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -493,16 +514,22 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     @Suppress("DEPRECATION")
-                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
-                        url.parameters["respondHttpStatus"] = "404"
-                    }) { token ->
+                    oauthHandleCallback(
+                        testClient,
+                        dispatcher,
+                        DefaultSettings,
+                        "http://localhost/login",
+                        "/",
+                        { url.parameters["respondHttpStatus"] = "404" }
+                    ) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
             }
 
             val result = handleRequest(
-                HttpMethod.Get, "/login?" + listOf(
+                HttpMethod.Get,
+                "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
                 ).formUrlEncode()
@@ -527,7 +554,6 @@ class OAuth2Test {
             assertFailures()
             assertEquals("ok", result.response.content)
         }
-
     }
 
     @Test
@@ -581,8 +607,11 @@ class OAuth2Test {
             routing {
                 get("/login") {
                     oauthHandleCallback(
-                        testClient, dispatcher, DefaultSettingsWithAccessTokenInterceptor(post = false),
-                        "http://localhost/login", "/login"
+                        testClient,
+                        dispatcher,
+                        DefaultSettingsWithAccessTokenInterceptor(post = false),
+                        "http://localhost/login",
+                        "/login"
                     ) { token ->
                         token as OAuthAccessTokenResponse.OAuth2
                         call.respondText(token.extraParameters["noState"] ?: "Had state")
@@ -592,7 +621,8 @@ class OAuth2Test {
         }
 
         val result = handleRequest(
-            HttpMethod.Get, "/login?" + listOf(
+            HttpMethod.Get,
+            "/login?" + listOf(
                 OAuth2RequestParameters.Code to "code2",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
@@ -607,8 +637,11 @@ class OAuth2Test {
             routing {
                 get("/login") {
                     oauthHandleCallback(
-                        testClient, dispatcher, DefaultSettingsWithAccessTokenInterceptor(post = true),
-                        "http://localhost/login", "/login"
+                        testClient,
+                        dispatcher,
+                        DefaultSettingsWithAccessTokenInterceptor(post = true),
+                        "http://localhost/login",
+                        "/login"
                     ) { token ->
                         token as OAuthAccessTokenResponse.OAuth2
                         call.respondText(token.extraParameters["noState"] ?: "Had state")
@@ -618,7 +651,8 @@ class OAuth2Test {
         }
 
         val result = handleRequest(
-            HttpMethod.Get, "/login?" + listOf(
+            HttpMethod.Get,
+            "/login?" + listOf(
                 OAuth2RequestParameters.Code to "code2",
                 OAuth2RequestParameters.State to "state1"
             ).formUrlEncode()
@@ -654,7 +688,9 @@ private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: Stri
 private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
     val header =
-        parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+        parseAuthorizationHeader(
+            response.response.headers[HttpHeaders.WWWAuthenticate]!!
+        ) as HttpAuthHeader.Parameterized
 
     assertEquals(AuthScheme.Basic, header.authScheme)
     assertEquals("oauth2", header.parameter(HttpAuthHeader.Parameters.Realm))

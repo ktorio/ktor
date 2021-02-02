@@ -172,5 +172,4 @@ class ThymeleafTest {
             <h1 th:text="$bax{title}"></h1>
         """.trimIndent()
     }
-
 }

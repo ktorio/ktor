@@ -24,7 +24,8 @@ public suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStat
  * Represents an [OutgoingContent] using `kotlinx.html` builder.
  */
 public class HtmlContent(
-    override val status: HttpStatusCode? = null, private val builder: HTML.() -> Unit
+    override val status: HttpStatusCode? = null,
+    private val builder: HTML.() -> Unit
 ) : OutgoingContent.WriteChannelContent() {
 
     override val contentType: ContentType

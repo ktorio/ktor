@@ -42,7 +42,10 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
 
     @OptIn(ExperimentalWebSocketExtensionApi::class)
     public constructor(
-        pingIntervalMillis: Long, timeoutMillis: Long, maxFrameSize: Long, masking: Boolean
+        pingIntervalMillis: Long,
+        timeoutMillis: Long,
+        maxFrameSize: Long,
+        masking: Boolean
     ) : this(pingIntervalMillis, timeoutMillis, maxFrameSize, masking, WebSocketExtensionsConfig())
 
     override val coroutineContext: CoroutineContext
@@ -134,7 +137,11 @@ public class WebSockets @ExperimentalWebSocketExtensionApi constructor(
             with(config) {
                 @OptIn(ExperimentalWebSocketExtensionApi::class)
                 val webSockets = WebSockets(
-                    pingPeriodMillis, timeoutMillis, maxFrameSize, masking, extensionsConfig
+                    pingPeriodMillis,
+                    timeoutMillis,
+                    maxFrameSize,
+                    masking,
+                    extensionsConfig
                 )
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {

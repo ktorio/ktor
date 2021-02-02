@@ -56,7 +56,7 @@ public class MicrometerMetrics private constructor(
         registry: MeterRegistry,
         timerDistributionConfig: DistributionStatisticConfig,
         timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
-    ): this(registry, timerDistributionConfig, true, timerBuilder)
+    ) : this(registry, timerDistributionConfig, true, timerBuilder)
 
     private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
 
@@ -65,13 +65,12 @@ public class MicrometerMetrics private constructor(
     }
 
     private fun enableTimerDistributionConfig(timerDistributionConfig: DistributionStatisticConfig) {
-        registry.config().meterFilter(object : MeterFilter {
-            override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                if (id.name == requestTimerName)
-                    timerDistributionConfig.merge(config)
-                else
-                    config
-        })
+        registry.config().meterFilter(
+            object : MeterFilter {
+                override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
+                    if (id.name == requestTimerName) timerDistributionConfig.merge(config) else config
+            }
+        )
     }
 
     /**
@@ -155,7 +154,6 @@ public class MicrometerMetrics private constructor(
         active?.decrementAndGet()
 
         call.attributes.getOrNull(measureKey)?.recordDuration(call)
-
     }
 
     private fun throwable(call: ApplicationCall, t: Throwable) {
@@ -232,15 +230,10 @@ public class MicrometerMetrics private constructor(
             return feature
         }
     }
-
-
 }
-
 
 private data class CallMeasure(
     val timer: Timer.Sample,
     var route: String? = null,
     var throwable: Throwable? = null
 )
-
-

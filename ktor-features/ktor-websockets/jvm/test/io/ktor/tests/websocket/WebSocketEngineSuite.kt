@@ -658,7 +658,10 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                     Origin: http://localhost:$port
                     Sec-WebSocket-Protocol: chat
                     Sec-WebSocket-Version: 13
-                    """.trimIndent().replace("\n", "\r\n").toByteArray()
+                """.trimIndent().replace(
+                    "\n",
+                    "\r\n"
+                ).toByteArray()
             )
             write("\r\n\r\n".toByteArray())
             flush()

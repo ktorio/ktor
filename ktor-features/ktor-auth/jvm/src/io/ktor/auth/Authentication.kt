@@ -6,9 +6,9 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.response.*
-import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import org.slf4j.*
 
 /**
@@ -54,8 +54,9 @@ public class Authentication(config: Configuration) {
         }
 
         private fun requireProviderNotRegistered(providerName: String?) {
-            if (providers.any { it.name == providerName })
+            if (providers.any { it.name == providerName }) {
                 throw IllegalArgumentException("Provider with the name $providerName is already registered")
+            }
         }
 
         internal fun copy(): Configuration = Configuration(providers)
@@ -96,10 +97,11 @@ public class Authentication(config: Configuration) {
         val configurations = configurationNames.map { configurationName ->
             config.providers.firstOrNull { it.name == configurationName }
                 ?: throw IllegalArgumentException(
-                    if (configurationName == null)
+                    if (configurationName == null) {
                         "Default authentication configuration was not found"
-                    else
+                    } else {
                         "Authentication configuration with the name $configurationName was not found"
+                    }
                 )
         }
 
@@ -187,16 +189,18 @@ public class Authentication(config: Configuration) {
         for (challenge in challenges) {
             challengePipeline.intercept(ChallengePhase) {
                 challenge(it)
-                if (it.completed)
+                if (it.completed) {
                     finish() // finish challenge pipeline if it has been completed
+                }
             }
         }
 
         for (challenge in context.challenge.errorChallenges) {
             challengePipeline.intercept(ChallengePhase) {
                 challenge(it)
-                if (it.completed)
+                if (it.completed) {
                     finish() // finish challenge pipeline if it has been completed
+                }
             }
         }
 
@@ -212,8 +216,9 @@ public class Authentication(config: Configuration) {
         }
 
         val challenge = challengePipeline.execute(call, context.challenge)
-        if (challenge.completed)
+        if (challenge.completed) {
             finish() // finish authentication pipeline if challenge has been completed
+        }
     }
 
     private suspend fun PipelineContext<Unit, ApplicationCall>.processAuthentication(
@@ -320,7 +325,8 @@ public fun Route.authenticate(
  * unless you are writing an extension
  * @param names of authentication providers to be applied to this route
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+public class AuthenticationRouteSelector(public val names: List<String?>) :
+    RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
     }
