@@ -72,6 +72,11 @@ kotlin {
                 fromPreset(presets.watchosX86, 'watchosX86')
 
                 project.ext.nativeTargets += [iosX64, iosArm64, iosArm32, tvosArm64, tvosX64, watchosArm32, watchosArm64, watchosX86]
+
+                fromPreset(presets.linuxArm32Hfp, 'linuxArm32Hfp')
+                fromPreset(presets.linuxArm64, 'linuxArm64')
+
+                project.ext.nativeTargets += [linuxArm32Hfp, linuxArm64]
             }
 
             def crossCompileTargets = [linuxX64, macosX64]
@@ -129,22 +134,3 @@ kotlin {
 }
 
 project.ext.set("hasNative", true)
-
-
-// hack for 1.4-M2, remove after
-// see https://youtrack.jetbrains.com/issue/KT-39302
-afterEvaluate {
-    def metadataTarget = kotlin.targets.getByName("metadata")
-
-    def currentHostKonanTarget = hostManager.Companion.getHost()
-
-    if (metadataTarget != null) {
-        metadataTarget.compilations.forEach {
-            if (it.class.name == "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinSharedNativeCompilation"
-                && it.konanTargets.any { it == currentHostKonanTarget }
-            ) {
-                it.kotlinOptions.freeCompilerArgs += ["-target", currentHostKonanTarget.name]
-            }
-        }
-    }
-}
