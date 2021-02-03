@@ -14,14 +14,20 @@ private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 @Suppress("FunctionName")
-public actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
+public actual fun GMTDate(timestamp: Long?): GMTDate =
+    Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components
  */
 @Suppress("FunctionName")
 public actual fun GMTDate(
-    seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
+    seconds: Int,
+    minutes: Int,
+    hours: Int,
+    dayOfMonth: Int,
+    month: Month,
+    year: Int
 ): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {
     set(Calendar.YEAR, year)
     set(Calendar.MONTH, month.ordinal)

@@ -27,8 +27,10 @@ class HexFunctionsTest {
 
     @Test
     fun testHexDigits() {
-        test(byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f),
-            "000102030405060708090a0b0c0d0e0f")
+        test(
+            byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f),
+            "000102030405060708090a0b0c0d0e0f"
+        )
     }
 
     @Test

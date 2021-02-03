@@ -20,7 +20,8 @@ public fun decodeBase64(encodedString: String): ByteArray = encodedString.decode
  */
 @InternalAPI
 @Deprecated(
-    "Use encodeBase64 extension instead", ReplaceWith("bytes.encodeBase64()"),
+    "Use encodeBase64 extension instead",
+    ReplaceWith("bytes.encodeBase64()"),
     level = DeprecationLevel.ERROR
 )
 public fun encodeBase64(bytes: ByteArray): String = bytes.encodeBase64()

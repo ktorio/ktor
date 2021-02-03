@@ -400,7 +400,6 @@ public inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>
     phase: PipelinePhase,
     noinline block: suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit
 ) {
-
     intercept(phase) interceptor@{ subject ->
         if (subject !is TSubject) return@interceptor
 
@@ -413,4 +412,5 @@ public inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>
 /**
  * Represents an interceptor type which is a suspend extension function for context
  */
-public typealias PipelineInterceptor<TSubject, TContext> = suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit
+public typealias PipelineInterceptor<TSubject, TContext> =
+    suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit

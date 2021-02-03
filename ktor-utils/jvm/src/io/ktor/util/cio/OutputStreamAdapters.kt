@@ -24,11 +24,10 @@ public suspend fun ByteWriteChannel.write(string: String, charset: Charset = Cha
  * Open a buffered writer to the channel
  */
 public fun ByteWriteChannel.bufferedWriter(charset: Charset = Charsets.UTF_8): BufferedWriter =
-        toOutputStream().bufferedWriter(charset)
+    toOutputStream().bufferedWriter(charset)
 
 /**
  * Open a writer to the channel
  */
 public fun ByteWriteChannel.writer(charset: Charset = Charsets.UTF_8): Writer =
-        toOutputStream().writer(charset)
-
+    toOutputStream().writer(charset)

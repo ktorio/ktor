@@ -4,7 +4,6 @@
 
 package io.ktor.util
 
-
 /**
  * Represents a nonce manager. It's responsibility is to produce nonce values
  * and verify nonce values from untrusted sources that they are provided by this manager.
@@ -25,7 +24,6 @@ public interface NonceManager {
      */
     public suspend fun verifyNonce(nonce: String): Boolean
 }
-
 
 /**
  * This implementation does only generate nonce values but doesn't validate them. This is recommended for testing only.

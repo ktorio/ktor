@@ -4,8 +4,8 @@
 
 package io.ktor.util
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 
 /**
  * Empty [Encoder] that doesn't do any changes.

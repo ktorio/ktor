@@ -107,4 +107,3 @@ internal fun ByteArray.clearFrom(from: Int) {
 
 internal fun Int.toBase64(): Char = BASE64_ALPHABET[this]
 internal fun Byte.fromBase64(): Byte = BASE64_INVERSE_ALPHABET[toInt() and 0xff].toByte() and BASE64_MASK
-

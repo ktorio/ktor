@@ -24,7 +24,7 @@ public fun Path.combineSafe(relativePath: Path): File {
     if (normalized.startsWith("..")) {
         throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
     }
-    check(!normalized.isAbsolute) { "Bad relative path $relativePath"}
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return resolve(normalized).toFile()
 }
@@ -55,4 +55,3 @@ public fun File.combineSafe(relativePath: Path): File {
 
     return File(this, normalized.toString())
 }
-

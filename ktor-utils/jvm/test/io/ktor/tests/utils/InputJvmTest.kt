@@ -56,5 +56,4 @@ class InputJvmTest {
         val read = stream.read(byteArrayOf(), 0, 5)
         assertEquals(-1, read)
     }
-
 }
