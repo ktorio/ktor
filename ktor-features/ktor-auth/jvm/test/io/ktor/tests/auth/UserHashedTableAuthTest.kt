@@ -30,7 +30,8 @@ class UserHashedTableAuthTest {
             UserHashedTableAuth(
                 table = mapOf(
                     "test" to digestFunction("test")
-                ), digester = digestFunction
+                ),
+                digester = digestFunction
             )
         )
     }

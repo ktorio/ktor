@@ -8,7 +8,6 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 
-
 /**
  * Respond with the specified [template] passing [model]
  *

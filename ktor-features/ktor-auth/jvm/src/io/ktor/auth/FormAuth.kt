@@ -135,7 +135,8 @@ public fun Authentication.Configuration.form(
 /**
  * Specifies what to send back if form authentication fails.
  */
-public typealias FormAuthChallengeFunction = suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
+public typealias FormAuthChallengeFunction =
+    suspend PipelineContext<*, ApplicationCall>.(UserPasswordCredential?) -> Unit
 
 /**
  * Specifies what to send back if form authentication fails.

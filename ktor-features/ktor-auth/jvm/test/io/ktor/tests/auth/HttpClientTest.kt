@@ -58,7 +58,9 @@ class HttpClientTest {
                     Server: test
                     Date: ${LocalDateTime.now().toHttpDateString()}
                     Connection: close
-                    """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\nok")
+                            """.trimIndent()
+                                .lines()
+                                .joinToString("\r\n", postfix = "\r\n\r\nok")
                         )
                         flush()
                     }

@@ -32,13 +32,16 @@ class HtmlBuilderTest {
         handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
             assertNotNull(response.content)
             val lines = response.content!!
-            assertEquals("""<!DOCTYPE html>
+            assertEquals(
+                """<!DOCTYPE html>
 <html>
   <body>
     <h1>Hello, John</h1>
   </body>
 </html>
-""", lines)
+""",
+                lines
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -56,7 +59,6 @@ class HtmlBuilderTest {
                     }
                 }
             }
-
         }
 
         application.routing {
@@ -69,13 +71,16 @@ class HtmlBuilderTest {
             assertNotNull(response.content)
             assertEquals(HttpStatusCode.NotImplemented, response.status())
             val lines = response.content!!
-            assertEquals("""<!DOCTYPE html>
+            assertEquals(
+                """<!DOCTYPE html>
 <html>
   <body>
     <h1>This feature is not implemented yet</h1>
   </body>
 </html>
-""", lines)
+""",
+                lines
+            )
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }

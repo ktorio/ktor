@@ -77,9 +77,9 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val fullPath = context.call.request.path()
-        if (fullPath.startsWith(webjarsPrefix)
-            && context.call.request.httpMethod == HttpMethod.Get
-            && fullPath.last() != '/'
+        if (fullPath.startsWith(webjarsPrefix) &&
+            context.call.request.httpMethod == HttpMethod.Get &&
+            fullPath.last() != '/'
         ) {
             val resourcePath = fullPath.removePrefix(webjarsPrefix)
             try {
@@ -116,9 +116,7 @@ public class Webjars internal constructor(private val webjarsPrefix: String) {
             }
             return feature
         }
-
     }
-
 }
 
 private class InputStreamContent(

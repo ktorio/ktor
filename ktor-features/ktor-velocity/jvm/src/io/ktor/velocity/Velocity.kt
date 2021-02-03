@@ -78,8 +78,9 @@ public class Velocity(private val engine: VelocityEngine) {
         }
 
         init {
-            if (etag != null)
+            if (etag != null) {
                 versions += EntityTagVersion(etag)
+            }
         }
     }
 }

@@ -73,7 +73,6 @@ class MustacheTest {
         }
     }
 
-
     @Test
     fun `Render empty model`() {
         withTestApplication {
@@ -129,7 +128,6 @@ class MustacheTest {
             application.install(ConditionalHeaders)
 
             application.routing {
-
                 get("/") {
                     call.respond(MustacheContent(TemplateWithPlaceholder, DefaultModel))
                 }

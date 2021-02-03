@@ -4,9 +4,9 @@
 
 package io.ktor.auth
 
-import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.*
 
 /**
  * Response content with `401 Unauthorized` status code and `WWW-Authenticate` header of supplied [challenges]
@@ -17,8 +17,9 @@ public class UnauthorizedResponse(public vararg val challenges: HttpAuthHeader) 
         get() = HttpStatusCode.Unauthorized
 
     override val headers: Headers
-        get() = if (challenges.isNotEmpty())
+        get() = if (challenges.isNotEmpty()) {
             headersOf(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
-        else
+        } else {
             Headers.Empty
+        }
 }

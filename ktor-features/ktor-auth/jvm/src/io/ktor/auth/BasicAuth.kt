@@ -131,4 +131,3 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
 }
 
 private val basicAuthenticationChallengeKey: Any = "BasicAuth"
-

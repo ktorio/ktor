@@ -62,7 +62,9 @@ public class DropwizardMetrics(
                 "jvm.files" to ::FileDescriptorRatioGauge,
                 "jvm.attributes" to ::JvmAttributeGaugeSet
             )
-                .filter { (name, _) -> !configuration.registry.names.any { existingName -> existingName.startsWith(name) } }
+                .filter { (name, _) ->
+                    !configuration.registry.names.any { existingName -> existingName.startsWith(name) }
+                }
                 .forEach { (name, metric) -> configuration.registry.register(name, metric()) }
 
             val phase = PipelinePhase("DropwizardMetrics")
@@ -102,7 +104,6 @@ public class DropwizardMetrics(
             return feature
         }
     }
-
 
     private data class CallMeasure(val timer: Timer.Context)
 

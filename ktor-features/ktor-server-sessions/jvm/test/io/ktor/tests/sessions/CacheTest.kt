@@ -79,7 +79,8 @@ class CacheTest {
     fun testTimeout1(): Unit = runBlocking {
         val counter = AtomicInteger()
         val timeout = BaseTimeoutCache(
-            1000L, true,
+            1000L,
+            true,
             BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
         )
 
@@ -93,7 +94,8 @@ class CacheTest {
     fun testTimeout2(): Unit = runBlocking {
         val counter = AtomicInteger()
         val timeout = BaseTimeoutCache(
-            10L, true,
+            10L,
+            true,
             BaseCache<Int, String> { counter.incrementAndGet(); it.toString() }
         )
 
@@ -137,7 +139,7 @@ class CacheTest {
         var ref: D? = null
         val weak = WeakReferenceCache<Int, D> { ref = D(it); ref!! }
 
-        var value : D? = weak.getOrCompute(1)
+        var value: D? = weak.getOrCompute(1)
         assertEquals(D(1), value)
         assertNotNull(ref)
         assertEquals(D(1), weak.peek(1))
