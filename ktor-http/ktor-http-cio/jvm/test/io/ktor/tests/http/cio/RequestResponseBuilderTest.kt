@@ -45,6 +45,9 @@ class RequestResponseBuilderTest {
         val packet = builder.build()
         val response = packet.inputStream().reader().readText()
 
-        assertEquals("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nHello, World!\r\n", response)
+        assertEquals(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nHello, World!\r\n",
+            response
+        )
     }
 }

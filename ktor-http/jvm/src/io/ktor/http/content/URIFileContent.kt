@@ -20,8 +20,10 @@ public class URIFileContent(
     override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)
 ) : OutgoingContent.ReadChannelContent() {
     public constructor(url: URL, contentType: ContentType = ContentType.defaultForFilePath(url.path)) : this(
-        url.toURI(), contentType
+        url.toURI(),
+        contentType
     )
 
-    override fun readFrom(): ByteReadChannel = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool) // TODO: use http client
+    // TODO: use http client
+    override fun readFrom(): ByteReadChannel = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool)
 }

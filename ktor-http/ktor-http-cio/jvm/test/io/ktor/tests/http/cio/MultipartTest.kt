@@ -5,9 +5,9 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,7 +48,9 @@ class MultipartTest {
             JFIF second
             --Asrf456BGe4h--
             epilogue
-            """.trimIndent().lines().joinToString("\r\n")
+        """.trimIndent()
+            .lines()
+            .joinToString("\r\n")
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
@@ -117,7 +119,9 @@ class MultipartTest {
             JFIF second
             --Asrf456BGe4h--
             epilogue
-            """.trimIndent().lines().joinToString("\r\n")
+        """.trimIndent()
+            .lines()
+            .joinToString("\r\n")
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
@@ -187,7 +191,9 @@ class MultipartTest {
 
             -----------------------------13173666125065307431959751823--
 
-            """.trimIndent().lines().joinToString("\r\n")
+        """.trimIndent()
+            .lines()
+            .joinToString("\r\n")
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
@@ -242,7 +248,9 @@ class MultipartTest {
             --Asrf456BGe4h--
             epilogue
             0
-            """.trimIndent().lines().joinToString("\r\n", postfix = "\r\n\r\n")
+        """.trimIndent()
+            .lines()
+            .joinToString("\r\n", postfix = "\r\n\r\n")
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
@@ -307,8 +315,10 @@ class MultipartTest {
 
         testBoundary("\r\n--A", "multipart/mixed; a_boundary=\"boundary=z\"; boundary=A")
 
-        testBoundary("\r\n--" + "0".repeat(70),
-                "multipart/mixed; boundary=" + "0".repeat(70))
+        testBoundary(
+            "\r\n--" + "0".repeat(70),
+            "multipart/mixed; boundary=" + "0".repeat(70)
+        )
 
         assertFails {
             parseBoundaryInternal("multipart/mixed; boundary=" + "0".repeat(71))
@@ -388,8 +398,11 @@ class MultipartTest {
 
     private fun testBoundary(expectedBoundary: String, headerValue: String) {
         val boundary = parseBoundaryInternal(headerValue)
-        val actualBoundary = String(boundary.array(),
-                boundary.arrayOffset() + boundary.position(), boundary.remaining())
+        val actualBoundary = String(
+            boundary.array(),
+            boundary.arrayOffset() + boundary.position(),
+            boundary.remaining()
+        )
 
         assertEquals(expectedBoundary, actualBoundary)
     }

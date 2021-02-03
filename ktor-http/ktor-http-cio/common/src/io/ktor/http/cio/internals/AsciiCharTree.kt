@@ -11,7 +11,8 @@ internal class AsciiCharTree<T : Any>(val root: Node<T>) {
 
     public fun search(
         sequence: CharSequence,
-        fromIdx: Int = 0, end: Int = sequence.length,
+        fromIdx: Int = 0,
+        end: Int = sequence.length,
         lowerCase: Boolean = false,
         stopPredicate: (Char, Int) -> Boolean
     ): List<T> {

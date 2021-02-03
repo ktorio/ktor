@@ -131,7 +131,9 @@ public expect sealed class Frame private constructor(
             fin: Boolean,
             frameType: FrameType,
             data: ByteArray,
-            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+            rsv1: Boolean,
+            rsv2: Boolean,
+            rsv3: Boolean
         ): Frame
     }
 }

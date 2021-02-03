@@ -13,7 +13,8 @@ import io.ktor.utils.io.core.*
  * @property headers request/response headers
  */
 public abstract class HttpMessage internal constructor(
-    public val headers: HttpHeadersMap, private val builder: CharArrayBuilder
+    public val headers: HttpHeadersMap,
+    private val builder: CharArrayBuilder
 ) : Closeable {
 
     /**

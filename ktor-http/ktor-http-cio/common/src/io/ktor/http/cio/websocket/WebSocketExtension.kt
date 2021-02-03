@@ -147,4 +147,3 @@ public class WebSocketExtensionsConfig {
         check(!hasConflict) { "Failed to install extension. Please check configured extensions for conflicts." }
     }
 }
-
