@@ -33,13 +33,13 @@ class ReadUntilDelimiterTest {
 
     @Test
     fun discardSmokeTwoDelimiters() {
-        testDiscard(0x10,0x20, src = "00 01 02 10 03", remaining = "10 03")
-        testDiscard(0x20,0x10, src = "00 01 02 10 03", remaining = "10 03")
-        testDiscard(0x10,0x20, src = "00 01 02 20 03", remaining = "20 03")
-        testDiscard(0x20,0x10, src = "00 01 02 20 03", remaining = "20 03")
+        testDiscard(0x10, 0x20, src = "00 01 02 10 03", remaining = "10 03")
+        testDiscard(0x20, 0x10, src = "00 01 02 10 03", remaining = "10 03")
+        testDiscard(0x10, 0x20, src = "00 01 02 20 03", remaining = "20 03")
+        testDiscard(0x20, 0x10, src = "00 01 02 20 03", remaining = "20 03")
 
-        testDiscard(0x10,0x20, src = "10 20", remaining = "10 20")
-        testDiscard(0x10,0x20, src = "20 10", remaining = "20 10")
+        testDiscard(0x10, 0x20, src = "10 20", remaining = "10 20")
+        testDiscard(0x10, 0x20, src = "20 10", remaining = "20 10")
     }
 
     @Test
@@ -173,7 +173,8 @@ class ReadUntilDelimiterTest {
             try {
                 assertEquals(copied, copiedPacket.readBytes(rc.toInt()).hexdump())
                 assertTrue("result packet has more bytes than returned: ${copiedPacket.remaining + rc} > $rc") {
-                    copiedPacket.isEmpty }
+                    copiedPacket.isEmpty
+                }
                 assertEquals(remaining, packet.readBytes().hexdump())
             } finally {
                 copiedPacket.release()
@@ -209,7 +210,14 @@ class ReadUntilDelimiterTest {
         }
     }
 
-    private fun test(delimiter1: Byte, delimiter2: Byte, src: String, copied: String, remaining: String, buffer: ByteArray = small) {
+    private fun test(
+        delimiter1: Byte,
+        delimiter2: Byte,
+        src: String,
+        copied: String,
+        remaining: String,
+        buffer: ByteArray = small
+    ) {
         builder.reset()
         val packet = src.unhex()
         try {
@@ -232,7 +240,8 @@ class ReadUntilDelimiterTest {
             try {
                 assertEquals(copied, copiedPacket.readBytes(rc.toInt()).hexdump())
                 assertTrue("result packet has more bytes than returned: ${copiedPacket.remaining + rc} > $rc") {
-                    copiedPacket.isEmpty }
+                    copiedPacket.isEmpty
+                }
                 assertEquals(remaining, packet.readBytes().hexdump())
             } finally {
                 copiedPacket.release()
@@ -267,7 +276,7 @@ class ReadUntilDelimiterTest {
                 val ch = this[idx]
 
                 if (ch == ' ') {
-                    idx ++
+                    idx++
                 } else {
                     if (idx + 1 >= length) throw IllegalArgumentException("Not enough hex digits found")
                     val first = ch.hexDigit()
@@ -287,11 +296,13 @@ class ReadUntilDelimiterTest {
     private fun isHexDigit(ch: Char) = ch in '0'..'9' || ch in 'a'..'f' || ch in 'A'..'F'
 
     private fun Char.hexDigit() = when (this) {
-        in '0' .. '9' -> this - '0'
-        in 'a' .. 'f' -> this - 'a' + 10
-        in 'A' .. 'F' -> this - 'A' + 10
+        in '0'..'9' -> this - '0'
+        in 'a'..'f' -> this - 'a' + 10
+        in 'A'..'F' -> this - 'A' + 10
         else -> error("Illegal hex digit $this")
     }
 
-    private fun ByteArray.hexdump() = joinToString(separator = " ") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
+    private fun ByteArray.hexdump() = joinToString(separator = " ") {
+        (it.toInt() and 0xff).toString(16).padStart(2, '0')
+    }
 }

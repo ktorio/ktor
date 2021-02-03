@@ -12,7 +12,6 @@ import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 
-
 /**
  * Creates buffered channel for asynchronous reading and writing of sequences of bytes.
  */
@@ -120,7 +119,9 @@ internal class ByteChannelNative(
                 val size = tryReadCPointer(dst, offset, length)
                 afterRead(size)
             }
-            closed -> throw EOFException("Channel is closed and not enough bytes available: required $length but $availableForRead available")
+            closed -> throw EOFException(
+                "Channel is closed and not enough bytes available: required $length but $availableForRead available"
+            )
             else -> readFullySuspend(dst, offset, length)
         }
     }
@@ -137,7 +138,9 @@ internal class ByteChannelNative(
         }
 
         if (rem > 0) {
-            throw EOFException("Channel is closed and not enough bytes available: required $rem but $availableForRead available")
+            throw EOFException(
+                "Channel is closed and not enough bytes available: required $rem but $availableForRead available"
+            )
         }
     }
 
@@ -206,7 +209,7 @@ internal class ByteChannelNative(
 
     override fun toString(): String {
         val hashCode = hashCode().toString(16)
-        return "ByteChannel[0x$hashCode, job: $attachedJob, cause: ${closedCause}]"
+        return "ByteChannel[0x$hashCode, job: $attachedJob, cause: $closedCause]"
     }
 
     private suspend fun writeAvailableSuspend(src: CPointer<ByteVar>, offset: Long, length: Long): Int {

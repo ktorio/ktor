@@ -98,6 +98,3 @@ private tailrec fun Class<*>.fieldsCount(accumulator: Int = 0): Int {
     val superClass = superclass ?: return totalFields
     return superClass.fieldsCount(totalFields)
 }
-
-
-

@@ -186,4 +186,3 @@ public actual interface ByteWriteChannel {
 
     public actual suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int)
 }
-

@@ -7,4 +7,3 @@ public actual interface Closeable {
 @PublishedApi
 internal actual fun Throwable.addSuppressedInternal(other: Throwable) {
 }
-

@@ -1,8 +1,8 @@
 package io.ktor.utils.io
 
-import kotlinx.coroutines.*
-import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.internal.*
+import kotlinx.coroutines.*
 import org.khronos.webgl.*
 
 /**

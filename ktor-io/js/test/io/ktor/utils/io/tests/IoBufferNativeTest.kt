@@ -159,10 +159,10 @@ class IoBufferNativeTest {
             view.setInt8(0, 3)
             1
         }
-        assertEquals(1,  rc)
+        assertEquals(1, rc)
 
         var value: Int
-        rc = buffer.readDirect { view  ->
+        rc = buffer.readDirect { view ->
             assertEquals(2, view.byteLength)
             value = view.getInt8(0).toInt()
             1

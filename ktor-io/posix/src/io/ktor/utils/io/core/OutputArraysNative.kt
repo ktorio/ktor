@@ -23,4 +23,3 @@ public fun Output.writeFully(src: CPointer<ByteVar>, offset: Long, length: Long)
         rem > 0
     }
 }
-

@@ -50,9 +50,9 @@ class ReadBufferTest {
                 assertEquals(size, rc)
 
                 val expected =
-                    byteArrayOf(0x7f) + (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray() + byteArrayOf(
-                        0x7f
-                    )
+                    byteArrayOf(0x7f) + (offset until offset + size).map {
+                        charForIndex(it).toByte()
+                    }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
             }
@@ -74,9 +74,9 @@ class ReadBufferTest {
                 buffer.readFully(dst, 1, size)
 
                 val expected =
-                    byteArrayOf(0x7f) + (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray() + byteArrayOf(
-                        0x7f
-                    )
+                    byteArrayOf(0x7f) + (offset until offset + size).map {
+                        charForIndex(it).toByte()
+                    }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
             }
@@ -150,9 +150,9 @@ class ReadBufferTest {
                 assertEquals(size, rc)
 
                 val expected =
-                    byteArrayOf(0x7f) + (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray() + byteArrayOf(
-                        0x7f
-                    )
+                    byteArrayOf(0x7f) + (offset until offset + size).map {
+                        charForIndex(it).toByte()
+                    }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
             }
@@ -174,9 +174,9 @@ class ReadBufferTest {
                 packet.readFully(dst, 1, size)
 
                 val expected =
-                    byteArrayOf(0x7f) + (offset until offset + size).map { charForIndex(it).toByte() }.toByteArray() + byteArrayOf(
-                        0x7f
-                    )
+                    byteArrayOf(0x7f) + (offset until offset + size).map {
+                        charForIndex(it).toByte()
+                    }.toByteArray() + byteArrayOf(0x7f)
 
                 assertEquals(expected.hexdump(), dst.hexdump())
             }
@@ -235,9 +235,7 @@ class ReadBufferTest {
             offset += size
         }
     }
-
 }
 
 private fun charForIndex(index: Int) = "0123456789abcdef"[index and 0x0f]
 private fun ByteArray.hexdump() = joinToString(separator = " ") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
-

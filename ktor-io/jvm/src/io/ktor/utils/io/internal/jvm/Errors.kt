@@ -9,5 +9,7 @@ internal fun limitChangeError(): Nothing = throw IllegalStateException("Limit ch
 
 @PublishedApi
 internal fun wrongBufferPositionChangeError(delta: Int, size: Int): Nothing =
-    throw IllegalStateException("Wrong buffer position change: $delta. " +
-            "Position should be moved forward only by at most size bytes (size = $size)")
+    throw IllegalStateException(
+        "Wrong buffer position change: $delta. " +
+            "Position should be moved forward only by at most size bytes (size = $size)"
+    )

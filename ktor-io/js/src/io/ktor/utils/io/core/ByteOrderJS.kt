@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io.core
 
 import org.khronos.webgl.*

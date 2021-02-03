@@ -59,7 +59,11 @@ private suspend fun ByteReadChannel.skipDelimiterSuspend(delimiter: ByteBuffer) 
     }
 }
 
-private suspend fun ByteReadChannel.readUntilDelimiterSuspend(delimiter: ByteBuffer, dst: ByteBuffer, copied0: Int): Int {
+private suspend fun ByteReadChannel.readUntilDelimiterSuspend(
+    delimiter: ByteBuffer,
+    dst: ByteBuffer,
+    copied0: Int
+): Int {
     require(delimiter !== dst)
     require(copied0 >= 0)
 

@@ -4,10 +4,10 @@
 
 package io.ktor.utils.io.tests
 
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
-import io.ktor.test.dispatcher.*
 
 class ByteChannelBuildersTest {
     @Test

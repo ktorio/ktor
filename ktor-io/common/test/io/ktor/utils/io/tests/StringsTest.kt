@@ -3,8 +3,8 @@ package io.ktor.utils.io.tests
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 open class StringsTest {
     open val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
@@ -122,8 +122,14 @@ open class StringsTest {
     @Test
     fun testEncode() {
         assertTrue { byteArrayOf(0x41).contentEquals(Charsets.UTF_8.newEncoder().encode("A").readBytes()) }
-        assertTrue { byteArrayOf(0x41, 0x42, 0x43).contentEquals(Charsets.UTF_8.newEncoder().encode("ABC").readBytes()) }
-        assertTrue { byteArrayOf(0xd0.toByte(), 0xa2.toByte(), 0x41, 0xd0.toByte(), 0xb8.toByte()).contentEquals(Charsets.UTF_8.newEncoder().encode("\u0422A\u0438").readBytes()) }
+        assertTrue {
+            byteArrayOf(0x41, 0x42, 0x43).contentEquals(Charsets.UTF_8.newEncoder().encode("ABC").readBytes())
+        }
+        assertTrue {
+            byteArrayOf(0xd0.toByte(), 0xa2.toByte(), 0x41, 0xd0.toByte(), 0xb8.toByte()).contentEquals(
+                Charsets.UTF_8.newEncoder().encode("\u0422A\u0438").readBytes()
+            )
+        }
     }
 
     @Test
@@ -329,22 +335,26 @@ open class StringsTest {
     @Test
     fun testToByteArray() {
         assertEquals(
-                byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
-                "\uD858\uDE18".toByteArray().hexdump())
+            byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+            "\uD858\uDE18".toByteArray().hexdump()
+        )
     }
 
     @Test
     fun testEncodeToByteArraySequence() {
         assertEquals(
-                byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
-                Charsets.UTF_8.newEncoder().encodeToByteArray(
-                        StringBuilder().apply { append("\uD858\uDE18") }).hexdump())
+            byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+            Charsets.UTF_8.newEncoder().encodeToByteArray(
+                StringBuilder().apply { append("\uD858\uDE18") }
+            ).hexdump()
+        )
     }
 
     @Test
     fun testEncodeToByteArrayCommonImpl() {
         val encoder = Charsets.UTF_8.newEncoder()
-        assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+        assertEquals(
+            byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
             encoder.encodeToByteArrayImpl1("\uD858\uDE18").hexdump()
         )
     }
@@ -352,7 +362,8 @@ open class StringsTest {
     @Test
     fun testEncodeToByteArrayCommonImplCharSequence() {
         val encoder = Charsets.UTF_8.newEncoder()
-        assertEquals(byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
+        assertEquals(
+            byteArrayOf(0xF0.toByte(), 0xA6.toByte(), 0x88.toByte(), 0x98.toByte()).hexdump(),
             encoder.encodeToByteArrayImpl1(StringBuilder().apply { append("\uD858\uDE18") }).hexdump()
         )
     }
@@ -368,9 +379,7 @@ open class StringsTest {
     @Test
     fun testEncodeToByteArrayCommonImplCharSequenceLong() {
         val expected = longMultibyteStringBytes().hexdump()
-        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl1(
-                longMultibyteString()
-        ).hexdump()
+        val actual = Charsets.UTF_8.newEncoder().encodeToByteArrayImpl1(longMultibyteString()).hexdump()
 
         assertEquals(expected, actual)
     }
@@ -456,7 +465,7 @@ open class StringsTest {
         }
 
         try {
-            for (i in listOf(4095)) { //}, 4089, 4095, 4096, 4097, 4098, 8176, 8192)) {
+            for (i in listOf(4095)) { // }, 4089, 4095, 4096, 4097, 4098, 8176, 8192)) {
                 val copied = big.copy()
 
                 try {

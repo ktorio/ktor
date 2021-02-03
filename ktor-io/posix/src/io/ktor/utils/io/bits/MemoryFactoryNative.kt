@@ -100,4 +100,3 @@ internal inline class PlacementAllocator(private val placement: NativeFreeablePl
 
 @PublishedApi
 internal actual object DefaultAllocator : Allocator by PlacementAllocator(nativeHeap)
-

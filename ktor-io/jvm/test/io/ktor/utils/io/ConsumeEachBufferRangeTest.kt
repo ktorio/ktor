@@ -7,10 +7,10 @@ package io.ktor.utils.io
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import kotlinx.coroutines.flow.*
-import java.nio.*
-import kotlin.test.*
 import org.junit.Rule
 import java.io.*
+import java.nio.*
+import kotlin.test.*
 
 @Suppress("PublicApiImplicitType")
 class ConsumeEachBufferRangeTest {

@@ -11,15 +11,14 @@ public actual abstract class Charset(internal val _name: String) {
     public actual companion object {
         public actual fun forName(name: String): Charset {
             if (name == "UTF-8" || name == "utf-8" || name == "UTF8" || name == "utf8") return Charsets.UTF_8
-            if (name == "ISO-8859-1" || name == "iso-8859-1"
-                || name.replace('_', '-').let { it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1" }
-                || name == "latin1"
+            if (name == "ISO-8859-1" || name == "iso-8859-1" || name.replace('_', '-').let {
+                it == "iso-8859-1" || it.toLowerCase() == "iso-8859-1"
+            } || name == "latin1"
             ) {
                 return Charsets.ISO_8859_1
             }
             throw IllegalArgumentException("Charset $name is not supported")
         }
-
     }
 }
 
@@ -42,7 +41,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
     require(charset === Charsets.UTF_8) { "Only UTF-8 encoding is supported in JS" }
 
-    val encoder = TextEncoderCtor()  // Only UTF-8 is supported so we know that at most 6 bytes per character is used
+    val encoder = TextEncoderCtor() // Only UTF-8 is supported so we know that at most 6 bytes per character is used
     var start = fromIndex
     var dstRemaining = dst.writeRemaining
 
@@ -73,9 +72,7 @@ public actual fun CharsetEncoder.encodeUTF8(input: ByteReadPacket, dst: Output) 
 
 internal actual fun CharsetEncoder.encodeComplete(dst: Buffer): Boolean = true
 
-
 // ----------------------------------------------------------------------
-
 
 public actual abstract class CharsetDecoder(internal val _charset: Charset)
 
@@ -203,7 +200,6 @@ private data class CharsetImpl(val name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-
 public actual open class MalformedInputException actual constructor(message: String) : Throwable(message)
 
 private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int): String {
@@ -225,7 +221,8 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
                         buffer.memory.view.buffer,
                         buffer.memory.view.byteOffset + buffer.readPosition,
                         size
-                    ), true
+                    ),
+                    true
                 )
             }
             sb.append(text)
@@ -249,7 +246,8 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
                             buffer.memory.view.buffer,
                             buffer.memory.view.byteOffset + buffer.readPosition,
                             size
-                        ), true
+                        ),
+                        true
                     )
                 }
                 sb.append(text)
@@ -263,7 +261,9 @@ private fun CharsetDecoder.decodeExactBytesSlow(input: Input, inputLength: Int):
     }
 
     if (inputRemaining > 0) {
-        throw EOFException("Not enough bytes available: had only ${inputLength - inputRemaining} instead of $inputLength")
+        throw EOFException(
+            "Not enough bytes available: had only ${inputLength - inputRemaining} instead of $inputLength"
+        )
     }
     return sb.toString()
 }

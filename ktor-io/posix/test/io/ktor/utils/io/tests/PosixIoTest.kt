@@ -1,12 +1,12 @@
 package io.ktor.utils.io.tests
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.internal.utils.*
 import io.ktor.utils.io.internal.utils.test.*
 import io.ktor.utils.io.streams.*
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.test.*
 
@@ -106,7 +106,7 @@ class PosixIoTest {
         with(serverAddr) {
             memset(this.ptr, 0, sockaddr_in.size.convert())
             sin_family = AF_INET.convert()
-            sin_port = 0u //my_htons(port)
+            sin_port = 0u // my_htons(port)
         }
 
         with(clientAddr) {
@@ -129,7 +129,8 @@ class PosixIoTest {
         val addrSizeResult = alloc<UIntVar>()
         addrSizeResult.value = sockaddr_in.size.convert()
         getsockname(
-            acceptor, serverAddr.ptr.reinterpret(),
+            acceptor,
+            serverAddr.ptr.reinterpret(),
             addrSizeResult.ptr.reinterpret()
         ).checkError("getsockname()")
 
@@ -328,5 +329,4 @@ class PosixIoTest {
         }
         else -> this
     }
-
 }

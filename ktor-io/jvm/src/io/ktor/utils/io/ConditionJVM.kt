@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io
 
 import java.util.concurrent.atomic.*
@@ -27,7 +28,9 @@ internal actual class Condition actual constructor(val predicate: () -> Boolean)
 
         return suspendCoroutineUninterceptedOrReturn { c ->
             if (!updater.compareAndSet(this, null, c)) throw IllegalStateException()
-            if (predicate() && updater.compareAndSet(this, c, null)) return@suspendCoroutineUninterceptedOrReturn Unit //c.resume(Unit)
+            if (predicate() && updater.compareAndSet(this, c, null)) {
+                return@suspendCoroutineUninterceptedOrReturn Unit
+            }
             block()
             COROUTINE_SUSPENDED
         }
@@ -38,7 +41,9 @@ internal actual class Condition actual constructor(val predicate: () -> Boolean)
 
         return suspendCoroutineUninterceptedOrReturn { c ->
             if (!updater.compareAndSet(this, null, c)) throw IllegalStateException()
-            if (predicate() && updater.compareAndSet(this, c, null)) return@suspendCoroutineUninterceptedOrReturn Unit // c.resume(Unit)
+            if (predicate() && updater.compareAndSet(this, c, null)) {
+                return@suspendCoroutineUninterceptedOrReturn Unit
+            }
             COROUTINE_SUSPENDED
         }
     }
@@ -49,7 +54,10 @@ internal actual class Condition actual constructor(val predicate: () -> Boolean)
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        private val updater = AtomicReferenceFieldUpdater.newUpdater<Condition, Continuation<*>>(Condition::class.java,
-            Continuation::class.java, "cond") as AtomicReferenceFieldUpdater<Condition, Continuation<Unit>?>
+        private val updater = AtomicReferenceFieldUpdater.newUpdater<Condition, Continuation<*>>(
+            Condition::class.java,
+            Continuation::class.java,
+            "cond"
+        ) as AtomicReferenceFieldUpdater<Condition, Continuation<Unit>?>
     }
 }

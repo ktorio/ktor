@@ -28,25 +28,34 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
 
         expect(3)
 
-        assertEquals(1, ch.read { buffer, start, endExclusive ->
-            assertEquals(3, endExclusive - start)
-            assertEquals('A'.toByte(), buffer[start])
-            1
-        })
+        assertEquals(
+            1,
+            ch.read { buffer, start, endExclusive ->
+                assertEquals(3, endExclusive - start)
+                assertEquals('A'.toByte(), buffer[start])
+                1
+            }
+        )
 
-        assertEquals(2, ch.read { buffer, start, endExclusive ->
-            assertEquals(2, endExclusive - start)
-            assertEquals('B'.toByte(), buffer[start])
-            assertEquals('C'.toByte(), buffer[start + 1])
-            2
-        })
+        assertEquals(
+            2,
+            ch.read { buffer, start, endExclusive ->
+                assertEquals(2, endExclusive - start)
+                assertEquals('B'.toByte(), buffer[start])
+                assertEquals('C'.toByte(), buffer[start + 1])
+                2
+            }
+        )
 
         assertTrue(ch.isClosedForRead, "Should be closed after all bytes read.")
 
-        assertEquals(0, ch.read { _, start, endExclusive ->
-            assertEquals(0, endExclusive - start)
-            0
-        })
+        assertEquals(
+            0,
+            ch.read { _, start, endExclusive ->
+                assertEquals(0, endExclusive - start)
+                0
+            }
+        )
 
         finish(4)
     }
@@ -84,7 +93,8 @@ class ByteChannelSessionsTest : ByteChannelTestBase() {
                 var textOffset = bytesRead
                 for (index in start until endIndex) {
                     assertEquals(
-                        text[textOffset].toByte(), source[index],
+                        text[textOffset].toByte(),
+                        source[index],
                         "Expected character '${text[textOffset]}', " +
                             "got '${source[index].toChar()}', index $bytesRead + $index"
                     )

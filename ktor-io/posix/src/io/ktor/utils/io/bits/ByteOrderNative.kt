@@ -27,7 +27,6 @@ public actual fun Float.reverseByteOrder(): Float = swap(this)
  */
 public actual fun Double.reverseByteOrder(): Double = swap(this)
 
-
 private inline fun swap(s: Short): Short = (((s.toInt() and 0xff) shl 8) or ((s.toInt() and 0xffff) ushr 8)).toShort()
 
 private inline fun swap(s: Int): Int =
@@ -39,4 +38,3 @@ private inline fun swap(s: Long): Long =
 private inline fun swap(s: Float): Float = Float.fromBits(swap(s.toRawBits()))
 
 private inline fun swap(s: Double): Double = Double.fromBits(swap(s.toRawBits()))
-

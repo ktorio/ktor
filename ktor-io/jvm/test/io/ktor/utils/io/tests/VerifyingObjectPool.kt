@@ -9,11 +9,12 @@ import kotlin.test.*
 
 internal actual fun identityHashCode(instance: Any) = System.identityHashCode(instance)
 
-actual class VerifyingObjectPool<T : Any> actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate), TestRule {
+actual class VerifyingObjectPool<T : Any>
+actual constructor(delegate: ObjectPool<T>) : VerifyingPoolBase<T>(delegate), TestRule {
     override val allocated = ConcurrentHashMap<IdentityWrapper<T>, Boolean>().keySet(true)!!
 
     override fun apply(base: Statement, description: Description): Statement {
-        return object: Statement() {
+        return object : Statement() {
             override fun evaluate() {
                 var failed = false
                 try {
