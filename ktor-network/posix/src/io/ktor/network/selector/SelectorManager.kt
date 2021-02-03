@@ -50,5 +50,4 @@ public actual enum class SelectInterest {
         public actual val AllInterests: Array<SelectInterest>
             get() = values()
     }
-
 }

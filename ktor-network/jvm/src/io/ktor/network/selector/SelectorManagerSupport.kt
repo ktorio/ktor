@@ -34,11 +34,8 @@ public abstract class SelectorManagerSupport internal constructor() : SelectorMa
         require(selectable.interestedOps and interest.flag != 0)
 
         suspendCancellableCoroutine<Unit> { c ->
-//            val c = base.tracked()  // useful for debugging
-
             c.invokeOnCancellation {
                 // TODO: We've got a race here (and exception erasure)!
-//                selectable.dispose()
             }
             selectable.suspensions.addSuspension(interest, c)
 

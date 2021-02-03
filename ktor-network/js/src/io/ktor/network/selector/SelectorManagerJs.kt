@@ -36,7 +36,6 @@ public actual interface SelectorManager : CoroutineScope, Closeable {
     )
 
     public actual companion object
-
 }
 
 /**

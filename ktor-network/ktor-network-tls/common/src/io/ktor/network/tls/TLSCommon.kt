@@ -11,7 +11,8 @@ import kotlin.coroutines.*
  * Make [Socket] connection secure with TLS using [TLSConfig].
  */
 public expect suspend fun Socket.tls(
-    coroutineContext: CoroutineContext, config: TLSConfig
+    coroutineContext: CoroutineContext,
+    config: TLSConfig
 ): Socket
 
 /**
@@ -53,4 +54,3 @@ public suspend fun Connection.tls(coroutineContext: CoroutineContext): Socket = 
 */
 public suspend fun Connection.tls(coroutineContext: CoroutineContext, block: TLSConfigBuilder.() -> Unit): Socket =
     tls(coroutineContext, TLSConfigBuilder().apply(block).build())
-

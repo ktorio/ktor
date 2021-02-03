@@ -40,8 +40,11 @@ internal class TLSClientHandshake(
     private val keyMaterial: ByteArray by lazy {
         with(serverHello.cipherSuite) {
             keyMaterial(
-                masterSecret, serverHello.serverSeed + clientSeed,
-                keyStrengthInBytes, macStrengthInBytes, fixedIvLength
+                masterSecret,
+                serverHello.serverSeed + clientSeed,
+                keyStrengthInBytes,
+                macStrengthInBytes,
+                fixedIvLength
             )
         }
     }
@@ -73,7 +76,9 @@ internal class TLSClientHandshake(
                     TLSRecordType.ChangeCipherSpec -> {
                         check(!useCipher)
                         val flag = packet.readByte()
-                        if (flag != 1.toByte()) throw TLSException("Expected flag: 1, received $flag in ChangeCipherSpec")
+                        if (flag != 1.toByte()) throw TLSException(
+                            "Expected flag: 1, received $flag in ChangeCipherSpec"
+                        )
                         useCipher = true
                         continue@loop
                     }
@@ -109,10 +114,15 @@ internal class TLSClientHandshake(
                 }
             }
         } finally {
-            rawOutput.writeRecord(TLSRecord(TLSRecordType.Alert, packet = buildPacket {
-                writeByte(TLSAlertLevel.WARNING.code.toByte())
-                writeByte(TLSAlertType.CloseNotify.code.toByte())
-            }))
+            rawOutput.writeRecord(
+                TLSRecord(
+                    TLSRecordType.Alert,
+                    packet = buildPacket {
+                        writeByte(TLSAlertLevel.WARNING.code.toByte())
+                        writeByte(TLSAlertType.CloseNotify.code.toByte())
+                    }
+                )
+            )
 
             rawOutput.close()
         }
@@ -165,8 +175,9 @@ internal class TLSClientHandshake(
             it.hash == suite.hash && it.sign == suite.signatureAlgorithm
         }
 
-        if (clientExchanges.isEmpty())
+        if (clientExchanges.isEmpty()) {
             throw TLSException("No appropriate hash algorithm for suite: $suite")
+        }
 
         val serverExchanges = serverHello.hashAndSignAlgorithms
         if (serverExchanges.isEmpty()) return
@@ -182,7 +193,11 @@ internal class TLSClientHandshake(
         sendHandshakeRecord(TLSHandshakeType.ClientHello) {
             // TODO: support session id
             writeTLSClientHello(
-                TLSVersion.TLS12, config.cipherSuites, clientSeed, ByteArray(32), config.serverName
+                TLSVersion.TLS12,
+                config.cipherSuites,
+                clientSeed,
+                ByteArray(32),
+                config.serverName
             )
         }
     }
@@ -243,11 +258,13 @@ internal class TLSClientHandshake(
 
                             val signature = Signature.getInstance(hashAndSign.name)!!.apply {
                                 initVerify(serverCertificate)
-                                update(buildPacket {
-                                    writeFully(clientSeed)
-                                    writeFully(serverHello.serverSeed)
-                                    writePacket(params)
-                                }.readBytes())
+                                update(
+                                    buildPacket {
+                                        writeFully(clientSeed)
+                                        writeFully(serverHello.serverSeed)
+                                        writePacket(params)
+                                    }.readBytes()
+                                )
                             }
 
                             val signSize = packet.readShort().toInt() and 0xffff
@@ -295,7 +312,8 @@ internal class TLSClientHandshake(
 
         masterSecret = masterSecret(
             SecretKeySpec(preSecret, serverHello.cipherSuite.hash.macName),
-            clientSeed, serverHello.serverSeed
+            clientSeed,
+            serverHello.serverSeed
         )
         preSecret.fill(0)
 
@@ -357,7 +375,8 @@ internal class TLSClientHandshake(
 
             if (hasHashAndSignInCommon) return@find false
 
-            info.authorities.isEmpty() || candidate.certificateChain.map { X500Principal(it.issuerDN.name) }.any { it in info.authorities }
+            info.authorities.isEmpty() ||
+                candidate.certificateChain.map { X500Principal(it.issuerDN.name) }.any { it in info.authorities }
         }
 
         sendHandshakeRecord(TLSHandshakeType.Certificate) {
@@ -411,12 +430,15 @@ internal class TLSClientHandshake(
     private suspend fun receiveServerFinished() {
         val finished = handshakes.receive()
 
-        if (finished.type != TLSHandshakeType.Finished)
+        if (finished.type != TLSHandshakeType.Finished) {
             throw TLSException("Finished handshake expected, received: $finished")
+        }
 
         val receivedChecksum = finished.packet.readBytes()
         val expectedChecksum = serverFinished(
-            digest.doHash(serverHello.cipherSuite.hash.openSSLName), masterSecret, receivedChecksum.size
+            digest.doHash(serverHello.cipherSuite.hash.openSSLName),
+            masterSecret,
+            receivedChecksum.size
         )
 
         if (!receivedChecksum.contentEquals(expectedChecksum)) {
@@ -448,7 +470,6 @@ internal class TLSClientHandshake(
     }
 }
 
-
 private fun SecureRandom.generateClientSeed(): ByteArray {
     val seed = ByteArray(32)
     nextBytes(seed)
@@ -475,17 +496,16 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
     return EncryptionInfo(serverPublic, clientKeys.public, clientKeys.private)
 }
 
-   /**
-    * RFC 5246, 7.4.4.  Certificate Request:
-    *
-    *     struct {
-    *         ClientCertificateType certificate_types<1..2^8-1>;
-    *         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
-    *         DistinguishedName certificate_authorities<0..2^16-1>;
-    *     } CertificateRequest;
-    */
+/**
+* RFC 5246, 7.4.4.  Certificate Request:
+*
+*     struct {
+*         ClientCertificateType certificate_types<1..2^8-1>;
+*         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
+*         DistinguishedName certificate_authorities<0..2^16-1>;
+*     } CertificateRequest;
+*/
 internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
-
     val typeCount = packet.readByte().toInt() and 0xFF
     val types = packet.readBytes(typeCount)
 

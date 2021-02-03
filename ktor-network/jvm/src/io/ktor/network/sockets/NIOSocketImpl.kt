@@ -5,10 +5,10 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*

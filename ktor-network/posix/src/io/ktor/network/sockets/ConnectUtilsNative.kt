@@ -30,7 +30,8 @@ internal actual suspend fun connect(
             val localAddress = getLocalAddress(descriptor)
 
             return TCPSocketNative(
-                descriptor, selector,
+                descriptor,
+                selector,
                 remoteAddress = NetworkAddress(
                     networkAddress.hostname,
                     networkAddress.port,
@@ -60,7 +61,6 @@ internal actual fun bind(
     }
 
     listen(descriptor, DEFAULT_BACKLOG_SIZE).check()
-
 
     return TCPServerSocketNative(
         descriptor,
