@@ -74,7 +74,7 @@ kotlin.sourceSets {
 
     jvmTest {
         dependencies {
-            runtimeOnly(project(":ktor-client:ktor-client-apache"))
+            api(project(":ktor-client:ktor-client-apache"))
             runtimeOnly(project(":ktor-client:ktor-client-cio"))
             runtimeOnly(project(":ktor-client:ktor-client-android"))
             runtimeOnly(project(":ktor-client:ktor-client-okhttp"))

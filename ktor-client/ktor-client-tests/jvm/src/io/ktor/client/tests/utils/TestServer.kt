@@ -22,7 +22,7 @@ internal fun startServer(): Closeable {
     val logger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     logger.level = Level.WARN
 
-    val proxyServer = TestTcpServer(HTTP_PROXY_PORT, ::proxyHandler)
+    val tcpServer = TestTcpServer(HTTP_PROXY_PORT, ::tcpServerHandler)
 
     val server = embeddedServer(CIO, DEFAULT_PORT) {
         tests()
@@ -35,7 +35,7 @@ internal fun startServer(): Closeable {
     Thread.sleep(1000)
 
     return Closeable {
-        proxyServer.close()
+        tcpServer.close()
         server.stop(0L, 0L, TimeUnit.MILLISECONDS)
         tlsServer.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
