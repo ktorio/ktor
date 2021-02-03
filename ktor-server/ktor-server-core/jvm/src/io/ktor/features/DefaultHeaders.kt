@@ -82,18 +82,10 @@ public class DefaultHeaders(config: Configuration) {
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
             val config = Configuration().apply(configure)
             if (config.headers.getAll(HttpHeaders.Server) == null) {
-                val applicationClass = pipeline.javaClass
-
-                val ktorPackageName: String = Application::class.java.`package`.implementationTitle ?: "ktor"
+                val ktorPackageName: String = Application::class.java.`package`.implementationTitle ?: "Ktor"
                 val ktorPackageVersion: String = Application::class.java.`package`.implementationVersion ?: "debug"
-                val applicationPackageName: String =
-                    applicationClass.`package`.implementationTitle ?: applicationClass.simpleName
-                val applicationPackageVersion: String = applicationClass.`package`.implementationVersion ?: "debug"
 
-                config.headers.append(
-                    HttpHeaders.Server,
-                    "$applicationPackageName/$applicationPackageVersion $ktorPackageName/$ktorPackageVersion"
-                )
+                config.headers.append(HttpHeaders.Server, "$ktorPackageName/$ktorPackageVersion")
             }
 
             val feature = DefaultHeaders(config)
