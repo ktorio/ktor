@@ -40,7 +40,9 @@ public interface ApplicationEngineEnvironment : ApplicationEnvironment {
 /**
  * Creates [ApplicationEngineEnvironment] using [ApplicationEngineEnvironmentBuilder].
  */
-public fun applicationEngineEnvironment(builder: ApplicationEngineEnvironmentBuilder.() -> Unit): ApplicationEngineEnvironment {
+public fun applicationEngineEnvironment(
+    builder: ApplicationEngineEnvironmentBuilder.() -> Unit
+): ApplicationEngineEnvironment {
     return ApplicationEngineEnvironmentBuilder().build(builder)
 }
 

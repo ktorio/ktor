@@ -6,8 +6,8 @@ package io.ktor.server.benchmarks
 
 import ch.qos.logback.classic.Level
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.benchmarks.cio.*
@@ -21,7 +21,6 @@ import org.slf4j.Logger
 import java.io.*
 import java.util.concurrent.*
 
-
 @State(Scope.Benchmark)
 abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
     private val coreDirectory = File("../ktor-server-core").absoluteFile.normalize()
@@ -29,8 +28,8 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
     private val classFileName = IntegrationBenchmark::class.simpleName!! + ".class"
     private val smallFile = File(coreDirectory, "build.gradle")
     private val largeFile = File(coreDirectory, "build").walkTopDown().maxDepth(2).filter {
-                                it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
-                            }.single()
+        it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
+    }.single()
 
     lateinit var server: TEngine
     private val httpClient = OkHttpBenchmarkClient()
@@ -59,7 +58,7 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
                 get("/query") {
                     val parameters = call.parameters
                     val message = parameters["message"]
-                            ?: throw IllegalArgumentException("GET request should have `message` parameter")
+                        ?: throw IllegalArgumentException("GET request should have `message` parameter")
                     call.respondText(message)
                 }
                 static {
@@ -224,5 +223,3 @@ fun main(args: Array<String>) {
         run<TestIntegrationBenchmark>()
     }
 }
-
-

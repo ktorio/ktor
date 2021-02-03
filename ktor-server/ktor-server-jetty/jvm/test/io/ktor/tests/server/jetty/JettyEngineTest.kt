@@ -48,23 +48,25 @@ class JettyHttpServerTest : HttpServerTestSuite<JettyApplicationEngine, JettyApp
     }
 
     private fun Server.addAttributesHandler() {
-        addLifeCycleListener(object : AbstractLifeCycle.AbstractLifeCycleListener() {
-            override fun lifeCycleStarting(event: LifeCycle?) {
-                super.lifeCycleStarting(event)
-                val delegate = handler
-                handler = object : DefaultHandler() {
-                    override fun handle(
-                        target: String?,
-                        baseRequest: Request?,
-                        request: HttpServletRequest?,
-                        response: HttpServletResponse?
-                    ) {
-                        request?.setAttribute("ktor.test.attribute", "135")
-                        delegate?.handle(target, baseRequest, request, response)
+        addLifeCycleListener(
+            object : AbstractLifeCycle.AbstractLifeCycleListener() {
+                override fun lifeCycleStarting(event: LifeCycle?) {
+                    super.lifeCycleStarting(event)
+                    val delegate = handler
+                    handler = object : DefaultHandler() {
+                        override fun handle(
+                            target: String?,
+                            baseRequest: Request?,
+                            request: HttpServletRequest?,
+                            response: HttpServletResponse?
+                        ) {
+                            request?.setAttribute("ktor.test.attribute", "135")
+                            delegate?.handle(target, baseRequest, request, response)
+                        }
                     }
                 }
             }
-        })
+        )
     }
 }
 

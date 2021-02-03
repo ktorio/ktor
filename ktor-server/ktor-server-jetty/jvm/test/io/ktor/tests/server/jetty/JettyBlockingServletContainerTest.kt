@@ -22,4 +22,6 @@ class JettyBlockingServletContainerHttpServerTest :
 }
 
 class JettyBlockingServletContainerSustainabilityTest :
-    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))
+    SustainabilityTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(
+        Servlet(async = false)
+    )

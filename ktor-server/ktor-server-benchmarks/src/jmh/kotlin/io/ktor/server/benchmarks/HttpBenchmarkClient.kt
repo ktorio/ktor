@@ -25,7 +25,7 @@ class UrlHttpBenchmarkClient : HttpBenchmarkClient {
         urlConnection.setRequestProperty("Accept-Encoding", "gzip")
         val stream = urlConnection.inputStream
         val buf = ByteArray(8192)
-        while (stream.read(buf) != -1);
+        while (stream.read(buf) != -1) {}
         stream.close()
     }
 }
@@ -48,7 +48,7 @@ class ApacheHttpBenchmarkClient : HttpBenchmarkClient {
         val response = httpClient!!.execute(httpGet)
         val stream = response.entity.content
         val buf = ByteArray(8192)
-        while (stream.read(buf) != -1);
+        while (stream.read(buf) != -1) {}
         stream.close()
         response.close()
     }
@@ -70,7 +70,7 @@ class OkHttpBenchmarkClient : HttpBenchmarkClient {
         val response = httpClient!!.newCall(request).execute()
         response.body?.byteStream()?.use { stream ->
             val buf = ByteArray(8192)
-            while (stream.read(buf) != -1);
+            while (stream.read(buf) != -1) {}
         }
         response.close()
     }

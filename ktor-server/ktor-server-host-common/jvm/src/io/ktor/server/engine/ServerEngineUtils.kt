@@ -8,4 +8,3 @@ import java.io.*
 
 internal val WORKING_DIRECTORY_PATH: String
     get() = File(".").canonicalPath
-

@@ -14,10 +14,10 @@ import kotlin.concurrent.*
 
 val numberOfOperations = 10000
 val jmhOptions = OptionsBuilder()
-        .mode(Mode.Throughput)
-        .timeUnit(TimeUnit.MILLISECONDS)
-        .resultFormat(ResultFormatType.CSV)
-        .forks(1)
+    .mode(Mode.Throughput)
+    .timeUnit(TimeUnit.MILLISECONDS)
+    .resultFormat(ResultFormatType.CSV)
+    .forks(1)
 
 class BenchmarkSettings {
     var threads = 32
@@ -51,7 +51,8 @@ fun benchmark(args: Array<String>, configure: BenchmarkSettings.() -> Unit) {
 }
 
 fun runDaemon(settings: BenchmarkSettings) {
-    val (clazz, method) = settings.benchmarks.singleOrNull() ?: throw IllegalArgumentException("Daemon mode supports only single benchmark")
+    val (clazz, method) = settings.benchmarks.singleOrNull()
+        ?: throw IllegalArgumentException("Daemon mode supports only single benchmark")
     println("${clazz.name}.${method ?: "*"}")
     val instance = clazz.getConstructor().newInstance()
     val setups = clazz.methods.filter { it.annotations.any { it.annotationClass == Setup::class } }

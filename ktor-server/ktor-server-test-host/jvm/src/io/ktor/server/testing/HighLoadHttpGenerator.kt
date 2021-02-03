@@ -4,8 +4,8 @@
 
 package io.ktor.server.testing
 
-import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.http.*
+import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.utils.io.core.*
 import java.net.*
 import java.nio.*
@@ -32,7 +32,8 @@ import kotlin.text.toByteArray
  * but load generator provides absolutely no diagnostics.
  */
 public class HighLoadHttpGenerator(
-    public val host: String, port: Int,
+    public val host: String,
+    port: Int,
     public val numberOfConnections: Int,
     public val queueSize: Int,
     public val highPressure: Boolean,
@@ -40,15 +41,25 @@ public class HighLoadHttpGenerator(
 ) {
 
     public constructor(
-        url: String, host: String, port: Int,
-        numberConnections: Int, queueSize: Int, highPressure: Boolean
+        url: String,
+        host: String,
+        port: Int,
+        numberConnections: Int,
+        queueSize: Int,
+        highPressure: Boolean
+    ) : this(
+        host,
+        port,
+        numberConnections,
+        queueSize,
+        highPressure,
+        {
+            requestLine(HttpMethod.Get, url, "HTTP/1.1")
+            headerLine(HttpHeaders.Host, "$host:$port")
+            headerLine(HttpHeaders.Accept, "*/*")
+            emptyLine()
+        }
     )
-        : this(host, port, numberConnections, queueSize, highPressure, {
-        requestLine(HttpMethod.Get, url, "HTTP/1.1")
-        headerLine(HttpHeaders.Host, "$host:$port")
-        headerLine(HttpHeaders.Accept, "*/*")
-        emptyLine()
-    })
 
     private val remote = InetSocketAddress(host, port)
     private val request = RequestResponseBuilder().apply(builder).build()
@@ -497,7 +508,6 @@ public class HighLoadHttpGenerator(
 
                             break
                         }
-
                     } catch (t: Throwable) {
 //                            println("read() failed: $t")
                         readErrors.incrementAndGet()

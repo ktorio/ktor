@@ -54,7 +54,7 @@ class CallIdTest {
             assertEquals("test-id", call.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/") {  }.let { call ->
+        handleRequest(HttpMethod.Get, "/") { }.let { call ->
             assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }
@@ -77,7 +77,7 @@ class CallIdTest {
             assertEquals("test-id", call.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/") {  }.let { call ->
+        handleRequest(HttpMethod.Get, "/") { }.let { call ->
             assertTrue { call.requestHandled }
             assertEquals("generated-id", call.response.content)
         }
@@ -101,7 +101,7 @@ class CallIdTest {
             assertEquals("test-id", call.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/") {  }.let { call ->
+        handleRequest(HttpMethod.Get, "/") { }.let { call ->
             assertTrue { call.requestHandled }
             val generatedId = call.response.content!!
             assertNotEquals("null", generatedId)
@@ -109,7 +109,9 @@ class CallIdTest {
 
             assertEquals(length, generatedId.length)
             assertTrue { dictionary.all { it in generatedId } }
-            assertTrue(message = "It should be no non-dictionary characters") { generatedId.toCharArray().none { it !in dictionary } }
+            assertTrue(message = "It should be no non-dictionary characters") {
+                generatedId.toCharArray().none { it !in dictionary }
+            }
         }
     }
 
@@ -126,19 +128,23 @@ class CallIdTest {
             call.respond(call.callId.toString())
         }
 
-        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "test-id") }.let { call ->
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.XRequestId, "test-id")
+        }.let { call ->
             assertTrue { call.requestHandled }
             assertEquals("test-id", call.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/") {  }.let { call ->
+        handleRequest(HttpMethod.Get, "/") { }.let { call ->
             assertTrue { call.requestHandled }
             val generatedId = call.response.content!!
             assertNotEquals("null", generatedId)
             assertNotEquals("test-id", generatedId)
 
             assertEquals(length, generatedId.length)
-            assertTrue(message = "It should be no non-dictionary characters") { generatedId.toCharArray().none { it !in dictionary } }
+            assertTrue(message = "It should be no non-dictionary characters") {
+                generatedId.toCharArray().none { it !in dictionary }
+            }
         }
     }
 
@@ -165,7 +171,6 @@ class CallIdTest {
             assertEquals("generated-call-id", call.response.content)
             assertEquals("generated-call-id", call.response.headers[HttpHeaders.XRequestId])
         }
-
     }
 
     @Test
@@ -178,14 +183,18 @@ class CallIdTest {
         }
 
         // valid call id
-        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, CALL_ID_DEFAULT_DICTIONARY) }.let { call ->
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.XRequestId, CALL_ID_DEFAULT_DICTIONARY)
+        }.let { call ->
             assertTrue { call.requestHandled }
             assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.content)
             assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.headers[HttpHeaders.XRequestId])
         }
 
         // invalid call id
-        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "\u1000")}.let { call ->
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.XRequestId, "\u1000")
+        }.let { call ->
             assertTrue { call.requestHandled }
             assertEquals("null", call.response.content)
         }

@@ -51,41 +51,25 @@ class ApplicationEngineEnvironmentReloadingTests {
             )
         }
 
-/*
-        fun collectGC() {
-            System.gc()
-            Thread.sleep(500)
-            System.gc()
-        }
-
-        collectGC()
-        val memoryBefore = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-        println("Before: ${memoryBefore / 1024} Kb")
-*/
-
         environment.start()
         repeat(100) {
             (environment as ApplicationEngineEnvironmentReloading).reload()
         }
         environment.stop()
-
-/*
-        collectGC()
-        val memoryAfter = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-        println("After: ${memoryAfter / 1024} Kb")
-        println("Diff: ${(memoryAfter - memoryBefore) / 1024} Kb")
-*/
     }
 
     @Test
     fun `top level non-extension function as module function`() {
         val environment = applicationEngineEnvironment {
             developmentMode = false
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.modules" to listOf<KFunction0<Unit>>(::topLevelFunction).map { it.fqName }
-                )))
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(
+                    mapOf(
+                        "ktor.deployment.environment" to "test",
+                        "ktor.application.modules" to listOf<KFunction0<Unit>>(::topLevelFunction).map { it.fqName }
+                    )
+                )
+            )
         }
         environment.start()
         val application = environment.application
@@ -102,7 +86,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectExtensionFunction")
+                        "ktor.application.modules" to listOf(
+                            Companion::class.jvmName + "." + "companionObjectExtensionFunction"
+                        )
                     )
                 )
             )
@@ -122,7 +108,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
+                        "ktor.application.modules" to listOf(
+                            Companion::class.functionFqName("companionObjectFunction")
+                        )
                     )
                 )
             )
@@ -142,7 +130,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction")
+                        "ktor.application.modules" to listOf(
+                            Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction"
+                        )
                     )
                 )
             )
@@ -162,7 +152,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
+                        "ktor.application.modules" to listOf(
+                            Companion::class.functionFqName("companionObjectJvmStaticFunction")
+                        )
                     )
                 )
             )
@@ -182,7 +174,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction")
+                        "ktor.application.modules" to listOf(
+                            ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction"
+                        )
                     )
                 )
             )
@@ -202,7 +196,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
+                        "ktor.application.modules" to listOf(
+                            ObjectModuleFunctionHolder::class.functionFqName("objectFunction")
+                        )
                     )
                 )
             )
@@ -222,7 +218,9 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction")
+                        "ktor.application.modules" to listOf(
+                            ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction"
+                        )
                     )
                 )
             )
@@ -266,7 +264,6 @@ class ApplicationEngineEnvironmentReloadingTests {
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -287,7 +284,6 @@ class ApplicationEngineEnvironmentReloadingTests {
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -308,7 +304,6 @@ class ApplicationEngineEnvironmentReloadingTests {
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -325,11 +320,12 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg")
+                        "ktor.application.modules" to listOf(
+                            ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithDefaultArg"
+                        )
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -350,7 +346,6 @@ class ApplicationEngineEnvironmentReloadingTests {
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -367,11 +362,12 @@ class ApplicationEngineEnvironmentReloadingTests {
                 ConfigFactory.parseMap(
                     mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.modules" to listOf(ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads")
+                        "ktor.application.modules" to listOf(
+                            ApplicationEngineEnvironmentReloadingTests::class.jvmName + "Kt.topLevelWithJvmOverloads"
+                        )
                     )
                 )
             )
-
         }
         environment.start()
         val application = environment.application
@@ -379,7 +375,6 @@ class ApplicationEngineEnvironmentReloadingTests {
         assertEquals("topLevelWithJvmOverloads", application.attributes[TestKey])
         environment.stop()
     }
-
 
     object NoArgModuleFunction {
         var result = 0

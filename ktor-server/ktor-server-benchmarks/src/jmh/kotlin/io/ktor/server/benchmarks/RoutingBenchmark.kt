@@ -52,13 +52,14 @@ class RoutingBenchmark {
         check(response.content == "param OK") { "Invalid response" }
     }
 
-    private inline fun <R> handle(url: String, block: TestApplicationCall.() -> R) = testHost.handleRequest(HttpMethod.Get, url).apply {
-        if (response.status() != HttpStatusCode.OK) {
-            throw IllegalStateException("wrong response code")
-        }
+    private inline fun <R> handle(url: String, block: TestApplicationCall.() -> R) =
+        testHost.handleRequest(HttpMethod.Get, url).apply {
+            if (response.status() != HttpStatusCode.OK) {
+                throw IllegalStateException("wrong response code")
+            }
 
-        block()
-    }
+            block()
+        }
 }
 
 /*

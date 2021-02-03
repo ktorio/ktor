@@ -28,9 +28,7 @@ class CORSTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/") {
-
-            }.let { call ->
+            handleRequest(HttpMethod.Get, "/") {}.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
@@ -600,7 +598,9 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertTrue { call.response.headers.values(HttpHeaders.AccessControlAllowHeaders).isNotEmpty() }
-                assertTrue { HttpHeaders.Range in call.response.headers[HttpHeaders.AccessControlAllowHeaders].orEmpty() }
+                assertTrue {
+                    HttpHeaders.Range in call.response.headers[HttpHeaders.AccessControlAllowHeaders].orEmpty()
+                }
             }
         }
     }

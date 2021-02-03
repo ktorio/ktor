@@ -38,8 +38,14 @@ class DefaultPushTest {
             }
 
             handleRequest(HttpMethod.Get, "/?p=1").let { call ->
-                assertEquals("<http://localhost/push?p=1>; rel=prefetch", call.response.headers.values(HttpHeaders.Link)[0])
-                assertEquals("<http://localhost/push2?p=1>; rel=prefetch", call.response.headers.values(HttpHeaders.Link)[1])
+                assertEquals(
+                    "<http://localhost/push?p=1>; rel=prefetch",
+                    call.response.headers.values(HttpHeaders.Link)[0]
+                )
+                assertEquals(
+                    "<http://localhost/push2?p=1>; rel=prefetch",
+                    call.response.headers.values(HttpHeaders.Link)[1]
+                )
             }
         }
     }

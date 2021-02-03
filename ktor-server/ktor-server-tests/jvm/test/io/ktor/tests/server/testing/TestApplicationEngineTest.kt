@@ -23,7 +23,8 @@ class TestApplicationEngineTest {
     @Test
     fun testCustomDispatcher() {
         @OptIn(
-            ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class
+            ExperimentalCoroutinesApi::class,
+            InternalCoroutinesApi::class
         )
         fun CoroutineDispatcher.withDelay(delay: Delay): CoroutineDispatcher =
             object : CoroutineDispatcher(), Delay by delay {
@@ -49,16 +50,18 @@ class TestApplicationEngineTest {
             },
             configure = {
                 @OptIn(InternalCoroutinesApi::class)
-                dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
-                    override fun scheduleResumeAfterDelay(
-                        timeMillis: Long,
-                        continuation: CancellableContinuation<Unit>
-                    ) {
-                        // Run immediately and log it
-                        delayLog += "Delay($timeMillis)"
-                        continuation.resume(Unit)
+                dispatcher = Dispatchers.Unconfined.withDelay(
+                    object : Delay {
+                        override fun scheduleResumeAfterDelay(
+                            timeMillis: Long,
+                            continuation: CancellableContinuation<Unit>
+                        ) {
+                            // Run immediately and log it
+                            delayLog += "Delay($timeMillis)"
+                            continuation.resume(Unit)
+                        }
                     }
-                })
+                )
             }
         ) {
             val elapsedTime = measureTimeMillis {
@@ -112,7 +115,6 @@ class TestApplicationEngineTest {
             with(handleRequest(HttpMethod.Get, "/broken")) {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("The Response", response.content)
-
             }
 
             assertFailsWith<IllegalStateException> {

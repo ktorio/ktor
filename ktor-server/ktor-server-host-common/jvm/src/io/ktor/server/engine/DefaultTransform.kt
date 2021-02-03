@@ -32,8 +32,7 @@ private val ReusableTypes = arrayOf(ByteArray::class, String::class, Parameters:
 public fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
-        if (transformed != null)
-            proceedWith(transformed)
+        if (transformed != null) proceedWith(transformed)
     }
 }
 
@@ -79,8 +78,9 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             }
             else -> null
         }
-        if (transformed != null)
+        if (transformed != null) {
             proceedWith(ApplicationReceiveRequest(query.typeInfo, transformed, query.type in ReusableTypes))
+        }
     }
 }
 
@@ -134,4 +134,3 @@ private suspend fun ByteReadChannel.readText(
         content.release()
     }
 }
-

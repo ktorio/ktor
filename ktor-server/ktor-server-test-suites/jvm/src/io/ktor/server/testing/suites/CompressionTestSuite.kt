@@ -21,9 +21,9 @@ import java.io.*
 import java.util.zip.*
 import kotlin.test.*
 
-public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
+    TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) :
+    EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
     @Test
     public fun testLocalFileContentWithCompression() {
@@ -37,9 +37,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfigu
             }
         }
 
-        withUrl("/", {
-            header(HttpHeaders.AcceptEncoding, "gzip")
-        }) {
+        withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
             assertEquals(file.readText(), GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
@@ -54,17 +52,17 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfigu
         createAndStartServer {
             application.install(Compression)
             handle {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeStringUtf8("Hello!")
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("Hello!")
+                        }
                     }
-                })
+                )
             }
         }
 
-        withUrl("/", {
-            header(HttpHeaders.AcceptEncoding, "gzip")
-        }) {
+        withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
             assertEquals("Hello!", GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
@@ -85,13 +83,20 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfigu
             }
         }
 
-        withUrl("/", {
-            header(HttpHeaders.AcceptEncoding, "gzip")
-            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
-        }) {
+        withUrl(
+            "/",
+            {
+                header(HttpHeaders.AcceptEncoding, "gzip")
+                header(
+                    HttpHeaders.Range,
+                    RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString()
+                )
+            }
+        ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(
-                file.reader().use { it.read().toChar().toString() }, readText(),
+                file.reader().use { it.read().toChar().toString() },
+                readText(),
                 "It should be no compression if range requested"
             )
         }
@@ -116,9 +121,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfigu
             }
         }
 
-        withUrl("/", {
-            headers.append(HttpHeaders.AcceptEncoding, "gzip")
-        }) {
+        withUrl("/", { headers.append(HttpHeaders.AcceptEncoding, "gzip") }) {
             // ensure the server is running
             val expected = buildString {
                 produceText()
@@ -129,5 +132,4 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfigu
             assertEquals(expected, text)
         }
     }
-
 }

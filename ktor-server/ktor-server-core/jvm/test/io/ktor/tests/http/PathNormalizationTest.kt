@@ -93,7 +93,7 @@ class PathNormalizationTest {
 
     @Test
     fun testControlCharactersAndProhibited() {
-        val controlCharacters = '\u0000' .. '\u001f'
+        val controlCharacters = '\u0000'..'\u001f'
         val prohibitedCharacters = listOf('\\', '/', ':', '*', '?', '\"', '<', '>', '|')
 
         for (ch in controlCharacters + prohibitedCharacters) {
