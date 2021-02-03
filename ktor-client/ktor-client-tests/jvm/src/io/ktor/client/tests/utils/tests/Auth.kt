@@ -18,9 +18,7 @@ internal fun Application.authTestServer() {
         basic("test-basic") {
             realm = "my-server"
             validate { call ->
-                if (call.name == "user1" && call.password == "Password1")
-                    UserIdPrincipal("user1")
-                else null
+                if (call.name == "user1" && call.password == "Password1") UserIdPrincipal("user1") else null
             }
         }
 
@@ -43,18 +41,17 @@ internal fun Application.authTestServer() {
         }
     }
 
-
-
     routing {
         route("auth") {
             route("basic") {
                 authenticate("test-basic") {
                     post {
                         val requestData = call.receiveText()
-                        if (requestData == "{\"test\":\"text\"}")
+                        if (requestData == "{\"test\":\"text\"}") {
                             call.respondText("OK")
-                        else
+                        } else {
                             call.respond(HttpStatusCode.BadRequest)
+                        }
                     }
                     route("ws") {
                         route("/echo") {

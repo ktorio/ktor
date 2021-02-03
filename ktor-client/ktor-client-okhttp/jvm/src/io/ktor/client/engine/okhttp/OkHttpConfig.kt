@@ -43,7 +43,6 @@ public class OkHttpConfig : HttpClientEngineConfig() {
             oldConfig()
             block()
         }
-
     }
 
     /**

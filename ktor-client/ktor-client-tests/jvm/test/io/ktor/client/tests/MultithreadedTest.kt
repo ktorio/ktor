@@ -10,7 +10,6 @@ import kotlinx.coroutines.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-
 private const val TEST_SIZE = 100_000
 private const val DEFAULT_THREADS_COUNT = 32
 
@@ -39,9 +38,11 @@ private fun <T> withPool(
 ): List<T> {
     val pool = Executors.newFixedThreadPool(threads)
     val result = List(testSize) {
-        pool.submit(Callable<T> {
-            runBlocking { block() }
-        })
+        pool.submit(
+            Callable<T> {
+                runBlocking { block() }
+            }
+        )
     }.map { it.get() }
 
     pool.shutdown()

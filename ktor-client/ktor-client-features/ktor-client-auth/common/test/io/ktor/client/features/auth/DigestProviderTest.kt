@@ -13,7 +13,6 @@ import io.ktor.util.*
 import kotlin.test.*
 
 class DigestProviderTest {
-
     private val path = "path"
 
     private val paramName = "param"
@@ -21,10 +20,13 @@ class DigestProviderTest {
     private val paramValue = "value"
 
     private val authAllFields =
-        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", qop=\"qop\", snonce=\"server-nonce\", cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\", opaque=\"opaque\""
+        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", qop=\"qop\", " +
+            "snonce=\"server-nonce\", cnonce=\"client-nonce\", uri=\"requested-uri\", " +
+            "request=\"client-digest\", message=\"message-digest\", opaque=\"opaque\""
 
     private val authMissingQopAndOpaque =
-        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", snonce=\"server-nonce\", cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\""
+        "Digest algorithm=MD5, username=\"username\", realm=\"realm\", nonce=\"nonce\", snonce=\"server-nonce\", " +
+            "cnonce=\"client-nonce\", uri=\"requested-uri\", request=\"client-digest\", message=\"message-digest\""
 
     private val digestAuthProvider by lazy { DigestAuthProvider("username", "password", "realm") }
 

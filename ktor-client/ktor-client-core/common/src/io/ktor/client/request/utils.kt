@@ -44,7 +44,7 @@ public fun HttpRequestBuilder.cookie(
     secure: Boolean = false,
     httpOnly: Boolean = false,
     extensions: Map<String, String?> = emptyMap()
-): Unit {
+): Unit { // ktlint-disable no-unit-return
     val renderedCookie = Cookie(
         name = name,
         value = value,

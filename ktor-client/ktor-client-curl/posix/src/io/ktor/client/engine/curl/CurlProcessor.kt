@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
 
-
 /**
  * Only set in curl worker thread
  */
@@ -43,7 +42,6 @@ internal class CurlProcessor(
         }
 
         try {
-
             activeRequests.incrementAndGet()
 
             while (deferred.isActive) {

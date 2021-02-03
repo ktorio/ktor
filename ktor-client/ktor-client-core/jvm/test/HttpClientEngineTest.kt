@@ -3,8 +3,8 @@
  */
 
 import io.ktor.client.*
-import io.ktor.client.utils.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.utils.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.test.*

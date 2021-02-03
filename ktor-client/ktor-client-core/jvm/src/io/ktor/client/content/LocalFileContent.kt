@@ -32,6 +32,7 @@ public class LocalFileContent(
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
 public fun LocalFileContent(
-    baseDir: File, relativePath: String,
+    baseDir: File,
+    relativePath: String,
     contentType: ContentType = ContentType.defaultForFilePath(relativePath)
 ): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)

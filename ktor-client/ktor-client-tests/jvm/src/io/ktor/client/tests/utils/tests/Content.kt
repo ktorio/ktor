@@ -23,17 +23,21 @@ internal fun Application.contentTestServer() {
                 call.respond("")
             }
             head("/emptyHead") {
-                call.respond(object : OutgoingContent.NoContent() {
-                    override val contentLength: Long = 150
-                })
+                call.respond(
+                    object : OutgoingContent.NoContent() {
+                        override val contentLength: Long = 150
+                    }
+                )
             }
             get("/hello") {
                 call.respond("hello")
             }
             get("/xxx") {
-                call.respond(buildString {
-                    append("x".repeat(100))
-                })
+                call.respond(
+                    buildString {
+                        append("x".repeat(100))
+                    }
+                )
             }
             post("/echo") {
                 val content = call.request.receiveChannel().toByteArray()
@@ -79,13 +83,15 @@ internal fun Application.contentTestServer() {
                 call.respond(HttpStatusCode.OK)
             }
             get("/stream") {
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        while (true) {
-                            channel.writeInt(42)
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            while (true) {
+                                channel.writeInt(42)
+                            }
                         }
                     }
-                })
+                )
             }
         }
     }

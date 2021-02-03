@@ -41,7 +41,6 @@ public class ResponseObserver(
             ResponseObserver(Config().apply(block).responseHandler)
 
         override fun install(feature: ResponseObserver, scope: HttpClient) {
-
             scope.receivePipeline.intercept(HttpReceivePipeline.After) { response ->
                 val (loggingContent, responseContent) = response.content.split(response)
 

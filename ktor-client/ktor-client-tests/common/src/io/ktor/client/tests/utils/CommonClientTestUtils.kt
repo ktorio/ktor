@@ -64,7 +64,6 @@ public fun <T : HttpClientEngineConfig> testWithEngine(
     loader: ClientLoader? = null,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = testSuspend {
-
     val builder = TestClientBuilder<T>().apply { block() }
 
     if (builder.dumpAfterDelay > 0 && loader != null) {
@@ -126,6 +125,6 @@ public fun TestClientBuilder<*>.test(block: suspend TestInfo.(client: HttpClient
 }
 
 @InternalAPI
-public fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit {
+public fun TestClientBuilder<*>.after(block: suspend (client: HttpClient) -> Unit): Unit { // ktlint-disable no-unit-return
     after = block
 }

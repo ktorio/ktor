@@ -57,6 +57,7 @@ public fun MockRequestHandleScope.respondOk(
 public fun MockRequestHandleScope.respondRedirect(
     location: String = ""
 ): HttpResponseData = respond("", HttpStatusCode.TemporaryRedirect, headersOf(HttpHeaders.Location, location))
+
 /**
  * Send [HttpStatusCode.BadRequest] response.
  */
@@ -90,5 +91,10 @@ public fun MockRequestHandleScope.respond(
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf()
 ): HttpResponseData = HttpResponseData(
-    status, GMTDate(), headers, HttpProtocolVersion.HTTP_1_1, content, callContext
+    status,
+    GMTDate(),
+    headers,
+    HttpProtocolVersion.HTTP_1_1,
+    content,
+    callContext
 )

@@ -28,20 +28,28 @@ import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, applicationEngineEnvironment {
-        sslConnector(keyStore, "sha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-            port = serverPort
-            keyStorePath = keyStoreFile.absoluteFile
+    override val server: ApplicationEngine = embeddedServer(
+        Jetty,
+        applicationEngineEnvironment {
+            sslConnector(
+                keyStore,
+                "sha384ecdsa",
+                { "changeit".toCharArray() },
+                { "changeit".toCharArray() }
+            ) {
+                port = serverPort
+                keyStorePath = keyStoreFile.absoluteFile
 
-            module {
-                routing {
-                    get("/") {
-                        call.respondText("Hello, world")
+                module {
+                    routing {
+                        get("/") {
+                            call.respondText("Hello, world")
+                        }
                     }
                 }
             }
         }
-    })
+    )
 
     companion object {
         val keyStoreFile = File("build/temp.jks")
@@ -86,11 +94,10 @@ class CIOHttpsTest : TestWithKtor() {
             sslContext.init(null, tmf.trustManagers, null)
             x509TrustManager = tmf.trustManagers.first { it is X509TrustManager } as X509TrustManager
         }
-
     }
 
     @Test
-    fun hello(): Unit {
+    fun hello() {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
             /**
              * Outdated by jetty.

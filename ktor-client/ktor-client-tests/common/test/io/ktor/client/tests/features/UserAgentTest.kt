@@ -13,14 +13,15 @@ import kotlin.test.*
 class UserAgentTest {
 
     @Test
-    fun simpleInstallTest()= testWithEngine(MockEngine) {
+    fun simpleInstallTest() = testWithEngine(MockEngine) {
         config {
             BrowserUserAgent()
 
             engine {
                 addHandler { request ->
                     assertEquals(
-                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36",
+                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                            "Ubuntu Chromium/70.0.3538.77 Chrome/70.0.3538.77 Safari/537.36",
                         request.headers[HttpHeaders.UserAgent]
                     )
                     respondOk()

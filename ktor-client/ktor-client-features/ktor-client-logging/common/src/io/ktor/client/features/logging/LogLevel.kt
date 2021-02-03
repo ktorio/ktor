@@ -15,6 +15,6 @@ public enum class LogLevel(
     ALL(true, true, true),
     HEADERS(true, true, false),
     BODY(true, false, true),
-    INFO(true , false, false),
+    INFO(true, false, false),
     NONE(false, false, false)
 }

@@ -34,16 +34,19 @@ class RequestTests : TestWithKtor() {
 
             post("/echo") {
                 val readChannel = call.receive<ByteReadChannel>()
-                call.respond(HttpStatusCode.OK, object : OutgoingContent.ReadChannelContent() {
-                    override val contentType: ContentType
-                        get() = call.request.contentType()
-                    override val contentLength: Long?
-                        get() = call.request.header(HttpHeaders.ContentLength)?.toLong()
+                call.respond(
+                    HttpStatusCode.OK,
+                    object : OutgoingContent.ReadChannelContent() {
+                        override val contentType: ContentType
+                            get() = call.request.contentType()
+                        override val contentLength: Long?
+                            get() = call.request.header(HttpHeaders.ContentLength)?.toLong()
 
-                    override fun readFrom(): ByteReadChannel {
-                        return readChannel
+                        override fun readFrom(): ByteReadChannel {
+                            return readChannel
+                        }
                     }
-                })
+                )
             }
         }
     }
@@ -78,11 +81,13 @@ class RequestTests : TestWithKtor() {
             }
 
             assertFailsWith<ConnectTimeoutException> {
-                clientWithConnectTimeout.get<HttpResponseData>(requestBuilder.apply {
-                    url {
-                        takeFrom("https://google.com")
+                clientWithConnectTimeout.get<HttpResponseData>(
+                    requestBuilder.apply {
+                        url {
+                            takeFrom("https://google.com")
+                        }
                     }
-                })
+                )
             }
         }
     }

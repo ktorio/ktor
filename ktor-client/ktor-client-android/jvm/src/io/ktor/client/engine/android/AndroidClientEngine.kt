@@ -106,7 +106,8 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 }
 
 internal suspend fun OutgoingContent.writeTo(
-    stream: OutputStream, callContext: CoroutineContext
+    stream: OutputStream,
+    callContext: CoroutineContext
 ): Unit = stream.use { blockingOutput ->
     when (this) {
         is OutgoingContent.ByteArrayContent -> blockingOutput.write(bytes())

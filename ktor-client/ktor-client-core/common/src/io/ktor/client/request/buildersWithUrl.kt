@@ -108,6 +108,6 @@ public suspend inline fun <reified T> HttpClient.delete(
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
-public fun HttpRequestBuilder.url(url: Url): Unit {
+public fun HttpRequestBuilder.url(url: Url): Unit { // ktlint-disable no-unit-return
     this.url.takeFrom(url)
 }

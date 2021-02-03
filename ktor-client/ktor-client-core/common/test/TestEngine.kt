@@ -8,7 +8,7 @@ import kotlin.coroutines.*
  * Copyright 2014-2020 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-internal object TestEngine: HttpClientEngine {
+internal object TestEngine : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher
         get() = Dispatchers.Default
 
@@ -25,4 +25,3 @@ internal object TestEngine: HttpClientEngine {
     override fun close() {
     }
 }
-

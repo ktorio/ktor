@@ -15,7 +15,8 @@ import kotlin.coroutines.*
 import okhttp3.Headers as OkHttpHeaders
 
 internal suspend fun OkHttpClient.execute(
-    request: Request, requestData: HttpRequestData
+    request: Request,
+    requestData: HttpRequestData
 ): Response = suspendCancellableCoroutine { continuation ->
     val call = newCall(request)
 
@@ -69,11 +70,12 @@ internal fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
 
 private fun mapOkHttpException(requestData: HttpRequestData, origin: IOException) =
     when (val cause = origin.unwrapOkHttpCancelledException()) {
-        is SocketTimeoutException -> if (cause.isConnectException()) {
-            ConnectTimeoutException(requestData, cause)
-        } else {
-            SocketTimeoutException(requestData, cause)
-        }
+        is SocketTimeoutException ->
+            if (cause.isConnectException()) {
+                ConnectTimeoutException(requestData, cause)
+            } else {
+                SocketTimeoutException(requestData, cause)
+            }
         else -> cause
     }
 

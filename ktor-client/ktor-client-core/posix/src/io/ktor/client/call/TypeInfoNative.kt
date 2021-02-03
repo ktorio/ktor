@@ -6,7 +6,6 @@ package io.ktor.client.call
 
 import kotlin.reflect.*
 
-
 public actual typealias Type = KType
 
 @PublishedApi

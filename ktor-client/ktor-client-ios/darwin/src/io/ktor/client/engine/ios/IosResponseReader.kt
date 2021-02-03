@@ -53,8 +53,12 @@ internal class IosResponseReader(
         val version = HttpProtocolVersion.HTTP_1_1
 
         return HttpResponseData(
-            status, requestTime, headers, version,
-            responseBody, callContext
+            status,
+            requestTime,
+            headers,
+            version,
+            responseBody,
+            callContext
         )
     }
 

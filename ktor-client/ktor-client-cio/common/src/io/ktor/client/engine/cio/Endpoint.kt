@@ -108,7 +108,8 @@ internal class Endpoint(
             val originOutput = this@Endpoint.mapEngineExceptions(connection.output, request)
 
             val output = originOutput.handleHalfClosed(
-                callContext, config.endpoint.allowHalfClose
+                callContext,
+                config.endpoint.allowHalfClose
             )
 
             callContext[Job]!!.invokeOnCompletion { cause ->
@@ -134,8 +135,11 @@ internal class Endpoint(
     }
 
     private suspend fun writeRequestAndReadResponse(
-        request: HttpRequestData, output: ByteWriteChannel, callContext: CoroutineContext,
-        input: ByteReadChannel, originOutput: ByteWriteChannel
+        request: HttpRequestData,
+        output: ByteWriteChannel,
+        callContext: CoroutineContext,
+        input: ByteReadChannel,
+        originOutput: ByteWriteChannel
     ): HttpResponseData {
         val requestTime = GMTDate()
         request.write(output, callContext, proxy != null)
@@ -147,7 +151,8 @@ internal class Endpoint(
         val connection = connect(request)
 
         val pipeline = ConnectionPipeline(
-            config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
+            config.endpoint.keepAliveTime,
+            config.endpoint.pipelineMaxSize,
             connection,
             proxy != null,
             deliveryPoint,
@@ -252,18 +257,19 @@ internal class Endpoint(
 }
 
 private suspend fun <T> CoroutineScope.handleTimeout(
-    timeout: Long, block: suspend CoroutineScope.() -> T
+    timeout: Long,
+    block: suspend CoroutineScope.() -> T
 ): T = if (timeout == HttpTimeout.INFINITE_TIMEOUT_MS) {
     block()
 } else {
     withTimeout(timeout, block)
 }
 
-
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
     "Binary compatibility.",
-    level = DeprecationLevel.HIDDEN, replaceWith = ReplaceWith("FailToConnectException")
+    level = DeprecationLevel.HIDDEN,
+    replaceWith = ReplaceWith("FailToConnectException")
 )
 public open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 

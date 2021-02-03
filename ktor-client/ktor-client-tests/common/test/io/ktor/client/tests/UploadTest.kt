@@ -27,7 +27,7 @@ class UploadTest : ClientLoader() {
     @Test
     fun testUploadWithEmptyContentType() = clientTests {
         test { client ->
-            val result =client.post<String>("$TEST_SERVER/upload/content") {
+            val result = client.post<String>("$TEST_SERVER/upload/content") {
                 body = ByteArrayContent(ByteArray(1024), ContentType("", ""))
             }
 

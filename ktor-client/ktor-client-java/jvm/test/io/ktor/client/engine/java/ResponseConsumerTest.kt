@@ -18,18 +18,20 @@ class ResponseConsumerTest {
     @Test
     fun testConsumeContent() {
         val responseBodyHandler = JavaHttpResponseBodyHandler(EmptyCoroutineContext)
-        val bodySubscriber = responseBodyHandler.apply(object : HttpResponse.ResponseInfo {
-            override fun statusCode() = 200
+        val bodySubscriber = responseBodyHandler.apply(
+            object : HttpResponse.ResponseInfo {
+                override fun statusCode() = 200
 
-            override fun headers() = HttpHeaders.of(
-                mapOf(
-                    io.ktor.http.HttpHeaders.ContentType to listOf("text/plain"),
-                    io.ktor.http.HttpHeaders.ContentLength to listOf("4")
-                )
-            ) { _, _ -> true }
+                override fun headers() = HttpHeaders.of(
+                    mapOf(
+                        io.ktor.http.HttpHeaders.ContentType to listOf("text/plain"),
+                        io.ktor.http.HttpHeaders.ContentLength to listOf("4")
+                    )
+                ) { _, _ -> true }
 
-            override fun version() = HttpClient.Version.HTTP_2
-        })
+                override fun version() = HttpClient.Version.HTTP_2
+            }
+        )
 
         runBlocking {
             bodySubscriber.onNext(

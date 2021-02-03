@@ -18,8 +18,8 @@ class UtilsTest {
         }
 
         val result = mutableMapOf<String, String>()
-        mergeHeaders(headers.build(), EmptyContent) {
-                key, value -> result[key] = value
+        mergeHeaders(headers.build(), EmptyContent) { key, value ->
+            result[key] = value
         }
 
         assertEquals("application/xml,application/json", result["Accept"])

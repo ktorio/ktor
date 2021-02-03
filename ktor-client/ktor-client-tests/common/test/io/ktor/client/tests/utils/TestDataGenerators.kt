@@ -8,7 +8,7 @@ import kotlin.random.*
 
 internal fun generateRandomByteArray(minSize: Int, maxSize: Int = minSize + 1): ByteArray {
     require(minSize >= 0)
-    require(minSize < maxSize) { "Failed to generate in range: [$minSize, $maxSize)"}
+    require(minSize < maxSize) { "Failed to generate in range: [$minSize, $maxSize)" }
 
     val resultSize = Random.nextInt(minSize, maxSize)
     return Random.nextBytes(resultSize)
