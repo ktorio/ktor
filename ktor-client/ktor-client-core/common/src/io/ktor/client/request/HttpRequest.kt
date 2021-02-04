@@ -84,9 +84,10 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         @Deprecated(
             message = "This setter is not typesafe and can lead to problems " +
                 "during serialization. Please use setBody method",
-            replaceWith = ReplaceWith(expression = "setBody"),
+            replaceWith = ReplaceWith(expression = "setBody(body)"),
             level = DeprecationLevel.WARNING
-        ) set
+        )
+        set
 
     /**
      * The [KType] of [body] for this request. Null for default types that don't need serialization.

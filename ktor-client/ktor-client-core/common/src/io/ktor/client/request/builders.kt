@@ -70,14 +70,16 @@ public suspend fun HttpClient.requestRaw(block: HttpRequestBuilder.() -> Unit): 
  * Executes a [HttpClient] request, with the [urlString] and the information configured in builder [block]
  */
 public suspend fun HttpClient.requestRaw(
-    urlString: String, block: HttpRequestBuilder.() -> Unit = {}
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse = request(urlString, block)
 
 /**
  * Executes a [HttpClient] request, with the [url] and the information configured in builder [block]
  */
 public suspend fun HttpClient.requestRaw(
-    url: Url, block: HttpRequestBuilder.() -> Unit = {}
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse = request(url, block)
 
 /**
