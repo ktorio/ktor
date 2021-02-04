@@ -41,7 +41,7 @@ public class MultiPartFormDataContent(
 ) : OutgoingContent.WriteChannelContent() {
     private val boundary: String = generateBoundary()
     private val BOUNDARY_BYTES = "--$boundary\r\n".toByteArray()
-    private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n\r\n".toByteArray()
+    private val LAST_BOUNDARY_BYTES = "--$boundary--\r\n".toByteArray()
 
     private val BODY_OVERHEAD_SIZE = LAST_BOUNDARY_BYTES.size
     private val PART_OVERHEAD_SIZE = RN_BYTES.size * 2 + BOUNDARY_BYTES.size

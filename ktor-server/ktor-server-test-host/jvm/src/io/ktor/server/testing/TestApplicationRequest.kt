@@ -133,7 +133,7 @@ public fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData
                 append("\r\n")
             }
 
-            append("--$boundary--\r\n\r\n")
+            append("--$boundary--\r\n")
         } finally {
             parts.forEach { it.dispose() }
         }
