@@ -8,6 +8,9 @@ import io.ktor.client.*
 import io.ktor.util.*
 import io.ktor.util.converters.DataConversion
 
+/**
+ * Object for installing [io.ktor.util.converters.DataConversion] as feature
+ */
 public object DataConversion : HttpClientFeature<DataConversion.Configuration, DataConversion> {
     override val key: AttributeKey<DataConversion> = AttributeKey("DataConversion")
 

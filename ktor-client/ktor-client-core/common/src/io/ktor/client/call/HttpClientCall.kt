@@ -192,7 +192,7 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
  * [cause] contains origin pipeline exception
  */
 @Suppress("KDocMissingDocumentation", "unused")
-public class ReceivePipelineException constructor(
+public class ReceivePipelineException(
     public val request: HttpClientCall,
     public val info: DeprecatedTypeInfo,
     override val cause: Throwable
