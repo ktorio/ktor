@@ -5,12 +5,12 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.*
 import kotlin.native.concurrent.*
 
 /**
@@ -50,8 +50,13 @@ public class HttpCallValidator internal constructor(
         callExceptionHandlers: List<CallExceptionHandler>
     ) : this(responseValidators, callExceptionHandlers, true)
 
-    private suspend fun validateResponse(response: HttpResponse) {
-        responseValidators.forEach { it(response) }
+    private suspend fun validateResponse(call: HttpClientCall) {
+        val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: expectSuccess
+        responseValidators.forEach {
+            if (it != DefaultValidation || expectSuccess) {
+                it(call.response)
+            }
+        }
     }
 
     private suspend fun processException(cause: Throwable) {
@@ -124,10 +129,7 @@ public class HttpCallValidator internal constructor(
             }
 
             scope[HttpSend].intercept { call, _ ->
-                val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: feature.expectSuccess
-                if (expectSuccess) {
-                    feature.validateResponse(call.response)
-                }
+                feature.validateResponse(call)
                 call
             }
         }
@@ -141,6 +143,9 @@ public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Co
     install(HttpCallValidator, block)
 }
 
+/**
+ * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+ */
 public var HttpRequestBuilder.expectSuccess: Boolean
     get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
