@@ -4,12 +4,11 @@
 
 package io.ktor.client.features.json
 
-import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
-import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
+import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
 
 /**
  * Client json serializer.

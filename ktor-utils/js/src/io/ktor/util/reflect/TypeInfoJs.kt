@@ -6,7 +6,6 @@ package io.ktor.util.reflect
 
 import kotlin.reflect.*
 
-
 public actual interface Type
 
 public object JsType : Type

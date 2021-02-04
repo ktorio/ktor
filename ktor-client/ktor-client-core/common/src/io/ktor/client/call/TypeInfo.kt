@@ -13,7 +13,10 @@ import io.ktor.util.reflect.typeInfo as newTypeInfo
 /**
  * Information about type.
  */
-@Deprecated("This was moved to another package.", replaceWith = ReplaceWith("Type", "io.ktor.util.reflect.Type"))
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("Type", "io.ktor.util.reflect.Type")
+)
 public typealias Type = NewType
 
 /**
@@ -22,7 +25,10 @@ public typealias Type = NewType
  * @param reifiedType: type with substituted generics
  * @param kotlinType: kotlin reified type with all generic type parameters.
  */
-@Deprecated("This was moved to another package.", replaceWith = ReplaceWith("TypeInfo", "io.ktor.util.reflect.TypeInfo"))
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("TypeInfo", "io.ktor.util.reflect.TypeInfo")
+)
 public data class TypeInfo(
     override val type: KClass<*>,
     override val reifiedType: Type,
@@ -32,7 +38,10 @@ public data class TypeInfo(
 /**
  * Returns [TypeInfo] for the specified type [T]
  */
-@Deprecated("This was moved to another package.", replaceWith = ReplaceWith("typeInfo<T>()", "io.ktor.util.reflect.typeInfo"))
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("typeInfo<T>()", "io.ktor.util.reflect.typeInfo")
+)
 public inline fun <reified T> typeInfo(): TypeInfo {
     val info = newTypeInfo<T>()
     return TypeInfo(info.type, info.reifiedType, info.kotlinType)

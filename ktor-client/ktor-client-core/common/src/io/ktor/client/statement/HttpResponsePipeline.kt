@@ -6,8 +6,8 @@ package io.ktor.client.statement
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.util.reflect.TypeInfo
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.TypeInfo
 import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
 
 /**
