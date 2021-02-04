@@ -6,9 +6,9 @@ package io.ktor.util
 
 import io.ktor.features.*
 import io.ktor.http.*
-import java.lang.reflect.*
+import io.ktor.util.converters.DefaultConversionService
+import io.ktor.util.reflect.*
 import kotlin.reflect.*
-import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 /**
@@ -49,15 +49,16 @@ public inline fun Parameters.getOrFail(name: String): String {
  */
 @OptIn(ExperimentalStdlibApi::class)
 public inline fun <reified R : Any> Parameters.getOrFail(name: String): R {
-    return getOrFailImpl(name, R::class, typeOf<R>().toJavaType())
+    return getOrFailImpl(name, typeInfo<R>())
 }
 
 @PublishedApi
-internal fun <R : Any> Parameters.getOrFailImpl(name: String, type: KClass<R>, javaType: Type): R {
+internal fun <R : Any> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
     val values = getAll(name) ?: throw MissingRequestParameterException(name)
     return try {
-        type.cast(DefaultConversionService.fromValues(values, javaType))
+        @Suppress("UNCHECKED_CAST")
+        DefaultConversionService.fromValues(values, typeInfo) as R
     } catch (cause: Exception) {
-        throw ParameterConversionException(name, type.jvmName, cause)
+        throw ParameterConversionException(name, typeInfo.type.jvmName, cause)
     }
 }
