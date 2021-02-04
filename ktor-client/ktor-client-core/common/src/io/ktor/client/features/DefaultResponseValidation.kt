@@ -16,7 +16,7 @@ import kotlin.native.concurrent.*
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
 @SharedImmutable
-internal val DefaultValidation: ResponseValidator = validator@{ response ->
+internal val DefaultValidator: ResponseValidator = validator@{ response ->
     val statusCode = response.status.value
     val originCall = response.call
     if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) {
@@ -44,7 +44,7 @@ internal val DefaultValidation: ResponseValidator = validator@{ response ->
 public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
         expectSuccess = this@addDefaultResponseValidation.expectSuccess
-        validateResponse(DefaultValidation)
+        validateResponse(DefaultValidator)
     }
 }
 

@@ -52,11 +52,11 @@ public class HttpCallValidator internal constructor(
 
     private suspend fun validateResponse(call: HttpClientCall) {
         val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: expectSuccess
-        responseValidators.forEach {
-            if (it != DefaultValidation || expectSuccess) {
-                it(call.response)
-            }
+        val validators = when {
+            expectSuccess -> responseValidators
+            else -> responseValidators.filter { it != DefaultValidator }
         }
+        validators.forEach { it(call.response) }
     }
 
     private suspend fun processException(cause: Throwable) {
@@ -71,7 +71,7 @@ public class HttpCallValidator internal constructor(
         internal val responseExceptionHandlers: MutableList<CallExceptionHandler> = mutableListOf()
 
         /**
-         * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+         * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
          */
         public var expectSuccess: Boolean = true
 
@@ -144,7 +144,7 @@ public fun HttpClientConfig<*>.HttpResponseValidator(block: HttpCallValidator.Co
 }
 
 /**
- * Terminate [HttpClient.receivePipeline] if status code is not success(>=300).
+ * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
  */
 public var HttpRequestBuilder.expectSuccess: Boolean
     get() = attributes.getOrNull(ExpectSuccessAttributeKey) ?: true
