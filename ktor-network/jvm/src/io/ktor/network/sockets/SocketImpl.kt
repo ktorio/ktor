@@ -6,6 +6,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.util.network.*
+import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.nio.channels.*
 
@@ -34,7 +35,15 @@ internal class SocketImpl<out S : SocketChannel>(
         selector.select(this, SelectInterest.CONNECT)
 
         while (true) {
-            if (channel.finishConnect()) break
+            if (channel.finishConnect()) {
+                // TCP has a well known self-connect problem, which client can connect to the client itself
+                // without any program listen on the port.
+                if (selfConnect()) {
+                    this.socket.close()
+                    continue
+                }
+                break
+            }
 
             wantConnect(true)
             selector.select(this, SelectInterest.CONNECT)
@@ -47,5 +56,18 @@ internal class SocketImpl<out S : SocketChannel>(
 
     private fun wantConnect(state: Boolean = true) {
         interestOp(SelectInterest.CONNECT, state)
+    }
+
+    private fun selfConnect(): Boolean {
+        if (this.localAddress == null || this.remoteAddress == null) {
+            throw IllegalStateException("localAddress and remoteAddress should not be null.")
+        }
+
+        val localHostAddress = (this.localAddress as? InetSocketAddress)?.address?.hostAddress ?: ""
+        val remoteHostAddress = (this.remoteAddress as? InetSocketAddress)?.address?.hostAddress ?: ""
+        val isRemoteAnyLocalAddress = (this.remoteAddress as? InetSocketAddress)?.address?.isAnyLocalAddress ?: false
+        val localPort = this.localAddress.port
+        val remotePort = this.remoteAddress.port
+        return localPort == remotePort && (isRemoteAnyLocalAddress || localHostAddress == remoteHostAddress)
     }
 }
