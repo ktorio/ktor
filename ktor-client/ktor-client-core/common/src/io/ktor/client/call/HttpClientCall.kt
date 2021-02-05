@@ -189,11 +189,14 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
  * [cause] contains origin pipeline exception
  */
 @Suppress("KDocMissingDocumentation", "unused")
-public class ReceivePipelineException(
+public class ReceivePipelineException
+@Deprecated("Please use overload with io.ktor.util.reflect.TypeInfo parameter")
+constructor(
     public val request: HttpClientCall,
     public val info: DeprecatedTypeInfo,
     override val cause: Throwable
 ) : IllegalStateException("Fail to run receive pipeline: $cause") {
+
     public constructor(request: HttpClientCall, info: TypeInfo, cause: Throwable) : this(
         request,
         DeprecatedTypeInfo(info.type, info.reifiedType, info.kotlinType),
