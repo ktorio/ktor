@@ -6,6 +6,7 @@ package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.features.HttpCallValidator.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
@@ -50,13 +51,8 @@ public class HttpCallValidator internal constructor(
         callExceptionHandlers: List<CallExceptionHandler>
     ) : this(responseValidators, callExceptionHandlers, true)
 
-    private suspend fun validateResponse(call: HttpClientCall) {
-        val expectSuccess = call.attributes.getOrNull(ExpectSuccessAttributeKey) ?: expectSuccess
-        val validators = when {
-            expectSuccess -> responseValidators
-            else -> responseValidators.filter { it != DefaultValidator }
-        }
-        validators.forEach { it(call.response) }
+    private suspend fun validateResponse(response: HttpResponse) {
+        responseValidators.forEach { it(response) }
     }
 
     private suspend fun processException(cause: Throwable) {
@@ -73,6 +69,11 @@ public class HttpCallValidator internal constructor(
         /**
          * Terminate [HttpClient.receivePipeline] if status code is not successful (>=300).
          */
+
+        @Deprecated(
+            "This property is ignored. Please use `expectSuccess` property in HttpClientConfig. " +
+                "This is going to become internal."
+        )
         public var expectSuccess: Boolean = true
 
         /**
@@ -108,6 +109,7 @@ public class HttpCallValidator internal constructor(
         override fun install(feature: HttpCallValidator, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 try {
+                    context.attributes.computeIfAbsent(ExpectSuccessAttributeKey) { feature.expectSuccess }
                     proceedWith(it)
                 } catch (cause: Throwable) {
                     val unwrappedCause = cause.unwrapCancellationException()
@@ -129,7 +131,7 @@ public class HttpCallValidator internal constructor(
             }
 
             scope[HttpSend].intercept { call, _ ->
-                feature.validateResponse(call)
+                feature.validateResponse(call.response)
                 call
             }
         }
@@ -151,4 +153,4 @@ public var HttpRequestBuilder.expectSuccess: Boolean
     set(value) = attributes.put(ExpectSuccessAttributeKey, value)
 
 @SharedImmutable
-private val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")
+internal val ExpectSuccessAttributeKey = AttributeKey<Boolean>("ExpectSuccessAttribyteKey")

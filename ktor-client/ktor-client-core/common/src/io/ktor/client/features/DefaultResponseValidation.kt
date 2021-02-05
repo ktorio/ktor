@@ -15,36 +15,40 @@ import kotlin.native.concurrent.*
 @SharedImmutable
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 
-@SharedImmutable
-internal val DefaultValidator: ResponseValidator = validator@{ response ->
-    val statusCode = response.status.value
-    val originCall = response.call
-    if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) {
-        return@validator
-    }
-
-    val exceptionCall = originCall.save().apply {
-        attributes.put(ValidateMark, Unit)
-    }
-
-    val exceptionResponse = exceptionCall.response
-    val exceptionResponseText = exceptionResponse.readText()
-    when (statusCode) {
-        in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
-        in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
-        in 500..599 -> throw ServerResponseException(exceptionResponse, exceptionResponseText)
-        else -> throw ResponseException(exceptionResponse, exceptionResponseText)
-    }
-}
-
 /**
  * Default response validation.
  * Check the response status code in range (0..299).
  */
 public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
+        @Suppress("DEPRECATION")
         expectSuccess = this@addDefaultResponseValidation.expectSuccess
-        validateResponse(DefaultValidator)
+
+        validateResponse { response ->
+            val expectSuccess = response.call.attributes[ExpectSuccessAttributeKey]
+            if (!expectSuccess) {
+                return@validateResponse
+            }
+
+            val statusCode = response.status.value
+            val originCall = response.call
+            if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) {
+                return@validateResponse
+            }
+
+            val exceptionCall = originCall.save().apply {
+                attributes.put(ValidateMark, Unit)
+            }
+
+            val exceptionResponse = exceptionCall.response
+            val exceptionResponseText = exceptionResponse.readText()
+            when (statusCode) {
+                in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
+                in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
+                in 500..599 -> throw ServerResponseException(exceptionResponse, exceptionResponseText)
+                else -> throw ResponseException(exceptionResponse, exceptionResponseText)
+            }
+        }
     }
 }
 
