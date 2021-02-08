@@ -21,12 +21,20 @@ private val ValidateMark = AttributeKey<Unit>("ValidateMark")
  */
 public fun HttpClientConfig<*>.addDefaultResponseValidation() {
     HttpResponseValidator {
+        @Suppress("DEPRECATION")
         expectSuccess = this@addDefaultResponseValidation.expectSuccess
 
         validateResponse { response ->
+            val expectSuccess = response.call.attributes[ExpectSuccessAttributeKey]
+            if (!expectSuccess) {
+                return@validateResponse
+            }
+
             val statusCode = response.status.value
             val originCall = response.call
-            if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) return@validateResponse
+            if (statusCode < 300 || originCall.attributes.contains(ValidateMark)) {
+                return@validateResponse
+            }
 
             val exceptionCall = originCall.save().apply {
                 attributes.put(ValidateMark, Unit)

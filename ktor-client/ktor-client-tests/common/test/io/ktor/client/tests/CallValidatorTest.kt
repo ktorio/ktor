@@ -316,6 +316,88 @@ class CallValidatorTest {
             }
         }
     }
+
+    @Test
+    fun testCustomResponseValidationRunsAfterDefault() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("Should not throw")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals(900, cause.response.status.value)
+                assertEquals("Awesome response", cause.response.receive())
+            }
+        }
+    }
+
+    @Test
+    fun testCustomResponseValidationWithoutDefault() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = false
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("My custom error")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String>()
+                fail("Should fail")
+            } catch (cause: IllegalStateException) {
+                assertEquals("My custom error", cause.message)
+            }
+        }
+    }
+
+    @Test
+    fun testCustomResponseValidationWithoutDefaultPerRequestLevel() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler {
+                    val status = HttpStatusCode(900, "Awesome code")
+                    respond("Awesome response", status)
+                }
+            }
+            HttpResponseValidator {
+                validateResponse {
+                    throw IllegalStateException("My custom error")
+                }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get<String> { expectSuccess = false }
+                fail("Should fail")
+            } catch (cause: IllegalStateException) {
+                assertEquals("My custom error", cause.message)
+            }
+        }
+    }
 }
 
 internal class CallValidatorTestException : Throwable()
