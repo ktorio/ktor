@@ -16,7 +16,7 @@ def pomConfig = {
     }
 
     scm {
-        url "https://github.com/ktorio/ktor.git"
+        url "https://github.com/BuddyTV/ktor.git"
     }
 }
 
@@ -24,6 +24,6 @@ project.ext.configureMavenCentralMetadata = { pom ->
     def root = asNode()
     root.appendNode('name', project.name)
     root.appendNode('description', 'Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.')
-    root.appendNode('url', 'https://github.com/ktorio/ktor')
+    root.appendNode('url', 'https://github.com/BuddyTV/ktor')
     root.children().last() + pomConfig
 }
