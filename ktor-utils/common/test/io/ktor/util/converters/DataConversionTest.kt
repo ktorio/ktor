@@ -36,32 +36,42 @@ class DataConversionTest {
         assertEquals(listOf("1", "2"), toValues)
     }
 
-    data class EntityID(val typeId: Int, val entityId: Int)
+    data class EntityID1(val typeId: Int, val entityId: Int)
+    data class EntityID2(val typeId: String, val entityId: String)
 
     @Test
     fun testInstalledConversion() {
         val config = DataConversion.Configuration().apply {
-            convert<EntityID> {
-                decode { values, _ ->
+            convert<EntityID1> {
+                decode { values ->
                     val (typeId, entityId) = values.single().split('-').map { it.toInt() }
-                    EntityID(typeId, entityId)
+                    EntityID1(typeId, entityId)
                 }
 
-                encode { value ->
-                    when (value) {
-                        null -> listOf()
-                        is EntityID -> listOf("${value.typeId}-${value.entityId}")
-                        else -> throw DataConversionException("Cannot convert $value as EntityID")
-                    }
+                encode { value -> listOf("${value.typeId}-${value.entityId}") }
+            }
+            convert<EntityID2> {
+                decode { values ->
+                    val (typeId, entityId) = values.single().split('-')
+                    EntityID2(typeId, entityId)
                 }
+
+                encode { value -> listOf("${value.typeId}-${value.entityId}") }
             }
         }
 
         val dataConversion = DataConversion(config)
-        val id = dataConversion.fromValues(listOf("42-999"), typeInfo<EntityID>())
-        assertEquals(EntityID(42, 999), id)
 
-        val converted = dataConversion.toValues(EntityID(42, 999))
-        assertEquals(listOf("42-999"), converted)
+        val id1 = dataConversion.fromValues(listOf("42-999"), typeInfo<EntityID1>())
+        assertEquals(EntityID1(42, 999), id1)
+
+        val id2 = dataConversion.fromValues(listOf("42-999"), typeInfo<EntityID2>())
+        assertEquals(EntityID2("42", "999"), id2)
+
+        val converted1 = dataConversion.toValues(EntityID1(42, 999))
+        assertEquals(listOf("42-999"), converted1)
+
+        val converted2 = dataConversion.toValues(EntityID2("42", "999"))
+        assertEquals(listOf("42-999"), converted2)
     }
 }

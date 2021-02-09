@@ -601,10 +601,15 @@ public final class io/ktor/util/converters/DefaultConversionService : io/ktor/ut
 }
 
 public final class io/ktor/util/converters/DelegatingConversionService : io/ktor/util/converters/ConversionService {
-	public final fun decode (Lkotlin/jvm/functions/Function2;)V
-	public final fun encode (Lkotlin/jvm/functions/Function1;)V
+	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
 	public fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public fun toValues (Ljava/lang/Object;)Ljava/util/List;
+}
+
+public final class io/ktor/util/converters/DelegatingConversionService$Configuration {
+	public fun <init> (Lkotlin/reflect/KClass;)V
+	public final fun decode (Lkotlin/jvm/functions/Function1;)V
+	public final fun encode (Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/util/date/DateJvmKt {

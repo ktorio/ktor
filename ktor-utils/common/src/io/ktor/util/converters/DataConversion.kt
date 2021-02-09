@@ -15,6 +15,9 @@ public class DataConversion(configuration: Configuration) : ConversionService {
     private val converters: Map<KClass<*>, ConversionService> = configuration.converters.toMap()
 
     override fun fromValues(values: List<String>, type: TypeInfo): Any? {
+        if (values.isEmpty()) {
+            return null
+        }
         val converter = converters[type.type] ?: DefaultConversionService
         return converter.fromValues(values, type)
     }
@@ -32,7 +35,7 @@ public class DataConversion(configuration: Configuration) : ConversionService {
         internal val converters = mutableMapOf<KClass<*>, ConversionService>()
 
         /**
-         * Register a [convertor] for [ktype] type
+         * Register a [convertor] for [type] type
          */
         public fun convert(type: KClass<*>, convertor: ConversionService) {
             converters[type] = convertor
@@ -41,53 +44,72 @@ public class DataConversion(configuration: Configuration) : ConversionService {
         /**
          * Register and [configure] convertor for type [klass]
          */
-        public fun convert(type: KType, configure: DelegatingConversionService.() -> Unit) {
-            val klass = type.classifier as KClass<*>
-            convert(klass, DelegatingConversionService(klass).apply(configure))
+        @Suppress("UNCHECKED_CAST")
+        public fun <T : Any> convert(type: KType, configure: DelegatingConversionService.Configuration<T>.() -> Unit) {
+            val klass = type.classifier as KClass<T>
+            val configuration = DelegatingConversionService.Configuration(klass).apply(configure)
+
+            val service = DelegatingConversionService(
+                klass,
+                configuration.decoder,
+                configuration.encoder as ((Any?) -> List<String>)?
+            )
+            convert(klass, service)
         }
 
         /**
          * Register and [configure] convertor for reified type [T]
          */
         @OptIn(ExperimentalStdlibApi::class)
-        public inline fun <reified T> convert(noinline configure: DelegatingConversionService.() -> Unit): Unit =
-            convert(typeOf<T>(), configure)
+        public inline fun <reified T : Any> convert(
+            noinline configure: DelegatingConversionService.Configuration<T>.() -> Unit
+        ): Unit = convert(typeOf<T>(), configure)
     }
 }
 
 /**
- * Custom convertor builder to be used in [DataConversion.Configuration]
+ * Implementation of [ConversionService] that delegates [fromValues] and [toValues] to [decoder] and [encoder]
  */
-public class DelegatingConversionService internal constructor(private val kClass: KClass<*>) : ConversionService {
-
-    private var decoder: ((values: List<String>, type: TypeInfo) -> Any?)? = null
-    private var encoder: ((value: Any?) -> List<String>)? = null
-
-    /**
-     * Configure decoder function. Only one decoder could be supplied
-     * @throws IllegalStateException
-     */
-    public fun decode(converter: (values: List<String>, type: TypeInfo) -> Any?) {
-        if (decoder != null) throw IllegalStateException("Decoder has already been set for type '$kClass'")
-        decoder = converter
-    }
-
-    /**
-     * Configure encoder function. Only one encoder could be supplied
-     * @throws IllegalStateException
-     */
-    public fun encode(converter: (value: Any?) -> List<String>) {
-        if (encoder != null) throw IllegalStateException("Encoder has already been set for type '$kClass'")
-        encoder = converter
-    }
+public class DelegatingConversionService(
+    private val klass: KClass<*>,
+    private val decoder: ((values: List<String>) -> Any?)?,
+    private val encoder: ((value: Any?) -> List<String>)?,
+) : ConversionService {
 
     override fun fromValues(values: List<String>, type: TypeInfo): Any? {
-        val decoder = decoder ?: throw DataConversionException("Decoder was not specified for class '$kClass'")
-        return decoder(values, type)
+        if (decoder == null) throw IllegalStateException("Decoder was not specified for type '$klass'")
+        return decoder!!(values)
     }
 
     override fun toValues(value: Any?): List<String> {
-        val encoder = encoder ?: throw DataConversionException("Encoder was not specified for class '$kClass'")
-        return encoder(value)
+        if (encoder == null) throw IllegalStateException("Encoder was not specified for type '$klass'")
+        return encoder!!(value)
+    }
+
+    /**
+     * Custom convertor builder to be used in [DataConversion.Configuration]
+     */
+    public class Configuration<T : Any> @PublishedApi internal constructor(internal val klass: KClass<T>) {
+
+        internal var decoder: ((values: List<String>) -> T)? = null
+        internal var encoder: ((value: T) -> List<String>)? = null
+
+        /**
+         * Configure decoder function. Only one decoder could be supplied
+         * @throws IllegalStateException
+         */
+        public fun decode(converter: (values: List<String>) -> T) {
+            if (decoder != null) throw IllegalStateException("Decoder has already been set for type '$klass'")
+            decoder = converter
+        }
+
+        /**
+         * Configure encoder function. Only one encoder could be supplied
+         * @throws IllegalStateException
+         */
+        public fun encode(converter: (value: T) -> List<String>) {
+            if (encoder != null) throw IllegalStateException("Encoder has already been set for type '$klass'")
+            encoder = converter
+        }
     }
 }
