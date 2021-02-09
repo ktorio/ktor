@@ -399,21 +399,6 @@ public final class io/ktor/util/ThrowableKt {
 	public static final fun getRootCause (Ljava/lang/Throwable;)Ljava/lang/Throwable;
 }
 
-public class io/ktor/util/TypeBase {
-	public fun <init> ()V
-}
-
-public abstract interface class io/ktor/util/TypeInfo {
-	public abstract fun getKotlinType ()Lkotlin/reflect/KType;
-	public abstract fun getReifiedType ()Ljava/lang/reflect/Type;
-	public abstract fun getType ()Lkotlin/reflect/KClass;
-}
-
-public final class io/ktor/util/TypeInfoJvmKt {
-	public static final fun instanceOf (Ljava/lang/Object;Lkotlin/reflect/KClass;)Z
-	public static final fun typeInfoImpl (Ljava/lang/reflect/Type;Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)Lio/ktor/util/TypeInfo;
-}
-
 public final class io/ktor/util/cio/ByteBufferPool : io/ktor/utils/io/pool/DefaultPool {
 	public fun <init> ()V
 	public synthetic fun clearInstance (Ljava/lang/Object;)Ljava/lang/Object;
@@ -616,7 +601,6 @@ public final class io/ktor/util/converters/DefaultConversionService : io/ktor/ut
 }
 
 public final class io/ktor/util/converters/DelegatingConversionService : io/ktor/util/converters/ConversionService {
-	public fun <init> (Lkotlin/reflect/KClass;)V
 	public final fun decode (Lkotlin/jvm/functions/Function2;)V
 	public final fun encode (Lkotlin/jvm/functions/Function1;)V
 	public fun fromValues (Ljava/util/List;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;

@@ -56,9 +56,9 @@ public class DataConversion(configuration: Configuration) : ConversionService {
 }
 
 /**
- * Custom convertor builder
+ * Custom convertor builder to be used in [DataConversion.Configuration]
  */
-public class DelegatingConversionService(private val kClass: KClass<*>) : ConversionService {
+public class DelegatingConversionService internal constructor(private val kClass: KClass<*>) : ConversionService {
 
     private var decoder: ((values: List<String>, type: TypeInfo) -> Any?)? = null
     private var encoder: ((value: Any?) -> List<String>)? = null

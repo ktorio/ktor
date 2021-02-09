@@ -19,6 +19,13 @@ import io.ktor.util.reflect.typeInfo as newTypeInfo
 )
 public typealias Type = NewType
 
+@Deprecated(
+    "This was moved to another package.",
+    replaceWith = ReplaceWith("TypeBase", "io.ktor.util.reflect.TypeBase")
+)
+@PublishedApi
+internal open class TypeBase<T>
+
 /**
  * Ktor type information.
  * @param type: source KClass<*>
