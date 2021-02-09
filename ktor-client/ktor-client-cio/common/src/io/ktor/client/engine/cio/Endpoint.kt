@@ -122,7 +122,7 @@ internal class Endpoint(
                 }
             }
 
-            val timeout = config.requestTimeout
+            val timeout = getRequestTimeout(request.getCapabilityOrNull(HttpTimeout))
 
             val responseData = handleTimeout(timeout) {
                 writeRequestAndReadResponse(request, output, callContext, input, originOutput)
@@ -131,6 +131,14 @@ internal class Endpoint(
             response.complete(responseData)
         } catch (cause: Throwable) {
             response.completeExceptionally(cause.mapToKtor(request))
+        }
+    }
+
+    private fun getRequestTimeout(configuration: HttpTimeout.HttpTimeoutCapabilityConfiguration?): Long {
+        return if (configuration?.requestTimeoutMillis != null) {
+            configuration.requestTimeoutMillis as Long
+        } else {
+            config.requestTimeout
         }
     }
 
