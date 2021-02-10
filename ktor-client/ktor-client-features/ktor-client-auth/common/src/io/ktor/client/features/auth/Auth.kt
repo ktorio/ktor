@@ -50,6 +50,7 @@ public class Auth(
 
                     val request = HttpRequestBuilder()
                     request.takeFromWithExecutionContext(context)
+                    request.attributes.put(AuthHeaderAttribute, authHeader)
                     provider.addRequestHeaders(request)
                     request.attributes.put(circuitBreaker, Unit)
 
@@ -67,3 +68,11 @@ public class Auth(
 public fun HttpClientConfig<*>.Auth(block: Auth.() -> Unit) {
     install(Auth, block)
 }
+
+/**
+ * AuthHeader from the previous unsuccessful request. This actually should be passed as
+ * parameter to AuthProvider.addRequestHeaders instead in the future and the attribute will
+ * be removed after that.
+ */
+@PublicAPICandidate("1.6.0")
+internal val AuthHeaderAttribute = AttributeKey<HttpAuthHeader>("AuthHeader")

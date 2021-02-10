@@ -57,6 +57,32 @@ class DigestProviderTest {
     }
 
     @Test
+    fun addRequestHeadersMissingRealm() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", null)
+        val authHeader = parseAuthorizationHeader(authAllFields)!!
+        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
+
+        assertTrue(providerWithoutRealm.isApplicable(authHeader))
+        providerWithoutRealm.addRequestHeaders(requestBuilder)
+
+        val resultAuthHeader = requestBuilder.headers[HttpHeaders.Authorization]!!
+        checkStandardFields(resultAuthHeader)
+    }
+
+    @Test
+    fun addRequestHeadersChangedRealm() = testSuspend {
+        if (!PlatformUtils.IS_JVM) return@testSuspend
+
+        val providerWithoutRealm = DigestAuthProvider("username", "pass", "wrong!")
+        val authHeader = parseAuthorizationHeader(authAllFields)!!
+        requestBuilder.attributes.put(AuthHeaderAttribute, authHeader)
+
+        assertFalse(providerWithoutRealm.isApplicable(authHeader))
+    }
+
+    @Test
     fun addRequestHeadersOmitsQopAndOpaqueWhenMissing() = testSuspend {
         if (!PlatformUtils.IS_JVM) return@testSuspend
 
