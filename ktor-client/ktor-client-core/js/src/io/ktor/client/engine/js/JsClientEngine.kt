@@ -6,6 +6,7 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
+import io.ktor.client.engine.js.node.*
 import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
@@ -55,12 +56,6 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         )
     }
 
-    private fun createWebSocket(urlString: String): WebSocket = if (PlatformUtils.IS_NODE) {
-        NodeWebsocket(urlString)
-    } else {
-        WebSocket(urlString)
-    }
-
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
         callContext: CoroutineContext
@@ -68,7 +63,11 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket: WebSocket = createWebSocket(urlString)
+        val socket = if (PlatformUtils.IS_NODE) {
+            NodeWebsocket(urlString)
+        } else {
+            WebSocket(urlString)
+        }
 
         try {
             socket.awaitConnection()
@@ -126,7 +125,3 @@ private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
  * @property origin: fail reason
  */
 public class JsError(public val origin: dynamic) : Throwable("Error from javascript[$origin].")
-
-@JsModule("ws")
-@JsNonModule
-private external class NodeWebsocket(url: String) : WebSocket

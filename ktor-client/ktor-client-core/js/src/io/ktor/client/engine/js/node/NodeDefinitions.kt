@@ -5,6 +5,7 @@
 package io.ktor.client.engine.js.node
 
 import io.ktor.client.engine.js.compatibility.*
+import org.w3c.dom.*
 import org.w3c.fetch.*
 import kotlin.js.*
 
@@ -21,7 +22,8 @@ internal external object NodeFetch {
 @JsModule("abort-controller")
 @JsNonModule
 @JsName("AbortController")
-internal external class NodeAbortController: AbortController {
-    override var signal: AbortSignal
-    override fun abort()
-}
+internal external class NodeAbortController : AbortController
+
+@JsModule("ws")
+@JsNonModule
+internal external class NodeWebsocket(url: String, protocols: dynamic = definedExternally) : WebSocket

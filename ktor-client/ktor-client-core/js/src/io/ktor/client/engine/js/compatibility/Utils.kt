@@ -10,16 +10,19 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.browser.*
 import kotlinx.coroutines.*
-import org.w3c.dom.events.*
 import org.w3c.fetch.*
 import kotlin.coroutines.*
-import kotlin.js.Promise
+import kotlin.js.*
 
 internal suspend fun commonFetch(
     input: String,
     init: RequestInit
 ): Response = suspendCancellableCoroutine { continuation ->
-    val controller = AbortController()
+    val controller = if (PlatformUtils.IS_BROWSER) {
+        AbortController()
+    } else {
+        NodeAbortController()
+    }
     init.signal = controller.signal
 
     continuation.invokeOnCancellation {
@@ -42,46 +45,10 @@ internal suspend fun commonFetch(
     )
 }
 
-internal fun AbortController(): AbortController {
-    return if (PlatformUtils.IS_BROWSER) {
-        js("new AbortController()") as AbortController
-    } else {
-        NodeAbortController()
-    }
-}
-
 internal fun CoroutineScope.readBody(
     response: Response
 ): ByteReadChannel = if (PlatformUtils.IS_BROWSER) {
     readBodyBrowser(response)
 } else {
     readBodyNode(response)
-}
-
-// https://youtrack.jetbrains.com/issue/KT-29243
-/**
- * https://fetch.spec.whatwg.org/#dom-request-signal
- */
-internal var RequestInit.signal: AbortSignal
-    get() = asDynamic().signal as AbortSignal
-    set(newValue) {
-        asDynamic().signal = newValue
-    }
-
-/**
- * Exposes the JavaScript [AbortController](https://dom.spec.whatwg.org/#interface-abortcontroller) to Kotlin
- */
-internal external interface AbortController {
-    var signal: AbortSignal
-    fun abort()
-}
-
-/**
- * Exposes the JavaScript [AbortSignal](https://dom.spec.whatwg.org/#interface-AbortSignal) to Kotlin
- */
-internal abstract external class AbortSignal : EventTarget {
-    var aborted: Boolean
-    var onabort: ((AbortSignal, ev: Event) -> Any)?
-        get() = definedExternally
-        set(value) = definedExternally
 }
