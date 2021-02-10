@@ -63,7 +63,7 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
             }
 
             environment.connectors.forEach { connectorSpec ->
-                val connector = startConnector(connectorSpec.port)
+                val connector = startConnector(connectorSpec.host, connectorSpec.port)
                 connectors.add(connector)
             }
 
@@ -149,8 +149,9 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
         }
     }
 
-    private fun CoroutineScope.startConnector(port: Int): HttpServer {
+    private fun CoroutineScope.startConnector(host: String, port: Int): HttpServer {
         val settings = HttpServerSettings(
+            host = host,
             port = port,
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
