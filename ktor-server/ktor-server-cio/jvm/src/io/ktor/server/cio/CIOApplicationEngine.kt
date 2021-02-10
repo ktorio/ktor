@@ -5,13 +5,13 @@
 package io.ktor.server.cio
 
 import io.ktor.application.*
+import io.ktor.http.cio.*
 import io.ktor.server.cio.backend.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.scheduling.*
-import java.net.*
 
 /**
  * Engine that based on CIO backend
@@ -43,33 +43,39 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
     @OptIn(InternalCoroutinesApi::class)
     private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
+    private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()
 
     private val serverJob = CoroutineScope(
         environment.parentCoroutineContext + engineDispatcher
     ).launch(start = CoroutineStart.LAZY) {
-        // starting
-        withContext(userDispatcher) {
-            environment.start()
-        }
-
         val connectors = ArrayList<HttpServer>(environment.connectors.size)
 
         try {
             environment.connectors.forEach { connectorSpec ->
                 if (connectorSpec.type == ConnectorType.HTTPS) {
-                    throw UnsupportedOperationException("HTTPS is not supported")
+                    throw UnsupportedOperationException("HTTPS is not supported by CIO engine")
                 }
-                val connector = startConnector(connectorSpec.port)
+            }
 
+            withContext(userDispatcher) {
+                environment.start()
+            }
+
+            environment.connectors.forEach { connectorSpec ->
+                val connector = startConnector(connectorSpec.port)
                 connectors.add(connector)
             }
+
+            connectors.map { it.serverSocket }.awaitAll()
         } catch (cause: Throwable) {
             connectors.forEach { it.rootServerJob.cancel() }
             stopRequest.completeExceptionally(cause)
+            startupJob.completeExceptionally(cause)
             throw cause
         }
 
+        startupJob.complete(Unit)
         stopRequest.join()
 
         // stopping
@@ -80,21 +86,25 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
         }
     }
 
-    private val scope: CoroutineScope =
-        CoroutineScope(environment.parentCoroutineContext + engineDispatcher + serverJob)
-
-    override fun start(wait: Boolean): ApplicationEngine {
-        serverJob.start()
-        serverJob.invokeOnCompletion {
+    init {
+        serverJob.invokeOnCompletion { cause ->
+            cause?.let { stopRequest.completeExceptionally(cause) }
+            cause?.let { startupJob.completeExceptionally(cause) }
             try {
                 environment.stop()
             } finally {
                 userDispatcher.completeShutdown()
             }
         }
+    }
 
-        if (wait) {
-            runBlocking {
+    override fun start(wait: Boolean): ApplicationEngine {
+        serverJob.start()
+
+        runBlocking {
+            startupJob.await()
+
+            if (wait) {
                 serverJob.join()
             }
         }
@@ -139,31 +149,38 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
         }
     }
 
-    private fun startConnector(port: Int): HttpServer {
+    private fun CoroutineScope.startConnector(port: Int): HttpServer {
         val settings = HttpServerSettings(
             port = port,
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        val server = scope.httpServer(settings) { request ->
-            withContext(userDispatcher) {
-                val call = CIOApplicationCall(
-                    application, request, input, output,
-                    engineDispatcher, userDispatcher, upgraded,
-                    remoteAddress,
-                    localAddress
-                )
+        return httpServer(settings) { request ->
+            handleRequest(request)
+        }
+    }
 
-                try {
-                    pipeline.execute(call)
-                } catch (error: Exception) {
-                    handleFailure(call, error)
-                } finally {
-                    call.release()
-                }
+    private suspend fun ServerRequestScope.handleRequest(request: Request) {
+        withContext(userDispatcher) {
+            val call = CIOApplicationCall(
+                application,
+                request,
+                input,
+                output,
+                engineDispatcher,
+                userDispatcher,
+                upgraded,
+                remoteAddress,
+                localAddress
+            )
+
+            try {
+                pipeline.execute(call)
+            } catch (error: Exception) {
+                handleFailure(call, error)
+            } finally {
+                call.release()
             }
         }
-
-        return server
     }
 }
