@@ -43,6 +43,7 @@ public object DefaultConversionService : ConversionService {
                     Double::class,
                     Long::class,
                     Short::class,
+                    Char::class,
                     Boolean::class,
                     String::class -> listOf(value.toString())
                     else -> throw DataConversionException(
@@ -94,6 +95,7 @@ public object DefaultConversionService : ConversionService {
         Double::class -> value.toDouble()
         Long::class -> value.toLong()
         Short::class -> value.toShort()
+        Char::class -> value.single()
         Boolean::class -> value.toBoolean()
         String::class -> value
         else -> null
