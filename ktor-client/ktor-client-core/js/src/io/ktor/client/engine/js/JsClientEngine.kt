@@ -6,6 +6,7 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
+import io.ktor.client.engine.js.node.*
 import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
@@ -55,17 +56,6 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         )
     }
 
-    // Adding "_capturingHack" to reduce chances of JS IR backend to rename variable,
-    // so it can be accessed inside js("") function
-    private fun createWebSocket(urlString_capturingHack: String): WebSocket {
-        return if (PlatformUtils.IS_NODE) {
-            val ws_capturingHack = js("require('ws')")
-            js("new ws_capturingHack(urlString_capturingHack)")
-        } else {
-            js("new WebSocket(urlString_capturingHack)")
-        }
-    }
-
     private suspend fun executeWebSocketRequest(
         request: HttpRequestData,
         callContext: CoroutineContext
@@ -73,7 +63,11 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket: WebSocket = createWebSocket(urlString)
+        val socket = if (PlatformUtils.IS_NODE) {
+            NodeWebsocket(urlString)
+        } else {
+            WebSocket(urlString)
+        }
 
         try {
             socket.awaitConnection()
@@ -118,7 +112,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     }
 }
 
-private fun io.ktor.client.fetch.Headers.mapToKtor(): Headers = buildHeaders {
+private fun org.w3c.fetch.Headers.mapToKtor(): Headers = buildHeaders {
     this@mapToKtor.asDynamic().forEach { value: String, key: String ->
         append(key, value)
     }
