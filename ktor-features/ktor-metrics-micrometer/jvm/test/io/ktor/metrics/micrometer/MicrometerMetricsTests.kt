@@ -20,13 +20,12 @@ import kotlin.reflect.*
 import kotlin.test.*
 
 class MicrometerMetricsTests {
-
-    var noHandlerHandledReqeust = false
-    var throwableCaughtInEngine: Throwable? = null
+    private var noHandlerHandledRequest = false
+    private var throwableCaughtInEngine: Throwable? = null
 
     @BeforeTest
     fun reset() {
-        noHandlerHandledReqeust = false
+        noHandlerHandledRequest = false
         throwableCaughtInEngine = null
     }
 
@@ -226,7 +225,7 @@ class MicrometerMetricsTests {
         }
 
         assertNull(throwableCaughtInEngine)
-        assertTrue(noHandlerHandledReqeust)
+        assertTrue(noHandlerHandledRequest)
     }
 
     @Test
@@ -259,7 +258,7 @@ class MicrometerMetricsTests {
             }
 
             assertNull(throwableCaughtInEngine)
-            assertTrue(noHandlerHandledReqeust)
+            assertTrue(noHandlerHandledRequest)
         }
 
     private fun TestApplicationEngine.installDefaultBehaviour() {
@@ -267,7 +266,7 @@ class MicrometerMetricsTests {
             try {
                 call.application.execute(call)
                 if (call.response.status() == HttpStatusCode.NotFound) {
-                    noHandlerHandledReqeust = true
+                    noHandlerHandledRequest = true
                 }
             } catch (t: Throwable) {
                 throwableCaughtInEngine = t
