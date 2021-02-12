@@ -7,14 +7,17 @@ package io.ktor.network.sockets.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.SocketImpl
 import io.ktor.utils.io.*
+import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.rules.*
-import java.net.InetSocketAddress
+import java.net.*
 import java.net.ServerSocket
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.test.*
@@ -94,48 +97,51 @@ class ClientSocketTest {
 
     @Test
     fun testSelfConnect() {
-        runBlocking {
-            // Find a port that would be used as a local address.
-            val port = getAvailablePort()
+        val selector = mockk<SelectorManager>()
+        coEvery { selector.select(any(), any()) } just Runs
 
-            val tcpSocketBuilder = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp()
-            // Try to connect to that address repeatedly.
-            for (i in 0 until 100000) {
-                try {
-                    val socket = tcpSocketBuilder.connect(InetSocketAddress("127.0.0.1", port))
-                    fail("connect to self succeed: ${socket.localAddress} to ${socket.remoteAddress}")
-                } catch (ex: Exception) {
-                    // ignore
-                }
+        val channel = mockk<SocketChannel>()
+        every { channel.socket() } returns mockSocket(
+            local = mockSocketAddress("client", 1),
+            remote = mockSocketAddress("client", 1),
+            channel = channel
+        )
+        every { channel.isBlocking } returns false
+        every { channel.connect(any()) } returns false
+        every { channel.isOpen } returns true
+        every { channel.finishConnect() } answers {
+            if (!channel.isOpen) throw ClosedChannelException()
+            true
+        }
+        every { channel.close() } answers {
+            every { channel.isOpen } returns false
+        }
+
+        runBlocking {
+            assertFailsWith<ClosedChannelException>(
+                "Channel should be closed if local and remote addresses of client socket match"
+            ) {
+                SocketImpl(channel, channel.socket(), selector).connect(
+                    mockSocketAddress("server", 2)
+                )
             }
         }
     }
 
-    // since new linux kernel version introduce a feature, new bind port number will always be odd number
-    // and connect port will always be even, so we find a random even port with while loop
-    // see https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=07f4c90062f8fc7c8c26f8f95324cbe8fa3145a5
-    private fun getAvailablePort(): Int {
-        while (true) {
-            val port = ServerSocket().apply {
-                bind(InetSocketAddress("127.0.0.1", 0))
-                close()
-            }.localPort
+    private fun mockSocket(local: SocketAddress, remote: SocketAddress, channel: SocketChannel): java.net.Socket {
+        val socket = mockk<java.net.Socket>()
+        every { socket.localSocketAddress } returns local
+        every { socket.remoteSocketAddress } returns remote
+        every { socket.close() } answers { channel.close() }
+        return socket
+    }
 
-            if (port % 2 == 0) {
-                return port
-            }
-
-            try {
-                // try bind the next even port
-                ServerSocket().apply {
-                    bind(InetSocketAddress("127.0.0.1", port + 1))
-                    close()
-                }
-                return port + 1
-            } catch (ex: Exception) {
-                // ignore
-            }
-        }
+    private fun mockSocketAddress(hostAddress: String, port: Int): InetSocketAddress {
+        val address = mockk<InetSocketAddress>()
+        every { address.port } returns port
+        every { address.address?.hostAddress } returns hostAddress
+        every { address.address?.isAnyLocalAddress } returns false
+        return address
     }
 
     private fun client(block: suspend (Socket) -> Unit) {
