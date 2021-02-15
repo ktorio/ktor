@@ -9,6 +9,7 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 @PublishedApi
+@Deprecated("This will be removed. Please file a ticket if you need it.")
 internal fun KType.toJavaType(): Type {
     val classifier = classifier
 

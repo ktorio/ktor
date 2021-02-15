@@ -1904,7 +1904,7 @@ public final class io/ktor/util/CopyOnWriteHashMap {
 	public final fun set (Ljava/lang/Object;Ljava/lang/Object;)V
 }
 
-public final class io/ktor/util/DataConversionException : java/lang/Exception {
+public final class io/ktor/util/DataConversionException : io/ktor/util/converters/DataConversionException {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1932,6 +1932,7 @@ public final class io/ktor/util/DispatcherWithShutdown : kotlinx/coroutines/Coro
 
 public final class io/ktor/util/ParametersKt {
 	public static final fun getOrFail (Lio/ktor/http/Parameters;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lio/ktor/util/reflect/TypeInfo;)Ljava/lang/Object;
 	public static final fun getOrFailImpl (Lio/ktor/http/Parameters;Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;)Ljava/lang/Object;
 }
 

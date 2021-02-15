@@ -6,9 +6,9 @@ package io.ktor.client.features.json
 
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.*
-import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
 
 public class JacksonSerializer(
