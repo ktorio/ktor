@@ -5,9 +5,9 @@
 package io.ktor.client.features.json
 
 import com.google.gson.*
-import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.core.*
 
 /**
