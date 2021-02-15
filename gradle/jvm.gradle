@@ -29,10 +29,12 @@ apply plugin: "kotlinx-atomicfu"
 
 kotlin {
     jvm {
-        if (rootProject.ext.jvm_ir_enabled) {
-            compilations.all {
+        compilations.all {
+            if (rootProject.ext.jvm_ir_enabled) {
                 kotlinOptions.useIR = true
             }
+
+            kotlinOptions.freeCompilerArgs += ["-XXLanguage:+InlineClasses", "-Xuse-14-inline-classes-mangling-scheme"]
         }
     }
 
