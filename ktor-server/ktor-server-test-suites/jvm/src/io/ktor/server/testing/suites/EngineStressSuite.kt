@@ -18,6 +18,7 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.junit4.*
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.net.*
@@ -48,6 +49,9 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
     private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
     public override val timeout: Long = TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis)
+
+    @get:org.junit.Rule
+    val timout1 = CoroutinesTimeout(200000L, true)
 
     @Test
     public fun singleConnectionSingleThreadNoPipelining() {
@@ -194,6 +198,8 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
 
         HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
 
+        Thread.sleep(10000)
+
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
         }
@@ -313,6 +319,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
             }
         }
 
+        println("Starting...")
         HighLoadHttpGenerator.doRun("/ll", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
 
         withUrl("/") {
