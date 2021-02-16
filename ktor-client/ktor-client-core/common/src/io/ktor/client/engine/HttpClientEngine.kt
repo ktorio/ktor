@@ -133,9 +133,10 @@ internal expect suspend fun HttpClientEngine.createCallContext(parentJob: Job): 
  */
 private fun validateHeaders(request: HttpRequestData) {
     val requestHeaders = request.headers
-    for (header in HttpHeaders.UnsafeHeadersList) {
-        if (header in requestHeaders) {
-            throw UnsafeHeaderException(header)
-        }
+    val unsafeRequestHeaders = requestHeaders.names().filter {
+        it in HttpHeaders.UnsafeHeadersList
+    }
+    if (unsafeRequestHeaders.isNotEmpty()) {
+        throw UnsafeHeaderException(unsafeRequestHeaders.toString())
     }
 }

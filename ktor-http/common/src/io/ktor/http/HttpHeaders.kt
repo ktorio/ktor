@@ -159,7 +159,7 @@ public object HttpHeaders {
  * Thrown when an attempt to set unsafe header detected. A header is unsafe if listed in [HttpHeaders.UnsafeHeadersList].
  */
 public class UnsafeHeaderException(header: String) : IllegalArgumentException(
-    "Header $header is controlled by the engine and " +
+    "Header(s) $header are controlled by the engine and " +
         "cannot be set explicitly"
 )
 

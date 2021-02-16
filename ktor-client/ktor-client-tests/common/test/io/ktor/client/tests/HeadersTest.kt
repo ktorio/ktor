@@ -68,4 +68,18 @@ class HeadersTest : ClientLoader() {
             }
         }
     }
+
+    @Test
+    fun testUnsafeHeaders() = clientTests {
+        test { client ->
+            assertFailsWith<UnsafeHeaderException>("Header(s) ${HttpHeaders.UnsafeHeadersList} are controlled by the engine and cannot be set explicitly") {
+                client.get<HttpResponse>("$TEST_SERVER/headers") {
+                    header(HttpHeaders.ContentLength, 0)
+                    header(HttpHeaders.ContentType, ContentType.Application.Json)
+                    header(HttpHeaders.TransferEncoding, "chunked")
+                    header(HttpHeaders.Upgrade, "upgrade")
+                }
+            }
+        }
+    }
 }
