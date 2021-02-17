@@ -23,3 +23,8 @@ public final class io/ktor/velocity/VelocityContent {
 	public final fun getTemplate ()Ljava/lang/String;
 }
 
+public final class io/ktor/velocity/VelocityTools {
+	public static final field Feature Lio/ktor/velocity/VelocityTools$Feature;
+	public fun <init> (Lorg/apache/velocity/app/VelocityEngine;Lorg/apache/velocity/tools/ToolManager;)V
+}
+

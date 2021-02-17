@@ -13,6 +13,7 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
+import org.apache.velocity.context.*
 
 /**
  * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
@@ -32,7 +33,7 @@ public class VelocityContent(
 /**
  * Velocity ktor feature. Provides ability to respond with [VelocityContent] and [respondTemplate].
  */
-public class Velocity(private val engine: VelocityEngine) {
+public open class Velocity(private val engine: VelocityEngine) {
     init {
         engine.init()
     }
@@ -56,7 +57,7 @@ public class Velocity(private val engine: VelocityEngine) {
         }
     }
 
-    private fun process(content: VelocityContent): VelocityOutgoingContent {
+    internal open fun process(content: VelocityContent): VelocityOutgoingContent {
         return VelocityOutgoingContent(
             engine.getTemplate(content.template),
             VelocityContext(content.model),
@@ -65,7 +66,7 @@ public class Velocity(private val engine: VelocityEngine) {
         )
     }
 
-    private class VelocityOutgoingContent(
+    internal class VelocityOutgoingContent(
         val template: Template,
         val model: Context,
         etag: String?,
