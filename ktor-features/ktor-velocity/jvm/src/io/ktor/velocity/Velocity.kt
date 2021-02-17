@@ -59,7 +59,7 @@ public class Velocity(private val engine: VelocityEngine) {
     private fun process(content: VelocityContent): VelocityOutgoingContent {
         return VelocityOutgoingContent(
             engine.getTemplate(content.template),
-            content.model,
+            VelocityContext(content.model),
             content.etag,
             content.contentType
         )
@@ -67,13 +67,13 @@ public class Velocity(private val engine: VelocityEngine) {
 
     private class VelocityOutgoingContent(
         val template: Template,
-        val model: Map<String, Any>,
+        val model: Context,
         etag: String?,
         override val contentType: ContentType
     ) : OutgoingContent.WriteChannelContent() {
         override suspend fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.merge(VelocityContext(model), it)
+                template.merge(model, it)
             }
         }
 
