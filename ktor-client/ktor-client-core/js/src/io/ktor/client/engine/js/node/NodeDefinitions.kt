@@ -7,7 +7,7 @@ package io.ktor.client.engine.js.node
 import io.ktor.client.engine.js.compatibility.*
 import org.w3c.dom.*
 import org.w3c.fetch.*
-import kotlin.js.*
+import kotlin.js.Promise
 
 @JsModule("node-fetch")
 @JsNonModule
@@ -26,4 +26,8 @@ internal external class NodeAbortController : AbortController
 
 @JsModule("ws")
 @JsNonModule
-internal external class NodeWebsocket(url: String, protocols: dynamic = definedExternally) : WebSocket
+internal external class NodeWebsocket(
+    url: String,
+    protocols: dynamic = definedExternally,
+    options: dynamic = definedExternally
+) : WebSocket

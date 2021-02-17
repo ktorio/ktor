@@ -64,7 +64,13 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
 
         val urlString = request.url.toString()
         val socket = if (PlatformUtils.IS_NODE) {
-            NodeWebsocket(urlString)
+            val options: dynamic = object {}
+            val headers: dynamic = object {}
+            request.headers.forEach { header, values ->
+                headers[header] = values.joinToString(",")
+            }
+            options.headers = headers
+            NodeWebsocket(urlString, options = options)
         } else {
             WebSocket(urlString)
         }
