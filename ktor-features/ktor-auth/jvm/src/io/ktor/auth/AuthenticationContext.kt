@@ -5,8 +5,8 @@
 package io.ktor.auth
 
 import io.ktor.application.*
-import io.ktor.util.pipeline.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import kotlin.collections.HashMap
 import kotlin.properties.*
 

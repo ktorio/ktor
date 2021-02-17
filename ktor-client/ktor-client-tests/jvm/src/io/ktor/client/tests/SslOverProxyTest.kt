@@ -16,7 +16,9 @@ import java.security.cert.*
 import javax.net.ssl.*
 import kotlin.test.*
 
-abstract class SslOverProxyTest<T : HttpClientEngineConfig>(private val factory: HttpClientEngineFactory<T>) : TestWithKtor() {
+abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
+    private val factory: HttpClientEngineFactory<T>
+) : TestWithKtor() {
 
     override val server = embeddedServer(Jetty, serverPort) {}
 
@@ -38,7 +40,7 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(private val factory:
     fun testHttpsOverProxy() = testWithEngine(factory) {
         config {
             engine {
-                proxy = ProxyBuilder.http(HTTP_PROXY_SERVER)
+                proxy = ProxyBuilder.http(TCP_SERVER)
                 disableCertificatePinning()
             }
         }

@@ -16,18 +16,18 @@ import java.net.*
  */
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual class ConnectTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
-) : ConnectException(message) {
-}
+    message: String,
+    override val cause: Throwable?
+) : ConnectException(message)
 
 /**
  * This exception is thrown in case socket timeout (read or write) exceeded.
  */
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 public actual class SocketTimeoutException actual constructor(
-    message: String, override val cause: Throwable?
+    message: String,
+    override val cause: Throwable?
 ) : java.net.SocketTimeoutException(message)
-
 
 /**
  * Creates [ByteChannel] that maps close exceptions (close the channel with [SocketTimeoutException] if asked to

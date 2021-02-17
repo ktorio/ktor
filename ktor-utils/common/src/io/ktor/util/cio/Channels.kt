@@ -25,4 +25,3 @@ public class ChannelWriteException(message: String = "Cannot write to a channel"
  */
 public class ChannelReadException(message: String = "Cannot read from a channel", exception: Throwable) :
     ChannelIOException(message, exception)
-

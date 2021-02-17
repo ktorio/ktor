@@ -14,7 +14,6 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.charsets.*
 import kotlin.test.*
 
-
 class CharsetTest {
 
     @Test
@@ -25,9 +24,13 @@ class CharsetTest {
                 addHandler { request ->
                     assertEquals("UTF-8", request.headers[HttpHeaders.AcceptCharset])
 
-                    respond("Content", HttpStatusCode.OK, buildHeaders {
-                        append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.UTF_8))
-                    })
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.UTF_8))
+                        }
+                    )
                 }
 
                 // post handler
@@ -58,9 +61,13 @@ class CharsetTest {
                 addHandler { request ->
                     assertEquals("ISO-8859-1,UTF-8", request.headers[HttpHeaders.AcceptCharset])
 
-                    respond("Content", HttpStatusCode.OK, buildHeaders {
-                        append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.UTF_8))
-                    })
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.UTF_8))
+                        }
+                    )
                 }
 
                 // post handler
@@ -96,9 +103,13 @@ class CharsetTest {
                 addHandler { request ->
                     assertEquals("ISO-8859-1;q=0.9,UTF-8;q=0.1", request.headers[HttpHeaders.AcceptCharset])
 
-                    respond("Content", HttpStatusCode.OK, buildHeaders {
-                        append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1))
-                    })
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1))
+                        }
+                    )
                 }
 
                 // post handler
@@ -134,9 +145,13 @@ class CharsetTest {
                 addHandler { request ->
                     assertEquals("ISO-8859-1,UTF-8;q=0.1", request.headers[HttpHeaders.AcceptCharset])
 
-                    respond("Content", HttpStatusCode.OK, buildHeaders {
-                        append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1))
-                    })
+                    respond(
+                        "Content",
+                        HttpStatusCode.OK,
+                        buildHeaders {
+                            append(HttpHeaders.ContentType, ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1))
+                        }
+                    )
                 }
 
                 // post handler

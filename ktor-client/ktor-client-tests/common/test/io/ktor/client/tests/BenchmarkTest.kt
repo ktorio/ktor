@@ -66,7 +66,6 @@ class BenchmarkTest : ClientLoader() {
             }
 
             check(result.size == size * 1024) { "Expected ${size * 1024}, got ${result.size}" }
-
         }
     }
 }

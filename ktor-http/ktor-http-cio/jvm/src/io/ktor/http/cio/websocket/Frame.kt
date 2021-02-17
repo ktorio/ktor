@@ -156,7 +156,9 @@ public actual sealed class Frame actual constructor(
             fin: Boolean,
             frameType: FrameType,
             data: ByteArray,
-            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+            rsv1: Boolean,
+            rsv2: Boolean,
+            rsv3: Boolean
         ): Frame = when (frameType) {
             FrameType.BINARY -> Binary(fin, data, rsv1, rsv2, rsv3)
             FrameType.TEXT -> Text(fin, data, rsv1, rsv2, rsv3)

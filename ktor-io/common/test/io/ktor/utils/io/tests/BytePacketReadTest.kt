@@ -94,7 +94,6 @@ class BytePacketReadTest {
         assertTrue { packet.isEmpty }
     }
 
-
     @Test
     fun testReadBytesAll() {
         val pkt = buildPacket {
@@ -200,7 +199,6 @@ class BytePacketReadTest {
             pkt.release()
         }
     }
-
 
     @Test
     fun testReadBytesOfFails() {
@@ -355,5 +353,4 @@ class BytePacketReadTest {
             throw t
         }
     }
-
 }

@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -31,12 +32,57 @@ class CIORequestTest : TestWithKtor() {
         routing {
             get("/") {
                 val longHeader = call.request.headers["LongHeader"]!!
-                call.respond(object : OutgoingContent.NoContent() {
-                    override val headers: Headers = headersOf("LongHeader", longHeader)
-                })
+                call.respond(
+                    object : OutgoingContent.NoContent() {
+                        override val headers: Headers = headersOf("LongHeader", longHeader)
+                    }
+                )
             }
             get("/echo") {
                 call.respond("OK")
+            }
+
+            get("/delay") {
+                delay(1000)
+                call.respond("OK")
+            }
+        }
+    }
+
+    @Test
+    fun engineUsesRequestTimeoutFromItsConfiguration() {
+        testWithEngine(CIO) {
+            config {
+                engine {
+                    requestTimeout = 10
+                }
+            }
+
+            test { client ->
+                assertFailsWith<TimeoutCancellationException> {
+                    client.get<HttpStatement>(path = "/delay", port = serverPort).execute()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun requestTimeoutFromHttpTimeoutFeatureIsUsedAndHasHigherPriorityThanFromConfiguration() {
+        testWithEngine(CIO) {
+            config {
+                engine {
+                    requestTimeout = 10
+                }
+
+                install(HttpTimeout) {
+                    requestTimeoutMillis = 200
+                }
+            }
+
+            test { client ->
+                assertFailsWith<HttpRequestTimeoutException> {
+                    client.get<HttpStatement>(path = "/delay", port = serverPort).execute()
+                }
             }
         }
     }

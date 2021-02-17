@@ -144,14 +144,20 @@ class FreeMarkerTest {
 
         install(FreeMarker) {
             templateLoader = StringTemplateLoader().apply {
-                putTemplate("test.ftl", """
+                putTemplate(
+                    "test.ftl",
+                    """
                         <p>Hello, $bax{id}</p>
                         <h1>$bax{title}</h1>
-                    """.trimIndent())
-                putTemplate("empty.ftl", """
+                    """.trimIndent()
+                )
+                putTemplate(
+                    "empty.ftl",
+                    """
                         <p>Hello, Anonymous</p>
                         <h1>Hi!</h1>
-                    """.trimIndent())
+                    """.trimIndent()
+                )
             }
         }
     }

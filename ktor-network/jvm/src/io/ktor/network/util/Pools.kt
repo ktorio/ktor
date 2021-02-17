@@ -6,9 +6,9 @@ package io.ktor.network.util
 
 import io.ktor.network.sockets.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.DirectByteBufferPool
+import kotlinx.coroutines.*
 import java.nio.*
 
 @Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "unused")
@@ -46,7 +46,8 @@ public val DefaultByteBufferPool: ObjectPool<ByteBuffer> =
  * Byte buffer pool for UDP datagrams
  */
 @InternalAPI
-public val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> = io.ktor.utils.io.pool.DirectByteBufferPool(2048, MAX_DATAGRAM_SIZE)
+public val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> =
+    io.ktor.utils.io.pool.DirectByteBufferPool(2048, MAX_DATAGRAM_SIZE)
 
 @Deprecated(
     level = DeprecationLevel.WARNING,

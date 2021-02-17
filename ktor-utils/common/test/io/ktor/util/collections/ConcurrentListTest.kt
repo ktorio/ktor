@@ -32,24 +32,36 @@ class ConcurrentListTest {
 
         assertEquals(listOf(1), single)
 
-        assertNotEquals(listOf(1), ConcurrentList<Int>().apply {
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1),
+            ConcurrentList<Int>().apply {
+                add(2)
+            }
+        )
 
-        assertNotEquals(listOf(1), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
 
-        assertEquals(listOf(1, 2), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertEquals(
+            listOf(1, 2),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
 
-        assertNotEquals(listOf(1, 2, 3), ConcurrentList<Int>().apply {
-            add(1)
-            add(2)
-        })
+        assertNotEquals(
+            listOf(1, 2, 3),
+            ConcurrentList<Int>().apply {
+                add(1)
+                add(2)
+            }
+        )
     }
 
     @Test

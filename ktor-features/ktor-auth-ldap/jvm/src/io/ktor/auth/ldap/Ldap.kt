@@ -40,7 +40,6 @@ public fun ldapAuthenticate(
     userDNFormat: String,
     validate: InitialDirContext.(UserPasswordCredential) -> UserIdPrincipal?
 ): UserIdPrincipal? {
-
     val configurator: (MutableMap<String, Any?>) -> Unit = { env ->
         env[Context.SECURITY_AUTHENTICATION] = "simple"
         env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(ldapEscape(credential.name))
@@ -72,7 +71,7 @@ private fun ldapLogin(ldapURL: String, ldapEnvironmentBuilder: (MutableMap<Strin
 }
 
 internal fun ldapEscape(string: String): String {
-    for (index in 0 .. string.lastIndex) {
+    for (index in 0..string.lastIndex) {
         val character = string[index]
         if (character.shouldEscape()) {
             return ldapEscapeImpl(string, index)
@@ -84,7 +83,7 @@ internal fun ldapEscape(string: String): String {
 
 private fun ldapEscapeImpl(string: String, firstIndex: Int): String = buildString {
     var lastIndex = 0
-    for (index in firstIndex .. string.lastIndex) {
+    for (index in firstIndex..string.lastIndex) {
         val character = string[index]
         if (character.shouldEscape()) {
             append(string, lastIndex, index)
@@ -112,9 +111,9 @@ private val ESCAPE_CHARACTERS = charArrayOf(' ', '"', '#', '+', ',', ';', '<', '
 
 private fun Char.shouldEscape(): Boolean = this.toInt().let { codepoint ->
     when (codepoint) {
-        in 0x3f .. 0x7e -> codepoint == 0x5c // the only forbidden character is backslash
-        in 0x2d .. 0x3a -> false // minus, point, slash (allowed), digits + colon :
-        in 0x24 .. 0x2a -> false // $%&'()*
+        in 0x3f..0x7e -> codepoint == 0x5c // the only forbidden character is backslash
+        in 0x2d..0x3a -> false // minus, point, slash (allowed), digits + colon :
+        in 0x24..0x2a -> false // $%&'()*
         0x21 -> false // exclamation
         else -> true
     }

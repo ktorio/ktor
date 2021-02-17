@@ -46,7 +46,6 @@ class ETagsTest {
         assertEquals("\"tag1\"", result.response.headers[HttpHeaders.ETag])
     }
 
-
     @Test
     fun testIfMatchConditionAccepted(): Unit = withConditionalApplication {
         val result = handleRequest {
@@ -159,7 +158,6 @@ class ETagsTest {
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
-
 }
 
 @RunWith(Parameterized::class)
@@ -509,7 +507,6 @@ class LastModifiedTest(@Suppress("UNUSED_PARAMETER") name: String, zone: ZoneId)
     }
 }
 
-
 class LastModifiedVersionTest {
     private fun temporaryDefaultTimezone(timeZone: TimeZone, block: () -> Unit) {
         val originalTimeZone: TimeZone = TimeZone.getDefault()
@@ -521,10 +518,11 @@ class LastModifiedVersionTest {
         }
     }
 
-    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion: (Date) -> LastModifiedVersion) {
+    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(
+        constructLastModifiedVersion: (Date) -> LastModifiedVersion
+    ) {
         // setup: any non-zero-offset-Timezone will do
         temporaryDefaultTimezone(TimeZone.getTimeZone("GMT+08:00")) {
-
             // guard: local default timezone needs to be different from GMT for the problem to manifest
             assertTrue(
                 TimeZone.getDefault().rawOffset != 0,

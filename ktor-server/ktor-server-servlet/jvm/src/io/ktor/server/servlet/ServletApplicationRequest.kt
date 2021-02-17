@@ -27,4 +27,3 @@ public abstract class ServletApplicationRequest(
     @Suppress("LeakingThis") // this is safe because we don't access any content in the request
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
 }
-

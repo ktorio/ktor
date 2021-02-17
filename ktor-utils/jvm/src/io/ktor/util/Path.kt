@@ -23,7 +23,7 @@ private fun combineSafe(dir: File, relativePath: File): File {
     if (normalized.startsWith("..")) {
         throw IllegalArgumentException("Bad relative path $relativePath")
     }
-    check(!normalized.isAbsolute) { "Bad relative path $relativePath"}
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return File(dir, normalized.path)
 }

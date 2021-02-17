@@ -4,8 +4,8 @@
 
 package io.ktor.util.collections
 
-import kotlin.test.*
 import io.ktor.util.collections.internal.*
+import kotlin.test.*
 
 class SharedForwardListTest {
 

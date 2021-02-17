@@ -38,11 +38,14 @@ internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
 }
 
 internal class SavedHttpRequest(
-    override val call: SavedHttpCall, origin: HttpRequest
+    override val call: SavedHttpCall,
+    origin: HttpRequest
 ) : HttpRequest by origin
 
 internal class SavedHttpResponse(
-    override val call: SavedHttpCall, body: ByteArray, origin: HttpResponse
+    override val call: SavedHttpCall,
+    body: ByteArray,
+    origin: HttpResponse
 ) : HttpResponse() {
     private val context = Job()
 

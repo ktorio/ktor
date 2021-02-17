@@ -4,8 +4,8 @@
 
 package io.ktor.server.netty.http2
 
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
@@ -13,13 +13,13 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
 
-internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
-                                             val handler: NettyHttp2Handler,
-                                             context: ChannelHandlerContext,
-                                             engineContext: CoroutineContext,
-                                             userContext: CoroutineContext
-                                             )
-    : NettyApplicationResponse(call, context, engineContext, userContext) {
+internal class NettyHttp2ApplicationResponse(
+    call: NettyApplicationCall,
+    val handler: NettyHttp2Handler,
+    context: ChannelHandlerContext,
+    engineContext: CoroutineContext,
+    userContext: CoroutineContext
+) : NettyApplicationResponse(call, context, engineContext, userContext) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())
@@ -52,7 +52,8 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
 
         override fun get(name: String): String? = responseHeaders[name]?.toString()
         override fun getEngineHeaderNames(): List<String> = responseHeaders.names().map { it.toString() }
-        override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
+        override fun getEngineHeaderValues(name: String): List<String> =
+            responseHeaders.getAll(name).map { it.toString() }
     }
 
     @UseHttp2Push

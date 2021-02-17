@@ -20,4 +20,3 @@ internal class ThreadLocalValue<T : Any>(value: T) {
             return null
         }
 }
-

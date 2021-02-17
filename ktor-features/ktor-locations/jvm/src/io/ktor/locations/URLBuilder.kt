@@ -17,4 +17,3 @@ public fun ApplicationCall.url(location: Any, block: URLBuilder.() -> Unit = {})
     application.locations.href(location, this)
     block()
 }
-

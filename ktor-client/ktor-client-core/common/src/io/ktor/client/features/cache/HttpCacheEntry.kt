@@ -53,7 +53,6 @@ public class HttpCacheEntry internal constructor(
     }
 }
 
-
 internal fun HttpResponse.varyKeys(): Map<String, String> {
     val validationKeys = vary() ?: return emptyMap()
 

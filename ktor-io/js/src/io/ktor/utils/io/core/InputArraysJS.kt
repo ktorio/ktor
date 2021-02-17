@@ -66,7 +66,11 @@ public fun Input.readAvailable(dst: ArrayBuffer, offset: Int = 0, length: Int = 
 }
 
 @Suppress("Duplicates")
-public fun Input.readAvailable(dst: ArrayBufferView, byteOffset: Int = 0, byteLength: Int = dst.byteLength - byteOffset): Int {
+public fun Input.readAvailable(
+    dst: ArrayBufferView,
+    byteOffset: Int = 0,
+    byteLength: Int = dst.byteLength - byteOffset
+): Int {
     if (this is AbstractInput) {
         return readAvailable(dst, byteOffset, byteLength)
     }
@@ -88,7 +92,9 @@ internal fun AbstractInput.readFully(dst: Int8Array, offset: Int, length: Int) {
 }
 
 internal fun AbstractInput.readFully(dst: ArrayBuffer, offset: Int, length: Int) {
-    if (remaining < length) throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
+    if (remaining < length) throw IllegalArgumentException(
+        "Not enough bytes available ($remaining) to read $length bytes"
+    )
     var copied = 0
 
     takeWhile { buffer: Buffer ->

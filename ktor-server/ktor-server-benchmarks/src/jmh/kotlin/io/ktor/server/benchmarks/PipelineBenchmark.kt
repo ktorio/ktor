@@ -5,10 +5,10 @@
 package io.ktor.server.benchmarks
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
-import io.ktor.util.pipeline.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import org.openjdk.jmh.annotations.*
 import kotlin.coroutines.*
@@ -56,10 +56,12 @@ abstract class PipelineBenchmark {
 
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
-    fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
+    fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) =
+        intercept(callPhase, block)
 
     @OptIn(InternalAPI::class)
-    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runAndEnsureNoSuspensions { execute(call, subject) }
+    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) =
+        runAndEnsureNoSuspensions { execute(call, subject) }
 
     lateinit var pipeline: Pipeline<String, ApplicationCall>
 

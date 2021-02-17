@@ -51,7 +51,6 @@ public class HttpSend(
         makeShared()
     }
 
-
     /**
      * Install send pipeline starter interceptor
      */
@@ -126,7 +125,8 @@ public class HttpSend(
 
             sentCount++
             val sendResult = client.sendPipeline.execute(
-                requestBuilder, requestBuilder.body
+                requestBuilder,
+                requestBuilder.body
             )
 
             val call = sendResult as? HttpClientCall

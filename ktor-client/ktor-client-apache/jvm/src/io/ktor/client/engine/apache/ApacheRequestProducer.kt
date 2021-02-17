@@ -35,21 +35,21 @@ internal class ApacheRequestProducer(
     private val host = URIUtils.extractHost(request.uri)!!
 
     private val interestController = InterestControllerHolder()
-    private val channel: ByteReadChannel
 
-    private val producerJob = Job(callContext[Job])
+    private val producerJob = Job()
     override val coroutineContext: CoroutineContext = callContext + producerJob
 
+    private val channel: ByteReadChannel = when (val body = requestData.body) {
+        is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
+        is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
+        is OutgoingContent.NoContent -> ByteReadChannel.Empty
+        is OutgoingContent.ReadChannelContent -> body.readFrom()
+        is OutgoingContent.WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
+            body.writeTo(channel)
+        }.channel
+    }
+
     init {
-        channel = when (val body = requestData.body) {
-            is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
-            is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
-            is OutgoingContent.NoContent -> ByteReadChannel.Empty
-            is OutgoingContent.ReadChannelContent -> body.readFrom()
-            is OutgoingContent.WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
-                body.writeTo(channel)
-            }.channel
-        }
         producerJob.invokeOnCompletion { cause ->
             channel.cancel(cause)
         }

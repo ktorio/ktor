@@ -52,14 +52,16 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
 
         val latch = ArrayBlockingQueue<Result<Unit>>(1)
 
-        block.startCoroutine(object : Continuation<Unit> {
-            override val context: CoroutineContext
-                get() = EmptyCoroutineContext
+        block.startCoroutine(
+            object : Continuation<Unit> {
+                override val context: CoroutineContext
+                    get() = EmptyCoroutineContext
 
-            override fun resumeWith(result: Result<Unit>) {
-                latch.put(result)
+                override fun resumeWith(result: Result<Unit>) {
+                    latch.put(result)
+                }
             }
-        })
+        )
 
         latch.take().exceptionOrNull()?.let { throw it }
     }

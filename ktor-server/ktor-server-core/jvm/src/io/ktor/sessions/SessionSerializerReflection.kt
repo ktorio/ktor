@@ -58,7 +58,7 @@ public fun <T : Any> defaultSessionSerializer(typeInfo: KType): SessionSerialize
 )
 public class SessionSerializerReflection<T : Any> internal constructor(
     internal val typeInfo: KType
-    ): SessionSerializer<T> {
+) : SessionSerializer<T> {
 
     @Deprecated("Use defaultSessionSerializer() function instead")
     public constructor(type: KClass<T>) : this(type.starProjectedType)
@@ -94,14 +94,17 @@ public class SessionSerializerReflection<T : Any> internal constructor(
 
         val params = constructor
             .parameters
-            .associateBy({ it }, {
-                when (it.kind) {
-                    KParameter.Kind.INSTANCE,
-                    KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
-                    KParameter.Kind.VALUE ->
-                        coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+            .associateBy(
+                { it },
+                {
+                    when (it.kind) {
+                        KParameter.Kind.INSTANCE,
+                        KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
+                        KParameter.Kind.VALUE ->
+                            coerceType(it.type, deserializeValue(it.type.jvmErasure, bundle[it.name!!]!!))
+                    }
                 }
-            })
+            )
 
         return constructor.callBy(params)
     }

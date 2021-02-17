@@ -237,4 +237,3 @@ private inline fun ByteBuffer.decodeASCII3_buffer(
 
     return decodeUtf8Result(pos - offset, if (predicateFailed) -1 else 0)
 }
-

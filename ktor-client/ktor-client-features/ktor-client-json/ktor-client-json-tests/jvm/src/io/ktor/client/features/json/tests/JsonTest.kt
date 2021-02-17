@@ -97,17 +97,20 @@ public abstract class JsonTest : TestWithKtor() {
     @org.junit.Test
     public fun testEmptyBody() = testWithEngine(MockEngine) {
         config {
-                engine {
-                    addHandler { request ->
-                        respond(request.body.toByteReadPacket().readText(), headers = buildHeaders {
+            engine {
+                addHandler { request ->
+                    respond(
+                        request.body.toByteReadPacket().readText(),
+                        headers = buildHeaders {
                             append("X-ContentType", request.body.contentType.toString())
-                        })
-                    }
+                        }
+                    )
                 }
-                defaultRequest {
-                    contentType(ContentType.Application.Json)
-                }
-                configJsonFeature()
+            }
+            defaultRequest {
+                contentType(ContentType.Application.Json)
+            }
+            configJsonFeature()
         }
 
         test { client ->

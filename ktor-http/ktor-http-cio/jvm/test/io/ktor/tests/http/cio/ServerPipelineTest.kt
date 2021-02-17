@@ -29,8 +29,9 @@ class ServerPipelineTest : CoroutineScope {
 
     private val job = SupervisorJob()
 
-    override val coroutineContext: CoroutineContext
-        by lazy { CoroutineName("PipelineTest.${testName.methodName}") + job + dispatcher }
+    override val coroutineContext: CoroutineContext by lazy {
+        CoroutineName("PipelineTest.${testName.methodName}") + job + dispatcher
+    }
 
     @get:Rule
     val timeout = CoroutinesTimeout(2000L, true)

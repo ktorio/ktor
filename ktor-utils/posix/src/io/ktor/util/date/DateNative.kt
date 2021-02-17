@@ -35,7 +35,12 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
 }
 
 public actual fun GMTDate(
-    seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
+    seconds: Int,
+    minutes: Int,
+    hours: Int,
+    dayOfMonth: Int,
+    month: Month,
+    year: Int
 ): GMTDate = memScoped {
     val nativeYear = year - 1900
 

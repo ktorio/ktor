@@ -28,7 +28,9 @@ class NettyPlatformBenchmark : PlatformBenchmark() {
 
         b.option(ChannelOption.SO_BACKLOG, 8192)
         b.option(ChannelOption.SO_REUSEADDR, true)
-        b.group(eventLoopGroup).channel(NioServerSocketChannel::class.java).childHandler(BenchmarkServerInitializer(eventLoopGroup.next()))
+        b.group(eventLoopGroup)
+            .channel(NioServerSocketChannel::class.java)
+            .childHandler(BenchmarkServerInitializer(eventLoopGroup.next()))
         b.childOption(ChannelOption.SO_REUSEADDR, true)
 
         channel = b.bind(inet).sync().channel()
@@ -39,25 +41,37 @@ class NettyPlatformBenchmark : PlatformBenchmark() {
         channel.closeFuture().sync()
     }
 
-    private class BenchmarkServerInitializer(private val service: ScheduledExecutorService) : ChannelInitializer<SocketChannel>() {
+    private class BenchmarkServerInitializer(
+        private val service: ScheduledExecutorService
+    ) : ChannelInitializer<SocketChannel>() {
 
         @Throws(Exception::class)
         public override fun initChannel(ch: SocketChannel) {
             ch.pipeline()
-                    .addLast("encoder", HttpResponseEncoder())
-                    .addLast("decoder", HttpRequestDecoder(4096, 8192, 8192, false))
-                    .addLast("handler", BenchmarkServerHandler(service))
+                .addLast("encoder", HttpResponseEncoder())
+                .addLast(
+                    "decoder",
+                    HttpRequestDecoder(
+                        4096,
+                        8192,
+                        8192,
+                        false
+                    )
+                )
+                .addLast("handler", BenchmarkServerHandler(service))
         }
     }
 
-    class BenchmarkServerHandler internal constructor(service: ScheduledExecutorService) : ChannelInboundHandlerAdapter() {
+    class BenchmarkServerHandler
+    internal constructor(service: ScheduledExecutorService) : ChannelInboundHandlerAdapter() {
         override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
             when (msg) {
-                is HttpRequest -> try {
-                    process(ctx, msg)
-                } finally {
-                    ReferenceCountUtil.release(msg)
-                }
+                is HttpRequest ->
+                    try {
+                        process(ctx, msg)
+                    } finally {
+                        ReferenceCountUtil.release(msg)
+                    }
                 else -> ctx.fireChannelRead(msg)
             }
         }
@@ -71,7 +85,12 @@ class NettyPlatformBenchmark : PlatformBenchmark() {
                     return
                 }
                 else -> {
-                    val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND, Unpooled.EMPTY_BUFFER, false)
+                    val response = DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1,
+                        HttpResponseStatus.NOT_FOUND,
+                        Unpooled.EMPTY_BUFFER,
+                        false
+                    )
                     ctx.write(response).addListener(ChannelFutureListener.CLOSE)
                 }
             }
@@ -81,11 +100,15 @@ class NettyPlatformBenchmark : PlatformBenchmark() {
             ctx.write(makeResponse(buf, HttpHeaderValues.TEXT_PLAIN, PLAINTEXT_CLHEADER_VALUE), ctx.voidPromise())
         }
 
-        private fun makeResponse(buf: ByteBuf, contentType: CharSequence, contentLength: CharSequence): FullHttpResponse {
+        private fun makeResponse(
+            buf: ByteBuf,
+            contentType: CharSequence,
+            contentLength: CharSequence
+        ): FullHttpResponse {
             val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
             response.headers()
-                    .set(HttpHeaderNames.CONTENT_TYPE, contentType)
-                    .set(HttpHeaderNames.CONTENT_LENGTH, contentLength)
+                .set(HttpHeaderNames.CONTENT_TYPE, contentType)
+                .set(HttpHeaderNames.CONTENT_LENGTH, contentLength)
             return response
         }
 
@@ -103,7 +126,9 @@ class NettyPlatformBenchmark : PlatformBenchmark() {
             private val STATIC_PLAINTEXT = "OK".toByteArray(CharsetUtil.UTF_8)
             private val STATIC_PLAINTEXT_LEN = STATIC_PLAINTEXT.size
 
-            private val PLAINTEXT_CONTENT_BUFFER = Unpooled.unreleasableBuffer(Unpooled.directBuffer().writeBytes(STATIC_PLAINTEXT))
+            private val PLAINTEXT_CONTENT_BUFFER = Unpooled.unreleasableBuffer(
+                Unpooled.directBuffer().writeBytes(STATIC_PLAINTEXT)
+            )
             private val PLAINTEXT_CLHEADER_VALUE = AsciiString(STATIC_PLAINTEXT_LEN.toString())
         }
     }

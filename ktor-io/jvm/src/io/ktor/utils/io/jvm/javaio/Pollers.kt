@@ -9,7 +9,6 @@ import java.util.concurrent.locks.*
 
 private val parkingImplLocal = ThreadLocal<Parking<Thread>?>()
 
-
 // NOTE: this following internal functions are called via reflection
 // so making it private or renaming/moving may introduce incompatibility
 // These should become public in future releases (1.5.x?) with the corresponding annotation

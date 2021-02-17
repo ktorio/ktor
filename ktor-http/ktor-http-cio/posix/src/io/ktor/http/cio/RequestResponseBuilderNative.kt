@@ -7,7 +7,6 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 
-
 /**
  * Builds an HTTP request or response
  */

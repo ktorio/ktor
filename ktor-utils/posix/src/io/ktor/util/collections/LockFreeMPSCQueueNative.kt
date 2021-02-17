@@ -198,7 +198,6 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
         }
     }
 
-
     private fun allocateNextCopy(state: Long): Core<E> {
         val next = LockFreeMPSCQueueCore<E>(capacity * 2)
         state.withState { head, tail ->

@@ -23,8 +23,7 @@ public fun Job.printDebugTree(offset: Int = 0) {
 
 @InternalAPI
 @Suppress("NOTHING_TO_INLINE")
-internal expect inline fun <R, A>
-    (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
+internal expect inline fun <R, A> (suspend R.(A) -> Unit).startCoroutineUninterceptedOrReturn3(
     receiver: R,
     arg: A,
     continuation: Continuation<Unit>

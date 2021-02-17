@@ -19,6 +19,5 @@ internal fun Application.multithreadedTest() {
                 resource("jarfile", "String.class", "java.lang")
             }
         }
-
     }
 }

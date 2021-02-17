@@ -5,12 +5,12 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.*
+import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
@@ -36,8 +36,12 @@ public open class AsyncServletApplicationCall(
     override val response: ServletApplicationResponse by lazy {
         AsyncServletApplicationResponse(
             this,
-            servletRequest, servletResponse,
-            engineContext, userContext, upgrade, parentCoroutineContext + engineContext
+            servletRequest,
+            servletResponse,
+            engineContext,
+            userContext,
+            upgrade,
+            parentCoroutineContext + engineContext
         ).also {
             putResponseAttribute(it)
         }
@@ -51,7 +55,8 @@ public open class AsyncServletApplicationCall(
 @Suppress("KDocMissingDocumentation")
 @EngineAPI
 public class AsyncServletApplicationRequest(
-    call: ApplicationCall, servletRequest: HttpServletRequest,
+    call: ApplicationCall,
+    servletRequest: HttpServletRequest,
     override val coroutineContext: CoroutineContext
 ) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 

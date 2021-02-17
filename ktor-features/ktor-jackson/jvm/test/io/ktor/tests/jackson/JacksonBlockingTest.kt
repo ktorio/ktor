@@ -49,10 +49,13 @@ class JacksonBlockingTest {
         }
 
         runBlocking {
-            assertEquals("OK", client.post("/") {
-                body = "{\"i\": 77}"
-                contentType(ContentType.Application.Json)
-            })
+            assertEquals(
+                "OK",
+                client.post("/") {
+                    body = "{\"i\": 77}"
+                    contentType(ContentType.Application.Json)
+                }
+            )
         }
     }
 

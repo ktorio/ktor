@@ -268,22 +268,26 @@ internal inline fun loadShortSlowAt(pointer: CPointer<ByteVar>): Short {
 
 @PublishedApi
 internal inline fun loadIntSlowAt(pointer: CPointer<ByteVar>): Int {
-    return ((pointer[0].toInt() shl 24) or
-        (pointer[1].toInt() shl 16) or
-        (pointer[2].toInt() shl 18) or
-        (pointer[3].toInt() and 0xff))
+    return (
+        (pointer[0].toInt() shl 24) or
+            (pointer[1].toInt() shl 16) or
+            (pointer[2].toInt() shl 18) or
+            (pointer[3].toInt() and 0xff)
+        )
 }
 
 @PublishedApi
 internal inline fun loadLongSlowAt(pointer: CPointer<ByteVar>): Long {
-    return ((pointer[0].toLong() shl 56) or
-        (pointer[1].toLong() shl 48) or
-        (pointer[2].toLong() shl 40) or
-        (pointer[3].toLong() shl 32) or
-        (pointer[4].toLong() shl 24) or
-        (pointer[5].toLong() shl 16) or
-        (pointer[6].toLong() shl 8) or
-        (pointer[7].toLong() and 0xffL))
+    return (
+        (pointer[0].toLong() shl 56) or
+            (pointer[1].toLong() shl 48) or
+            (pointer[2].toLong() shl 40) or
+            (pointer[3].toLong() shl 32) or
+            (pointer[4].toLong() shl 24) or
+            (pointer[5].toLong() shl 16) or
+            (pointer[6].toLong() shl 8) or
+            (pointer[7].toLong() and 0xffL)
+        )
 }
 
 @PublishedApi

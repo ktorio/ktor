@@ -560,7 +560,9 @@ public abstract class ByteChannelSequentialBase(
         return when {
             closedCause != null -> throw closedCause!!
             readable.remaining >= n -> readable.readFully(dst, n).also { afterRead(n) }
-            closed -> throw EOFException("Channel is closed and not enough bytes available: required $n but $availableForRead available")
+            closed -> throw EOFException(
+                "Channel is closed and not enough bytes available: required $n but $availableForRead available"
+            )
             else -> readFullySuspend(dst, n)
         }
     }
@@ -642,7 +644,9 @@ public abstract class ByteChannelSequentialBase(
 
     override suspend fun await(atLeast: Int): Boolean {
         require(atLeast >= 0) { "atLeast parameter shouldn't be negative: $atLeast" }
-        require(atLeast <= EXPECTED_CAPACITY) { "atLeast parameter shouldn't be larger than max buffer size of $EXPECTED_CAPACITY: $atLeast" }
+        require(atLeast <= EXPECTED_CAPACITY) {
+            "atLeast parameter shouldn't be larger than max buffer size of $EXPECTED_CAPACITY: $atLeast"
+        }
 
         completeReading()
 

@@ -5,14 +5,13 @@
 package io.ktor.util
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.nio.ByteBuffer
 import java.util.zip.*
 import kotlin.coroutines.*
-
 
 internal const val GZIP_MAGIC: Short = 0x8b1f.toShort()
 internal val GZIP_HEADER_PADDING: ByteArray = ByteArray(7)

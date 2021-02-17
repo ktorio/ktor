@@ -98,4 +98,5 @@ private class CoroutineListener<T, F : Future<T>>(
     }
 }
 
-private tailrec fun Throwable.unwrap(): Throwable = if (this is ExecutionException && cause != null) cause!!.unwrap() else this
+private tailrec fun Throwable.unwrap(): Throwable =
+    if (this is ExecutionException && cause != null) cause!!.unwrap() else this

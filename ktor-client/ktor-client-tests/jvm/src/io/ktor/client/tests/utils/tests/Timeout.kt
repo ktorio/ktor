@@ -30,16 +30,18 @@ internal fun Application.timeoutTest() {
             get("/with-stream") {
                 val delay = call.parameters["delay"]!!.toLong()
                 val response = "Text".toByteArray()
-                call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override val contentType = ContentType.Application.OctetStream
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        for (offset in response.indices) {
-                            channel.writeFully(response, offset, 1)
-                            channel.flush()
-                            delay(delay)
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override val contentType = ContentType.Application.OctetStream
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            for (offset in response.indices) {
+                                channel.writeFully(response, offset, 1)
+                                channel.flush()
+                                delay(delay)
+                            }
                         }
                     }
-                })
+                )
             }
 
             get("/with-redirect") {

@@ -143,8 +143,16 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
             authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
             passParamsInURL: Boolean = false,
-        ) : this(name, authorizeUrl, accessTokenUrl, requestMethod, clientId, clientSecret,
-            defaultScopes, accessTokenRequiresBasicAuth, nonceManager,
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
             authorizeUrlInterceptor,
             passParamsInURL,
             {}
@@ -220,7 +228,8 @@ public object OAuthGrantTypes {
 @Suppress("unused")
 @Deprecated("Install and configure OAuth instead.")
 public suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
-    client: HttpClient, dispatcher: CoroutineDispatcher,
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
     urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
@@ -247,7 +256,8 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(
-                provider, callbackUrl,
+                provider,
+                callbackUrl,
                 provider.nonceManager.newNonce(),
                 scopes = provider.defaultScopes,
                 interceptor = provider.authorizeUrlInterceptor

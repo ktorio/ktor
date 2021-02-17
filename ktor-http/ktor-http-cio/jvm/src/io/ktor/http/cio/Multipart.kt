@@ -7,11 +7,11 @@ package io.ktor.http.cio
 import io.ktor.http.cio.internals.*
 import io.ktor.network.util.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import java.io.*
 import java.io.EOFException
 import java.nio.*
@@ -120,7 +120,9 @@ private suspend fun parsePreambleImpl(
  */
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
 public suspend fun parsePart(
-    boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel,
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
     limit: Long = Long.MAX_VALUE
 ): Pair<HttpHeadersMap, Long> {
     val headers = parsePartHeadersImpl(input)
@@ -162,8 +164,10 @@ private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap
 @Deprecated("This is going to be removed. Use parseMultipart instead.")
 public suspend fun parsePartBody(
     boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel, output: ByteWriteChannel,
-    headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    headers: HttpHeadersMap,
+    limit: Long = Long.MAX_VALUE
 ): Long {
     return parsePartBodyImpl(boundaryPrefixed, input, output, headers, limit)
 }
@@ -173,8 +177,10 @@ public suspend fun parsePartBody(
  */
 private suspend fun parsePartBodyImpl(
     boundaryPrefixed: ByteBuffer,
-    input: ByteReadChannel, output: ByteWriteChannel,
-    headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE
+    input: ByteReadChannel,
+    output: ByteWriteChannel,
+    headers: HttpHeadersMap,
+    limit: Long = Long.MAX_VALUE
 ): Long {
     val cl = headers["Content-Length"]?.parseDecLong()
     val size = if (cl != null) {
@@ -252,11 +258,13 @@ public fun parseMultipart(
     return CoroutineScope(coroutineContext).parseMultipart(input, headers)
 }
 
-
 /**
  * Starts a multipart parser coroutine producing multipart events
  */
-public fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
+public fun CoroutineScope.parseMultipart(
+    input: ByteReadChannel,
+    headers: HttpHeadersMap
+): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
 
@@ -282,7 +290,9 @@ public fun CoroutineScope.parseMultipart(
     contentType: CharSequence,
     contentLength: Long?
 ): ReceiveChannel<MultipartEvent> {
-    if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
+    if (!contentType.startsWith("multipart/")) {
+        throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
+    }
     val boundaryBytes = parseBoundaryInternal(contentType)
 
     // TODO fail if contentLength = 0 and content subtype is wrong
@@ -312,7 +322,9 @@ public fun parseMultipart(
 @OptIn(ExperimentalCoroutinesApi::class)
 @Deprecated("This is going to be removed. Use parseMultipart(contentType) instead.")
 public fun CoroutineScope.parseMultipart(
-    boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    totalLength: Long?
 ): ReceiveChannel<MultipartEvent> = produce {
     @Suppress("DEPRECATION")
     val readBeforeParse = input.totalBytesRead
@@ -335,11 +347,9 @@ public fun CoroutineScope.parseMultipart(
 
     do {
         input.readUntilDelimiter(CrLf, trailingBuffer)
-        if (input.readUntilDelimiter(
-                CrLf,
-                trailingBuffer
-            ) != 0
-        ) throw IOException("Failed to parse multipart: boundary line is too long")
+        if (input.readUntilDelimiter(CrLf, trailingBuffer) != 0) {
+            throw IOException("Failed to parse multipart: boundary line is too long")
+        }
         input.skipDelimiter(CrLf)
 
         val body = ByteChannel()
@@ -365,6 +375,7 @@ public fun CoroutineScope.parseMultipart(
 
         body.close()
     } while (!skipBoundary(boundaryPrefixed, input))
+    input.skipDelimiter(CrLf)
 
     if (totalLength != null) {
         @Suppress("DEPRECATION")
@@ -479,7 +490,7 @@ private fun findBoundary(contentType: CharSequence): Int {
  */
 @Deprecated(
     "This is going to become internal. " +
-    "Use parseMultipart instead or file a ticket explaining why do you need this function."
+        "Use parseMultipart instead or file a ticket explaining why do you need this function."
 )
 @Suppress("unused")
 public fun parseBoundary(contentType: CharSequence): ByteBuffer {
@@ -493,7 +504,9 @@ public fun parseBoundary(contentType: CharSequence): ByteBuffer {
 internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
     val boundaryParameter = findBoundary(contentType)
 
-    if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
+    if (boundaryParameter == -1) {
+        throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
+    }
     val boundaryStart = boundaryParameter + 9
 
     val boundaryBytes: ByteBuffer = ByteBuffer.allocate(74)
@@ -507,7 +520,11 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteBuffer {
     loop@ for (i in boundaryStart until contentType.length) {
         val ch = contentType[i]
         val v = ch.toInt() and 0xffff
-        if (v and 0xffff > 0x7f) throw IOException("Failed to parse multipart: wrong boundary byte 0x${v.toString(16)} - should be 7bit character")
+        if (v and 0xffff > 0x7f) {
+            throw IOException(
+                "Failed to parse multipart: wrong boundary byte 0x${v.toString(16)} - should be 7bit character"
+            )
+        }
 
         when (state) {
             0 -> {

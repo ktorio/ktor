@@ -50,7 +50,7 @@ public class MessageLengthLimitingLogger(
             msgSubstring.lastIndexOf('\n').let { lastIndex ->
                 if (lastIndex >= minLength) {
                     msgSubstring = msgSubstring.substring(0, lastIndex)
-                    //skip over new line char
+                    // skip over new line char
                     msgSubstringEndIndex = lastIndex + 1
                 }
             }
@@ -62,6 +62,6 @@ public class MessageLengthLimitingLogger(
             logLong(message.substring(msgSubstringEndIndex))
         } else {
             delegate.log(message)
-        }// String to be logged is shorter than the max...
+        } // String to be logged is shorter than the max...
     }
 }

@@ -7,13 +7,17 @@ package io.ktor.network.sockets.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.SocketImpl
 import io.ktor.utils.io.*
+import io.mockk.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit4.*
 import org.junit.*
 import org.junit.rules.*
+import java.net.*
 import java.net.ServerSocket
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.test.*
@@ -25,7 +29,7 @@ class ClientSocketTest {
     private var server: Pair<ServerSocket, Thread>? = null
 
     @get:Rule
-    val timeout = CoroutinesTimeout.seconds(15)
+    val timeout = CoroutinesTimeout.seconds(600)
 
     @get:Rule
     val errors = ErrorCollector()
@@ -89,6 +93,55 @@ class ClientSocketTest {
         client { socket ->
             assertEquals("0123456789", socket.openReadChannel().readUTF8Line())
         }
+    }
+
+    @Test
+    fun testSelfConnect() {
+        val selector = mockk<SelectorManager>()
+        coEvery { selector.select(any(), any()) } just Runs
+
+        val channel = mockk<SocketChannel>()
+        every { channel.socket() } returns mockSocket(
+            local = mockSocketAddress("client", 1),
+            remote = mockSocketAddress("client", 1),
+            channel = channel
+        )
+        every { channel.isBlocking } returns false
+        every { channel.connect(any()) } returns false
+        every { channel.isOpen } returns true
+        every { channel.finishConnect() } answers {
+            if (!channel.isOpen) throw ClosedChannelException()
+            true
+        }
+        every { channel.close() } answers {
+            every { channel.isOpen } returns false
+        }
+
+        runBlocking {
+            assertFailsWith<ClosedChannelException>(
+                "Channel should be closed if local and remote addresses of client socket match"
+            ) {
+                SocketImpl(channel, channel.socket(), selector).connect(
+                    mockSocketAddress("server", 2)
+                )
+            }
+        }
+    }
+
+    private fun mockSocket(local: SocketAddress, remote: SocketAddress, channel: SocketChannel): java.net.Socket {
+        val socket = mockk<java.net.Socket>()
+        every { socket.localSocketAddress } returns local
+        every { socket.remoteSocketAddress } returns remote
+        every { socket.close() } answers { channel.close() }
+        return socket
+    }
+
+    private fun mockSocketAddress(hostAddress: String, port: Int): InetSocketAddress {
+        val address = mockk<InetSocketAddress>()
+        every { address.port } returns port
+        every { address.address?.hostAddress } returns hostAddress
+        every { address.address?.isAnyLocalAddress } returns false
+        return address
     }
 
     private fun client(block: suspend (Socket) -> Unit) {

@@ -83,7 +83,6 @@ internal fun BytePacketBuilder.writeTLSCertificates(certificates: Array<X509Cert
     writePacket(chain)
 }
 
-
 internal fun BytePacketBuilder.writeEncryptedPreMasterSecret(
     preSecret: ByteArray,
     publicKey: PublicKey,

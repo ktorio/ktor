@@ -111,7 +111,9 @@ public class DefaultWebSocketSessionImpl(
             raw.incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Close -> {
-                        outgoing.send(Frame.Close(frame.readReason() ?: NORMAL_CLOSE))
+                        if (!outgoing.isClosedForSend) {
+                            outgoing.send(Frame.Close(frame.readReason() ?: NORMAL_CLOSE))
+                        }
                         closeFramePresented = true
                         return@launch
                     }
@@ -132,8 +134,12 @@ public class DefaultWebSocketSessionImpl(
                         val frameToSend = last?.let { builder ->
                             builder.writeFully(frame.buffer)
                             Frame.byType(
-                                fin = true, frame.frameType, builder.build().readBytes(),
-                                frame.rsv1, frame.rsv2, frame.rsv3
+                                fin = true,
+                                frame.frameType,
+                                builder.build().readBytes(),
+                                frame.rsv1,
+                                frame.rsv2,
+                                frame.rsv3
                             )
                         } ?: frame
 
@@ -160,7 +166,8 @@ public class DefaultWebSocketSessionImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun runOutgoingProcessor(): Job = launch(
-        OutgoingProcessorCoroutineName + Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED
+        OutgoingProcessorCoroutineName + Dispatchers.Unconfined,
+        start = CoroutineStart.UNDISPATCHED
     ) {
         try {
             outgoingProcessorLoop()

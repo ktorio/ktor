@@ -20,7 +20,8 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.write(
-    output: ByteWriteChannel, callContext: CoroutineContext,
+    output: ByteWriteChannel,
+    callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) {
@@ -66,8 +67,9 @@ internal suspend fun HttpRequestData.write(
         }
 
         val content = body
-        if (content is OutgoingContent.NoContent)
+        if (content is OutgoingContent.NoContent) {
             return
+        }
 
         val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
         val channel = chunkedJob?.channel ?: output

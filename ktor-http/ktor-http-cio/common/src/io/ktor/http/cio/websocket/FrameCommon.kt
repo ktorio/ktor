@@ -4,9 +4,9 @@
 
 package io.ktor.http.cio.websocket
 
-import kotlinx.coroutines.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 
 /**
  * A frame received or ready to be sent. It is not reusable and not thread-safe
@@ -131,7 +131,9 @@ public expect sealed class Frame private constructor(
             fin: Boolean,
             frameType: FrameType,
             data: ByteArray,
-            rsv1: Boolean, rsv2: Boolean, rsv3: Boolean
+            rsv1: Boolean,
+            rsv2: Boolean,
+            rsv3: Boolean
         ): Frame
     }
 }

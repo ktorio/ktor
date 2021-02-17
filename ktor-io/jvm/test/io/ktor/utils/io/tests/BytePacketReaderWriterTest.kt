@@ -202,8 +202,6 @@ class BytePacketReaderWriterTest {
         assertEquals(s, packet.inputStream().readBytes().toString(Charsets.UTF_8))
     }
 
-
-
     @Test
     fun testSingleBufferReadAll() {
         val bb = ByteArray(100)

@@ -27,7 +27,9 @@ internal class OkHttpWebsocketSession(
 
     override var pingIntervalMillis: Long
         get() = engine.pingIntervalMillis.toLong()
-        set(_) = throw WebSocketException("OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration.")
+        set(_) = throw WebSocketException(
+            "OkHttp doesn't support dynamic ping interval. You could switch it in the engine configuration."
+        )
 
     override var timeoutMillis: Long
         get() = engine.readTimeoutMillis.toLong()

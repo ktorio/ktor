@@ -5,20 +5,25 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.fetch.RequestInit
+import io.ktor.client.engine.js.node.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.*
 import org.w3c.fetch.*
 import kotlin.coroutines.*
 
 internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): RequestInit {
-    val jsHeaders = js("({})")
-    mergeHeaders(this@toRaw.headers, this@toRaw.body) { key, value ->
-        jsHeaders[key] = value
+    val jsHeaders = if (PlatformUtils.IS_BROWSER) {
+        Headers()
+    } else {
+        NodeFetch.Headers()
+    }
+    mergeHeaders(headers, body) { key, value ->
+        jsHeaders.set(key, value)
     }
 
     val bodyBytes = when (val content = body) {
@@ -30,15 +35,12 @@ internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): Reque
             }.channel.readRemaining().readBytes()
         }
         else -> null
-    }
+    }?.let { Uint8Array(it.toTypedArray()) }
 
-    return buildObject {
-        method = this@toRaw.method.value
-        headers = jsHeaders
+    return RequestInit(
+        method = method.value,
+        headers = jsHeaders,
+        body = bodyBytes,
         redirect = RequestRedirect.FOLLOW
-
-        bodyBytes?.let { body = Uint8Array(it.toTypedArray()) }
-    }
+    )
 }
-
-internal fun <T> buildObject(block: T.() -> Unit): T = (js("{}") as T).apply(block)

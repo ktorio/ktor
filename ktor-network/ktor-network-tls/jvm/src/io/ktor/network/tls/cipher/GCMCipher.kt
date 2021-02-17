@@ -18,8 +18,12 @@ internal class GCMCipher(
 
     override fun encrypt(record: TLSRecord): TLSRecord {
         val cipher = gcmEncryptCipher(
-            suite, keyMaterial, record.type, record.packet.remaining.toInt(),
-            outputCounter, outputCounter
+            suite,
+            keyMaterial,
+            record.type,
+            record.packet.remaining.toInt(),
+            outputCounter,
+            outputCounter
         )
 
         val packetId = outputCounter
@@ -38,7 +42,12 @@ internal class GCMCipher(
         val recordIv = packet.readLong()
 
         val cipher = gcmDecryptCipher(
-            suite, keyMaterial, record.type, packetSize.toInt(), recordIv, inputCounter++
+            suite,
+            keyMaterial,
+            record.type,
+            packetSize.toInt(),
+            recordIv,
+            inputCounter++
         )
 
         return TLSRecord(record.type, record.version, packet.cipherLoop(cipher))
@@ -49,7 +58,9 @@ private fun gcmEncryptCipher(
     suite: CipherSuite,
     keyMaterial: ByteArray,
     recordType: TLSRecordType,
-    recordLength: Int, recordIv: Long, recordId: Long
+    recordLength: Int,
+    recordIv: Long,
+    recordId: Long
 ): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)!!
 
@@ -78,7 +89,9 @@ private fun gcmDecryptCipher(
     suite: CipherSuite,
     keyMaterial: ByteArray,
     recordType: TLSRecordType,
-    recordLength: Int, recordIv: Long, recordId: Long
+    recordLength: Int,
+    recordIv: Long,
+    recordId: Long
 ): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)!!
 

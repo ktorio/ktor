@@ -25,9 +25,13 @@ class OAuthLocationsTest {
             oauth {
                 client = this@withTestApplication.client
                 providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                            "http://oauth-server/token",
-                            clientId = "test", clientSecret = "secret")
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        "a",
+                        "http://oauth-server/auth",
+                        "http://oauth-server/token",
+                        clientId = "test",
+                        clientSecret = "secret"
+                    )
                 }
                 urlProvider = { url(B()) }
             }
@@ -56,9 +60,13 @@ class OAuthLocationsTest {
             oauth {
                 client = this@withTestApplication.client
                 providerLookup = {
-                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                            "http://oauth-server/token",
-                            clientId = "test", clientSecret = "secret")
+                    OAuthServerSettings.OAuth2ServerSettings(
+                        "a",
+                        "http://oauth-server/auth",
+                        "http://oauth-server/token",
+                        clientId = "test",
+                        clientSecret = "secret"
+                    )
                 }
                 urlProvider = { "http://localhost/B" }
             }

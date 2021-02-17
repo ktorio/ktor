@@ -2,8 +2,8 @@
 
 package io.ktor.utils.io.bits
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.bits.internal.utils.*
+import kotlinx.cinterop.*
 import platform.posix.*
 
 @PublishedApi
@@ -536,7 +536,6 @@ internal inline fun requireRange(offset: Long, length: Long, size: Long, name: S
 internal inline fun Memory.isAlignedShort(offset: Long) = (pointer.toLong() + offset) and 0b1 == 0L
 internal inline fun Memory.isAlignedInt(offset: Long) = (pointer.toLong() + offset) and 0b11 == 0L
 internal inline fun Memory.isAlignedLong(offset: Long) = (pointer.toLong() + offset) and 0b111 == 0L
-
 
 private fun copy(
     source: IntArray,

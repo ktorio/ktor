@@ -255,7 +255,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
             assertEquals(0x11223344, ch.readInt())
         }
 
-        ch.write (4) { freeSpace, startOffset, endExclusive ->
+        ch.write(4) { freeSpace, startOffset, endExclusive ->
             if (endExclusive - startOffset < 4) {
                 fail("Not enough free space for writing 4 bytes: ${endExclusive - startOffset}")
             }

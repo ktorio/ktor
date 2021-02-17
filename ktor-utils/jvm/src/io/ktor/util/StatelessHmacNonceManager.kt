@@ -34,7 +34,10 @@ public class StatelessHmacNonceManager(
         SecretKeySpec(
             key,
             algorithm
-        ), algorithm, timeoutMillis, nonceGenerator
+        ),
+        algorithm,
+        timeoutMillis,
+        nonceGenerator
     )
 
     /**
@@ -49,10 +52,12 @@ public class StatelessHmacNonceManager(
         val random = nonceGenerator()
         val time = System.nanoTime().toString(16).padStart(16, '0')
 
-        val mac = hex(Mac.getInstance(algorithm).apply {
-            init(keySpec)
-            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-        }.doFinal())
+        val mac = hex(
+            Mac.getInstance(algorithm).apply {
+                init(keySpec)
+                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+            }.doFinal()
+        )
 
         return "$random+$time+$mac"
     }
@@ -69,10 +74,12 @@ public class StatelessHmacNonceManager(
         val nanoTime = time.toLong(16)
         if (nanoTime + TimeUnit.MILLISECONDS.toNanos(timeoutMillis) < System.nanoTime()) return false
 
-        val computedMac = hex(Mac.getInstance(algorithm).apply {
-            init(keySpec)
-            update("$random:$time".toByteArray(Charsets.ISO_8859_1))
-        }.doFinal())
+        val computedMac = hex(
+            Mac.getInstance(algorithm).apply {
+                init(keySpec)
+                update("$random:$time".toByteArray(Charsets.ISO_8859_1))
+            }.doFinal()
+        )
 
         var validCount = 0
         for (i in 0 until minOf(computedMac.length, mac.length)) {

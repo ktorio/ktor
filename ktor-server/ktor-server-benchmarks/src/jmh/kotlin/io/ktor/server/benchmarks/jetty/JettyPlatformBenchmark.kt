@@ -46,20 +46,30 @@ class JettyPlatformBenchmark : PlatformBenchmark() {
         }
 
         @Throws(IOException::class, ServletException::class)
-        override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+        override fun handle(
+            target: String,
+            baseRequest: Request,
+            request: HttpServletRequest,
+            response: HttpServletResponse
+        ) {
             when (target) {
                 "/sayOK" -> _plainHandler.handle(target, baseRequest, request, response)
             }
         }
-
     }
 
     private class PlainTextHandler : AbstractHandler() {
         internal var helloWorld = BufferUtil.toBuffer("OK")
-        internal var contentType: HttpField = PreEncodedHttpField(HttpHeader.CONTENT_TYPE, MimeTypes.Type.TEXT_PLAIN.asString())
+        internal var contentType: HttpField =
+            PreEncodedHttpField(HttpHeader.CONTENT_TYPE, MimeTypes.Type.TEXT_PLAIN.asString())
 
         @Throws(IOException::class, ServletException::class)
-        override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+        override fun handle(
+            target: String,
+            baseRequest: Request,
+            request: HttpServletRequest,
+            response: HttpServletResponse
+        ) {
             baseRequest.isHandled = true
             baseRequest.response.httpFields.add(contentType)
             baseRequest.response.httpOutput.sendContent(helloWorld.slice())

@@ -50,7 +50,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testAcceptMerge() = clientTests(listOf("Js")) {
         test { client ->
-            val lines = client.get<String>("$HTTP_PROXY_SERVER/headers-merge") {
+            val lines = client.get<String>("$TCP_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
                 accept(ContentType.Application.Json)
             }.split("\n")
@@ -65,6 +65,22 @@ class HeadersTest : ClientLoader() {
         test { client ->
             client.get("$TEST_SERVER/headers/host") {
                 header(HttpHeaders.Host, "CustomHost")
+            }
+        }
+    }
+
+    @Test
+    fun testUnsafeHeaders() = clientTests {
+        test { client ->
+            assertFailsWith<UnsafeHeaderException>(
+                "Header(s) ${HttpHeaders.UnsafeHeadersList} are controlled by the engine and cannot be set explicitly"
+            ) {
+                client.get<HttpResponse>("$TEST_SERVER/headers") {
+                    header(HttpHeaders.ContentLength, 0)
+                    header(HttpHeaders.ContentType, ContentType.Application.Json)
+                    header(HttpHeaders.TransferEncoding, "chunked")
+                    header(HttpHeaders.Upgrade, "upgrade")
+                }
             }
         }
     }

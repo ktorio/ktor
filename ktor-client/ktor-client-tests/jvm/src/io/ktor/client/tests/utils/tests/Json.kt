@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-
 public fun Application.jsonTest() {
     routing {
         route("json") {
@@ -20,7 +19,8 @@ public fun Application.jsonTest() {
                         "message": "ok",
                         "data": { "name": "hello" }
                     }
-                """.trimIndent(), contentType = ContentType.Application.Json
+                    """.trimIndent(),
+                    contentType = ContentType.Application.Json
                 )
             }
         }

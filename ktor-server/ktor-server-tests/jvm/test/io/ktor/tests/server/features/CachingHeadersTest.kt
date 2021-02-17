@@ -15,36 +15,50 @@ import kotlin.test.*
 
 class CachingHeadersTest {
     @Test
-    fun testNoFeatureInstalled(): Unit = test(configure = {
-    }, test = { call ->
-        assertEquals(null, call.response.headers[HttpHeaders.CacheControl])
-    })
-
-    @Test
-    fun testByPass(): Unit = test(configure = {
-        install(CachingHeaders)
-    }, test = { call ->
-        assertEquals("no-cache", call.response.headers[HttpHeaders.CacheControl])
-    })
-
-    @Test
-    fun addNoStore(): Unit = test(configure = {
-        install(CachingHeaders) {
-            options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+    fun testNoFeatureInstalled(): Unit = test(
+        configure = {},
+        test = { call ->
+            assertEquals(null, call.response.headers[HttpHeaders.CacheControl])
         }
-    }, test = { call ->
-        assertEquals("no-cache, private, no-store", call.response.headers[HttpHeaders.CacheControl])
-    })
+    )
 
     @Test
-    fun testAddMaxAgeAndNoStore(): Unit = test(configure = {
-        install(CachingHeaders) {
-            options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
-            options { CachingOptions(CacheControl.MaxAge(15)) }
+    fun testByPass(): Unit = test(
+        configure = {
+            install(CachingHeaders)
+        },
+        test = { call ->
+            assertEquals("no-cache", call.response.headers[HttpHeaders.CacheControl])
         }
-    }, test = { call ->
-        assertEquals("no-cache, no-store, max-age=15, private", call.response.headers[HttpHeaders.CacheControl])
-    })
+    )
+
+    @Test
+    fun addNoStore(): Unit = test(
+        configure = {
+            install(CachingHeaders) {
+                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+            }
+        },
+        test = { call ->
+            assertEquals("no-cache, private, no-store", call.response.headers[HttpHeaders.CacheControl])
+        }
+    )
+
+    @Test
+    fun testAddMaxAgeAndNoStore(): Unit = test(
+        configure = {
+            install(CachingHeaders) {
+                options { CachingOptions(CacheControl.NoStore(CacheControl.Visibility.Private)) }
+                options { CachingOptions(CacheControl.MaxAge(15)) }
+            }
+        },
+        test = { call ->
+            assertEquals(
+                "no-cache, no-store, max-age=15, private",
+                call.response.headers[HttpHeaders.CacheControl]
+            )
+        }
+    )
 
     private fun test(
         configure: Application.() -> Unit,

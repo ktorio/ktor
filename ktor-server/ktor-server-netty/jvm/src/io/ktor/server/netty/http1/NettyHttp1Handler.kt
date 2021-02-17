@@ -9,11 +9,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
 import io.ktor.util.cio.*
+import io.ktor.utils.io.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.*
-import io.ktor.utils.io.*
 import java.io.*
 import kotlin.coroutines.*
 
@@ -123,4 +123,3 @@ internal class NettyHttp1Handler(
         ctx.close()
     }
 }
-

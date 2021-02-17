@@ -42,8 +42,7 @@ public abstract class NettyApplicationRequest(
     override fun receiveChannel(): ByteReadChannel = requestBodyChannel
 
     private val contentMultipart = lazy {
-        if (!isMultipart())
-            throw IOException("The request content is not multipart encoded")
+        if (!isMultipart()) throw IOException("The request content is not multipart encoded")
         val decoder = newDecoder()
         NettyMultiPartData(decoder, context.alloc(), requestBodyChannel)
     }

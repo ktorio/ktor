@@ -1,7 +1,7 @@
 package io.ktor.utils.io.core
 
-import kotlinx.cinterop.*
 import io.ktor.utils.io.core.internal.*
+import kotlinx.cinterop.*
 
 /**
  * Read at most [limit] bytes to the specified [dst] address
@@ -23,8 +23,9 @@ public fun ByteReadPacket.readAvailable(dst: CPointer<ByteVar>, limit: Long): Lo
  */
 public fun ByteReadPacket.readFully(dst: CPointer<ByteVar>, size: Int): Int {
     val rc = readAsMuchAsPossible(dst, size.toLong(), 0L)
-    if (rc != size.toLong())
+    if (rc != size.toLong()) {
         throw EOFException("Not enough data in packet to fill buffer: ${size.toLong() - rc} more bytes required")
+    }
     return rc.toInt()
 }
 

@@ -5,11 +5,11 @@
 package io.ktor.server.jetty.internal
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
+import kotlinx.coroutines.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*
@@ -28,7 +28,8 @@ private val JettyWebSocketPool = ByteBufferPool(JETTY_WEBSOCKET_POOL_SIZE, 4096)
 
 internal class EndPointReader(
     endpoint: EndPoint,
-    override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel
+    override val coroutineContext: CoroutineContext,
+    private val channel: ByteWriteChannel
 ) : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
     private val currentHandler = AtomicReference<Continuation<Unit>>()
     private val buffer = JettyWebSocketPool.borrow()
@@ -124,15 +125,18 @@ internal fun CoroutineScope.endPointWriter(
 }
 
 private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
-    write(object : Callback {
-        override fun succeeded() {
-            continuation.resume(Unit)
-        }
+    write(
+        object : Callback {
+            override fun succeeded() {
+                continuation.resume(Unit)
+            }
 
-        override fun failed(cause: Throwable) {
-            continuation.resumeWithException(ChannelWriteException(exception = cause))
-        }
-    }, buffer)
+            override fun failed(cause: Throwable) {
+                continuation.resumeWithException(ChannelWriteException(exception = cause))
+            }
+        },
+        buffer
+    )
 }
 
 private fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {

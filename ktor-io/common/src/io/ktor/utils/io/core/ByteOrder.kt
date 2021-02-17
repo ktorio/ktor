@@ -7,4 +7,3 @@ public expect enum class ByteOrder {
         public fun nativeOrder(): ByteOrder
     }
 }
-

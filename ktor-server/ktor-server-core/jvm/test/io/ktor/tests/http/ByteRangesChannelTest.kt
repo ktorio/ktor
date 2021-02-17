@@ -5,12 +5,11 @@
 package io.ktor.tests.http
 
 import io.ktor.features.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.test.*
-
 
 class ByteRangesChannelTest : CoroutineScope {
     override val coroutineContext: CoroutineContext
@@ -19,9 +18,16 @@ class ByteRangesChannelTest : CoroutineScope {
     @Test
     fun testAscendingNoLength() {
         val source = asyncOf("0123456789abcdef")
-        val result = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L..6L), null, "boundary-1", "text/plain")
+        val result = writeMultipleRangesImpl(
+            source,
+            listOf(1L..3L, 5L..6L),
+            null,
+            "boundary-1",
+            "text/plain"
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
         --boundary-1
         Content-Type: text/plain
         Content-Range: bytes 1-3/*
@@ -34,15 +40,18 @@ class ByteRangesChannelTest : CoroutineScope {
         56
         --boundary-1--
 
-        """.trimIndent(), result.readText().replaceEndlines())
+            """.trimIndent(),
+            result.readText().replaceEndlines()
+        )
     }
 
     @Test
     fun testAscendingWithLength() {
         val source = asyncOf("0123456789abcdef")
-        val ranges = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L..6L), 99L, "boundary-1", "text/plain")
+        val ranges = writeMultipleRangesImpl(source, listOf(1L..3L, 5L..6L), 99L, "boundary-1", "text/plain")
 
-        assertEquals("""
+        assertEquals(
+            """
         --boundary-1
         Content-Type: text/plain
         Content-Range: bytes 1-3/99
@@ -55,15 +64,24 @@ class ByteRangesChannelTest : CoroutineScope {
         56
         --boundary-1--
 
-        """.trimIndent(), ranges.readText().replaceEndlines())
+            """.trimIndent(),
+            ranges.readText().replaceEndlines()
+        )
     }
 
     @Test
     fun testNonAscendingNoLength() {
         val source = asyncOf("0123456789abcdef")
-        val ranges = writeMultipleRangesImpl(source, listOf(1L .. 3L, 5L .. 6L, 0L .. 1L), null, "boundary-1", "text/plain")
+        val ranges = writeMultipleRangesImpl(
+            source,
+            listOf(1L..3L, 5L..6L, 0L..1L),
+            null,
+            "boundary-1",
+            "text/plain"
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
         --boundary-1
         Content-Type: text/plain
         Content-Range: bytes 1-3/*
@@ -81,13 +99,17 @@ class ByteRangesChannelTest : CoroutineScope {
         01
         --boundary-1--
 
-        """.trimIndent(), ranges.readText().replaceEndlines())
+            """.trimIndent(),
+            ranges.readText().replaceEndlines()
+        )
     }
 
     private fun String.replaceEndlines() = replace("\r\n", "\n")
     private fun ByteReadChannel.readText(): String = toInputStream().reader(Charsets.ISO_8859_1).readText()
 
     private fun asyncOf(text: String): (LongRange) -> ByteReadChannel = { range ->
-        ByteReadChannel(text.substring(range.start.toInt(), range.endInclusive.toInt() + 1).toByteArray(Charsets.ISO_8859_1))
+        ByteReadChannel(
+            text.substring(range.start.toInt(), range.endInclusive.toInt() + 1).toByteArray(Charsets.ISO_8859_1)
+        )
     }
 }

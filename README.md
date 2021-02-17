@@ -70,9 +70,9 @@ from the community.
 
 Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
 
-* Getting started with [Gradle](http://ktor.io/quickstart/gradle.html) 
-* Getting started with [Maven](http://ktor.io/quickstart/maven.html) 
-* Getting started with [IDEA](http://ktor.io/quickstart/intellij-idea.html) 
+* Getting started with [Gradle](https://ktor.io/docs/gradle.html) 
+* Getting started with [Maven](https://ktor.io/docs/maven.html) 
+* Getting started with [IDEA](https://ktor.io/docs/intellij-idea.html) 
 
 ## Reporting Issues / Support
 

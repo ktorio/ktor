@@ -22,7 +22,8 @@ import javax.crypto.*
 import javax.crypto.spec.*
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
-    client: HttpClient, dispatcher: CoroutineDispatcher,
+    client: HttpClient,
+    dispatcher: CoroutineDispatcher,
     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
     urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
@@ -309,8 +310,11 @@ internal fun signatureBaseStringInternal(
     method: HttpMethod,
     baseUrl: String,
     parameters: List<HeaderValueParam>
-): String = listOf(method.value.toUpperCasePreservingASCIIRules(), baseUrl, parametersString(header.parameters + parameters))
-    .joinToString("&") { it.encodeURLParameter() }
+): String = listOf(
+    method.value.toUpperCasePreservingASCIIRules(),
+    baseUrl,
+    parametersString(header.parameters + parameters)
+).joinToString("&") { it.encodeURLParameter() }
 
 private fun String.hmacSha1(key: String): String {
     val keySpec = SecretKeySpec(key.toByteArray(), "HmacSHA1")
@@ -324,7 +328,6 @@ private fun parametersString(parameters: List<HeaderValueParam>): String =
     parameters.map { it.name.encodeURLParameter() to it.value.encodeURLParameter() }
         .sortedWith(compareBy<Pair<String, String>> { it.first }.then(compareBy { it.second }))
         .joinToString("&") { "${it.first}=${it.second}" }
-
 
 /**
  * Represents an OAuth1a server error

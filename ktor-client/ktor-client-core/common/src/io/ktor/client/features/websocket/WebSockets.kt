@@ -57,7 +57,7 @@ internal constructor(
     public constructor(
         pingInterval: Long = -1L,
         maxFrameSize: Long = Int.MAX_VALUE.toLong(),
-    ) : this(pingInterval,maxFrameSize, WebSocketExtensionsConfig())
+    ) : this(pingInterval, maxFrameSize, WebSocketExtensionsConfig())
 
     /**
      * Client WebSocket feature.

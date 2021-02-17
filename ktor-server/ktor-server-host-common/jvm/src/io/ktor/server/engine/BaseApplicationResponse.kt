@@ -44,8 +44,7 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
      * Commit header values and status and pass them to the underlying engine
      */
     protected fun commitHeaders(content: OutgoingContent) {
-        if (responded)
-            throw BaseApplicationResponse.ResponseAlreadySentException()
+        if (responded) throw BaseApplicationResponse.ResponseAlreadySentException()
         responded = true
 
         var transferEncodingSet = false
@@ -55,10 +54,12 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
             when (name) {
                 HttpHeaders.TransferEncoding -> transferEncodingSet = true
                 HttpHeaders.Upgrade -> {
-                    if (content !is OutgoingContent.ProtocolUpgrade)
+                    if (content !is OutgoingContent.ProtocolUpgrade) {
                         throw InvalidHeaderForContent(HttpHeaders.Upgrade, "non-upgrading response")
-                    for (value in values)
+                    }
+                    for (value in values) {
                         headers.append(name, value, safeOnly = false)
+                    }
                     return@forEach
                 }
             }
@@ -255,13 +256,13 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class InvalidHeaderForContent(
-        private val name: String, private val content: String
+        private val name: String,
+        private val content: String
     ) : IllegalStateException("Header $name is not allowed for $content"),
         CopyableThrowable<InvalidHeaderForContent> {
         override fun createCopy(): InvalidHeaderForContent? = InvalidHeaderForContent(name, content).also {
             it.initCause(this)
         }
-
     }
 
     /**
@@ -269,7 +270,8 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     public class BodyLengthIsTooSmall(
-        private val expected: Long, private val actual: Long
+        private val expected: Long,
+        private val actual: Long
     ) : IllegalStateException("Body.size is too small. Body: $actual, Content-Length: $expected"),
         CopyableThrowable<BodyLengthIsTooSmall> {
         override fun createCopy(): BodyLengthIsTooSmall? = BodyLengthIsTooSmall(expected, actual).also {
@@ -281,13 +283,11 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
      * Content's actual body size doesn't match the provided one in `Content-Length` header
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    public class BodyLengthIsTooLong(private val expected: Long) : IllegalStateException(
-        "Body.size is too long. Expected $expected"
-    ), CopyableThrowable<BodyLengthIsTooLong> {
+    public class BodyLengthIsTooLong(private val expected: Long) :
+        IllegalStateException("Body.size is too long. Expected $expected"), CopyableThrowable<BodyLengthIsTooLong> {
         override fun createCopy(): BodyLengthIsTooLong? = BodyLengthIsTooLong(expected).also {
             it.initCause(this)
         }
-
     }
 
     public companion object {
@@ -297,7 +297,8 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
          * unless you are writing your own engine implementation
          */
         @EngineAPI
-        public val EngineResponseAtributeKey: AttributeKey<BaseApplicationResponse> = AttributeKey<BaseApplicationResponse>("EngineResponse")
+        public val EngineResponseAtributeKey: AttributeKey<BaseApplicationResponse> =
+            AttributeKey<BaseApplicationResponse>("EngineResponse")
 
         /**
          * Install an application-wide send pipeline interceptor into [ApplicationSendPipeline.Engine] phase
@@ -307,7 +308,9 @@ public abstract class BaseApplicationResponse(final override val call: Applicati
         public fun setupSendPipeline(sendPipeline: ApplicationSendPipeline) {
             sendPipeline.intercept(ApplicationSendPipeline.Engine) { response ->
                 if (response !is OutgoingContent) {
-                    throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
+                    throw IllegalArgumentException(
+                        "Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent"
+                    )
                 }
 
                 val call = call

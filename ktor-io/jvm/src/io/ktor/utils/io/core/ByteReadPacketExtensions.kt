@@ -26,7 +26,8 @@ private fun poolFor(bb: ByteBuffer, release: (ByteBuffer) -> Unit): ObjectPool<C
 }
 
 private class SingleByteBufferPool(
-    val instance: ByteBuffer, val release: (ByteBuffer) -> Unit
+    val instance: ByteBuffer,
+    val release: (ByteBuffer) -> Unit
 ) : SingleInstancePool<ChunkBuffer>() {
     override fun produceInstance(): ChunkBuffer {
         @Suppress("DEPRECATION")

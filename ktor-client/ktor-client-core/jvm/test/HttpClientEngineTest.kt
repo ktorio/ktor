@@ -3,8 +3,8 @@
  */
 
 import io.ktor.client.*
-import io.ktor.client.utils.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.utils.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import kotlin.test.*
@@ -25,14 +25,14 @@ class HttpClientEngineTest {
         assertFalse(dispatcher.closed)
 
         val first = Job()
-        val second = client.async {
+        client.launch {
             first.join()
             assertFalse(dispatcher.closed)
         }
 
         client.close()
         first.complete()
-        second.await()
+        client.coroutineContext.job.join()
         assertTrue(dispatcher.closed)
     }
 }

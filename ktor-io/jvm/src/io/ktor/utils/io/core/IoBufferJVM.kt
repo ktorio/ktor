@@ -4,12 +4,12 @@ package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.core.internal.require
 import io.ktor.utils.io.internal.jvm.*
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.utils.*
 import java.nio.*
 import java.nio.charset.*
-import io.ktor.utils.io.core.internal.require
 import kotlin.contracts.*
 
 /**
@@ -62,7 +62,7 @@ public actual class IoBuffer actual constructor(
 
     @Suppress("unused")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun setNext(newNext: IoBuffer?): Unit {
+    public fun setNext(newNext: IoBuffer?): Unit { // ktlint-disable no-unit-return
         next = newNext
     }
 

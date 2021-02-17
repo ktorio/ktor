@@ -22,6 +22,7 @@ internal actual fun createStackTraceElement(
     return java.lang.StackTraceElement(
         kClass.java.name,
         methodName,
-        fileName, lineNumber
+        fileName,
+        lineNumber
     )
 }

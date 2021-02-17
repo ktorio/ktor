@@ -405,7 +405,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteIntArrayLE() {
-
         val array = i32
         val size = 4
 
@@ -417,7 +416,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteUIntArrayLE() {
-
         val array = iu32
         val size = 4
 
@@ -429,7 +427,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteIntArrayLERange() {
-
         val array = i32
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
@@ -439,7 +436,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteUIntArrayLERange() {
-
         val array = iu32
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
@@ -449,7 +445,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadIntArrayLE() {
-
         val array = i32
         val size = 4
 
@@ -463,7 +458,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadUIntArrayLE() {
-
         val array = iu32
         val size = 4
 
@@ -477,7 +471,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadIntArrayRangeLE() {
-
         val array = i32
         val size = 4
 
@@ -506,19 +499,21 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteLongArrayBE() {
-
         val array = i64
         val size = 8
 
         view.writeFully(array)
 
         assertEquals(array.size * size, view.readRemaining)
-        assertEquals("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff", view.readHex())
+        assertEquals(
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff",
+            view.readHex()
+        )
     }
 
     @Test
     fun testWriteULongArrayBE() {
-
         val array = iu64
         val size = 8
 
@@ -526,24 +521,27 @@ class PrimitiveArraysTest {
 
         assertEquals(array.size * size, view.readRemaining)
         assertEquals(
-            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff",
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff",
             view.readHex()
         )
     }
 
     @Test
     fun testWriteLongArrayBERange() {
-
         val array = i64
 
         view.writeFully(array, 1, array.size - 2)
 
-        assertEquals("0000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffff", view.readHex())
+        assertEquals(
+            "0000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffff",
+            view.readHex()
+        )
     }
 
     @Test
     fun testWriteULongArrayBERange() {
-
         val array = iu64
 
         view.writeFully(array, 1, array.size - 2)
@@ -556,11 +554,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testLongIntArrayBE() {
-
         val array = i64
         val size = 8
 
-        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        view.writeHex(
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = LongArray(array.size)
@@ -570,11 +570,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testLongUIntArrayBE() {
-
         val array = iu64
         val size = 8
 
-        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        view.writeHex(
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = ULongArray(array.size)
@@ -584,11 +586,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadLongArrayRangeBE() {
-
         val array = i64
         val size = 8
 
-        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        view.writeHex(
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = LongArray(array.size + 2)
@@ -599,11 +603,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadULongArrayRangeBE() {
-
         val array = iu64
         val size = 8
 
-        view.writeHex("fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000ffffffff00000000ceffffffffffffffffffffff")
+        view.writeHex(
+            "fffffffffffffff10000000000000000000000000000000100000000000000ff000000000000ffff00000000" +
+                "ffffffff00000000ceffffffffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = ULongArray(array.size + 2)
@@ -614,19 +620,21 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteLongArrayLE() {
-
         val array = i64
         val size = 8
 
         view.writeFullyLittleEndian(array)
 
         assertEquals(array.size * size, view.readRemaining)
-        assertEquals("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff", view.readHex())
+        assertEquals(
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000ffffffffffffffff",
+            view.readHex()
+        )
     }
 
     @Test
     fun testWriteULongArrayLE() {
-
         val array = iu64
         val size = 8
 
@@ -634,24 +642,27 @@ class PrimitiveArraysTest {
 
         assertEquals(array.size * size, view.readRemaining)
         assertEquals(
-            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff",
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000ffffffffffffffff",
             view.readHex()
         )
     }
 
     @Test
     fun testWriteLongArrayLERange() {
-
         val array = i64
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
 
-        assertEquals("00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000", view.readHex())
+        assertEquals(
+            "00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000",
+            view.readHex()
+        )
     }
 
     @Test
     fun testWriteULongArrayLERange() {
-
         val array = iu64
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
@@ -664,11 +675,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadLongArrayLE() {
-
         val array = i64
         val size = 8
 
-        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        view.writeHex(
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000ffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = LongArray(array.size)
@@ -680,11 +693,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadULongArrayLE() {
-
         val array = iu64
         val size = 8
 
-        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        view.writeHex(
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000ffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = ULongArray(array.size)
@@ -694,11 +709,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadLongArrayRangeLE() {
-
         val array = i64
         val size = 8
 
-        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        view.writeHex(
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000" +
+                "ffffffff00000000ffffffce00000000ffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = LongArray(array.size + 2)
@@ -709,11 +726,13 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadULongArrayRangeLE() {
-
         val array = iu64
         val size = 8
 
-        view.writeHex("f1ffffffffffffff00000000000000000100000000000000ff00000000000000ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff")
+        view.writeHex(
+            "f1ffffffffffffff00000000000000000100000000000000ff00000000000000" +
+                "ffff000000000000ffffffff00000000ffffffce00000000ffffffffffffffff"
+        )
 
         assertEquals(array.size * size, view.readRemaining)
         val tmp = ULongArray(array.size + 2)
@@ -724,7 +743,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteFloatArrayBE() {
-
         val array = f32
         val size = 4
 
@@ -736,7 +754,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteFloatArrayBERange() {
-
         val array = f32
 
         view.writeFully(array, 1, array.size - 2)
@@ -746,7 +763,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadFloatArrayBE() {
-
         val array = f32
         val size = 4
 
@@ -760,7 +776,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadFloatArrayRangeBE() {
-
         val array = f32
         val size = 4
 
@@ -775,7 +790,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteFloatArrayLE() {
-
         val array = f32
         val size = 4
 
@@ -787,7 +801,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteFloatArrayLERange() {
-
         val array = f32
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
@@ -797,7 +810,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadFloatArrayLE() {
-
         val array = f32
         val size = 4
 
@@ -811,7 +823,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadFloatArrayRangeLE() {
-
         val array = f32
         val size = 4
 
@@ -826,7 +837,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteDoubleArrayBE() {
-
         val array = f64
         val size = 8
 
@@ -838,7 +848,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteDoubleArrayBERange() {
-
         val array = f64
 
         view.writeFully(array, 1, array.size - 2)
@@ -848,7 +857,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadDoubleArrayBE() {
-
         val array = f64
         val size = 8
 
@@ -862,7 +870,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadDoubleArrayRangeBE() {
-
         val array = f64
         val size = 8
 
@@ -877,7 +884,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteDoubleArrayLE() {
-
         val array = f64
         val size = 8
 
@@ -889,7 +895,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testWriteDoubleArrayLERange() {
-
         val array = f64
 
         view.writeFullyLittleEndian(array, 1, array.size - 2)
@@ -899,7 +904,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadDoubleArrayLE() {
-
         val array = f64
         val size = 8
 
@@ -913,7 +917,6 @@ class PrimitiveArraysTest {
 
     @Test
     fun testReadDoubleArrayRangeLE() {
-
         val array = f64
         val size = 8
 

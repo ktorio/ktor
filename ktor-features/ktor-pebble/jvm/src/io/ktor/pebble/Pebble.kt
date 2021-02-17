@@ -90,8 +90,9 @@ public class Pebble(private val engine: PebbleEngine) {
         }
 
         init {
-            if (etag != null)
+            if (etag != null) {
                 versions += EntityTagVersion(etag)
+            }
         }
     }
 }

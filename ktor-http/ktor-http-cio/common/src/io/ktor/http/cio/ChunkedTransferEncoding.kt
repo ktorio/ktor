@@ -48,7 +48,6 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
         decodeChunked(input, channel, contentLength)
     }
 
-
 /**
  * Decode chunked transfer encoding from the [input] channel and write the result in [out].
  *

@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io.core
 
 import kotlinx.cinterop.*
@@ -103,4 +104,3 @@ public actual interface Output : Appendable, Closeable {
 
     actual override fun close()
 }
-

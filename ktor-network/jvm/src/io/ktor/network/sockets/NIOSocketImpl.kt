@@ -5,10 +5,10 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
@@ -20,7 +20,7 @@ internal abstract class NIOSocketImpl<out S>(
     val pool: ObjectPool<ByteBuffer>?,
     private val socketOptions: SocketOptions.TCPClientSocketOptions? = null
 ) : ReadWriteSocket, SelectableBase(channel), CoroutineScope
-    where S : java.nio.channels.ByteChannel, S : java.nio.channels.SelectableChannel {
+    where S : java.nio.channels.ByteChannel, S : SelectableChannel {
 
     private val closeFlag = AtomicBoolean()
     private val readerJob = AtomicReference<ReaderJob?>()
@@ -105,8 +105,8 @@ internal abstract class NIOSocketImpl<out S>(
             channel.close()
             super.close()
             null
-        } catch (t: Throwable) {
-            t
+        } catch (cause: Throwable) {
+            cause
         } finally {
             selector.notifyClosed(this)
         }

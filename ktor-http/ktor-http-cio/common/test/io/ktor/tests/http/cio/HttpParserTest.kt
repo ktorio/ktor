@@ -21,7 +21,7 @@ class HttpParserTest {
     fun parseHeadersSmokeTest(): Unit = test {
         val encodedHeaders = """
             name: value
-            name2:${HTAB}p1${HTAB}p2 p3${HTAB}
+            name2:${HTAB}p1${HTAB}p2 p3$HTAB
         """.trimIndent() + "\r\n\r\n"
         val channel = ByteReadChannel(encodedHeaders)
         val headers = parseHeaders(channel)
@@ -158,7 +158,7 @@ class HttpParserTest {
             """
             HTTP/1.1 100 OK
             """.trimIndent(),
-                """
+            """
             HTTP/1.1 999 OK
             """.trimIndent()
         ).forEach {

@@ -47,7 +47,6 @@ class CallLoggingTest {
         log = logger
     }
 
-
     @BeforeTest
     fun setup() {
         messages = ArrayList()
@@ -213,7 +212,9 @@ class CallLoggingTest {
                     assertTrue { call.requestHandled }
 
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }
@@ -252,7 +253,9 @@ class CallLoggingTest {
                     assertTrue { call.requestHandled }
 
                     assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
-                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue {
+                        "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages
+                    }
                 }
             }
         }

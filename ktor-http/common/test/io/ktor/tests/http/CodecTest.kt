@@ -106,7 +106,10 @@ class CodecTest {
 
     @Test
     fun testEncodeURLPathUTF() {
-        assertEquals("/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana%E2%80%93Champaign_logo.svg", urlPath.encodeURLPath())
+        assertEquals(
+            "/wikipedia/commons/9/9c/University_of_Illinois_at_Urbana%E2%80%93Champaign_logo.svg",
+            urlPath.encodeURLPath()
+        )
         assertEquals("%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82", russian.encodeURLPath())
         assertEquals("Gr%C3%BCezi_z%C3%A4m%C3%A4", swissAndGerman.encodeURLPath())
     }

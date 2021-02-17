@@ -32,7 +32,7 @@ public class DigestAuthenticationProvider internal constructor(
      * Digest auth configuration
      */
     public class Configuration internal constructor(name: String?) : AuthenticationProvider.Configuration(name) {
-        internal var digestProvider : DigestProviderFunction = { userName, realm ->
+        internal var digestProvider: DigestProviderFunction = { userName, realm ->
             MessageDigest.getInstance(algorithmName).let { digester ->
                 digester.reset()
                 digester.update("$userName:$realm".toByteArray(Charsets.UTF_8))
@@ -97,22 +97,28 @@ public fun Authentication.Configuration.digest(
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
                 authHeader.toDigestCredential()
-            } else
+            } else {
                 null
+            }
         }
 
-        val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == provider.algorithmName
-                && it.realm == provider.realm
-                && provider.nonceManager.verifyNonce(it.nonce)
-                && it.verifier(
-                    call.request.local.method, MessageDigest.getInstance(provider.algorithmName),
-                    provider.userNameRealmPasswordDigestProvider
-                )
+        val verify: suspend (DigestCredential) -> Boolean = {
+            it.verifier(
+                call.request.local.method,
+                MessageDigest.getInstance(provider.algorithmName),
+                provider.userNameRealmPasswordDigestProvider
             )
+        }
+        val principal = credentials?.let {
+            if ((it.algorithm ?: "MD5") == provider.algorithmName &&
+                it.realm == provider.realm &&
+                provider.nonceManager.verifyNonce(it.nonce) &&
+                verify(it)
+            ) {
                 UserIdPrincipal(it.userName)
-            else
+            } else {
                 null
+            }
         }
 
         when (principal) {

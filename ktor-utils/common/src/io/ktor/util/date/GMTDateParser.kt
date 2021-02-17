@@ -64,7 +64,8 @@ public class GMTDateParser(private val pattern: String) {
     }
 
     private fun GMTDateBuilder.handleToken(
-        type: Char, chunk: String
+        type: Char,
+        chunk: String
     ): Unit = when (type) {
         SECONDS -> {
             seconds = chunk.toInt()
@@ -105,7 +106,6 @@ public class GMTDateParser(private val pattern: String) {
 
         public const val ANY: Char = '*'
     }
-
 }
 
 internal class GMTDateBuilder {
@@ -124,5 +124,7 @@ internal class GMTDateBuilder {
  * Thrown when the date string doesn't the string pattern.
  */
 public class InvalidDateStringException(
-    data: String, at: Int, pattern: String
+    data: String,
+    at: Int,
+    pattern: String
 ) : IllegalStateException("Failed to parse date string: \"${data}\" at index $at. Pattern: \"$pattern\"")

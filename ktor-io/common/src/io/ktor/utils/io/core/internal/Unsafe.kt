@@ -42,7 +42,6 @@ internal fun ByteReadPacket.unsafeAppend(builder: BytePacketBuilder): Int {
     return builderSize
 }
 
-
 @Suppress("DEPRECATION", "UNUSED")
 @JvmName("prepareReadFirstHead")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)

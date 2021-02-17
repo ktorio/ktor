@@ -78,7 +78,6 @@ public data class CipherSuite(
     val macStrengthInBytes: Int = macStrength / 8
 }
 
-
 /**
  * CIO cipher suites collection
  * https://www.ietf.org/rfc/rfc5289.txt

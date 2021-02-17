@@ -21,16 +21,20 @@ fun resolve(
     headers: Headers = Headers.Empty
 ): RoutingResolveResult {
     return withTestApplication {
-        RoutingResolveContext(routing, TestApplicationCall(application, coroutineContext = coroutineContext).apply {
-            request.method = HttpMethod.Get
-            request.uri = path + buildString {
-                if (!parameters.isEmpty()) {
-                    append("?")
-                    parameters.formUrlEncodeTo(this)
+        RoutingResolveContext(
+            routing,
+            TestApplicationCall(application, coroutineContext = coroutineContext).apply {
+                request.method = HttpMethod.Get
+                request.uri = path + buildString {
+                    if (!parameters.isEmpty()) {
+                        append("?")
+                        parameters.formUrlEncodeTo(this)
+                    }
                 }
-            }
-            headers.flattenForEach { name, value -> request.addHeader(name, value) }
-        }, emptyList()).resolve()
+                headers.flattenForEach { name, value -> request.addHeader(name, value) }
+            },
+            emptyList()
+        ).resolve()
     }
 }
 
@@ -549,7 +553,6 @@ class RoutingResolveTest {
                 assertNull(result.parameters["name"])
             }
         }
-
     }
 
     @Test
@@ -630,7 +633,6 @@ class RoutingResolveTest {
                 assertEquals(varargEntry, result.route)
             }
         }
-
     }
 
     @Test
@@ -669,7 +671,6 @@ class RoutingResolveTest {
                 assertEquals(currentEntry, result.route)
             }
         }
-
     }
 
     @Test
@@ -1044,11 +1045,13 @@ class RoutingResolveTest {
     fun testRoutingWithTransparentQualitySibling() {
         val root = routing()
         val siblingTop = root.handle(PathSegmentParameterRouteSelector("sibling", "top"))
-        val transparentEntryTop = root.createChild(object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
-            override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+        val transparentEntryTop = root.createChild(
+            object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+                override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+                    return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+                }
             }
-        })
+        )
         // inner entry has lower priority then its siblings
         val innerEntryTop = transparentEntryTop.handle(PathSegmentParameterRouteSelector("inner"))
         val siblingBottom = root.handle(PathSegmentParameterRouteSelector("sibling", "bottom"))

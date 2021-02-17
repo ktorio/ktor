@@ -3,7 +3,6 @@ package io.ktor.client.engine
 import io.ktor.http.*
 import io.ktor.util.network.*
 
-
 /**
  * Proxy configuration.
  *

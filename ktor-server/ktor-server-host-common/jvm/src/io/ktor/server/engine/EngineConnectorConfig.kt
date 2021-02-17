@@ -101,7 +101,9 @@ public inline fun ApplicationEngineEnvironmentBuilder.sslConnector(
 /**
  * Mutable implementation of EngineConnectorConfig for building connectors programmatically
  */
-public open class EngineConnectorBuilder(override val type: ConnectorType = ConnectorType.HTTP) : EngineConnectorConfig {
+public open class EngineConnectorBuilder(
+    override val type: ConnectorType = ConnectorType.HTTP
+) : EngineConnectorConfig {
     override var host: String = "0.0.0.0"
     override var port: Int = 80
 

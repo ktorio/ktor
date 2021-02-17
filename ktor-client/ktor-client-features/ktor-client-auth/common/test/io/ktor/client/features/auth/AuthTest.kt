@@ -82,5 +82,4 @@ class AuthTest : ClientLoader() {
             }
         }
     }
-
 }

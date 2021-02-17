@@ -18,7 +18,10 @@ internal class DebugPipelineContext<TSubject : Any, TContext : Any> constructor(
     private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
     subject: TSubject,
     override val coroutineContext: CoroutineContext
-) : PipelineContext<TSubject, TContext>, @Suppress("DEPRECATION") PipelineExecutor<TSubject> {
+) : PipelineContext<TSubject, TContext>,
+    @Suppress("DEPRECATION")
+    PipelineExecutor<TSubject> {
+
     /**
      * Subject of this pipeline execution
      */

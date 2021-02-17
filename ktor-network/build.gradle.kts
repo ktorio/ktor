@@ -5,6 +5,7 @@ description = "Ktor network utilities"
 
 val ideaActive: Boolean by project.extra
 val nativeCompilations: List<KotlinNativeCompilation> by project.extra
+val mockk_version: String by project.extra
 
 kotlin {
     nativeCompilations.forEach {
@@ -19,6 +20,12 @@ kotlin {
         commonMain {
             dependencies {
                 api(project(":ktor-utils"))
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation("io.mockk:mockk:$mockk_version")
             }
         }
 

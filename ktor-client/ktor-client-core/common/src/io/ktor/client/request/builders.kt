@@ -30,22 +30,28 @@ public suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuild
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.request(
-    urlString: String, block: HttpRequestBuilder.() -> Unit = {}
-): T = request(HttpRequestBuilder().apply {
-    url(urlString)
-    block()
-})
+    urlString: String,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = request(
+    HttpRequestBuilder().apply {
+        url(urlString)
+        block()
+    }
+)
 
 /**
  * Executes a [HttpClient] request, with the [url] and the information configured in builder [block]
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.request(
-    url: Url, block: HttpRequestBuilder.() -> Unit = {}
-): T = request(HttpRequestBuilder().apply {
-    url(url)
-    block()
-})
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = request(
+    HttpRequestBuilder().apply {
+        url(url)
+        block()
+    }
+)
 
 /**
  * Executes a [HttpClient] GET request, with the information from the [builder]
@@ -117,7 +123,9 @@ public suspend inline fun <reified T> HttpClient.head(builder: HttpRequestBuilde
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.get(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -135,7 +143,9 @@ public suspend inline fun <reified T> HttpClient.get(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.post(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -153,7 +163,9 @@ public suspend inline fun <reified T> HttpClient.post(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.put(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -171,7 +183,9 @@ public suspend inline fun <reified T> HttpClient.put(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.delete(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -189,7 +203,9 @@ public suspend inline fun <reified T> HttpClient.delete(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.patch(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -207,7 +223,9 @@ public suspend inline fun <reified T> HttpClient.patch(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.head(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -225,7 +243,9 @@ public suspend inline fun <reified T> HttpClient.head(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 public suspend inline fun <reified T> HttpClient.options(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT,
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
     path: String = "/",
     body: Any = EmptyContent,
     block: HttpRequestBuilder.() -> Unit = {}

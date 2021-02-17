@@ -55,8 +55,10 @@ public actual class TLSConfigBuilder {
      */
     public actual fun build(): TLSConfig = TLSConfig(
         random ?: SecureRandom(),
-        certificates, trustManager as? X509TrustManager ?: findTrustManager(),
-        cipherSuites, serverName
+        certificates,
+        trustManager as? X509TrustManager ?: findTrustManager(),
+        cipherSuites,
+        serverName
     )
 }
 
@@ -81,8 +83,8 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 /**
  * Add client certificates from [store] by using all certificates
  */
-@Suppress("unused") // Keep for binary compatibility
 @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+@Suppress("unused") // Keep for binary compatibility
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
     addKeyStore(store, password)
 }
@@ -122,7 +124,8 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, al
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 public class NoPrivateKeyException(
-    private val alias: String, private val store: KeyStore
+    private val alias: String,
+    private val store: KeyStore
 ) : IllegalStateException("Failed to find private key for alias $alias. Please check your key store: $store"),
     CopyableThrowable<NoPrivateKeyException> {
 

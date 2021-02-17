@@ -106,9 +106,12 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * Create immutable [HttpRequestData]
      */
     public fun build(): HttpRequestData = HttpRequestData(
-        url.build(), method, headers.build(),
+        url.build(),
+        method,
+        headers.build(),
         body as? OutgoingContent ?: error("No request transformation found: $body"),
-        executionContext, attributes
+        executionContext,
+        attributes
     )
 
     /**
@@ -195,7 +198,6 @@ public class HttpRequestData @InternalAPI constructor(
     override fun toString(): String = "HttpRequestData(url=$url, method=$method)"
 }
 
-
 /**
  * Data prepared for [HttpResponse].
  */
@@ -216,7 +218,6 @@ public class HttpResponseData constructor(
  * Executes a [block] that configures the [HeadersBuilder] associated to this request.
  */
 public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
-
 
 /**
  * Mutates [this] copying all the data from another [request] using it as base.
@@ -257,9 +258,12 @@ public operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> 
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
  */
 public fun HttpRequestBuilder.url(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
+    path: String = "/",
     block: URLBuilder.() -> Unit = {}
-): Unit {
+): Unit { // ktlint-disable filename no-unit-return
     url.apply {
         protocol = URLProtocol.createOrDefault(scheme)
         this.host = host
@@ -274,14 +278,17 @@ public fun HttpRequestBuilder.url(
  * and optionally further configures it using [block].
  */
 public operator fun HttpRequestBuilder.Companion.invoke(
-    scheme: String = "http", host: String = "localhost", port: Int = DEFAULT_PORT, path: String = "/",
+    scheme: String = "http",
+    host: String = "localhost",
+    port: Int = DEFAULT_PORT,
+    path: String = "/",
     block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
 /**
  * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-public fun HttpRequestBuilder.url(urlString: String): Unit {
+public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable filename no-unit-return
     url.takeFrom(urlString)
 }
 
@@ -290,4 +297,3 @@ public fun HttpRequestBuilder.url(urlString: String): Unit {
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
-

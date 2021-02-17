@@ -23,6 +23,9 @@ class CookiesTest {
 
         feature.sendCookiesWith(builder)
 
-        assertEquals("JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10;", builder.headers[HttpHeaders.Cookie])
+        assertEquals(
+            "JSESSIONID=jc1wDGgCjR8s72-xdZYYZsLywZdCsiIT86U7X5h7.front10;",
+            builder.headers[HttpHeaders.Cookie]
+        )
     }
 }

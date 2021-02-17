@@ -301,7 +301,6 @@ private fun ByteBuffer.decodeUTF8_buffer(out: CharArray, offset: Int, length: In
     return decodeUtf8Result(outPos - offset, 0)
 }
 
-
 /**
  * @return number of bytes decoded to [out] and number of required bytes.
  * @see [decodeUtf8Result]

@@ -235,7 +235,6 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
         }
     }
 
-
     @Test
     fun testLongB() {
         runTest {
@@ -350,42 +349,47 @@ open class ByteChannelSmokeTest : ByteChannelTestBase() {
                     assertEquals(0, ch.availableForRead)
                     ch.writeShort(0x001f, writeOrder)
                     ch.flush()
-                    if (writeOrder == readOrder)
+                    if (writeOrder == readOrder) {
                         assertEquals(0x001f, ch.readShort(readOrder))
-                    else
+                    } else {
                         assertEquals(0x1f00, ch.readShort(readOrder))
+                    }
 
                     assertEquals(0, ch.availableForRead)
                     ch.writeShort(0x001f, writeOrder)
                     ch.flush()
-                    if (writeOrder == readOrder)
+                    if (writeOrder == readOrder) {
                         assertEquals(0x001f, ch.readShort(readOrder))
-                    else
+                    } else {
                         assertEquals(0x1f00, ch.readShort(readOrder))
+                    }
 
                     assertEquals(0, ch.availableForRead)
                     ch.writeInt(0x1f, writeOrder)
                     ch.flush()
-                    if (writeOrder == readOrder)
+                    if (writeOrder == readOrder) {
                         assertEquals(0x0000001f, ch.readInt(readOrder))
-                    else
+                    } else {
                         assertEquals(0x1f000000, ch.readInt(readOrder))
+                    }
 
                     assertEquals(0, ch.availableForRead)
                     ch.writeInt(0x1fL, writeOrder)
                     ch.flush()
-                    if (writeOrder == readOrder)
+                    if (writeOrder == readOrder) {
                         assertEquals(0x0000001f, ch.readInt(readOrder))
-                    else
+                    } else {
                         assertEquals(0x1f000000, ch.readInt(readOrder))
+                    }
 
                     assertEquals(0, ch.availableForRead)
                     ch.writeLong(0x1f, writeOrder)
                     ch.flush()
-                    if (writeOrder == readOrder)
+                    if (writeOrder == readOrder) {
                         assertEquals(0x1f, ch.readLong(readOrder))
-                    else
+                    } else {
                         assertEquals(0x1f00000000000000L, ch.readLong(readOrder))
+                    }
                 }
             }
         }

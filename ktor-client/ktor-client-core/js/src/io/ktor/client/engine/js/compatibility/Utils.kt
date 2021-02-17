@@ -6,16 +6,23 @@ package io.ktor.client.engine.js.compatibility
 
 import io.ktor.client.engine.js.browser.*
 import io.ktor.client.engine.js.node.*
-import io.ktor.client.fetch.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.browser.*
 import kotlinx.coroutines.*
-import kotlin.js.Promise
+import org.w3c.fetch.*
+import kotlin.coroutines.*
+import kotlin.js.*
 
 internal suspend fun commonFetch(
-    input: String, init: RequestInit
+    input: String,
+    init: RequestInit
 ): Response = suspendCancellableCoroutine { continuation ->
-    val controller = AbortController()
+    val controller = if (PlatformUtils.IS_BROWSER) {
+        AbortController()
+    } else {
+        NodeAbortController()
+    }
     init.signal = controller.signal
 
     continuation.invokeOnCancellation {
@@ -23,28 +30,19 @@ internal suspend fun commonFetch(
     }
 
     val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
-        fetch(input, init)
+        window.fetch(input, init)
     } else {
-        jsRequireNodeFetch()(input, init)
+        nodeFetch(input, init)
     }
 
     promise.then(
         onFulfilled = {
-            continuation.resumeWith(Result.success(it))
+            continuation.resume(it)
         },
         onRejected = {
-            continuation.resumeWith(Result.failure(Error("Fail to fetch", it)))
+            continuation.resumeWithException(Error("Fail to fetch", it))
         }
     )
-}
-
-internal fun AbortController(): AbortController {
-    return if (PlatformUtils.IS_BROWSER) {
-        js("new AbortController()")
-    } else {
-        val controller = js("require('abort-controller')")
-        js("new controller()")
-    }
 }
 
 internal fun CoroutineScope.readBody(
@@ -53,10 +51,4 @@ internal fun CoroutineScope.readBody(
     readBodyBrowser(response)
 } else {
     readBodyNode(response)
-}
-
-private fun jsRequireNodeFetch(): dynamic = try {
-    js("require('node-fetch')")
-} catch (cause: dynamic) {
-    throw Error("Error loading module 'node-fetch': $cause")
 }

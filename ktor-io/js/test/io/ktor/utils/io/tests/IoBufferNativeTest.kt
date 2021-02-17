@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 package io.ktor.utils.io.tests
 
 import io.ktor.utils.io.core.*
@@ -159,10 +163,10 @@ class IoBufferNativeTest {
             view.setInt8(0, 3)
             1
         }
-        assertEquals(1,  rc)
+        assertEquals(1, rc)
 
         var value: Int
-        rc = buffer.readDirect { view  ->
+        rc = buffer.readDirect { view ->
             assertEquals(2, view.byteLength)
             value = view.getInt8(0).toInt()
             1

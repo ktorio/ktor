@@ -7,7 +7,6 @@ package io.ktor.tests.server.jetty
 import io.ktor.server.jetty.*
 import io.ktor.server.testing.suites.*
 
-
 class JettyAsyncServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
 

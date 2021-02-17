@@ -45,11 +45,13 @@ class JsonFeatureTest {
     @Test
     fun testContentTypesFilter() {
         val config = JsonFeature.Config().apply {
-            receive(object : ContentTypeMatcher {
-                override fun contains(contentType: ContentType): Boolean {
-                    return contentType.toString() == "text/json"
+            receive(
+                object : ContentTypeMatcher {
+                    override fun contains(contentType: ContentType): Boolean {
+                        return contentType.toString() == "text/json"
+                    }
                 }
-            })
+            )
         }
 
         val feature = JsonFeature(config)

@@ -28,4 +28,3 @@ public fun Input.asStream(): InputStream = object : InputStream() {
         this@asStream.close()
     }
 }
-

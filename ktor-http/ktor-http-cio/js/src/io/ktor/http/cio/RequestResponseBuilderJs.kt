@@ -10,7 +10,7 @@ import io.ktor.utils.io.core.*
 /**
  * Builds an HTTP request or response
  */
-public actual class RequestResponseBuilder  actual constructor(){
+public actual class RequestResponseBuilder actual constructor() {
     private val packet = BytePacketBuilder()
 
     /**

@@ -7,8 +7,8 @@ package io.ktor.client.engine.jetty
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
 import org.eclipse.jetty.http.*
@@ -102,10 +102,12 @@ internal class JettyResponseListener(
             backendChannel.close()
         }
 
-        onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
-            val (status, reason) = it.status to it.reason
-            reason?.let { text -> HttpStatusCode(status, text) } ?: HttpStatusCode.fromValue(status)
-        })
+        onHeadersReceived.complete(
+            (frame.metaData as? MetaData.Response)?.let {
+                val (status, reason) = it.status to it.reason
+                reason?.let { text -> HttpStatusCode(status, text) } ?: HttpStatusCode.fromValue(status)
+            }
+        )
     }
 
     suspend fun awaitHeaders(): StatusWithHeaders {

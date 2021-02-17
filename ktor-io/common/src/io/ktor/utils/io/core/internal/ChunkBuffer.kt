@@ -1,11 +1,11 @@
 package io.ktor.utils.io.core.internal
 
-import kotlinx.atomicfu.*
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.bits.DefaultAllocator
 import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
+import kotlinx.atomicfu.*
 
 @DangerousInternalIoApi
 public open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?) : Buffer(memory) {
@@ -190,7 +190,6 @@ public open class ChunkBuffer internal constructor(memory: Memory, origin: Chunk
         }
     }
 }
-
 
 /**
  * @return `true` if and only if the are no buffer views that share the same actual buffer. This actually does

@@ -13,7 +13,8 @@ import kotlin.native.concurrent.*
  */
 @KtorExperimentalAPI
 @SharedImmutable
-internal val ENGINE_CAPABILITIES_KEY = AttributeKey<MutableMap<HttpClientEngineCapability<*>, Any>>("EngineCapabilities")
+internal val ENGINE_CAPABILITIES_KEY =
+    AttributeKey<MutableMap<HttpClientEngineCapability<*>, Any>>("EngineCapabilities")
 
 /**
  * Default capabilities expected to be supported by engine.

@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
@@ -234,7 +235,8 @@ public actual interface ByteReadChannel {
          * Empty closed [ByteReadChannel].
          */
         public actual val Empty: ByteReadChannel = ByteChannelNative(
-            IoBuffer.Empty, false,
+            IoBuffer.Empty,
+            false,
             io.ktor.utils.io.core.internal.ChunkBuffer.EmptyPool
         ).apply {
             close(null)

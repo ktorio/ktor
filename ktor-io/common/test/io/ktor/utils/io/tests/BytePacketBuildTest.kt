@@ -2,8 +2,8 @@ package io.ktor.utils.io.tests
 
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.test.Test
 import kotlin.test.*
+import kotlin.test.Test
 
 open class BytePacketBuildTest {
     open val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)

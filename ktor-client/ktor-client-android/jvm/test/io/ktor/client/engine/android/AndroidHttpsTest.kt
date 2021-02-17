@@ -27,20 +27,23 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class AndroidHttpsTest : TestWithKtor() {
-    override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
-        sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-            port = serverPort
-            keyStorePath = keyStoreFile.absoluteFile
+    override val server: ApplicationEngine = embeddedServer(
+        Netty,
+        applicationEngineEnvironment {
+            sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                port = serverPort
+                keyStorePath = keyStoreFile.absoluteFile
 
-            module {
-                routing {
-                    get("/") {
-                        call.respondText("Hello, world")
+                module {
+                    routing {
+                        get("/") {
+                            call.respondText("Hello, world")
+                        }
                     }
                 }
             }
         }
-    })
+    )
 
     companion object {
         val keyStoreFile = File("build/temp.jks")
@@ -89,11 +92,13 @@ class AndroidHttpsTest : TestWithKtor() {
 
     @Test
     fun hello(): Unit = runBlocking {
-        HttpClient(Android.config {
-            sslManager = { conn ->
-                conn.sslSocketFactory = sslContext.socketFactory
+        HttpClient(
+            Android.config {
+                sslManager = { conn ->
+                    conn.sslSocketFactory = sslContext.socketFactory
+                }
             }
-        }).use { client ->
+        ).use { client ->
             val actual = client.get<String>("https://127.0.0.1:$serverPort/")
             assertEquals("Hello, world", actual)
         }

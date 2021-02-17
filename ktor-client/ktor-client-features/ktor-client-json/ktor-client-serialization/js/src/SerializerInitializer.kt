@@ -11,7 +11,7 @@ import io.ktor.util.*
 public val initializer: SerializerInitializer = SerializerInitializer
 
 @InternalAPI
-public object SerializerInitializer  {
+public object SerializerInitializer {
     init {
         serializersStore += KotlinxSerializer()
     }
