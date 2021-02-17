@@ -33,13 +33,12 @@ internal class JettyKtorHandler(
     configuration: JettyApplicationEngineBase.Configuration
 ) : AbstractHandler(), CoroutineScope {
     private val environmentName = environment.connectors.joinToString("-") { it.port.toString() }
-    private val queue: BlockingQueue<Runnable> = LinkedBlockingQueue()
     private val executor = ThreadPoolExecutor(
         configuration.callGroupSize,
         configuration.callGroupSize * 8,
         THREAD_KEEP_ALIVE_TIME,
         TimeUnit.MINUTES,
-        queue
+        SynchronousQueue<Runnable>(),
     ) { r ->
         Thread(r, "ktor-jetty-$environmentName-${JettyKtorCounter.incrementAndGet()}")
     }
