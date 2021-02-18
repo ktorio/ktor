@@ -148,12 +148,12 @@ internal fun String.encodeURLParameterValue(): String = buildString {
         } else {
             val byte1 = content.readByte()
             val byte2 = content.readByte()
-            if (byte1 != '3'.toByte() || (byte2 != 'D'.toByte() && byte2 != 'd'.toByte())) {
+            if (byte1 == '3'.toByte() && (byte2 == 'D'.toByte() || byte2 == 'd'.toByte())) {
+                append("%3D")
+            } else {
                 encodeSymbol(symbol)
                 encodeSymbol(byte1)
                 encodeSymbol(byte2)
-            } else {
-                append("%3D")
             }
         }
     }
