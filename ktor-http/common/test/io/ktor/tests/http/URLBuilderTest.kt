@@ -190,6 +190,14 @@ internal class URLBuilderTest {
         assertEquals("http://ktor.io/id+test&test~test%23test", url)
     }
 
+    @Test
+    fun testEncodedEqualsSignParam() {
+        testBuildString("https://test.net?s=t%3Bv")
+        testBuildString("https://test.net?s=k=v")
+        testBuildString("https://test.net?s=k%3Dv")
+        testBuildString("https://test.net?s=k%3Dv%3D%3D%3B%3D")
+    }
+
     /**
      * Checks that the given [url] and the result of [URLBuilder.buildString] is equal (case insensitive).
      */

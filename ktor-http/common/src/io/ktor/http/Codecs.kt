@@ -134,12 +134,27 @@ public fun String.encodeURLParameter(
  * Encode [this] as query parameter value.
  */
 internal fun String.encodeURLParameterValue(): String = buildString {
+    fun encodeSymbol(it: Byte) = when (it) {
+        in URL_ALPHABET, in OAUTH_SYMBOLS, '='.toByte() -> append(it.toChar())
+        ' '.toByte() -> append('+')
+        else -> append(it.percentEncode())
+    }
+
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameterValue)
-    content.forEach {
-        when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS || it == '='.toByte() -> append(it.toChar())
-            it == ' '.toByte() -> append('+')
-            else -> append(it.percentEncode())
+    while (content.remaining > 0) {
+        val symbol = content.readByte()
+        if (symbol != '%'.toByte() || content.remaining < 2) {
+            encodeSymbol(symbol)
+        } else {
+            val byte1 = content.readByte()
+            val byte2 = content.readByte()
+            if (byte1 != '3'.toByte() || (byte2 != 'D'.toByte() && byte2 != 'd'.toByte())) {
+                encodeSymbol(symbol)
+                encodeSymbol(byte1)
+                encodeSymbol(byte2)
+            } else {
+                append("%3D")
+            }
         }
     }
 }
@@ -152,7 +167,13 @@ public fun String.decodeURLQueryComponent(
     end: Int = length,
     plusIsSpace: Boolean = false,
     charset: Charset = Charsets.UTF_8
-): String = decodeScan(start, end, plusIsSpace, charset)
+): String = decodeScan(
+    start = start,
+    end = end,
+    plusIsSpace = plusIsSpace,
+    charset = charset,
+    decodeEncodedEqualsSign = false
+)
 
 /**
  * Decode percent encoded URL part within the specified range [[start], [end]).
@@ -162,13 +183,25 @@ public fun String.decodeURLPart(
     start: Int = 0,
     end: Int = length,
     charset: Charset = Charsets.UTF_8
-): String = decodeScan(start, end, false, charset)
+): String = decodeScan(
+    start = start,
+    end = end,
+    plusIsSpace = false,
+    charset = charset,
+    decodeEncodedEqualsSign = true
+)
 
-private fun String.decodeScan(start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
+private fun String.decodeScan(
+    start: Int,
+    end: Int,
+    plusIsSpace: Boolean,
+    charset: Charset,
+    decodeEncodedEqualsSign: Boolean
+): String {
     for (index in start until end) {
         val ch = this[index]
         if (ch == '%' || (plusIsSpace && ch == '+')) {
-            return decodeImpl(start, end, index, plusIsSpace, charset)
+            return decodeImpl(start, end, index, plusIsSpace, charset, decodeEncodedEqualsSign)
         }
     }
     return if (start == 0 && end == length) toString() else substring(start, end)
@@ -179,7 +212,8 @@ private fun CharSequence.decodeImpl(
     end: Int,
     prefixEnd: Int,
     plusIsSpace: Boolean,
-    charset: Charset
+    charset: Charset,
+    decodeEncodedEqualsSign: Boolean
 ): String {
     val length = end - start
     // if length is big, it probably means it is encoded
@@ -210,6 +244,7 @@ private fun CharSequence.decodeImpl(
 
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
+                var hasEqualsSign = false
                 while (index < end && this[index] == '%') {
                     if (index + 2 >= end) {
                         throw URLDecodeException(
@@ -217,6 +252,11 @@ private fun CharSequence.decodeImpl(
                         )
                     }
 
+                    if (!decodeEncodedEqualsSign && this[index + 1] == '3' && this[index + 2].toLowerCase() == 'd') {
+                        hasEqualsSign = true
+                        index += 3
+                        break
+                    }
                     val digit1 = charToHexDigit(this[index + 1])
                     val digit2 = charToHexDigit(this[index + 2])
                     if (digit1 == -1 || digit2 == -1) {
@@ -232,6 +272,9 @@ private fun CharSequence.decodeImpl(
                 // Decode chars from bytes and put into StringBuilder
                 // Note: Tried using ByteBuffer and using enc.decode() – it's slower
                 sb.append(String(bytes, offset = 0, length = count, charset = charset))
+                if (hasEqualsSign) {
+                    sb.append("%3D")
+                }
             }
             else -> {
                 sb.append(c)
