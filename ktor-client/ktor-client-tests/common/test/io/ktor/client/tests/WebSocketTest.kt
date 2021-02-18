@@ -97,9 +97,9 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWsHandshakeHeaders() {
-        if (PlatformUtils.IS_BROWSER) return // browser websocket client does not support custom headers so the test gets ignored
+    fun testWsHandshakeHeaders() =
         clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
+            if (PlatformUtils.IS_BROWSER) return@clientTests // browser websocket client does not support custom headers so the test gets ignored
             config {
                 install(WebSockets)
             }
@@ -121,9 +121,9 @@ class WebSocketTest : ClientLoader() {
     }
 
     @Test
-    fun testWsHandshakeHeadersWithMultipleValues() {
-        if (PlatformUtils.IS_BROWSER) return // browser websocket client does not support custom headers so the test gets ignored
+    fun testWsHandshakeHeadersWithMultipleValues() =
         clientTests(ENGINES_WITHOUT_WEBSOCKETS + "native:CIO") {
+            if (PlatformUtils.IS_BROWSER) return@clientTests // browser websocket client does not support custom headers so the test gets ignored
             config {
                 install(WebSockets)
             }
