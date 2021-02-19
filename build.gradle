@@ -59,12 +59,9 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
         classpath "org.jetbrains.kotlinx:atomicfu-gradle-plugin:$atomicfu_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
-        classpath "me.champeau.gradle:jmh-gradle-plugin:$jmh_plugin_version"
-        classpath "org.jetbrains.kotlinx:kotlinx.benchmark.gradle:$benchmarks_version"
         classpath "org.jetbrains.kotlinx:binary-compatibility-validator:$validator_version"
         classpath "com.android.tools.build:gradle:$android_gradle_version"
         classpath("org.jmailen.gradle:kotlinter-gradle:$ktlint_version")
@@ -91,7 +88,7 @@ if (native_targets_enabled) {
     platforms += ["posix", "darwin"]
 }
 
-ext.skipPublish = ["ktor-server-benchmarks", "ktor-client-benchmarks"]
+ext.skipPublish = []
 ext.nonDefaultProjectStructure = ["ktor-bom"]
 
 def projectNeedsPlatform(project, platform) {
@@ -118,7 +115,6 @@ def check(Object version, String libVersion, String libName) {
 
 def disabledExplicitApiModeProjects = [
     "ktor-client-tests",
-    "ktor-server-benchmarks",
     "ktor-client-json-tests",
     "ktor-server-test-host",
     "ktor-server-test-suites",
@@ -197,7 +193,7 @@ allprojects {
             explicitApi()
         }
 
-        sourceSets.matching { !(it.name in ["jmh", "main", "test"]) }.all {
+        sourceSets.matching { !(it.name in ["main", "test"]) }.all {
             def srcDir = name.endsWith("Main") ? "src" : "test"
             def resourcesPrefix = name.endsWith("Test") ? "test-" : ""
             def platform = name[0..-5]

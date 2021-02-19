@@ -26,7 +26,6 @@ internal fun startServer(): Closeable {
 
     val server = embeddedServer(CIO, DEFAULT_PORT) {
         tests()
-        benchmarks()
     }.start()
 
     val tlsServer = setupTLSServer()
