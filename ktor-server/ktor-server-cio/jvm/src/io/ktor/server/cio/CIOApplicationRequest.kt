@@ -43,8 +43,8 @@ internal class CIOApplicationRequest(
             get() = request.uri.toString()
 
         override val host: String
-            get() = localAddress?.let { it.hostName ?: it.address.hostAddress }
-                ?: request.headers["Host"]?.toString()?.substringBefore(":")
+            get() = request.headers["Host"]?.toString()?.substringBefore(":")
+                ?: localAddress?.let { it.hostName ?: it.address.hostAddress }
                 ?: "localhost"
 
         override val port: Int
