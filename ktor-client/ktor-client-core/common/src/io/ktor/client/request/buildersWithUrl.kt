@@ -7,6 +7,7 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlin.jvm.*
 
 /**
  * Executes a [HttpClient] GET request, with the specified [url] as Url and
@@ -14,6 +15,11 @@ import io.ktor.http.*
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("get(url, block).bodyAs<T>()")
+)
+@JvmName("getAs")
 public suspend inline fun <reified T> HttpClient.get(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -26,10 +32,19 @@ public suspend inline fun <reified T> HttpClient.get(
  * Executes a [HttpClient] GET request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.getRaw(
+public suspend fun HttpClient.get(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = get(url, block)
+): HttpResponse = get<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] GET request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareGet(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = get<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] POST request, with the specified [url] as Url and
@@ -37,6 +52,11 @@ public suspend fun HttpClient.getRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("post(url, block).bodyAs<T>()")
+)
+@JvmName("postAs")
 public suspend inline fun <reified T> HttpClient.post(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -49,10 +69,19 @@ public suspend inline fun <reified T> HttpClient.post(
  * Executes a [HttpClient] POST request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.postRaw(
+public suspend fun HttpClient.post(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = post(url, block)
+): HttpResponse = post<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] POST request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.praparePost(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = post<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] PUT request, with the specified [url] as Url and
@@ -60,6 +89,11 @@ public suspend fun HttpClient.postRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("put(url, block).bodyAs<T>()")
+)
+@JvmName("putAs")
 public suspend inline fun <reified T> HttpClient.put(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -72,10 +106,19 @@ public suspend inline fun <reified T> HttpClient.put(
  * Executes a [HttpClient] PUT request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.putRaw(
+public suspend fun HttpClient.put(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = put(url, block)
+): HttpResponse = put<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] PUT request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.preparePut(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = put<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] PATCH request, with the specified [url] as Url and
@@ -83,6 +126,11 @@ public suspend fun HttpClient.putRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("patch(url, block).bodyAs<T>()")
+)
+@JvmName("patchAs")
 public suspend inline fun <reified T> HttpClient.patch(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -95,10 +143,19 @@ public suspend inline fun <reified T> HttpClient.patch(
  * Executes a [HttpClient] PATCH request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.patchRaw(
+public suspend fun HttpClient.patch(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = patch(url, block)
+): HttpResponse = patch<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] PATCH request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.preparePatch(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = patch<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as Url and
@@ -106,6 +163,11 @@ public suspend fun HttpClient.patchRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("options(url, block).bodyAs<T>()")
+)
+@JvmName("optionsAs")
 public suspend inline fun <reified T> HttpClient.options(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -118,10 +180,19 @@ public suspend inline fun <reified T> HttpClient.options(
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.optionsRaw(
+public suspend fun HttpClient.options(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = options(url, block)
+): HttpResponse = options<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] OPTIONS request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareOptions(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = options<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
@@ -129,6 +200,11 @@ public suspend fun HttpClient.optionsRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("head(url, block).bodyAs<T>()")
+)
+@JvmName("headAs")
 public suspend inline fun <reified T> HttpClient.head(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -141,10 +217,19 @@ public suspend inline fun <reified T> HttpClient.head(
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.headRaw(
+public suspend fun HttpClient.head(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = head(url, block)
+): HttpResponse = head<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] HEAD request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareHead(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = head<HttpStatement>(url, block)
 
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
@@ -152,6 +237,11 @@ public suspend fun HttpClient.headRaw(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+@Deprecated(
+    "Please use function without generic argument",
+    replaceWith = ReplaceWith("delete(url, block).bodyAs<T>()")
+)
+@JvmName("deleteAs")
 public suspend inline fun <reified T> HttpClient.delete(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -164,10 +254,19 @@ public suspend inline fun <reified T> HttpClient.delete(
  * Executes a [HttpClient] HEAD request, with the specified [url] as Url and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.deleteRaw(
+public suspend fun HttpClient.delete(
     url: Url,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = delete(url, block)
+): HttpResponse = delete<HttpResponse>(url, block)
+
+/**
+ * Prepares a [HttpClient] HEAD request, with the specified [url] as Url and
+ * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
+ */
+public suspend fun HttpClient.prepareDelete(
+    url: Url,
+    block: HttpRequestBuilder.() -> Unit = {}
+): HttpStatement = delete<HttpStatement>(url, block)
 
 /**
  * Sets the [HttpRequestBuilder.url] from [url].

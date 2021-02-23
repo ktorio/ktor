@@ -5,6 +5,7 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -31,7 +32,7 @@ public suspend fun HttpClient.webSocketSession(
         port = protocol.defaultPort
     }
     block()
-}
+}.bodyAs()
 
 /**
  * Open [DefaultClientWebSocketSession].

@@ -5,6 +5,7 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
@@ -22,7 +23,7 @@ public suspend fun HttpClient.webSocketRawSession(
     this.method = method
     url("ws", host, port, path)
     block()
-}
+}.bodyAs()
 
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
