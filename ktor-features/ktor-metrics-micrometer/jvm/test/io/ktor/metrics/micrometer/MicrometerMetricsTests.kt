@@ -346,7 +346,6 @@ class MicrometerMetricsTests {
         assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeGaugeName)
     }
 
-
     private fun TestApplicationEngine.metersAreRegistered(
         meterBinder: KClass<out MeterBinder>,
         vararg meterNames: String
