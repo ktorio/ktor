@@ -23,7 +23,7 @@ public suspend fun HttpClient.webSocketRawSession(
     this.method = method
     url("ws", host, port, path)
     block()
-}.bodyAs()
+}.body()
 
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.

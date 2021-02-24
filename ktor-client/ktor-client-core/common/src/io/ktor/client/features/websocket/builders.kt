@@ -32,7 +32,7 @@ public suspend fun HttpClient.webSocketSession(
         port = protocol.defaultPort
     }
     block()
-}.bodyAs()
+}.body()
 
 /**
  * Open [DefaultClientWebSocketSession].
@@ -57,7 +57,7 @@ public suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit,
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ) {
-    val session = request<HttpStatement> {
+    val session = prepareRequest {
         url {
             protocol = URLProtocol.WS
             port = protocol.defaultPort
@@ -65,7 +65,7 @@ public suspend fun HttpClient.webSocket(
         request()
     }
 
-    session.receive<DefaultClientWebSocketSession, Unit> {
+    session.body<DefaultClientWebSocketSession, Unit> {
         try {
             block(it)
         } finally {

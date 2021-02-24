@@ -5,6 +5,7 @@
 package io.ktor.client.request.forms
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -21,14 +22,17 @@ import kotlin.jvm.*
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("submitForm(formParameters, encodeInQuery, block).bodyAs<T>()")
+    replaceWith = ReplaceWith(
+        "submitForm(formParameters, encodeInQuery, block).body<T>()",
+        "io.ktor.client.call.body"
+    )
 )
 @JvmName("submitFormAs")
 public suspend inline fun <reified T> HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request<T> {
+): T = request {
     if (encodeInQuery) {
         method = HttpMethod.Get
         url.parameters.appendAll(formParameters)
@@ -38,7 +42,7 @@ public suspend inline fun <reified T> HttpClient.submitForm(
     }
 
     block()
-}
+}.body()
 
 /**
  * Submit [formParameters] request.
@@ -51,7 +55,10 @@ public suspend inline fun <reified T> HttpClient.submitForm(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("submitForm(url, formParameters, encodeInQuery, block).bodyAs<T>()")
+    replaceWith = ReplaceWith(
+        "submitForm(url, formParameters, encodeInQuery, block).body<T>()",
+        "io.ktor.client.call.body"
+    )
 )
 @JvmName("submitFormAs")
 public suspend inline fun <reified T> HttpClient.submitForm(
@@ -59,10 +66,10 @@ public suspend inline fun <reified T> HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitForm<T>(formParameters, encodeInQuery) {
+): T = submitForm(formParameters, encodeInQuery) {
     url(url)
     block()
-}
+}.body()
 
 /**
  * Send [HttpMethod.Post] request with [formData] encoded in body.
@@ -71,17 +78,20 @@ public suspend inline fun <reified T> HttpClient.submitForm(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("submitFormWithBinaryData(formData, block).bodyAs<T>()")
+    replaceWith = ReplaceWith(
+        "submitFormWithBinaryData(formData, block).body<T>()",
+        "io.ktor.client.call.body"
+    )
 )
 @JvmName("submitFormWithBinaryDataAs")
 public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     formData: List<PartData>,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request<T> {
+): T = request {
     method = HttpMethod.Post
     body = MultiPartFormDataContent(formData)
     block()
-}
+}.body()
 
 /**
  * Send [HttpMethod.Post] request with [formData] encoded in body.
@@ -92,17 +102,20 @@ public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("submitFormWithBinaryData(formData, block).bodyAs<T>()")
+    replaceWith = ReplaceWith(
+        "submitFormWithBinaryData(formData, block).body<T>()",
+        "io.ktor.client.call.body"
+    )
 )
 @JvmName("submitFormWithBinaryDataAs")
 public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     url: String,
     formData: List<PartData>,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitFormWithBinaryData<T>(formData) {
+): T = submitFormWithBinaryData(formData) {
     url(url)
     block()
-}
+}.body()
 
 /**
  * Submit [formParameters] request.
@@ -116,7 +129,8 @@ public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     "Please use function without generic argument",
     replaceWith = ReplaceWith(
         "submitForm(formParameters, encodeInQuery, block) " +
-            "{ scheme = scheme; host = host; port = port; path = path }.bodyAs<T>()"
+            "{ url(scheme = scheme, host = host, port = port, path = path) }.body<T>()",
+        "io.ktor.client.call.body"
     )
 )
 @JvmName("submitFormWithBinaryDataAs")
@@ -128,10 +142,10 @@ public suspend inline fun <reified T> HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitForm<T>(formParameters, encodeInQuery) {
+): T = submitForm(formParameters, encodeInQuery) {
     url(scheme, host, port, path)
     apply(block)
-}
+}.body()
 
 /**
  * Send [HttpMethod.Post] request with [formData] encoded in body.
@@ -142,7 +156,8 @@ public suspend inline fun <reified T> HttpClient.submitForm(
     "Please use function without generic argument",
     replaceWith = ReplaceWith(
         "submitForm(formParameters, block) " +
-            "{ scheme = scheme; host = host; port = port; path = path }.bodyAs<T>()"
+            "{ scheme = scheme; host = host; port = port; path = path }.body<T>()",
+        "io.ktor.client.call.body"
     )
 )
 @JvmName("submitFormWithBinaryDataAs")
@@ -153,10 +168,10 @@ public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     path: String = "/",
     formData: List<PartData> = emptyList(),
     block: HttpRequestBuilder.() -> Unit = {}
-): T = submitFormWithBinaryData<T>(formData) {
+): T = submitFormWithBinaryData(formData) {
     url(scheme, host, port, path)
     apply(block)
-}
+}.body()
 
 /**
  * Submit [formParameters] request.
@@ -170,7 +185,7 @@ public suspend inline fun HttpClient.submitForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = request<HttpResponse> {
+): HttpResponse = request {
     if (encodeInQuery) {
         method = HttpMethod.Get
         url.parameters.appendAll(formParameters)
@@ -209,7 +224,7 @@ public suspend fun HttpClient.submitForm(
 public suspend inline fun HttpClient.submitFormWithBinaryData(
     formData: List<PartData>,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = request<HttpResponse> {
+): HttpResponse = request {
     method = HttpMethod.Post
     body = MultiPartFormDataContent(formData)
     block()
@@ -243,13 +258,13 @@ public suspend inline fun HttpClient.prepareForm(
     formParameters: Parameters = Parameters.Empty,
     encodeInQuery: Boolean = false,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = request<HttpStatement> {
+): HttpStatement = prepareRequest {
     if (encodeInQuery) {
         method = HttpMethod.Get
         url.parameters.appendAll(formParameters)
     } else {
         method = HttpMethod.Post
-        body = FormDataContent(formParameters)
+        setBody(FormDataContent(formParameters))
     }
 
     block()
@@ -284,7 +299,7 @@ public suspend inline fun HttpClient.prepareFormWithBinaryData(
     crossinline block: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement = prepareRequest {
     method = HttpMethod.Post
-    body = MultiPartFormDataContent(formData)
+    setBody(MultiPartFormDataContent(formData))
     block()
 }
 

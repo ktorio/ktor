@@ -18,16 +18,16 @@ import java.net.*
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("request(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("request(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("requestAs")
 public suspend inline fun <reified T> HttpClient.request(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): T = request<T> {
+): T = request {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] GET request, with the specified [url] as URL and
@@ -37,7 +37,7 @@ public suspend inline fun <reified T> HttpClient.request(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("get(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("get(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("getAs")
 public suspend inline fun <reified T> HttpClient.get(
@@ -46,7 +46,7 @@ public suspend inline fun <reified T> HttpClient.get(
 ): T = get {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] POST request, with the specified [url] as URL and
@@ -56,7 +56,7 @@ public suspend inline fun <reified T> HttpClient.get(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("post(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("post(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("postAs")
 public suspend inline fun <reified T> HttpClient.post(
@@ -65,7 +65,7 @@ public suspend inline fun <reified T> HttpClient.post(
 ): T = post {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] PUT request, with the specified [url] as URL and
@@ -75,7 +75,7 @@ public suspend inline fun <reified T> HttpClient.post(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("put(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("put(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("putAs")
 public suspend inline fun <reified T> HttpClient.put(
@@ -84,7 +84,7 @@ public suspend inline fun <reified T> HttpClient.put(
 ): T = put {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] PATCH request, with the specified [url] as URL and
@@ -94,7 +94,7 @@ public suspend inline fun <reified T> HttpClient.put(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("patch(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("patch(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("patchAs")
 public suspend inline fun <reified T> HttpClient.patch(
@@ -103,7 +103,7 @@ public suspend inline fun <reified T> HttpClient.patch(
 ): T = patch {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] OPTIONS request, with the specified [url] as URL and
@@ -113,7 +113,7 @@ public suspend inline fun <reified T> HttpClient.patch(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("options(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("options(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("optionsAs")
 public suspend inline fun <reified T> HttpClient.options(
@@ -122,7 +122,7 @@ public suspend inline fun <reified T> HttpClient.options(
 ): T = options {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
@@ -132,7 +132,7 @@ public suspend inline fun <reified T> HttpClient.options(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("head(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("head(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("headAs")
 public suspend inline fun <reified T> HttpClient.head(
@@ -141,7 +141,7 @@ public suspend inline fun <reified T> HttpClient.head(
 ): T = head {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] HEAD request, with the specified [url] as URL and
@@ -151,7 +151,7 @@ public suspend inline fun <reified T> HttpClient.head(
  */
 @Deprecated(
     "Please use function without generic argument",
-    replaceWith = ReplaceWith("delete(url, block).bodyAs<T>()")
+    replaceWith = ReplaceWith("delete(url, block).body<T>()", "io.ktor.client.call.body")
 )
 @JvmName("deleteAs")
 public suspend inline fun <reified T> HttpClient.delete(
@@ -160,7 +160,7 @@ public suspend inline fun <reified T> HttpClient.delete(
 ): T = delete {
     this.url.takeFrom(url)
     block()
-}
+}.body()
 
 /**
  * Executes a [HttpClient] request, with the specified [url] as URL and
@@ -169,7 +169,7 @@ public suspend inline fun <reified T> HttpClient.delete(
 public suspend fun HttpClient.request(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = request<HttpResponse> {
+): HttpResponse = request {
     this.url.takeFrom(url)
     block()
 }
@@ -183,7 +183,7 @@ public suspend fun HttpClient.request(
 public suspend fun HttpClient.get(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = get<HttpResponse> {
+): HttpResponse = get {
     this.url.takeFrom(url)
     block()
 }
@@ -195,7 +195,7 @@ public suspend fun HttpClient.get(
 public suspend fun HttpClient.post(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = post<HttpResponse> {
+): HttpResponse = post {
     this.url.takeFrom(url)
     block()
 }
@@ -207,7 +207,7 @@ public suspend fun HttpClient.post(
 public suspend fun HttpClient.put(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = put<HttpResponse> {
+): HttpResponse = put {
     this.url.takeFrom(url)
     block()
 }
@@ -219,7 +219,7 @@ public suspend fun HttpClient.put(
 public suspend fun HttpClient.patch(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = patch<HttpResponse> {
+): HttpResponse = patch {
     this.url.takeFrom(url)
     block()
 }
@@ -231,7 +231,7 @@ public suspend fun HttpClient.patch(
 public suspend fun HttpClient.options(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = options<HttpResponse> {
+): HttpResponse = options {
     this.url.takeFrom(url)
     block()
 }
@@ -243,7 +243,7 @@ public suspend fun HttpClient.options(
 public suspend fun HttpClient.head(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = head<HttpResponse> {
+): HttpResponse = head {
     this.url.takeFrom(url)
     block()
 }
@@ -255,7 +255,7 @@ public suspend fun HttpClient.head(
 public suspend fun HttpClient.delete(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpResponse = delete<HttpResponse> {
+): HttpResponse = delete {
     this.url.takeFrom(url)
     block()
 }
@@ -267,7 +267,7 @@ public suspend fun HttpClient.delete(
 public suspend fun HttpClient.prepareRequest(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = request<HttpStatement> {
+): HttpStatement = prepareRequest {
     this.url.takeFrom(url)
     block()
 }
@@ -281,7 +281,7 @@ public suspend fun HttpClient.prepareRequest(
 public suspend fun HttpClient.prepareGet(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = get<HttpStatement> {
+): HttpStatement = prepareGet {
     this.url.takeFrom(url)
     block()
 }
@@ -293,7 +293,7 @@ public suspend fun HttpClient.prepareGet(
 public suspend fun HttpClient.preparePost(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = post<HttpStatement> {
+): HttpStatement = preparePost {
     this.url.takeFrom(url)
     block()
 }
@@ -305,7 +305,7 @@ public suspend fun HttpClient.preparePost(
 public suspend fun HttpClient.preparePut(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = put<HttpStatement> {
+): HttpStatement = preparePut {
     this.url.takeFrom(url)
     block()
 }
@@ -317,7 +317,7 @@ public suspend fun HttpClient.preparePut(
 public suspend fun HttpClient.preparePatch(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = patch<HttpStatement> {
+): HttpStatement = preparePatch {
     this.url.takeFrom(url)
     block()
 }
@@ -326,10 +326,10 @@ public suspend fun HttpClient.preparePatch(
  * Prepares a [HttpClient] OPTIONS request, with the specified [url] as URL and
  * an optional [block] receiving an [HttpRequestBuilder] for further configuring the request.
  */
-public suspend fun HttpClient.preparePptions(
+public suspend fun HttpClient.prepareOptions(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = options<HttpStatement> {
+): HttpStatement = prepareOptions {
     this.url.takeFrom(url)
     block()
 }
@@ -341,7 +341,7 @@ public suspend fun HttpClient.preparePptions(
 public suspend fun HttpClient.prepareHead(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = head<HttpStatement> {
+): HttpStatement = prepareHead {
     this.url.takeFrom(url)
     block()
 }
@@ -353,7 +353,7 @@ public suspend fun HttpClient.prepareHead(
 public suspend fun HttpClient.prepareDelete(
     url: URL,
     block: HttpRequestBuilder.() -> Unit = {}
-): HttpStatement = delete<HttpStatement> {
+): HttpStatement = prepareDelete {
     this.url.takeFrom(url)
     block()
 }
