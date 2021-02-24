@@ -225,7 +225,7 @@ private suspend fun oauth2RequestAccessToken(
         configure()
     }
 
-    val response = client.request<HttpResponse>(request)
+    val response = client.request(request)
 
     val body = response.readText()
 

@@ -142,7 +142,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             "/?urlp=1",
             {
                 method = HttpMethod.Post
-                body = ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded)
+                setBody(ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded))
             }
         ) {
             assertEquals(HttpStatusCode.OK.value, status.value)

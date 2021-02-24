@@ -5,6 +5,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -92,7 +93,8 @@ class CIORequestTest : TestWithKtor() {
         test { client ->
             val headerValue = "x".repeat(testSize)
 
-            client.get<HttpStatement>(port = serverPort) {
+            client.prepareGet {
+                url(port = serverPort)
                 header("LongHeader", headerValue)
             }.execute { response ->
                 assertEquals(headerValue, response.headers["LongHeader"])
@@ -113,7 +115,7 @@ class CIORequestTest : TestWithKtor() {
         test { client ->
             for (i in 0..1000) {
                 try {
-                    client.get<String>("http://something.wrong")
+                    client.get("http://something.wrong").body<String>()
                 } catch (cause: UnresolvedAddressException) {
                     // ignore
                 }

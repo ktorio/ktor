@@ -6,6 +6,7 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -90,7 +91,7 @@ private suspend fun simpleOAuth1aStep1(
 
     val url = baseUrl.appendUrlParameters(extraParameters.formUrlEncode())
 
-    val response = client.post<HttpResponse>(url) {
+    val response = client.post(url) {
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
@@ -162,18 +163,21 @@ private suspend fun requestOAuth1aAccessToken(
     val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
         .signInternal(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val body = client.post<String>(baseUrl) {
-        header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
-        header(HttpHeaders.Accept, "*/*")
-        // some of really existing OAuth servers don't support other accept header values so keep it
+    val body = // some of really existing OAuth servers don't support other accept header values so keep it
+        client.post(baseUrl) {
+            header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
+            header(HttpHeaders.Accept, "*/*")
+            // some of really existing OAuth servers don't support other accept header values so keep it
 
-        body = WriterContent(
-            { params.formUrlEncodeTo(this) },
-            ContentType.Application.FormUrlEncoded
-        )
+            setBody(
+                WriterContent(
+                    { params.formUrlEncodeTo(this) },
+                    ContentType.Application.FormUrlEncoded
+                )
+            )
 
-        accessTokenInterceptor?.invoke(this)
-    }
+            accessTokenInterceptor?.invoke(this)
+        }.body<String>()
 
     try {
         val parameters = body.parseUrlEncodedParameters()

@@ -264,7 +264,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/",
             {
                 method = HttpMethod.Post
-                body = TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded)
+                setBody(TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded))
             }
         ) {
             assertEquals(200, status.value)
@@ -498,13 +498,15 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/echo",
             {
                 method = HttpMethod.Post
-                body = WriterContent(
-                    {
-                        append("POST test\n")
-                        append("Another line")
-                        flush()
-                    },
-                    ContentType.Text.Plain
+                setBody(
+                    WriterContent(
+                        {
+                            append("POST test\n")
+                            append("Another line")
+                            flush()
+                        },
+                        ContentType.Text.Plain
+                    )
                 )
             }
         ) {
@@ -527,7 +529,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/",
             {
                 method = HttpMethod.Post
-                body = ByteArrayContent("POST content".toByteArray())
+                setBody(ByteArrayContent("POST content".toByteArray()))
             }
         ) {
             assertEquals(200, status.value)
@@ -547,7 +549,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/",
             {
                 method = HttpMethod.Post
-                body = "Hello"
+                setBody("Hello")
             }
         ) {
             assertEquals(200, status.value)
@@ -585,24 +587,26 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
                     .withParameter("boundary", "***bbb***")
                     .withCharset(Charsets.ISO_8859_1)
 
-                body = WriterContent(
-                    {
-                        append("--***bbb***\r\n")
-                        append("Content-Disposition: form-data; name=\"a story\"\r\n")
-                        append("\r\n")
-                        append(
-                            "Hi user. The snake you gave me for free ate all the birds. " +
-                                "Please take it back ASAP.\r\n"
-                        )
-                        append("--***bbb***\r\n")
-                        append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
-                        append("Content-Type: text/plain\r\n")
-                        append("\r\n")
-                        append("File content goes here\r\n")
-                        append("--***bbb***--\r\n")
-                        flush()
-                    },
-                    contentType
+                setBody(
+                    WriterContent(
+                        {
+                            append("--***bbb***\r\n")
+                            append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                            append("\r\n")
+                            append(
+                                "Hi user. The snake you gave me for free ate all the birds. " +
+                                    "Please take it back ASAP.\r\n"
+                            )
+                            append("--***bbb***\r\n")
+                            append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                            append("Content-Type: text/plain\r\n")
+                            append("\r\n")
+                            append("File content goes here\r\n")
+                            append("--***bbb***--\r\n")
+                            flush()
+                        },
+                        contentType
+                    )
                 )
             }
         ) {
@@ -648,27 +652,29 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
                     .withParameter("boundary", "***bbb***")
                     .withCharset(Charsets.ISO_8859_1)
 
-                body = WriterContent(
-                    {
-                        append("--***bbb***\r\n")
-                        append("Content-Disposition: form-data; name=\"a story\"\r\n")
-                        append("\r\n")
-                        append(
-                            "Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n"
-                        )
-                        append("--***bbb***\r\n")
-                        append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
-                        append("Content-Type: text/plain\r\n")
-                        append("\r\n")
-                        withContext(coroutineContext) {
-                            repeat(numberOfLines) {
-                                append("File content goes here\r\n")
+                setBody(
+                    WriterContent(
+                        {
+                            append("--***bbb***\r\n")
+                            append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                            append("\r\n")
+                            append(
+                                "Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n"
+                            )
+                            append("--***bbb***\r\n")
+                            append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                            append("Content-Type: text/plain\r\n")
+                            append("\r\n")
+                            withContext(coroutineContext) {
+                                repeat(numberOfLines) {
+                                    append("File content goes here\r\n")
+                                }
                             }
-                        }
-                        append("--***bbb***--\r\n")
-                        flush()
-                    },
-                    contentType
+                            append("--***bbb***--\r\n")
+                            flush()
+                        },
+                        contentType
+                    )
                 )
             }
         ) {
@@ -693,7 +699,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/",
             {
                 method = HttpMethod.Post
-                body = "Hello"
+                setBody("Hello")
             }
         ) {
             assertEquals(200, status.value)
@@ -713,7 +719,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             "/",
             {
                 method = HttpMethod.Post
-                body = ByteArrayContent("Hello".toByteArray(), ContentType.Text.Plain)
+                setBody(ByteArrayContent("Hello".toByteArray(), ContentType.Text.Plain))
             }
         ) {
             assertEquals(200, status.value)

@@ -4,6 +4,7 @@
 
 package io.ktor.client.features.auth
 
+import io.ktor.client.call.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -24,7 +25,7 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/digest").execute {
+            client.prepareGet("$TEST_SERVER/auth/digest").execute {
                 assertTrue(it.status.isSuccess())
             }
         }
@@ -42,7 +43,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed").body<String>()
         }
     }
 
@@ -60,7 +61,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed").body<String>()
         }
     }
 
@@ -77,7 +78,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/unauthorized").execute { response ->
+            client.prepareGet("$TEST_SERVER/auth/unauthorized").execute { response ->
                 assertEquals(HttpStatusCode.Unauthorized, response.status)
             }
         }

@@ -72,7 +72,7 @@ public class HttpStatement(
         else -> {
             val response = executeUnsafe()
             try {
-                response.receive<T>()
+                response.body()
             } finally {
                 response.complete()
             }
@@ -84,8 +84,8 @@ public class HttpStatement(
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
-    @Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
-    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R = bodyAs(block)
+    @Deprecated(message = "Please use body function", replaceWith = ReplaceWith("this.body<T, R>(block)"))
+    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R = body(block)
 
     /**
      * Return [HttpResponse] with open streaming body.
@@ -161,7 +161,7 @@ public val HttpStatement.response: HttpResponse
 public suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): String {
     val originCharset = charset() ?: fallbackCharset ?: Charsets.UTF_8
     val decoder = originCharset.newDecoder()
-    val input = receive<Input>()
+    val input = body<Input>()
 
     return decoder.decode(input)
 }
@@ -171,17 +171,17 @@ public suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): Stri
  *
  * Note if T is a streaming type, you should manage how to close it manually.
  */
-public suspend inline fun <reified T> HttpStatement.bodyAs(): T = receive()
+public suspend inline fun <reified T> HttpStatement.body(): T = receive()
 
 /**
  * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
  *
  * Note if T is a streaming type, you should manage how to close it manually.
  */
-public suspend inline fun <reified T, R> HttpStatement.bodyAs(crossinline block: suspend (response: T) -> R): R {
+public suspend inline fun <reified T, R> HttpStatement.body(crossinline block: suspend (response: T) -> R): R {
     val response: HttpResponse = executeUnsafe()
     try {
-        val result = response.receive<T>()
+        val result = response.body<T>()
         return block(result)
     } finally {
         response.cleanup()

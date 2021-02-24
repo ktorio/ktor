@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -19,21 +20,22 @@ class MultiPartFormDataTest : ClientLoader() {
     @Test
     fun testMultiPartFormData() = clientTests(listOf("native")) {
         test { client ->
-            val result = client.post<HttpStatement>("$TEST_SERVER/multipart") {
-                body = MultiPartFormDataContent(
-                    formData {
-                        append(
-                            "file",
-                            ByteArray(1024 * 1024),
-                            Headers.build {
-                                append(
-                                    HttpHeaders.ContentDisposition,
-                                    """form-data; name="file"; filename="test.png""""
-                                )
-                            }
-                        )
-                    }
-                )
+            val result = client.preparePost("$TEST_SERVER/multipart") {
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                "file",
+                                ByteArray(1024 * 1024),
+                                Headers.build {
+                                    append(
+                                        HttpHeaders.ContentDisposition,
+                                        """form-data; name="file"; filename="test.png""""
+                                    )
+                                }
+                            )
+                        }
+                    ))
             }.execute()
 
             assertEquals(HttpStatusCode.OK, result.status)
@@ -43,7 +45,7 @@ class MultiPartFormDataTest : ClientLoader() {
     @Test
     fun testEmptyMultiPartFormData() = clientTests {
         test { client ->
-            val response = client.submitFormWithBinaryData<HttpResponse>("$TEST_SERVER/multipart/empty", emptyList())
+            val response = client.submitFormWithBinaryData(emptyList())
             assertTrue(response.status.isSuccess())
         }
     }

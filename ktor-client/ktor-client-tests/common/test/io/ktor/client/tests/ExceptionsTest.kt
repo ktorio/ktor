@@ -34,7 +34,7 @@ class ExceptionsTest : ClientLoader() {
         }
 
         try {
-            client.get<String>("www.google.com")
+            client.get("www.google.com").body<String>()
         } catch (exception: ResponseException) {
             val text = exception.response?.readText()
             assertEquals(HttpStatusCode.BadRequest.description, text)
@@ -108,7 +108,7 @@ class ExceptionsTest : ClientLoader() {
         }
 
         try {
-            client.get<String>("www.google.com")
+            client.get("www.google.com").body<String>()
         } catch (exception: ResponseException) {
             assertTrue(
                 exceptionType.isInstance(exception),
@@ -129,14 +129,14 @@ class ExceptionsTest : ClientLoader() {
             requestBuilder.url.takeFrom("$TEST_SERVER/download/infinite")
 
             assertFailsWith<IllegalStateException> {
-                client.get<HttpStatement>(requestBuilder).execute { response ->
+                client.prepareGet(requestBuilder).execute { response ->
                     try {
                         CoroutineScope(response.coroutineContext)
                             .launch { throw IllegalStateException("failed on receive") }
                             .join()
                     } catch (cause: Exception) {
                     }
-                    response.receive<String>()
+                    response.body<String>()
                 }
             }
 

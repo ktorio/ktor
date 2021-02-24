@@ -6,6 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -46,7 +47,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
     public fun testWithNoParentJob() {
         val block = suspend {
             val client = HttpClient(factory)
-            val statement = client.get<HttpStatement>("http://localhost:$serverPort/hello")
+            val statement = client.prepareGet("http://localhost:$serverPort/hello")
             assertEquals("hello", statement.execute().readText())
         }
 
@@ -85,7 +86,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
 
         // check everything was installed in original
         val originalRequest = runBlocking {
-            originalClient.request<HttpResponse>(HttpRequestBuilder())
+            originalClient.request(HttpRequestBuilder())
         }.request
         assertEquals("/empty", originalRequest.url.fullPath)
 
@@ -107,7 +108,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         // check the custom feature remained installed
         // and that we override the DefaultRequest
         val newRequest = runBlocking {
-            newClient.request<HttpResponse>(HttpRequestBuilder())
+            newClient.request(HttpRequestBuilder())
         }.request
         assertEquals("/hello", newRequest.url.fullPath)
 
@@ -124,9 +125,9 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         channel.writeAvailable("text".toByteArray())
         channel.close(SendException())
         assertFailsWith<SendException>("Error on write") {
-            client.post<String>("http://localhost:$serverPort/echo") {
-                body = channel
-            }
+            client.post("http://localhost:$serverPort/echo") {
+                setBody(channel)
+            }.body<String>()
         }
     }
 

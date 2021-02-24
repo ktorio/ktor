@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -15,7 +16,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testHeadersReturnNullWhenMissing() = clientTests {
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/headers").let {
+            client.get("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
                 assertEquals("OK", it.readText())
 
@@ -28,7 +29,7 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testHeadersMerge() = clientTests(listOf("Js")) {
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/headers-merge") {
+            client.get("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
                 accept(ContentType.Application.Json)
             }.let {
@@ -37,7 +38,7 @@ class HeadersTest : ClientLoader() {
                 assertEquals("application/json; charset=UTF-8", it.headers[HttpHeaders.ContentType])
             }
 
-            client.get<HttpResponse>("$TEST_SERVER/headers-merge") {
+            client.get("$TEST_SERVER/headers-merge") {
                 accept(ContentType.Text.Html)
                 accept(ContentType.Application.Xml)
             }.let {
@@ -50,10 +51,10 @@ class HeadersTest : ClientLoader() {
     @Test
     fun testAcceptMerge() = clientTests(listOf("Js")) {
         test { client ->
-            val lines = client.get<String>("$TCP_SERVER/headers-merge") {
+            val lines = client.get("$TCP_SERVER/headers-merge") {
                 accept(ContentType.Application.Xml)
                 accept(ContentType.Application.Json)
-            }.split("\n")
+            }.body<String>().split("\n")
 
             val acceptHeaderLine = lines.first { it.startsWith("Accept:") }
             assertEquals("Accept: application/xml,application/json", acceptHeaderLine)

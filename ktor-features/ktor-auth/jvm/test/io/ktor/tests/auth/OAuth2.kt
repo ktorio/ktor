@@ -81,13 +81,13 @@ class OAuth2Test {
             url.parameters.remove("state")
 
             if (method == HttpMethod.Post) {
-                body = runBlocking {
+                setBody(runBlocking {
                     val query = parseQueryString((body as OutgoingContent).toByteReadPacket().readText())
                     val filtered = ParametersBuilder().apply {
                         appendFiltered(query) { key, _ -> key != "state" }
                     }.build()
                     TextContent(filtered.formUrlEncode(), ContentType.Application.FormUrlEncoded)
-                }
+                })
             }
         }
     )

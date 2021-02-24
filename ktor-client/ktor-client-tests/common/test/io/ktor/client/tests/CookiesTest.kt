@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -24,7 +25,7 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<Unit>(TEST_HOST)
+            client.get(TEST_HOST).body<Unit>()
             client.cookies(hostname).let {
                 assertEquals(1, it.size)
                 assertEquals("my-awesome-value", it["hello-cookie"]!!.value)
@@ -45,7 +46,7 @@ class CookiesTest : ClientLoader() {
         test { client ->
             repeat(10) {
                 val before = client.getId()
-                client.get<Unit>("$TEST_HOST/update-user-id")
+                client.get("$TEST_HOST/update-user-id").body<Unit>()
                 assertEquals(before + 1, client.getId())
                 assertEquals("ktor", client.cookies(hostname)["user"]?.value)
             }
@@ -63,7 +64,7 @@ class CookiesTest : ClientLoader() {
 
             test { client ->
                 assertFalse(client.cookies(hostname).isEmpty())
-                client.get<Unit>("$TEST_HOST/expire")
+                client.get("$TEST_HOST/expire").body<Unit>()
                 assertTrue(client.cookies(hostname).isEmpty(), "cookie should be expired")
             }
         }
@@ -79,7 +80,7 @@ class CookiesTest : ClientLoader() {
 
         test { client ->
             repeat(3) {
-                client.get<Unit>("$TEST_HOST/update-user-id")
+                client.get("$TEST_HOST/update-user-id").body<Unit>()
                 assertEquals(1, client.getId())
                 assertNull(client.cookies(hostname)["user"]?.value)
             }
@@ -98,7 +99,7 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_HOST/multiple")
+            val response = client.get("$TEST_HOST/multiple").body<String>()
             assertEquals("Multiple done", response)
         }
     }
@@ -122,7 +123,7 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<Unit>("https://m.vk.com")
+            client.get("https://m.vk.com").body<Unit>()
             assertTrue(client.cookies("https://.vk.com").isNotEmpty())
             assertTrue(client.cookies("https://vk.com").isNotEmpty())
             assertTrue(client.cookies("https://m.vk.com").isNotEmpty())
@@ -140,8 +141,8 @@ class CookiesTest : ClientLoader() {
 
         test { client ->
             try {
-                client.get<Unit>("$TEST_HOST/foo")
-                client.get<Unit>("$TEST_HOST/FOO")
+                client.get("$TEST_HOST/foo").body<Unit>()
+                client.get("$TEST_HOST/FOO").body<Unit>()
             } catch (cause: Throwable) {
                 throw cause
             }
@@ -160,7 +161,7 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.get<String>("$TEST_HOST/multiple-comma")
+            val response = client.get("$TEST_HOST/multiple-comma").body<String>()
             val cookies = client.cookies(hostname)
             assertEquals("first, cookie", cookies["fir,st"]!!.value)
             assertEquals("second, cookie", cookies["sec,ond"]!!.value)
@@ -188,7 +189,7 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_HOST/encoded").execute { httpResponse ->
+            client.prepareGet("$TEST_HOST/encoded").execute { httpResponse ->
                 val response = httpResponse.readText()
                 val cookieStrings = response.split(";").filter { it.isNotBlank() }
                 assertEquals(4, cookieStrings.size)
@@ -203,9 +204,9 @@ class CookiesTest : ClientLoader() {
     @Test
     fun testRequestBuilderSingleCookie() = clientTests(listOf("Js")) {
         test { client ->
-            val result = client.get<String>("$TEST_HOST/respond-single-cookie") {
+            val result = client.get("$TEST_HOST/respond-single-cookie") {
                 cookie("single", value = "abacaba")
-            }
+            }.body<String>()
             assertEquals("abacaba", result)
         }
     }
@@ -213,10 +214,10 @@ class CookiesTest : ClientLoader() {
     @Test
     fun testRequestBuilderMultipleCookies() = clientTests(listOf("Js")) {
         test { client ->
-            val result = client.get<String>("$TEST_HOST/respond-a-minus-b") {
+            val result = client.get("$TEST_HOST/respond-a-minus-b") {
                 cookie("a", value = "10")
                 cookie("b", value = "4")
-            }
+            }.body<String>()
             assertEquals("6", result)
         }
     }

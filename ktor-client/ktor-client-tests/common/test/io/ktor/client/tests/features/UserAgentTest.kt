@@ -3,6 +3,7 @@
  */
 package io.ktor.client.tests.features
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -30,7 +31,7 @@ class UserAgentTest {
         }
 
         test { client ->
-            client.get<String>("http://goog.gl")
+            client.get("http://goog.gl").body<String>()
         }
     }
 }

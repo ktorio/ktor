@@ -49,7 +49,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get<HttpResponse>()
+                client.get {}.body<Unit>()
             } catch (_: Throwable) {
                 failed = true
             }
@@ -109,9 +109,9 @@ class LoggingMockedTests {
             if (PlatformUtils.IS_NATIVE) return@test
 
             var failed = false
-            client.get<HttpStatement>().execute {
+            client.prepareGet {}.execute {
                 try {
-                    it.receive<String>()
+                    it.body<String>()
                 } catch (_: CustomError) {
                     failed = true
                 }
@@ -170,7 +170,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CustomError) {
                 failed = true
             }
@@ -236,8 +236,7 @@ class LoggingMockedTests {
 
         test { client ->
             val input = buildPacket { writeText("Hello") }
-            client.submitFormWithBinaryData<String>(
-                "http://localhost/",
+            client.submitFormWithBinaryData(
                 formData {
                     appendInput(
                         "file",
@@ -249,7 +248,7 @@ class LoggingMockedTests {
                         )
                     ) { input }
                 }
-            )
+            ).body<String>()
         }
 
         after {
@@ -301,8 +300,8 @@ class LoggingMockedTests {
         }
 
         test { client ->
-            client.get<String>(urlString = "http://somewhere/filtered_path")
-            client.get<String>(urlString = "http://somewhere/not_filtered_path")
+            client.get(urlString = "http://somewhere/filtered_path").body<String>()
+            client.get(urlString = "http://somewhere/not_filtered_path").body<String>()
         }
 
         after {

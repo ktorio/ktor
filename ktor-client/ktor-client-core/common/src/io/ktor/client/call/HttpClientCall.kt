@@ -149,17 +149,17 @@ public data class HttpEngineCall(val request: HttpRequest, val response: HttpRes
  * configured inside the [block].
  */
 @Deprecated(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.",
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(block)] in instead.",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith(
-        "this.request<HttpResponse>(block)",
+        "this.request(block)",
         "io.ktor.client.request.request",
         "io.ktor.client.statement.*"
     )
 )
 @Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
 public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-    error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] in instead.")
+    error("Unbound [HttpClientCall] is deprecated. Consider using [request(block)] in instead.")
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -167,8 +167,8 @@ public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit 
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
-public suspend inline fun <reified T> HttpClientCall.receive(): T = bodyAs()
+@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("this.body<T>()"))
+public suspend inline fun <reified T> HttpClientCall.receive(): T = body()
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -176,24 +176,24 @@ public suspend inline fun <reified T> HttpClientCall.receive(): T = bodyAs()
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("bodyAs"))
-public suspend inline fun <reified T> HttpResponse.receive(): T = bodyAs()
+@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("this.body<T>()"))
+public suspend inline fun <reified T> HttpResponse.receive(): T = body()
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
- * @throws DoubleReceiveException If already called [receive].
+ * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpClientCall.bodyAs(): T = receive(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpClientCall.body(): T = receive(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
- * @throws DoubleReceiveException If already called [receive].
+ * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpResponse.bodyAs(): T = call.receive(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpResponse.body(): T = call.receive(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.

@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl.test
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
 import io.ktor.client.features.json.*
@@ -63,7 +64,7 @@ class CurlProxyTest {
             client.use {
                 @Suppress("DEPRECATION")
                 assertFailsWith<CurlIllegalStateException> {
-                    client.get<HttpResponse>("https://localhost:8089/")
+                    client.get("https://localhost:8089/")
                 }
             }
         }
@@ -82,7 +83,7 @@ class CurlProxyTest {
 
         runBlocking {
             client.use {
-                client.get<HttpResponse>("https://localhost:8089/").let { response ->
+                client.get("https://localhost:8089/").let { response ->
                     assertEquals(HttpStatusCode.OK, response.status)
                     assertEquals("Hello, TLS!", response.readText())
                     assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])

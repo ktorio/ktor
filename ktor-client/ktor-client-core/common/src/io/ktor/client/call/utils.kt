@@ -23,23 +23,23 @@ public class UnsupportedUpgradeProtocolException(
  * with the specified HTTP request [builder].
  */
 @Deprecated(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(builder)] instead.",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("this.request<HttpResponse>(builder)", "io.ktor.client.statement.*")
+    replaceWith = ReplaceWith("this.request(builder)", "io.ktor.client.statement.*")
 )
 @Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 public suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpClientCall =
-    error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.")
+    error("Unbound [HttpClientCall] is deprecated. Consider using [request(builder)] instead.")
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient],
  * an [url] and an optional [block] configuring a [HttpRequestBuilder].
  */
 @Deprecated(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(urlString, block)] instead.",
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(urlString, block)] instead.",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith(
-        "this.request<HttpResponse>(urlString, block)",
+        "this.request(urlString, block)",
         "io.ktor.client.statement.*"
     )
 )
@@ -48,7 +48,7 @@ public suspend fun HttpClient.call(
     urlString: String,
     block: suspend HttpRequestBuilder.() -> Unit = {}
 ): HttpClientCall = error(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(urlString, block)] instead."
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(urlString, block)] instead."
 )
 
 /**
@@ -56,14 +56,14 @@ public suspend fun HttpClient.call(
  * an [url] and an optional [block] configuring a [HttpRequestBuilder].
  */
 @Deprecated(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(url, block)] instead.",
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(url, block)] instead.",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("this.request<HttpResponse>(url, block)", "io.ktor.client.statement.*")
+    replaceWith = ReplaceWith("this.request(url, block)", "io.ktor.client.statement.*")
 )
 @Suppress("UNUSED", "UNUSED_PARAMETER", "RedundantSuspendModifier")
 public suspend fun HttpClient.call(
     url: Url,
     block: suspend HttpRequestBuilder.() -> Unit = {}
 ): HttpClientCall = error(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(url, block)] instead."
+    "Unbound [HttpClientCall] is deprecated. Consider using [request(url, block)] instead."
 )

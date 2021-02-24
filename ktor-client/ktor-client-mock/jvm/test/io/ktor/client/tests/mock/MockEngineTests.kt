@@ -36,9 +36,9 @@ class MockEngineTests {
             expectSuccess = false
         }
 
-        assertEquals(byteArrayOf(1, 2, 3).toList(), client.get<ByteArray>("/").toList())
-        assertEquals("My Value", client.request<HttpResponse>("/").headers["X-MyHeader"])
-        assertEquals("Not Found other/path", client.get<String>("/other/path"))
+        assertEquals(byteArrayOf(1, 2, 3).toList(), client.get("/").body<ByteArray>().toList())
+        assertEquals("My Value", client.request("/").headers["X-MyHeader"])
+        assertEquals("Not Found other/path", client.get("/other/path").body())
 
         Unit
     }
@@ -57,12 +57,16 @@ class MockEngineTests {
             expectSuccess = false
         }
 
-        client.request<HttpStatement> { url("http://127.0.0.1/normal-request") }.execute { response ->
+        client.prepareRequest {
+            url("http://127.0.0.1/normal-request")
+        }.execute { response ->
             assertEquals("http://127.0.0.1/normal-request", response.readText())
             assertEquals(HttpStatusCode.OK, response.status)
         }
 
-        client.request<HttpStatement> { url("http://127.0.0.1/fail") }.execute { response ->
+        client.prepareRequest {
+            url("http://127.0.0.1/fail")
+        }.execute { response ->
             assertEquals("Bad Request", response.readText())
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
@@ -82,9 +86,10 @@ class MockEngineTests {
             install(JsonFeature)
         }
 
-        val response = client.get<String>(body = User("admin")) {
+        val response = client.get {
+            setBody(User("admin"))
             contentType(ContentType.Application.Json)
-        }
+        }.body<String>()
 
         assertEquals("{\"name\":\"admin\"}", response)
     }

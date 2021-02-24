@@ -84,7 +84,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         @Deprecated(
             message = "This setter is not typesafe and can lead to problems " +
                 "during serialization. Please use setBody method",
-            replaceWith = ReplaceWith(expression = "setBody(body)"),
+            replaceWith = ReplaceWith("setBody(body)"),
             level = DeprecationLevel.WARNING
         )
         set
@@ -157,6 +157,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
     public fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
         method = builder.method
         body = builder.body
+        bodyType = builder.bodyType
         url.takeFrom(builder.url)
         url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
         headers.appendAll(builder.headers)
@@ -246,6 +247,7 @@ public fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): Headers
 public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder {
     method = request.method
     body = request.content
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
 
@@ -263,6 +265,7 @@ public fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(ur
 public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
     method = request.method
     body = request.body
+    bodyType = attributes.getOrNull(BodyTypeAttributeKey)
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
 

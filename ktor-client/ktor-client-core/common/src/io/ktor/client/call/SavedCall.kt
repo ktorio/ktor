@@ -17,7 +17,7 @@ import kotlin.coroutines.*
 
 internal class SavedHttpCall(client: HttpClient) : HttpClientCall(client) {
     /**
-     * Equals [HttpResponse.content] in case [receive] was never called before or equals it's copy if [receive] was
+     * Equals [HttpResponse.content] in case [read] was never called before or equals it's copy if [read] was
      * already called at least once.
      * */
     private var responseContent: ByteReadChannel? = null

@@ -21,7 +21,7 @@ internal inline fun <reified T : Any> tryGetType(ignored: T): KType? = try {
     null
 }
 
-public inline fun <reified T> HttpRequestBuilder.body(body: T) {
+public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
     when (body) {
         null -> {
             this.body = EmptyContent

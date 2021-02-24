@@ -68,11 +68,11 @@ class CIOHttpClientTest {
 
         val port = portSync.take()
         val client = HttpClient(CIO)
-        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
+        val response = client.request("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
-            body = "request-body"
+            setBody("request-body")
         }
 
         try {
@@ -158,16 +158,16 @@ class CIOHttpClientTest {
         val port = portSync.await()
 
         val client = HttpClient(CIO)
-        val response = client.request<HttpResponse>("http://127.0.0.1:$port/") {
+        val response = client.request("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
-            body = TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
+            setBody(TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
                 HeadersBuilder().apply {
                     appendAll(hh)
                     append(HttpHeaders.TransferEncoding, "chunked")
                 }.build()
-            }
+            })
         }
 
         try {

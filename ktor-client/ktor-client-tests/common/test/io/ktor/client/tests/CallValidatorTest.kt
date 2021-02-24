@@ -44,7 +44,7 @@ class CallValidatorTest {
 
             var thirdHandler = false
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
                 thirdHandler = true
             }
@@ -70,7 +70,7 @@ class CallValidatorTest {
         }
         test { client ->
             try {
-                client.request<HttpResponse>()
+                client.request()
             } catch (_: CallValidatorTestException) {
             }
 
@@ -94,7 +94,7 @@ class CallValidatorTest {
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
             }
 
@@ -118,7 +118,7 @@ class CallValidatorTest {
         test { client ->
             client.receivePipeline.intercept(HttpReceivePipeline.State) { throw CallValidatorTestException() }
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
             }
 
@@ -151,7 +151,7 @@ class CallValidatorTest {
             client.responsePipeline.intercept(HttpResponsePipeline.Transform) { throw CallValidatorTestException() }
 
             try {
-                client.get<String>()
+                client.get {}.body<String>()
             } catch (_: CallValidatorTestException) {
                 handleTriggered = true
             }
@@ -181,7 +181,7 @@ class CallValidatorTest {
         }
 
         test { client ->
-            val response = client.get<String>()
+            val response = client.get {}.body<String>()
             assertEquals("Awesome response", response)
             assertEquals(1, validator)
         }
@@ -206,7 +206,7 @@ class CallValidatorTest {
         }
 
         test { client ->
-            client.get<HttpResponse>()
+            client.get {}
             assertEquals(1, validator)
         }
     }
@@ -225,11 +225,11 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<HttpResponse>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -248,11 +248,11 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}.body<String>()
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -271,18 +271,18 @@ class CallValidatorTest {
 
         test { client ->
             // expectSuccess default
-            val response = client.get<HttpResponse>()
+            val response = client.get {}
             assertEquals(900, response.status.value)
 
             // expectSuccess overwritten
             try {
-                client.get<HttpResponse> {
+                client.get {
                     expectSuccess = true
                 }
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }
@@ -301,18 +301,18 @@ class CallValidatorTest {
 
         test { client ->
             // expectSuccess overwritten
-            val response = client.get<HttpResponse> {
+            val response = client.get {
                 expectSuccess = false
             }
             assertEquals(900, response.status.value)
 
             // expectSuccess default
             try {
-                client.get<HttpResponse>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }

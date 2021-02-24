@@ -127,7 +127,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
                 produceText()
             }
             assertTrue { HttpHeaders.ContentEncoding in headers }
-            val array = receive<ByteArray>()
+            val array = body<ByteArray>()
             val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
             assertEquals(expected, text)
         }
