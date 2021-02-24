@@ -44,7 +44,7 @@ class CurlProxyTest {
             runBlocking {
                 // replace with once moved to ktor-client-tests
 //                assertEquals("Hello", client.get<String>("$TEST_SERVER/content/hello"))
-                assertEquals("proxy", client.get("http://google.com/"))
+                assertEquals("proxy", client.get("http://google.com/").body())
             }
         }
     }

@@ -49,7 +49,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get {}.body<Unit>()
+                client.get {}
             } catch (_: Throwable) {
                 failed = true
             }
@@ -237,6 +237,7 @@ class LoggingMockedTests {
         test { client ->
             val input = buildPacket { writeText("Hello") }
             client.submitFormWithBinaryData(
+                "http://localhost/",
                 formData {
                     appendInput(
                         "file",

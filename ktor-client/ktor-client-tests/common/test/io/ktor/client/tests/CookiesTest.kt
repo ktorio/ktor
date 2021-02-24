@@ -111,8 +111,8 @@ class CookiesTest : ClientLoader() {
         }
 
         test { client ->
-            assertEquals("OK", client.get("$TEST_HOST/withPath"))
-            assertEquals("OK", client.get("$TEST_HOST/withPath/something"))
+            assertEquals("OK", client.get("$TEST_HOST/withPath").body<String>())
+            assertEquals("OK", client.get("$TEST_HOST/withPath/something").body<String>())
         }
     }
 

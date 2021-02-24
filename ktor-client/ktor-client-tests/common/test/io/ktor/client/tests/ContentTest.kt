@@ -170,7 +170,10 @@ class ContentTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.submitFormWithBinaryData(formData = data()).body<String>()
+            val response = client.submitFormWithBinaryData(
+                "$TEST_SERVER/content/upload",
+                formData = data()
+            ).body<String>()
             val contentString = data().makeString()
             assertEquals(contentString, response)
         }

@@ -6,6 +6,7 @@ package io.ktor.server.testing.suites
 
 import io.ktor.application.*
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*

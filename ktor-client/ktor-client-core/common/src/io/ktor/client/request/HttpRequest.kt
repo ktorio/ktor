@@ -84,7 +84,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         @Deprecated(
             message = "This setter is not typesafe and can lead to problems " +
                 "during serialization. Please use setBody method",
-            replaceWith = ReplaceWith("setBody(body)"),
+            replaceWith = ReplaceWith("this.setBody(body)", "io.ktor.client.request"),
             level = DeprecationLevel.WARNING
         )
         set

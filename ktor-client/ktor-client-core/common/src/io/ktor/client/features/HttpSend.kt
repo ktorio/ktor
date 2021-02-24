@@ -85,7 +85,7 @@ public class HttpSend(
 |If you expect serialized body, please check that you have installed the corresponding feature(like `Json`) and set `Content-Type` header."""
                         .trimMargin()
                 }
-                context.body = content
+                context.setBody(content)
 
                 val sender = DefaultSender(feature.maxSendCount, scope)
                 var currentCall = sender.execute(context)

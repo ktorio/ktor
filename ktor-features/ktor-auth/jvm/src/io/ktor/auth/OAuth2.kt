@@ -197,9 +197,11 @@ private suspend fun oauth2RequestAccessToken(
             if (passParamsInURL) {
                 request.url.parameters.appendAll(urlParameters)
             } else {
-                request.body = TextContent(
-                    urlParameters.build().formUrlEncode(),
-                    ContentType.Application.FormUrlEncoded
+                request.setBody(
+                    TextContent(
+                        urlParameters.build().formUrlEncode(),
+                        ContentType.Application.FormUrlEncoded
+                    )
                 )
             }
         }

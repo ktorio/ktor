@@ -123,7 +123,7 @@ class HttpTimeoutTest : ClientLoader() {
                     parameter("delay", 2000)
                 }
 
-                client.request(requestBuilder).body<ByteReadChannel>().cancel()
+                client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
                 delay(2000) // Channel is closing asynchronously.
                 assertTrue { requestBuilder.executionContext.getActiveChildren().none() }
@@ -206,7 +206,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request("$TEST_URL/with-stream") {
+            val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
                 parameter("delay", 500)
             }.body<ByteReadChannel>()
@@ -224,7 +224,7 @@ class HttpTimeoutTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request("$TEST_URL/with-stream") {
+            val response = client.prepareRequest("$TEST_URL/with-stream") {
                 method = HttpMethod.Get
                 parameter("delay", 10000)
 

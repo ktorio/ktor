@@ -75,7 +75,7 @@ class KotlinxSerializerTest : ClientLoader() {
         test { client ->
             var throwed = false
             try {
-                client.submitFormWithBinaryData(formData = data()).body<String>()
+                client.submitFormWithBinaryData(url = "upload", formData = data()).body<String>()
             } catch (cause: Throwable) {
                 throwed = true
             }

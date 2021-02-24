@@ -27,9 +27,9 @@ class MockEngineExtendedTests {
 
         val client = HttpClient(mockEngine) { expectSuccess = false }
 
-        assertEquals("first", client.get {})
-        assertEquals("Bad Request", client.get {})
-        assertEquals("third", client.get {})
+        assertEquals("first", client.get {}.body())
+        assertEquals("Bad Request", client.get {}.body())
+        assertEquals("third", client.get {}.body())
     }
 
     @Test

@@ -38,7 +38,7 @@ public suspend inline fun <reified T> HttpClient.submitForm(
         url.parameters.appendAll(formParameters)
     } else {
         method = HttpMethod.Post
-        body = FormDataContent(formParameters)
+        setBody(FormDataContent(formParameters))
     }
 
     block()
@@ -89,7 +89,7 @@ public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
     block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     method = HttpMethod.Post
-    body = MultiPartFormDataContent(formData)
+    setBody(MultiPartFormDataContent(formData))
     block()
 }.body()
 
@@ -103,7 +103,7 @@ public suspend inline fun <reified T> HttpClient.submitFormWithBinaryData(
 @Deprecated(
     "Please use function without generic argument",
     replaceWith = ReplaceWith(
-        "submitFormWithBinaryData(formData, block).body<T>()",
+        "submitFormWithBinaryData(url, formData, block).body<T>()",
         "io.ktor.client.call.body"
     )
 )
@@ -191,7 +191,7 @@ public suspend inline fun HttpClient.submitForm(
         url.parameters.appendAll(formParameters)
     } else {
         method = HttpMethod.Post
-        body = FormDataContent(formParameters)
+        setBody(FormDataContent(formParameters))
     }
 
     block()
@@ -226,7 +226,7 @@ public suspend inline fun HttpClient.submitFormWithBinaryData(
     block: HttpRequestBuilder.() -> Unit = {}
 ): HttpResponse = request {
     method = HttpMethod.Post
-    body = MultiPartFormDataContent(formData)
+    setBody(MultiPartFormDataContent(formData))
     block()
 }
 

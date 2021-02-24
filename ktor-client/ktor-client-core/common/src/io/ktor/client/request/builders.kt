@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlin.jvm.*
 
 /**
@@ -356,85 +357,85 @@ public suspend inline fun HttpClient.prepareHead(builder: HttpRequestBuilder): H
  * Executes a [HttpClient] GET request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    get(HttpRequestBuilder().apply(block))
+    get(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] POST request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    post(HttpRequestBuilder().apply(block))
+    post(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] PUT request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    put(HttpRequestBuilder().apply(block))
+    put(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] DELETE request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    delete(HttpRequestBuilder().apply(block))
+    delete(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] OPTIONS request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    options(HttpRequestBuilder().apply(block))
+    options(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] PATCH request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    patch(HttpRequestBuilder().apply(block))
+    patch(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] HEAD request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    head(HttpRequestBuilder().apply(block))
+    head(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] GET request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareGet(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareGet(HttpRequestBuilder().apply(block))
+    prepareGet(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] POST request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePost(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePost(HttpRequestBuilder().apply(block))
+    preparePost(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] PUT request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePut(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePut(HttpRequestBuilder().apply(block))
+    preparePut(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] DELETE request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareDelete(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareDelete(HttpRequestBuilder().apply(block))
+    prepareDelete(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] OPTIONS request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareOptions(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareOptions(HttpRequestBuilder().apply(block))
+    prepareOptions(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] PATCH request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePatch(HttpRequestBuilder().apply(block))
+    preparePatch(blockWithDefaults(block))
 
 /**
  * Prepares a [HttpClient] HEAD request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareHead(HttpRequestBuilder().apply(block))
+    prepareHead(blockWithDefaults(block))
 
 /**
  * Executes a [HttpClient] GET request, with the specified [scheme], [host], [port], [path] and [body].
@@ -464,7 +465,7 @@ public suspend inline fun <reified T> HttpClient.get(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Get
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -480,7 +481,7 @@ public suspend inline fun <reified T> HttpClient.get(
     replaceWith = ReplaceWith(
         """post {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -496,7 +497,7 @@ public suspend inline fun <reified T> HttpClient.post(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Post
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -512,7 +513,7 @@ public suspend inline fun <reified T> HttpClient.post(
     replaceWith = ReplaceWith(
         """put {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -528,7 +529,7 @@ public suspend inline fun <reified T> HttpClient.put(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Put
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -544,7 +545,7 @@ public suspend inline fun <reified T> HttpClient.put(
     replaceWith = ReplaceWith(
         """delete {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -560,7 +561,7 @@ public suspend inline fun <reified T> HttpClient.delete(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Delete
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -576,7 +577,7 @@ public suspend inline fun <reified T> HttpClient.delete(
     replaceWith = ReplaceWith(
         """patch {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -592,7 +593,7 @@ public suspend inline fun <reified T> HttpClient.patch(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Patch
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -608,7 +609,7 @@ public suspend inline fun <reified T> HttpClient.patch(
     replaceWith = ReplaceWith(
         """head {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -624,7 +625,7 @@ public suspend inline fun <reified T> HttpClient.head(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Head
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
@@ -640,7 +641,7 @@ public suspend inline fun <reified T> HttpClient.head(
     replaceWith = ReplaceWith(
         """options {
     url(scheme, host, port, path)
-    this.body = body
+    setBody(body)
     apply(block)
 }.body<T>()", "io.ktor.client.call.body"""
     )
@@ -656,14 +657,15 @@ public suspend inline fun <reified T> HttpClient.options(
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Options
-    this.body = body
+    setBody(body)
     apply(block)
 }.body()
 
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.
  */
-public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequestBuilder().apply(block)
+public fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
+    HttpRequestBuilder().apply(block)
 
 /**
  * Executes a [HttpClient] GET request, with the specified [url] as URL and
@@ -923,3 +925,10 @@ public suspend inline fun HttpClient.prepareHead(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement = prepareHead(Url(urlString), block)
+
+@PublishedApi
+internal inline fun blockWithDefaults(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
+    HttpRequestBuilder().apply {
+        url(scheme = "http", host = "localhost", port = DEFAULT_PORT, path = "/")
+        block()
+    }

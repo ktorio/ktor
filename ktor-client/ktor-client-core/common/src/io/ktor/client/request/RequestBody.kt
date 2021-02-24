@@ -8,8 +8,10 @@ import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlin.native.concurrent.*
 import kotlin.reflect.*
 
+@SharedImmutable
 internal val BodyTypeAttributeKey: AttributeKey<KType> = AttributeKey("BodyTypeAttributeKey")
 
 @PublishedApi
