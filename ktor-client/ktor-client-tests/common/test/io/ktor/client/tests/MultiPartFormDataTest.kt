@@ -35,7 +35,8 @@ class MultiPartFormDataTest : ClientLoader() {
                                 }
                             )
                         }
-                    ))
+                    )
+                )
             }.execute()
 
             assertEquals(HttpStatusCode.OK, result.status)

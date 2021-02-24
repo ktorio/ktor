@@ -659,7 +659,8 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
                             append("Content-Disposition: form-data; name=\"a story\"\r\n")
                             append("\r\n")
                             append(
-                                "Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n"
+                                "Hi user. The snake you gave me for free ate all the birds. " +
+                                    "Please take it back ASAP.\r\n"
                             )
                             append("--***bbb***\r\n")
                             append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")

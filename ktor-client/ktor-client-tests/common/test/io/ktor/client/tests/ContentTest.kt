@@ -183,18 +183,20 @@ class ContentTest : ClientLoader() {
                 url("$TEST_SERVER/content/file-upload")
                 method = HttpMethod.Put
 
-                setBody(MultiPartFormDataContent(
-                    formData {
-                        appendInput(
-                            "image",
-                            Headers.build {
-                                append(HttpHeaders.ContentType, "image/jpg")
-                                append(HttpHeaders.ContentDisposition, "filename=hello.jpg")
-                            },
-                            size = 4
-                        ) { buildPacket { writeInt(42) } }
-                    }
-                ))
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            appendInput(
+                                "image",
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, "image/jpg")
+                                    append(HttpHeaders.ContentDisposition, "filename=hello.jpg")
+                                },
+                                size = 4
+                            ) { buildPacket { writeInt(42) } }
+                        }
+                    )
+                )
             }.body<Unit>()
         }
     }

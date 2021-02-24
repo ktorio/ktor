@@ -33,17 +33,19 @@ class FormsTest {
             }.asInput()
 
             val builder = HttpRequestBuilder().apply {
-                setBody(MultiPartFormDataContent(
-                    formData {
-                        appendInput(
-                            "file",
-                            Headers.build {
-                                append(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-                                append(HttpHeaders.ContentDisposition, "filename=myfile.txt")
-                            }
-                        ) { input }
-                    }
-                ))
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            appendInput(
+                                "file",
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+                                    append(HttpHeaders.ContentDisposition, "filename=myfile.txt")
+                                }
+                            ) { input }
+                        }
+                    )
+                )
             }
 
             client.request(builder).body<String>()

@@ -162,12 +162,14 @@ class CIOHttpClientTest {
             method = HttpMethod.Post
             url.encodedPath = "/url"
             header("header", "value")
-            setBody(TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
-                HeadersBuilder().apply {
-                    appendAll(hh)
-                    append(HttpHeaders.TransferEncoding, "chunked")
-                }.build()
-            })
+            setBody(
+                TextContent("request-body", ContentType.Text.Plain).wrapHeaders { hh ->
+                    HeadersBuilder().apply {
+                        appendAll(hh)
+                        append(HttpHeaders.TransferEncoding, "chunked")
+                    }.build()
+                }
+            )
         }
 
         try {

@@ -10,9 +10,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.response.readText
 import io.ktor.client.statement.*
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
@@ -39,8 +37,6 @@ class MockEngineTests {
         assertEquals(byteArrayOf(1, 2, 3).toList(), client.get("/").body<ByteArray>().toList())
         assertEquals("My Value", client.request("/").headers["X-MyHeader"])
         assertEquals("Not Found other/path", client.get("/other/path").body())
-
-        Unit
     }
 
     @Test

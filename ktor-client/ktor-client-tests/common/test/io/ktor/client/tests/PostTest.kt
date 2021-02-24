@@ -35,14 +35,16 @@ class PostTest : ClientLoader() {
             val content = makeString(16 * 1024 * 1024)
 
             val response = client.post("$TEST_SERVER/content/echo") {
-                setBody(object : OutgoingContent.WriteChannelContent() {
-                    override suspend fun writeTo(channel: ByteWriteChannel) {
-                        channel.writeStringUtf8(content)
-                        delay(1000)
-                        channel.writeStringUtf8(content)
-                        channel.close()
+                setBody(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8(content)
+                            delay(1000)
+                            channel.writeStringUtf8(content)
+                            channel.close()
+                        }
                     }
-                })
+                )
             }.body<String>()
 
             assertEquals(content + content, response)

@@ -82,11 +82,12 @@ class RequestTests : TestWithKtor() {
             }
 
             assertFailsWith<ConnectTimeoutException> {
-                clientWithConnectTimeout.get(requestBuilder.apply {
-                    url {
-                        takeFrom("https://google.com")
+                clientWithConnectTimeout.get(
+                    requestBuilder.apply {
+                        url {
+                            takeFrom("https://google.com")
+                        }
                     }
-                }
                 ).body<HttpResponseData>()
             }
         }
