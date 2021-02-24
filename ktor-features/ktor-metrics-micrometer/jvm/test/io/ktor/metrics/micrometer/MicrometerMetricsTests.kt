@@ -60,6 +60,7 @@ class MicrometerMetricsTests {
         }
 
         testRegistry.assertActive(0.0)
+        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -97,6 +98,7 @@ class MicrometerMetricsTests {
         }
         testRegistry.assertActive(0.0)
         assertTrue(throwableCaughtInEngine is IllegalAccessException)
+        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -127,6 +129,7 @@ class MicrometerMetricsTests {
                 assertTag("address", "localhost:80")
             }
         }
+        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -157,10 +160,12 @@ class MicrometerMetricsTests {
             }
         }
         testRegistry.assertActive(0.0)
+        testRegistry.assertEqualRequestTimers()
     }
 
     private fun MeterRegistry.assertActive(expectedValue: Double) {
         assertEquals(expectedValue, this[MicrometerMetrics.activeGaugeName].gauge().value())
+        assertEquals(expectedValue, this[MicrometerMetrics.activeRequestsGaugeName].gauge().value())
     }
 
     @Test
@@ -196,6 +201,7 @@ class MicrometerMetricsTests {
             percentileValues.count { it.percentile() == 0.2 },
             "$percentileValues should contain a 0.2 percentile"
         )
+        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -227,6 +233,7 @@ class MicrometerMetricsTests {
 
         assertNull(throwableCaughtInEngine)
         assertTrue(noHandlerHandledRequest)
+        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -260,6 +267,7 @@ class MicrometerMetricsTests {
 
             assertNull(throwableCaughtInEngine)
             assertTrue(noHandlerHandledRequest)
+            testRegistry.assertEqualRequestTimers()
         }
 
     private fun TestApplicationEngine.installDefaultBehaviour() {
@@ -342,8 +350,8 @@ class MicrometerMetricsTests {
             baseName = newBaseName
         }
 
-        assertEquals("$newBaseName.requests", MicrometerMetrics.requestTimerName)
-        assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeGaugeName)
+        assertEquals("$newBaseName.requests", MicrometerMetrics.requestTimeTimerName)
+        assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeRequestsGaugeName)
     }
 
     private fun TestApplicationEngine.metersAreRegistered(
@@ -375,5 +383,11 @@ class MicrometerMetricsTests {
 
         assertNotNull(tag, "$this does not contain a tag named '$tagName'")
         assertEquals(expectedValue, tag.value, "Tag value for '$tagName' should be '$expectedValue'")
+    }
+
+    private fun SimpleMeterRegistry.assertEqualRequestTimers() {
+        val timer = find(MicrometerMetrics.requestTimerName).timer()
+        val configurableTimer = find(MicrometerMetrics.requestTimeTimerName).timer()
+        assertEquals(timer, configurableTimer)
     }
 }

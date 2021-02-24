@@ -5,6 +5,7 @@
 package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
+import io.ktor.metrics.micrometer.MicrometerMetrics.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -58,7 +59,7 @@ public class MicrometerMetrics private constructor(
         timerBuilder: Timer.Builder.(call: ApplicationCall, throwable: Throwable?) -> Unit
     ) : this(registry, timerDistributionConfig, true, timerBuilder)
 
-    private val active = registry.gauge(activeGaugeName, AtomicInteger(0))
+    private val active = registry.gauge(activeRequestsGaugeName, AtomicInteger(0))
 
     init {
         enableTimerDistributionConfig(timerDistributionConfig)
@@ -68,7 +69,7 @@ public class MicrometerMetrics private constructor(
         registry.config().meterFilter(
             object : MeterFilter {
                 override fun configure(id: Meter.Id, config: DistributionStatisticConfig): DistributionStatisticConfig =
-                    if (id.name == requestTimerName) timerDistributionConfig.merge(config) else config
+                    if (id.name == requestTimeTimerName) timerDistributionConfig.merge(config) else config
             }
         )
     }
@@ -88,7 +89,7 @@ public class MicrometerMetrics private constructor(
      * */
     public class Configuration {
 
-        public var baseName: String = "ktor.http.server"
+        public var baseName: String = Feature.baseName
 
         public lateinit var registry: MeterRegistry
 
@@ -122,7 +123,7 @@ public class MicrometerMetrics private constructor(
 
     private fun CallMeasure.recordDuration(call: ApplicationCall) {
         timer.stop(
-            Timer.builder(requestTimerName)
+            Timer.builder(requestTimeTimerName)
                 .addDefaultTags(call, throwable)
                 .customize(call, throwable)
                 .register(registry)
@@ -168,19 +169,36 @@ public class MicrometerMetrics private constructor(
      * Micrometer feature installation object
      */
     public companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
-        private lateinit var baseName: String
+        @Deprecated("static metrics base name deprecated", level = DeprecationLevel.WARNING)
+        private const val baseName: String = "ktor.http.server"
+
+        private lateinit var metricsBaseName: String
 
         /**
          * Request time timer name
          */
-        public val requestTimerName: String
-            get() = "$baseName.requests"
+        @Deprecated(
+            "static request time timer name deprecated",
+            ReplaceWith("requestTimeTimerName"),
+            DeprecationLevel.WARNING
+        )
+        public const val requestTimerName: String = "$baseName.requests"
+
+        public val requestTimeTimerName: String
+            get() = "$metricsBaseName.requests"
 
         /**
          * Active requests gauge name
          */
-        public val activeGaugeName: String
-            get() = "$baseName.requests.active"
+        @Deprecated(
+            "static gauge name deprecated",
+            ReplaceWith("activeRequestsGaugeName"),
+            DeprecationLevel.WARNING
+        )
+        public const val activeGaugeName: String = "$baseName.requests.active"
+
+        public val activeRequestsGaugeName: String
+            get() = "$metricsBaseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -195,7 +213,7 @@ public class MicrometerMetrics private constructor(
                 )
             }
 
-            baseName = configuration.baseName
+            metricsBaseName = configuration.baseName
 
             if (!configuration.isRegistryInitialized()) {
                 throw IllegalArgumentException(
