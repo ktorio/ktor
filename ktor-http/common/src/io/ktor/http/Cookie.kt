@@ -84,7 +84,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toInt() ?: 0,
+        maxAge = loweredMap["max-age"]?.toIntClamping() ?: 0,
         expires = loweredMap["expires"]?.fromCookieToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -250,3 +250,5 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
     if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
+
+private fun String.toIntClamping(): Int = toLong().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
