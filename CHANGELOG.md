@@ -17,6 +17,7 @@
 * Fixed test a POST with MultiPart using TestApplicationEngine does not success or fail ([KTOR-345](https://youtrack.jetbrains.com/issue/KTOR-345))
 * Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
 * Added an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
+* Custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
 
 # 1.5.1
 > Published 27 Jan 2021
