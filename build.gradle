@@ -288,6 +288,10 @@ if (build_snapshot_train) {
 }
 
 afterEvaluate {
+    def allCompileKotlinTasks = subprojects.collect {
+        it.hasProperty("compileKotlinJvm") ? [it.compileKotlinJvm] : []
+    }.flatten()
+
     task dokkaWebsite(type: dokka.getClass()) {
         outputFormat = 'kotlin-website'
         outputDirectory = "${rootProject.projectDir}/apidoc"
