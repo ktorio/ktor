@@ -1,3 +1,23 @@
+# 1.5.2
+> Published 25 Feb 2021
+
+* Fixed Dokka building for master ([KTOR-2206](https://youtrack.jetbrains.com/issue/KTOR-2206))
+* Fixed native build on linux machine ([KTOR-2200](https://youtrack.jetbrains.com/issue/KTOR-2200))
+* Fixed docker doc is incorrect / does not work ([KTOR-2179](https://youtrack.jetbrains.com/issue/KTOR-2179))
+* Fixed crash with Firebase Performance in iOS ([KTOR-642](https://youtrack.jetbrains.com/issue/KTOR-642))
+* Fixed Ktor Client CIO engine Jvm ignores Cipher suites with key strength more than 128 bits. ([KTOR-1914](https://youtrack.jetbrains.com/issue/KTOR-1914))
+* Fixed mandatory Path Segment parameter can be empty, if no explicit route with trailing / is defined ([KTOR-2054](https://youtrack.jetbrains.com/issue/KTOR-2054))
+* Fixed flaky ClientSocketTest.testSelfConnect[jvm] ([KTOR-2060](https://youtrack.jetbrains.com/issue/KTOR-2060))
+* Switch JS Fetch API to Standard Library (org.w3c.fetch.*) ([KTOR-1460](https://youtrack.jetbrains.com/issue/KTOR-1460))
+* Fixed CIO server always start on "0.0.0.0" - does not respect "connector" configuration ([KTOR-334](https://youtrack.jetbrains.com/issue/KTOR-334))
+* Fixed server/netty: IllegalReferenceCountException ([KTOR-1801](https://youtrack.jetbrains.com/issue/KTOR-1801))
+* Fixed digest authentication: cannot successfully pass authentication using curl or web browser ([KTOR-1466](https://youtrack.jetbrains.com/issue/KTOR-1466))
+* Fixed HTTP Client exception is masked by JobCancellationException with Ktor 1.5.0 ([KTOR-1967](https://youtrack.jetbrains.com/issue/KTOR-1967))
+* Fixed changing `requestTimeoutMillis` in config of HttpTimeout feature doesn't change the CIO's timeout ([KTOR-2000](https://youtrack.jetbrains.com/issue/KTOR-2000))
+* Fixed test a POST with MultiPart using TestApplicationEngine does not success or fail ([KTOR-345](https://youtrack.jetbrains.com/issue/KTOR-345))
+* Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
+* Added an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
+
 # 1.5.1
 > Published 27 Jan 2021
 
