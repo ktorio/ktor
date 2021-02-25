@@ -5,7 +5,6 @@
 package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
-import io.ktor.metrics.micrometer.MicrometerMetrics.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -89,7 +88,7 @@ public class MicrometerMetrics private constructor(
      * */
     public class Configuration {
 
-        public var baseName: String = Feature.baseName
+        public var baseName: String = Feature.defaultBaseName
 
         public lateinit var registry: MeterRegistry
 
@@ -169,36 +168,35 @@ public class MicrometerMetrics private constructor(
      * Micrometer feature installation object
      */
     public companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
-        @Deprecated("static metrics base name deprecated", level = DeprecationLevel.WARNING)
-        private const val baseName: String = "ktor.http.server"
+        private const val defaultBaseName: String = "ktor.http.server"
 
-        private lateinit var metricsBaseName: String
+        private lateinit var baseName: String
 
         /**
          * Request time timer name
          */
         @Deprecated(
-            "static request time timer name deprecated",
+            "static request time timer name is deprecated",
             ReplaceWith("requestTimeTimerName"),
             DeprecationLevel.WARNING
         )
-        public const val requestTimerName: String = "$baseName.requests"
+        public const val requestTimerName: String = "$defaultBaseName.requests"
 
         public val requestTimeTimerName: String
-            get() = "$metricsBaseName.requests"
+            get() = "$baseName.requests"
 
         /**
          * Active requests gauge name
          */
         @Deprecated(
-            "static gauge name deprecated",
+            "static gauge name is deprecated",
             ReplaceWith("activeRequestsGaugeName"),
             DeprecationLevel.WARNING
         )
-        public const val activeGaugeName: String = "$baseName.requests.active"
+        public const val activeGaugeName: String = "$defaultBaseName.requests.active"
 
         public val activeRequestsGaugeName: String
-            get() = "$metricsBaseName.requests.active"
+            get() = "$baseName.requests.active"
 
         private val measureKey = AttributeKey<CallMeasure>("metrics")
 
@@ -213,7 +211,7 @@ public class MicrometerMetrics private constructor(
                 )
             }
 
-            metricsBaseName = configuration.baseName
+            baseName = configuration.baseName
 
             if (!configuration.isRegistryInitialized()) {
                 throw IllegalArgumentException(

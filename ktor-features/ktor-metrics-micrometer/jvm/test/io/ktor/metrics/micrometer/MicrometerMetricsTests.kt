@@ -60,7 +60,6 @@ class MicrometerMetricsTests {
         }
 
         testRegistry.assertActive(0.0)
-        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -98,7 +97,6 @@ class MicrometerMetricsTests {
         }
         testRegistry.assertActive(0.0)
         assertTrue(throwableCaughtInEngine is IllegalAccessException)
-        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -129,7 +127,6 @@ class MicrometerMetricsTests {
                 assertTag("address", "localhost:80")
             }
         }
-        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -160,7 +157,6 @@ class MicrometerMetricsTests {
             }
         }
         testRegistry.assertActive(0.0)
-        testRegistry.assertEqualRequestTimers()
     }
 
     private fun MeterRegistry.assertActive(expectedValue: Double) {
@@ -201,7 +197,6 @@ class MicrometerMetricsTests {
             percentileValues.count { it.percentile() == 0.2 },
             "$percentileValues should contain a 0.2 percentile"
         )
-        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -233,7 +228,6 @@ class MicrometerMetricsTests {
 
         assertNull(throwableCaughtInEngine)
         assertTrue(noHandlerHandledRequest)
-        testRegistry.assertEqualRequestTimers()
     }
 
     @Test
@@ -267,7 +261,6 @@ class MicrometerMetricsTests {
 
             assertNull(throwableCaughtInEngine)
             assertTrue(noHandlerHandledRequest)
-            testRegistry.assertEqualRequestTimers()
         }
 
     private fun TestApplicationEngine.installDefaultBehaviour() {
@@ -287,12 +280,12 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `Class loader metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `class loader metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(ClassLoaderMetrics::class, "jvm.classes.loaded", "jvm.classes.unloaded")
     }
 
     @Test
-    fun `Memory metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `memory metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(
             ClassLoaderMetrics::class,
             "jvm.memory.used",
@@ -302,7 +295,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `Garbage Collection metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `garbage Collection metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(
             JvmGcMetrics::class,
             "jvm.gc.max.data.size",
@@ -313,7 +306,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `Processor metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `processor metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(
             ProcessorMetrics::class,
             "system.cpu.count"
@@ -321,7 +314,7 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `Thread metrics are registered by default at registry`(): Unit = withTestApplication {
+    fun `thread metrics are registered by default at registry`(): Unit = withTestApplication {
         metersAreRegistered(
             JvmThreadMetrics::class,
             "jvm.threads.peak",
@@ -332,18 +325,16 @@ class MicrometerMetricsTests {
     }
 
     @Test
-    fun `Throws exception when base name is not defined`(): Unit = withTestApplication {
-        val exception = assertFails {
+    fun `throws exception when base name is not defined`(): Unit = withTestApplication {
+        assertFailsWith<IllegalArgumentException> {
             application.install(MicrometerMetrics) {
                 baseName = "   "
             }
         }
-
-        assertTrue(exception is IllegalArgumentException)
     }
 
     @Test
-    fun `Timer and gauge metric names are configurable`(): Unit = withTestApplication {
+    fun `timer and gauge metric names are configurable`(): Unit = withTestApplication {
         val newBaseName = "custom.http.server"
         application.install(MicrometerMetrics) {
             registry = SimpleMeterRegistry()
@@ -352,6 +343,36 @@ class MicrometerMetricsTests {
 
         assertEquals("$newBaseName.requests", MicrometerMetrics.requestTimeTimerName)
         assertEquals("$newBaseName.requests.active", MicrometerMetrics.activeRequestsGaugeName)
+    }
+
+    @Test
+    fun `same timer and gauge metrics accessible by new and deprecated properties`(): Unit = withTestApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        application.install(MicrometerMetrics) {
+            registry = testRegistry
+        }
+
+        application.routing {
+            get("/uri") {
+                testRegistry.assertActive(1.0)
+                call.respond("hello")
+            }
+        }
+
+        handleRequest {
+            uri = "/uri"
+        }
+
+        with(testRegistry) {
+            val timer = find(MicrometerMetrics.requestTimerName).timer()
+            val configurableTimer = find(MicrometerMetrics.requestTimeTimerName).timer()
+            assertEquals(timer, configurableTimer)
+
+            val gauge = find(MicrometerMetrics.activeGaugeName).gauge()
+            val configurableGauge = find(MicrometerMetrics.activeRequestsGaugeName).gauge()
+            assertEquals(gauge, configurableGauge)
+        }
     }
 
     private fun TestApplicationEngine.metersAreRegistered(
@@ -383,11 +404,5 @@ class MicrometerMetricsTests {
 
         assertNotNull(tag, "$this does not contain a tag named '$tagName'")
         assertEquals(expectedValue, tag.value, "Tag value for '$tagName' should be '$expectedValue'")
-    }
-
-    private fun SimpleMeterRegistry.assertEqualRequestTimers() {
-        val timer = find(MicrometerMetrics.requestTimerName).timer()
-        val configurableTimer = find(MicrometerMetrics.requestTimeTimerName).timer()
-        assertEquals(timer, configurableTimer)
     }
 }
