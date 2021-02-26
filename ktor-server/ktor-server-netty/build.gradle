@@ -17,6 +17,7 @@ kotlin.sourceSets {
 
         api group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
         api group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version
+        implementation "io.mockk:mockk:$mockk_version"
     }
 }
 
