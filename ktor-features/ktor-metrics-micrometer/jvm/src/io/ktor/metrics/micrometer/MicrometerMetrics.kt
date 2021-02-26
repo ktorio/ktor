@@ -75,6 +75,7 @@ public class MicrometerMetrics private constructor(
 
     /**
      * Configures this Feature
+     * @property baseName The base prefix for metrics. Default: [Feature.defaultBaseName]
      * @property registry The meter registry where the meters are registered. Mandatory
      * @property meterBinders The binders that are automatically bound to the registry. Default: [ClassLoaderMetrics],
      * [JvmMemoryMetrics], [ProcessorMetrics], [JvmGcMetrics], [ProcessorMetrics], [JvmThreadMetrics], [FileDescriptorMetrics]
@@ -182,6 +183,9 @@ public class MicrometerMetrics private constructor(
         )
         public const val requestTimerName: String = "$defaultBaseName.requests"
 
+        /**
+         * Request time timer name with configurable base name
+         */
         public val requestTimeTimerName: String
             get() = "$baseName.requests"
 
@@ -195,6 +199,9 @@ public class MicrometerMetrics private constructor(
         )
         public const val activeGaugeName: String = "$defaultBaseName.requests.active"
 
+        /**
+         * Active requests gauge name with configurable base name
+         */
         public val activeRequestsGaugeName: String
             get() = "$baseName.requests.active"
 
