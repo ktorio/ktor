@@ -18,6 +18,7 @@
 * Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
 * Added an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
 * Fixed custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
+* Fixed session cookie with very long max age duration ([KTOR-692](https://youtrack.jetbrains.com/issue/KTOR-692))
 
 # 1.5.1
 > Published 27 Jan 2021
