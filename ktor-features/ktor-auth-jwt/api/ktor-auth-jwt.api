@@ -17,9 +17,13 @@ public final class io/ktor/auth/jwt/JWTAuthenticationProvider$Configuration : io
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lcom/auth0/jwt/interfaces/JWTVerifier;)V
+	public final fun verifier (Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;)V
+	public final fun verifier (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class io/ktor/auth/jwt/JWTCredential : io/ktor/auth/Credential {
