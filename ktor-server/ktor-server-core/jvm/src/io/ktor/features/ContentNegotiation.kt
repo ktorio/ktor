@@ -71,9 +71,11 @@ public class ContentNegotiation internal constructor(
             return true
         }
         return acceptItems.any {
-            it.contentType.contentType == "*"
-                || (it.contentType.contentType == contentType.contentType
-                && (it.contentType.contentSubtype == "*" || it.contentType.contentSubtype == contentType.contentSubtype))
+            val isWildcard = it.contentType.contentType == "*"
+            val isSameType = it.contentType.contentType == contentType.contentType
+            val isSameSubtype = it.contentType.contentSubtype == "*" ||
+                it.contentType.contentSubtype == contentType.contentSubtype
+            isWildcard || (isSameType && isSameSubtype)
         }
     }
 
@@ -238,7 +240,8 @@ public class ContentNegotiation internal constructor(
 /**
  * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
  * Could provide bi-directional conversion implementation.
- * One of the most typical examples of content converter is a json content converter that provides both serialization and deserialization
+ * One of the most typical examples of content converter is a
+ * json content converter that provides both serialization and deserialization
  */
 public interface ContentConverter {
     /**
