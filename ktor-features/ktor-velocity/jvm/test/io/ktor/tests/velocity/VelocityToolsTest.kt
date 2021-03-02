@@ -43,7 +43,7 @@ class VelocityToolsTest {
 
                 assertEquals( "<p>Hello, 1</p>", lines[0])
                 assertEquals( "<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals( "<i>no date tool</i>", lines[2])
+                assertEquals( "<i></i>", lines[2])
             }
         }
     }
@@ -163,7 +163,7 @@ class VelocityToolsTest {
                     """
                     <p>Hello, ${bax}id</p>
                     <h1>${bax}title</h1>
-                    <i>${bax}{date.format('medium', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))|'no date tool'}</i>
+                    <i>${bax}!{date.format('medium', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))}</i>
                 """.trimIndent()
                 )
                 StringResourceLoader.setRepository("myRepo", this)
