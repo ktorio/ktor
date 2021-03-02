@@ -1,4 +1,4 @@
-public class io/ktor/velocity/RespondTemplateKt {
+public final class io/ktor/velocity/RespondTemplateKt {
 	public static final fun respondTemplate (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun respondTemplate$default (Lio/ktor/application/ApplicationCall;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -23,17 +23,18 @@ public final class io/ktor/velocity/VelocityContent {
 	public final fun getTemplate ()Ljava/lang/String;
 }
 
-public final class io/ktor/velocity/VelocityTools : io/ktor/velocity/Velocity {
+public final class io/ktor/velocity/VelocityTools {
 	public static final field Feature Lio/ktor/velocity/VelocityTools$Feature;
 	public fun <init> (Lorg/apache/velocity/tools/ToolManager;)V
 }
 
 public final class io/ktor/velocity/VelocityTools$Feature : io/ktor/application/ApplicationFeature {
-    public fun getKey ()Lio/ktor/util/AttributeKey;
-    public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/velocity/VelocityTools;
-    public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/velocity/VelocityTools;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/velocity/VelocityToolsKt {
-    public static final fun engine (Lorg/apache/velocity/tools/config/EasyFactoryConfiguration;Lkotlin/jvm/functions/Function1;)V
+	public static final fun engine (Lorg/apache/velocity/tools/config/EasyFactoryConfiguration;Lkotlin/jvm/functions/Function1;)V
 }
+
