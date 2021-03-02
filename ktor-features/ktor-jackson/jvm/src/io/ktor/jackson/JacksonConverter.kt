@@ -74,7 +74,7 @@ public fun ContentNegotiation.Configuration.jackson(
     contentType: ContentType = ContentType.Application.Json,
     block: ObjectMapper.() -> Unit = {}
 ) {
-    val mapper = jacksonObjectMapper()
+    val mapper = ObjectMapper()
     mapper.apply {
         setDefaultPrettyPrinter(
             DefaultPrettyPrinter().apply {
@@ -84,6 +84,7 @@ public fun ContentNegotiation.Configuration.jackson(
         )
     }
     mapper.apply(block)
+    mapper.registerKotlinModule()
     val converter = JacksonConverter(mapper)
     register(contentType, converter)
 }

@@ -5,6 +5,7 @@
 package io.ktor.tests.jackson
 
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -183,7 +184,31 @@ class JacksonTest {
             assertEquals("{\n  \"a\" : 1,\n  \"b\" : 2\n}", response.content)
         }
     }
+
+    @Test
+    fun testCustomKotlinModule() = withTestApplication {
+        application.install(ContentNegotiation) {
+            jackson {
+                registerModule(KotlinModule(nullisSameAsDefault = true))
+            }
+        }
+
+        application.routing {
+            post("/") {
+                call.respond(call.receive<WithDefaultValueEntity>())
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            addHeader(HttpHeaders.Accept, "application/json")
+            addHeader(HttpHeaders.ContentType, "application/json")
+            setBody("""{"value":null}""")
+        }.response.let { response ->
+            assertEquals("""{"value":"asd"}""", response.content)
+        }
+    }
 }
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
+data class WithDefaultValueEntity(val value: String = "asd")
