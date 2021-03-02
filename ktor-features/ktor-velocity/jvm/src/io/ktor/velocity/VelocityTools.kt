@@ -20,7 +20,7 @@ public fun EasyFactoryConfiguration.engine(configure : VelocityEngine.() -> Unit
 /**
  * VelocityTools ktor feature. Populates model with standard Velocity tools.
  */
-public class VelocityTools(private val toolManager : ToolManager) : Velocity(toolManager.velocityEngine) {
+public class VelocityTools(private val toolManager : ToolManager) {
 
     /**
      * A companion object for installing feature
@@ -48,7 +48,7 @@ public class VelocityTools(private val toolManager : ToolManager) : Velocity(too
         }
     }
 
-    override fun process(content: VelocityContent): VelocityOutgoingContent {
+    internal fun process(content: VelocityContent): VelocityOutgoingContent {
         return VelocityOutgoingContent(
             toolManager.velocityEngine.getTemplate(content.template),
             toolManager.createContext().also { it.putAll(content.model) },

@@ -30,10 +30,29 @@ public class VelocityContent(
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
+internal class VelocityOutgoingContent(
+    val template: Template,
+    val model: Context,
+    etag: String?,
+    override val contentType: ContentType
+) : OutgoingContent.WriteChannelContent() {
+    override suspend fun writeTo(channel: ByteWriteChannel) {
+        channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
+            template.merge(model, it)
+        }
+    }
+
+    init {
+        if (etag != null) {
+            versions += EntityTagVersion(etag)
+        }
+    }
+}
+
 /**
  * Velocity ktor feature. Provides ability to respond with [VelocityContent] and [respondTemplate].
  */
-public open class Velocity(private val engine: VelocityEngine) {
+public class Velocity(private val engine: VelocityEngine) {
     init {
         engine.init()
     }
@@ -57,7 +76,7 @@ public open class Velocity(private val engine: VelocityEngine) {
         }
     }
 
-    internal open fun process(content: VelocityContent): VelocityOutgoingContent {
+    internal fun process(content: VelocityContent): VelocityOutgoingContent {
         return VelocityOutgoingContent(
             engine.getTemplate(content.template),
             VelocityContext(content.model),
@@ -66,22 +85,4 @@ public open class Velocity(private val engine: VelocityEngine) {
         )
     }
 
-    internal class VelocityOutgoingContent(
-        val template: Template,
-        val model: Context,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.merge(model, it)
-            }
-        }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
-    }
 }
