@@ -4,6 +4,7 @@
 
 package io.ktor.tests.sessions
 
+import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.*
 import java.util.concurrent.*
@@ -157,4 +158,25 @@ class CacheTest {
     }
 
     private data class D(val i: Int)
+
+    @Test
+    fun canReadDataFromCacheStorageWithinEventLoopGroupProxy() {
+        runBlocking {
+            val memoryStorage = SessionStorageMemory()
+            memoryStorage.write("id") { channel -> channel.writeByte(123) }
+            val storage = CacheStorage(memoryStorage, 100)
+
+            val group = EventLoopGroupProxy.create(4)
+            group.submit(
+                Runnable {
+                    runBlocking {
+                        storage.read("id") { channel ->
+                            assertEquals(123, channel.readByte())
+                        }
+                    }
+                }
+            ).sync()
+            group.shutdownGracefully().sync()
+        }
+    }
 }
