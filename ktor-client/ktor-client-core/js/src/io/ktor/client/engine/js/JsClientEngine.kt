@@ -67,7 +67,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
             val options: dynamic = object {}
             val headers: dynamic = object {}
             request.headers.forEach { header, values ->
-                headers[header] = values.joinToString(",")
+                headers[header] = values
             }
             options.headers = headers
             NodeWebsocket(urlString, options = options)
