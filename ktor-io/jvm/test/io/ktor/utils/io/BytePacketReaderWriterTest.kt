@@ -4,6 +4,14 @@
 
 package io.ktor.utils.io
 
+import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.streams.*
+import org.junit.*
+import java.util.*
+import kotlin.test.*
+import kotlin.test.Test
+
 class BytePacketReaderWriterTest {
     @get:Rule
     internal val pool = VerifyingObjectPool(ChunkBuffer.Pool)

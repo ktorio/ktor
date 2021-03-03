@@ -17,6 +17,8 @@ public expect class IoBuffer : Input, Output, ChunkBuffer {
     @Suppress("ConvertSecondaryConstructorToPrimary")
     public constructor(memory: Memory, origin: ChunkBuffer?)
 
+    internal constructor(memory: Memory, origin: ChunkBuffer?, parentPool: ObjectPool<IoBuffer>?)
+
     @Deprecated(
         "Not supported anymore. All operations are big endian by default. " +
             "Read/write with readXXXLittleEndian/writeXXXLittleEndian or " +
@@ -84,7 +86,8 @@ internal fun IoBuffer.releaseImpl(pool: ObjectPool<IoBuffer>) {
             unlink()
             origin.release(pool)
         } else {
-            pool.recycle(this)
+            val poolToUse = (parentPool ?: pool) as ObjectPool<IoBuffer>
+            poolToUse.recycle(this)
         }
     }
 }

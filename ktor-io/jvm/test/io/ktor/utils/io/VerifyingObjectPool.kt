@@ -5,12 +5,10 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.pool.*
-import io.ktor.utils.io.tests.*
 import org.junit.rules.*
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.util.concurrent.*
-import kotlin.test.*
 
 internal actual fun identityHashCode(instance: Any) = System.identityHashCode(instance)
 

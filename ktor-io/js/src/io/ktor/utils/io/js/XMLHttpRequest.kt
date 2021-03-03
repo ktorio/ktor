@@ -19,7 +19,8 @@ public fun XMLHttpRequest.responsePacket(): ByteReadPacket = when (responseType)
     XMLHttpRequestResponseType.ARRAYBUFFER -> ByteReadPacket(
         IoBuffer(
             Memory.of(response.asDynamic() as DataView),
-            null
+            null,
+            IoBuffer.NoPool
         ),
         ChunkBuffer.NoPoolManuallyManaged
     )

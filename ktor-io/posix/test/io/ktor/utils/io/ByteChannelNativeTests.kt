@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import kotlin.test.*
 

@@ -62,7 +62,7 @@ internal class DefaultBufferPool(
     private val allocator: Allocator = DefaultAllocator
 ) : DefaultPool<IoBuffer>(capacity) {
     override fun produceInstance(): IoBuffer {
-        return IoBuffer(allocator.alloc(bufferSize), null)
+        return IoBuffer(allocator.alloc(bufferSize), null, this)
     }
 
     override fun disposeInstance(instance: IoBuffer) {

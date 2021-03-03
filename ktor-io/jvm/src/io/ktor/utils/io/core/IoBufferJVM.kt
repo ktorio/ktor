@@ -17,11 +17,20 @@ import kotlin.contracts.*
  */
 @Suppress("DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES")
 @Deprecated("Use Buffer instead.", replaceWith = ReplaceWith("Buffer", "io.ktor.utils.io.core.Buffer"))
-public actual class IoBuffer actual constructor(
+public actual class IoBuffer internal actual constructor(
     memory: Memory,
-    origin: ChunkBuffer?
-) : Input, Output, ChunkBuffer(memory, origin) {
+    origin: ChunkBuffer?,
+    parentPool: ObjectPool<IoBuffer>?
+) : Input, Output, ChunkBuffer(memory, origin, parentPool as? ObjectPool<ChunkBuffer>) {
+
+    public actual constructor(
+        memory: Memory,
+        origin: ChunkBuffer?
+    ) : this(memory, origin, null)
+
     public constructor(external: ByteBuffer) : this(Memory.of(external), null)
+
+    internal constructor(external: ByteBuffer, pool: ObjectPool<IoBuffer>) : this(Memory.of(external), null, pool)
 
     @PublishedApi
     @Deprecated("")
@@ -418,7 +427,7 @@ public actual class IoBuffer actual constructor(
 
     override fun duplicate(): IoBuffer = (origin ?: this).let { newOrigin ->
         newOrigin.acquire()
-        IoBuffer(memory, newOrigin).also { copy ->
+        IoBuffer(memory, newOrigin, parentPool as ObjectPool<IoBuffer>).also { copy ->
             duplicateTo(copy)
         }
     }
@@ -455,13 +464,14 @@ public actual class IoBuffer actual constructor(
          * or [BytePacketBuilder])
          */
         @DangerousInternalIoApi
-        public actual val ReservedSize: Int get() = Buffer.ReservedSize
+        public actual val ReservedSize: Int
+            get() = Buffer.ReservedSize
 
         private val DEFAULT_BUFFER_SIZE = getIOIntProperty("buffer.size", 4096)
         private val DEFAULT_BUFFER_POOL_SIZE = getIOIntProperty("buffer.pool.size", 100)
         private val DEFAULT_BUFFER_POOL_DIRECT = getIOIntProperty("buffer.pool.direct", 0)
 
-        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null)
+        public actual val Empty: IoBuffer = IoBuffer(Memory.Empty, null, EmptyBufferPoolImpl)
 
         /**
          * The default buffer pool
