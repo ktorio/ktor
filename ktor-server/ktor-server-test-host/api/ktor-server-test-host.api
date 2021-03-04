@@ -69,6 +69,7 @@ public final class io/ktor/server/testing/HighLoadHttpGenerator {
 	public static final fun main ([Ljava/lang/String;)V
 	public final fun mainLoop ()V
 	public final fun shutdown ()V
+	public final fun stat ()Ljava/lang/String;
 	public final fun stop ()V
 }
 
