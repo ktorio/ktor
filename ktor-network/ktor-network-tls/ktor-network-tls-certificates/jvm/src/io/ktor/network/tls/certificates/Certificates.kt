@@ -11,6 +11,7 @@ import java.math.*
 import java.net.*
 import java.security.*
 import java.security.cert.*
+import java.security.cert.Certificate
 import java.text.*
 import java.time.*
 import java.util.*
