@@ -40,3 +40,4 @@ public final class io/ktor/network/tls/certificates/KeyType : java/lang/Enum {
 	public static fun valueOf (Ljava/lang/String;)Lio/ktor/network/tls/certificates/KeyType;
 	public static fun values ()[Lio/ktor/network/tls/certificates/KeyType;
 }
+

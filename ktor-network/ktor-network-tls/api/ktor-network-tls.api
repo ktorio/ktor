@@ -415,3 +415,4 @@ public final class io/ktor/network/tls/extensions/TLSExtensionType : java/lang/E
 public final class io/ktor/network/tls/extensions/TLSExtensionType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/extensions/TLSExtensionType;
 }
+

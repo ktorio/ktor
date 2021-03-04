@@ -329,3 +329,4 @@ public final class io/ktor/server/engine/ShutDownUrl$EngineFeature : io/ktor/app
 public final class io/ktor/server/engine/ShutdownHookKt {
 	public static final fun addShutdownHook (Lio/ktor/server/engine/ApplicationEngine;Lkotlin/jvm/functions/Function0;)V
 }
+

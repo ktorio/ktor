@@ -234,3 +234,4 @@ public final class io/ktor/server/testing/client/TestHttpClientEngine : io/ktor/
 public final class io/ktor/server/testing/client/TestHttpClientEngine$Companion : io/ktor/client/engine/HttpClientEngineFactory {
 	public fun create (Lkotlin/jvm/functions/Function1;)Lio/ktor/client/engine/HttpClientEngine;
 }
+
