@@ -140,10 +140,12 @@ class TomcatSustainabilityTestSuite :
 }
 
 class TomcatClientCertTest :
-    ClientCertTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat, {
+    ClientCertTestSuite<TomcatApplicationEngine, TomcatApplicationEngine.Configuration>(Tomcat) {
+
+    override fun sslConnectorBuilder(): EngineSSLConnectorBuilder {
         val serverKeyStorePath = File.createTempFile("serverKeys", "jks")
 
-        EngineSSLConnectorBuilder(
+        return EngineSSLConnectorBuilder(
             keyAlias = "mykey",
             keyStore = ca.generateCertificate(file = serverKeyStorePath, keyType = KeyType.Server),
             keyStorePassword = { "changeit".toCharArray() },
@@ -155,4 +157,5 @@ class TomcatClientCertTest :
             trustStore = ca.trustStore(trustStorePath)
             this.trustStorePath = trustStorePath
         }
-    })
+    }
+}

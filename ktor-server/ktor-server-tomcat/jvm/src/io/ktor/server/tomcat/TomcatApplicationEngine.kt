@@ -73,22 +73,25 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                             secure = true
                             scheme = "https"
 
-                        if (ktorConnector.keyStorePath == null) {
-                            throw IllegalArgumentException(
-                                "Tomcat requires keyStorePath. Make sure you're setting " +
-                                    "the property in the EngineSSLConnectorConfig class used"
-                            )
-                        }
-                        
-                        if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
-                            throw IllegalArgumentException("Tomcat requires trustStorePath for client certificate authentication")
-                        }
-                        if (ktorConnector.trustStorePath != null) {
-                            setAttribute("clientAuth", true)
-                            setAttribute("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
-                        } else {
-                            setAttribute("clientAuth", false)
-                        }
+                            if (ktorConnector.keyStorePath == null) {
+                                throw IllegalArgumentException(
+                                    "Tomcat requires keyStorePath. Make sure you're setting " +
+                                        "the property in the EngineSSLConnectorConfig class."
+                                )
+                            }
+
+                            if (ktorConnector.trustStore != null && ktorConnector.trustStorePath == null) {
+                                throw IllegalArgumentException(
+                                    "Tomcat requires trustStorePath for client certificate authentication." +
+                                        "Make sure you're setting the property in the EngineSSLConnectorConfig class."
+                                )
+                            }
+                            if (ktorConnector.trustStorePath != null) {
+                                setAttribute("clientAuth", true)
+                                setAttribute("truststoreFile", ktorConnector.trustStorePath!!.absolutePath)
+                            } else {
+                                setAttribute("clientAuth", false)
+                            }
 
                             setAttribute("keyAlias", ktorConnector.keyAlias)
                             setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))

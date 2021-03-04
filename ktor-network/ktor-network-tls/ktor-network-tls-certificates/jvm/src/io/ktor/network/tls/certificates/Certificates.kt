@@ -148,7 +148,6 @@ public fun KeyStore.generateCertificate(
     keyStore.setCertificateEntry(keyAlias, cert)
     keyStore.setKeyEntry(keyAlias, certKeyPair.private, keyPassword.toCharArray(), arrayOf(cert, caCert))
 
-
     file?.parentFile?.mkdirs()
     file?.outputStream()?.use {
         keyStore.store(it, jksPassword.toCharArray())
@@ -293,7 +292,7 @@ private fun BytePacketBuilder.caExtension() {
         writeDerBoolean(true)
         writeDerOctetString {
             writeDerSequence {
-                //Path Length Constraint Limit or true, if no limit
+                // Path Length Constraint Limit or true, if no limit
                 writeDerBoolean(true)
             }
         }

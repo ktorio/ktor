@@ -137,7 +137,7 @@ public class EngineSSLConnectorBuilder(
     override var keyStore: KeyStore,
     override var keyAlias: String,
     override var keyStorePassword: () -> CharArray,
-    override var privateKeyPassword: () -> CharArray,
+    override var privateKeyPassword: () -> CharArray
 ) : EngineConnectorBuilder(ConnectorType.HTTPS), EngineSSLConnectorConfig {
     override var keyStorePath: File? = null
     override var trustStore: KeyStore? = null

@@ -27,7 +27,7 @@ public interface ApplicationEngineFactory<out TEngine : ApplicationEngine,
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-embeddedServer(
+    embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -44,7 +44,7 @@ embeddedServer(
  * @param module application module function
  */
 public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>
-CoroutineScope.embeddedServer(
+    CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     port: Int = 80,
     host: String = "0.0.0.0",
@@ -53,12 +53,16 @@ CoroutineScope.embeddedServer(
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit
 ): TEngine {
-    val connectors: Array<EngineConnectorConfig> = arrayOf(EngineConnectorBuilder().apply {
-        this.port = port
-        this.host = host
-    })
-    return embeddedServer(factory = factory, connectors = connectors, watchPaths = watchPaths,
-        parentCoroutineContext = parentCoroutineContext, configure = configure, module = module)
+    val connectors: Array<EngineConnectorConfig> = arrayOf(
+        EngineConnectorBuilder().apply {
+            this.port = port
+            this.host = host
+        }
+    )
+    return embeddedServer(
+        factory = factory, connectors = connectors, watchPaths = watchPaths,
+        parentCoroutineContext = parentCoroutineContext, configure = configure, module = module
+    )
 }
 
 /**
@@ -73,7 +77,7 @@ public fun <TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Conf
     CoroutineScope.embeddedServer(
     factory: ApplicationEngineFactory<TEngine, TConfiguration>,
     vararg connectors: EngineConnectorConfig = arrayOf(EngineConnectorBuilder()),
-    watchPaths: List<String> = emptyList(),
+    watchPaths: List<String> = listOf(WORKING_DIRECTORY_PATH),
     parentCoroutineContext: CoroutineContext = EmptyCoroutineContext,
     configure: TConfiguration.() -> Unit = {},
     module: Application.() -> Unit

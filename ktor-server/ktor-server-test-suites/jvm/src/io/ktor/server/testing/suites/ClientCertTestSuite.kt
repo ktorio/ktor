@@ -19,24 +19,21 @@ import kotlin.test.*
 /**
  * This tests uses a CA, which creates server and client certificates.
  */
-public abstract class ClientCertTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
-    val engine: ApplicationEngineFactory<TEngine, TConfiguration>,
-    val sslConnectorBuilder: () -> EngineSSLConnectorBuilder = {
-        EngineSSLConnectorBuilder(
-            keyAlias = "mykey",
-            keyStore = ca.generateCertificate(keyType = KeyType.Server),
-            keyStorePassword = { "changeit".toCharArray() },
-            privateKeyPassword = { "changeit".toCharArray() },
-        ).apply {
-            trustStore = ca.trustStore()
-        }
-    }
+public abstract class ClientCertTestSuite<Engine : ApplicationEngine, Configuration : ApplicationEngine.Configuration>(
+    val engine: ApplicationEngineFactory<Engine, Configuration>
 ) {
+    open fun sslConnectorBuilder(): EngineSSLConnectorBuilder = EngineSSLConnectorBuilder(
+        keyAlias = "mykey",
+        keyStore = ca.generateCertificate(keyType = KeyType.Server),
+        keyStorePassword = { "changeit".toCharArray() },
+        privateKeyPassword = { "changeit".toCharArray() },
+    ).apply {
+        trustStore = ca.trustStore()
+    }
 
     public companion object {
         public val ca = generateCertificate(keyType = KeyType.CA)
     }
-
 
     @Test
     public open fun `Server requesting Client Certificate from CIO Client`() {
@@ -46,7 +43,7 @@ public abstract class ClientCertTestSuite<TEngine : ApplicationEngine, TConfigur
             engine {
                 https {
                     trustManager = ca.trustStore().trustManagers.first()
-                    addKeyStore(clientKeys, "changeit".toCharArray())
+                    addKeyStore(clientKeys, "changeit".toCharArray() as CharArray?)
                 }
             }
         }
