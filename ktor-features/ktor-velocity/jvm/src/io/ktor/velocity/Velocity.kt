@@ -84,5 +84,4 @@ public class Velocity(private val engine: VelocityEngine) {
             content.contentType
         )
     }
-
 }

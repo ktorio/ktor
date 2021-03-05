@@ -20,17 +20,22 @@ public fun EasyFactoryConfiguration.engine(configure : VelocityEngine.() -> Unit
 /**
  * VelocityTools ktor feature. Populates model with standard Velocity tools.
  */
-public class VelocityTools(private val toolManager : ToolManager) {
+public class VelocityTools(private val toolManager: ToolManager) {
 
     /**
      * A companion object for installing feature
      */
-    public companion object Feature : ApplicationFeature<ApplicationCallPipeline, EasyFactoryConfiguration, VelocityTools> {
+    public companion object Feature :
+        ApplicationFeature<ApplicationCallPipeline, EasyFactoryConfiguration, VelocityTools> {
+
         override val key: AttributeKey<VelocityTools> = AttributeKey<VelocityTools>("velocityTools")
 
-        override fun install(pipeline: ApplicationCallPipeline, config: EasyFactoryConfiguration.() -> Unit): VelocityTools {
+        override fun install(
+            pipeline: ApplicationCallPipeline,
+            config: EasyFactoryConfiguration.() -> Unit
+        ): VelocityTools {
             val factoryConfig = EasyFactoryConfiguration().apply(config)
-            val engineConfig = factoryConfig. getData(ENGINE_CONFIG_KEY)
+            val engineConfig = factoryConfig.getData(ENGINE_CONFIG_KEY)
             factoryConfig.removeData(engineConfig)
             val engine = VelocityEngine().apply(engineConfig.value as VelocityEngine.() -> Unit)
             val toolManager = ToolManager().apply {

@@ -139,7 +139,7 @@ class VelocityTest {
                     """
                     <p>Hello, ${bax}id</p>
                     <h1>${bax}title</h1>
-                """.trimIndent()
+                    """.trimIndent()
                 )
                 StringResourceLoader.setRepository("myRepo", this)
             }

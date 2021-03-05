@@ -41,9 +41,9 @@ class VelocityToolsTest {
 
                 val lines = content!!.lines()
 
-                assertEquals( "<p>Hello, 1</p>", lines[0])
-                assertEquals( "<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals( "<i></i>", lines[2])
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+                assertEquals("<i></i>", lines[2])
             }
         }
     }
@@ -71,15 +71,15 @@ class VelocityToolsTest {
 
                 val lines = content!!.lines()
 
-                assertEquals( "<p>Hello, 1</p>", lines[0])
-                assertEquals( "<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals( "<i>Oct 7, 2003 3:14:50 AM</i>", lines[2])
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+                assertEquals("<i>Oct 7, 2003 3:14:50 AM</i>", lines[2])
             }
         }
     }
 
     class DateTool {
-        fun toDate(vararg Any: Any) : Date? = null
+        fun toDate(vararg Any: Any): Date? = null
         fun format(vararg Any: Any) = "today"
     }
 
@@ -106,9 +106,9 @@ class VelocityToolsTest {
 
                 val lines = content!!.lines()
 
-                assertEquals( "<p>Hello, 1</p>", lines[0])
-                assertEquals( "<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals( "<i>today</i>", lines[2])
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+                assertEquals("<i>today</i>", lines[2])
             }
         }
     }
@@ -137,9 +137,9 @@ class VelocityToolsTest {
 
                 val lines = content!!.lines()
 
-                assertEquals( "<p>Hello, 1</p>", lines[0])
-                assertEquals( "<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals( "<i>7 oct. 2003 03:14:50</i>", lines[2])
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+                assertEquals("<i>7 oct. 2003 03:14:50</i>", lines[2])
             }
         }
     }
@@ -148,7 +148,6 @@ class VelocityToolsTest {
         val bax = "$"
 
         install(VelocityTools) {
-
             engine {
                 setProperty("resource.loader", "string")
                 addProperty("resource.loader.string.name", "myRepo")
@@ -163,12 +162,11 @@ class VelocityToolsTest {
                     """
                     <p>Hello, ${bax}id</p>
                     <h1>${bax}title</h1>
-                    <i>${bax}!{date.format('medium', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))}</i>
-                """.trimIndent()
+                    <i>$bax!{date.format('medium', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))}</i>
+                    """.trimIndent()
                 )
                 StringResourceLoader.setRepository("myRepo", this)
             }
-
         }
     }
 }
