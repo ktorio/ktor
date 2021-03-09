@@ -2156,6 +2156,8 @@ internal open class ByteBufferChannel(
             readSuspend(1)
             remaining > 0L && !isClosedForRead
         }
+
+        closedCause?.let { throw it }
     }
 
     private fun resumeReadOp() {
