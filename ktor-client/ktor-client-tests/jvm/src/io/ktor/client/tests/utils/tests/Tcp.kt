@@ -80,7 +80,6 @@ internal suspend fun tcpServerHandler(socket: Socket) {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 private suspend fun handleProxyTunnel(
     statusLine: String,
     input: ByteReadChannel,
@@ -97,7 +96,7 @@ private suspend fun handleProxyTunnel(
 
     when (host) {
         "localhost", "127.0.0.1", "::1" -> {
-            withTimeout(30.seconds) {
+            withTimeout(30000L) {
                 connectAndProcessTunnel(host, port, output, input)
             }
             return true
