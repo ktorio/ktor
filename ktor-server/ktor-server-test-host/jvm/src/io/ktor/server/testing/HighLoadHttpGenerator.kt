@@ -7,7 +7,6 @@ package io.ktor.server.testing
 import io.ktor.http.*
 import io.ktor.http.cio.RequestResponseBuilder
 import io.ktor.utils.io.core.*
-import java.lang.StringBuilder
 import java.net.*
 import java.nio.*
 import java.nio.ByteOrder
