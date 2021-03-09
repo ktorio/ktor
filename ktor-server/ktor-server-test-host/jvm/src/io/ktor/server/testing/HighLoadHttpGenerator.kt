@@ -450,6 +450,7 @@ public class HighLoadHttpGenerator(
                             client.currentOps = SelectionKey.OP_CONNECT
                         }
                         connectionsCount++
+                        connectFailureInRowCount = 0
                     } catch (t: Throwable) {
                         ch.close()
                         connectErrors.incrementAndGet()
@@ -588,7 +589,7 @@ public class HighLoadHttpGenerator(
         }
     }
 
-    fun stat(): String = StringBuilder().apply {
+    private fun stat(): String = StringBuilder().apply {
         appendLine("count: ${count.get()}")
         appendLine("errors: read ${readErrors.get()}, write ${writeErrors.get()}, connect: ${connectErrors.get()}")
         if (codeCounts.any { it.get() > 0 }) {
