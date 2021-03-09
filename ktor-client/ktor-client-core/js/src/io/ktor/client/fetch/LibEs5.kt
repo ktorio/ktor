@@ -1,17 +1,23 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.fetch
 
+@Deprecated("Use the specified constructor instead.")
 public typealias ArrayBufferLike = Any
 
+@Deprecated(
+    "Use org.khronos.webgl.ArrayBufferView",
+    ReplaceWith("org.khronos.webgl.ArrayBufferView", "org.khronos.webgl.*")
+)
 public external interface ArrayBufferView {
     public var buffer: ArrayBufferLike
     public var byteLength: Number
     public var byteOffset: Number
 }
 
+@Deprecated("Use org.khronos.webgl.ArrayBuffer", ReplaceWith("org.khronos.webgl.ArrayBuffer", "org.khronos.webgl.*"))
 public external interface ArrayBuffer {
     public var byteLength: Number
     public fun slice(begin: Number, end: Number? = definedExternally): ArrayBuffer
@@ -19,11 +25,13 @@ public external interface ArrayBuffer {
 //    companion object : ArrayBufferConstructor by definedExternally
 }
 
+@Deprecated("Use org.khronos.webgl.ArrayBuffer", ReplaceWith("org.khronos.webgl.ArrayBuffer", "org.khronos.webgl.*"))
 public external interface ArrayBufferConstructor {
     public var prototype: ArrayBuffer
     public fun isView(arg: Any): Boolean
 }
 
+@Deprecated("Use org.khronos.webgl.Uint8Array", ReplaceWith("org.khronos.webgl.Uint8Array", "org.khronos.webgl.*"))
 public external interface Uint8Array {
     public var BYTES_PER_ELEMENT: Number
     public var buffer: ArrayBufferLike
@@ -73,25 +81,31 @@ public external interface Uint8Array {
     public fun reduce(
         callbackfn: (previousValue: Number, currentValue: Number, currentIndex: Number, array: Uint8Array) -> Number
     ): Number
+
     public fun reduce(
         callbackfn: (previousValue: Number, currentValue: Number, currentIndex: Number, array: Uint8Array) -> Number,
         initialValue: Number
     ): Number
+
     public fun <U> reduce(
         callbackfn: (previousValue: U, currentValue: Number, currentIndex: Number, array: Uint8Array) -> U,
         initialValue: U
     ): U
+
     public fun reduceRight(
         callbackfn: (previousValue: Number, currentValue: Number, currentIndex: Number, array: Uint8Array) -> Number
     ): Number
+
     public fun reduceRight(
         callbackfn: (previousValue: Number, currentValue: Number, currentIndex: Number, array: Uint8Array) -> Number,
         initialValue: Number
     ): Number
+
     public fun <U> reduceRight(
         callbackfn: (previousValue: U, currentValue: Number, currentIndex: Number, array: Uint8Array) -> U,
         initialValue: U
     ): U
+
     public fun reverse(): Uint8Array
     public fun set(array: ArrayLike<Number>, offset: Number? = definedExternally)
     public fun slice(start: Number? = definedExternally, end: Number? = definedExternally): Uint8Array
@@ -99,18 +113,22 @@ public external interface Uint8Array {
         callbackfn: (value: Number, index: Number, array: Uint8Array) -> Any,
         thisArg: Any? = definedExternally
     ): Boolean
+
     public fun sort(compareFn: ((a: Number, b: Number) -> Number)? = definedExternally): Uint8Array /* this */
     public fun subarray(begin: Number? = definedExternally, end: Number? = definedExternally): Uint8Array
     public fun toLocaleString(): String
     override fun toString(): String
+
     @nativeGetter
     public operator fun get(index: Number): Number?
+
     @nativeSetter
     public operator fun set(index: Number, value: Number)
 
 //    companion object : Uint8ArrayConstructor by definedExternally
 }
 
+@Deprecated("Use org.khronos.webgl.Uint8Array", ReplaceWith("org.khronos.webgl.Uint8Array", "org.khronos.webgl.*"))
 public external interface Uint8ArrayConstructor {
     public var prototype: Uint8Array
     public var BYTES_PER_ELEMENT: Number
@@ -123,10 +141,13 @@ public external interface Uint8ArrayConstructor {
     ): Uint8Array
 }
 
+@Deprecated("Use the specified constructor instead.")
 public external interface ArrayLike<T> {
     public var length: Number
+
     @nativeGetter
     public operator fun get(n: Number): T?
+
     @nativeSetter
     public operator fun set(n: Number, value: T)
 }
