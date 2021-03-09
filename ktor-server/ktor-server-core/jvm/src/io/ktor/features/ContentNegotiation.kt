@@ -70,13 +70,7 @@ public class ContentNegotiation internal constructor(
         if (contentType == null) {
             return true
         }
-        return acceptItems.any {
-            val isWildcard = it.contentType.contentType == "*"
-            val isSameType = it.contentType.contentType == contentType.contentType
-            val isSameSubtype = it.contentType.contentSubtype == "*" ||
-                it.contentType.contentSubtype == contentType.contentSubtype
-            isWildcard || (isSameType && isSameSubtype)
-        }
+        return acceptItems.any { contentType.match(it.contentType) }
     }
 
     /**
