@@ -1,15 +1,15 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.fetch
 
 import kotlin.js.Promise
 
-@Deprecated("Use org.w3c.fetch", ReplaceWith("window.fetch(input, init)", "org.w3c.fetch.*"))
+// external fun fetch(input: Request, init: RequestInit? = definedExternally): Promise<Response>
+
 public external fun fetch(input: String, init: RequestInit? = definedExternally): Promise<Response>
 
-@Deprecated("Use org.w3c.fetch.Request", ReplaceWith("org.w3c.fetch.Request", "org.w3c.fetch.*"))
 public external interface Request : Body {
     /* "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" */
     public var cache: dynamic
@@ -55,7 +55,6 @@ public external interface Request : Body {
     public fun clone(): Request
 }
 
-@Deprecated("Use org.w3c.fetch.Response", ReplaceWith("org.w3c.fetch.Response", "org.w3c.fetch.*"))
 public external interface Response : Body {
     public var headers: Headers
     public var ok: Boolean
@@ -73,7 +72,6 @@ public external interface Response : Body {
     public fun clone(): Response
 }
 
-@Deprecated("Use org.w3c.fetch.Body", ReplaceWith("org.w3c.fetch.Body", "org.w3c.fetch.*"))
 public external interface Body {
     public var body: ReadableStream<Uint8Array>?
         get() = definedExternally
@@ -86,7 +84,6 @@ public external interface Body {
     public fun text(): Promise<String>
 }
 
-@Deprecated("Use org.w3c.xhr.FormData", ReplaceWith("org.w3c.xhr.FormData", "org.w3c.xhr.*"))
 public external interface FormData {
     public fun append(name: String, value: String, fileName: String? = definedExternally)
     public fun append(name: String, value: Blob, fileName: String? = definedExternally)
@@ -104,7 +101,6 @@ public external interface FormData {
     )
 }
 
-@Deprecated("Use org.w3c.files.Blob", ReplaceWith("org.w3c.files.Blob", "org.w3c.files.*"))
 public external interface Blob {
     public var size: Number
     public var type: String
@@ -115,7 +111,6 @@ public external interface Blob {
     ): Blob
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface ReadableStream<R> {
     public var locked: Boolean
     public fun cancel(reason: Any? = definedExternally): Promise<Unit>
@@ -130,7 +125,6 @@ public external interface ReadableStream<R> {
     public fun tee(): dynamic
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface PipeOptions {
     public var preventAbort: Boolean?
         get() = definedExternally
@@ -146,14 +140,12 @@ public external interface PipeOptions {
         set(value) = definedExternally
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface WritableStream<W> {
     public var locked: Boolean
     public fun abort(reason: Any? = definedExternally): Promise<Unit>
     public fun getWriter(): WritableStreamDefaultWriter<W>
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface WritableStreamDefaultWriter<W> {
     public var closed: Promise<Unit>
     public var desiredSize: Number?
@@ -166,7 +158,6 @@ public external interface WritableStreamDefaultWriter<W> {
     public fun write(chunk: W): Promise<Unit>
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface ReadableStreamBYOBReader {
     public var closed: Promise<Unit>
     public fun cancel(reason: Any? = definedExternally): Promise<Unit>
@@ -174,7 +165,6 @@ public external interface ReadableStreamBYOBReader {
     public fun releaseLock()
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface ReadableStreamDefaultReader<R> {
     public var closed: Promise<Unit>
     public fun cancel(reason: Any? = definedExternally): Promise<Unit>
@@ -182,13 +172,11 @@ public external interface ReadableStreamDefaultReader<R> {
     public fun releaseLock()
 }
 
-@Deprecated("org.w3c.fetch.Body uses dynamic instead.")
 public external interface ReadableStreamReadResult<T> {
     public var done: Boolean
     public var value: T
 }
 
-@Deprecated("Use org.w3c.fetch.Headers", ReplaceWith("org.w3c.fetch.Headers", "org.w3c.fetch.*"))
 public external interface Headers {
     public fun append(name: String, value: String)
     public fun delete(name: String)
@@ -201,7 +189,6 @@ public external interface Headers {
     )
 }
 
-@Deprecated("Use org.w3c.fetch.RequestInit", ReplaceWith("org.w3c.fetch.RequestInit", "org.w3c.fetch.*"))
 public external interface RequestInit {
     /* Blob | ArrayBufferView | ArrayBuffer | FormData | URLSearchParams | ReadableStream<Uint8Array> | String */
     public var body: dynamic
@@ -262,13 +249,11 @@ public external interface RequestInit {
         set(value) = definedExternally
 }
 
-@Deprecated("This declaration is going to be internal, KT-29243 will provide a definition in the standard lib.")
 public external interface AbortController {
     public var signal: AbortSignal
     public fun abort()
 }
 
-@Deprecated("This declaration is going to be internal, KT-29243 will provide a definition in the standard lib.")
 public external interface AbortSignal : EventTarget {
     public var aborted: Boolean
     public var onabort: ((AbortSignal, ev: Event) -> Any)?
@@ -315,7 +300,6 @@ public external interface AbortSignal : EventTarget {
     override fun removeEventListener(type: String, listener: EventListenerObject)
 }
 
-@Deprecated("Use org.w3c.dom.events.EventTarget", ReplaceWith("org.w3c.dom.events.EventTarget", "org.w3c.dom.events.*"))
 public external interface EventTarget {
     public fun addEventListener(type: String, listener: EventListener, options: Boolean? = definedExternally)
     public fun addEventListener(
@@ -352,16 +336,11 @@ public external interface EventTarget {
     public fun removeEventListener(type: String, callback: EventListenerObject)
 }
 
-@Deprecated(
-    "Use org.w3c.dom.events.EventListener",
-    ReplaceWith("org.w3c.dom.events.EventListener", "org.w3c.dom.events.*")
-)
 public external interface EventListener {
     @nativeInvoke
     public operator fun invoke(evt: Event)
 }
 
-@Deprecated("Use callback from EventListener instead")
 public external interface AddEventListenerOptions : EventListenerOptions {
     public var once: Boolean?
         get() = definedExternally
@@ -371,19 +350,16 @@ public external interface AddEventListenerOptions : EventListenerOptions {
         set(value) = definedExternally
 }
 
-@Deprecated("Use callback from EventListener instead")
 public external interface EventListenerOptions {
     public var capture: Boolean?
         get() = definedExternally
         set(value) = definedExternally
 }
 
-@Deprecated("Use callback from EventListener instead")
 public external interface EventListenerObject {
     public fun handleEvent(evt: Event)
 }
 
-@Deprecated("Use org.w3c.dom.events.Event", ReplaceWith("org.w3c.dom.events.Event", "org.w3c.dom.events.*"))
 public external interface Event {
     public var bubbles: Boolean
     public var cancelBubble: Boolean
