@@ -282,6 +282,31 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testRouteWithTypedBody(): Unit = withTestApplication {
+        application.routing {
+            post<String> { answer ->
+                assertEquals("42", answer)
+            }
+            put<String>("/put") { answer ->
+                assertEquals("42", answer)
+            }
+            patch<String>("/patching") { answer ->
+                assertEquals("42", answer)
+            }
+        }
+
+        handleRequest(HttpMethod.Post, "/") {
+            setBody("42")
+        }
+        handleRequest(HttpMethod.Put, "/put") {
+            setBody("42")
+        }
+        handleRequest(HttpMethod.Patch, "/patching") {
+            setBody("42")
+        }
+    }
+
+    @Test
     fun testInterceptionOrderWhenOuterShouldBeAfter() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
