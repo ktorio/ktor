@@ -331,7 +331,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val errors = CopyOnWriteArrayList<Throwable>()
 
         val random = Random()
-        for (i in 1..latch.count) {
+        for (i in 1..count) {
             thread {
                 try {
                     withUrl("/$i") {
