@@ -5,10 +5,8 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
-import io.ktor.client.engine.js.node.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -16,12 +14,11 @@ import org.khronos.webgl.*
 import org.w3c.fetch.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequestData.toRaw(callContext: CoroutineContext): RequestInit {
-    val jsHeaders = if (PlatformUtils.IS_BROWSER) {
-        Headers()
-    } else {
-        NodeFetch.Headers()
-    }
+internal suspend fun HttpRequestData.toRaw(
+    callContext: CoroutineContext,
+    platformApi: JsPlatformApi
+): RequestInit {
+    val jsHeaders = platformApi.headers()
     mergeHeaders(headers, body) { key, value ->
         jsHeaders.set(key, value)
     }

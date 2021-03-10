@@ -7,23 +7,23 @@ package io.ktor.client.engine.js
 import kotlinx.coroutines.*
 import org.khronos.webgl.*
 import kotlin.coroutines.*
-import kotlin.js.*
+import kotlin.js.Promise
 
-internal external interface ReadableStream {
+public external interface ReadableStream {
     public fun getReader(): ReadableStreamReader
 }
 
-internal external interface ReadResult {
-    val done: Boolean
-    val value: Uint8Array?
+public external interface ReadResult {
+    public val done: Boolean
+    public val value: Uint8Array?
 }
 
-internal external interface ReadableStreamReader {
+public external interface ReadableStreamReader {
     public fun cancel(reason: dynamic): Promise<dynamic>
     public fun read(): Promise<ReadResult>
 }
 
-internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCancellableCoroutine { continuation ->
+public suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCancellableCoroutine { continuation ->
     read().then {
         val chunk = it.value
         val result = if (it.done || chunk == null) null else chunk
@@ -34,6 +34,6 @@ internal suspend fun ReadableStreamReader.readChunk(): Uint8Array? = suspendCanc
 }
 
 @Suppress("UnsafeCastFromDynamic")
-internal fun Uint8Array.asByteArray(): ByteArray {
+public fun Uint8Array.asByteArray(): ByteArray {
     return Int8Array(buffer, byteOffset, length).asDynamic()
 }

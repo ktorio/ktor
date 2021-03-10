@@ -84,7 +84,7 @@ kotlin.sourceSets {
 //            runtimeOnly(project(":ktor-client:ktor-client-jetty"))
         }
     }
-    jsTest {
+    jsMain {
         dependencies {
             api(project(":ktor-client:ktor-client-js"))
         }

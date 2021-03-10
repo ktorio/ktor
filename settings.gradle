@@ -60,6 +60,8 @@ if (ext.currentJdk >= 11) {
 }
 include ':ktor-client:ktor-client-jetty'
 include ':ktor-client:ktor-client-js'
+include ':ktor-client:ktor-client-js-browser'
+include ':ktor-client:ktor-client-js-node'
 include ':ktor-client:ktor-client-mock'
 include ':ktor-client:ktor-client-okhttp'
 include ':ktor-client:ktor-client-benchmarks'

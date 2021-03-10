@@ -13,20 +13,25 @@ import kotlinx.coroutines.*
  * Helper interface to test client.
  */
 public actual abstract class ClientLoader actual constructor(private val timeoutSeconds: Int) {
+
     /**
      * Perform test against all clients from dependencies.
      */
     public actual fun clientTests(
         skipEngines: List<String>,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
-    ): dynamic = {
+    ): dynamic {
         val skipEnginesLowerCase = skipEngines.map { it.toLowerCase() }
-        if (skipEnginesLowerCase.contains("js")) GlobalScope.async {}.asPromise() else testWithEngine(Js) {
-            withTimeout(timeoutSeconds.toLong() * 1000) {
-                block()
+        return if (skipEnginesLowerCase.contains("js")) {
+            GlobalScope.async {}.asPromise()
+        } else {
+            testWithEngine(Js) {
+                withTimeout(timeoutSeconds.toLong() * 1000) {
+                    block()
+                }
             }
         }
-    }()
+    }
 
     public actual fun dumpCoroutines() {
         error("Debug probes unsupported[js]")
