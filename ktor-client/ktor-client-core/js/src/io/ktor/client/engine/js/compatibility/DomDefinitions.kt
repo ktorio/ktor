@@ -11,7 +11,7 @@ import org.w3c.fetch.*
 /**
  * https://fetch.spec.whatwg.org/#dom-request-signal
  */
-internal var RequestInit.signal: AbortSignal
+public var RequestInit.signal: AbortSignal
     get() = asDynamic().signal as AbortSignal
     set(newValue) {
         asDynamic().signal = newValue
@@ -20,17 +20,17 @@ internal var RequestInit.signal: AbortSignal
 /**
  * Exposes the JavaScript [AbortController](https://dom.spec.whatwg.org/#interface-abortcontroller) to Kotlin
  */
-internal open external class AbortController {
-    var signal: AbortSignal
-    fun abort()
+public open external class AbortController {
+    public var signal: AbortSignal
+    public fun abort()
 }
 
 /**
  * Exposes the JavaScript [AbortSignal](https://dom.spec.whatwg.org/#interface-AbortSignal) to Kotlin
  */
-internal abstract external class AbortSignal : EventTarget {
-    var aborted: Boolean
-    var onabort: ((AbortSignal, ev: Event) -> Any)?
+public abstract external class AbortSignal : EventTarget {
+    public var aborted: Boolean
+    public var onabort: ((AbortSignal, ev: Event) -> Any)?
         get() = definedExternally
         set(value) = definedExternally
 }

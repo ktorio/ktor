@@ -6,7 +6,6 @@ package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
-import io.ktor.client.engine.js.node.*
 import io.ktor.client.features.*
 import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
@@ -19,11 +18,15 @@ import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
 
-internal class JsClientEngine(override val config: HttpClientEngineConfig) : HttpClientEngineBase("ktor-js") {
+public class JsClientEngine(
+    override val config: HttpClientEngineConfig,
+    private val platformApi: JsPlatformApi
+) : HttpClientEngineBase("ktor-js") {
 
-    override val dispatcher = Dispatchers.Default
+    public override val dispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    override val supportedCapabilities = setOf(HttpTimeout, WebSocketCapability)
+    public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
+        setOf(HttpTimeout, WebSocketCapability)
 
     init {
         check(config.proxy == null) { "Proxy unsupported in Js engine." }
@@ -37,14 +40,14 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         }
 
         val requestTime = GMTDate()
-        val rawRequest = data.toRaw(callContext)
-        val rawResponse = commonFetch(data.url.toString(), rawRequest)
+        val rawRequest = data.toRaw(callContext, platformApi)
+        val rawResponse = commonFetch(data.url.toString(), rawRequest, platformApi)
 
         val status = HttpStatusCode(rawResponse.status.toInt(), rawResponse.statusText)
         val headers = rawResponse.headers.mapToKtor()
         val version = HttpProtocolVersion.HTTP_1_1
 
-        val body = CoroutineScope(callContext).readBody(rawResponse)
+        val body = platformApi.readBody(CoroutineScope(callContext), rawResponse)
 
         return HttpResponseData(
             status,
@@ -63,11 +66,7 @@ internal class JsClientEngine(override val config: HttpClientEngineConfig) : Htt
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket = if (PlatformUtils.IS_NODE) {
-            NodeWebsocket(urlString)
-        } else {
-            WebSocket(urlString)
-        }
+        val socket = platformApi.webSocket(urlString)
 
         try {
             socket.awaitConnection()
