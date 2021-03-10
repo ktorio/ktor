@@ -29,6 +29,6 @@ internal actual fun bind(
     nonBlocking()
 
     ServerSocketImpl(this, selector).apply {
-        channel.socket().bind(localAddress)
+        channel.socket().bind(localAddress, socketOptions.backlogSize)
     }
 }
