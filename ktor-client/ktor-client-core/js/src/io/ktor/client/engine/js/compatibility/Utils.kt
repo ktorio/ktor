@@ -6,23 +6,17 @@ package io.ktor.client.engine.js.compatibility
 
 import io.ktor.client.engine.js.browser.*
 import io.ktor.client.engine.js.node.*
+import io.ktor.client.fetch.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.browser.*
 import kotlinx.coroutines.*
-import org.w3c.fetch.*
-import kotlin.coroutines.*
-import kotlin.js.*
+import kotlin.js.Promise
 
 internal suspend fun commonFetch(
     input: String,
     init: RequestInit
 ): Response = suspendCancellableCoroutine { continuation ->
-    val controller = if (PlatformUtils.IS_BROWSER) {
-        AbortController()
-    } else {
-        NodeAbortController()
-    }
+    val controller = AbortController()
     init.signal = controller.signal
 
     continuation.invokeOnCancellation {
@@ -30,19 +24,28 @@ internal suspend fun commonFetch(
     }
 
     val promise: Promise<Response> = if (PlatformUtils.IS_BROWSER) {
-        window.fetch(input, init)
+        fetch(input, init)
     } else {
-        nodeFetch(input, init)
+        jsRequireNodeFetch()(input, init)
     }
 
     promise.then(
         onFulfilled = {
-            continuation.resume(it)
+            continuation.resumeWith(Result.success(it))
         },
         onRejected = {
-            continuation.resumeWithException(Error("Fail to fetch", it))
+            continuation.resumeWith(Result.failure(Error("Fail to fetch", it)))
         }
     )
+}
+
+internal fun AbortController(): AbortController {
+    return if (PlatformUtils.IS_BROWSER) {
+        js("new AbortController()")
+    } else {
+        val controller = js("require('abort-controller')")
+        js("new controller()")
+    }
 }
 
 internal fun CoroutineScope.readBody(
@@ -51,4 +54,10 @@ internal fun CoroutineScope.readBody(
     readBodyBrowser(response)
 } else {
     readBodyNode(response)
+}
+
+private fun jsRequireNodeFetch(): dynamic = try {
+    js("require('node-fetch')")
+} catch (cause: dynamic) {
+    throw Error("Error loading module 'node-fetch': $cause")
 }
