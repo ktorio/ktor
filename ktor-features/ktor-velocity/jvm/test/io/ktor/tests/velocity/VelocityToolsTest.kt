@@ -53,6 +53,7 @@ class VelocityToolsTest {
         withTestApplication {
             application.setUpTestTemplates {
                 addDefaultTools()
+                setProperty("locale", "en_US")
             }
             application.install(ConditionalHeaders)
 
@@ -73,7 +74,7 @@ class VelocityToolsTest {
 
                 assertEquals("<p>Hello, 1</p>", lines[0])
                 assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals("<i>Oct 7, 2003 3:14:50 AM</i>", lines[2])
+                assertEquals("<i>10/7/03 3:14 AM</i>", lines[2])
             }
         }
     }
@@ -139,7 +140,7 @@ class VelocityToolsTest {
 
                 assertEquals("<p>Hello, 1</p>", lines[0])
                 assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
-                assertEquals("<i>7 oct. 2003 03:14:50</i>", lines[2])
+                assertEquals("<i>07/10/03 03:14</i>", lines[2])
             }
         }
     }
@@ -162,7 +163,7 @@ class VelocityToolsTest {
                     """
                     <p>Hello, ${bax}id</p>
                     <h1>${bax}title</h1>
-                    <i>$bax!{date.format('medium', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))}</i>
+                    <i>$bax!{date.format('short', ${bax}date.toDate('intl', '2003-10-07 03:14:50'))}</i>
                     """.trimIndent()
                 )
                 StringResourceLoader.setRepository("myRepo", this)
