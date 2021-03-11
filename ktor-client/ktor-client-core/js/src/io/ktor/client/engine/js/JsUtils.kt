@@ -18,7 +18,7 @@ internal suspend fun HttpRequestData.toRaw(
     callContext: CoroutineContext,
     platformApi: JsPlatformApi
 ): RequestInit {
-    val jsHeaders = platformApi.headers()
+    val jsHeaders = platformApi.createHeaders()
     mergeHeaders(headers, body) { key, value ->
         jsHeaders.set(key, value)
     }

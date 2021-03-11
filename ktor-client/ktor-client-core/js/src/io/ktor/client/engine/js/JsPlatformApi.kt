@@ -12,18 +12,20 @@ import org.w3c.dom.*
 import org.w3c.fetch.*
 import kotlin.js.*
 
-@InternalAPI
+/**
+ * Platform specific API for JS
+ */
 public interface JsPlatformApi {
 
     public fun fetch(url: String): Promise<Response>
 
     public fun fetch(url: String, init: RequestInit): Promise<Response>
 
-    public fun abortController(): AbortController
+    public fun createAbortController(): AbortController
 
-    public fun headers(): Headers
+    public fun createHeaders(): Headers
 
-    public fun webSocket(urlString: String): WebSocket
+    public fun createWebSocket(urlString: String): WebSocket
 
     public fun readBody(scope: CoroutineScope, response: Response): ByteReadChannel
 }

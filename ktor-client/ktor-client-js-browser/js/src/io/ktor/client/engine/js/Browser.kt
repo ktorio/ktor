@@ -12,17 +12,20 @@ import org.w3c.dom.*
 import org.w3c.fetch.*
 import kotlin.js.Promise
 
+/**
+ * Browser JS API wrapper
+ */
 public object Browser : JsPlatformApi {
 
     override fun fetch(url: String): Promise<Response> = window.fetch(url)
 
     override fun fetch(url: String, init: RequestInit): Promise<Response> = window.fetch(url, init)
 
-    override fun abortController(): AbortController = AbortController()
+    override fun createAbortController(): AbortController = AbortController()
 
-    override fun headers(): Headers = Headers()
+    override fun createHeaders(): Headers = Headers()
 
-    override fun webSocket(urlString: String): WebSocket = WebSocket(urlString)
+    override fun createWebSocket(urlString: String): WebSocket = WebSocket(urlString)
 
     override fun readBody(scope: CoroutineScope, response: Response): ByteReadChannel {
         @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")

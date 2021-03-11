@@ -18,6 +18,11 @@ import org.w3c.dom.*
 import org.w3c.dom.events.*
 import kotlin.coroutines.*
 
+/**
+ * Implementation of client engine for JS.
+ * @param config engine configuration
+ * @param platformApi implementation for platform-specific JS API
+ */
 public class JsClientEngine(
     override val config: HttpClientEngineConfig,
     private val platformApi: JsPlatformApi
@@ -66,7 +71,7 @@ public class JsClientEngine(
         val requestTime = GMTDate()
 
         val urlString = request.url.toString()
-        val socket = platformApi.webSocket(urlString)
+        val socket = platformApi.createWebSocket(urlString)
 
         try {
             socket.awaitConnection()

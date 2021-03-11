@@ -15,7 +15,7 @@ internal suspend fun commonFetch(
     init: RequestInit,
     platformApi: JsPlatformApi
 ): Response = suspendCancellableCoroutine { continuation ->
-    val controller = platformApi.abortController()
+    val controller = platformApi.createAbortController()
     init.signal = controller.signal
 
     continuation.invokeOnCancellation {
