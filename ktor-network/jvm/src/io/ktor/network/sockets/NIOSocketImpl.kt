@@ -80,7 +80,7 @@ internal abstract class NIOSocketImpl<out S>(
         val j = producer()
 
         if (!ref.compareAndSet(null, j)) {
-            val e = IllegalStateException("$name channel has been already set")
+            val e = IllegalStateException("$name channel has already been set")
             j.cancel()
             throw e
         }

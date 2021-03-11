@@ -237,7 +237,7 @@ private data class SessionProviderData<S : Any>(var value: S?, val incoming: Boo
 private val SessionKey = AttributeKey<SessionData>("SessionKey")
 
 /**
- * This exception is thrown when HTTP response has been already sent but an attempt to modify session is made
+ * This exception is thrown when HTTP response has already been sent but an attempt to modify session is made
  */
 @InternalAPI
 public class TooLateSessionSetException :
