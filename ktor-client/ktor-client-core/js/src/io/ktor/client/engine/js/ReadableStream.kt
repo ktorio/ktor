@@ -9,15 +9,25 @@ import org.khronos.webgl.*
 import kotlin.coroutines.*
 import kotlin.js.Promise
 
+/**
+ * Exposes the JavaScript [ReadableStream](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) to Kotlin
+ */
 public external interface ReadableStream {
     public fun getReader(): ReadableStreamReader
 }
 
+/**
+ * Exposes the JavaScript [ReadResult](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) to Kotlin
+ */
 public external interface ReadResult {
     public val done: Boolean
     public val value: Uint8Array?
 }
 
+/**
+ * Exposes the JavaScript [ReadableStreamReader](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)
+ * to Kotlin
+ */
 public external interface ReadableStreamReader {
     public fun cancel(reason: dynamic): Promise<dynamic>
     public fun read(): Promise<ReadResult>

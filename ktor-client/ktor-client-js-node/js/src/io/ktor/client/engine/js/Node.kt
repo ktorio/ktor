@@ -13,17 +13,20 @@ import org.w3c.dom.*
 import org.w3c.fetch.*
 import kotlin.js.Promise
 
+/**
+ * Node JS API wrapper
+ */
 public object Node : JsPlatformApi {
 
     override fun fetch(url: String): Promise<Response> = nodeFetch(url)
 
     override fun fetch(url: String, init: RequestInit): Promise<Response> = nodeFetch(url, init)
 
-    override fun abortController(): AbortController = NodeAbortController()
+    override fun createAbortController(): AbortController = NodeAbortController()
 
-    override fun headers(): Headers = NodeFetch.Headers()
+    override fun createHeaders(): Headers = NodeFetch.Headers()
 
-    override fun webSocket(urlString: String): WebSocket = NodeWebsocket(urlString)
+    override fun createWebSocket(urlString: String): WebSocket = NodeWebsocket(urlString)
 
     override fun readBody(scope: CoroutineScope, response: Response): ByteReadChannel {
         val body: dynamic = response.body ?: error("Fail to get body")
