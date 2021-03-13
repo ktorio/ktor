@@ -46,6 +46,15 @@ class OAuth2Test {
         defaultScopes = listOf("http://example.com/scope1", "http://example.com/scope2")
     )
 
+    private val DefaultSettingsWithExtraParameters = OAuthServerSettings.OAuth2ServerSettings(
+        name = "oauth2",
+        authorizeUrl = "https://login-server-com/authorize",
+        accessTokenUrl = "https://login-server-com/oauth/access_token",
+        clientId = "clientId1",
+        clientSecret = "clientSecret1",
+        extraAuthParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1")
+    )
+
     private val DefaultSettingsWithInterceptor = OAuthServerSettings.OAuth2ServerSettings(
         name = "oauth2",
         authorizeUrl = "https://login-server-com/authorize",
@@ -248,6 +257,30 @@ class OAuth2Test {
         assertNotNull(query[OAuth2RequestParameters.State])
         assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
         assertEquals("http://example.com/scope1 http://example.com/scope2", query[OAuth2RequestParameters.Scope])
+    }
+
+    @Test
+    fun testRedirectWithExtraParameters() = withTestApplication({ module(DefaultSettingsWithExtraParameters) }) {
+        val result = handleRequest {
+            uri = "/login"
+        }
+
+        assertEquals(HttpStatusCode.Found, result.response.status())
+
+        val url = Url(
+            result.response.headers[HttpHeaders.Location]
+                ?: throw IllegalStateException("No location header in the response")
+        )
+        assertEquals("/authorize", url.encodedPath)
+        assertEquals("login-server-com", url.host)
+
+        val query = url.parameters
+        assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
+        assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+        assertNotNull(query[OAuth2RequestParameters.State])
+        assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
+        assertEquals(listOf("a1", "a2"), query.getAll("a"))
+        assertEquals(listOf("b1"), query.getAll("b"))
     }
 
     @Test
@@ -606,6 +639,50 @@ class OAuth2Test {
 
         handleRequest {
             uri = "/login?code=mow&state=wow"
+        }.also {
+            // Usually 401 here means, that tests above failed.
+            assertEquals(it.response.status(), HttpStatusCode.OK)
+            assertEquals(it.response.content, "We're in.")
+        }
+    }
+
+    @Test
+    fun testExtraTokenParams(): Unit = withApplication(createTestEnvironment()) {
+        application.apply {
+            install(Authentication) {
+                oauth("login") {
+                    client = HttpClient(TestHttpClientEngine.create { app = this@withApplication })
+                    urlProvider = { "http://localhost/login" }
+                    providerLookup = {
+                        OAuthServerSettings.OAuth2ServerSettings(
+                            name = "oauth2",
+                            authorizeUrl = "http://localhost/authorize",
+                            accessTokenUrl = "http://localhost/oauth/access_token",
+                            clientId = "clientId1",
+                            clientSecret = "clientSecret1",
+                            requestMethod = HttpMethod.Post,
+                            extraTokenParameters = listOf("a" to "a1", "a" to "a2", "b" to "b1"),
+                        )
+                    }
+                }
+            }
+            routing {
+                post("/oauth/access_token") {
+                    val parameters = call.receiveParameters()
+                    assertEquals(listOf("a1", "a2"), parameters.getAll("a"))
+                    assertEquals(listOf("b1"), parameters.getAll("b"))
+                    call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+                }
+                authenticate("login") {
+                    get("/login") {
+                        call.respond("We're in.")
+                    }
+                }
+            }
+        }
+
+        handleRequest {
+            uri = "/login?code=code&state=state"
         }.also {
             // Usually 401 here means, that tests above failed.
             assertEquals(it.response.status(), HttpStatusCode.OK)

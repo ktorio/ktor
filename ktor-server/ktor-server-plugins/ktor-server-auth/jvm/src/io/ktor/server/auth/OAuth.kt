@@ -63,6 +63,8 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property passParamsInURL whether to pass request parameters in POST requests in URL instead of body.
      * @property nonceManager to be used to produce and verify nonce values
      * @property authorizeUrlInterceptor an interceptor function to customize authorization URL
+     * @property extraAuthParameters extra parameters to send during authentication
+     * @property extraAuthParameters extra parameters to send with getting access token call
      * @property accessTokenInterceptor an interceptor function to customize access token request
      */
     public class OAuth2ServerSettings(
@@ -80,8 +82,42 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
 
         public val authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
         public val passParamsInURL: Boolean = false,
+        public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
+        public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
-    ) : OAuthServerSettings(name, OAuthVersion.V20)
+    ) : OAuthServerSettings(name, OAuthVersion.V20) {
+
+        @Deprecated("This constructor will be removed", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            requestMethod: HttpMethod = HttpMethod.Get,
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+            authorizeUrlInterceptor: URLBuilder.() -> Unit = {},
+            passParamsInURL: Boolean = false,
+            accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {}
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            authorizeUrlInterceptor,
+            passParamsInURL,
+            emptyList(),
+            emptyList(),
+            accessTokenInterceptor
+        )
+    }
 }
 
 /**
@@ -251,7 +287,6 @@ public suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
                             provider,
                             callbackUrl,
                             code,
-                            emptyMap(),
                             configure
                         )
 
