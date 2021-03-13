@@ -94,7 +94,8 @@ internal fun OAuthAuthenticationProvider.oauth2() {
                         callbackRedirectUrl,
                         state = provider.nonceManager.newNonce(),
                         scopes = provider.defaultScopes,
-                        interceptor = provider.authorizeUrlInterceptor
+                        interceptor = provider.authorizeUrlInterceptor,
+                        extraParameters = provider.extraParameters
                     )
                     it.complete()
                 }
