@@ -121,7 +121,7 @@ public fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnviron
                     load(it, sslKeyStorePassword.toCharArray())
                 }
 
-                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) {
+                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray())) {
                     "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath"
                 }
             }
