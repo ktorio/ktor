@@ -12,7 +12,7 @@ import io.ktor.routing.*
 import io.ktor.util.*
 import kotlin.test.*
 
-public fun Application.cookiesTest() {
+public fun Application.cookiesTest(https: Boolean = false) {
     routing {
         route("cookies") {
             get {
@@ -100,7 +100,9 @@ public fun Application.cookiesTest() {
                 context.respond((a - b).toString())
             }
             route("/httponly") {
-                val cookie = Cookie("One", "value1", httpOnly = true)
+                val cookie = if (https)
+                    Cookie("One", "value1", httpOnly = true, extensions = mapOf("samesite" to "none"), secure = true)
+                else Cookie("One", "value1", httpOnly = true)
                 get {
                     with(call.response.cookies) {
                         append(cookie)
