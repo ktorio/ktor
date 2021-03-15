@@ -44,17 +44,6 @@ buildscript {
         mavenCentral()
         google()
         gradlePluginPortal()
-        maven { url "https://dl.bintray.com/jetbrains/kotlin-native-dependencies" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-        maven {
-            url "https://kotlin.bintray.com/kotlin-dev"
-            credentials {
-                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
-                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
-            }
-        }
-        maven { url 'https://kotlin.bintray.com/kotlinx' }
-        jcenter()
     }
 
     dependencies {
@@ -150,22 +139,6 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
-        maven {
-            url "https://dl.bintray.com/kotlin/kotlinx"
-            credentials {
-                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
-                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
-            }
-        }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-        maven {
-            url "https://kotlin.bintray.com/kotlin-dev"
-            credentials {
-                username = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER') ?: ""
-                password = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY') ?: ""
-            }
-        }
-        jcenter()
     }
 
     CacheRedirector.configure(project)
