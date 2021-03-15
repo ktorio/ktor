@@ -15,11 +15,11 @@ import kotlin.js.Promise
 /**
  * Browser JS API wrapper
  */
-public object Browser : JsPlatformApi {
+public class Browser(private val customFetchSettings: RequestInit.() -> Unit = { }) : JsPlatformApi {
 
     override fun fetch(url: String): Promise<Response> = window.fetch(url)
 
-    override fun fetch(url: String, init: RequestInit): Promise<Response> = window.fetch(url, init)
+    override fun fetch(url: String, init: RequestInit): Promise<Response> = window.fetch(url, init.apply(customFetchSettings))
 
     override fun createAbortController(): AbortController = AbortController()
 

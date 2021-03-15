@@ -19,5 +19,5 @@ public object Js : HttpClientEngineFactory<HttpClientEngineConfig> {
     }
 
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine =
-        JsClientEngine(HttpClientEngineConfig().apply(block), if (PlatformUtils.IS_BROWSER) Browser else Node)
+        JsClientEngine(HttpClientEngineConfig().apply(block), if (PlatformUtils.IS_BROWSER) Browser() else Node)
 }
