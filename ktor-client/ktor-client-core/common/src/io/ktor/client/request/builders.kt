@@ -206,85 +206,85 @@ public suspend inline fun HttpClient.prepareHead(builder: HttpRequestBuilder): H
  * Executes a [HttpClient] GET request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.get(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    get(blockWithDefaults(block))
+    get(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] POST request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.post(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    post(blockWithDefaults(block))
+    post(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] PUT request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.put(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    put(blockWithDefaults(block))
+    put(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] DELETE request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.delete(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    delete(blockWithDefaults(block))
+    delete(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] OPTIONS request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.options(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    options(blockWithDefaults(block))
+    options(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] PATCH request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.patch(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    patch(blockWithDefaults(block))
+    patch(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] HEAD request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.head(block: HttpRequestBuilder.() -> Unit): HttpResponse =
-    head(blockWithDefaults(block))
+    head(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] GET request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareGet(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareGet(blockWithDefaults(block))
+    prepareGet(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] POST request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePost(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePost(blockWithDefaults(block))
+    preparePost(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] PUT request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePut(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePut(blockWithDefaults(block))
+    preparePut(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] DELETE request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareDelete(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareDelete(blockWithDefaults(block))
+    prepareDelete(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] OPTIONS request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareOptions(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareOptions(blockWithDefaults(block))
+    prepareOptions(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] PATCH request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.preparePatch(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    preparePatch(blockWithDefaults(block))
+    preparePatch(HttpRequestBuilder().apply(block))
 
 /**
  * Prepares a [HttpClient] HEAD request, with the information from the [builder]
  */
 public suspend inline fun HttpClient.prepareHead(block: HttpRequestBuilder.() -> Unit): HttpStatement =
-    prepareHead(blockWithDefaults(block))
+    prepareHead(HttpRequestBuilder().apply(block))
 
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.
@@ -417,10 +417,3 @@ public suspend inline fun HttpClient.prepareHead(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
 ): HttpStatement = prepareHead(Url(urlString), block)
-
-@PublishedApi
-internal inline fun blockWithDefaults(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder =
-    HttpRequestBuilder().apply {
-        url(scheme = "http", host = "localhost", port = DEFAULT_PORT, path = "/")
-        block()
-    }
