@@ -17,7 +17,7 @@ import kotlin.jvm.*
  */
 public suspend inline fun HttpClient.request(
     builder: HttpRequestBuilder = HttpRequestBuilder()
-): HttpResponse = HttpStatement(builder, this).receive()
+): HttpResponse = HttpStatement(builder, this).execute()
 
 /**
  * Prepares a [HttpClient] request, with the information from the [builder]

@@ -66,16 +66,12 @@ public class HttpStatement(
      * Note if T is a streaming type, you should manage how to close it manually.
      */
     @OptIn(ExperimentalStdlibApi::class)
-    public suspend inline fun <reified T> receive(): T = when (T::class) {
-        HttpStatement::class -> this as T
-        HttpResponse::class -> execute() as T
-        else -> {
-            val response = executeUnsafe()
-            try {
-                response.body()
-            } finally {
-                response.complete()
-            }
+    public suspend inline fun <reified T> body(): T {
+        val response = executeUnsafe()
+        return try {
+             response.body()
+        } finally {
+            response.complete()
         }
     }
 
@@ -84,8 +80,15 @@ public class HttpStatement(
      *
      * Note that T can be a streamed type such as [ByteReadChannel].
      */
-    @Deprecated(message = "Please use body function", replaceWith = ReplaceWith("this.body<T, R>(block)"))
-    public suspend inline fun <reified T, R> receive(crossinline block: suspend (response: T) -> R): R = body(block)
+    public suspend inline fun <reified T, R> body(crossinline block: suspend (response: T) -> R): R {
+        val response: HttpResponse = executeUnsafe()
+        try {
+            val result = response.body<T>()
+            return block(result)
+        } finally {
+            response.cleanup()
+        }
+    }
 
     /**
      * Return [HttpResponse] with open streaming body.
@@ -131,24 +134,6 @@ public class HttpStatement(
     override fun toString(): String = "HttpStatement[${builder.url.buildString()}]"
 }
 
-@Deprecated(
-    "[HttpStatement] isn't closeable.",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("this.execute<T>(block)")
-)
-@Suppress("unused", "KDocMissingDocumentation", "UNUSED_PARAMETER")
-public fun <T> HttpStatement.use(block: suspend (response: HttpResponse) -> T) {
-}
-
-@Deprecated(
-    "Unbound [HttpResponse] is deprecated. Consider using [execute()] instead.",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("this.execute()")
-)
-@Suppress("KDocMissingDocumentation", "unused")
-public val HttpStatement.response: HttpResponse
-    get() = error("Unbound [HttpClientCall] is deprecated. Consider using [HttpResponse] instead.")
-
 /**
  * Read the [HttpResponse.content] as a String. You can pass an optional [charset]
  * to specify a charset in the case no one is specified as part of the Content-Type response.
@@ -164,26 +149,4 @@ public suspend fun HttpResponse.readText(fallbackCharset: Charset? = null): Stri
     val input = body<Input>()
 
     return decoder.decode(input)
-}
-
-/**
- * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
- *
- * Note if T is a streaming type, you should manage how to close it manually.
- */
-public suspend inline fun <reified T> HttpStatement.body(): T = receive()
-
-/**
- * Executes this statement and run [HttpClient.responsePipeline] with the response and expected type [T].
- *
- * Note if T is a streaming type, you should manage how to close it manually.
- */
-public suspend inline fun <reified T, R> HttpStatement.body(crossinline block: suspend (response: T) -> R): R {
-    val response: HttpResponse = executeUnsafe()
-    try {
-        val result = response.body<T>()
-        return block(result)
-    } finally {
-        response.cleanup()
-    }
 }

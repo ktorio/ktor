@@ -61,7 +61,7 @@ class CIORequestTest : TestWithKtor() {
 
             test { client ->
                 assertFailsWith<TimeoutCancellationException> {
-                    client.get<HttpStatement>(path = "/delay", port = serverPort).execute()
+                    client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
                 }
             }
         }
@@ -82,7 +82,7 @@ class CIORequestTest : TestWithKtor() {
 
             test { client ->
                 assertFailsWith<HttpRequestTimeoutException> {
-                    client.get<HttpStatement>(path = "/delay", port = serverPort).execute()
+                    client.prepareGet { url(path = "/delay", port = serverPort) }.execute()
                 }
             }
         }

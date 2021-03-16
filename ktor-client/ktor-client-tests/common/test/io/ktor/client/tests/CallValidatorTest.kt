@@ -340,7 +340,7 @@ class CallValidatorTest {
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
-                assertEquals("Awesome response", cause.response.receive())
+                assertEquals("Awesome response", cause.response.body())
             }
         }
     }

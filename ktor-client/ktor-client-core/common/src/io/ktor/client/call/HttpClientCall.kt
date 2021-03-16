@@ -8,15 +8,13 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.*
-import io.ktor.util.reflect.TypeInfo
-import io.ktor.util.reflect.typeInfo
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.concurrent.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
-import io.ktor.client.call.TypeInfo as DeprecatedTypeInfo
 
 @InternalAPI
 internal fun HttpClientCall(
@@ -73,18 +71,9 @@ public open class HttpClientCall internal constructor(
      * Returns [response] if [info] corresponds to [HttpResponse].
      *
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
-     * @throws DoubleReceiveException If already called [receive].
+     * @throws DoubleReceiveException If already called [body].
      */
-    public suspend fun receive(info: DeprecatedTypeInfo): Any = receive(info as TypeInfo)
-
-    /**
-     * Tries to receive the payload of the [response] as a specific expected type provided in [info].
-     * Returns [response] if [info] corresponds to [HttpResponse].
-     *
-     * @throws NoTransformationFoundException If no transformation is found for the type [info].
-     * @throws DoubleReceiveException If already called [receive].
-     */
-    public suspend fun receive(info: TypeInfo): Any {
+    public suspend fun body(info: TypeInfo): Any {
         try {
             if (response.instanceOf(info.type)) return response
             if (!allowDoubleReceive && !received.compareAndSet(false, true)) {
@@ -131,53 +120,12 @@ public open class HttpClientCall internal constructor(
 }
 
 /**
- * Raw http call produced by engine.
- *
- * @property request - executed http request.
- * @property response - raw http response
- */
-@Deprecated(
-    "HttpEngineCall deprecated.",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("HttpResponseData")
-)
-@InternalAPI
-public data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
-
-/**
- * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
- * configured inside the [block].
- */
-@Deprecated(
-    "Unbound [HttpClientCall] is deprecated. Consider using [request(block)] in instead.",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith(
-        "this.request(block)",
-        "io.ktor.client.request.request",
-        "io.ktor.client.statement.*"
-    )
-)
-@Suppress("RedundantSuspendModifier", "unused", "UNUSED_PARAMETER")
-public suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-    error("Unbound [HttpClientCall] is deprecated. Consider using [request(block)] in instead.")
-
-/**
  * Tries to receive the payload of the [response] as an specific type [T].
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
- * @throws DoubleReceiveException If already called [receive].
+ * @throws DoubleReceiveException If already called [body].
  */
-@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("this.body<T>()"))
-public suspend inline fun <reified T> HttpClientCall.receive(): T = body()
-
-/**
- * Tries to receive the payload of the [response] as an specific type [T].
- *
- * @throws NoTransformationFoundException If no transformation is found for the type [T].
- * @throws DoubleReceiveException If already called [receive].
- */
-@Deprecated(message = "Please use bodyAs function", replaceWith = ReplaceWith("this.body<T>()"))
-public suspend inline fun <reified T> HttpResponse.receive(): T = body()
+public suspend inline fun <reified T> HttpClientCall.body(): T = body(typeInfo<T>()) as T
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -185,15 +133,7 @@ public suspend inline fun <reified T> HttpResponse.receive(): T = body()
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [body].
  */
-public suspend inline fun <reified T> HttpClientCall.body(): T = receive(typeInfo<T>()) as T
-
-/**
- * Tries to receive the payload of the [response] as an specific type [T].
- *
- * @throws NoTransformationFoundException If no transformation is found for the type [T].
- * @throws DoubleReceiveException If already called [body].
- */
-public suspend inline fun <reified T> HttpResponse.body(): T = call.receive(typeInfo<T>()) as T
+public suspend inline fun <reified T> HttpResponse.body(): T = call.body(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.
@@ -208,20 +148,11 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
  * [cause] contains origin pipeline exception
  */
 @Suppress("KDocMissingDocumentation", "unused")
-public class ReceivePipelineException
-@Deprecated("Please use overload with io.ktor.util.reflect.TypeInfo parameter")
-constructor(
+public class ReceivePipelineException(
     public val request: HttpClientCall,
-    public val info: DeprecatedTypeInfo,
+    public val info: TypeInfo,
     override val cause: Throwable
-) : IllegalStateException("Fail to run receive pipeline: $cause") {
-
-    public constructor(request: HttpClientCall, info: TypeInfo, cause: Throwable) : this(
-        request,
-        DeprecatedTypeInfo(info.type, info.reifiedType, info.kotlinType),
-        cause
-    )
-}
+) : IllegalStateException("Fail to run receive pipeline: $cause")
 
 /**
  * Exception representing the no transformation was found.

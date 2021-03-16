@@ -49,7 +49,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get {}
+                client.get { url(port = DEFAULT_PORT) }
             } catch (_: Throwable) {
                 failed = true
             }
@@ -109,7 +109,7 @@ class LoggingMockedTests {
             if (PlatformUtils.IS_NATIVE) return@test
 
             var failed = false
-            client.prepareGet {}.execute {
+            client.prepareGet { url(port = DEFAULT_PORT) }.execute {
                 try {
                     it.body<String>()
                 } catch (_: CustomError) {
@@ -170,7 +170,7 @@ class LoggingMockedTests {
         test { client ->
             var failed = false
             try {
-                client.get {}.body<String>()
+                client.get { url(port = DEFAULT_PORT) }
             } catch (_: CustomError) {
                 failed = true
             }
@@ -301,8 +301,8 @@ class LoggingMockedTests {
         }
 
         test { client ->
-            client.get(urlString = "http://somewhere/filtered_path").body<String>()
-            client.get(urlString = "http://somewhere/not_filtered_path").body<String>()
+            client.get(urlString = "http://somewhere/filtered_path")
+            client.get(urlString = "http://somewhere/not_filtered_path")
         }
 
         after {
