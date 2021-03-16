@@ -44,14 +44,6 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
      */
     public val attributes: Attributes
 
-    @Deprecated(
-        "Binary compatibility.",
-        level = DeprecationLevel.HIDDEN
-    )
-    @Suppress("unused", "KDocMissingDocumentation")
-    public val executionContext: Job
-        get() = coroutineContext[Job]!!
-
     /**
      * An [OutgoingContent] representing the request body
      */
@@ -81,13 +73,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
      * The [body] for this request. Initially [EmptyContent].
      */
     public var body: Any = EmptyContent
-        @Deprecated(
-            message = "This setter is not typesafe and can lead to problems " +
-                "during serialization. Please use setBody method",
-            replaceWith = ReplaceWith("this.setBody(body)", "io.ktor.client.request"),
-            level = DeprecationLevel.WARNING
-        )
-        set
+        @InternalAPI public set
 
     /**
      * The [KType] of [body] for this request. Null for default types that don't need serialization.

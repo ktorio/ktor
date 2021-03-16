@@ -75,7 +75,7 @@ class HeadersTest : ClientLoader() {
         test { client ->
             var message = ""
             try {
-                client.get<HttpResponse>("$TEST_SERVER/headers") {
+                client.get("$TEST_SERVER/headers") {
                     header(HttpHeaders.ContentLength, 0)
                     header(HttpHeaders.ContentType, ContentType.Application.Json)
                     header(HttpHeaders.TransferEncoding, "chunked")

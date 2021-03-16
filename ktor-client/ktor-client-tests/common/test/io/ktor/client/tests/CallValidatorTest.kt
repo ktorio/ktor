@@ -336,7 +336,7 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
@@ -364,7 +364,7 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String>()
+                client.get {}
                 fail("Should fail")
             } catch (cause: IllegalStateException) {
                 assertEquals("My custom error", cause.message)
@@ -391,7 +391,7 @@ class CallValidatorTest {
 
         test { client ->
             try {
-                client.get<String> { expectSuccess = false }
+                client.get { expectSuccess = false }
                 fail("Should fail")
             } catch (cause: IllegalStateException) {
                 assertEquals("My custom error", cause.message)
