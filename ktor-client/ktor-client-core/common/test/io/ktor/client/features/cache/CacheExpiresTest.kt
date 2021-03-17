@@ -4,7 +4,6 @@
 package io.ktor.client.features.cache.tests
 
 import io.ktor.client.call.*
-import io.ktor.client.features.cache.*
 import io.ktor.client.statement.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
