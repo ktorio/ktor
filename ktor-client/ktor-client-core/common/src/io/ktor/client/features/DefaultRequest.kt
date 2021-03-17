@@ -70,10 +70,14 @@ public class DefaultRequest(private val builder: Builder.() -> Unit) {
         override fun install(feature: DefaultRequest, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 context.apply {
-                    val defaultRequest = Builder(this).apply(feature.builder)
-                    takeFrom(defaultRequest)
+                    install(feature.builder)
                 }
             }
+        }
+
+        internal fun HttpRequestBuilder.install(builder: Builder.() -> Unit) {
+            val defaultRequest = Builder(this).apply(builder)
+            takeFrom(defaultRequest)
         }
     }
 }

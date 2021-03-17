@@ -5,6 +5,7 @@
 package io.ktor.client
 
 import io.ktor.client.features.*
+import io.ktor.client.features.DefaultRequest.Feature.install
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlin.test.*
@@ -17,8 +18,7 @@ class DefaultRequestTest {
     }
 
     private fun HttpRequestBuilder.defaultRequest(block: DefaultRequest.Builder.() -> Unit) = apply {
-        val defaultRequestFeature = DefaultRequest.Builder(this).apply(block)
-        takeFrom(defaultRequestFeature)
+        install(block)
     }
 
     @Test
