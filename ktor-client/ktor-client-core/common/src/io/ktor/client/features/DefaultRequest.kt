@@ -35,6 +35,9 @@ public class DefaultRequest(private val builder: Builder.() -> Unit) {
          * The given [baseURL] cannot have a query or a fragment part.
          */
         public fun baseURL(baseUrl: URLBuilder) {
+            require(baseUrl.parameters.build() == Parameters.Empty && baseUrl.fragment.isEmpty()) {
+                "The baseURL cannot have a query or a fragment"
+            }
             url {
                 if (isRelativeURL()) {
                     val requestedPath = encodedPath.removePrefix("/")
