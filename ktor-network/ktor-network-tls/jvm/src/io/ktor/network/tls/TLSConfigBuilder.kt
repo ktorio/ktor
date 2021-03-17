@@ -94,6 +94,15 @@ public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray) {
  * or all certificates, if [alias] is null.
  */
 public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray, alias: String? = null) {
+    addKeyStore(store, password as CharArray?, alias)
+}
+
+/**
+ * Add client certificates from [store] by using the certificate with specific [alias]
+ * or all certificates, if [alias] is null.
+ */
+@JvmName("addKeyStoreNullablePassword")
+public fun TLSConfigBuilder.addKeyStore(store: KeyStore, password: CharArray?, alias: String? = null) {
     val keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm()!!
     val keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm)!!
 
