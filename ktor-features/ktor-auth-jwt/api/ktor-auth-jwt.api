@@ -26,60 +26,26 @@ public final class io/ktor/auth/jwt/JWTAuthenticationProvider$Configuration : io
 	public static synthetic fun verifier$default (Lio/ktor/auth/jwt/JWTAuthenticationProvider$Configuration;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
-public final class io/ktor/auth/jwt/JWTCredential : io/ktor/auth/Credential, io/ktor/auth/jwt/JWTPayloadHolder {
+public final class io/ktor/auth/jwt/JWTCredential : io/ktor/auth/jwt/JWTPayloadHolder, io/ktor/auth/Credential {
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun getAudience ()Ljava/util/List;
-	public fun getClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public fun getExpiresAt ()Ljava/util/Date;
-	public fun getIssuedAt ()Ljava/util/Date;
-	public fun getIssuer ()Ljava/lang/String;
-	public fun getJwtId ()Ljava/lang/String;
-	public fun getListClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/util/List;
-	public fun getNotBefore ()Ljava/util/Date;
-	public fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
-	public fun getSubject ()Ljava/lang/String;
 }
 
-public abstract interface class io/ktor/auth/jwt/JWTPayloadHolder {
-	public abstract fun get (Ljava/lang/String;)Ljava/lang/String;
-	public abstract fun getAudience ()Ljava/util/List;
-	public abstract fun getClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public abstract fun getExpiresAt ()Ljava/util/Date;
-	public abstract fun getIssuedAt ()Ljava/util/Date;
-	public abstract fun getIssuer ()Ljava/lang/String;
-	public abstract fun getJwtId ()Ljava/lang/String;
-	public abstract fun getListClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/util/List;
-	public abstract fun getNotBefore ()Ljava/util/Date;
-	public abstract fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
-	public abstract fun getSubject ()Ljava/lang/String;
-}
-
-public final class io/ktor/auth/jwt/JWTPayloadHolder$DefaultImpls {
-	public static fun get (Lio/ktor/auth/jwt/JWTPayloadHolder;Ljava/lang/String;)Ljava/lang/String;
-	public static fun getAudience (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/util/List;
-	public static fun getClaim (Lio/ktor/auth/jwt/JWTPayloadHolder;Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public static fun getExpiresAt (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/util/Date;
-	public static fun getIssuedAt (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/util/Date;
-	public static fun getIssuer (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/lang/String;
-	public static fun getJwtId (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/lang/String;
-	public static fun getListClaim (Lio/ktor/auth/jwt/JWTPayloadHolder;Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/util/List;
-	public static fun getNotBefore (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/util/Date;
-	public static fun getSubject (Lio/ktor/auth/jwt/JWTPayloadHolder;)Ljava/lang/String;
-}
-
-public final class io/ktor/auth/jwt/JWTPrincipal : io/ktor/auth/Principal, io/ktor/auth/jwt/JWTPayloadHolder {
+public abstract class io/ktor/auth/jwt/JWTPayloadHolder {
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
-	public fun get (Ljava/lang/String;)Ljava/lang/String;
-	public fun getAudience ()Ljava/util/List;
-	public fun getClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/lang/Object;
-	public fun getExpiresAt ()Ljava/util/Date;
-	public fun getIssuedAt ()Ljava/util/Date;
-	public fun getIssuer ()Ljava/lang/String;
-	public fun getJwtId ()Ljava/lang/String;
-	public fun getListClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/util/List;
-	public fun getNotBefore ()Ljava/util/Date;
-	public fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
-	public fun getSubject ()Ljava/lang/String;
+	public final fun get (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAudience ()Ljava/util/List;
+	public final fun getClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/lang/Object;
+	public final fun getExpiresAt ()Ljava/util/Date;
+	public final fun getIssuedAt ()Ljava/util/Date;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwtId ()Ljava/lang/String;
+	public final fun getListClaim (Ljava/lang/String;Lkotlin/reflect/KClass;)Ljava/util/List;
+	public final fun getNotBefore ()Ljava/util/Date;
+	public final fun getPayload ()Lcom/auth0/jwt/interfaces/Payload;
+	public final fun getSubject ()Ljava/lang/String;
+}
+
+public final class io/ktor/auth/jwt/JWTPrincipal : io/ktor/auth/jwt/JWTPayloadHolder, io/ktor/auth/Principal {
+	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
 }
 

@@ -30,11 +30,12 @@ private val JWTLogger: Logger = LoggerFactory.getLogger("io.ktor.auth.jwt")
 /**
  * Shortcut functions for standard registered [JWT Claims](https://tools.ietf.org/html/rfc7519#section-4.1)
  */
-public interface JWTPayloadHolder {
+public abstract class JWTPayloadHolder(
     /**
      * The JWT payload
      */
     public val payload: Payload
+) {
 
     /**
      * Get the value of the "iss" claim, or null if it's not available.
@@ -167,14 +168,14 @@ public interface JWTPayloadHolder {
  * @param payload JWT
  * @see Payload
  */
-public class JWTCredential(public override val payload: Payload) : Credential, JWTPayloadHolder
+public class JWTCredential(payload: Payload) : Credential, JWTPayloadHolder(payload)
 
 /**
  * Represents a JWT principal consist of the specified [payload]
  * @param payload JWT
  * @see Payload
  */
-public class JWTPrincipal(public override val payload: Payload) : Principal, JWTPayloadHolder
+public class JWTPrincipal(payload: Payload) : Principal, JWTPayloadHolder(payload)
 
 /**
  * JWT verifier configuration function. It is applied on the verifier builder.
