@@ -5,9 +5,11 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
+import io.ktor.client.features.DefaultRequest.*
 import io.ktor.client.request.*
-import io.ktor.util.*
 import io.ktor.http.*
+import io.ktor.util.*
+
 /**
  * [Feature] is used to set request default parameters.
  */
@@ -54,8 +56,7 @@ public class DefaultRequest(private val builder: Builder.() -> Unit) {
         private fun URLBuilder.isRelativeURL(): Boolean {
             val defaultURLBuilder = URLBuilder()
             val isDefault = this == defaultURLBuilder
-            val isRelativeURL = (protocol == defaultURLBuilder.protocol
-                && authority == defaultURLBuilder.authority)
+            val isRelativeURL = protocol == defaultURLBuilder.protocol && authority == defaultURLBuilder.authority
             return !isDefault && isRelativeURL
         }
     }
@@ -80,7 +81,7 @@ public class DefaultRequest(private val builder: Builder.() -> Unit) {
 /**
  * Set request default parameters.
  */
-public fun HttpClientConfig<*>.defaultRequest(block: DefaultRequest.Builder.() -> Unit) {
+public fun HttpClientConfig<*>.defaultRequest(block: Builder.() -> Unit) {
     install(DefaultRequest) {
         block()
     }
