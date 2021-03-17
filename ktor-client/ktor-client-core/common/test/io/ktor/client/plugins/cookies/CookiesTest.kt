@@ -1,12 +1,12 @@
-import io.ktor.client.plugins.cookies.*
+/*
+* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+*/
+package io.ktor.client.plugins.cookies
+
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.test.dispatcher.*
 import kotlin.test.*
-
-/*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
 
 class CookiesTest {
 

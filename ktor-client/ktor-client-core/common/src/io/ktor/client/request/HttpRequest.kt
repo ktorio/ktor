@@ -54,7 +54,7 @@ public interface HttpRequest : HttpMessage, CoroutineScope {
 /**
  * Class for building [HttpRequestData].
  */
-public class HttpRequestBuilder : HttpMessageBuilder {
+public open class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
      */

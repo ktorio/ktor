@@ -1,4 +1,5 @@
-import io.ktor.client.request.forms.*
+package io.ktor.client.request.forms
+
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*

@@ -1,11 +1,12 @@
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import kotlin.test.*
-
 /*
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
+
+package io.ktor.client.statement
+
+import io.ktor.client.*
+import io.ktor.client.request.*
+import kotlin.test.*
 
 class HttpStatementTest {
 
