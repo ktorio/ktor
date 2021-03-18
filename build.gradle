@@ -139,6 +139,7 @@ allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven" }
     }
 
     CacheRedirector.configure(project)
@@ -162,7 +163,7 @@ allprojects {
     configurations { testOutput }
 
     kotlin {
-        if (!disabledExplicitApiModeProjects.contains(project.name)){
+        if (!disabledExplicitApiModeProjects.contains(project.name)) {
             explicitApi()
         }
 
