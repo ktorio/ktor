@@ -36,8 +36,9 @@ public class VelocityTools private constructor(private val toolManager: ToolMana
         ): VelocityTools {
             val factoryConfig = EasyFactoryConfiguration().apply(config)
             val engineConfig = factoryConfig.getData(ENGINE_CONFIG_KEY)
-            factoryConfig.removeData(engineConfig)
-            val engine = VelocityEngine().apply(engineConfig.value as VelocityEngine.() -> Unit)
+                ?.also { factoryConfig.removeData(it) }
+                ?.value as (VelocityEngine.() -> Unit)? ?: {}
+            val engine = VelocityEngine().apply(engineConfig)
             val toolManager = ToolManager().apply {
                 configure(factoryConfig)
                 velocityEngine = engine

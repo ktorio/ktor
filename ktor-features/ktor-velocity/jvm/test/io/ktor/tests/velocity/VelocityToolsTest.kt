@@ -145,6 +145,35 @@ class VelocityToolsTest {
         }
     }
 
+    @Test
+    fun testNoVelocityConfig() {
+        withTestApplication {
+            application.install(VelocityTools)
+
+            application.routing {
+                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+
+                get("/") {
+                    // default engine resource loader is 'file',
+                    // default test working directory is ktor-velocity project root
+                    call.respondTemplate("jvm/test/resources/test-template.vhtml", model)
+                }
+            }
+
+            val call = handleRequest(HttpMethod.Get, "/")
+
+            with(call.response) {
+                assertNotNull(content)
+
+                val lines = content!!.lines()
+
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
+                assertEquals("<i></i>", lines[2])
+            }
+        }
+    }
+
     private fun Application.setUpTestTemplates(config: EasyFactoryConfiguration.() -> Unit = {}) {
         val bax = "$"
 
