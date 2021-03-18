@@ -20,7 +20,7 @@ public fun EasyFactoryConfiguration.engine(configure : VelocityEngine.() -> Unit
 /**
  * VelocityTools ktor feature. Populates model with standard Velocity tools.
  */
-public class VelocityTools(private val toolManager: ToolManager) {
+public class VelocityTools private constructor(private val toolManager: ToolManager) {
 
     /**
      * A companion object for installing feature
