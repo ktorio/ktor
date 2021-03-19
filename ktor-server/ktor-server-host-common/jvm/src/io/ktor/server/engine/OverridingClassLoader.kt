@@ -17,14 +17,12 @@ internal class OverridingClassLoader(
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)
 
     @Synchronized
-    override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        try {
-            // first we try to find a class inside the child classloader
-            return childClassLoader.findClass(name)
-        } catch (e: ClassNotFoundException) {
-            // didn't find it, try the parent
-            return super.loadClass(name, resolve)
-        }
+    override fun loadClass(name: String, resolve: Boolean): Class<*> = try {
+        // first we try to find a class inside the child classloader
+        childClassLoader.findClass(name)
+    } catch (e: ClassNotFoundException) {
+        // didn't find it, try the parent
+        super.loadClass(name, resolve)
     }
 
     override fun close() {
