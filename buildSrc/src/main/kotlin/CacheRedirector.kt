@@ -54,7 +54,8 @@ private val mirroredUrls = listOf(
     "https://www.python.org/ftp",
     "https://www.jetbrains.com/intellij-repository/nightly",
     "https://www.jetbrains.com/intellij-repository/releases",
-    "https://www.jetbrains.com/intellij-repository/snapshots"
+    "https://www.jetbrains.com/intellij-repository/snapshots",
+    "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven"
 )
 
 private val aliases = mapOf(
