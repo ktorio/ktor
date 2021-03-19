@@ -30,10 +30,10 @@ public object JsBrowser : HttpClientEngineFactory<JsBrowser.Config> {
         public var credentials: RequestCredentials? = null
 
         /**
-         * Configure the [integrity behaviour](https://developer.mozilla.org/en-US/docs/Web/API/Request/integrity) for the JS fetch API.
+         * Configure the [keepalive behaviour](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive) for the JS fetch API.
          * If null, use the default behaviour from the browser.
          */
-        public var integrity: String? = null
+        public var keepalive: Boolean? = null
 
         /**
          * Configure the [mode behaviour](https://developer.mozilla.org/en-US/docs/Web/API/Request/mode) for the JS fetch API.
@@ -49,8 +49,8 @@ public object JsBrowser : HttpClientEngineFactory<JsBrowser.Config> {
                 this@Config.credentials?.let {
                     credentials = it
                 }
-                this@Config.integrity?.let {
-                    integrity = it
+                this@Config.keepalive?.let {
+                    keepalive = it
                 }
                 this@Config.mode?.let {
                     mode = it
