@@ -57,10 +57,10 @@ internal val DefaultChunkedBufferPool: ObjectPool<IoBuffer> = DefaultBufferPool(
 @Suppress("DEPRECATION")
 internal class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
-
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
 ) : DefaultPool<IoBuffer>(capacity) {
+
     override fun produceInstance(): IoBuffer {
         return IoBuffer(allocator.alloc(bufferSize), null, this)
     }

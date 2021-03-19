@@ -5,7 +5,7 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class BufferTest {
-    private val pool = VerifyingObjectPool(ChunkBuffer.Pool)
+    private val pool = VerifyingChunkBufferPool()
     private val Buffer.Companion.Pool get() = pool
 
     @Test

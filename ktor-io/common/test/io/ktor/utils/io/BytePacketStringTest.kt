@@ -10,7 +10,7 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 open class BytePacketStringTest {
-    open val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
+    open val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
 
     @AfterTest
     fun verifyPool() {

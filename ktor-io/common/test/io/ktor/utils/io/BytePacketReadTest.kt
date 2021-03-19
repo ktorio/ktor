@@ -4,14 +4,12 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class BytePacketReadTest {
-    val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.Pool)
+    val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
 
     @AfterTest
     fun verifyPool() {

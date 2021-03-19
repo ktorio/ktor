@@ -5,7 +5,7 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class TakeWhileTest {
-    private val pool = VerifyingObjectPool(ChunkBuffer.Pool)
+    private val pool = VerifyingChunkBufferPool()
     private val chunk1 = pool.borrow()
     private val chunk2 = pool.borrow()
 

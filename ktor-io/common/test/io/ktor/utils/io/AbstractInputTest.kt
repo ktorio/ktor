@@ -5,10 +5,11 @@ import io.ktor.utils.io.bits.set
 import io.ktor.utils.io.bits.storeIntAt
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
+import io.ktor.utils.io.pool.*
 import kotlin.test.*
 
 class AbstractInputTest {
-    private val pool = VerifyingObjectPool(ChunkBuffer.Pool)
+    private val pool = VerifyingChunkBufferPool()
 
     @AfterTest
     fun verify() {

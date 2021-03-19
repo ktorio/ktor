@@ -10,7 +10,7 @@ import kotlin.test.*
 import kotlin.test.Test
 
 open class BytePacketBuildTest {
-    open val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
+    open val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
 
     @AfterTest
     fun verifyPool() {

@@ -11,7 +11,7 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class BytePacketBuilderExtendedTest : BytePacketBuildTest() {
-    override val pool = VerifyingObjectPool(ChunkBuffer.Pool)
+    override val pool = VerifyingChunkBufferPool()
 
     private val buffer = nativeHeap.allocArray<ByteVar>(8888)
 

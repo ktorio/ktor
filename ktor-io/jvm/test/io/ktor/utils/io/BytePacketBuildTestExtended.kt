@@ -12,9 +12,7 @@ import kotlin.test.*
 import kotlin.test.Test
 
 class BytePacketBuildTestExtended : BytePacketBuildTest() {
-
-    @get:Rule
-    override val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.Pool)
+    override val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
 
     @Test
     fun smokeSingleBufferTestExtended() {

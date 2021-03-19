@@ -5,7 +5,7 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class ReadUntilDelimiterTest {
-    private val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
+    private val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
     private val small = ByteArray(3)
     private val empty = ByteArray(0)
     private val builder = BytePacketBuilder(0, pool)

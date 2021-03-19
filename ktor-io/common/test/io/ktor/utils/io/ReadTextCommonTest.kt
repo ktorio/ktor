@@ -8,11 +8,11 @@ import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 class ReadTextCommonTest {
-    private val pool: VerifyingObjectPool<ChunkBuffer> = VerifyingObjectPool(ChunkBuffer.NoPool)
+    private val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
 
     @AfterTest
     fun verifyPool() {
-//        pool.assertEmpty()
+        pool.assertEmpty()
     }
 
     @Test
@@ -58,9 +58,9 @@ class ReadTextCommonTest {
 
         val outer = buildPacket {
             append("1234")
-            kotlin.test.assertEquals(4, size)
+            assertEquals(4, size)
             writePacket(inner)
-            kotlin.test.assertEquals(5, size)
+            assertEquals(5, size)
         }
 
         assertEquals("1234.", outer.readText())
@@ -75,9 +75,9 @@ class ReadTextCommonTest {
 
         val outer = buildPacket {
             append("1234")
-            kotlin.test.assertEquals(4, size)
+            assertEquals(4, size)
             writePacket(inner)
-            kotlin.test.assertEquals(5, size)
+            assertEquals(5, size)
         }
 
         assertEquals("1234.", outer.readText())
@@ -92,9 +92,9 @@ class ReadTextCommonTest {
 
         val outer = buildPacket {
             append("123")
-            kotlin.test.assertEquals(3, size)
+            assertEquals(3, size)
             writePacket(inner.copy())
-            kotlin.test.assertEquals(6, size)
+            assertEquals(6, size)
             append(".")
         }
 
@@ -111,9 +111,9 @@ class ReadTextCommonTest {
 
         val outer = buildPacket {
             append("123")
-            kotlin.test.assertEquals(3, size)
+            assertEquals(3, size)
             writePacket(inner.copy())
-            kotlin.test.assertEquals(100003, size)
+            assertEquals(100003, size)
             append(".")
         }
 

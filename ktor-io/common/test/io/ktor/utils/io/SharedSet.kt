@@ -4,6 +4,9 @@
 
 package io.ktor.utils.io
 
-class StringsTestPooled : BytePacketStringTest() {
-    override val pool: VerifyingChunkBufferPool = VerifyingChunkBufferPool()
+internal expect class SharedSet<T>() {
+    val size: Int
+
+    fun add(element: T): Boolean
+    fun remove(element: T): Boolean
 }

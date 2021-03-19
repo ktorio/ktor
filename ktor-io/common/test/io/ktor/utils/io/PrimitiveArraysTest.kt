@@ -6,7 +6,7 @@ import kotlin.require
 import kotlin.test.*
 
 class PrimitiveArraysTest {
-    private val pool = VerifyingObjectPool(ChunkBuffer.NoPool)
+    private val pool = VerifyingChunkBufferPool()
     private val view = pool.borrow()
 
     private val i8 = byteArrayOf(-15, 0, 1, -1, 127)
