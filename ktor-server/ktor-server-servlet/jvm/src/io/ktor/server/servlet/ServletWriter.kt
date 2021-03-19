@@ -23,9 +23,11 @@ internal fun CoroutineScope.servletWriter(output: ServletOutputStream): ReaderJo
 internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
     override fun produceInstance() = ByteArray(4096)
     override fun validateInstance(instance: ByteArray) {
-        if (instance.size != 4096) throw IllegalArgumentException(
-            "Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool"
-        )
+        if (instance.size != 4096) {
+            throw IllegalArgumentException(
+                "Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool"
+            )
+        }
     }
 }
 

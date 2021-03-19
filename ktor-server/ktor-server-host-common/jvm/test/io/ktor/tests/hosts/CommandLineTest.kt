@@ -125,9 +125,9 @@ class CommandLineTest {
     private class IsolatedResourcesClassLoader(val dir: File, parent: ClassLoader) : ClassLoader(parent) {
         override fun getResources(name: String): Enumeration<URL> {
             val lookup = File(dir, name)
-            if (lookup.isFile) return listOf(
-                lookup.absoluteFile.toURI().toURL()
-            ).let { Collections.enumeration<URL>(it) }
+            if (lookup.isFile) {
+                return listOf(lookup.absoluteFile.toURI().toURL()).let { Collections.enumeration<URL>(it) }
+            }
             return parent.getResources(name)
         }
 

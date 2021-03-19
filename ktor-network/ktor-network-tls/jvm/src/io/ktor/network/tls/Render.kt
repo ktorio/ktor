@@ -39,9 +39,9 @@ internal fun BytePacketBuilder.writeTLSClientHello(
     writeFully(random)
 
     val sessionIdLength = sessionId.size
-    if (sessionIdLength < 0 || sessionIdLength > 0xff || sessionIdLength > sessionId.size) throw TLSException(
-        "Illegal sessionIdLength"
-    )
+    if (sessionIdLength < 0 || sessionIdLength > 0xff || sessionIdLength > sessionId.size) {
+        throw TLSException("Illegal sessionIdLength")
+    }
 
     writeByte(sessionIdLength.toByte())
     writeFully(sessionId, 0, sessionIdLength)

@@ -76,9 +76,9 @@ internal class TLSClientHandshake(
                     TLSRecordType.ChangeCipherSpec -> {
                         check(!useCipher)
                         val flag = packet.readByte()
-                        if (flag != 1.toByte()) throw TLSException(
-                            "Expected flag: 1, received $flag in ChangeCipherSpec"
-                        )
+                        if (flag != 1.toByte()) {
+                            throw TLSException("Expected flag: 1, received $flag in ChangeCipherSpec")
+                        }
                         useCipher = true
                         continue@loop
                     }
@@ -182,11 +182,13 @@ internal class TLSClientHandshake(
         val serverExchanges = serverHello.hashAndSignAlgorithms
         if (serverExchanges.isEmpty()) return
 
-        if (!clientExchanges.any { it in serverExchanges }) throw TLSException(
-            "No sign algorithms in common. \n" +
+        if (!clientExchanges.any { it in serverExchanges }) {
+            val message = "No sign algorithms in common. \n" +
                 "Server candidates: $serverExchanges \n" +
                 "Client candidates: $clientExchanges"
-        )
+
+            throw TLSException(message)
+        }
     }
 
     private suspend fun sendClientHello() {
@@ -497,14 +499,14 @@ private fun generateECKeys(curve: NamedCurve, serverPoint: ECPoint): EncryptionI
 }
 
 /**
-* RFC 5246, 7.4.4.  Certificate Request:
-*
-*     struct {
-*         ClientCertificateType certificate_types<1..2^8-1>;
-*         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
-*         DistinguishedName certificate_authorities<0..2^16-1>;
-*     } CertificateRequest;
-*/
+ * RFC 5246, 7.4.4.  Certificate Request:
+ *
+ *     struct {
+ *         ClientCertificateType certificate_types<1..2^8-1>;
+ *         SignatureAndHashAlgorithm supported_signature_algorithms<2^16-1>;
+ *         DistinguishedName certificate_authorities<0..2^16-1>;
+ *     } CertificateRequest;
+ */
 internal fun readClientCertificateRequest(packet: ByteReadPacket): CertificateInfo {
     val typeCount = packet.readByte().toInt() and 0xFF
     val types = packet.readBytes(typeCount)
