@@ -172,7 +172,7 @@ public data class ConstantParameterRouteSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        if (context.call.parameters.contains(name, value)) {
+        if (context.selectorEvaluations.any { it.parameters.contains(name, value) }) {
             return RouteSelectorEvaluation.Constant
         }
         return RouteSelectorEvaluation.Failed
@@ -190,8 +190,8 @@ public data class ParameterRouteSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val param = context.call.parameters.getAll(name)
-        if (param != null) {
+        val param = context.selectorEvaluations.flatMap { it.parameters.getAll(name).orEmpty() }
+        if (param.isNotEmpty()) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,
@@ -213,8 +213,8 @@ public data class OptionalParameterRouteSelector(
 ) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val param = context.call.parameters.getAll(name)
-        if (param != null) {
+        val param = context.selectorEvaluations.flatMap { it.parameters.getAll(name).orEmpty() }
+        if (param.isNotEmpty()) {
             return RouteSelectorEvaluation(
                 true,
                 RouteSelectorEvaluation.qualityQueryParameter,

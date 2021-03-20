@@ -56,6 +56,12 @@ public class RoutingResolveContext(
     public val segments: List<String>
 
     /**
+     * List of route selector evaluations resolved out of a [call]
+     */
+    public var selectorEvaluations: List<RouteSelectorEvaluation> = emptyList()
+        private set
+
+    /**
      * Flag showing if path ends with slash
      */
     public val hasTrailingSlash: Boolean = call.request.path().endsWith('/')
@@ -157,6 +163,8 @@ public class RoutingResolveContext(
                     continue
                 }
             }
+
+            selectorEvaluations = selectorEvaluations + selectorResult
 
             val subtreeResult = resolve(child, segmentIndex + selectorResult.segmentIncrement)
             when (subtreeResult) {
