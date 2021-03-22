@@ -13,6 +13,7 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
+import org.apache.velocity.context.*
 
 /**
  * Represents a response content that could be used to respond with `call.respond(VelocityContent(...))`
@@ -29,6 +30,25 @@ public class VelocityContent(
     public val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 )
 
+internal class VelocityOutgoingContent(
+    val template: Template,
+    val model: Context,
+    etag: String?,
+    override val contentType: ContentType
+) : OutgoingContent.WriteChannelContent() {
+    override suspend fun writeTo(channel: ByteWriteChannel) {
+        channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
+            template.merge(model, it)
+        }
+    }
+
+    init {
+        if (etag != null) {
+            versions += EntityTagVersion(etag)
+        }
+    }
+}
+
 /**
  * Velocity ktor feature. Provides ability to respond with [VelocityContent] and [respondTemplate].
  */
@@ -41,7 +61,7 @@ public class Velocity(private val engine: VelocityEngine) {
      * A companion object for installing feature
      */
     public companion object Feature : ApplicationFeature<ApplicationCallPipeline, VelocityEngine, Velocity> {
-        override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("freemarker")
+        override val key: AttributeKey<Velocity> = AttributeKey<Velocity>("velocity")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: VelocityEngine.() -> Unit): Velocity {
             val config = VelocityEngine().apply(configure)
@@ -59,28 +79,9 @@ public class Velocity(private val engine: VelocityEngine) {
     private fun process(content: VelocityContent): VelocityOutgoingContent {
         return VelocityOutgoingContent(
             engine.getTemplate(content.template),
-            content.model,
+            VelocityContext(content.model),
             content.etag,
             content.contentType
         )
-    }
-
-    private class VelocityOutgoingContent(
-        val template: Template,
-        val model: Map<String, Any>,
-        etag: String?,
-        override val contentType: ContentType
-    ) : OutgoingContent.WriteChannelContent() {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
-            channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.merge(VelocityContext(model), it)
-            }
-        }
-
-        init {
-            if (etag != null) {
-                versions += EntityTagVersion(etag)
-            }
-        }
     }
 }
