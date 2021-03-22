@@ -3,7 +3,8 @@ kotlin {
     sourceSets {
         jvmMain {
             dependencies {
-                api group: 'org.apache.velocity', name: 'velocity-engine-core', version: '[2.0, 2.1)'
+                api group: 'org.apache.velocity', name: 'velocity-engine-core', version: '2.3'
+                api group: 'org.apache.velocity.tools', name: 'velocity-tools-generic', version: '3.1'
             }
         }
     }
