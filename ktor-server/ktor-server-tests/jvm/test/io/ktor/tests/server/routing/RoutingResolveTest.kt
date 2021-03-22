@@ -76,6 +76,19 @@ class RoutingResolveTest {
     }
 
     @Test
+    fun testMatchingRoot() {
+        val root = routing("context/path")
+        root.handle {  }
+
+        on("resolving /context/path") {
+            val result = resolve(root, "/context/path")
+            it("should succeed") {
+                assertTrue(result is RoutingResolveResult.Success)
+            }
+        }
+    }
+
+    @Test
     fun `custom root path`() {
         val root = routing("context/path")
         root.handle(PathSegmentConstantRouteSelector("foo"))
@@ -94,7 +107,7 @@ class RoutingResolveTest {
         }
         on("resolving /context/path") {
             val result = resolve(root, "/context/path")
-            it("should succeed") {
+            it("shouldn't succeed") {
                 assertTrue(result is RoutingResolveResult.Failure)
             }
         }
@@ -131,7 +144,7 @@ class RoutingResolveTest {
         }
         on("resolving /context/path") {
             val result = resolve(root, "/context/path")
-            it("should succeed") {
+            it("shouldn't succeed") {
                 assertTrue(result is RoutingResolveResult.Failure)
             }
         }
@@ -168,9 +181,6 @@ class RoutingResolveTest {
             it("should not succeed") {
                 assertTrue(result is RoutingResolveResult.Failure)
             }
-            it("should have fooEntry as fail entry") {
-                assertEquals(fooEntry, result.route)
-            }
         }
     }
 
@@ -192,9 +202,6 @@ class RoutingResolveTest {
             val result = resolve(root, "/foo/bar")
             it("should not succeed") {
                 assertTrue(result is RoutingResolveResult.Failure)
-            }
-            it("should have fooEntry as fail entry") {
-                assertEquals(fooEntry, result.route)
             }
         }
     }
@@ -1119,6 +1126,39 @@ class RoutingResolveTest {
     }
 
     @Test
+    fun testRoutingMatchesWithMethod() = withTestApplication {
+        application.routing {
+            route("/") {
+                get {
+                    call.respondText("foo")
+                }
+                handle {
+                    call.respondText("bar")
+                }
+            }
+        }
+
+        on("making get request") {
+            val result = handleRequest {
+                uri = "/"
+                method = HttpMethod.Get
+            }
+            it("/:get should be called") {
+                assertEquals("foo", result.response.content)
+            }
+        }
+        on("making post request") {
+            val result = handleRequest {
+                uri = "/"
+                method = HttpMethod.Post
+            }
+            it("/ should be called") {
+                assertEquals("bar", result.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testRoutingTrailingSlashWithTrailcard() = withTestApplication {
         application.routing {
             get("test/a{foo...}") {
@@ -1273,10 +1313,12 @@ class RoutingResolveTest {
         val root = routing()
         val siblingTop = root.handle(PathSegmentParameterRouteSelector("sibling", "top"))
         val transparentEntryTop = root.createChild(
-            object : RouteSelector(RouteSelectorEvaluation.qualityTransparent) {
+            object : RouteSelector() {
                 override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
                     return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
                 }
+
+                override fun toString(): String = "transparent"
             }
         )
         // inner entry has lower priority then its siblings

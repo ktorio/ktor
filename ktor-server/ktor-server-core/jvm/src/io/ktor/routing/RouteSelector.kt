@@ -93,6 +93,12 @@ public data class RouteSelectorEvaluation(
             RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
         /**
+         * Route evaluation succeeded for a transparent value
+         */
+        public val Transparent: RouteSelectorEvaluation =
+            RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+
+        /**
          * Route evaluation succeeded for a single path segment with a constant value
          */
         public val ConstantPath: RouteSelectorEvaluation =
@@ -111,7 +117,13 @@ public data class RouteSelectorEvaluation(
  *
  * @param quality indicates how good this selector is compared to siblings
  */
-public abstract class RouteSelector(public val quality: Double) {
+public abstract class RouteSelector
+@Deprecated("quality property is not used anymore and will be removed", replaceWith = ReplaceWith("RouteSelector()"))
+constructor(@Deprecated("This property is not used anymore and will be removed") public val quality: Double) {
+
+    @Suppress("Deprecation")
+    public constructor() : this(0.0)
+
     /**
      * Evaluates this selector against [context] and a path segment at [segmentIndex]
      */
@@ -122,7 +134,7 @@ public abstract class RouteSelector(public val quality: Double) {
  * The selector for routing root.
  */
 @InternalAPI
-public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public class RootRouteSelector(rootPath: String = "") : RouteSelector() {
 
     private val parts = RoutingPath.parse(rootPath).parts.map {
         require(it.kind == RoutingPathSegmentKind.Constant) {
@@ -169,7 +181,7 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(RouteSelec
 public data class ConstantParameterRouteSelector(
     val name: String,
     val value: String
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.parameters.contains(name, value)) {
@@ -187,7 +199,7 @@ public data class ConstantParameterRouteSelector(
  */
 public data class ParameterRouteSelector(
     val name: String
-) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
@@ -210,7 +222,7 @@ public data class ParameterRouteSelector(
  */
 public data class OptionalParameterRouteSelector(
     val name: String
-) : RouteSelector(RouteSelectorEvaluation.qualityQueryParameter) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
@@ -233,7 +245,7 @@ public data class OptionalParameterRouteSelector(
  */
 public data class PathSegmentConstantRouteSelector(
     val value: String
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -254,14 +266,14 @@ public data class PathSegmentConstantRouteSelector(
 /**
  * Evaluates a route against a single trailing slash
  */
-public object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public object TrailingSlashRouteSelector : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
-        context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Constant
-        context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
-        segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Constant
+        context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Transparent
+        context.segments.isEmpty() -> RouteSelectorEvaluation.Transparent
+        segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Transparent
         segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
-        context.segments[segmentIndex].isNotEmpty() -> RouteSelectorEvaluation.Constant
+        context.segments[segmentIndex].isNotEmpty() -> RouteSelectorEvaluation.Transparent
         context.hasTrailingSlash -> RouteSelectorEvaluation.ConstantPath
         else -> RouteSelectorEvaluation.Failed
     }
@@ -279,7 +291,7 @@ public data class PathSegmentParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
+) : RouteSelector() {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -313,7 +325,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
     val name: String,
     val prefix: String? = null,
     val suffix: String? = null
-) : RouteSelector(RouteSelectorEvaluation.qualityPathParameter) {
+) : RouteSelector() {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -340,7 +352,7 @@ public data class PathSegmentOptionalParameterRouteSelector(
 /**
  * Evaluates a route against any single path segment
  */
-public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityWildcard) {
+public object PathSegmentWildcardRouteSelector : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (segmentIndex < context.segments.size && context.segments[segmentIndex].isNotEmpty()) {
             return RouteSelectorEvaluation.WildcardPath
@@ -359,7 +371,7 @@ public object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEval
 public data class PathSegmentTailcardRouteSelector(
     val name: String = "",
     val prefix: String = ""
-) : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
+) : RouteSelector() {
 
     @Deprecated(
         "hasTrailingSlash is not used anymore. This is going to be removed",
@@ -414,7 +426,7 @@ public data class PathSegmentTailcardRouteSelector(
 public data class OrRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
-) : RouteSelector(first.quality * second.quality) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, segmentIndex)
@@ -436,7 +448,7 @@ public data class OrRouteSelector(
 public data class AndRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
-) : RouteSelector(first.quality * second.quality) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val result1 = first.evaluate(context, segmentIndex)
@@ -465,7 +477,7 @@ public data class AndRouteSelector(
  */
 public data class HttpMethodRouteSelector(
     val method: HttpMethod
-) : RouteSelector(RouteSelectorEvaluation.qualityMethodParameter) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         if (context.call.request.httpMethod == method) {
@@ -485,7 +497,7 @@ public data class HttpMethodRouteSelector(
 public data class HttpHeaderRouteSelector(
     val name: String,
     val value: String
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val headers = context.call.request.headers[name]
@@ -505,7 +517,7 @@ public data class HttpHeaderRouteSelector(
  */
 public data class HttpAcceptRouteSelector(
     val contentType: ContentType
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val acceptHeaderContent = context.call.request.headers[HttpHeaders.Accept]

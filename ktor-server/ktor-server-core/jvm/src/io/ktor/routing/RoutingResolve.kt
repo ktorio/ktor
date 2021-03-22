@@ -23,8 +23,16 @@ public sealed class RoutingResolveResult(public val route: Route) {
     /**
      * Represents a successful result
      */
-    public class Success(route: Route, override val parameters: Parameters) : RoutingResolveResult(route) {
-        override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route)"
+    public class Success internal constructor(
+        route: Route,
+        override val parameters: Parameters,
+        internal val quality: Double
+    ) : RoutingResolveResult(route) {
+
+        @Deprecated("Binary compatibility")
+        public constructor(route: Route, parameters: Parameters) : this(route, parameters, 0.0)
+
+        override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route"
     }
 
     /**
@@ -35,7 +43,7 @@ public sealed class RoutingResolveResult(public val route: Route) {
         override val parameters: Nothing
             get() = throw UnsupportedOperationException("Parameters are available only when routing resolve succeeds")
 
-        override fun toString(): String = "FAILURE \"$reason\" @ $route)"
+        override fun toString(): String = "FAILURE \"$reason\" @ $route"
     }
 }
 
@@ -103,126 +111,119 @@ public class RoutingResolveContext(
      */
     public fun resolve(): RoutingResolveResult {
         val root = routing
-        val rootResult = root.selector.evaluate(this, 0)
-        if (!rootResult.succeeded) {
-            return rootResolveFailed(root)
-        }
-
-        val result = resolve(root, rootResult.segmentIncrement)
-        trace?.apply { tracers.forEach { it(this) } }
-        return result
-    }
-
-    private fun rootResolveFailed(root: Route): RoutingResolveResult.Failure {
-        return RoutingResolveResult.Failure(root, "rootPath didn't match").also { result ->
+        val rootEvaluation = root.selector.evaluate(this, 0)
+        if (!rootEvaluation.succeeded) {
+            val result = RoutingResolveResult.Failure(root, "rootPath didn't match")
             trace?.skip(root, 0, result)
+            return result
         }
+        val successResults = mutableListOf<List<RoutingResolveResult.Success>>()
+
+        val rootResolveResult = RoutingResolveResult.Success(root, rootEvaluation.parameters, rootEvaluation.quality)
+        val rootResolveResults = listOf(rootResolveResult)
+
+        trace?.begin(root, 0)
+        resolveStep(
+            root,
+            successResults,
+            rootResolveResults,
+            rootEvaluation.segmentIncrement
+        )
+        trace?.finish(root, 0, rootResolveResult)
+
+        trace?.registerSuccessResults(successResults)
+        val resolveResult = findBestRoute(root, successResults)
+        trace?.registerFinalResult(resolveResult)
+
+        trace?.apply { tracers.forEach { it(this) } }
+        return resolveResult
     }
 
-    private fun resolve(entry: Route, segmentIndex: Int): RoutingResolveResult {
-        trace?.begin(entry, segmentIndex)
+    private fun resolveStep(
+        entry: Route,
+        successResults: MutableList<List<RoutingResolveResult.Success>>,
+        trait: List<RoutingResolveResult.Success>,
+        segmentIndex: Int
+    ): Boolean {
+        var matched = false
+        if (entry.children.isEmpty() && segmentIndex != segments.size) {
+            trace?.skip(entry, segmentIndex, RoutingResolveResult.Failure(entry, "Not all segments matched"))
+            return false
+        }
+        if (entry.handlers.isNotEmpty() && segmentIndex == segments.size) {
+            successResults.add(trait)
+            matched = true
+        }
 
-        // last failed entry for diagnostics
-        var failEntry: Route? = null
-        // best matched entry (with highest quality)
-        var bestResult: RoutingResolveResult? = null
-        var bestQuality = 0.0
-        var bestChild: Route? = null
+        var bestChildResult: RouteSelectorEvaluation? = null
 
-        val children = flattenChildren(entry.children)
         // iterate using indices to avoid creating iterator
-        for (childIndex in 0..children.lastIndex) {
-            val child = children[childIndex]
+        for (childIndex in 0..entry.children.lastIndex) {
+            val child = entry.children[childIndex]
             val selectorResult = child.selector.evaluate(this, segmentIndex)
             if (!selectorResult.succeeded) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Selector didn't match"))
                 continue // selector didn't match, skip entire subtree
             }
-
-            val immediateSelectQuality = when (selectorResult.quality) {
-                // handlers of routes with qualityTransparent should be treated as ones with qualityConstant
-                RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
-                else -> selectorResult.quality
-            }
-
-            if (immediateSelectQuality < bestQuality) {
+            if (bestChildResult != null && selectorResult.quality < bestChildResult.quality) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Better match was already found"))
                 continue
             }
 
-            if (immediateSelectQuality == bestQuality) {
-                // ambiguity, compare immediate child quality
-                if (bestChild!!.selector.quality >= child.selector.quality) {
-                    trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Lost in ambiguity tie"))
-                    continue
-                }
+            val result = RoutingResolveResult.Success(child, selectorResult.parameters, selectorResult.quality)
+            val newIndex = segmentIndex + selectorResult.segmentIncrement
+            trace?.begin(child, newIndex)
+            val success = resolveStep(child, successResults, trait + result, newIndex)
+            trace?.finish(child, newIndex, result)
+            if (success && (bestChildResult == null || bestChildResult.quality < result.quality)) {
+                bestChildResult = selectorResult
             }
-
-            val subtreeResult = resolve(child, segmentIndex + selectorResult.segmentIncrement)
-            when (subtreeResult) {
-                is RoutingResolveResult.Failure -> {
-                    // subtree didn't match, skip to next child, remember first failed entry
-                    if (failEntry == null) {
-                        failEntry = subtreeResult.route
-                    }
-                }
-                is RoutingResolveResult.Success -> {
-                    bestChild = child
-                    bestQuality = immediateSelectQuality
-                    bestResult = if (selectorResult.parameters.isEmpty()) {
-                        // do not allocate new RoutingResolveResult if it will be the same as subtreeResult
-                        // TODO: Evaluate if we can make RoutingResolveResult mutable altogether and avoid allocations
-                        subtreeResult
-                    } else {
-                        val combinedValues = selectorResult.parameters + subtreeResult.parameters
-                        RoutingResolveResult.Success(subtreeResult.route, combinedValues)
-                    }
-                }
-            }
+            matched = matched || success
         }
-
-        val result = if (segmentIndex == segments.size && entry.handlers.isNotEmpty()) {
-            if (bestResult != null && bestQuality > RouteSelectorEvaluation.qualityMissing) {
-                // child match is better than missing optional parameter, so choose it
-                bestResult
-            } else {
-                // no child matched, or child matched optionally and this node has a handler
-                RoutingResolveResult.Success(entry, Parameters.Empty)
-            }
-        } else {
-            if (bestResult != null) {
-                // child matched
-                bestResult
-            } else {
-                // nothing more to match and no handler, or there are more segments and no matched child
-                val reason = when (segmentIndex) {
-                    segments.size -> "Segments exhausted but no handlers found"
-                    else -> "Not all segments matched"
-                }
-                RoutingResolveResult.Failure(failEntry ?: entry, reason)
-            }
-        }
-
-        trace?.finish(entry, segmentIndex, result)
-        return result
+        return matched
     }
 
-    private fun flattenChildren(children: List<Route>): List<Route> {
-        // to avoid unnecessary allocations, first check if flattening is required
-        // iterate using indices to avoid creating iterator
-        var hasTransparentChildren = false
-        for (childIndex in 0..children.lastIndex) {
-            hasTransparentChildren = children[childIndex].selector.quality == RouteSelectorEvaluation.qualityTransparent
-            if (hasTransparentChildren) break
+    private fun findBestRoute(
+        root: Route,
+        successResults: List<List<RoutingResolveResult.Success>>
+    ): RoutingResolveResult {
+        if (successResults.isEmpty()) {
+            return RoutingResolveResult.Failure(root, "No matched subtrees found")
         }
-        if (!hasTransparentChildren) return children
+        val bestPath = successResults
+            .maxWithOrNull { result1, result2 ->
+                var index1 = 0
+                var index2 = 0
+                while (index1 < result1.size && index2 < result2.size) {
+                    val quality1 = result1[index1].quality
+                    val quality2 = result2[index2].quality
+                    if (quality1 == RouteSelectorEvaluation.qualityTransparent) {
+                        index1++
+                        continue
+                    }
+                    if (quality2 == RouteSelectorEvaluation.qualityTransparent) {
+                        index2++
+                        continue
+                    }
+                    if (quality1 != quality2) {
+                        return@maxWithOrNull compareValues(quality1, quality2)
+                    }
+                    index1++
+                    index2++
+                }
+                compareValues(result1.size, result2.size)
+            }!!
 
-        return children.flatMap {
-            when (it.selector.quality) {
-                RouteSelectorEvaluation.qualityTransparent ->
-                    flattenChildren(it.children) + if (it.handlers.isNotEmpty()) listOf(it) else emptyList()
-                else -> listOf(it)
+        val parameters = bestPath
+            .fold(ParametersBuilder()) { acc, result -> acc.apply { appendAll(result.parameters) } }
+            .build()
+        return RoutingResolveResult.Success(
+            bestPath.last().route,
+            parameters,
+            bestPath.minOf { result ->
+                result.quality.takeUnless { it == RouteSelectorEvaluation.qualityTransparent }
+                    ?: RouteSelectorEvaluation.qualityConstant
             }
-        }
+        )
     }
 }

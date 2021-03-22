@@ -1409,6 +1409,7 @@ public class io/ktor/routing/Route : io/ktor/application/ApplicationCallPipeline
 }
 
 public abstract class io/ktor/routing/RouteSelector {
+	public fun <init> ()V
 	public fun <init> (D)V
 	public abstract fun evaluate (Lio/ktor/routing/RoutingResolveContext;I)Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getQuality ()D
@@ -1448,6 +1449,7 @@ public final class io/ktor/routing/RouteSelectorEvaluation$Companion {
 	public final fun getConstantPath ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getFailed ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getMissing ()Lio/ktor/routing/RouteSelectorEvaluation;
+	public final fun getTransparent ()Lio/ktor/routing/RouteSelectorEvaluation;
 	public final fun getWildcardPath ()Lio/ktor/routing/RouteSelectorEvaluation;
 }
 
@@ -1604,6 +1606,8 @@ public final class io/ktor/routing/RoutingResolveTrace {
 	public final fun finish (Lio/ktor/routing/Route;ILio/ktor/routing/RoutingResolveResult;)V
 	public final fun getCall ()Lio/ktor/application/ApplicationCall;
 	public final fun getSegments ()Ljava/util/List;
+	public final fun registerFinalResult (Lio/ktor/routing/RoutingResolveResult;)V
+	public final fun registerSuccessResults (Ljava/util/List;)V
 	public final fun skip (Lio/ktor/routing/Route;ILio/ktor/routing/RoutingResolveResult;)V
 	public fun toString ()Ljava/lang/String;
 }

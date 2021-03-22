@@ -101,7 +101,7 @@ public data class HostRouteSelector(
     val hostList: List<String>,
     val hostPatterns: List<Regex>,
     val portsList: List<Int>
-) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+) : RouteSelector() {
     init {
         require(hostList.isNotEmpty() || hostPatterns.isNotEmpty() || portsList.isNotEmpty())
     }
