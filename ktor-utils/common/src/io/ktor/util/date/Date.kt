@@ -63,6 +63,7 @@ public enum class Month(public val value: String) {
          * Lookup an instance by [ordinal]
          */
         public fun from(ordinal: Int): Month = values()[ordinal]
+
         /**
          * Lookup an instance by short month name [Month.value]
          */

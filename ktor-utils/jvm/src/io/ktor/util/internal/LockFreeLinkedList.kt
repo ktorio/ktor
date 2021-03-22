@@ -114,8 +114,12 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
  */
 @InternalAPI
 public abstract class AtomicDesc {
-    public abstract fun prepare(op: AtomicOp<*>): Any? // returns `null` if prepared successfully
-    public abstract fun complete(op: AtomicOp<*>, failure: Any?) // decision == null if success
+
+    // returns `null` if prepared successfully
+    public abstract fun prepare(op: AtomicOp<*>): Any?
+
+    // decision == null if success
+    public abstract fun complete(op: AtomicOp<*>, failure: Any?)
 }
 
 /**
@@ -136,9 +140,15 @@ public abstract class AtomicDesc {
 @Suppress("LeakingThis")
 @InternalAPI
 public open class LockFreeLinkedListNode {
-    private val _next = atomic<Any>(this) // Node | Removed | OpDescriptor
-    private val _prev = atomic<Any>(this) // Node | Removed
-    private val _removedRef = atomic<Removed?>(null) // lazily cached removed ref to this
+
+    // Node | Removed | OpDescriptor
+    private val _next = atomic<Any>(this)
+
+    // Node | Removed
+    private val _prev = atomic<Any>(this)
+
+    // lazily cached removed ref to this
+    private val _removedRef = atomic<Removed?>(null)
 
     private fun removed(): Removed =
         _removedRef.value ?: Removed(this).also { _removedRef.lazySet(it) }
@@ -147,7 +157,8 @@ public open class LockFreeLinkedListNode {
     internal abstract class CondAddOp(
         @JvmField val newNode: Node
     ) : AtomicOp<Node>() {
-        @JvmField var oldNext: Node? = null
+        @JvmField
+        var oldNext: Node? = null
 
         override fun complete(affected: Node, failure: Any?) {
             val success = failure == null
@@ -168,25 +179,27 @@ public open class LockFreeLinkedListNode {
     public val isRemoved: Boolean get() = next is Removed
 
     // LINEARIZABLE. Returns Node | Removed
-    public val next: Any get() {
-        _next.loop { next ->
-            if (next !is OpDescriptor) return next
-            next.perform(this)
+    public val next: Any
+        get() {
+            _next.loop { next ->
+                if (next !is OpDescriptor) return next
+                next.perform(this)
+            }
         }
-    }
 
     // LINEARIZABLE. Returns next non-removed Node
     public val nextNode: Node get() = next.unwrap()
 
     // LINEARIZABLE. Returns Node | Removed
-    public val prev: Any get() {
-        _prev.loop { prev ->
-            if (prev is Removed) return prev
-            prev as Node // otherwise, it can be only node
-            if (prev.next === this) return prev
-            correctPrev(prev, null)
+    public val prev: Any
+        get() {
+            _prev.loop { prev ->
+                if (prev is Removed) return prev
+                prev as Node // otherwise, it can be only node
+                if (prev.next === this) return prev
+                correctPrev(prev, null)
+            }
         }
-    }
 
     // LINEARIZABLE. Returns prev non-removed Node
     public val prevNode: Node get() = prev.unwrap()
@@ -345,6 +358,7 @@ public open class LockFreeLinkedListNode {
             override val originalNext get() = _originalNext.value
             override fun failure(affected: Node, next: Any): Any? =
                 if (next is Removed) ALREADY_REMOVED else null
+
             override fun onPrepare(affected: Node, next: Node): Any? {
                 // Note: onPrepare must use CAS to make sure the stale invocation is not
                 // going to overwrite the previous decision on successful preparation.
@@ -352,6 +366,7 @@ public open class LockFreeLinkedListNode {
                 _originalNext.compareAndSet(null, next)
                 return null // always success
             }
+
             override fun updatedNext(affected: Node, next: Node) = next.removed()
             override fun finishOnSuccess(affected: Node, next: Node) = finishRemove(next)
         }
@@ -452,7 +467,8 @@ public open class LockFreeLinkedListNode {
         private val _originalNext = atomic<Node?>(null)
 
         @Suppress("UNCHECKED_CAST")
-        public val result: T get() = affectedNode!! as T
+        public val result: T
+            get() = affectedNode!! as T
 
         final override fun takeAffectedNode(op: OpDescriptor): Node = queue.next as Node
         final override val affectedNode: Node? get() = _affectedNode.value
@@ -475,12 +491,15 @@ public open class LockFreeLinkedListNode {
         final override fun onPrepare(affected: Node, next: Node): Any? {
             check(affected !is LockFreeLinkedListHead)
             if (!validatePrepared(affected as T)) return REMOVE_PREPARED
+
             // Note: onPrepare must use CAS to make sure the stale invocation is not
             // going to overwrite the previous decision on successful preparation.
             // Result of CAS is irrelevant, but we must ensure that it is set when invoker completes
             _affectedNode.compareAndSet(null, affected)
             _originalNext.compareAndSet(null, next)
-            return null // ok
+
+            // ok
+            return null
         }
 
         final override fun updatedNext(affected: Node, next: Node): Any = next.removed()
@@ -492,9 +511,16 @@ public open class LockFreeLinkedListNode {
         protected abstract val affectedNode: Node?
         protected abstract val originalNext: Node?
         protected open fun takeAffectedNode(op: OpDescriptor): Node = affectedNode!!
-        protected open fun failure(affected: Node, next: Any): Any? = null // next: Node | Removed
-        protected open fun retry(affected: Node, next: Any): Boolean = false // next: Node | Removed
-        protected abstract fun onPrepare(affected: Node, next: Node): Any? // non-null on failure
+
+        // next: Node | Removed
+
+        protected open fun failure(affected: Node, next: Any): Any? = null
+
+        // next: Node | Removed
+        protected open fun retry(affected: Node, next: Any): Boolean = false
+
+        // non-null on failure
+        protected abstract fun onPrepare(affected: Node, next: Node): Any?
         protected abstract fun updatedNext(affected: Node, next: Node): Any
         protected abstract fun finishOnSuccess(affected: Node, next: Node)
 

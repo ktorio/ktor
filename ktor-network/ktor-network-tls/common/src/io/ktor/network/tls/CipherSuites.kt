@@ -31,6 +31,7 @@ public enum class CipherType {
      * See also: https://en.wikipedia.org/wiki/Galois/Counter_Mode
      */
     GCM,
+
     /**
      * Cipher Block Chaining.
      * See also: https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)

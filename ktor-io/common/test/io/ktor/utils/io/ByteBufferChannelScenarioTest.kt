@@ -14,7 +14,9 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
             expect(3)
 
             val bb = IoBuffer.NoPool.borrow()
-            val rc = ch.readAvailable(bb) // should suspend
+
+            // should suspend
+            val rc = ch.readAvailable(bb)
 
             expect(5)
             assertEquals(4, rc)
@@ -26,7 +28,9 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         yield()
 
         expect(4)
-        ch.writeInt(0xff) // should resume
+
+        // should resume
+        ch.writeInt(0xff)
 
         yield()
 
