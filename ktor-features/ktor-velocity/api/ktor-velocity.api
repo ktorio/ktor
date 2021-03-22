@@ -23,3 +23,18 @@ public final class io/ktor/velocity/VelocityContent {
 	public final fun getTemplate ()Ljava/lang/String;
 }
 
+public final class io/ktor/velocity/VelocityTools {
+	public static final field Feature Lio/ktor/velocity/VelocityTools$Feature;
+	public synthetic fun <init> (Lorg/apache/velocity/tools/ToolManager;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/velocity/VelocityTools$Feature : io/ktor/application/ApplicationFeature {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/application/ApplicationCallPipeline;Lkotlin/jvm/functions/Function1;)Lio/ktor/velocity/VelocityTools;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/velocity/VelocityToolsKt {
+	public static final fun engine (Lorg/apache/velocity/tools/config/EasyFactoryConfiguration;Lkotlin/jvm/functions/Function1;)V
+}
+
