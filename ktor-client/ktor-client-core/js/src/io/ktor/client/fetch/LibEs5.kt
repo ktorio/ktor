@@ -29,6 +29,7 @@ public external interface Uint8Array {
     public var buffer: ArrayBufferLike
     public var byteLength: Number
     public var byteOffset: Number
+
     public fun copyWithin(target: Number, start: Number, end: Number? = definedExternally): Uint8Array /* this */
     public fun every(
         callbackfn: (value: Number, index: Number, array: Uint8Array) -> Any,
@@ -99,6 +100,7 @@ public external interface Uint8Array {
         callbackfn: (value: Number, index: Number, array: Uint8Array) -> Any,
         thisArg: Any? = definedExternally
     ): Boolean
+
     public fun sort(compareFn: ((a: Number, b: Number) -> Number)? = definedExternally): Uint8Array /* this */
     public fun subarray(begin: Number? = definedExternally, end: Number? = definedExternally): Uint8Array
     public fun toLocaleString(): String

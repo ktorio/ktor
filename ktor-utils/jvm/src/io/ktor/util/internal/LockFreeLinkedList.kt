@@ -722,6 +722,7 @@ public open class LockFreeLinkedListNode {
     // returns null otherwise (prev was corrected)
     private fun correctPrev(_prev: Node, op: OpDescriptor?): Node? {
         var prev: Node = _prev
+
         var last: Node? = null // will be set so that last.next === prev
         while (true) {
             // move the the left until first non-removed node
