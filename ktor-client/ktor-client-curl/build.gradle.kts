@@ -18,7 +18,7 @@ kotlin {
         if (ideaActive) {
             current.add(getByName("posix"))
         } else {
-            current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("mingwX64")))
+            current.addAll(listOf(getByName("macosX64"), getByName("linuxX64"), getByName("linuxArm32Hfp"), getByName("linuxArm64"), getByName("mingwX64")))
         }
 
         val paths = listOf("C:/msys64/mingw64/include/curl", "C:/Tools/msys64/mingw64/include/curl", "C:/Tools/msys2/mingw64/include/curl")
