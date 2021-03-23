@@ -36,12 +36,9 @@ public suspend fun parseRequest(input: ByteReadChannel): Request? {
             val version = parseVersion(builder, range)
             skipSpaces(builder, range)
 
-            if (range.start != range.end) throw ParserException(
-                "Extra characters in request line: ${builder.substring(
-                    range.start,
-                    range.end
-                )}"
-            )
+            if (range.start != range.end) {
+                throw ParserException("Extra characters in request line: ${builder.substring(range.start, range.end)}")
+            }
             if (uri.isEmpty()) throw ParserException("URI is not specified")
             if (version.isEmpty()) throw ParserException("HTTP version is not specified")
 

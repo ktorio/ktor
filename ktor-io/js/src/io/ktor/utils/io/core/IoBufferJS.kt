@@ -57,12 +57,15 @@ public actual class IoBuffer actual constructor(
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     override fun readFully(dst: ArrayBufferView, offset: Int, length: Int) {
-        if (readRemaining < length) throw IllegalStateException(
-            "Not enough bytes available ($readRemaining) to read $length bytes"
-        )
-        if (length > dst.byteLength) throw IllegalArgumentException(
-            "Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}"
-        )
+        if (readRemaining < length) {
+            throw IllegalStateException("Not enough bytes available ($readRemaining) to read $length bytes")
+        }
+
+        if (length > dst.byteLength) {
+            throw IllegalArgumentException(
+                "Destination buffer overflow: length = $length, buffer capacity ${dst.byteLength}"
+            )
+        }
         require(offset >= 0) { "offset should be positive" }
         require(offset + length <= dst.byteLength) { throw IndexOutOfBoundsException("") }
 

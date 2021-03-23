@@ -10,7 +10,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.response.readText
 import io.ktor.client.statement.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
@@ -25,12 +24,14 @@ class MockEngineTests {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler { request ->
-                    if (request.url.encodedPath == "/") return@addHandler respond(
-                        byteArrayOf(1, 2, 3),
-                        headers = headersOf("X-MyHeader", "My Value")
-                    )
-
-                    return@addHandler respondError(HttpStatusCode.NotFound, "Not Found ${request.url.encodedPath}")
+                    if (request.url.encodedPath == "/") {
+                        respond(
+                            byteArrayOf(1, 2, 3),
+                            headers = headersOf("X-MyHeader", "My Value")
+                        )
+                    } else {
+                        respondError(HttpStatusCode.NotFound, "Not Found ${request.url.encodedPath}")
+                    }
                 }
             }
             expectSuccess = false

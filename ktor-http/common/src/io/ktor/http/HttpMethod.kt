@@ -14,7 +14,9 @@ public data class HttpMethod(val value: String) {
         public val Get: HttpMethod = HttpMethod("GET")
         public val Post: HttpMethod = HttpMethod("POST")
         public val Put: HttpMethod = HttpMethod("PUT")
-        public val Patch: HttpMethod = HttpMethod("PATCH") // https://tools.ietf.org/html/rfc5789
+
+        // https://tools.ietf.org/html/rfc5789
+        public val Patch: HttpMethod = HttpMethod("PATCH")
         public val Delete: HttpMethod = HttpMethod("DELETE")
         public val Head: HttpMethod = HttpMethod("HEAD")
         public val Options: HttpMethod = HttpMethod("OPTIONS")

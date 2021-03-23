@@ -22,17 +22,26 @@ actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
         }
     }
 
-    protected actual abstract fun produceInstance(): T // factory
-    protected actual open fun clearInstance(instance: T): T = instance // optional cleaning of poped items
-    protected actual open fun validateInstance(instance: T) {} // optional validation for recycled items
-    protected actual open fun disposeInstance(instance: T) {} // optional destruction of unpoolable items
+    // factory
+    protected actual abstract fun produceInstance(): T
+
+    // optional cleaning of poped items
+    protected actual open fun clearInstance(instance: T): T = instance
+
+    // optional validation for recycled items
+    protected actual open fun validateInstance(instance: T) {}
+
+    // optional destruction of unpoolable items
+    protected actual open fun disposeInstance(instance: T) {}
 
     @Volatile
     private var top: Long = 0L
 
     // closest power of 2 that is equal or larger than capacity * MULTIPLIER
     private val maxIndex = Integer.highestOneBit(capacity * MULTIPLIER - 1) * 2
-    private val shift = Integer.numberOfLeadingZeros(maxIndex) + 1 // for hash function
+
+    // for hash function
+    private val shift = Integer.numberOfLeadingZeros(maxIndex) + 1
 
     // zero index is reserved for both
     private val instances = AtomicReferenceArray<T?>(maxIndex + 1)
@@ -83,8 +92,10 @@ actual constructor(actual final override val capacity: Int) : ObjectPool<T> {
     }
 
     private fun popTop(): Int {
-        while (true) { // lock-free loop on top
-            val top = this.top // volatile read
+        // lock-free loop on top
+        while (true) {
+            // volatile read
+            val top = this.top
             if (top == 0L) return 0
             val newVersion = (top shr 32 and 0xffffffffL) + 1L
             val topIndex = (top and 0xffffffffL).toInt()

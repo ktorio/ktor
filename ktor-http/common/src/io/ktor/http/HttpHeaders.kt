@@ -18,7 +18,9 @@ public object HttpHeaders {
     public val AcceptRanges: String = "Accept-Ranges"
     public val Age: String = "Age"
     public val Allow: String = "Allow"
-    public val ALPN: String = "ALPN" // Application-Layer Protocol Negotiation, HTTP/2
+
+    // Application-Layer Protocol Negotiation, HTTP/2
+    public val ALPN: String = "ALPN"
     public val AuthenticationInfo: String = "Authentication-Info"
     public val Authorization: String = "Authorization"
     public val CacheControl: String = "Cache-Control"
@@ -31,10 +33,15 @@ public object HttpHeaders {
     public val ContentRange: String = "Content-Range"
     public val ContentType: String = "Content-Type"
     public val Cookie: String = "Cookie"
-    public val DASL: String = "DASL" // WebDAV Search
+
+    // WebDAV Search
+    public val DASL: String = "DASL"
     public val Date: String = "Date"
-    public val DAV: String = "DAV" // WebDAV
-    public val Depth: String = "Depth" // WebDAV
+
+    // WebDAV
+    public val DAV: String = "DAV"
+    public val Depth: String = "Depth"
+
     public val Destination: String = "Destination"
     public val ETag: String = "ETag"
     public val Expect: String = "Expect"
@@ -80,7 +87,9 @@ public object HttpHeaders {
     public val SecWebSocketVersion: String = "Sec-WebSocket-Version"
     public val Server: String = "Server"
     public val SetCookie: String = "Set-Cookie"
-    public val SLUG: String = "SLUG" // Atom Publishing
+
+    // Atom Publishing
+    public val SLUG: String = "SLUG"
     public val StrictTransportSecurity: String = "Strict-Transport-Security"
     public val TE: String = "TE"
     public val Timeout: String = "Timeout"
