@@ -524,4 +524,92 @@ class ContentNegotiationTest {
             assertEquals(HttpStatusCode.BadRequest, call.response.status())
         }
     }
+
+    @Test
+    fun testIllegalAcceptAndCheckAcceptHeader(): Unit = withTestApplication {
+        with(application) {
+            install(ContentNegotiation) {
+                checkAcceptHeaderCompliance = true
+                register(ContentType.Text.Plain, textContentConverter)
+            }
+
+            routing {
+                get("/send") {
+                    assertFailsWith<BadRequestException> {
+                        call.respond(Any())
+                    }.let { throw it }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "....aa..laa...laa")
+        }.let { call ->
+            assertEquals(HttpStatusCode.BadRequest, call.response.status())
+        }
+    }
+
+    @Test
+    fun testNotMatchingAcceptAndContentTypes(): Unit = withTestApplication {
+        with(application) {
+            install(ContentNegotiation) {
+                checkAcceptHeaderCompliance = true
+            }
+
+            routing {
+                get("/send") {
+                    call.respond("some text")
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", ContentType.Application.Json.toString())
+        }.let { call ->
+            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+        }
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "text/plain1")
+        }.let { call ->
+            assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
+        }
+    }
+
+    @Test
+    fun testMatchingAcceptAndContentTypes(): Unit = withTestApplication {
+        with(application) {
+            install(ContentNegotiation) {
+                checkAcceptHeaderCompliance = true
+            }
+
+            routing {
+                get("/send") {
+                    call.respond("some text")
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "text/plain")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "application/json, text/plain;q=0.1")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "*/*")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+
+        handleRequest(HttpMethod.Get, "/send") {
+            addHeader("Accept", "text/*")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.response.status())
+        }
+    }
 }
