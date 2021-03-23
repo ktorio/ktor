@@ -74,13 +74,11 @@ to Gradle (in Preferences -> Build, Execution, Deployment -> Build Tools -> Grad
 
 ## Documentation
 
-Ktor documentation is currently in the process of being revamped. This includes moving to new infrastructure. Once we're ready to
-receive contributions, we'll outline the steps needed. In the meantime, if you find a bug or lacking documentation, please make 
-sure you [report it to us](https://youtrack.jetbrains.com/issues/KTOR). 
+Ktor documentation is placed in a separate [ktor-documentation](https://github.com/ktorio/ktor-documentation) repository. See the [Contributing](https://github.com/ktorio/ktor-documentation#contributing) section to learn how you can contribute to Ktor docs.
 
 ## Community Support
 
-Ktor provide a number of [channels for support](https://ktor.io/support). In addition to our support engineers, we also count
+Ktor provides a number of [channels for support](https://ktor.io/support). In addition to our support engineers, we also count
 on our community to help, without whom Ktor wouldn't be where it is today. If you'd like to help others, please join one of our community
 channels and help out. It's also a great way to learn!
 

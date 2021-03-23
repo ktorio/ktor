@@ -7,6 +7,7 @@ package io.ktor.client.engine.java
 import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class JavaEngineTests {
@@ -26,28 +27,37 @@ class JavaEngineTests {
 
         val initialNumberOfThreads = Thread.getAllStackTraces().size
         val repeats = 25
+        val executors = ArrayList<ExecutorService>()
 
         try {
             repeat(repeats) {
                 HttpClient(Java).use { client ->
                     val response = client.get<String>("http://www.google.com")
                     assertNotNull(response)
+                    executors += (client.engine as JavaHttpEngine).executor
                 }
             }
 
             // When engine is disposed HttpClient's SelectorManager thread remains active
             // until it realizes that no more reference on HttpClient.
             // Minimum polling interval SelectorManager thread is 1000ms.
-            System.gc()
-            Thread.sleep(1000)
-            System.gc()
-            System.gc()
+            var retry = 0
+            do {
+                System.gc()
+                Thread.sleep(1000)
+                System.gc()
+                System.gc()
+            } while (Thread.getAllStackTraces().size >= initialNumberOfThreads && retry++ < 10)
         } finally {
             System.clearProperty("jdk.internal.httpclient.selectorTimeout")
         }
 
         val totalNumberOfThreads = Thread.getAllStackTraces().size
         val threadsCreated = totalNumberOfThreads - initialNumberOfThreads
+
+        executors.forEach { pool ->
+            assertTrue(pool.isTerminated)
+        }
 
         assertTrue("Number of threads should be less $repeats, but was $threadsCreated") {
             threadsCreated < repeats

@@ -21,6 +21,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.debug.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -262,8 +263,13 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         parent.cancel()
 
         runBlocking {
-            withTimeout(5000L) {
-                parent.join()
+            try {
+                withTimeout(5000L) {
+                    parent.join()
+                }
+            } catch (cause: TimeoutCancellationException) {
+                DebugProbes.printJob(parent)
+                throw cause
             }
         }
 
@@ -331,7 +337,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val errors = CopyOnWriteArrayList<Throwable>()
 
         val random = Random()
-        for (i in 1..latch.count) {
+        for (i in 1..count) {
             thread {
                 try {
                     withUrl("/$i") {

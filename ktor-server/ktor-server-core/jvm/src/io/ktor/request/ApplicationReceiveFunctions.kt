@@ -208,9 +208,9 @@ private object DoubleReceivePreventionToken
 private val DoubleReceivePreventionTokenKey = AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**
- * Thrown when a request body has been already received.
+ * Thrown when a request body has already been received.
  * Usually it is caused by double [ApplicationCall.receive] invocation.
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
-    "Request body has been already consumed (received)."
+    "Request body has already been consumed (received)."
 )

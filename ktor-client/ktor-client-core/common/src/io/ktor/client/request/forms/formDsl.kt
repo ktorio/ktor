@@ -14,7 +14,7 @@ import kotlin.contracts.*
  * Multipart form item. Use it to build form in client.
  *
  * @param key multipart name
- * @param value content, could be [String], [Number] or [Input]
+ * @param value content, could be [String], [Number], [ByteArray], [ByteReadPacket] or [InputProvider]
  * @param headers part headers, note that some servers may fail if an unknown header provided
  */
 public data class FormPart<T : Any>(val key: String, val value: T, val headers: Headers = Headers.Empty)

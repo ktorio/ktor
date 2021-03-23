@@ -65,9 +65,9 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             config.requestConfig(this)
 
             if (outgoingContent !is OutgoingContent.NoContent) {
-                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) error(
-                    "Request of type ${data.method} couldn't send a body with the [Android] engine."
-                )
+                if (data.method in listOf(HttpMethod.Get, HttpMethod.Head)) {
+                    error("Request of type ${data.method} couldn't send a body with the [Android] engine.")
+                }
 
                 if (contentLength == null && getRequestProperty(HttpHeaders.TransferEncoding) == null) {
                     addRequestProperty(HttpHeaders.TransferEncoding, "chunked")

@@ -92,11 +92,11 @@ internal fun AbstractInput.readFully(dst: Int8Array, offset: Int, length: Int) {
 }
 
 internal fun AbstractInput.readFully(dst: ArrayBuffer, offset: Int, length: Int) {
-    if (remaining < length) throw IllegalArgumentException(
-        "Not enough bytes available ($remaining) to read $length bytes"
-    )
-    var copied = 0
+    if (remaining < length) {
+        throw IllegalArgumentException("Not enough bytes available ($remaining) to read $length bytes")
+    }
 
+    var copied = 0
     takeWhile { buffer: Buffer ->
         val rc = buffer.readAvailable(dst, offset + copied, length - copied)
         if (rc > 0) copied += rc

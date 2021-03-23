@@ -10,12 +10,14 @@ public actual fun defaultSerializer(): JsonSerializer {
     val serializers = ServiceLoader.load(JsonSerializer::class.java)
         .toList()
 
-    if (serializers.isEmpty()) error(
-        "Fail to find serializer. Consider to add one of the following dependencies: \n" +
-            " - ktor-client-gson\n" +
-            " - ktor-client-json\n" +
-            " - ktor-client-serialization"
-    )
+    if (serializers.isEmpty()) {
+        error(
+            """Fail to find serializer. Consider to add one of the following dependencies: 
+ - ktor-client-gson
+ - ktor-client-json
+ - ktor-client-serialization"""
+        )
+    }
 
     return serializers.maxByOrNull { it::javaClass.name }!!
 }

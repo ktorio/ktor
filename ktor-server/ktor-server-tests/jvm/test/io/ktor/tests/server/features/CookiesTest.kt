@@ -372,4 +372,34 @@ class ParserServerSetCookieTest {
         val parsed = parseServerSetCookieHeader(header)
         assertEquals("123\n", parsed.value)
     }
+
+    @Test
+    fun testMaxAge() {
+        val header = "key=aaa; max-age=999"
+        val parsed = parseServerSetCookieHeader(header)
+
+        assertEquals("key", parsed.name)
+        assertEquals("aaa", parsed.value)
+        assertEquals(999, parsed.maxAge)
+    }
+
+    @Test
+    fun testMaxAgeNegative() {
+        val header = "key=aaa; max-age=-1"
+        val parsed = parseServerSetCookieHeader(header)
+
+        assertEquals("key", parsed.name)
+        assertEquals("aaa", parsed.value)
+        assertEquals(0, parsed.maxAge)
+    }
+
+    @Test
+    fun testMaxAgeTooLong() {
+        val header = "key=aaa; max-age=3153600000"
+        val parsed = parseServerSetCookieHeader(header)
+
+        assertEquals("key", parsed.name)
+        assertEquals("aaa", parsed.value)
+        assertEquals(Int.MAX_VALUE, parsed.maxAge)
+    }
 }

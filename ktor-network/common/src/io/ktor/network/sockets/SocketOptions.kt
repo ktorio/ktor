@@ -4,6 +4,8 @@
 
 package io.ktor.network.sockets
 
+import io.ktor.util.*
+
 internal const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
 
 /**
@@ -66,6 +68,17 @@ public sealed class SocketOptions(
     public class AcceptorOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
     ) : SocketOptions(customOptions) {
+        /**
+         * Represents TCP server socket backlog size. When a client attempts to connect,
+         * the request is added to the so called backlog until it will be accepted.
+         * Once accept() is invoked, a client socket is removed from the backlog.
+         * If the backlog is too small, it may overflow and upcoming requests will be
+         * rejected by the underlying TCP implementation (usually with RST frame that
+         * usually causes "connection reset by peer" error on the opposite side).
+         */
+        @PublicAPICandidate("1.6.0")
+        internal var backlogSize: Int = 511
+
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {
                 copyCommon(this@AcceptorOptions)

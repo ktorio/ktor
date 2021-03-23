@@ -136,7 +136,6 @@ val startTestServer = task<KtorTestServer>("startTestServer") {
 
 val testTasks = mutableListOf(
     "jvmTest",
-    "jvmBenchmark",
 
     // 1.4.x JS tasks
     "jsLegacyNodeTest",

@@ -88,15 +88,15 @@ public class CORS(configuration: Configuration) {
             call.corsVary()
         }
 
-        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-            ?.takeIf(this::isValidOrigin)
-            ?: return
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull() ?: return
 
-        if (allowSameOrigin && call.isSameOrigin(origin)) return
-
-        if (!corsCheckOrigins(origin)) {
-            context.respondCorsFailed()
-            return
+        when (checkOrigin(origin, call.request.origin)) {
+            OriginCheckResult.OK -> {}
+            OriginCheckResult.SkipCORS -> return
+            OriginCheckResult.Failed -> {
+                context.respondCorsFailed()
+                return
+            }
         }
 
         if (!allowNonSimpleContentTypes) {
@@ -128,6 +128,13 @@ public class CORS(configuration: Configuration) {
         if (exposedHeaders != null) {
             call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
         }
+    }
+
+    internal fun checkOrigin(origin: String, point: RequestConnectionPoint): OriginCheckResult = when {
+        !isValidOrigin(origin) -> OriginCheckResult.SkipCORS
+        allowSameOrigin && isSameOrigin(origin, point) -> OriginCheckResult.SkipCORS
+        !corsCheckOrigins(origin) -> OriginCheckResult.Failed
+        else -> OriginCheckResult.OK
     }
 
     private suspend fun ApplicationCall.respondPreflight(origin: String) {
@@ -186,8 +193,8 @@ public class CORS(configuration: Configuration) {
         }
     }
 
-    private fun ApplicationCall.isSameOrigin(origin: String): Boolean {
-        val requestOrigin = "${this.request.origin.scheme}://${this.request.origin.host}:${this.request.origin.port}"
+    private fun isSameOrigin(origin: String, point: RequestConnectionPoint): Boolean {
+        val requestOrigin = "${point.scheme}://${point.host}:${point.port}"
         return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
     }
 
@@ -235,11 +242,12 @@ public class CORS(configuration: Configuration) {
             return false
         }
 
-        // check proto
-        for (index in 0 until protoDelimiter) {
-            if (!origin[index].isLetter()) {
-                return false
-            }
+        val protoValid = origin[0].isLetter() && origin.subSequence(0, protoDelimiter).all { ch ->
+            ch.isLetter() || ch.isDigit() || ch == '-' || ch == '+' || ch == '.'
+        }
+
+        if (!protoValid) {
+            return false
         }
 
         var portIndex = origin.length
@@ -522,4 +530,8 @@ public class CORS(configuration: Configuration) {
         private fun caseInsensitiveSet(vararg elements: String): Set<String> =
             CaseInsensitiveSet(elements.asList())
     }
+}
+
+internal enum class OriginCheckResult {
+    OK, SkipCORS, Failed
 }
