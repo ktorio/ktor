@@ -194,14 +194,14 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
     CookieEncoding.RAW -> when {
         value.any { it.shouldEscapeInCookies() } ->
             throw IllegalArgumentException(
-                "The cookie value contains characters that couldn't be encoded in RAW format. " +
+                "The cookie value contains characters that cannot be encoded in RAW format. " +
                     " Consider URL_ENCODING mode"
             )
         else -> value
     }
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
-            "The cookie value contains characters that couldn't be encoded in DQUOTES format. " +
+            "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
                 "Consider URL_ENCODING mode"
         )
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
