@@ -56,7 +56,7 @@ publishing {
             if (publishLocal) {
                 url globalM2
             } else {
-                url = "https://artifactory.vizio.com/artifactory/vizio_iot_maven"
+                url = "https://artifactory.vizio.com/artifactory/smartcast-sdk-local"
                 credentials {
                     username = project.hasProperty('artifactoryUser') ? project.property('artifactoryUser') : System.getenv('ARTIFACTORY_USER')
                     password = project.hasProperty('artifactoryApiKey') ? project.property('artifactoryApiKey') : System.getenv('ARTIFACTORY_API_KEY')
