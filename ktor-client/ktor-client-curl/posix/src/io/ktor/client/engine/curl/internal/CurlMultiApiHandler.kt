@@ -136,7 +136,7 @@ internal class CurlMultiApiHandler : Closeable {
         easyHandle.apply {
             option(CURLOPT_READDATA, requestPointer)
             option(CURLOPT_READFUNCTION, staticCFunction(::onBodyChunkRequested))
-            option(CURLOPT_INFILESIZE_LARGE, content.size)
+            option(CURLOPT_INFILESIZE, content.size)
         }
 
         return requestPointer
