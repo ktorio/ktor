@@ -121,7 +121,8 @@ public class HttpSend(
 
             if (sentCount >= maxSendCount) {
                 throw SendCountExceedException("Max send count $maxSendCount exceeded. Consider increasing the " +
-                    "property maxSendCount if more is required.") }
+                    "property maxSendCount if more is required.")
+            }
 
             sentCount++
             val sendResult = client.sendPipeline.execute(
