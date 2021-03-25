@@ -76,7 +76,7 @@ public class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, 
                             if (ktorConnector.keyStorePath == null) {
                                 throw IllegalArgumentException(
                                     "Tomcat requires keyStorePath. Make sure you're setting " +
-                                    "the property in the EngineSSLConnectorConfig class used"
+                                        "the property in the EngineSSLConnectorConfig class used"
                                 )
                             }
 
