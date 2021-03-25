@@ -120,8 +120,10 @@ public class HttpSend(
             currentCall?.cancel()
 
             if (sentCount >= maxSendCount) {
-                throw SendCountExceedException("Max send count $maxSendCount exceeded. Consider increasing the " +
-                    "property maxSendCount if more is required.")
+                throw SendCountExceedException(
+                    "Max send count $maxSendCount exceeded. Consider increasing the property " +
+                        "maxSendCount if more is required."
+                )
             }
 
             sentCount++

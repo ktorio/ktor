@@ -251,7 +251,8 @@ public open class StringValuesBuilder(public val caseInsensitiveName: Boolean = 
 
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
         if (built) {
-            throw IllegalStateException("Cannot modify a builder after build() function already invoked. " +
+            throw IllegalStateException(
+                "Cannot modify a builder after build() function already invoked. " +
                 "Make sure you call build() last."
             )
         }
