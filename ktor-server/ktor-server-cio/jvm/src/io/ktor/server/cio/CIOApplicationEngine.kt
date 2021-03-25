@@ -54,7 +54,10 @@ public class CIOApplicationEngine(environment: ApplicationEngineEnvironment, con
         try {
             environment.connectors.forEach { connectorSpec ->
                 if (connectorSpec.type == ConnectorType.HTTPS) {
-                    throw UnsupportedOperationException("HTTPS is not supported by CIO engine")
+                    throw UnsupportedOperationException(
+                        "CIO Engine does not currently support HTTPS. Please " +
+                            "consider using a different engine if you require HTTPS"
+                    )
                 }
             }
 

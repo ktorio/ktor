@@ -120,7 +120,10 @@ public class HttpSend(
             currentCall?.cancel()
 
             if (sentCount >= maxSendCount) {
-                throw SendCountExceedException("Max send count $maxSendCount exceeded")
+                throw SendCountExceedException(
+                    "Max send count $maxSendCount exceeded. Consider increasing the property " +
+                        "maxSendCount if more is required."
+                )
             }
 
             sentCount++
@@ -130,7 +133,7 @@ public class HttpSend(
             )
 
             val call = sendResult as? HttpClientCall
-                ?: error("Failed to execute send pipeline. Expected to got [HttpClientCall], but received $sendResult")
+                ?: error("Failed to execute send pipeline. Expected [HttpClientCall], but received $sendResult")
 
             currentCall = call
             return call

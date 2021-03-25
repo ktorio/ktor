@@ -103,7 +103,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
                 proxy(ProxySelector.of(address))
             }
             Proxy.Type.DIRECT -> proxy(HttpClient.Builder.NO_PROXY)
-            else -> throw IllegalStateException("Proxy of type $type is unsupported by Java HTTP engine.")
+            else -> throw IllegalStateException("Java HTTP engine does not currently support $type proxies.")
         }
     }
 }

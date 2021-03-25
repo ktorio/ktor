@@ -22,7 +22,7 @@ public val Path.extension: String get() = fileName.toString().substringAfterLast
 public fun Path.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Relative path $relativePath beginning with .. is invalid")
     }
     check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
@@ -49,7 +49,7 @@ private fun Path.dropLeadingTopDirs(): Path {
 public fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Relative path $relativePath beginning with .. is invalid")
     }
     check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 

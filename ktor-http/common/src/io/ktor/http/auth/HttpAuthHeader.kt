@@ -57,7 +57,7 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 public sealed class HttpAuthHeader(public val authScheme: String) {
     init {
         if (!authScheme.matches(token68Pattern)) {
-            throw ParseException("invalid authScheme value: it should be token but it is $authScheme")
+            throw ParseException("Invalid authScheme value: it should be token, but instead it is $authScheme")
         }
     }
 
@@ -68,7 +68,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
     public class Single(authScheme: String, public val blob: String) : HttpAuthHeader(authScheme) {
         init {
             if (!blob.matches(token68Pattern)) {
-                throw ParseException("invalid blob value: it should be token68 but it is $blob")
+                throw ParseException("Invalid blob value: it should be token68, but instead it is $blob")
             }
         }
 
