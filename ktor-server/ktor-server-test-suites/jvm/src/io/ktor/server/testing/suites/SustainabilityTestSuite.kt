@@ -296,7 +296,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         val text = "text body"
 
         withUrl("/", { setBody(text) }) {
-            val actual = readText()
+            val actual = bodyAsText()
             assertEquals(text, actual)
         }
     }
@@ -312,7 +312,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         for (i in 1..100) {
             withUrl("/?i=$i") {
                 assertEquals(200, status.value)
-                assertEquals("OK $i", readText())
+                assertEquals("OK $i", bodyAsText())
             }
         }
     }

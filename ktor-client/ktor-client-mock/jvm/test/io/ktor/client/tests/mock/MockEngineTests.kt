@@ -56,14 +56,14 @@ class MockEngineTests {
         client.prepareRequest {
             url("http://127.0.0.1/normal-request")
         }.execute { response ->
-            assertEquals("http://127.0.0.1/normal-request", response.readText())
+            assertEquals("http://127.0.0.1/normal-request", response.bodyAsText())
             assertEquals(HttpStatusCode.OK, response.status)
         }
 
         client.prepareRequest {
             url("http://127.0.0.1/fail")
         }.execute { response ->
-            assertEquals("Bad Request", response.readText())
+            assertEquals("Bad Request", response.bodyAsText())
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
     }

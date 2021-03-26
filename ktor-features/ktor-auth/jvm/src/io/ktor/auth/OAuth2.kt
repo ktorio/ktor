@@ -229,7 +229,7 @@ private suspend fun oauth2RequestAccessToken(
 
     val response = client.request(request)
 
-    val body = response.readText()
+    val body = response.bodyAsText()
 
     val (contentType, content) = try {
         if (response.status == HttpStatusCode.NotFound) {

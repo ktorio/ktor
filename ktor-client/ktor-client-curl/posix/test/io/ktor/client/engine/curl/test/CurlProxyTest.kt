@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.curl.*
-import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -85,7 +84,7 @@ class CurlProxyTest {
             client.use {
                 client.get("https://localhost:8089/").let { response ->
                     assertEquals(HttpStatusCode.OK, response.status)
-                    assertEquals("Hello, TLS!", response.readText())
+                    assertEquals("Hello, TLS!", response.bodyAsText())
                     assertEquals("text/plain;charset=utf-8", response.headers[HttpHeaders.ContentType])
                     assertEquals("TLS test server", response.headers["X-Comment"])
                 }

@@ -96,7 +96,7 @@ public abstract class CompressionTestSuite<TEngine : ApplicationEngine,
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
             assertEquals(
                 file.reader().use { it.read().toChar().toString() },
-                readText(),
+                bodyAsText(),
                 "It should be no compression if range requested"
             )
         }

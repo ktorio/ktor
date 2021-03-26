@@ -48,7 +48,7 @@ public abstract class HttpClientTest(private val factory: HttpClientEngineFactor
         val block = suspend {
             val client = HttpClient(factory)
             val statement = client.prepareGet("http://localhost:$serverPort/hello")
-            assertEquals("hello", statement.execute().readText())
+            assertEquals("hello", statement.execute().bodyAsText())
         }
 
         val latch = ArrayBlockingQueue<Result<Unit>>(1)

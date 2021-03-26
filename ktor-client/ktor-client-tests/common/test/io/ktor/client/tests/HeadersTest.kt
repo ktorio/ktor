@@ -18,7 +18,7 @@ class HeadersTest : ClientLoader() {
         test { client ->
             client.get("$TEST_SERVER/headers").let {
                 assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("OK", it.readText())
+                assertEquals("OK", it.bodyAsText())
 
                 assertNull(it.headers["X-Nonexistent-Header"])
                 assertNull(it.headers.getAll("X-Nonexistent-Header"))
@@ -34,7 +34,7 @@ class HeadersTest : ClientLoader() {
                 accept(ContentType.Application.Json)
             }.let {
                 assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("JSON", it.readText())
+                assertEquals("JSON", it.bodyAsText())
                 assertEquals("application/json; charset=UTF-8", it.headers[HttpHeaders.ContentType])
             }
 
@@ -42,7 +42,7 @@ class HeadersTest : ClientLoader() {
                 accept(ContentType.Text.Html)
                 accept(ContentType.Application.Xml)
             }.let {
-                assertEquals("XML", it.readText())
+                assertEquals("XML", it.bodyAsText())
                 assertEquals("application/xml; charset=UTF-8", it.headers[HttpHeaders.ContentType])
             }
         }

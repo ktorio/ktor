@@ -50,7 +50,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
             assertEquals("4", headers[HttpHeaders.ContentLength])
-            assertEquals("test", readText())
+            assertEquals("test", bodyAsText())
         }
     }
 
@@ -69,7 +69,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals("ABC123", readText())
+            assertEquals("ABC123", bodyAsText())
         }
     }
 
@@ -128,7 +128,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), readText(Charsets.UTF_8))
+            assertEquals(file.readText(), bodyAsText(Charsets.UTF_8))
         }
     }
 
@@ -156,7 +156,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals(fileContentHead.substring(0, 1), readText())
+            assertEquals(fileContentHead.substring(0, 1), bodyAsText())
         }
         withUrl(
             "/",
@@ -168,7 +168,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(HttpStatusCode.PartialContent.value, status.value)
-            assertEquals(fileContentHead.substring(1, 3), readText())
+            assertEquals(fileContentHead.substring(1, 3), bodyAsText())
         }
     }
 
@@ -268,7 +268,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("a=1", readText())
+            assertEquals("a=1", bodyAsText())
         }
 
         withUrl("/") {
@@ -386,7 +386,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals("ABC123", readText())
+            assertEquals("ABC123", bodyAsText())
         }
     }
 
@@ -400,7 +400,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals("Hello", readText())
+            assertEquals("Hello", bodyAsText())
 
             val contentType = ContentType.parse(headers[HttpHeaders.ContentType]!!)
             val pattern = ContentType.Text.Plain
@@ -511,7 +511,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("POST test\nAnother line", readText())
+            assertEquals("POST test\nAnother line", bodyAsText())
         }
     }
 
@@ -533,7 +533,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("POST content", readText())
+            assertEquals("POST content", bodyAsText())
         }
     }
 
@@ -553,7 +553,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("Hello", readText())
+            assertEquals("Hello", bodyAsText())
         }
     }
 
@@ -614,7 +614,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(
                 "a story=Hi user. The snake you gave me for free ate all the birds. " +
                     "Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n",
-                readText()
+                bodyAsText()
             )
         }
     }
@@ -683,7 +683,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(
                 "a story=Hi user. The snake you gave me for free ate all the birds. " +
                     "Please take it back ASAP.\nfile:attachment,original.txt,$numberOfLines\n",
-                readText()
+                bodyAsText()
             )
         }
     }
@@ -704,7 +704,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("Hello", readText())
+            assertEquals("Hello", bodyAsText())
         }
     }
 
@@ -724,7 +724,7 @@ public abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfigurati
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("Hello", readText())
+            assertEquals("Hello", bodyAsText())
         }
     }
 

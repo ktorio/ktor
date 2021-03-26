@@ -26,7 +26,7 @@ class HttpRedirectTest : ClientLoader() {
         test { client ->
             client.prepareGet("$TEST_URL_BASE").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("OK", it.readText())
+                assertEquals("OK", it.bodyAsText())
             }
         }
     }
@@ -53,7 +53,7 @@ class HttpRedirectTest : ClientLoader() {
 
         test { client ->
             client.prepareGet("$TEST_URL_BASE/cookie").execute {
-                assertEquals("OK", it.readText())
+                assertEquals("OK", it.bodyAsText())
                 val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
             }
@@ -87,7 +87,7 @@ class HttpRedirectTest : ClientLoader() {
     fun testRedirectRelative() = clientTests {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/directory/redirectFile").execute {
-                assertEquals("targetFile", it.readText())
+                assertEquals("targetFile", it.bodyAsText())
             }
         }
     }
@@ -96,7 +96,7 @@ class HttpRedirectTest : ClientLoader() {
     fun testMultipleRedirectRelative() = clientTests {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/multipleRedirects/login").execute {
-                assertEquals("account details", it.readText())
+                assertEquals("account details", it.bodyAsText())
             }
         }
     }
@@ -105,7 +105,7 @@ class HttpRedirectTest : ClientLoader() {
     fun testRedirectAbsolute() = clientTests {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
-                assertEquals("absoluteTargetFile", it.readText())
+                assertEquals("absoluteTargetFile", it.bodyAsText())
             }
         }
     }
@@ -114,7 +114,7 @@ class HttpRedirectTest : ClientLoader() {
     fun testRedirectHostAbsolute() = clientTests(listOf("Js")) {
         test { client ->
             client.prepareGet("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
-                assertEquals("OK", it.readText())
+                assertEquals("OK", it.bodyAsText())
                 assertEquals("$TEST_URL_BASE/get", it.call.request.url.toString())
             }
         }

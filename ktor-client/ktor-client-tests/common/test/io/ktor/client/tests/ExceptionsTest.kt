@@ -36,7 +36,7 @@ class ExceptionsTest : ClientLoader() {
         try {
             client.get("www.google.com").body<String>()
         } catch (exception: ResponseException) {
-            val text = exception.response?.readText()
+            val text = exception.response?.bodyAsText()
             assertEquals(HttpStatusCode.BadRequest.description, text)
         }
     }

@@ -182,7 +182,7 @@ class LoggingTest : ClientLoader() {
 
                 setBody(content)
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 
@@ -317,7 +317,7 @@ class LoggingTest : ClientLoader() {
                 method = HttpMethod.Get
                 url.takeFrom("$TEST_SERVER/logging/301")
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 

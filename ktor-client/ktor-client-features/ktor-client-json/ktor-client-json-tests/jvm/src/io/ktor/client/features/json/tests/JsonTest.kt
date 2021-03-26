@@ -114,7 +114,7 @@ public abstract class JsonTest : TestWithKtor() {
 
         test { client ->
             val response: HttpResponse = client.get("https://test.com")
-            assertEquals("", response.readText())
+            assertEquals("", response.bodyAsText())
             assertEquals("null", response.headers["X-ContentType"])
         }
     }

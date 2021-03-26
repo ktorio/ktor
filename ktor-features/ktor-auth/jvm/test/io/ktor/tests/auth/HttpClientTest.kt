@@ -80,7 +80,7 @@ class HttpClientTest {
         try {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.readText())
+            assertEquals("ok", response.bodyAsText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])

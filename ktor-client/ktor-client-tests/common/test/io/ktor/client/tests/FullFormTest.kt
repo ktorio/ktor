@@ -23,7 +23,7 @@ class FullFormTest : ClientLoader() {
                     encodedPath = "/forms/hello"
                     method = HttpMethod.Get
                 }
-            }.execute { it.readText() }
+            }.execute { it.bodyAsText() }
 
             assertEquals("Hello, client", text)
         }
@@ -41,7 +41,7 @@ class FullFormTest : ClientLoader() {
                 }
                 method = HttpMethod.Post
                 setBody("Hello, server")
-            }.execute { it.readText() }
+            }.execute { it.bodyAsText() }
 
             assertEquals("Hello, client", text)
         }

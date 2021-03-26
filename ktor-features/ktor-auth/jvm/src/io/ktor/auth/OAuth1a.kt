@@ -96,7 +96,7 @@ private suspend fun simpleOAuth1aStep1(
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
 
-    val body = response.readText()
+    val body = response.bodyAsText()
     try {
         if (response.status != HttpStatusCode.OK) {
             throw IOException("Bad response: $response")
@@ -163,21 +163,21 @@ private suspend fun requestOAuth1aAccessToken(
     val authHeader = createUpgradeRequestTokenHeaderInternal(consumerKey, token, nonce)
         .signInternal(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val body = // some of really existing OAuth servers don't support other accept header values so keep it
-        client.post(baseUrl) {
-            header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
-            header(HttpHeaders.Accept, "*/*")
-            // some of really existing OAuth servers don't support other accept header values so keep it
+    // some of really existing OAuth servers don't support other accept header values so keep it
+    val body = client.post(baseUrl) {
+        header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
+        header(HttpHeaders.Accept, "*/*")
+        // some of really existing OAuth servers don't support other accept header values so keep it
 
-            setBody(
-                WriterContent(
-                    { params.formUrlEncodeTo(this) },
-                    ContentType.Application.FormUrlEncoded
-                )
+        setBody(
+            WriterContent(
+                { params.formUrlEncodeTo(this) },
+                ContentType.Application.FormUrlEncoded
             )
+        )
 
-            accessTokenInterceptor?.invoke(this)
-        }.body<String>()
+        accessTokenInterceptor?.invoke(this)
+    }.body<String>()
 
     try {
         val parameters = body.parseUrlEncodedParameters()

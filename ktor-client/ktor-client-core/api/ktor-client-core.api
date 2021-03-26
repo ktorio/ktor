@@ -100,11 +100,6 @@ public final class io/ktor/client/call/UnsupportedUpgradeProtocolException : jav
 	public fun <init> (Lio/ktor/http/Url;)V
 }
 
-public final class io/ktor/client/call/UtilsJvmKt {
-	public static final fun call (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun call$default (Lio/ktor/client/HttpClient;Ljava/net/URL;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
 public final class io/ktor/client/content/LocalFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
 	public fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;)V
 	public synthetic fun <init> (Ljava/io/File;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1133,6 +1128,9 @@ public final class io/ktor/client/statement/HttpResponseContainer {
 }
 
 public final class io/ktor/client/statement/HttpResponseKt {
+	public static final fun bodyAsChannel (Lio/ktor/client/statement/HttpResponse;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun bodyAsText (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun bodyAsText$default (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun complete (Lio/ktor/client/statement/HttpResponse;)V
 	public static final fun getRequest (Lio/ktor/client/statement/HttpResponse;)Lio/ktor/client/request/HttpRequest;
 }
@@ -1160,11 +1158,6 @@ public final class io/ktor/client/statement/HttpStatement {
 	public final fun execute (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun executeUnsafe (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class io/ktor/client/statement/HttpStatementKt {
-	public static final fun readText (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun readText$default (Lio/ktor/client/statement/HttpResponse;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/statement/ReadersKt {
