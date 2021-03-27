@@ -3,6 +3,7 @@
  */
 package io.ktor.client.tests.features
 
+import io.ktor.client.call.*
 import io.ktor.client.features.cache.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -30,11 +31,11 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/no-store")
 
-            val first = client.get<String>(url)
+            val first = client.get(url).body<String>()
             assertTrue(storage!!.privateStorage.findByUrl(url).isEmpty())
             assertTrue(storage!!.publicStorage.findByUrl(url).isEmpty())
 
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
             assertTrue(storage!!.privateStorage.findByUrl(url).isEmpty())
             assertTrue(storage!!.publicStorage.findByUrl(url).isEmpty())
 
@@ -53,11 +54,11 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/no-cache")
 
-            val first = client.get<String>(url)
+            val first = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
             assertEquals(0, storage!!.privateStorage.findByUrl(url).size)
 
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
             assertEquals(0, storage!!.privateStorage.findByUrl(url).size)
 
@@ -76,10 +77,10 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/etag")
 
-            val first = client.get<String>(url)
+            val first = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
 
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
 
             assertEquals(first, second)
@@ -97,10 +98,10 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/last-modified")
 
-            val first = client.get<String>(url)
+            val first = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
 
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
             assertEquals(1, storage!!.publicStorage.findByUrl(url).size)
 
             assertEquals(first, second)
@@ -119,43 +120,43 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/vary")
 
             // first header value from Vary
-            val first = client.get<String>(url) {
+            val first = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
-            val second = client.get<String>(url) {
+            val second = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, second)
 
             // second header value from Vary
-            val third = client.get<String>(url) {
+            val third = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertNotEquals(third, second)
 
-            val fourth = client.get<String>(url) {
+            val fourth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertEquals(third, fourth)
 
             // first header value from Vary
-            val fifth = client.get<String>(url) {
+            val fifth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, fifth)
 
             // no header value from Vary
-            val sixth = client.get<String>(url)
+            val sixth = client.get(url).body<String>()
 
             assertNotEquals(sixth, second)
             assertNotEquals(sixth, third)
 
-            val seventh = client.get<String>(url)
+            val seventh = client.get(url).body<String>()
 
             assertEquals(sixth, seventh)
         }
@@ -173,43 +174,43 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/vary-stale")
 
             // first header value from Vary
-            val first = client.get<String>(url) {
+            val first = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
-            val second = client.get<String>(url) {
+            val second = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, second)
 
             // second header value from Vary
-            val third = client.get<String>(url) {
+            val third = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertNotEquals(third, second)
 
-            val fourth = client.get<String>(url) {
+            val fourth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertEquals(third, fourth)
 
             // first header value from Vary
-            val fifth = client.get<String>(url) {
+            val fifth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, fifth)
 
             // no header value from Vary
-            val sixth = client.get<String>(url)
+            val sixth = client.get(url).body<String>()
 
             assertNotEquals(sixth, second)
             assertNotEquals(sixth, third)
 
-            val seventh = client.get<String>(url)
+            val seventh = client.get(url).body<String>()
 
             assertEquals(sixth, seventh)
         }
@@ -251,43 +252,43 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/vary-stale")
 
             // first header value from Vary
-            val first = client.get<String>(url) {
+            val first = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
-            val second = client.get<String>(url) {
+            val second = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, second)
 
             // second header value from Vary
-            val third = client.get<String>(url) {
+            val third = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertNotEquals(third, second)
 
-            val fourth = client.get<String>(url) {
+            val fourth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "ru")
-            }
+            }.body<String>()
 
             assertEquals(third, fourth)
 
             // first header value from Vary
-            val fifth = client.get<String>(url) {
+            val fifth = client.get(url) {
                 header(HttpHeaders.ContentLanguage, "en")
-            }
+            }.body<String>()
 
             assertEquals(first, fifth)
 
             // no header value from Vary
-            val sixth = client.get<String>(url)
+            val sixth = client.get(url).body<String>()
 
             assertNotEquals(sixth, second)
             assertNotEquals(sixth, third)
 
-            val seventh = client.get<String>(url)
+            val seventh = client.get(url).body<String>()
 
             assertEquals(sixth, seventh)
         }
@@ -304,16 +305,16 @@ class CacheTest : ClientLoader() {
         test { client ->
             val url = Url("$TEST_SERVER/cache/max-age")
 
-            val first = client.get<String>(url)
+            val first = client.get(url).body<String>()
             val cache = storage!!.publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
 
             assertEquals(first, second)
             delay(5000)
 
-            val third = client.get<String>(url)
+            val third = client.get(url).body<String>()
             assertNotEquals(first, third)
         }
     }
@@ -336,7 +337,7 @@ class CacheTest : ClientLoader() {
 
                 return client.get(url) {
                     header("X-Expires", expires)
-                }
+                }.body()
             }
 
             val first = getWithHeader(now.toHttpDate())
@@ -344,13 +345,13 @@ class CacheTest : ClientLoader() {
             assertEquals(1, cache.size)
 
             // this should be from the cache
-            val second = client.get<String>(url)
+            val second = client.get(url).body<String>()
 
             assertEquals(first, second)
             delay(5000)
 
             // now it should be already expired
-            val third = client.get<String>(url)
+            val third = client.get(url).body<String>()
             assertNotEquals(first, third)
 
             // illegal values: broken, "0" and blank should be treated as already expired
@@ -372,7 +373,7 @@ class CacheTest : ClientLoader() {
             }
 
             delayGMTDate(1)
-            val last = client.get<String>(url)
+            val last = client.get(url).body<String>()
             assertNotEquals(previous, last)
         }
     }
@@ -392,14 +393,14 @@ class CacheTest : ClientLoader() {
             fun publicCache() = storage!!.publicStorage.findByUrl(publicUrl)
             fun privateCache() = storage!!.privateStorage.findByUrl(privateUrl)
 
-            val firstPrivate = client.get<String>(privateUrl)
+            val firstPrivate = client.get(privateUrl).body<String>()
             assertEquals(firstPrivate, "private")
             assertEquals(1, privateCache().size)
             assertEquals(0, publicCache().size)
 
             val privateCacheEntry = privateCache().first()
 
-            val firstPublic = client.get<String>(publicUrl)
+            val firstPublic = client.get(publicUrl).body<String>()
             assertEquals(firstPublic, "public")
             assertEquals(1, publicCache().size)
             assertEquals(1, privateCache().size)
@@ -408,7 +409,7 @@ class CacheTest : ClientLoader() {
             val publicCacheEntry = publicCache().first()
 
             // Private is updated from server by server implementation.
-            val secondPrivate = client.get<String>(privateUrl)
+            val secondPrivate = client.get(privateUrl).body<String>()
             assertEquals(secondPrivate, "private")
 
             // Old entry should be replaced.
@@ -421,7 +422,7 @@ class CacheTest : ClientLoader() {
             assertNotSame(privateCacheEntry, actual)
 
             // Public from cache.
-            val secondPublic = client.get<String>(publicUrl)
+            val secondPublic = client.get(publicUrl).body<String>()
             assertEquals(secondPublic, "public")
 
             assertEquals(1, privateCache().size)

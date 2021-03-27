@@ -179,10 +179,10 @@ public class HttpClient(
      */
 
     @Deprecated(
-        "Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(builder)] instead.",
+        "Unbound [HttpClientCall] is deprecated. Consider using [request(builder)] instead.",
         level = DeprecationLevel.ERROR,
         replaceWith = ReplaceWith(
-            "this.request<HttpResponse>(builder)",
+            "this.request(builder)",
             "io.ktor.client.statement.*"
         )
     )

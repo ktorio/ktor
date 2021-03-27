@@ -46,8 +46,8 @@ abstract class SslOverProxyTest<T : HttpClientEngineConfig>(
         }
 
         test { client ->
-            val response = client.get<HttpResponse>("https://localhost:8089/")
-            assertEquals("Hello, TLS!", response.receive())
+            val response = client.get("https://localhost:8089/")
+            assertEquals("Hello, TLS!", response.body())
             assertEquals("TLS test server", response.headers["X-Comment"])
         }
     }

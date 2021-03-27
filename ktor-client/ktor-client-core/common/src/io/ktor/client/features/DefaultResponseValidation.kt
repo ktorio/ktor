@@ -41,7 +41,7 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
             }
 
             val exceptionResponse = exceptionCall.response
-            val exceptionResponseText = exceptionResponse.readText()
+            val exceptionResponseText = exceptionResponse.bodyAsText()
             when (statusCode) {
                 in 300..399 -> throw RedirectResponseException(exceptionResponse, exceptionResponseText)
                 in 400..499 -> throw ClientRequestException(exceptionResponse, exceptionResponseText)
