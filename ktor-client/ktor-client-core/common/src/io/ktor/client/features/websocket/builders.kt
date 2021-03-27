@@ -5,6 +5,7 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -31,7 +32,7 @@ public suspend fun HttpClient.webSocketSession(
         port = protocol.defaultPort
     }
     block()
-}
+}.body()
 
 /**
  * Open [DefaultClientWebSocketSession].
@@ -56,7 +57,7 @@ public suspend fun HttpClient.webSocket(
     request: HttpRequestBuilder.() -> Unit,
     block: suspend DefaultClientWebSocketSession.() -> Unit
 ) {
-    val session = request<HttpStatement> {
+    val session = prepareRequest {
         url {
             protocol = URLProtocol.WS
             port = protocol.defaultPort
@@ -64,7 +65,7 @@ public suspend fun HttpClient.webSocket(
         request()
     }
 
-    session.receive<DefaultClientWebSocketSession, Unit> {
+    session.body<DefaultClientWebSocketSession, Unit> {
         try {
             block(it)
         } finally {

@@ -36,7 +36,7 @@ class LoggingTest : ClientLoader() {
 
         test { client ->
             val size = 4 * 1024 * 1024
-            client.get<HttpStatement>("$TEST_SERVER/bytes?size=$size").execute {
+            client.prepareGet("$TEST_SERVER/bytes?size=$size").execute {
                 assertEquals(size, it.readBytes().size)
             }
         }
@@ -173,7 +173,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -181,9 +181,9 @@ class LoggingTest : ClientLoader() {
                     port = serverPort
                 }
 
-                body = content
+                setBody(content)
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 
@@ -232,7 +232,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Post
 
                 url {
@@ -240,7 +240,7 @@ class LoggingTest : ClientLoader() {
                     port = serverPort
                 }
 
-                body = byteArrayOf(-77, 111)
+                setBody(byteArrayOf(-77, 111))
             }.execute {
                 it.readBytes()
                 it
@@ -314,11 +314,11 @@ class LoggingTest : ClientLoader() {
         test { client ->
             testLogger.reset()
 
-            val response = client.request<HttpStatement> {
+            val response = client.prepareRequest {
                 method = HttpMethod.Get
                 url.takeFrom("$TEST_SERVER/logging/301")
             }.execute {
-                it.readText()
+                it.bodyAsText()
                 it
             }
 
@@ -366,11 +366,11 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = "test"
+                setBody("test")
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
             assertNotNull(response)
             assertEquals("test", response.readRemaining().readText())
         }
@@ -416,12 +416,12 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = "test"
+                setBody("test")
                 contentType(ContentType.Application.OctetStream)
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
 
             assertNotNull(response)
             response.discard()
@@ -521,15 +521,11 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.post<HttpResponse>("$TEST_SERVER/content/echo") {
-                body = MultiPartFormDataContent(
-                    formData {
-                        append("file", "123")
-                    }
-                )
+            val response = client.post("$TEST_SERVER/content/echo") {
+                setBody(MultiPartFormDataContent(formData { append("file", "123") }))
             }
 
-            assertNotNull(response.receive<String>())
+            assertNotNull(response.body<String>())
             val request = response.request
             val contentLength = request.content.contentLength!!
             val contentType = request.content.contentType!!
@@ -557,7 +553,7 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            client.request<String> {
+            client.request {
                 method = requestMethod
 
                 url {
@@ -566,7 +562,7 @@ class LoggingTest : ClientLoader() {
                 }
 
                 body?.let { this@request.body = body }
-            }
+            }.body<String>()
         }
 
         after {
@@ -617,12 +613,12 @@ class LoggingTest : ClientLoader() {
         }
 
         test { client ->
-            val response = client.request<ByteReadChannel> {
+            val response = client.request {
                 method = HttpMethod.Post
-                body = User("Ktor")
+                setBody(User("Ktor"))
                 contentType(ContentType.Application.Json)
                 url("$TEST_SERVER/content/echo")
-            }
+            }.body<ByteReadChannel>()
 
             assertNotNull(response)
         }
