@@ -74,7 +74,7 @@ class TomcatHttpServerTest :
         }
 
         withUrl("/tomcat/attributes") {
-            assertEquals("135", call.response.readText())
+            assertEquals("135", call.response.bodyAsText())
         }
     }
 

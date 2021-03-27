@@ -171,7 +171,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -188,7 +188,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -205,7 +205,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -277,7 +277,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
 
         withUrl("/") {
-            assertEquals(endMarkerCrLf, readText())
+            assertEquals(endMarkerCrLf, bodyAsText())
         }
     }
 
@@ -292,7 +292,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
 
         withUrl("/") {
-            assertEquals("OK", readText())
+            assertEquals("OK", bodyAsText())
         }
     }
 
@@ -329,7 +329,7 @@ public abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfigurat
         sleepWhileServerIsRestoring()
 
         withUrl("/") {
-            assertEquals("OK", readText())
+            assertEquals("OK", bodyAsText())
         }
     }
 

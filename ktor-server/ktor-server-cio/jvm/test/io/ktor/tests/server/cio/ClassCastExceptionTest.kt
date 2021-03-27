@@ -6,6 +6,7 @@ package io.ktor.tests.server.cio
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.routing.*
 import io.ktor.server.cio.*
@@ -49,7 +50,7 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
             launch {
                 HttpClient(io.ktor.client.engine.cio.CIO).use { client ->
                     try {
-                        client.get<String>(port = port, path = "/hang")
+                        client.get { url(port = port, path = "/hang") }.body<String>()
                     } catch (e: Throwable) {
                     }
                 }
