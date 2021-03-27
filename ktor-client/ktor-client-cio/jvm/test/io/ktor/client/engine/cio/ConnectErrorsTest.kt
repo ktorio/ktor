@@ -6,9 +6,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -52,7 +52,7 @@ class ConnectErrorsTest {
 
             repeat(5) {
                 try {
-                    client.request<HttpResponse>("http://localhost:${serverSocket.localPort}/")
+                    client.request("http://localhost:${serverSocket.localPort}/")
                     fail("Shouldn't reach here")
                 } catch (_: java.net.ConnectException) {
                 }
@@ -74,7 +74,7 @@ class ConnectErrorsTest {
                     }
                 }
                 withTimeout(10000L) {
-                    assertEquals("OK", client.get<String>("http://localhost:${serverSocket.localPort}/"))
+                    assertEquals("OK", client.get("http://localhost:${serverSocket.localPort}/").body())
                 }
                 thread.join()
             }
@@ -125,14 +125,14 @@ class ConnectErrorsTest {
             )
 
             try {
-                client.get<String>(scheme = "https", path = "/", port = serverPort)
+                client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
             } catch (_: java.net.ConnectException) {
             }
 
             try {
                 server.start()
 
-                val message = client.get<String>(scheme = "https", path = "/", port = serverPort)
+                val message = client.get { url(scheme = "https", path = "/", port = serverPort) }.body<String>()
                 assertEquals("OK", message)
             } finally {
                 server.stop(0, 0, TimeUnit.MILLISECONDS)
