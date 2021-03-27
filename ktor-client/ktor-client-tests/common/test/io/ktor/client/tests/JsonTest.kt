@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
@@ -30,7 +31,7 @@ class JsonTest : ClientLoader() {
 
         test { client ->
             val expected = Result<User>("ok", User("hello"))
-            val response = client.get<Result<User>>("$TEST_SERVER/json/user-generic")
+            val response = client.get("$TEST_SERVER/json/user-generic").body<Result<User>>()
 
             assertEquals(expected, response)
         }
