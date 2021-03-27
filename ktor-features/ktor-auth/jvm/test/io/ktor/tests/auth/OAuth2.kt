@@ -9,6 +9,7 @@ import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.http.content.*
@@ -81,13 +82,15 @@ class OAuth2Test {
             url.parameters.remove("state")
 
             if (method == HttpMethod.Post) {
-                body = runBlocking {
-                    val query = parseQueryString((body as OutgoingContent).toByteReadPacket().readText())
-                    val filtered = ParametersBuilder().apply {
-                        appendFiltered(query) { key, _ -> key != "state" }
-                    }.build()
-                    TextContent(filtered.formUrlEncode(), ContentType.Application.FormUrlEncoded)
-                }
+                setBody(
+                    runBlocking {
+                        val query = parseQueryString((body as OutgoingContent).toByteReadPacket().readText())
+                        val filtered = ParametersBuilder().apply {
+                            appendFiltered(query) { key, _ -> key != "state" }
+                        }.build()
+                        TextContent(filtered.formUrlEncode(), ContentType.Application.FormUrlEncoded)
+                    }
+                )
             }
         }
     )

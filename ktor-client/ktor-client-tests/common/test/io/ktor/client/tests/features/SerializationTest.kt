@@ -27,7 +27,7 @@ class SerializationTest : ClientLoader() {
                 client.post {
                     url("https://google.com")
                     header(HttpHeaders.ContentType, ContentType.Application.Json)
-                    body = MyCustomObject(message = "Hello World")
+                    setBody(MyCustomObject(message = "Hello World"))
                 }
             }
         }
@@ -44,7 +44,7 @@ class SerializationTest : ClientLoader() {
                 client.post {
                     url("https://google.com")
                     header(HttpHeaders.ContentType, ContentType.Application.Json)
-                    body = "Hello, world"
+                    setBody("Hello, world")
                 }
             }
         }
@@ -59,7 +59,7 @@ class SerializationTest : ClientLoader() {
         test { client ->
             assertFailsWith<IllegalStateException> {
                 client.post("$TEST_SERVER/json/object") {
-                    body = MyCustomObject("Foo")
+                    setBody(MyCustomObject("Foo"))
                 }
             }
         }

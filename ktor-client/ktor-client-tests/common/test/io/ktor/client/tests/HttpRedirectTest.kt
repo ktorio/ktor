@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
@@ -23,9 +24,9 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE").execute {
+            client.prepareGet("$TEST_URL_BASE").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
-                assertEquals("OK", it.readText())
+                assertEquals("OK", it.bodyAsText())
             }
         }
     }
@@ -52,7 +53,7 @@ class HttpRedirectTest : ClientLoader() {
 
         test { client ->
             assertFails {
-                client.get<HttpResponse>("$TEST_URL_BASE/infinity")
+                client.get("$TEST_URL_BASE/infinity")
             }
         }
     }
@@ -65,8 +66,8 @@ class HttpRedirectTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/cookie").execute {
-                assertEquals("OK", it.readText())
+            client.prepareGet("$TEST_URL_BASE/cookie").execute {
+                assertEquals("OK", it.bodyAsText())
                 val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
             }
@@ -88,7 +89,7 @@ class HttpRedirectTest : ClientLoader() {
 
         test { client ->
             urls.forEach { url ->
-                client.get<HttpStatement>(url).execute {
+                client.prepareGet(url).execute {
                     if (it.status.value >= 500) return@execute
                     assertTrue(it.status.isSuccess(), url)
                 }
@@ -99,8 +100,8 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun testRedirectRelative() = clientTests {
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/directory/redirectFile").execute {
-                assertEquals("targetFile", it.readText())
+            client.prepareGet("$TEST_URL_BASE/directory/redirectFile").execute {
+                assertEquals("targetFile", it.bodyAsText())
             }
         }
     }
@@ -108,8 +109,8 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun testMultipleRedirectRelative() = clientTests {
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/multipleRedirects/login").execute {
-                assertEquals("account details", it.readText())
+            client.prepareGet("$TEST_URL_BASE/multipleRedirects/login").execute {
+                assertEquals("account details", it.bodyAsText())
             }
         }
     }
@@ -117,8 +118,8 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun testRedirectAbsolute() = clientTests {
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
-                assertEquals("absoluteTargetFile", it.readText())
+            client.prepareGet("$TEST_URL_BASE/directory/absoluteRedirectFile").execute {
+                assertEquals("absoluteTargetFile", it.bodyAsText())
             }
         }
     }
@@ -126,8 +127,8 @@ class HttpRedirectTest : ClientLoader() {
     @Test
     fun testRedirectHostAbsolute() = clientTests(listOf("Js")) {
         test { client ->
-            client.get<HttpStatement>("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
-                assertEquals("OK", it.readText())
+            client.prepareGet("$TEST_URL_BASE/directory/hostAbsoluteRedirect").execute {
+                assertEquals("OK", it.bodyAsText())
                 assertEquals("$TEST_URL_BASE/get", it.call.request.url.toString())
             }
         }
