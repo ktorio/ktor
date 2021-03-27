@@ -122,11 +122,11 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
         withUrl("/a%20b") {
             assertEquals(200, status.value)
-            assertEquals("space", readText())
+            assertEquals("space", bodyAsText())
         }
         withUrl("/a+b") {
             assertEquals(200, status.value)
-            assertEquals("plus", readText())
+            assertEquals("plus", bodyAsText())
         }
     }
 
@@ -142,11 +142,11 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             "/?urlp=1",
             {
                 method = HttpMethod.Post
-                body = ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded)
+                setBody(ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded))
             }
         ) {
             assertEquals(HttpStatusCode.OK.value, status.value)
-            assertEquals("1,2", readText())
+            assertEquals("1,2", bodyAsText())
         }
     }
 
@@ -164,7 +164,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
                 header(HttpHeaders.Connection, "close")
             }
         ) {
-            assertEquals("Text", readText())
+            assertEquals("Text", bodyAsText())
         }
 
         withUrl(
@@ -173,7 +173,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
                 header(HttpHeaders.Connection, "close")
             }
         ) {
-            assertEquals("Text", readText())
+            assertEquals("Text", bodyAsText())
         }
     }
 
@@ -192,7 +192,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("Text", readText())
+            assertEquals("Text", bodyAsText())
         }
 
         withUrl(
@@ -202,7 +202,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             }
         ) {
             assertEquals(200, status.value)
-            assertEquals("Text", readText())
+            assertEquals("Text", bodyAsText())
         }
     }
 
@@ -294,7 +294,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
         withUrl("/non-existent") {
             assertEquals(HttpStatusCode.NotFound.value, status.value)
-            assertEquals("Error string", readText())
+            assertEquals("Error string", bodyAsText())
         }
     }
 
@@ -309,7 +309,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
         }
 
         withUrl("/") {
-            readText().also { text ->
+            bodyAsText().also { text ->
                 assertNotNull(
                     listOf("localhost", "127.0.0.1", "::1", "0:0:0:0:0:0:0:1").find {
                         it == text
@@ -328,13 +328,13 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
         }
 
         withUrl("/single?single=value") {
-            assertEquals("[value]", readText())
+            assertEquals("[value]", bodyAsText())
         }
         withUrl("/multiple?multiple=value1&multiple=value2") {
-            assertEquals("[value1, value2]", readText())
+            assertEquals("[value1, value2]", bodyAsText())
         }
         withUrl("/missing") {
-            assertEquals("null", readText())
+            assertEquals("null", bodyAsText())
         }
     }
 
@@ -403,7 +403,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
         withUrl("/") {
             assertEquals(HttpStatusCode.Found.value, status.value)
-            assertEquals("Hello", readText())
+            assertEquals("Hello", bodyAsText())
         }
     }
 
@@ -439,7 +439,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             }
         ) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host:90/", readText())
+            assertEquals("$expectedProto://my-host:90/", bodyAsText())
         }
 
         withUrl(
@@ -449,7 +449,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             }
         ) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host/", readText())
+            assertEquals("$expectedProto://my-host/", bodyAsText())
         }
 
         withUrl(
@@ -459,7 +459,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
                 header(HttpHeaders.XForwardedProto, "https")
             }
         ) {
-            assertEquals("https://my-host:90/", readText())
+            assertEquals("https://my-host:90/", bodyAsText())
         }
 
         withUrl(
@@ -469,7 +469,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
                 header(HttpHeaders.XForwardedProto, "https")
             }
         ) {
-            assertEquals("https://my-host/", readText())
+            assertEquals("https://my-host/", bodyAsText())
         }
     }
 
@@ -491,43 +491,43 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
         }
 
         withUrl("/path/1?p=v") {
-            assertEquals("/path/1", readText())
+            assertEquals("/path/1", bodyAsText())
         }
         withUrl("/path/1?") {
-            assertEquals("/path/1", readText())
+            assertEquals("/path/1", bodyAsText())
         }
         withUrl("/path/1") {
-            assertEquals("/path/1", readText())
+            assertEquals("/path/1", bodyAsText())
         }
 
         withUrl("/document/1?p=v") {
-            assertEquals("1", readText())
+            assertEquals("1", bodyAsText())
         }
         withUrl("/document/1?") {
-            assertEquals("1", readText())
+            assertEquals("1", bodyAsText())
         }
         withUrl("/document/1") {
-            assertEquals("1", readText())
+            assertEquals("1", bodyAsText())
         }
 
         withUrl("/queryString/1?p=v") {
-            assertEquals("p=v", readText())
+            assertEquals("p=v", bodyAsText())
         }
         withUrl("/queryString/1?") {
-            assertEquals("", readText())
+            assertEquals("", bodyAsText())
         }
         withUrl("/queryString/1") {
-            assertEquals("", readText())
+            assertEquals("", bodyAsText())
         }
 
         withUrl("/uri/1?p=v") {
-            assertEquals("/uri/1?p=v", readText())
+            assertEquals("/uri/1?p=v", bodyAsText())
         }
         withUrl("/uri/1?") {
-            assertEquals("/uri/1?", readText())
+            assertEquals("/uri/1?", bodyAsText())
         }
         withUrl("/uri/1") {
-            assertEquals("/uri/1", readText())
+            assertEquals("/uri/1", bodyAsText())
         }
     }
 
@@ -604,12 +604,12 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
         withUrl("/child") {
             assertEquals(HttpStatusCode.OK, status)
-            assertEquals("child", readText())
+            assertEquals("child", bodyAsText())
         }
 
         withUrl("/") {
             assertEquals(HttpStatusCode.OK, status)
-            assertEquals("test", readText())
+            assertEquals("test", bodyAsText())
         }
     }
 
@@ -748,7 +748,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
             }
         ) {
             assertEquals(HttpStatusCode.OK, status)
-            assertEquals("OK", readText())
+            assertEquals("OK", bodyAsText())
         }
     }
 
@@ -765,7 +765,7 @@ public abstract class HttpServerTestSuite<TEngine : ApplicationEngine,
 
         withUrl("/") {
             assertEquals(HttpStatusCode.OK, status)
-            assertEquals("parent", readText())
+            assertEquals("parent", bodyAsText())
         }
     }
 

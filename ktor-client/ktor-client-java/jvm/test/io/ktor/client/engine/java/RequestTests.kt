@@ -6,6 +6,7 @@ package io.ktor.client.engine.java
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -73,21 +74,21 @@ class RequestTests : TestWithKtor() {
         }
 
         runBlocking {
-            val response = clientSuccess.get<String>(requestBuilder)
+            val response = clientSuccess.get(requestBuilder).body<String>()
             assertEquals("OK", response)
 
             assertFailsWith<SocketTimeoutException> {
-                clientWithSocketTimeout.get<HttpResponseData>(requestBuilder)
+                clientWithSocketTimeout.get(requestBuilder).body<HttpResponseData>()
             }
 
             assertFailsWith<ConnectTimeoutException> {
-                clientWithConnectTimeout.get<HttpResponseData>(
+                clientWithConnectTimeout.get(
                     requestBuilder.apply {
                         url {
                             takeFrom("https://google.com")
                         }
                     }
-                )
+                ).body<HttpResponseData>()
             }
         }
     }
@@ -98,10 +99,10 @@ class RequestTests : TestWithKtor() {
 
         val response = HttpClient(Java).use { client ->
             runBlocking {
-                client.post<String>("$testUrl/echo") {
+                client.post("$testUrl/echo") {
                     contentType(ContentType.Text.Plain)
-                    body = ByteReadChannel(payload)
-                }
+                    setBody(ByteReadChannel(payload))
+                }.body<String>()
             }
         }
 

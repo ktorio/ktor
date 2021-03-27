@@ -6,7 +6,6 @@ package io.ktor.client.tests
 
 import io.ktor.client.features.observer.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
 
@@ -20,7 +19,7 @@ class ResponseObserverTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/download") {
+            client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
         }
@@ -35,7 +34,7 @@ class ResponseObserverTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/download") {
+            client.get("$TEST_SERVER/download") {
                 parameter("size", (1024 * 10).toString())
             }
         }
