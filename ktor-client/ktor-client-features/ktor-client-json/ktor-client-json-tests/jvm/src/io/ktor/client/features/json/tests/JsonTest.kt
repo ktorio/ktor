@@ -22,7 +22,6 @@ import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import kotlinx.serialization.*
@@ -115,7 +114,7 @@ public abstract class JsonTest : TestWithKtor() {
 
         test { client ->
             val response: HttpResponse = client.get("https://test.com")
-            assertEquals("", response.readText())
+            assertEquals("", response.bodyAsText())
             assertEquals("null", response.headers["X-ContentType"])
         }
     }
@@ -125,9 +124,11 @@ public abstract class JsonTest : TestWithKtor() {
         configClient()
 
         test { client ->
-            val result = client.post<Widget>(body = widget, path = "/widget", port = serverPort) {
+            val result = client.post {
+                setBody(widget)
+                url(path = "/widget", port = serverPort)
                 contentType(ContentType.Application.Json)
-            }
+            }.body<Widget>()
 
             assertEquals(widget, result)
         }
@@ -138,7 +139,7 @@ public abstract class JsonTest : TestWithKtor() {
         configClient()
 
         test { client ->
-            val result = client.get<Response<List<User>>>(path = "/users", port = serverPort)
+            val result = client.get { url(path = "/users", port = serverPort) }.body<Response<List<User>>>()
 
             assertTrue(result.ok)
             assertNotNull(result.result)
@@ -153,7 +154,7 @@ public abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.get<Response<List<User>>>(path = "/users-x", port = serverPort)
+            val result = client.get { url(path = "/users-x", port = serverPort) }.body<Response<List<User>>>()
 
             assertTrue(result.ok)
             assertNotNull(result.result)
@@ -161,8 +162,8 @@ public abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
-                val result = response.receive<Response<List<User>>>()
+            client.prepareGet { url(path = "/users-x", port = serverPort) }.execute { response ->
+                val result = response.body<Response<List<User>>>()
 
                 assertTrue(result.ok)
                 assertNotNull(result.result)
@@ -175,10 +176,11 @@ public abstract class JsonTest : TestWithKtor() {
         test { client ->
             val payload = User("name1", 99)
 
-            val result = client.post<String>(path = "/post-x", port = serverPort) {
-                body = payload
+            val result = client.post {
+                url(path = "/post-x", port = serverPort)
+                setBody(payload)
                 contentType(customContentType)
-            }
+            }.body<String>()
 
             assertEquals(payload.toString(), result)
         }
@@ -193,10 +195,11 @@ public abstract class JsonTest : TestWithKtor() {
         test { client ->
             val payload = User("name2", 98)
 
-            val result = client.post<String>(path = "/post-x", port = serverPort) {
-                body = payload
+            val result = client.post {
+                url(path = "/post-x", port = serverPort)
+                setBody(payload)
                 contentType(customContentType)
-            }
+            }.body<String>()
 
             assertEquals(payload.toString(), result)
         }
@@ -209,8 +212,8 @@ public abstract class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            client.get<HttpStatement>(path = "/users-x", port = serverPort).execute { response ->
-                val result = response.receive<Response<List<User>>>()
+            client.prepareGet { url(path = "/users-x", port = serverPort) }.execute { response ->
+                val result = response.body<Response<List<User>>>()
 
                 assertTrue(result.ok)
                 assertNotNull(result.result)
@@ -225,10 +228,11 @@ public abstract class JsonTest : TestWithKtor() {
         test { client ->
             val payload = User("name3", 97)
 
-            val result = client.post<String>(path = "/post-x", port = serverPort) {
-                body = payload
+            val result = client.post {
+                url(path = "/post-x", port = serverPort)
+                setBody(payload)
                 contentType(customContentType) // custom content type should match the wildcard
-            }
+            }.body<String>()
 
             assertEquals(payload.toString(), result)
         }

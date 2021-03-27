@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
@@ -29,12 +30,12 @@ class MockedTests {
             val text = "{}"
             val response: String = client.post {
                 url(url)
-                body = text
+                setBody(text)
                 headers {
                     append("Authorization", "Bearer $accessToken")
                     append(HttpHeaders.ContentType, "application/json")
                 }
-            }
+            }.body()
 
             assertEquals("content", response)
         }
@@ -67,8 +68,8 @@ class MockedTests {
         }
 
         test { client ->
-            client.get<Book>("http://localhost/long.json")
-            client.get<Book>("http://localhost/longer.json")
+            client.get("http://localhost/long.json").body<Book>()
+            client.get("http://localhost/longer.json").body<Book>()
         }
     }
 
@@ -95,7 +96,8 @@ class MockedTests {
         }
 
         test { client ->
-            client.get<Unit>("http://api.deutschebahn.com/freeplan/v1/departureBoard/8000096?date=2020-06-14T20:21:22")
+            client.get("http://api.deutschebahn.com/freeplan/v1/departureBoard/8000096?date=2020-06-14T20:21:22")
+                .body<Unit>()
         }
     }
 }

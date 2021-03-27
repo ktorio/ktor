@@ -27,9 +27,9 @@ class MockEngineExtendedTests {
 
         val client = HttpClient(mockEngine) { expectSuccess = false }
 
-        assertEquals("first", client.get())
-        assertEquals("Bad Request", client.get())
-        assertEquals("third", client.get())
+        assertEquals("first", client.get {}.body())
+        assertEquals("Bad Request", client.get {}.body())
+        assertEquals("third", client.get {}.body())
     }
 
     @Test
@@ -42,14 +42,14 @@ class MockEngineExtendedTests {
 
         val client = HttpClient(mockEngine)
 
-        val firstCall = client.request<HttpResponse>("http://127.0.0.1") {
+        val firstCall = client.request("http://127.0.0.1") {
             header("header", "first")
-            body = "body"
+            setBody("body")
         }.request
 
-        val secondCall = client.request<HttpResponse>("https://127.0.0.02") {
+        val secondCall = client.request("https://127.0.0.02") {
             header("header", "second")
-            body = "secured"
+            setBody("secured")
         }.request
 
         assertEquals(firstCall.url.fullUrl, "http://127.0.0.1")
@@ -70,12 +70,12 @@ class MockEngineExtendedTests {
         val client = HttpClient(mockEngine)
 
         runBlocking {
-            client.get<String>("/")
+            client.get("/").body<String>()
         }
 
         val exception = assertFails {
             runBlocking {
-                client.get<String>("/unhandled")
+                client.get("/unhandled").body<String>()
             }
         }
 

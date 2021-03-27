@@ -56,7 +56,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
             val requestData = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
-                body = content
+                setBody(content)
             }.build()
 
             validateHeaders(requestData)

@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
@@ -14,7 +15,7 @@ class FullFormTest : ClientLoader() {
     @Test
     fun testGet() = clientTests {
         test { client ->
-            val text = client.request<HttpStatement> {
+            val text = client.prepareRequest {
                 url {
                     protocol = URLProtocol.HTTP
                     host = "127.0.0.1"
@@ -22,7 +23,7 @@ class FullFormTest : ClientLoader() {
                     encodedPath = "/forms/hello"
                     method = HttpMethod.Get
                 }
-            }.execute { it.readText() }
+            }.execute { it.bodyAsText() }
 
             assertEquals("Hello, client", text)
         }
@@ -31,16 +32,16 @@ class FullFormTest : ClientLoader() {
     @Test
     fun testPost() = clientTests {
         test { client ->
-            val text = client.request<HttpStatement> {
+            val text = client.prepareRequest {
                 url {
                     protocol = URLProtocol.HTTP
                     host = "127.0.0.1"
                     port = 8080
                     encodedPath = "/forms/hello"
-                    method = HttpMethod.Post
-                    body = "Hello, server"
                 }
-            }.execute { it.readText() }
+                method = HttpMethod.Post
+                setBody("Hello, server")
+            }.execute { it.bodyAsText() }
 
             assertEquals("Hello, client", text)
         }
@@ -56,11 +57,11 @@ class FullFormTest : ClientLoader() {
                     port = 8080
                     encodedPath = "/forms/hello"
                     method = HttpMethod.Post
-                    body = "Hello, server"
+                    setBody("Hello, server")
                 }
             }
 
-            val body = client.request<String>(requestBuilder)
+            val body = client.request(requestBuilder).body<String>()
             assertEquals("Hello, client", body)
         }
     }
@@ -75,7 +76,7 @@ class FullFormTest : ClientLoader() {
 
         test { client ->
             urls.forEach {
-                client.get<String>(it)
+                client.get(it).body<String>()
             }
         }
     }
