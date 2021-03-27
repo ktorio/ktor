@@ -15,9 +15,9 @@ class UploadTest : ClientLoader() {
     @Test
     fun testUploadWithByteArrayContent() = clientTests(listOf("Android", "Curl")) {
         test { client ->
-            val result = client.post<String>("$TEST_SERVER/upload/content") {
-                body = ByteArrayContent(ByteArray(1024))
-            }
+            val result = client.post("$TEST_SERVER/upload/content") {
+                setBody(ByteArrayContent(ByteArray(1024)))
+            }.body<String>()
 
             assertEquals("EMPTY", result)
         }
@@ -26,9 +26,9 @@ class UploadTest : ClientLoader() {
     @Test
     fun testUploadWithEmptyContentType() = clientTests {
         test { client ->
-            val result = client.post<String>("$TEST_SERVER/upload/content") {
-                body = ByteArrayContent(ByteArray(1024), ContentType("", ""))
-            }
+            val result = client.post("$TEST_SERVER/upload/content") {
+                setBody(ByteArrayContent(ByteArray(1024), ContentType("", "")))
+            }.body<String>()
 
             assertEquals("/", result)
         }
