@@ -5,6 +5,7 @@
 package io.ktor.client.features.websocket
 
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
@@ -22,7 +23,7 @@ public suspend fun HttpClient.webSocketRawSession(
     this.method = method
     url("ws", host, port, path)
     block()
-}
+}.body()
 
 /**
  * Create raw [ClientWebSocketSession]: no ping-pong and other service messages are used.
@@ -62,22 +63,6 @@ public suspend fun HttpClient.wsRaw(
     request: HttpRequestBuilder.() -> Unit = {},
     block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
-
-/**
- * Open [DefaultClientWebSocketSession].
- */
-@Deprecated(
-    message = "This method is deprecated. Use one from :ktor-client:ktor-client-core",
-    level = DeprecationLevel.HIDDEN
-)
-public suspend fun HttpClient.ws(
-    urlString: String,
-    request: HttpRequestBuilder.() -> Unit = {},
-    block: suspend DefaultClientWebSocketSession.() -> Unit
-): Unit { // ktlint-disable filename no-unit-return
-    val url = Url(urlString)
-    webSocket(HttpMethod.Get, url.host, url.port, url.encodedPath, request, block)
-}
 
 /**
  * Create secure raw [ClientWebSocketSession]: no ping-pong and other service messages are used.

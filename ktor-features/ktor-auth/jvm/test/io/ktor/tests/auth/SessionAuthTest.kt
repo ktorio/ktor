@@ -72,8 +72,8 @@ class SessionAuthTest {
                         Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    val first = client.get<HttpResponse>("/child/logout")
-                    first.receive<String>()
+                    val first = client.get("/child/logout")
+                    first.body<String>()
                     assertEquals(HttpStatusCode.Unauthorized, first.status)
 
                     cookieStorage.addCookie(
@@ -81,8 +81,8 @@ class SessionAuthTest {
                         Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    val second = client.get<HttpResponse>("logout")
-                    second.receive<String>()
+                    val second = client.get("logout")
+                    second.body<String>()
                     assertEquals(HttpStatusCode.Unauthorized, second.status)
                 }
             }
@@ -138,8 +138,8 @@ class SessionAuthTest {
                         Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    val first = client.get<HttpResponse>("/child/logout")
-                    first.receive<String>()
+                    val first = client.get("/child/logout")
+                    first.body<String>()
                     assertEquals(HttpStatusCode.Unauthorized, first.status)
 
                     cookieStorage.addCookie(
@@ -147,8 +147,8 @@ class SessionAuthTest {
                         Cookie("S", defaultSessionSerializer<MySession>().serialize(MySession(1)), path = "/")
                     )
 
-                    val second = client.get<HttpResponse>("logout")
-                    second.receive<String>()
+                    val second = client.get("logout")
+                    second.body<String>()
                     assertEquals(HttpStatusCode.Unauthorized, second.status)
                 }
             }

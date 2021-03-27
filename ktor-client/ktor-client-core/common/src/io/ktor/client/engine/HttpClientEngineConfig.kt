@@ -34,5 +34,5 @@ public open class HttpClientEngineConfig {
         level = DeprecationLevel.ERROR
     )
     public val response: Nothing get() =
-        error("Unbound [HttpClientCall] is deprecated. Consider using [request<HttpResponse>(block)] instead.")
+        error("Unbound [HttpClientCall] is deprecated. Consider using [request(block)] instead.")
 }

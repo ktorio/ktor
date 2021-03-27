@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import kotlinx.coroutines.*
@@ -23,7 +24,7 @@ class MultithreadedTest : ClientLoader() {
         }
         test { client ->
             val result = withPool {
-                client.get<Int>("$TEST_SERVER/multithreaded")
+                client.get("$TEST_SERVER/multithreaded").body<Int>()
             }.toSet().size
 
             assertEquals(TEST_SIZE, result)

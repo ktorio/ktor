@@ -98,7 +98,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
             assertEquals(
                 "It should be no compression if range requested",
                 file.reader().use { it.read().toChar().toString() },
-                readText()
+                bodyAsText()
             )
         }
     }
@@ -128,7 +128,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
                 produceText()
             }
             assertTrue(HttpHeaders.ContentEncoding in headers)
-            val array = receive<ByteArray>()
+            val array = body<ByteArray>()
             val text = GZIPInputStream(ByteArrayInputStream(array)).readBytes().toString(Charsets.UTF_8)
             assertEquals(expected, text)
         }
