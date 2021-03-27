@@ -6,6 +6,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -99,7 +100,7 @@ class AndroidHttpsTest : TestWithKtor() {
                 }
             }
         ).use { client ->
-            val actual = client.get<String>("https://127.0.0.1:$serverPort/")
+            val actual = client.get("https://127.0.0.1:$serverPort/").body<String>()
             assertEquals("Hello, world", actual)
         }
     }

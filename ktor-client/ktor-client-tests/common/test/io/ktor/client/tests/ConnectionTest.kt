@@ -24,7 +24,7 @@ class ConnectionTest : ClientLoader() {
     fun testContentLengthWithEmptyBody() = clientTests {
         test { client ->
             repeat(10) {
-                val response = client.request<HttpResponse> {
+                val response = client.request {
                     method = HttpMethod.Head
                     url.takeFrom("$TEST_SERVER/content/emptyHead")
                 }
@@ -45,7 +45,7 @@ class ConnectionTest : ClientLoader() {
 
         test { client ->
             client.testCall()
-            assertEquals(testContent, client.testCall().receive())
+            assertEquals(testContent, client.testCall().body())
         }
     }
 }
