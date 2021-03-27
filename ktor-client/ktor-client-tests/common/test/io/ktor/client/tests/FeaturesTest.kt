@@ -47,15 +47,15 @@ class FeaturesTest : ClientLoader() {
         val task = Job()
         config {
             ResponseObserver { response ->
-                val text = response.receive<String>()
+                val text = response.body<String>()
                 assertEquals(body, text)
                 task.complete()
             }
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/features/echo").execute {
-                val text = it.receive<String>()
+            client.prepareGet("$TEST_SERVER/features/echo").execute {
+                val text = it.body<String>()
                 assertEquals(body, text)
             }
 
@@ -64,8 +64,8 @@ class FeaturesTest : ClientLoader() {
     }
 
     private suspend fun HttpClient.getIgnoringBody(size: Int) {
-        get<Unit>("$TEST_SERVER/features/body") {
+        get("$TEST_SERVER/features/body") {
             parameter("size", size.toString())
-        }
+        }.body<Unit>()
     }
 }

@@ -23,8 +23,8 @@ class HttpClientCallTest {
 
         test { client ->
             client.responsePipeline.intercept(HttpResponsePipeline.Receive) { error("TestException") }
-            val call = client.get<HttpStatement>("http://localhost")
-            val cause = assertFails { call.receive<String>() }
+            val call = client.prepareGet("http://localhost")
+            val cause = assertFails { call.body<String>() }
             assertTrue { cause.message!!.contains("TestException") }
         }
     }

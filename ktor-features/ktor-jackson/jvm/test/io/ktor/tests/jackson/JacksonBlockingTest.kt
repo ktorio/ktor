@@ -5,6 +5,7 @@
 package io.ktor.tests.jackson
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -52,9 +53,9 @@ class JacksonBlockingTest {
             assertEquals(
                 "OK",
                 client.post("/") {
-                    body = "{\"i\": 77}"
+                    setBody("{\"i\": 77}")
                     contentType(ContentType.Application.Json)
-                }
+                }.body()
             )
         }
     }
