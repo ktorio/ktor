@@ -5,9 +5,10 @@
 package io.ktor.client.features.auth
 
 import io.ktor.client.*
-import io.ktor.client.features.*
+import io.ktor.client.call.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
+import io.ktor.client.request.get
 import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -21,14 +22,16 @@ class AuthTest : ClientLoader() {
         config {
             install(Auth) {
                 digest {
-                    username = "MyName"
-                    password = "Circle Of Life"
+                    credentials {
+                        DigestAuthCredentials("MyName", "Circle Of Life")
+                    }
+
                     realm = "testrealm@host.com"
                 }
             }
         }
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/digest").execute {
+            client.prepareGet("$TEST_SERVER/auth/digest").execute {
                 assertTrue(it.status.isSuccess())
             }
         }
@@ -45,7 +48,7 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/digest").let {
+            client.get("$TEST_SERVER/auth/digest").let {
                 assertTrue(it.status.isSuccess())
             }
         }
@@ -66,10 +69,10 @@ class AuthTest : ClientLoader() {
             }
         }
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/digest").let {
+            client.get("$TEST_SERVER/auth/digest").let {
                 assertTrue(it.status.isSuccess())
             }
-            client.get<HttpResponse>("$TEST_SERVER/auth/digest-2").let {
+            client.get("$TEST_SERVER/auth/digest-2").let {
                 assertTrue(it.status.isSuccess())
             }
         }
@@ -88,7 +91,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed").body<String>()
         }
     }
 
@@ -103,26 +106,26 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed")
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun testBasicAuthWithoutNegotiationLegacy() = clientTests {
         config {
             install(Auth) {
                 basic {
-                    username = "MyUser"
-                    password = "1234"
+                    credentials {
+                        BasicAuthCredentials("MyUser", "1234")
+                    }
 
-                    sendWithoutRequest = true
+                    sendWithoutRequest { true }
                 }
             }
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed").body<String>()
         }
     }
 
@@ -138,7 +141,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
+            client.get("$TEST_SERVER/auth/basic-fixed")
         }
     }
 
@@ -156,7 +159,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/unauthorized").execute { response ->
+            client.prepareGet("$TEST_SERVER/auth/unauthorized").execute { response ->
                 assertEquals(HttpStatusCode.Unauthorized, response.status)
             }
         }
@@ -174,9 +177,8 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/unauthorized").let { response ->
-                assertEquals(HttpStatusCode.Unauthorized, response.status)
-            }
+            val response = client.get("$TEST_SERVER/auth/unauthorized")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
     }
 
@@ -196,10 +198,10 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
-            client.post<String>("$TEST_SERVER/auth/basic") {
+            client.get("$TEST_SERVER/auth/basic-fixed").bodyAsText()
+            client.post("$TEST_SERVER/auth/basic") {
                 body = "{\"test\":\"text\"}"
-            }
+            }.bodyAsText()
         }
     }
 
@@ -219,10 +221,10 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
-            client.post<String>("$TEST_SERVER/auth/basic") {
+            client.get("$TEST_SERVER/auth/basic-fixed").bodyAsText()
+            client.post("$TEST_SERVER/auth/basic") {
                 body = "{\"test\":\"text\"}"
-            }
+            }.bodyAsText()
         }
     }
 
@@ -238,8 +240,8 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<String>("$TEST_SERVER/auth/basic-fixed")
-            client.post<HttpResponse>("$TEST_SERVER/auth/basic") { expectSuccess = false }.let {
+            client.get("$TEST_SERVER/auth/basic-fixed")
+            client.post("$TEST_SERVER/auth/basic").let {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
@@ -259,7 +261,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpResponse>("$TEST_SERVER/auth/bearer/test-refresh").let {
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
@@ -280,7 +282,7 @@ class AuthTest : ClientLoader() {
 
         test { client ->
 
-            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.Unauthorized, it.status)
             }
         }
@@ -299,7 +301,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
             }
         }
@@ -318,7 +320,7 @@ class AuthTest : ClientLoader() {
         }
 
         test { client ->
-            client.get<HttpStatement>("$TEST_SERVER/auth/bearer/test-refresh").execute {
+            client.prepareGet("$TEST_SERVER/auth/bearer/test-refresh").execute {
                 assertEquals(HttpStatusCode.OK, it.status)
             }
         }
@@ -347,7 +349,7 @@ class AuthTest : ClientLoader() {
                 }
             }
 
-            val first = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/first")
+            val first = clientWithAuth.get("$TEST_SERVER/auth/bearer/first").bodyAsText()
             val second = clientWithAuth.get<String>("$TEST_SERVER/auth/bearer/second")
 
             assertEquals("OK", first)
