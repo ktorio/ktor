@@ -6,6 +6,7 @@ package io.ktor.server.testing.suites
 
 import io.ktor.application.*
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -209,25 +210,25 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         assertFails {
             withUrl("/read-more") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/write-more") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/read-less") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
 
         assertFails {
             withUrl("/write-less") {
-                call.receive<String>()
+                call.body<String>()
             }
         }
     }
@@ -257,7 +258,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             // ensure the server is running
-            assertEquals("OK", call.receive<String>())
+            assertEquals("OK", call.body())
         }
 
         parent.cancel()
@@ -276,7 +277,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertFailsWith<IOException> {
             // ensure that the server is not running anymore
             withUrl("/") {
-                call.receive<String>()
+                call.body<String>()
                 fail("Shouldn't happen")
             }
         }
@@ -294,8 +295,8 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         val text = "text body"
 
-        withUrl("/", { body = text; }) {
-            val actual = readText()
+        withUrl("/", { setBody(text) }) {
+            val actual = bodyAsText()
             assertEquals(text, actual)
         }
     }
@@ -311,7 +312,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         for (i in 1..100) {
             withUrl("/?i=$i") {
                 assertEquals(200, status.value)
-                assertEquals("OK $i", readText())
+                assertEquals("OK $i", bodyAsText())
             }
         }
     }
@@ -691,7 +692,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
                 withUrl(
                     "/",
-                    { method = HttpMethod.Post; body = "body" }
+                    { method = HttpMethod.Post; setBody("body") }
                 ) {
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
@@ -733,7 +734,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 startServer(server)
 
                 withUrl("/", { intercepted = false }) {
-                    val text = receive<String>()
+                    val text = body<String>()
                     assertEquals(HttpStatusCode.InternalServerError, status, "Failed in phase $phase")
                     assertEquals(exceptions.size, 1, "Failed in phase $phase")
                     assertEquals(exceptions[0].message, "Failed in phase $phase")
