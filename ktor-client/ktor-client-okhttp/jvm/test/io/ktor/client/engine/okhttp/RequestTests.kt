@@ -6,6 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -49,7 +50,7 @@ class RequestTests : TestWithKtor() {
         }
 
         test { client ->
-            client.get<String>("https://google.com")
+            client.get("https://google.com").body<String>()
         }
     }
 
@@ -74,9 +75,9 @@ class RequestTests : TestWithKtor() {
         }
 
         runBlocking {
-            assertFailsWith<SocketTimeoutException> { clientFail.get<HttpResponseData>(requestBuilder) }
+            assertFailsWith<SocketTimeoutException> { clientFail.get(requestBuilder).body<HttpResponseData>() }
 
-            val response = clientSuccess.get<String>(requestBuilder)
+            val response = clientSuccess.get(requestBuilder).body<String>()
             assertEquals("OK", response)
         }
     }

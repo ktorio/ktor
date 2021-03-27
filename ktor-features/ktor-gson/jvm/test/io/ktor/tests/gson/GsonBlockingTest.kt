@@ -5,6 +5,7 @@
 package io.ktor.tests.gson
 
 import io.ktor.application.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.features.*
 import io.ktor.gson.*
@@ -52,9 +53,9 @@ class GsonBlockingTest {
             assertEquals(
                 "OK",
                 client.post("/") {
-                    body = "{\"i\": 77}"
+                    setBody("{\"i\": 77}")
                     contentType(ContentType.Application.Json)
-                }
+                }.body()
             )
         }
     }
