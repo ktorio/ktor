@@ -139,10 +139,7 @@ public class HttpRequestBuilder : HttpMessageBuilder {
         url.takeFrom(builder.url)
         url.encodedPath = if (url.encodedPath.isBlank()) "/" else url.encodedPath
         headers.appendAll(builder.headers)
-        builder.attributes.allKeys.forEach {
-            @Suppress("UNCHECKED_CAST")
-            attributes.put(it as AttributeKey<Any>, builder.attributes[it])
-        }
+        attributes.putAll(builder.attributes)
 
         return this
     }
@@ -227,7 +224,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequest): HttpRequestBuilder
     body = request.content
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
-
+    attributes.putAll(request.attributes)
     return this
 }
 
@@ -244,6 +241,7 @@ public fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBui
     body = request.body
     url.takeFrom(request.url)
     headers.appendAll(request.headers)
+    attributes.putAll(request.attributes)
 
     return this
 }
@@ -296,4 +294,12 @@ public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable f
 @Suppress("KDocMissingDocumentation")
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
+}
+
+@PublicAPICandidate("1.6.0") // move to ktor-util
+internal fun Attributes.putAll(other: Attributes) {
+    other.allKeys.forEach {
+        @Suppress("UNCHECKED_CAST")
+        put(it as AttributeKey<Any>, other[it])
+    }
 }
