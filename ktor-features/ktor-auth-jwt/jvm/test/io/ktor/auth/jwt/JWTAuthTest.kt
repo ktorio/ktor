@@ -101,7 +101,7 @@ class JWTAuthTest {
                 authenticate("first", "second") {
                     get("/") {
                         val principal = call.authentication.principal<JWTPrincipal>()!!
-                        call.respondText("Secret info, ${principal.payload.audience}")
+                        call.respondText("Secret info, ${principal.audience}")
                     }
                 }
             }
@@ -497,7 +497,7 @@ class JWTAuthTest {
             }
             validate { credential ->
                 when {
-                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
                     else -> null
                 }
             }
@@ -527,7 +527,7 @@ class JWTAuthTest {
             verifier(if (mock) getJwkProviderMock() else makeJwkProvider())
             validate { credential ->
                 when {
-                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
                     else -> null
                 }
             }
@@ -548,7 +548,7 @@ class JWTAuthTest {
             }
             validate { credential ->
                 when {
-                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
                     else -> null
                 }
             }
@@ -562,7 +562,7 @@ class JWTAuthTest {
                 verifier(issuer, audience, algorithm)
                 validate { credential ->
                     when {
-                        credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                        credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
                         else -> null
                     }
                 }
