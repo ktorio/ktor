@@ -18,10 +18,10 @@ internal class TLSConfigBuilderTest {
     /**
      * Implemented a new KeyStoreSpi, because the JavaKeyStore does not allow setting null as password.
      *
-     * Some other KeyStoreSpis, like the KeyStoreSpi from IT Solution GmbH/trustWare CSP+ v1.1.0.7 needs null as passwords
-     * because they act as a middleware and en-/decrypt the keys with other passwords, like a PIN.
+     * Some other KeyStoreSpis, like the KeyStoreSpi needs null as passwords
+     * because they act as a middleware and en-/decrypt the keys with other passwords, like a smartcard.
      *
-     * This NON-ENCRYPTED in-memory KeyStore should used for testing only!
+     * This NON-ENCRYPTED in-memory KeyStore should be used for testing only!
      */
     private class InMemoryKeyStoreSPI : KeyStoreSpi() {
         sealed class Entry(val date: Date = Date()) {
@@ -36,13 +36,9 @@ internal class TLSConfigBuilderTest {
         private val certificates: MutableMap<String, Entry> = mutableMapOf()
 
         override fun engineGetKey(alias: String, password: CharArray?): Key? =
-            (certificates[alias] as? Entry.KeyEntry?)?.let { entry ->
-                return if (entry.password.contentEquals(password)) {
-                    entry.key
-                } else {
-                    null
-                }
-            }
+            (certificates[alias] as? Entry.KeyEntry?)?.takeIf { entry ->
+                entry.password.contentEquals(password)
+            }?.key
 
         override fun engineGetCertificateChain(alias: String): Array<Certificate>? =
             certificates[alias]?.certificates
@@ -109,6 +105,7 @@ internal class TLSConfigBuilderTest {
             check(stream == null)
         }
     }
+
     private val keyStore = buildKeyStore {
         certificate("first") {
             hash = HashAlgorithm.SHA256
@@ -124,9 +121,9 @@ internal class TLSConfigBuilderTest {
 
     @Test
     fun useNullAsPassword() {
-        val customProvider = object : Provider("InMemorySPI", "", "") {
+        val customProvider = object : Provider("InMemorySPI", 0.0, "") {
             override fun getService(type: String?, algorithm: String?) =
-                object: Service(this,  this.name, "", InMemoryKeyStoreSPI::class.simpleName, emptyList(), mapOf()) {
+                object : Service(this, this.name, "", InMemoryKeyStoreSPI::class.simpleName, emptyList(), mapOf()) {
                     override fun newInstance(constructorParameter: Any?) = InMemoryKeyStoreSPI()
                 }
         }
