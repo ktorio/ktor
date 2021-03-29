@@ -10,7 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.tests.utils.*
 import kotlin.test.*
 
-class DefaultRequestTest: ClientLoader() {
+class DefaultRequestTest : ClientLoader() {
     @Test
     fun testBaseURLConfig() = clientTests {
         config {
@@ -22,7 +22,7 @@ class DefaultRequestTest: ClientLoader() {
         }
 
         test { client ->
-            with(client.get<HttpResponse>("/echo").call.request) {
+            with(client.post<HttpResponse>("/echo").call.request) {
                 assertEquals("$TEST_SERVER/echo", url.toString())
                 assertEquals("42", headers["something"])
                 assertEquals("bar", headers["foo"])
