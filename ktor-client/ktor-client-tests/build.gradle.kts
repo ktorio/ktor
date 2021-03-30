@@ -34,7 +34,10 @@ open class KtorTestServer : DefaultTask() {
             val mainClass = loader.loadClass(main)
             val main = mainClass.getMethod("startServer")
             server = main.invoke(null) as Closeable
+            println("[TestServer] started")
         } catch (cause: Throwable) {
+            println("[TestServer] failed: ${cause.message}")
+            cause.printStackTrace()
         }
     }
 }

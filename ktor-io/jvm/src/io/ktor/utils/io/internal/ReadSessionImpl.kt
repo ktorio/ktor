@@ -5,6 +5,7 @@ package io.ktor.utils.io.internal
 import io.ktor.utils.io.ByteBufferChannel
 import io.ktor.utils.io.SuspendableReadSession
 import io.ktor.utils.io.core.IoBuffer
+import io.ktor.utils.io.pool.*
 
 internal class ReadSessionImpl(private val channel: ByteBufferChannel) : SuspendableReadSession {
     private var lastAvailable = 0

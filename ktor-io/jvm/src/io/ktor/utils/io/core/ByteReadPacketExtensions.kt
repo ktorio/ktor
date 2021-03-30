@@ -31,7 +31,7 @@ private class SingleByteBufferPool(
 ) : SingleInstancePool<ChunkBuffer>() {
     override fun produceInstance(): ChunkBuffer {
         @Suppress("DEPRECATION")
-        return IoBuffer(instance)
+        return IoBuffer(instance, this as ObjectPool<IoBuffer>)
     }
 
     override fun disposeInstance(instance: ChunkBuffer) {
