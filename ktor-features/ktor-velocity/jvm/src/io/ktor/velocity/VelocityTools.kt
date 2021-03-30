@@ -13,7 +13,7 @@ import org.apache.velocity.tools.config.*
 
 private val ENGINE_CONFIG_KEY = "ENGINE_CONFIG"
 
-public fun EasyFactoryConfiguration.engine(configure : VelocityEngine.() -> Unit) {
+public fun EasyFactoryConfiguration.engine(configure: VelocityEngine.() -> Unit) {
     data(ENGINE_CONFIG_KEY, configure)
 }
 
