@@ -22,7 +22,7 @@ public actual fun ByteReadPacket(
     val pool = object : SingleInstancePool<ChunkBuffer>() {
         override fun produceInstance(): ChunkBuffer {
             @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(sub), null)
+            return IoBuffer(Memory.of(sub), null, this as ObjectPool<IoBuffer>)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {

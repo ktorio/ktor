@@ -6,6 +6,7 @@ package io.ktor.utils.io
 
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.bits.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 

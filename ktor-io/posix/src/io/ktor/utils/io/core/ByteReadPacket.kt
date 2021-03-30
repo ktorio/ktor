@@ -29,7 +29,7 @@ public actual fun ByteReadPacket(
             pinned = content
 
             @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(base, length), null)
+            return IoBuffer(Memory.of(base, length), null, this as ObjectPool<IoBuffer>)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {
