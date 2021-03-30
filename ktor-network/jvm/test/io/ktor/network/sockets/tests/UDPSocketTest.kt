@@ -78,7 +78,7 @@ class UDPSocketTest : CoroutineScope {
             val server = launch {
                 aSocket(selector)
                     .udp()
-                    .bind(NetworkAddress("0.0.0.0", 56700))
+                    .bind(NetworkAddress("0.0.0.0", 0))
                     .use { socket ->
                         serverSocket.complete(socket)
                         val received = socket.receive()
@@ -86,7 +86,7 @@ class UDPSocketTest : CoroutineScope {
                     }
             }
 
-            serverSocket.await()
+            val serverSocketPort = serverSocket.await().localAddress.port
 
             aSocket(selector)
                 .udp()
@@ -97,7 +97,7 @@ class UDPSocketTest : CoroutineScope {
                     socket.send(
                         Datagram(
                             packet = buildPacket { writeText("0123456789") },
-                            address = NetworkAddress("255.255.255.255", 56700)
+                            address = NetworkAddress("255.255.255.255", serverSocketPort)
                         )
                     )
                 }
