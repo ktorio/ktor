@@ -210,6 +210,8 @@ public final class io/ktor/network/tls/TLSConfigBuilderKt {
 	public static final synthetic fun addKeyStore (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[C)V
 	public static final fun addKeyStore (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;)V
 	public static synthetic fun addKeyStore$default (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;ILjava/lang/Object;)V
+	public static final fun addKeyStoreNullablePassword (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;)V
+	public static synthetic fun addKeyStoreNullablePassword$default (Lio/ktor/network/tls/TLSConfigBuilder;Ljava/security/KeyStore;[CLjava/lang/String;ILjava/lang/Object;)V
 	public static final fun takeFrom (Lio/ktor/network/tls/TLSConfigBuilder;Lio/ktor/network/tls/TLSConfigBuilder;)V
 }
 
