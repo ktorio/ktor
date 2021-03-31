@@ -262,7 +262,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             socket {
                 negotiateHttpWebSocket()
                 shutdownInput()
-                println("Input closed!")
                 delay(10000)
             }
         }

@@ -8,7 +8,11 @@ import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 
 @DangerousInternalIoApi
-public open class ChunkBuffer internal constructor(memory: Memory, origin: ChunkBuffer?) : Buffer(memory) {
+public open class ChunkBuffer internal constructor(
+    memory: Memory,
+    origin: ChunkBuffer?,
+    internal val parentPool: ObjectPool<ChunkBuffer>?
+) : Buffer(memory) {
     init {
         require(origin !== this) { "A chunk couldn't be a view of itself." }
     }
@@ -50,7 +54,7 @@ public open class ChunkBuffer internal constructor(memory: Memory, origin: Chunk
 
     override fun duplicate(): ChunkBuffer = (origin ?: this).let { newOrigin ->
         newOrigin.acquire()
-        ChunkBuffer(memory, newOrigin).also { copy ->
+        ChunkBuffer(memory, newOrigin, parentPool).also { copy ->
             duplicateTo(copy)
         }
     }
@@ -62,7 +66,8 @@ public open class ChunkBuffer internal constructor(memory: Memory, origin: Chunk
                 unlink()
                 origin.release(pool)
             } else {
-                pool.recycle(this)
+                val poolToUse = parentPool ?: pool
+                poolToUse.recycle(this)
             }
         }
     }
@@ -167,7 +172,7 @@ public open class ChunkBuffer internal constructor(memory: Memory, origin: Chunk
         @Suppress("DEPRECATION")
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {
-                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null)
+                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this as ObjectPool<IoBuffer>)
             }
 
             override fun recycle(instance: ChunkBuffer) {
