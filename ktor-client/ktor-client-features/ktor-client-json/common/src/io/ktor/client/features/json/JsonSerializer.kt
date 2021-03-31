@@ -33,5 +33,6 @@ public interface JsonSerializer {
     /**
      * Read content from response using information specified in [type].
      */
-    public fun read(type: TypeInfo, body: Input): Any
+    public fun read(type: TypeInfo, body: Input): Any =
+        read(DeprecatedTypeInfo(type.type, type.reifiedType, type.kotlinType), body)
 }
