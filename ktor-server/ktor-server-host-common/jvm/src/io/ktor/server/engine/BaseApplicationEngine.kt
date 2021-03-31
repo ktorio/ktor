@@ -29,6 +29,7 @@ public abstract class BaseApplicationEngine(
     public open class Configuration : ApplicationEngine.Configuration()
 
     init {
+        val initializedAt = System.currentTimeMillis()
         BaseApplicationResponse.setupSendPipeline(pipeline.sendPipeline)
         environment.monitor.subscribe(ApplicationStarting) {
             it.receivePipeline.merge(pipeline.receivePipeline)
@@ -38,9 +39,12 @@ public abstract class BaseApplicationEngine(
             it.installDefaultInterceptors()
         }
         environment.monitor.subscribe(ApplicationStarted) {
+            val finishedAt = System.currentTimeMillis()
             environment.connectors.forEach {
                 environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
             }
+            val elapsedTimeInSeconds = (finishedAt - initializedAt) / 1_000.0
+            environment.log.info("Started application in $elapsedTimeInSeconds seconds.")
         }
     }
 
