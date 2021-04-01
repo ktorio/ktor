@@ -74,35 +74,41 @@ class UDPSocketTest : CoroutineScope {
     @Test
     fun testBroadcastSuccessful() = runBlocking {
         retryIgnoringBindException {
-            val serverSocket = CompletableDeferred<BoundDatagramSocket>()
+            val serverSocketCompletable = CompletableDeferred<BoundDatagramSocket>()
             val server = launch {
                 aSocket(selector)
                     .udp()
                     .bind(NetworkAddress("0.0.0.0", 0))
                     .use { socket ->
-                        serverSocket.complete(socket)
+                        serverSocketCompletable.complete(socket)
                         val received = socket.receive()
                         assertEquals("0123456789", received.packet.readText())
                     }
             }
 
-            val serverSocketPort = serverSocket.await().localAddress.port
+            val serverSocket = serverSocketCompletable.await()
 
-            aSocket(selector)
+            val clientSocket = aSocket(selector)
                 .udp()
                 .bind {
                     broadcast = true
                 }
-                .use { socket ->
-                    socket.send(
-                        Datagram(
-                            packet = buildPacket { writeText("0123456789") },
-                            address = NetworkAddress("255.255.255.255", serverSocketPort)
-                        )
+            clientSocket.use { socket ->
+                socket.send(
+                    Datagram(
+                        packet = buildPacket { writeText("0123456789") },
+                        address = NetworkAddress("255.255.255.255", serverSocket.localAddress.port)
                     )
-                }
+                )
+            }
 
             server.join()
+
+            serverSocket.socketContext.join()
+            assertTrue(serverSocket.isClosed)
+
+            clientSocket.socketContext.join()
+            assertTrue(clientSocket.isClosed)
         }
     }
 
