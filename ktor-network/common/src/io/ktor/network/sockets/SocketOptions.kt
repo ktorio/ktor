@@ -137,6 +137,19 @@ public sealed class SocketOptions(
     public class UDPSocketOptions internal constructor(
         customOptions: MutableMap<Any, Any?>
     ) : PeerSocketOptions(customOptions) {
+
+        /**
+         * SO_BROADCAST socket option
+         */
+        public var broadcast: Boolean = false
+
+        override fun copyCommon(from: SocketOptions) {
+            super.copyCommon(from)
+            if (from is UDPSocketOptions) {
+                broadcast = from.broadcast
+            }
+        }
+
         override fun copy(): UDPSocketOptions {
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)
