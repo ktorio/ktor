@@ -1,3 +1,28 @@
+# 1.5.3
+> Published 2 Apr 2021
+
+*  Upgraded to coroutines 1.4.3 ([KTOR-2254](https://youtrack.jetbrains.com/issue/KTOR-2254))
+*  Upgraded kotlinx.serialization to 1.1.0 ([KTOR-2238](https://youtrack.jetbrains.com/issue/KTOR-2238))
+*  Fixed I/O readRemaining sometimes looses exception ([KTOR-2263](https://youtrack.jetbrains.com/issue/KTOR-2263))
+*  Fixed autoreload with 1.5.x when using embeddedServer NOT in debug mode regression  ([KTOR-2214](https://youtrack.jetbrains.com/issue/KTOR-2214))
+*  Fixed flaky CIOSustainabilityTest.testBlockingConcurrency[jvm] ([KTOR-2265](https://youtrack.jetbrains.com/issue/KTOR-2265))
+*  Resolve 'node-fetch' on libs produced by jsBrowserProductionLibraryDistribution regression  ([KTOR-2230](https://youtrack.jetbrains.com/issue/KTOR-2230))
+*  Updated doc string for FormPart ([KTOR-2173](https://youtrack.jetbrains.com/issue/KTOR-2173))
+*  Fixed java.lang.IllegalStateException: No instance for key AttributeKey: ExpectSuccessAttribyteKey regression  ([KTOR-2389](https://youtrack.jetbrains.com/issue/KTOR-2389))
+*  Fixed CIO: TLSConfigBuilder JVM allow null as password ([KTOR-940](https://youtrack.jetbrains.com/issue/KTOR-940))
+*  Supported overriding Kotlin module configuration using jackson dsl function ([KTOR-1692](https://youtrack.jetbrains.com/issue/KTOR-1692))
+*  Fixed CORS can't pass on some none standard orgin on jvm  ([KTOR-469](https://youtrack.jetbrains.com/issue/KTOR-469))
+*  Fixed unexpected exception when using Session feature: "Using blocking primitives on this dispatcher is not allowed" regression jvm  ([KTOR-1452](https://youtrack.jetbrains.com/issue/KTOR-1452))
+*  Fixed NettyApplicationEngine providing a configureBootstrap in the configuration throws IllegalStateException: group set already ([KTOR-2078](https://youtrack.jetbrains.com/issue/KTOR-2078))
+*  Fixed wrong indentation in `Serving Static Content` guide ([KTOR-2017](https://youtrack.jetbrains.com/issue/KTOR-2017))
+*  Fixed InsufficientSpaceException trying to build ByteReadPacket jvm  ([KTOR-960](https://youtrack.jetbrains.com/issue/KTOR-960))
+*  Fixed flaky ProxyTest.testHttpProxy[CIO][jvm] ([KTOR-2082](https://youtrack.jetbrains.com/issue/KTOR-2082))
+*  Fixed invalid assertion for existence of the key in the key store ([KTOR-2311](https://youtrack.jetbrains.com/issue/KTOR-2311))
+*  Fixed incorrect grammar in exception messages ([KTOR-2284](https://youtrack.jetbrains.com/issue/KTOR-2284))
+*  Fixed flaky JavaEngineTests.testThreadLeak[jvm] ([KTOR-2098](https://youtrack.jetbrains.com/issue/KTOR-2098))
+*  Fixed flaky JettyStressTest.highLoadStressTest ([KTOR-2080](https://youtrack.jetbrains.com/issue/KTOR-2080))
+*  Fixed flaky ExceptionsJvmTest.testConnectionClosedDuringRequest[jvm] ([KTOR-2063](https://youtrack.jetbrains.com/issue/KTOR-2063))
+
 # 1.5.2
 > Published 25 Feb 2021
 
