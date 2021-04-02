@@ -263,6 +263,8 @@ public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions 
 public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
 	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public final fun getBroadcast ()Z
+	public final fun setBroadcast (Z)V
 }
 
 public final class io/ktor/network/sockets/SocketsKt {
