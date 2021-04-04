@@ -45,7 +45,9 @@ public class TestApplicationRequest constructor(
             get() = protocol
 
         override val port: Int
-            get() = this@TestApplicationRequest.port ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
+            get() = this@TestApplicationRequest.port
+                ?: header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt()
+                ?: 80
 
         override val host: String
             get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"

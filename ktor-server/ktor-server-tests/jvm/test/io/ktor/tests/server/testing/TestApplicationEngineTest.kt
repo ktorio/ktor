@@ -136,14 +136,12 @@ class TestApplicationEngineTest {
                 }
             }
 
-            with(handleRequest(HttpMethod.Get, "/good")
-            { port = 7070 }) {
+            with(handleRequest(HttpMethod.Get, "/good") { port = 7070 }) {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("The Response", response.content)
             }
 
-            with(handleRequest(HttpMethod.Get, "/good")
-            { addHeader(HttpHeaders.Host, "localhost:7070") }) {
+            with(handleRequest(HttpMethod.Get, "/good") { addHeader(HttpHeaders.Host, "localhost:7070") }) {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("The Response", response.content)
             }
