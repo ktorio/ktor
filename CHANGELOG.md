@@ -41,7 +41,6 @@
 * Fixed changing `requestTimeoutMillis` in config of HttpTimeout feature doesn't change the CIO's timeout ([KTOR-2000](https://youtrack.jetbrains.com/issue/KTOR-2000))
 * Fixed test a POST with MultiPart using TestApplicationEngine does not success or fail ([KTOR-345](https://youtrack.jetbrains.com/issue/KTOR-345))
 * Fixed default Headers feature adds duplicated Server header ([KTOR-1976](https://youtrack.jetbrains.com/issue/KTOR-1976))
-* Added an option to disable URL Encoding ([KTOR-553](https://youtrack.jetbrains.com/issue/KTOR-553))
 * Fixed custom response validation is not running when default is disabled ([KTOR-2007](https://youtrack.jetbrains.com/issue/KTOR-2007))
 * Fixed session cookie with very long max age duration ([KTOR-692](https://youtrack.jetbrains.com/issue/KTOR-692))
 
