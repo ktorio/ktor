@@ -9,7 +9,6 @@
 *  Resolve 'node-fetch' on libs produced by jsBrowserProductionLibraryDistribution regression  ([KTOR-2230](https://youtrack.jetbrains.com/issue/KTOR-2230))
 *  Updated doc string for FormPart ([KTOR-2173](https://youtrack.jetbrains.com/issue/KTOR-2173))
 *  Fixed java.lang.IllegalStateException: No instance for key AttributeKey: ExpectSuccessAttribyteKey regression  ([KTOR-2389](https://youtrack.jetbrains.com/issue/KTOR-2389))
-*  Fixed CIO: TLSConfigBuilder JVM allow null as password ([KTOR-940](https://youtrack.jetbrains.com/issue/KTOR-940))
 *  Supported overriding Kotlin module configuration using jackson dsl function ([KTOR-1692](https://youtrack.jetbrains.com/issue/KTOR-1692))
 *  Fixed CORS can't pass on some none standard orgin on jvm  ([KTOR-469](https://youtrack.jetbrains.com/issue/KTOR-469))
 *  Fixed unexpected exception when using Session feature: "Using blocking primitives on this dispatcher is not allowed" regression jvm  ([KTOR-1452](https://youtrack.jetbrains.com/issue/KTOR-1452))
