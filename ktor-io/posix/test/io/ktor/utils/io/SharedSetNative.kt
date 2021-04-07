@@ -73,4 +73,3 @@ internal actual class SharedSet<T> {
 
     private fun findBucket(element: T): SharedVector<T> = content[(element.hashCode().absoluteValue) % content.size]
 }
-
