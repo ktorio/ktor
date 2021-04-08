@@ -37,7 +37,8 @@ import kotlin.jvm.*
 public class BytePacketBuilder(
     private var headerSizeHint: Int = 0,
     pool: ObjectPool<ChunkBuffer>
-) : @Suppress("DEPRECATION_ERROR") BytePacketBuilderPlatformBase(pool) {
+) : @Suppress("DEPRECATION_ERROR")
+BytePacketBuilderPlatformBase(pool) {
 
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
