@@ -22,6 +22,7 @@ internal class ForwardListNode<T : Any>(
 
     fun insertAfter(value: T): ForwardListNode<T> {
         val result = ForwardListNode(list, next, value, this)
+        next?.previous = result
         next = result
         return result
     }

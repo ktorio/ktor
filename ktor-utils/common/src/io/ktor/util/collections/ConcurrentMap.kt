@@ -198,8 +198,8 @@ public class ConcurrentMap<Key : Any, Value : Any>(
         "This is accidentally does insert instead of get. Use computeIfAbsent or getOrElse instead.",
         level = DeprecationLevel.ERROR
     )
-    public fun getOrDefault(key: Key, block: () -> Value): Value = lock.withLock {
-        return@withLock computeIfAbsent(key, block)
+    public fun getOrDefault(key: Key, block: () -> Value): Value = locked {
+        return@locked computeIfAbsent(key, block)
     }
 
     /**
