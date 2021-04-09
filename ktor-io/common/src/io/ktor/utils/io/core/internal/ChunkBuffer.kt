@@ -7,8 +7,7 @@ import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
 import kotlinx.atomicfu.*
 
-@DangerousInternalIoApi
-public open class ChunkBuffer internal constructor(
+public open class ChunkBuffer(
     memory: Memory,
     origin: ChunkBuffer?,
     internal val parentPool: ObjectPool<ChunkBuffer>?
