@@ -5,7 +5,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import kotlin.browser.*
+import kotlinx.browser.*
 
 /**
  * Hostname of current origin.

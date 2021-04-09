@@ -59,8 +59,8 @@ public data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken,
             return null
         }
 
-        val start = mapped.minBy { it.start }!!.start
-        val endInclusive = mapped.maxBy { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
+        val start = mapped.minByOrNull { it.start }!!.start
+        val endInclusive = mapped.maxByOrNull { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
 
         return start..endInclusive
     }

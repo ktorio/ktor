@@ -34,7 +34,7 @@ public open class RoutingResolveTraceEntry(
      * Builds detailed text description for this trace entry, including children.
      */
     public open fun buildText(builder: StringBuilder, indent: Int) {
-        builder.appendln("  ".repeat(indent) + toString())
+        builder.appendLine("  ".repeat(indent) + toString())
         children?.forEach { it.buildText(builder, indent + 1) }
     }
 
@@ -89,7 +89,7 @@ public class RoutingResolveTrace(public val call: ApplicationCall, public val se
      * Builds detailed text description for this trace, including all entries.
      */
     public fun buildText(): String = buildString {
-        appendln(this@RoutingResolveTrace.toString())
+        appendLine(this@RoutingResolveTrace.toString())
         routing?.buildText(this, 0)
     }
 }

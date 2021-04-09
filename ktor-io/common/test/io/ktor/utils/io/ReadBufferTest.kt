@@ -23,7 +23,7 @@ class ReadBufferTest {
     private val initialBufferSize = buffer.readRemaining
 
     private val packet = buildPacket {
-        repeat(SIZES.max()!! * 2) { index ->
+        repeat(SIZES.maxOrNull()!! * 2) { index ->
             append(charForIndex(index))
         }
     }
