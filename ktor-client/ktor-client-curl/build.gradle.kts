@@ -40,7 +40,8 @@ kotlin {
                                 "/usr/local/Cellar/curl/7.62.0/include/curl",
                                 "/usr/local/Cellar/curl/7.63.0/include/curl",
                                 "/usr/local/Cellar/curl/7.65.3/include/curl",
-                                "/usr/local/Cellar/curl/7.66.0/include/curl"
+                                "/usr/local/Cellar/curl/7.66.0/include/curl",
+                                "/opt/homebrew/opt/curl/include/curl"
                             )
                         )
 
