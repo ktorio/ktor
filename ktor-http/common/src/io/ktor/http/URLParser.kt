@@ -155,10 +155,7 @@ private fun URLBuilder.parseQuery(urlString: String, startIndex: Int, endIndex: 
 
     val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
 
-    val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart))
-    rawParameters.forEach { key, values ->
-        parameters.appendAll(key, values)
-    }
+    parseQueryStringTo(parameters, urlString.substring(startIndex + 1, fragmentStart))
 
     return fragmentStart
 }

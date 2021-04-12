@@ -76,6 +76,7 @@ public class HttpRedirect {
                 requestBuilder = HttpRequestBuilder().apply {
                     takeFromWithExecutionContext(requestBuilder)
                     url.parameters.clear()
+                    url.parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
 
                     location?.let { url.takeFrom(it) }
 
