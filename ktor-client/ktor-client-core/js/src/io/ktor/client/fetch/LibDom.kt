@@ -337,8 +337,11 @@ public external interface EventTarget {
 }
 
 public external interface EventListener {
-    @nativeInvoke
-    public operator fun invoke(evt: Event)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+public inline operator fun EventListener.invoke(evt: Event) {
+    asDynamic()(evt)
 }
 
 public external interface AddEventListenerOptions : EventListenerOptions {

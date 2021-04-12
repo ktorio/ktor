@@ -28,10 +28,10 @@ class CodecTest {
             }
 
             try {
-                String(sb).decodeURLQueryComponent()
+                sb.concatToString().decodeURLQueryComponent()
             } catch (ignore: URLDecodeException) {
             } catch (t: Throwable) {
-                fail("Failed at ${String(sb)} with: $t")
+                fail("Failed at ${sb.concatToString()} with: $t")
             }
         }
     }

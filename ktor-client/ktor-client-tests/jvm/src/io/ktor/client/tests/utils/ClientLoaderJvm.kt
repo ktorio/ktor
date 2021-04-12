@@ -78,8 +78,8 @@ public actual abstract class ClientLoader actual constructor(timeoutSeconds: Int
         }
 
         val message = buildString {
-            appendln("Test failed. There are running coroutines")
-            appendln(info.dump())
+            appendLine("Test failed. There are running coroutines")
+            appendLine(info.dump())
         }
 
         error(message)
@@ -108,9 +108,9 @@ private val OS_NAME: String
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun List<CoroutineInfo>.dump(): String = buildString {
     this@dump.forEach { info ->
-        appendln("Coroutine: $info")
+        appendLine("Coroutine: $info")
         info.lastObservedStackTrace().forEach {
-            appendln("\t$it")
+            appendLine("\t$it")
         }
     }
 }
