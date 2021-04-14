@@ -5,15 +5,12 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.jvm.*
-import io.ktor.utils.io.internal.jvm.limitChangeError
-import io.ktor.utils.io.internal.jvm.negativeShiftError
-import io.ktor.utils.io.internal.jvm.wrongBufferPositionChangeError
 import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.contracts.*
 
 public fun ChunkBuffer(buffer: ByteBuffer, pool: ObjectPool<ChunkBuffer>? = null): ChunkBuffer =
-    ChunkBuffer(Memory.of(buffer),  null, pool)
+    ChunkBuffer(Memory.of(buffer), null, pool)
 
 /**
  * Apply [block] function on a [ByteBuffer] of readable bytes.
