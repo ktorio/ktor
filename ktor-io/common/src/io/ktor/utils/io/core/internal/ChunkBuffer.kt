@@ -165,7 +165,7 @@ public open class ChunkBuffer internal constructor(
 
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {
-                return ChunkBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this as ObjectPool<ChunkBuffer>)
+                return ChunkBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this)
             }
 
             override fun recycle(instance: ChunkBuffer) {

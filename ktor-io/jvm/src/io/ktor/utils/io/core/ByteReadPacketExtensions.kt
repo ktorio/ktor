@@ -34,7 +34,6 @@ private class SingleByteBufferPool(
     }
 
     override fun disposeInstance(instance: ChunkBuffer) {
-        check(instance is ChunkBuffer) { "Only ChunkBuffer could be recycled" }
         release(this.instance)
     }
 }
