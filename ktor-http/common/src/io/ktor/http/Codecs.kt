@@ -133,16 +133,7 @@ public fun String.encodeURLParameter(
 /**
  * Encode [this] as query parameter value.
  */
-internal fun String.encodeURLParameterValue(): String = buildString {
-    val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameterValue)
-    content.forEach {
-        when {
-            it in URL_ALPHABET || it in OAUTH_SYMBOLS || it == '='.toByte() -> append(it.toChar())
-            it == ' '.toByte() -> append('+')
-            else -> append(it.percentEncode())
-        }
-    }
-}
+internal fun String.encodeURLParameterValue(): String = encodeURLParameter(spaceToPlus = true)
 
 /**
  * Decode URL query component
