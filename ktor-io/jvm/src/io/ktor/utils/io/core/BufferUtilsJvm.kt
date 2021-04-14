@@ -1,4 +1,4 @@
-@file:Suppress("RedundantModalityModifier", "DEPRECATION", "DEPRECATION_ERROR")
+@file:Suppress("RedundantModalityModifier")
 
 package io.ktor.utils.io.core
 
@@ -11,7 +11,6 @@ import io.ktor.utils.io.internal.jvm.wrongBufferPositionChangeError
 import io.ktor.utils.io.pool.*
 import java.nio.*
 import kotlin.contracts.*
-
 
 public fun ChunkBuffer(buffer: ByteBuffer, pool: ObjectPool<ChunkBuffer>? = null): ChunkBuffer =
     ChunkBuffer(Memory.of(buffer),  null, pool)
@@ -33,7 +32,7 @@ public inline fun ChunkBuffer.readDirect(block: (ByteBuffer) -> Unit): Int {
     val delta = bb.position() - readPosition
     if (delta < 0) negativeShiftError(delta)
     if (bb.limit() != writePosition) limitChangeError()
-    discard(delta)
+    discardExact(delta)
 
     return delta
 }

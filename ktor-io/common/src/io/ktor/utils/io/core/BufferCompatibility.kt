@@ -120,7 +120,6 @@ public fun Buffer.readText(
     return decoder.decodeBuffer(this, out, lastBuffer, max)
 }
 
-
 /**
  * Peek the next unsigned byte or return `-1` if no more bytes available for reading. No bytes will be marked
  * as consumed in any case.

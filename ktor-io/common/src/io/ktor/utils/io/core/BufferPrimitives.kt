@@ -182,22 +182,29 @@ public inline fun ChunkBuffer.writeULong(value: ULong): Unit = (this as Buffer).
  * Write a floating point number or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
  */
-public fun Buffer.writeFloat(value: Float): Unit = writeExact(4, "floating point number") { memory, offset ->
-    memory.storeFloatAt(offset, value)
+public fun Buffer.writeFloat(value: Float) {
+    writeExact(4, "floating point number") { memory, offset ->
+        memory.storeFloatAt(offset, value)
+    }
 }
 
-public inline fun ChunkBuffer.writeFloat(value: Float): Unit = (this as Buffer).writeFloat(value)
+public inline fun ChunkBuffer.writeFloat(value: Float) {
+    (this as Buffer).writeFloat(value)
+}
 
 /**
  * Write a floating point number or fail if not enough space available for writing.
  * The numeric value is encoded in the network order (Big Endian).
  */
-public fun Buffer.writeDouble(value: Double): Unit =
+public fun Buffer.writeDouble(value: Double) {
     writeExact(8, "long floating point number") { memory, offset ->
         memory.storeDoubleAt(offset, value)
     }
+}
 
-public inline fun ChunkBuffer.writeDouble(value: Double): Unit = (this as Buffer).writeDouble(value)
+public inline fun ChunkBuffer.writeDouble(value: Double) {
+    (this as Buffer).writeDouble(value)
+}
 
 /**
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
@@ -208,7 +215,11 @@ public fun Buffer.readFully(destination: ByteArray, offset: Int = 0, length: Int
     }
 }
 
-public inline fun ChunkBuffer.readFully(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset) {
+public inline fun ChunkBuffer.readFully(
+    destination: ByteArray,
+    offset: Int = 0,
+    length: Int = destination.size - offset
+) {
     (this as Buffer).readFully(destination, offset, length)
 }
 
