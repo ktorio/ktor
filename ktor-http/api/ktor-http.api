@@ -801,6 +801,7 @@ public final class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBui
 	public fun build ()Lio/ktor/http/Parameters;
 	public synthetic fun build ()Lio/ktor/util/StringValues;
 	public final fun getUrlEncodingOption ()Lio/ktor/http/UrlEncodingOption;
+	public final fun setUrlEncodingOption (Lio/ktor/http/UrlEncodingOption;)V
 }
 
 public final class io/ktor/http/ParametersImpl : io/ktor/util/StringValuesImpl, io/ktor/http/Parameters {
@@ -830,6 +831,8 @@ public final class io/ktor/http/ParametersSingleImpl : io/ktor/util/StringValues
 public final class io/ktor/http/QueryKt {
 	public static final fun parseQueryString (Ljava/lang/String;II)Lio/ktor/http/Parameters;
 	public static synthetic fun parseQueryString$default (Ljava/lang/String;IIILjava/lang/Object;)Lio/ktor/http/Parameters;
+	public static final fun parseQueryStringTo (Lio/ktor/http/ParametersBuilder;Ljava/lang/String;II)V
+	public static synthetic fun parseQueryStringTo$default (Lio/ktor/http/ParametersBuilder;Ljava/lang/String;IIILjava/lang/Object;)V
 }
 
 public final class io/ktor/http/RangeUnits : java/lang/Enum {

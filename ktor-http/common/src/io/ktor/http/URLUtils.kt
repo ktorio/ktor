@@ -47,6 +47,7 @@ public fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     user = url.user
     password = url.password
     parameters.appendAll(url.parameters)
+    parameters.urlEncodingOption = url.parameters.urlEncodingOption
     fragment = url.fragment
     trailingQuery = url.trailingQuery
 
@@ -64,6 +65,7 @@ public fun URLBuilder.takeFrom(url: Url): URLBuilder {
     user = url.user
     password = url.password
     parameters.appendAll(url.parameters)
+    parameters.urlEncodingOption = url.parameters.urlEncodingOption
     fragment = url.fragment
     trailingQuery = url.trailingQuery
 

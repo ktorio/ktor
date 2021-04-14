@@ -15,6 +15,21 @@ public fun parseQueryString(query: String, startIndex: Int = 0, limit: Int = 100
     }
 }
 
+/**
+ * Parse query string withing starting at the specified [startIndex] but up to [limit] pairs
+ */
+public fun parseQueryStringTo(
+    parametersBuilder: ParametersBuilder,
+    query: String,
+    startIndex: Int = 0,
+    limit: Int = 1000
+) {
+    if (startIndex > query.lastIndex) {
+        return
+    }
+    parametersBuilder.parse(query, startIndex, limit)
+}
+
 private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int) {
     var count = 0
     var nameIndex = startIndex
@@ -49,18 +64,28 @@ private fun ParametersBuilder.appendParam(query: String, nameIndex: Int, equalIn
         val spaceEndIndex = trimEnd(spaceNameIndex, endIndex, query)
 
         if (spaceEndIndex > spaceNameIndex) {
-            val name = query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
+            val name = when {
+                urlEncodingOption.encodeKey -> query.decodeURLQueryComponent(spaceNameIndex, spaceEndIndex)
+                else -> query.substring(spaceNameIndex, spaceEndIndex)
+            }
             appendAll(name, emptyList())
         }
     } else {
         val spaceNameIndex = trimStart(nameIndex, equalIndex, query)
         val spaceEqualIndex = trimEnd(spaceNameIndex, equalIndex, query)
         if (spaceEqualIndex > spaceNameIndex) {
-            val name = query.decodeURLQueryComponent(spaceNameIndex, spaceEqualIndex)
+            val name = when {
+                urlEncodingOption.encodeKey -> query.decodeURLQueryComponent(spaceNameIndex, spaceEqualIndex)
+                else -> query.substring(spaceNameIndex, spaceEqualIndex)
+            }
 
             val spaceValueIndex = trimStart(equalIndex + 1, endIndex, query)
             val spaceEndIndex = trimEnd(spaceValueIndex, endIndex, query)
-            val value = query.decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
+            val value = when {
+                urlEncodingOption.encodeValue -> query
+                    .decodeURLQueryComponent(spaceValueIndex, spaceEndIndex, plusIsSpace = true)
+                else -> query.substring(spaceValueIndex, spaceEndIndex)
+            }
             append(name, value)
         }
     }
