@@ -51,34 +51,33 @@ internal inline fun <R> withChunkBuffer(pool: ObjectPool<ChunkBuffer>, block: Ch
 }
 
 @ThreadLocal
-@Suppress("DEPRECATION")
-internal val DefaultChunkedBufferPool: ObjectPool<IoBuffer> = DefaultBufferPool()
+internal val DefaultChunkedBufferPool: ObjectPool<ChunkBuffer> = DefaultBufferPool()
 
 @Suppress("DEPRECATION")
 internal class DefaultBufferPool(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     capacity: Int = 1000,
     private val allocator: Allocator = DefaultAllocator
-) : DefaultPool<IoBuffer>(capacity) {
+) : DefaultPool<ChunkBuffer>(capacity) {
 
-    override fun produceInstance(): IoBuffer {
-        return IoBuffer(allocator.alloc(bufferSize), null, this)
+    override fun produceInstance(): ChunkBuffer {
+        return ChunkBuffer(allocator.alloc(bufferSize), null, this)
     }
 
-    override fun disposeInstance(instance: IoBuffer) {
+    override fun disposeInstance(instance: ChunkBuffer) {
         allocator.free(instance.memory)
         super.disposeInstance(instance)
         instance.unlink()
     }
 
-    override fun validateInstance(instance: IoBuffer) {
+    override fun validateInstance(instance: ChunkBuffer) {
         super.validateInstance(instance)
 
-        if (instance === IoBuffer.Empty) {
-            error("IoBuffer.Empty couldn't be recycled")
+        if (instance === ChunkBuffer.Empty) {
+            error("ChunkBuffer.Empty couldn't be recycled")
         }
 
-        check(instance !== IoBuffer.Empty) { "Empty instance couldn't be recycled" }
+        check(instance !== ChunkBuffer.Empty) { "Empty instance couldn't be recycled" }
         check(instance !== Buffer.Empty) { "Empty instance couldn't be recycled" }
         check(instance !== ChunkBuffer.Empty) { "Empty instance couldn't be recycled" }
 
@@ -87,7 +86,7 @@ internal class DefaultBufferPool(
         check(instance.origin == null) { "Recycled instance shouldn't be a view or another buffer." }
     }
 
-    override fun clearInstance(instance: IoBuffer): IoBuffer {
+    override fun clearInstance(instance: ChunkBuffer): ChunkBuffer {
         return super.clearInstance(instance).apply {
             unpark()
             reset()

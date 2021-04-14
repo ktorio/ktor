@@ -138,8 +138,8 @@ public open class ChunkBuffer internal constructor(
 
             @Suppress("DEPRECATION")
             override fun recycle(instance: ChunkBuffer) {
-                if (instance !is IoBuffer) {
-                    throw IllegalArgumentException("Only IoBuffer instances can be recycled.")
+                if (instance !is ChunkBuffer) {
+                    throw IllegalArgumentException("Only ChunkBuffer instances can be recycled.")
                 }
 
                 DefaultChunkedBufferPool.recycle(instance)
@@ -151,7 +151,7 @@ public open class ChunkBuffer internal constructor(
         }
 
         @Suppress("DEPRECATION")
-        public val Empty: ChunkBuffer get() = IoBuffer.Empty
+        public val Empty: ChunkBuffer get() = ChunkBuffer.Empty
 
         /**
          * A pool that always returns [ChunkBuffer.Empty]
@@ -172,12 +172,12 @@ public open class ChunkBuffer internal constructor(
         @Suppress("DEPRECATION")
         internal val NoPool: ObjectPool<ChunkBuffer> = object : NoPoolImpl<ChunkBuffer>() {
             override fun borrow(): ChunkBuffer {
-                return IoBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this as ObjectPool<IoBuffer>)
+                return ChunkBuffer(DefaultAllocator.alloc(DEFAULT_BUFFER_SIZE), null, this as ObjectPool<ChunkBuffer>)
             }
 
             override fun recycle(instance: ChunkBuffer) {
-                if (instance !is IoBuffer) {
-                    throw IllegalArgumentException("Only IoBuffer instances can be recycled.")
+                if (instance !is ChunkBuffer) {
+                    throw IllegalArgumentException("Only ChunkBuffer instances can be recycled.")
                 }
 
                 DefaultAllocator.free(instance.memory)

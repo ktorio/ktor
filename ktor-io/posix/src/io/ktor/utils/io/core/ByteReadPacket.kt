@@ -29,13 +29,13 @@ public actual fun ByteReadPacket(
             pinned = content
 
             @Suppress("DEPRECATION")
-            return IoBuffer(Memory.of(base, length), null, this as ObjectPool<IoBuffer>)
+            return ChunkBuffer(Memory.of(base, length), null, this as ObjectPool<ChunkBuffer>)
         }
 
         override fun disposeInstance(instance: ChunkBuffer) {
             check(pinned != null) { "The array hasn't been pinned yet" }
             @Suppress("DEPRECATION")
-            check(instance is IoBuffer) { "Only IoBuffer could be recycled" }
+            check(instance is ChunkBuffer) { "Only ChunkBuffer could be recycled" }
             block(array)
             pinned?.unpin()
             pinned = null

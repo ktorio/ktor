@@ -24,9 +24,7 @@ public inline fun Buffer.forEach(block: (Byte) -> Unit) {
  */
 public fun Buffer.readUByte(): UByte = readByte().toUByte()
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readUByte(): UByte = (this as Buffer).readUByte()
+public inline fun ChunkBuffer.readUByte(): UByte = (this as Buffer).readUByte()
 
 /**
  * Write an unsigned byte or fail if not enough space available for writing.
@@ -35,9 +33,7 @@ public fun Buffer.writeUByte(value: UByte) {
     writeByte(value.toByte())
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public fun IoBuffer.writeUByte(value: UByte) {
+public fun ChunkBuffer.writeUByte(value: UByte) {
     (this as Buffer).writeUByte(value)
 }
 
@@ -49,9 +45,7 @@ public fun Buffer.readShort(): Short = readExact(2, "short integer") { memory, o
     memory.loadShortAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readShort(): Short = (this as Buffer).readShort()
+public inline fun ChunkBuffer.readShort(): Short = (this as Buffer).readShort()
 
 /**
  * Read an unsigned short integer or fail if not enough bytes available for reading.
@@ -61,9 +55,7 @@ public fun Buffer.readUShort(): UShort = readExact(2, "short unsigned integer") 
     memory.loadUShortAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readUShort(): UShort = (this as Buffer).readUShort()
+public inline fun ChunkBuffer.readUShort(): UShort = (this as Buffer).readUShort()
 
 /**
  * Read an integer or fail if not enough bytes available for reading.
@@ -73,9 +65,7 @@ public fun Buffer.readInt(): Int = readExact(4, "regular integer") { memory, off
     memory.loadIntAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readInt(): Int = (this as Buffer).readInt()
+public inline fun ChunkBuffer.readInt(): Int = (this as Buffer).readInt()
 
 /**
  * Read an unsigned integer or fail if not enough bytes available for reading.
@@ -85,9 +75,7 @@ public fun Buffer.readUInt(): UInt = readExact(4, "regular unsigned integer") { 
     memory.loadUIntAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readUInt(): UInt = (this as Buffer).readUInt()
+public inline fun ChunkBuffer.readUInt(): UInt = (this as Buffer).readUInt()
 
 /**
  * Read a long integer or fail if not enough bytes available for reading.
@@ -97,9 +85,7 @@ public fun Buffer.readLong(): Long = readExact(8, "long integer") { memory, offs
     memory.loadLongAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readLong(): Long = (this as Buffer).readLong()
+public inline fun ChunkBuffer.readLong(): Long = (this as Buffer).readLong()
 
 /**
  * Read an unsigned long integer or fail if not enough bytes available for reading.
@@ -109,9 +95,7 @@ public fun Buffer.readULong(): ULong = readExact(8, "long unsigned integer") { m
     memory.loadULongAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readULong(): ULong = (this as Buffer).readULong()
+public inline fun ChunkBuffer.readULong(): ULong = (this as Buffer).readULong()
 
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
@@ -121,9 +105,7 @@ public fun Buffer.readFloat(): Float = readExact(4, "floating point number") { m
     memory.loadFloatAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readFloat(): Float = (this as Buffer).readFloat()
+public inline fun ChunkBuffer.readFloat(): Float = (this as Buffer).readFloat()
 
 /**
  * Read a floating point number or fail if not enough bytes available for reading.
@@ -133,9 +115,7 @@ public fun Buffer.readDouble(): Double = readExact(8, "long floating point numbe
     memory.loadDoubleAt(offset)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readDouble(): Double = (this as Buffer).readDouble()
+public inline fun ChunkBuffer.readDouble(): Double = (this as Buffer).readDouble()
 
 /**
  * Write a short integer or fail if not enough space available for writing.
@@ -145,9 +125,7 @@ public fun Buffer.writeShort(value: Short): Unit = writeExact(2, "short integer"
     memory.storeShortAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeShort(value: Short): Unit = (this as Buffer).writeShort(value)
+public inline fun ChunkBuffer.writeShort(value: Short): Unit = (this as Buffer).writeShort(value)
 
 /**
  * Write an unsigned short integer or fail if not enough space available for writing.
@@ -158,9 +136,7 @@ public fun Buffer.writeUShort(value: UShort): Unit =
         memory.storeUShortAt(offset, value)
     }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeUShort(value: UShort): Unit = (this as Buffer).writeUShort(value)
+public inline fun ChunkBuffer.writeUShort(value: UShort): Unit = (this as Buffer).writeUShort(value)
 
 /**
  * Write an integer or fail if not enough space available for writing.
@@ -170,9 +146,7 @@ public fun Buffer.writeInt(value: Int): Unit = writeExact(4, "regular integer") 
     memory.storeIntAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeInt(value: Int): Unit = (this as Buffer).writeInt(value)
+public inline fun ChunkBuffer.writeInt(value: Int): Unit = (this as Buffer).writeInt(value)
 
 /**
  * Write an unsigned integer or fail if not enough space available for writing.
@@ -182,9 +156,7 @@ public fun Buffer.writeUInt(value: UInt): Unit = writeExact(4, "regular unsigned
     memory.storeUIntAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeUInt(value: UInt): Unit = (this as Buffer).writeUInt(value)
+public inline fun ChunkBuffer.writeUInt(value: UInt): Unit = (this as Buffer).writeUInt(value)
 
 /**
  * Write a long integer or fail if not enough space available for writing.
@@ -194,9 +166,7 @@ public fun Buffer.writeLong(value: Long): Unit = writeExact(8, "long integer") {
     memory.storeLongAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeLong(value: Long): Unit = (this as Buffer).writeLong(value)
+public inline fun ChunkBuffer.writeLong(value: Long): Unit = (this as Buffer).writeLong(value)
 
 /**
  * Write an unsigned long integer or fail if not enough space available for writing.
@@ -206,9 +176,7 @@ public fun Buffer.writeULong(value: ULong): Unit = writeExact(8, "long unsigned 
     memory.storeULongAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeULong(value: ULong): Unit = (this as Buffer).writeULong(value)
+public inline fun ChunkBuffer.writeULong(value: ULong): Unit = (this as Buffer).writeULong(value)
 
 /**
  * Write a floating point number or fail if not enough space available for writing.
@@ -218,9 +186,7 @@ public fun Buffer.writeFloat(value: Float): Unit = writeExact(4, "floating point
     memory.storeFloatAt(offset, value)
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeFloat(value: Float): Unit = (this as Buffer).writeFloat(value)
+public inline fun ChunkBuffer.writeFloat(value: Float): Unit = (this as Buffer).writeFloat(value)
 
 /**
  * Write a floating point number or fail if not enough space available for writing.
@@ -231,9 +197,7 @@ public fun Buffer.writeDouble(value: Double): Unit =
         memory.storeDoubleAt(offset, value)
     }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-public inline fun IoBuffer.writeDouble(value: Double): Unit = (this as Buffer).writeDouble(value)
+public inline fun ChunkBuffer.writeDouble(value: Double): Unit = (this as Buffer).writeDouble(value)
 
 /**
  * Read from this buffer to the [destination] array to [offset] and [length] bytes.
@@ -244,9 +208,7 @@ public fun Buffer.readFully(destination: ByteArray, offset: Int = 0, length: Int
     }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-public inline fun IoBuffer.readFully(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset) {
+public inline fun ChunkBuffer.readFully(destination: ByteArray, offset: Int = 0, length: Int = destination.size - offset) {
     (this as Buffer).readFully(destination, offset, length)
 }
 
@@ -277,9 +239,7 @@ public fun Buffer.readAvailable(destination: ByteArray, offset: Int = 0, length:
     return toBeRead
 }
 
-@Deprecated("IoBuffer is deprecated. Use Memory or Input instead.")
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-public inline fun IoBuffer.readAvailable(
+public inline fun ChunkBuffer.readAvailable(
     destination: ByteArray,
     offset: Int = 0,
     length: Int = destination.size - offset
@@ -310,9 +270,7 @@ public fun Buffer.writeFully(source: ByteArray, offset: Int = 0, length: Int = s
     }
 }
 
-@Deprecated("IoBuffer is deprecated. Use Memory or Output instead.")
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
-public inline fun IoBuffer.writeFully(source: ByteArray, offset: Int = 0, length: Int = source.size - offset) {
+public inline fun ChunkBuffer.writeFully(source: ByteArray, offset: Int = 0, length: Int = source.size - offset) {
     (this as Buffer).writeFully(source, offset, length)
 }
 

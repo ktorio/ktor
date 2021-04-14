@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import org.khronos.webgl.*
 
 /**
@@ -48,7 +49,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
 
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     public suspend fun readAvailable(dst: ArrayBuffer, offset: Int, length: Int): Int
 
@@ -58,7 +59,7 @@ public actual interface ByteReadChannel {
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
 
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     public suspend fun readFully(dst: ArrayBuffer, offset: Int, length: Int)
 
@@ -200,7 +201,7 @@ public actual interface ByteReadChannel {
 
     public actual companion object {
         public actual val Empty: ByteReadChannel by lazy {
-            ByteChannelJS(IoBuffer.Empty, false).apply {
+            ByteChannelJS(ChunkBuffer.Empty, false).apply {
                 close(null)
             }
         }
