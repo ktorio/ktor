@@ -36,7 +36,7 @@ public interface Parameters : StringValues {
 @Suppress("KDocMissingDocumentation")
 public class ParametersBuilder(
     size: Int = 8,
-    public val urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
+    public var urlEncodingOption: UrlEncodingOption = UrlEncodingOption.DEFAULT
 ) : StringValuesBuilder(true, size) {
 
     @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)

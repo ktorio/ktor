@@ -32,7 +32,8 @@ public fun URLBuilder.takeFrom(uri: URI): URLBuilder {
 
     uri.host?.let { host = it }
     encodedPath = uri.rawPath
-    uri.query?.let { parameters.appendAll(parseQueryString(it)) }
+    parameters.urlEncodingOption = UrlEncodingOption.NO_ENCODING
+    uri.query?.let { parseQueryStringTo(parameters, it) }
     if (uri.query?.isEmpty() == true) {
         trailingQuery = true
     }
