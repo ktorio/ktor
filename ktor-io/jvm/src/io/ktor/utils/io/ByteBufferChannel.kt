@@ -4,7 +4,6 @@ import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.Buffer
-import io.ktor.utils.io.core.ByteOrder
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import io.ktor.utils.io.pool.*
@@ -91,25 +90,6 @@ internal open class ByteBufferChannel(
             }
         }
     }
-
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    override var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-
-    @Deprecated(
-        "Setting byte order is no longer supported. Read/write in big endian and use reverseByteOrder() extensions.",
-        level = DeprecationLevel.ERROR
-    )
-    override var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-        set(newOrder) {
-            if (field != newOrder) {
-                field = newOrder
-                @Suppress("DEPRECATION_ERROR")
-                joining?.delegatedTo?.writeByteOrder = newOrder
-            }
-        }
 
     override val availableForRead: Int
         get() = state.capacity.availableForRead
@@ -219,18 +199,16 @@ internal open class ByteBufferChannel(
     }
 
     internal fun prepareWriteBuffer(buffer: ByteBuffer, lockedSpace: Int) {
-        @Suppress("DEPRECATION_ERROR")
-        buffer.prepareBuffer(writeByteOrder, writePosition, lockedSpace)
+        buffer.prepareBuffer(writePosition, lockedSpace)
     }
 
-    private fun ByteBuffer.prepareBuffer(order: ByteOrder, position: Int, available: Int) {
+    private fun ByteBuffer.prepareBuffer(position: Int, available: Int) {
         require(position >= 0)
         require(available >= 0)
 
         val bufferLimit = capacity() - reservedSize
         val virtualLimit = position + available
 
-        order(order.nioOrder)
         limit(virtualLimit.coerceAtMost(bufferLimit))
         position(position)
     }
@@ -284,8 +262,7 @@ internal open class ByteBufferChannel(
             }
         }
         return buffer.apply {
-            @Suppress("DEPRECATION_ERROR")
-            prepareBuffer(writeByteOrder, writePosition, newState.capacity.availableForWrite)
+            prepareBuffer(writePosition, newState.capacity.availableForWrite)
         }
     }
 
@@ -320,9 +297,8 @@ internal open class ByteBufferChannel(
             }
         }
 
-        @Suppress("DEPRECATION_ERROR")
         return newState.readBuffer.apply {
-            prepareBuffer(readByteOrder, readPosition, newState.capacity.availableForRead)
+            prepareBuffer(readPosition, newState.capacity.availableForRead)
         }
     }
 
@@ -369,8 +345,6 @@ internal open class ByteBufferChannel(
         require(this !== delegate)
 
         val joined = JoiningState(delegate, delegateClose)
-        @Suppress("DEPRECATION_ERROR")
-        delegate.writeByteOrder = writeByteOrder
         this.joining = joined
 
         val alreadyClosed = closed
@@ -455,7 +429,7 @@ internal open class ByteBufferChannel(
         val current = joining?.let { resolveDelegation(this, it) } ?: this
         val buffer = current.setupStateForWrite() ?: return
         val capacity = current.state.capacity
-        val before = @Suppress("DEPRECATION") current.totalBytesWritten
+        val before = current.totalBytesWritten
 
         try {
             current.closed?.let { rethrowClosed(it.sendException) }
@@ -463,7 +437,6 @@ internal open class ByteBufferChannel(
         } finally {
             if (capacity.isFull() || current.autoFlush) current.flush()
             if (current !== this) {
-                @Suppress("DEPRECATION")
                 totalBytesWritten += current.totalBytesWritten - before
             }
             current.restoreStateAfterWrite()
@@ -1199,9 +1172,6 @@ internal open class ByteBufferChannel(
 
         val autoFlush = autoFlush
 
-        @Suppress("DEPRECATION_ERROR")
-        val byteOrder = writeByteOrder
-
         try {
             var copied = 0L
             while (copied < limit) {
@@ -1214,7 +1184,7 @@ internal open class ByteBufferChannel(
                             avWBefore = state.availableForWrite
                         }
 
-                        dstBuffer.prepareBuffer(byteOrder, writePosition, avWBefore)
+                        dstBuffer.prepareBuffer(writePosition, avWBefore)
 
                         var partSize = 0
 
@@ -1347,8 +1317,7 @@ internal open class ByteBufferChannel(
 
                 written += possibleSize
 
-                @Suppress("DEPRECATION_ERROR")
-                dst.prepareBuffer(writeByteOrder, dst.carryIndex(writePosition + written), state.availableForWrite)
+                dst.prepareBuffer(dst.carryIndex(writePosition + written), state.availableForWrite)
             } while (true)
 
             src.limit(srcLimit)
@@ -1374,8 +1343,7 @@ internal open class ByteBufferChannel(
 
                 written += possibleSize
 
-                @Suppress("DEPRECATION_ERROR")
-                dst.prepareBuffer(writeByteOrder, dst.carryIndex(writePosition + written), state.availableForWrite)
+                dst.prepareBuffer(dst.carryIndex(writePosition + written), state.availableForWrite)
             } while (true)
 
             dst.bytesWritten(state, written)
@@ -1398,8 +1366,7 @@ internal open class ByteBufferChannel(
                 dst.put(src, offset + written, possibleSize)
                 written += possibleSize
 
-                @Suppress("DEPRECATION_ERROR")
-                dst.prepareBuffer(writeByteOrder, dst.carryIndex(writePosition + written), state.availableForWrite)
+                dst.prepareBuffer(dst.carryIndex(writePosition + written), state.availableForWrite)
             } while (true)
 
             dst.bytesWritten(state, written)
@@ -1480,8 +1447,7 @@ internal open class ByteBufferChannel(
             // it is important to lock bytes to fail concurrent tryLockForRelease
             // once we have locked some bytes, tryLockForRelease will fail so it is safe to use buffer
 
-            @Suppress("DEPRECATION_ERROR")
-            dst.prepareBuffer(writeByteOrder, writePosition, locked)
+            dst.prepareBuffer(writePosition, locked)
 
             val position = dst.position()
             val l = dst.limit()
@@ -1910,8 +1876,7 @@ internal open class ByteBufferChannel(
             val buffer = s.readBuffer
 
             val position = buffer.carryIndex(rp + skip)
-            @Suppress("DEPRECATION_ERROR")
-            buffer.prepareBuffer(readByteOrder, position, available - skip)
+            buffer.prepareBuffer(position, available - skip)
 
             if (buffer.remaining() >= atLeast) buffer else null
         }
@@ -1961,8 +1926,7 @@ internal open class ByteBufferChannel(
             if (!capacity.tryReadExact(consumed)) throw IllegalStateException("Consumed more bytes than available")
 
             buffer.bytesRead(capacity, consumed)
-            @Suppress("DEPRECATION_ERROR")
-            buffer.prepareBuffer(readByteOrder, readPosition, capacity.availableForRead)
+            buffer.prepareBuffer(readPosition, capacity.availableForRead)
         }
 
         return consumed
@@ -2393,16 +2357,8 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private fun newBuffer(): ReadWriteBufferState.Initial {
-        val result = pool.borrow()
-
-        @Suppress("DEPRECATION_ERROR")
-        result.readBuffer.order(readByteOrder.nioOrder)
-        @Suppress("DEPRECATION_ERROR")
-        result.writeBuffer.order(writeByteOrder.nioOrder)
-        result.capacity.resetForWrite()
-
-        return result
+    private fun newBuffer(): ReadWriteBufferState.Initial = pool.borrow().apply {
+        capacity.resetForWrite()
     }
 
     private fun releaseBuffer(buffer: ReadWriteBufferState.Initial) {

@@ -5,16 +5,10 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
-import kotlin.jvm.*
 
 internal actual class ByteChannelSequentialBaseSharedState actual constructor() {
     actual var closed: Boolean = false
-
-    actual var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-
-    actual var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
 
     actual var totalBytesRead: Long = 0L
 
