@@ -1620,6 +1620,12 @@ public class io/ktor/routing/RoutingResolveTraceEntry {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/ktor/routing/TrailingSlashRouteSelector : io/ktor/routing/RouteSelector {
+	public static final field INSTANCE Lio/ktor/routing/TrailingSlashRouteSelector;
+	public fun evaluate (Lio/ktor/routing/RoutingResolveContext;I)Lio/ktor/routing/RouteSelectorEvaluation;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/ktor/sessions/CookieConfiguration {
 	public fun <init> ()V
 	public final fun getDomain ()Ljava/lang/String;

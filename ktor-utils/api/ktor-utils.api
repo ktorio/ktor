@@ -33,6 +33,10 @@ public final class io/ktor/util/AttributesJvmKt {
 	public static synthetic fun Attributes$default (ZILjava/lang/Object;)Lio/ktor/util/Attributes;
 }
 
+public final class io/ktor/util/AttributesKt {
+	public static final fun putAll (Lio/ktor/util/Attributes;Lio/ktor/util/Attributes;)V
+}
+
 public final class io/ktor/util/Base64JvmKt {
 	public static final fun decodeBase64 (Ljava/lang/String;)[B
 	public static final fun encodeBase64 ([B)Ljava/lang/String;
