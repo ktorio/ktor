@@ -68,3 +68,13 @@ public interface Attributes {
      */
     public val allKeys: List<AttributeKey<*>>
 }
+
+/**
+ * Adds all attributes from another collection, replacing original values if any.
+ */
+public fun Attributes.putAll(other: Attributes) {
+    other.allKeys.forEach {
+        @Suppress("UNCHECKED_CAST")
+        put(it as AttributeKey<Any>, other[it])
+    }
+}

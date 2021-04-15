@@ -76,8 +76,7 @@ public sealed class SocketOptions(
          * rejected by the underlying TCP implementation (usually with RST frame that
          * usually causes "connection reset by peer" error on the opposite side).
          */
-        @PublicAPICandidate("1.6.0")
-        internal var backlogSize: Int = 511
+        public var backlogSize: Int = 511
 
         override fun copy(): AcceptorOptions {
             return AcceptorOptions(HashMap(customOptions)).apply {

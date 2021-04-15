@@ -295,11 +295,3 @@ public fun HttpRequestBuilder.url(urlString: String): Unit { // ktlint-disable f
 public fun HttpRequestData.isUpgradeRequest(): Boolean {
     return body is ClientUpgradeContent
 }
-
-@PublicAPICandidate("1.6.0") // move to ktor-util
-internal fun Attributes.putAll(other: Attributes) {
-    other.allKeys.forEach {
-        @Suppress("UNCHECKED_CAST")
-        put(it as AttributeKey<Any>, other[it])
-    }
-}
