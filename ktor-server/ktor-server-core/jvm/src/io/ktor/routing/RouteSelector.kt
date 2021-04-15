@@ -254,7 +254,7 @@ public data class PathSegmentConstantRouteSelector(
 /**
  * Evaluates a route against a single trailing slash
  */
-internal object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+public object TrailingSlashRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Constant
