@@ -20,7 +20,8 @@ ext.jdk7Modules = [
     'ktor-utils',
     'ktor-network-tls',
     'ktor-websockets',
-    'ktor-client-okhttp'
+    'ktor-client-okhttp',
+    'ktor-metrics-micrometer'
 ]
 
 ext.jdk11Modules = [
