@@ -128,7 +128,7 @@ public data class HostRouteSelector(
             append(PortParameter, requestPort.toString())
         }
 
-        return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, params)
+        return RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, params)
     }
 
     override fun toString(): String = "($hostList, $hostPatterns, $portsList)"

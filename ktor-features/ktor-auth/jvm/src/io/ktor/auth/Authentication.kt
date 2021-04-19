@@ -327,7 +327,7 @@ public fun Route.authenticate(
  */
 public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)
+        return RouteSelectorEvaluation.Transparent
     }
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"

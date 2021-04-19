@@ -11,6 +11,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 
+@InternalAPI
+public val RoutingFailureStatusCode: AttributeKey<HttpStatusCode> = AttributeKey("RoutingFailureStatusCode")
+
 /**
  * Root routing node for an [Application]
  * @param application is an instance of [Application] for this routing
@@ -34,9 +37,11 @@ public class Routing(
 
     public suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
-        val resolveResult = resolveContext.resolve()
-        if (resolveResult is RoutingResolveResult.Success) {
-            executeResult(context, resolveResult.route, resolveResult.parameters)
+        when (val resolveResult = resolveContext.resolve()) {
+            is RoutingResolveResult.Success ->
+                executeResult(context, resolveResult.route, resolveResult.parameters)
+            is RoutingResolveResult.Failure ->
+                context.call.attributes.put(RoutingFailureStatusCode, resolveResult.errorStatusCode)
         }
     }
 
