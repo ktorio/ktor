@@ -63,14 +63,55 @@ code contributions, please make sure you read how we handle the [design process 
 
 Ktor is built with Gradle. Given it is multiplatform, you can build Ktor for the JVM, Native, and JavaScript.
 
-#### JVM Builds
+To build the projects and produce the corresponding artifacts, use 
 
-* Run `./gradlew jvmTest` to build and run all the tests.
+`./gradlew assemble`
 
+to run tests use
+
+`./gradlew jvmTest` which runs all tests on the JVM. This is the minimum required for testing. If writing code
+for other platforms, the corresponding tests for these should also be run. To see the list of tasks use
+
+`./gradlew tasks`
+
+For Ktor to build correctly, a series of additional libraries/tools need to be installed, based on the operating
+system you're using for development:
+
+**Linux and macOS**
+
+Run the following commands to install `libcurl` and `libncurses`:
+
+```
+        sudo apt-get update
+        sudo apt-get libcurl
+        sudo apt-get install libncurses5 libncursesw5 libtinfo5
+        sudo apt-get install libcurl4-openssl-dev
+```
+
+If targeting macOS and/or iOS, install `Xcode` and `Xcode command line tools` on macOS. 
+
+**Windows**
+
+For development on Windows, it is recommended to use [Cygwin](http://cygwin.com/) which will provide the necessary
+libaries such as `libncurses`. To install `libcurl`, download it from [Curl website](https://curl.se/windows/) or
+use a package manager such as [chocolatey](https://chocolatey.org). 
+
+#### Referencing artifacts locally
+
+There are two ways to reference artifacts from the development Ktor locally in another project, which is usually
+used for debugging purposes. One of these is to publish to [Maven Local](https://docs.gradle.org/current/userguide/publishing_maven.html). The other
+(and somewhat simpler), is to use the `includeBuild` functionality of Gradle. Reference the Ktor project from your sample project 
+by adding the following line to your `settings.gradle(.kts)` file:
+
+```groovy
+    includeBuild("/PATH/TO/KTOR")
+```
+ 
 #### Importing into IntelliJ IDEA
 
-You can import this project into IDEA, but you have to delegate build actions
-to Gradle (in Preferences -> Build, Execution, Deployment -> Build Tools -> Gradle -> Runner)
+To import into IntelliJ IDEA, just open up the `Ktor` project folder. IntelliJ IDEA should automatically detect
+that it is a Gradle project and import it. It's important that you make sure that all building and test operations 
+are delegated to Gradle under [Gradle Settings](https://www.jetbrains.com/help/idea/gradle-settings.html). 
 
 ## Documentation
 
