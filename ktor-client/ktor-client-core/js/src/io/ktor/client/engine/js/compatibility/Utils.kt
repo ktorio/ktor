@@ -43,7 +43,7 @@ internal fun AbortController(): AbortController {
     return if (PlatformUtils.IS_BROWSER) {
         js("new AbortController()")
     } else {
-        val controller = js("require('abort-controller')")
+        val controller = js("eval('require')('abort-controller')")
         js("new controller()")
     }
 }
@@ -57,7 +57,7 @@ internal fun CoroutineScope.readBody(
 }
 
 private fun jsRequireNodeFetch(): dynamic = try {
-    js("require('node-fetch')")
+    js("eval('require')('node-fetch')")
 } catch (cause: dynamic) {
     throw Error("Error loading module 'node-fetch': $cause")
 }
