@@ -16,6 +16,7 @@ ext.jdk8Modules = [
 
 ext.jdk7Modules = [
     'ktor-http',
+    'ktor-http-cio',
     'ktor-utils',
     'ktor-network-tls',
     'ktor-websockets'
