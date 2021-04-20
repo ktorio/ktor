@@ -17,14 +17,6 @@ public abstract class ByteReadPacketBase(
     pool: ObjectPool<ChunkBuffer>
 ) : AbstractInput(head, remaining, pool) {
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(
-        head: IoBuffer,
-        remaining: Long,
-        pool: ObjectPool<ChunkBuffer>
-    ) : this(head as ChunkBuffer, remaining, pool)
-
     public companion object {
         @Deprecated(
             "Use ByteReadPacket.Empty instead",

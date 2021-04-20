@@ -30,14 +30,14 @@ private const val EXPECTED_CAPACITY: Long = 4088L
 @Suppress("OverridingDeprecatedMember")
 @DangerousInternalIoApi
 public abstract class ByteChannelSequentialBase(
-    initial: IoBuffer,
+    initial: ChunkBuffer,
     override val autoFlush: Boolean,
     pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
 ) : ByteChannel, ByteReadChannel, ByteWriteChannel, SuspendableReadSession, HasReadSession, HasWriteSession {
 
     @Suppress("unused", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(initial: IoBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
+    public constructor(initial: ChunkBuffer, autoFlush: Boolean) : this(initial, autoFlush, ChunkBuffer.Pool)
 
     private val state = ByteChannelSequentialBaseSharedState()
 
@@ -226,10 +226,6 @@ public abstract class ByteChannelSequentialBase(
         afterWrite(size)
     }
 
-    override suspend fun writeFully(src: IoBuffer) {
-        writeFully(src as Buffer)
-    }
-
     override suspend fun writeFully(src: Buffer) {
         awaitAtLeastNBytesAvailableForWrite(1)
         val count = src.readRemaining
@@ -266,7 +262,7 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    override suspend fun writeAvailable(src: IoBuffer): Int {
+    override suspend fun writeAvailable(src: ChunkBuffer): Int {
         val srcRemaining = src.readRemaining
         if (srcRemaining == 0) return 0
         val size = minOf(srcRemaining, availableForWrite)
@@ -301,9 +297,9 @@ public abstract class ByteChannelSequentialBase(
     @Suppress("DEPRECATION")
     override fun beginWriteSession(): WriterSuspendSession {
         return object : WriterSuspendSession {
-            override fun request(min: Int): IoBuffer? {
+            override fun request(min: Int): ChunkBuffer? {
                 if (availableForWrite == 0) return null
-                return writable.prepareWriteHead(min) as IoBuffer
+                return writable.prepareWriteHead(min)
             }
 
             override fun written(n: Int) {
@@ -529,7 +525,7 @@ public abstract class ByteChannelSequentialBase(
         return -1
     }
 
-    override suspend fun readAvailable(dst: IoBuffer): Int = readAvailable(dst as Buffer)
+    override suspend fun readAvailable(dst: ChunkBuffer): Int = readAvailable(dst as Buffer)
 
     internal suspend fun readAvailable(dst: Buffer): Int = when {
         closedCause != null -> throw closedCause!!
@@ -549,7 +545,7 @@ public abstract class ByteChannelSequentialBase(
         return readAvailable(dst)
     }
 
-    override suspend fun readFully(dst: IoBuffer, n: Int) {
+    override suspend fun readFully(dst: ChunkBuffer, n: Int) {
         readFully(dst as Buffer, n)
     }
 
@@ -685,7 +681,7 @@ public abstract class ByteChannelSequentialBase(
         }
     }
 
-    override fun request(atLeast: Int): IoBuffer? {
+    override fun request(atLeast: Int): ChunkBuffer? {
         closedCause?.let { throw it }
 
         completeReading()
@@ -693,12 +689,12 @@ public abstract class ByteChannelSequentialBase(
         return requestNextView(atLeast)
     }
 
-    private fun requestNextView(atLeast: Int): IoBuffer? {
+    private fun requestNextView(atLeast: Int): ChunkBuffer? {
         if (readable.isEmpty) {
             prepareFlushedBytes()
         }
 
-        val view = readable.prepareReadHead(atLeast) as IoBuffer?
+        val view = readable.prepareReadHead(atLeast)
 
         if (view == null) {
             lastReadView = ChunkBuffer.Empty
@@ -833,7 +829,7 @@ public abstract class ByteChannelSequentialBase(
     }
 
     @Suppress("DEPRECATION")
-    private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
+    private suspend fun writeAvailableSuspend(src: ChunkBuffer): Int {
         awaitAtLeastNBytesAvailableForWrite(1)
         return writeAvailable(src)
     }
@@ -881,7 +877,7 @@ public abstract class ByteChannelSequentialBase(
 
             await(desiredSize)
 
-            val buffer = request(1) ?: IoBuffer.Empty
+            val buffer = request(1) ?: ChunkBuffer.Empty
             if (buffer.readRemaining > offset) {
                 bytesCopied = minOf(buffer.readRemaining.toLong() - offset, max, destination.size - destinationOffset)
                 buffer.memory.copyTo(destination, offset, bytesCopied, destinationOffset)
