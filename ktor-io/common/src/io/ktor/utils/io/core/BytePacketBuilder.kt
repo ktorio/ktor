@@ -37,8 +37,7 @@ import kotlin.jvm.*
 public class BytePacketBuilder(
     private var headerSizeHint: Int = 0,
     pool: ObjectPool<ChunkBuffer>
-) : @Suppress("DEPRECATION_ERROR")
-BytePacketBuilderPlatformBase(pool) {
+) : AbstractOutput(pool) {
 
     init {
         require(headerSizeHint >= 0) { "shouldn't be negative: headerSizeHint = $headerSizeHint" }
@@ -90,33 +89,6 @@ BytePacketBuilderPlatformBase(pool) {
         return super.append(csq, start, end) as BytePacketBuilder
     }
 
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(c: Char): BytePacketBuilderBase = append(c)
-
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(csq: CharSequence?): BytePacketBuilderBase = append(csq)
-
-    @Suppress("DEPRECATION_ERROR", "UNUSED")
-    @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-    @JvmName("append")
-    public fun appendOld(csq: CharSequence?, start: Int, end: Int): BytePacketBuilderBase = append(csq, start, end)
-
-    /**
-     * Creates a temporary packet view of the packet being build without discarding any bytes from the builder.
-     * This is similar to `build().copy()` except that the builder keeps already written bytes untouched.
-     * A temporary view packet is passed as argument to [block] function and it shouldn't leak outside of this block
-     * otherwise an unexpected behaviour may occur.
-     */
-    @Suppress("unused")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun <R> preview(block: (tmp: ByteReadPacket) -> R): R {
-        return preview(block)
-    }
-
     /**
      * Builds byte packet instance and resets builder's state to be able to build another one packet if needed
      */
@@ -128,21 +100,6 @@ BytePacketBuilderPlatformBase(pool) {
             null -> ByteReadPacket.Empty
             else -> ByteReadPacket(head, size.toLong(), pool)
         }
-    }
-
-    /**
-     * Discard all written bytes and prepare to build another packet.
-     */
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun reset() {
-        release()
-    }
-
-    @PublishedApi
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    @Suppress("unused")
-    internal fun preview(): ByteReadPacket {
-        return preview()
     }
 
     override fun toString(): String {
