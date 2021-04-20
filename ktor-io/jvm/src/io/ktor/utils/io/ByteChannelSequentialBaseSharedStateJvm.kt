@@ -13,12 +13,6 @@ internal actual class ByteChannelSequentialBaseSharedState actual constructor() 
     actual var closed: Boolean = false
 
     @Volatile
-    actual var readByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-
-    @Volatile
-    actual var writeByteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-
-    @Volatile
     actual var totalBytesRead: Long = 0L
 
     @Volatile
