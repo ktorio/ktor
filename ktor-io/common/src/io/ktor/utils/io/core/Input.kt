@@ -9,13 +9,6 @@ import kotlin.jvm.JvmName
  * Usually shouldn't be implemented directly. Inherit [AbstractInput] instead.
  */
 public expect interface Input : Closeable {
-    @Deprecated(
-        "Not supported anymore. All operations are big endian by default. " +
-            "Use readXXXLittleEndian or readXXX then X.reverseByteOrder() instead.",
-        level = DeprecationLevel.ERROR
-    )
-    public var byteOrder: ByteOrder
-
     /**
      * It is `true` when it is known that no more bytes will be available. When it is `false` then this means that
      * it is not known yet or there are available bytes.

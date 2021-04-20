@@ -9,9 +9,6 @@ import java.nio.*
  */
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
 public actual interface Output : Closeable, Appendable {
-    @Deprecated("Write with writeXXXLittleEndian or do X.reverseByteOrder() and then writeXXX instead.")
-    public actual var byteOrder: ByteOrder
-
     public actual fun writeByte(v: Byte)
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
