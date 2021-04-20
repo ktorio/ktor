@@ -7,14 +7,6 @@ import io.ktor.utils.io.core.internal.*
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
 public expect interface Output : Appendable, Closeable {
-    @Deprecated(
-        "This is no longer supported. All operations are big endian by default. Use writeXXXLittleEndian " +
-            "to write primitives in little endian order" +
-            " or do X.reverseByteOrder() and then writeXXX instead.",
-        level = DeprecationLevel.ERROR
-    )
-    public var byteOrder: ByteOrder
-
     public fun writeByte(v: Byte)
 
     public fun flush()
