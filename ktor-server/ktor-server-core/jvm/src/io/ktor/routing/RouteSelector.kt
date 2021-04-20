@@ -71,7 +71,7 @@ public data class RouteSelectorEvaluation(
         public const val qualityTailcard: Double = 0.1
 
         /**
-         * Quality of [RouteSelectorEvaluation] that doesn't have its own priority but uses priority of its children
+         * Quality of [RouteSelectorEvaluation] that doesn't have its own quality but uses quality of its children
          */
         public const val qualityTransparent: Double = -1.0
 
