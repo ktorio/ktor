@@ -5,7 +5,7 @@ import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.pool.*
 
 /**
- * Usually shouldn't be implemented directly. Inherit [AbstractInput] instead.
+ * Usually shouldn't be implemented directly. Inherit [Input] instead.
  */
 public abstract class Input(
     head: ChunkBuffer = ChunkBuffer.Empty,
