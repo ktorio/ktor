@@ -2,6 +2,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlin.test.*
 
 open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
@@ -13,7 +14,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         launch {
             expect(3)
 
-            val bb = IoBuffer.NoPool.borrow()
+            val bb = ChunkBuffer.NoPool.borrow()
 
             // should suspend
             val rc = ch.readAvailable(bb)
@@ -44,7 +45,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         launch {
             expect(3)
 
-            val bb = IoBuffer.NoPool.borrow()
+            val bb = ChunkBuffer.NoPool.borrow()
             bb.resetForWrite(4)
             ch.readFully(bb) // should suspend
 
@@ -75,7 +76,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         launch {
             expect(3)
 
-            val bb = IoBuffer.NoPool.borrow()
+            val bb = ChunkBuffer.NoPool.borrow()
             bb.resetForWrite(10)
             val rc = ch.readAvailable(bb) // should NOT suspend
 
@@ -100,7 +101,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         launch {
             expect(3)
 
-            val bb = IoBuffer.NoPool.borrow()
+            val bb = ChunkBuffer.NoPool.borrow()
             bb.resetForWrite(4)
             ch.readFully(bb) // should NOT suspend
 
@@ -120,7 +121,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
     fun testReadToEmpty() = runTest {
         expect(1)
 
-        val rc = ch.readAvailable(IoBuffer.NoPool.borrow().also { it.resetForWrite(0) })
+        val rc = ch.readAvailable(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
 
         expect(2)
 
@@ -136,7 +137,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         ch.close(ExpectedException())
 
         try {
-            ch.readAvailable(IoBuffer.NoPool.borrow().also { it.resetForWrite(0) })
+            ch.readAvailable(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
             fail("Should throw exception")
         } catch (expected: ExpectedException) {
         }
@@ -150,7 +151,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
 
         ch.close()
 
-        val rc = ch.readAvailable(IoBuffer.NoPool.borrow().also { it.resetForWrite(0) })
+        val rc = ch.readAvailable(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
 
         expect(2)
 
@@ -165,7 +166,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
 
         ch.close()
 
-        ch.readFully(IoBuffer.NoPool.borrow().also { it.resetForWrite(0) })
+        ch.readFully(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
 
         finish(2)
     }
@@ -176,7 +177,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
 
         ch.close()
         try {
-            ch.readFully(IoBuffer.NoPool.borrow().also { it.resetForWrite(1) })
+            ch.readFully(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(1) })
             fail("Should throw exception")
         } catch (expected: Throwable) {
         }
@@ -191,7 +192,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         ch.close(ExpectedException())
 
         try {
-            ch.readFully(IoBuffer.NoPool.borrow().also { it.resetForWrite(0) })
+            ch.readFully(ChunkBuffer.NoPool.borrow().also { it.resetForWrite(0) })
             fail("Should throw exception")
         } catch (expected: ExpectedException) {
         }
@@ -433,7 +434,7 @@ open class ByteBufferChannelScenarioTest : ByteChannelTestBase(true) {
         val size = 4096 - 8 - 3
 
         expect(1)
-        val buffer = IoBuffer.NoPool.borrow()
+        val buffer = ChunkBuffer.NoPool.borrow()
         buffer.resetForWrite(size)
         repeat(size) {
             buffer.writeByte(1)

@@ -23,14 +23,6 @@ public abstract class AbstractInput(
 ) : Input {
     private val state = AbstractInputSharedState(head, remaining)
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public constructor(
-        head: IoBuffer = IoBuffer.Empty,
-        remaining: Long = head.remainingAll(),
-        pool: ObjectPool<ChunkBuffer> = ChunkBuffer.Pool
-    ) : this(head as ChunkBuffer, remaining, pool)
-
     /**
      * Read the next bytes into the [destination] starting at [offset] at most [length] bytes.
      * May block until at least one byte is available.
@@ -402,9 +394,7 @@ public abstract class AbstractInput(
         return prepareReadLoop(1, head)?.tryPeekByte() ?: -1
     }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    final override fun peekTo(buffer: IoBuffer): Int {
+    final override fun peekTo(buffer: ChunkBuffer): Int {
         val head = prepareReadHead(1) ?: return -1
 
         val size = minOf(buffer.writeRemaining, head.readRemaining)
