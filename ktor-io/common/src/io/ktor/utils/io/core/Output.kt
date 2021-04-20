@@ -89,7 +89,7 @@ public expect interface Output : Appendable, Closeable {
 
     @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun writeFully(src: IoBuffer, length: Int) {
+    public fun writeFully(src: ChunkBuffer, length: Int) {
         writeFully(src, length)
     }
 
@@ -156,7 +156,7 @@ public fun Output.writeFully(src: DoubleArray, offset: Int = 0, length: Int = sr
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Output.writeFully(src: IoBuffer, length: Int = src.readRemaining) {
+public fun Output.writeFully(src: ChunkBuffer, length: Int = src.readRemaining) {
     writeFully(src as Buffer, length)
 }
 
