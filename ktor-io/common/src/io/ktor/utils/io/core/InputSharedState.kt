@@ -7,7 +7,7 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.internal.*
 
-internal expect class AbstractInputSharedState(
+internal expect class InputSharedState(
     head: ChunkBuffer,
     remaining: Long,
 ) {
