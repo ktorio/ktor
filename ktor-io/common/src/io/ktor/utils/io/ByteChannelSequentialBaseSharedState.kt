@@ -4,15 +4,10 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 
 internal expect class ByteChannelSequentialBaseSharedState() {
     var closed: Boolean
-
-    var readByteOrder: ByteOrder
-
-    var writeByteOrder: ByteOrder
 
     var totalBytesRead: Long
 
