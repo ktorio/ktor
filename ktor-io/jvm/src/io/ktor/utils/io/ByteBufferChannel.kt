@@ -604,7 +604,7 @@ internal open class ByteBufferChannel(
         return copied
     }
 
-    override suspend fun readFully(dst: IoBuffer, n: Int) {
+    override suspend fun readFully(dst: ChunkBuffer, n: Int) {
         val rc = readAsMuchAsPossible(dst, max = n)
         if (rc == n) {
             return
@@ -613,7 +613,7 @@ internal open class ByteBufferChannel(
         readFullySuspend(dst, n - rc)
     }
 
-    private suspend fun readFullySuspend(dst: IoBuffer, n: Int) {
+    private suspend fun readFullySuspend(dst: ChunkBuffer, n: Int) {
         var copied = 0
 
         while (dst.canWrite() && copied < n) {
@@ -715,7 +715,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    override suspend fun readAvailable(dst: IoBuffer): Int {
+    override suspend fun readAvailable(dst: ChunkBuffer): Int {
         val consumed = readAsMuchAsPossible(dst)
 
         return when {
@@ -747,7 +747,7 @@ internal open class ByteBufferChannel(
         return readAvailable(dst)
     }
 
-    private suspend fun readAvailableSuspend(dst: IoBuffer): Int {
+    private suspend fun readAvailableSuspend(dst: ChunkBuffer): Int {
         if (!readSuspend(1)) {
             return -1
         }
@@ -1065,7 +1065,7 @@ internal open class ByteBufferChannel(
         return writeAvailableSuspend(src)
     }
 
-    override suspend fun writeAvailable(src: IoBuffer): Int {
+    override suspend fun writeAvailable(src: ChunkBuffer): Int {
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailable(src) } }
 
         val copied = writeAsMuchAsPossible(src)
@@ -1083,7 +1083,7 @@ internal open class ByteBufferChannel(
         return writeAvailable(src)
     }
 
-    private suspend fun writeAvailableSuspend(src: IoBuffer): Int {
+    private suspend fun writeAvailableSuspend(src: ChunkBuffer): Int {
         writeSuspend(1)
 
         joining?.let { resolveDelegation(this, it)?.let { return it.writeAvailableSuspend(src) } }
@@ -1101,19 +1101,6 @@ internal open class ByteBufferChannel(
     }
 
     override suspend fun writeFully(src: Buffer) {
-        while (src.readRemaining > 0) {
-            write { buffer ->
-                src.readAvailable(buffer)
-            }
-        }
-    }
-
-    override suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int) {
-        val slice = memory.slice(startIndex, endIndex - startIndex)
-        writeFully(slice.buffer)
-    }
-
-    override suspend fun writeFully(src: IoBuffer) {
         writeAsMuchAsPossible(src)
 
         if (!src.canRead()) {
@@ -1121,6 +1108,11 @@ internal open class ByteBufferChannel(
         }
 
         writeFullySuspend(src)
+    }
+
+    override suspend fun writeFully(memory: Memory, startIndex: Int, endIndex: Int) {
+        val slice = memory.slice(startIndex, endIndex - startIndex)
+        writeFully(slice.buffer)
     }
 
     private suspend fun writeFullySuspend(src: ByteBuffer) {
@@ -1133,7 +1125,7 @@ internal open class ByteBufferChannel(
         }
     }
 
-    private suspend fun writeFullySuspend(src: IoBuffer) {
+    private suspend fun writeFullySuspend(src: Buffer) {
         while (src.canRead()) {
             tryWriteSuspend(1)
 

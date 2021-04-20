@@ -69,7 +69,7 @@ public class HttpStatement(
     public suspend inline fun <reified T> body(): T {
         val response = executeUnsafe()
         return try {
-             response.body()
+            response.body()
         } finally {
             response.complete()
         }
@@ -96,6 +96,7 @@ public class HttpStatement(
     @PublishedApi
     internal suspend fun executeUnsafe(): HttpResponse {
         val builder = HttpRequestBuilder().takeFromWithExecutionContext(builder)
+
         @Suppress("DEPRECATION_ERROR")
         val call = client.execute(builder)
         return call.response

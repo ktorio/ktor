@@ -113,18 +113,6 @@ private fun ReadableByteChannel.readPacketImpl(min: Long, max: Long): ByteReadPa
 }
 
 /**
- * Does the same as [ReadableByteChannel.read] but to a [IoBuffer] instance
- */
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun ReadableByteChannel.read(buffer: IoBuffer): Int {
-    if (buffer.writeRemaining == 0) return 0
-    val rc = read(buffer.writeBuffer)
-    buffer.afterWrite()
-    return rc
-}
-
-/**
  * Does the same as [ReadableByteChannel.read] but to a [Buffer] instance
  */
 @Deprecated("Use read(Memory) instead.")
@@ -148,15 +136,6 @@ public fun ReadableByteChannel.read(
 ): Int {
     val nioBuffer = destination.buffer.sliceSafe(destinationOffset, maxLength)
     return read(nioBuffer)
-}
-
-/**
- * Does the same as [WritableByteChannel.write] but from a [IoBuffer] instance
- */
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun WritableByteChannel.write(buffer: IoBuffer): Int {
-    return write(buffer.readBuffer)
 }
 
 /**
