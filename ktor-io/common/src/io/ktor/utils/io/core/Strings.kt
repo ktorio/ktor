@@ -157,7 +157,7 @@ public fun Input.readUTF8UntilDelimiterTo(out: Output, delimiters: String, limit
 @Suppress("unused", "DEPRECATION_ERROR")
 @Deprecated("Use Output version instead", level = DeprecationLevel.HIDDEN)
 public fun Input.readUTF8UntilDelimiterTo(
-    out: BytePacketBuilderBase,
+    out: AbstractOutput,
     delimiters: String,
     limit: Int = Int.MAX_VALUE
 ): Int {
