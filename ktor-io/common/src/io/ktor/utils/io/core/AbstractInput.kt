@@ -93,18 +93,6 @@ public abstract class AbstractInput(
             state.tailRemaining = newValue
         }
 
-    @Deprecated(
-        "Not supported anymore. All operations are big endian by default.",
-        level = DeprecationLevel.ERROR
-    )
-    final override var byteOrder: ByteOrder
-        get() = ByteOrder.BIG_ENDIAN
-        set(newOrder) {
-            if (newOrder != ByteOrder.BIG_ENDIAN) {
-                throw IllegalArgumentException("Only BIG_ENDIAN is supported.")
-            }
-        }
-
     internal final fun prefetch(min: Long): Boolean {
         if (min <= 0) return true
         val headRemaining = headRemaining

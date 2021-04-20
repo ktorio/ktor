@@ -48,12 +48,10 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun getAvailableForWrite ()I
 	protected final fun getClosed ()Z
 	public final fun getClosedCause ()Ljava/lang/Throwable;
-	public fun getReadByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	protected final fun getReadable ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public fun getTotalBytesRead ()J
 	public fun getTotalBytesWritten ()J
 	protected final fun getWritable ()Lio/ktor/utils/io/core/BytePacketBuilder;
-	public fun getWriteByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public fun isClosedForRead ()Z
 	public fun isClosedForWrite ()Z
 	public final fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -78,8 +76,6 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun readUTF8LineTo (Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun request (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected final fun setClosed (Z)V
-	public fun setReadByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
-	public fun setWriteByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public fun startReadSession ()Lio/ktor/utils/io/SuspendableReadSession;
 	public fun writeAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -127,7 +123,6 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract synthetic fun consumeEachBufferRange (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun discard (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAvailableForRead ()I
-	public abstract fun getReadByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public abstract fun getTotalBytesRead ()J
 	public abstract fun isClosedForRead ()Z
 	public abstract fun isClosedForWrite ()Z
@@ -155,7 +150,6 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract fun readSuspendableSession (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readUTF8Line (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readUTF8LineTo (Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun setReadByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 }
 
 public final class io/ktor/utils/io/ByteReadChannel$Companion {
@@ -199,9 +193,7 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun getAvailableForWrite ()I
 	public abstract fun getClosedCause ()Ljava/lang/Throwable;
 	public abstract fun getTotalBytesWritten ()J
-	public abstract fun getWriteByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public abstract fun isClosedForWrite ()Z
-	public abstract fun setWriteByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public abstract fun write (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable (ILkotlin/jvm/functions/Function1;)I
 	public abstract fun writeAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -677,7 +669,6 @@ public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/cor
 	protected fun fill ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected abstract fun fill-5Mw_xsg (Ljava/nio/ByteBuffer;II)I
 	public final fun fixGapAfterRead (Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
-	public final fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public final fun getEndOfInput ()Z
 	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	public final fun getRemaining ()J
@@ -721,7 +712,6 @@ public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/cor
 	public final fun readTextExact (I)Ljava/lang/String;
 	public final fun readTextExact (Ljava/lang/Appendable;I)V
 	public final fun release ()V
-	public final fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public final fun tryPeek ()I
 	public final fun updateHeadRemaining (I)V
 }
@@ -746,14 +736,12 @@ public abstract class io/ktor/utils/io/core/AbstractOutput : io/ktor/utils/io/co
 	public synthetic fun fill (JB)V
 	public final fun flush ()V
 	protected abstract fun flush-5Mw_xsg (Ljava/nio/ByteBuffer;II)V
-	public final fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	protected final fun getCurrentTail ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
 	protected final fun get_size ()I
 	public final fun prepareWriteHead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final fun release ()V
 	public synthetic fun reset ()V
-	public final fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	protected final fun setCurrentTail (Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
 	protected final fun set_size (I)V
 	public final fun write (ILkotlin/jvm/functions/Function1;)I
@@ -1048,16 +1036,7 @@ public final class io/ktor/utils/io/core/BytePacketBuilder : io/ktor/utils/io/co
 	public final fun getSize ()I
 	public final fun isEmpty ()Z
 	public final fun isNotEmpty ()Z
-	public final synthetic fun preview ()Lio/ktor/utils/io/core/ByteReadPacket;
-	public final synthetic fun preview (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
-	public final synthetic fun reset ()V
 	public fun toString ()Ljava/lang/String;
-}
-
-public abstract class io/ktor/utils/io/core/BytePacketBuilderBase : io/ktor/utils/io/core/AbstractOutput {
-}
-
-public abstract class io/ktor/utils/io/core/BytePacketBuilderPlatformBase : io/ktor/utils/io/core/BytePacketBuilderBase {
 }
 
 public final class io/ktor/utils/io/core/ByteReadPacket : io/ktor/utils/io/core/AbstractInput, io/ktor/utils/io/core/Input {
@@ -1072,15 +1051,6 @@ public final class io/ktor/utils/io/core/ByteReadPacket$Companion {
 	public final fun getReservedSize ()I
 }
 
-public abstract class io/ktor/utils/io/core/ByteReadPacketBase : io/ktor/utils/io/core/AbstractInput {
-	public static final field Companion Lio/ktor/utils/io/core/ByteReadPacketBase$Companion;
-	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
-}
-
-public final class io/ktor/utils/io/core/ByteReadPacketBase$Companion {
-	public final fun getEmpty ()Lio/ktor/utils/io/core/ByteReadPacket;
-}
-
 public final class io/ktor/utils/io/core/ByteReadPacketExtensionsKt {
 	public static final fun ByteReadPacket (Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun ByteReadPacket ([BIILkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
@@ -1091,10 +1061,6 @@ public final class io/ktor/utils/io/core/ByteReadPacketExtensionsKt {
 public final class io/ktor/utils/io/core/ByteReadPacketKt {
 	public static final fun ByteReadPacket ([BII)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static synthetic fun ByteReadPacket$default ([BIIILjava/lang/Object;)Lio/ktor/utils/io/core/ByteReadPacket;
-}
-
-public abstract class io/ktor/utils/io/core/ByteReadPacketPlatformBase : io/ktor/utils/io/core/ByteReadPacketBase {
-	protected fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 }
 
 public final class io/ktor/utils/io/core/CloseableJVMKt {
@@ -1115,7 +1081,6 @@ public abstract interface annotation class io/ktor/utils/io/core/ExperimentalIoA
 public abstract interface class io/ktor/utils/io/core/Input : java/io/Closeable {
 	public abstract fun close ()V
 	public abstract fun discard (J)J
-	public abstract fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public abstract fun getEndOfInput ()Z
 	public abstract synthetic fun peekTo (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public abstract fun peekTo-1dgeIsk (Ljava/nio/ByteBuffer;JJJJ)J
@@ -1141,7 +1106,6 @@ public abstract interface class io/ktor/utils/io/core/Input : java/io/Closeable 
 	public abstract synthetic fun readInt ()I
 	public abstract synthetic fun readLong ()J
 	public abstract synthetic fun readShort ()S
-	public abstract fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public abstract fun tryPeek ()I
 }
 
@@ -1367,8 +1331,6 @@ public abstract interface class io/ktor/utils/io/core/Output : java/io/Closeable
 	public abstract fun close ()V
 	public abstract synthetic fun fill (JB)V
 	public abstract fun flush ()V
-	public abstract fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
-	public abstract fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public abstract fun writeByte (B)V
 	public abstract synthetic fun writeDouble (D)V
 	public abstract synthetic fun writeFloat (F)V
