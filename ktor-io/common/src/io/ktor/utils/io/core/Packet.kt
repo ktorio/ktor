@@ -6,28 +6,6 @@ import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.pool.*
 
-@DangerousInternalIoApi
-@Deprecated(
-    "Will be removed in the future releases. Use Input or AbstractInput instead.",
-    ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
-)
-public abstract class ByteReadPacketBase(
-    head: ChunkBuffer,
-    remaining: Long,
-    pool: ObjectPool<ChunkBuffer>
-) : AbstractInput(head, remaining, pool) {
-
-    public companion object {
-        @Deprecated(
-            "Use ByteReadPacket.Empty instead",
-            ReplaceWith("ByteReadPacket.Empty"),
-            level = DeprecationLevel.ERROR
-        )
-        public val Empty: ByteReadPacket
-            get() = ByteReadPacket.Empty
-    }
-}
-
 public expect class EOFException(message: String) : IOException
 
 /**
