@@ -54,8 +54,8 @@ public final class io/ktor/util/Base64Kt {
 }
 
 public final class io/ktor/util/BufferViewJvmKt {
-	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
-	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
+	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
+	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 }
 
 public final class io/ktor/util/ByteChannelsKt {
