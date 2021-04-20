@@ -2,6 +2,7 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.Memory
+import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
 /**
@@ -118,7 +119,7 @@ public actual interface Input : Closeable {
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT", "DEPRECATION")
-    public actual fun readFully(dst: IoBuffer, length: Int) {
+    public actual fun readFully(dst: ChunkBuffer, length: Int) {
         return readFully(dst, length)
     }
 
@@ -160,7 +161,7 @@ public actual interface Input : Closeable {
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT", "DEPRECATION")
-    public actual fun readAvailable(dst: IoBuffer, length: Int): Int {
+    public actual fun readAvailable(dst: ChunkBuffer, length: Int): Int {
         return readAvailable(dst, length)
     }
 
@@ -190,7 +191,7 @@ public actual interface Input : Closeable {
      */
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("DEPRECATION", "ACTUAL_WITHOUT_EXPECT")
-    public actual fun peekTo(buffer: IoBuffer): Int {
+    public actual fun peekTo(buffer: ChunkBuffer): Int {
         return peekTo(buffer)
     }
 

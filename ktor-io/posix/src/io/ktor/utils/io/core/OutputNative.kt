@@ -1,6 +1,7 @@
 // ktlint-disable filename
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 
 @Suppress("NO_ACTUAL_CLASS_MEMBER_FOR_EXPECTED_CLASS")
@@ -78,7 +79,7 @@ public actual interface Output : Appendable, Closeable {
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT")
-    public actual fun writeFully(src: IoBuffer, length: Int) {
+    public actual fun writeFully(src: ChunkBuffer, length: Int) {
         writeFully(src, length)
     }
 

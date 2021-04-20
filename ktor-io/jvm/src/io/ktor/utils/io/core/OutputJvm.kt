@@ -1,6 +1,7 @@
 // ktlint-disable filename
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.core.internal.*
 import java.nio.*
 
 /**
@@ -81,7 +82,7 @@ public actual interface Output : Closeable, Appendable {
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT", "DEPRECATION")
-    public actual fun writeFully(src: IoBuffer, length: Int) {
+    public actual fun writeFully(src: ChunkBuffer, length: Int) {
         writeFully(src, length)
     }
 
