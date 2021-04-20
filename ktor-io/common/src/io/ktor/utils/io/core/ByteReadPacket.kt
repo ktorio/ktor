@@ -15,9 +15,7 @@ public class ByteReadPacket internal constructor(
     head: ChunkBuffer,
     remaining: Long,
     pool: ObjectPool<ChunkBuffer>
-) :
-    @Suppress("DEPRECATION_ERROR")
-    ByteReadPacketPlatformBase(head, remaining, pool),
+) : AbstractInput(head, remaining, pool),
     Input {
     public constructor(head: ChunkBuffer, pool: ObjectPool<ChunkBuffer>) : this(head, head.remainingAll(), pool)
 
@@ -52,19 +50,6 @@ public class ByteReadPacket internal constructor(
             get() = Buffer.ReservedSize
     }
 }
-
-@Suppress("DEPRECATION")
-@DangerousInternalIoApi
-@Deprecated(
-    "Will be removed in future releases.",
-    level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("AbstractInput", "io.ktor.utils.io.core.AbstractInput")
-)
-public abstract class ByteReadPacketPlatformBase protected constructor(
-    head: ChunkBuffer,
-    remaining: Long,
-    pool: ObjectPool<ChunkBuffer>
-) : ByteReadPacketBase(head, remaining, pool)
 
 public expect fun ByteReadPacket(
     array: ByteArray,
