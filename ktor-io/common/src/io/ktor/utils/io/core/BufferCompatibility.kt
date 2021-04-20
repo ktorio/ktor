@@ -121,17 +121,6 @@ public fun Buffer.readText(
 }
 
 /**
- * releases buffer view and returns it to the [pool] if there are no more usages. Based on simple ref-counting so
- * it is very fragile.
- */
-@Suppress("DEPRECATION")
-public fun IoBuffer.release(pool: ObjectPool<IoBuffer>) {
-    // TODO ???
-    @Suppress("UNCHECKED_CAST")
-    (this as ChunkBuffer).release(pool as ObjectPool<ChunkBuffer>)
-}
-
-/**
  * Peek the next unsigned byte or return `-1` if no more bytes available for reading. No bytes will be marked
  * as consumed in any case.
  * @see [Buffer.tryPeekByte]

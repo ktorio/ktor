@@ -3,6 +3,8 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.ChunkBuffer
+import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 
 /**
@@ -61,7 +63,7 @@ public actual interface ByteReadChannel {
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
      * @return number of bytes were read or `-1` if the channel has been closed
      */
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
 
     /**
      * Reads all available bytes to [dst] buffer and returns immediately or suspends if no bytes available
@@ -85,7 +87,7 @@ public actual interface ByteReadChannel {
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
      * Suspends if not enough bytes available.
      */
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
 
     /**
      * Reads all [length] bytes to [dst] buffer or fails if channel has been closed.
@@ -240,9 +242,9 @@ public actual interface ByteReadChannel {
          * Empty closed [ByteReadChannel].
          */
         public actual val Empty: ByteReadChannel = ByteChannelNative(
-            IoBuffer.Empty,
+            ChunkBuffer.Empty,
             false,
-            io.ktor.utils.io.core.internal.ChunkBuffer.EmptyPool
+            ChunkBuffer.EmptyPool
         ).apply {
             close(null)
         }
