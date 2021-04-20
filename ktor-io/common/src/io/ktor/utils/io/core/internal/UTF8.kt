@@ -106,12 +106,6 @@ internal fun byteCountUtf8(firstByte: Int): Int {
     return byteCount
 }
 
-@Suppress("DEPRECATION")
-@Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
-public inline fun IoBuffer.decodeUTF8(consumer: (Char) -> Boolean): Int {
-    return (this as Buffer).decodeUTF8(consumer)
-}
-
 /**
  * Decodes all the bytes to utf8 applying every character on [consumer] until or consumer return `false`.
  * If a consumer returned false then a character will be pushed back (including all surrogates will be pushed back as well)

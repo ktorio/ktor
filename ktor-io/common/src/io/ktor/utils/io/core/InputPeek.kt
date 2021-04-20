@@ -1,5 +1,6 @@
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.checkPeekTo
 
 /**
@@ -22,7 +23,7 @@ import io.ktor.utils.io.errors.checkPeekTo
  */
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.peekTo(destination: IoBuffer, offset: Int = 0, min: Int = 1, max: Int = Int.MAX_VALUE): Int {
+public fun Input.peekTo(destination: ChunkBuffer, offset: Int = 0, min: Int = 1, max: Int = Int.MAX_VALUE): Int {
     return peekTo(destination as Buffer, offset, min, max)
 }
 

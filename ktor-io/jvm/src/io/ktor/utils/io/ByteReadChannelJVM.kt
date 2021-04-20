@@ -3,6 +3,7 @@ package io.ktor.utils.io
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.ByteOrder
+import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
 import java.nio.*
 
@@ -69,7 +70,7 @@ public actual interface ByteReadChannel {
      * @return number of bytes were read or `-1` if the channel has been closed
      */
     public actual suspend fun readAvailable(dst: ByteArray, offset: Int, length: Int): Int
-    public actual suspend fun readAvailable(dst: IoBuffer): Int
+    public actual suspend fun readAvailable(dst: ChunkBuffer): Int
     public suspend fun readAvailable(dst: ByteBuffer): Int
 
     /**
@@ -77,7 +78,7 @@ public actual interface ByteReadChannel {
      * Suspends if not enough bytes available.
      */
     public actual suspend fun readFully(dst: ByteArray, offset: Int, length: Int)
-    public actual suspend fun readFully(dst: IoBuffer, n: Int)
+    public actual suspend fun readFully(dst: ChunkBuffer, n: Int)
     public suspend fun readFully(dst: ByteBuffer): Int
 
     /**
@@ -304,7 +305,7 @@ public actual suspend fun ByteReadChannel.copyTo(dst: ByteWriteChannel, limit: L
 }
 
 private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Long): Long {
-    val buffer = IoBuffer.Pool.borrow()
+    val buffer = ChunkBuffer.Pool.borrow()
     val dstNeedsFlush = !dst.autoFlush
 
     try {
@@ -330,7 +331,7 @@ private suspend fun ByteReadChannel.copyToImpl(dst: ByteWriteChannel, limit: Lon
         dst.close(t)
         throw t
     } finally {
-        buffer.release(IoBuffer.Pool)
+        buffer.release(ChunkBuffer.Pool)
     }
 }
 
