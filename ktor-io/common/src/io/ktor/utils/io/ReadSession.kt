@@ -61,7 +61,7 @@ public interface ReadSession {
      * @throws Throwable if the channel has been closed with an exception or cancelled
      */
     @Suppress("DEPRECATION")
-    public fun request(atLeast: Int = 1): IoBuffer?
+    public fun request(atLeast: Int = 1): ChunkBuffer?
 }
 
 @Suppress("DEPRECATION")
