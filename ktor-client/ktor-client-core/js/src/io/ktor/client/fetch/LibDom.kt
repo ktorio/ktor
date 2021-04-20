@@ -336,8 +336,7 @@ public external interface EventTarget {
     public fun removeEventListener(type: String, callback: EventListenerObject)
 }
 
-public external interface EventListener {
-}
+public external interface EventListener
 
 @Suppress("NOTHING_TO_INLINE")
 public inline operator fun EventListener.invoke(evt: Event) {
