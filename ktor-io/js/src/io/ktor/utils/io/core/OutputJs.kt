@@ -1,6 +1,8 @@
 // ktlint-disable filename
 package io.ktor.utils.io.core
 
+import io.ktor.utils.io.core.internal.*
+
 /**
  * This shouldn't be implemented directly. Inherit [AbstractOutput] instead.
  */
@@ -79,7 +81,7 @@ public actual interface Output : Appendable, Closeable {
 
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("ACTUAL_WITHOUT_EXPECT")
-    public actual fun writeFully(src: IoBuffer, length: Int) {
+    public actual fun writeFully(src: ChunkBuffer, length: Int) {
         writeFully(src, length)
     }
 
