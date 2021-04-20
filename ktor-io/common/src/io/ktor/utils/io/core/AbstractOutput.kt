@@ -109,27 +109,6 @@ internal constructor(
         set(_) {
         }
 
-    /**
-     * Byte order (Endianness) to be used by future write functions calls on this builder instance. Doesn't affect any
-     * previously written values.
-     * @default [ByteOrder.BIG_ENDIAN]
-     */
-    @Deprecated(
-        "This is no longer supported. All operations are big endian by default. Use readXXXLittleEndian " +
-            "to read primitives in little endian",
-        level = DeprecationLevel.ERROR
-    )
-    final override var byteOrder: ByteOrder = ByteOrder.BIG_ENDIAN
-        set(value) {
-            field = value
-            if (value != ByteOrder.BIG_ENDIAN) {
-                throw IllegalArgumentException(
-                    "Only BIG_ENDIAN is supported. Use corresponding functions to read/write" +
-                        "in the little endian"
-                )
-            }
-        }
-
     final override fun flush() {
         flushChain()
     }
