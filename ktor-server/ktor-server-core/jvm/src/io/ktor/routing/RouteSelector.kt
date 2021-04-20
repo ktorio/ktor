@@ -271,7 +271,7 @@ public object TrailingSlashRouteSelector : RouteSelector() {
 
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation = when {
         context.call.ignoreTrailingSlash -> RouteSelectorEvaluation.Transparent
-        context.segments.isEmpty() -> RouteSelectorEvaluation.Transparent
+        context.segments.isEmpty() -> RouteSelectorEvaluation.Constant
         segmentIndex < context.segments.lastIndex -> RouteSelectorEvaluation.Transparent
         segmentIndex > context.segments.lastIndex -> RouteSelectorEvaluation.Failed
         context.segments[segmentIndex].isNotEmpty() -> RouteSelectorEvaluation.Transparent

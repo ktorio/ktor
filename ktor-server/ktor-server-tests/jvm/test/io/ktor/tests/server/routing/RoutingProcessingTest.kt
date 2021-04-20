@@ -530,6 +530,33 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun testTransparentSelectorPriority() = withTestApplication {
+        application.routing {
+            route("root") {
+                optionalParam("param") {
+                    handle {
+                        call.respond("param")
+                    }
+                }
+                transparent {
+                    get {
+                        call.respond("get")
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/root?param=123").let { call ->
+            assertTrue(call.requestHandled)
+            assertEquals("param", call.response.content)
+        }
+        handleRequest(HttpMethod.Get, "/root").let { call ->
+            assertTrue(call.requestHandled)
+            assertEquals("get", call.response.content)
+        }
+    }
+
+    @Test
     fun testHostAndPortRoutingProcessing(): Unit = withTestApplication {
         application.routing {
             route("/") {
@@ -915,7 +942,7 @@ Matched routes:
   "" -> "{param}" -> "x" -> "(method:GET)"
 Route resolve result:
   SUCCESS; Parameters [param=[p]] @ /{param}/x/(method:GET)
-""".toPlatformLineSeparators(),
+""",
                 trace?.buildText()
             )
         }
@@ -978,6 +1005,60 @@ Route resolve result:
             assertEquals(call.response.content, "bar")
         }
     }
+
+    @Test
+    fun testDeepChildComparison() = withTestApplication {
+        application.routing {
+            header("a", "a") {
+                optionalParam("a") {
+                    handle {
+                        call.respond("a")
+                    }
+                }
+            }
+            header("b", "b") {
+                param("b") {
+                    handle {
+                        call.respond("b")
+                    }
+                }
+            }
+        }
+
+        // only a match
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader("a", "a")
+            addHeader("b", "b")
+        }.let { call ->
+            assertEquals("a", call.response.content)
+        }
+
+        // only a match
+        handleRequest(HttpMethod.Get, "/?a=a") {
+            addHeader("a", "a")
+            addHeader("b", "b")
+        }.let { call ->
+            assertEquals("a", call.response.content)
+        }
+
+        // both match, b has higher quality
+        handleRequest(HttpMethod.Get, "/?b=b") {
+            addHeader("a", "a")
+            addHeader("b", "b")
+        }.let { call ->
+            assertEquals("b", call.response.content)
+        }
+
+        // both match, same quality
+        handleRequest(HttpMethod.Get, "/?a=a&b=b") {
+            addHeader("a", "a")
+            addHeader("b", "b")
+        }.let { call ->
+            assertEquals("a", call.response.content)
+        }
+    }
+
+    private fun String.toPlatformLineSeparators() = lines().joinToString(System.lineSeparator())
 
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(

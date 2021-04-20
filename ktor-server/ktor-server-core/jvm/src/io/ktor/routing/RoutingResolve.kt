@@ -155,28 +155,30 @@ public class RoutingResolveContext(
             matched = true
         }
 
-        var bestChildResult: RouteSelectorEvaluation? = null
+        var bestSucceedChildQuality: Double = -Double.MAX_VALUE
 
         // iterate using indices to avoid creating iterator
         for (childIndex in 0..entry.children.lastIndex) {
             val child = entry.children[childIndex]
-            val selectorResult = child.selector.evaluate(this, segmentIndex)
-            if (!selectorResult.succeeded) {
+            val childEvaluation = child.selector.evaluate(this, segmentIndex)
+            if (!childEvaluation.succeeded) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Selector didn't match"))
                 continue // selector didn't match, skip entire subtree
             }
-            if (bestChildResult != null && selectorResult.quality < bestChildResult.quality) {
+            if (childEvaluation.quality != RouteSelectorEvaluation.qualityTransparent &&
+                childEvaluation.quality < bestSucceedChildQuality
+            ) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Better match was already found"))
                 continue
             }
 
-            val result = RoutingResolveResult.Success(child, selectorResult.parameters, selectorResult.quality)
-            val newIndex = segmentIndex + selectorResult.segmentIncrement
+            val result = RoutingResolveResult.Success(child, childEvaluation.parameters, childEvaluation.quality)
+            val newIndex = segmentIndex + childEvaluation.segmentIncrement
             trace?.begin(child, newIndex)
             val success = resolveStep(child, successResults, trait + result, newIndex)
             trace?.finish(child, newIndex, result)
-            if (success && (bestChildResult == null || bestChildResult.quality < result.quality)) {
-                bestChildResult = selectorResult
+            if (success && (bestSucceedChildQuality < result.quality)) {
+                bestSucceedChildQuality = childEvaluation.quality
             }
             matched = matched || success
         }
@@ -211,18 +213,23 @@ public class RoutingResolveContext(
                     index1++
                     index2++
                 }
-                compareValues(result1.size, result2.size)
+                compareValues(
+                    result1.count { it.quality != RouteSelectorEvaluation.qualityTransparent },
+                    result2.count { it.quality != RouteSelectorEvaluation.qualityTransparent }
+                )
             }!!
 
         val parameters = bestPath
-            .fold(ParametersBuilder()) { builder, result -> builder.appendAll(result.parameters) }
+            .fold(ParametersBuilder()) { builder, result -> builder.apply { appendAll(result.parameters) } }
             .build()
         return RoutingResolveResult.Success(
             bestPath.last().route,
             parameters,
             bestPath.minOf { result ->
-                result.quality.takeUnless { it == RouteSelectorEvaluation.qualityTransparent }
-                    ?: RouteSelectorEvaluation.qualityConstant
+                when (result.quality) {
+                    RouteSelectorEvaluation.qualityTransparent -> RouteSelectorEvaluation.qualityConstant
+                    else -> result.quality
+                }
             }
         )
     }
