@@ -215,7 +215,7 @@ public class RoutingResolveContext(
             }!!
 
         val parameters = bestPath
-            .fold(ParametersBuilder()) { acc, result -> acc.apply { appendAll(result.parameters) } }
+            .fold(ParametersBuilder()) { builder, result -> builder.appendAll(result.parameters) }
             .build()
         return RoutingResolveResult.Success(
             bestPath.last().route,
