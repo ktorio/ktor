@@ -1039,12 +1039,6 @@ public final class io/ktor/utils/io/core/BytePacketBuilder : io/ktor/utils/io/co
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract class io/ktor/utils/io/core/BytePacketBuilderBase : io/ktor/utils/io/core/AbstractOutput {
-}
-
-public abstract class io/ktor/utils/io/core/BytePacketBuilderPlatformBase : io/ktor/utils/io/core/BytePacketBuilderBase {
-}
-
 public final class io/ktor/utils/io/core/ByteReadPacket : io/ktor/utils/io/core/AbstractInput, io/ktor/utils/io/core/Input {
 	public static final field Companion Lio/ktor/utils/io/core/ByteReadPacket$Companion;
 	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
@@ -1057,15 +1051,6 @@ public final class io/ktor/utils/io/core/ByteReadPacket$Companion {
 	public final fun getReservedSize ()I
 }
 
-public abstract class io/ktor/utils/io/core/ByteReadPacketBase : io/ktor/utils/io/core/AbstractInput {
-	public static final field Companion Lio/ktor/utils/io/core/ByteReadPacketBase$Companion;
-	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
-}
-
-public final class io/ktor/utils/io/core/ByteReadPacketBase$Companion {
-	public final fun getEmpty ()Lio/ktor/utils/io/core/ByteReadPacket;
-}
-
 public final class io/ktor/utils/io/core/ByteReadPacketExtensionsKt {
 	public static final fun ByteReadPacket (Ljava/nio/ByteBuffer;Lkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun ByteReadPacket ([BIILkotlin/jvm/functions/Function1;)Lio/ktor/utils/io/core/ByteReadPacket;
@@ -1076,10 +1061,6 @@ public final class io/ktor/utils/io/core/ByteReadPacketExtensionsKt {
 public final class io/ktor/utils/io/core/ByteReadPacketKt {
 	public static final fun ByteReadPacket ([BII)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static synthetic fun ByteReadPacket$default ([BIIILjava/lang/Object;)Lio/ktor/utils/io/core/ByteReadPacket;
-}
-
-public abstract class io/ktor/utils/io/core/ByteReadPacketPlatformBase : io/ktor/utils/io/core/ByteReadPacketBase {
-	protected fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 }
 
 public final class io/ktor/utils/io/core/CloseableJVMKt {
