@@ -71,7 +71,7 @@ public data class RouteSelectorEvaluation(
         public const val qualityTailcard: Double = 0.1
 
         /**
-         * Quality of [RouteSelectorEvaluation] that doesn't have it's own priority but should delegate evaluation to it's children
+         * Quality of [RouteSelectorEvaluation] that doesn't have its own priority but uses priority of its children
          */
         public const val qualityTransparent: Double = -1.0
 
@@ -93,7 +93,8 @@ public data class RouteSelectorEvaluation(
             RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
         /**
-         * Route evaluation succeeded for a transparent value
+         * Route evaluation succeeded for a [qualityTransparent] value. Useful for helper DSL methods that may wrap
+         * routes but should not change priority of routing
          */
         public val Transparent: RouteSelectorEvaluation =
             RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityTransparent)

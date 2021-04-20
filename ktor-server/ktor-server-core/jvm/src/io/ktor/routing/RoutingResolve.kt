@@ -29,7 +29,7 @@ public sealed class RoutingResolveResult(public val route: Route) {
         internal val quality: Double
     ) : RoutingResolveResult(route) {
 
-        @Deprecated("Binary compatibility")
+        @Deprecated("This is an implementation detail and will become internal in future releases.")
         public constructor(route: Route, parameters: Parameters) : this(route, parameters, 0.0)
 
         override fun toString(): String = "SUCCESS${if (parameters.isEmpty()) "" else "; $parameters"} @ $route"
