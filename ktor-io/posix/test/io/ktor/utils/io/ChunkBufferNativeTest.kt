@@ -6,7 +6,7 @@ import io.ktor.utils.io.pool.*
 import kotlinx.cinterop.*
 import kotlin.test.*
 
-class IoBufferNativeTest {
+class ChunkBufferNativeTest {
     private val buffer = ChunkBuffer.Pool.borrow()
 
     @AfterTest

@@ -24,9 +24,9 @@ public final class io/ktor/utils/io/ByteChannelKt {
 }
 
 public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils/io/ByteChannel, io/ktor/utils/io/ByteReadChannel, io/ktor/utils/io/ByteWriteChannel, io/ktor/utils/io/HasReadSession, io/ktor/utils/io/HasWriteSession, io/ktor/utils/io/SuspendableReadSession {
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;Z)V
-	public fun <init> (Lio/ktor/utils/io/core/IoBuffer;ZLio/ktor/utils/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;ZLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;Z)V
+	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;ZLio/ktor/utils/io/pool/ObjectPool;)V
+	public synthetic fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;ZLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	protected final fun afterRead ()V
 	protected final fun afterRead (I)V
 	protected final fun afterWrite ()V
@@ -58,14 +58,14 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun isClosedForWrite ()Z
 	public final fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun prepareFlushedBytes ()V
-	public fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun readAvailableClosed ()I
 	public fun readBoolean (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readByte (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readDouble (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readFloat (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun readFully (Lio/ktor/utils/io/core/IoBuffer;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun readFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readInt (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readLong (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -76,18 +76,17 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 	public fun readSuspendableSession (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readUTF8Line (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun readUTF8LineTo (Ljava/lang/Appendable;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun request (I)Lio/ktor/utils/io/core/IoBuffer;
+	public fun request (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	protected final fun setClosed (Z)V
 	public fun setReadByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public fun setWriteByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public fun startReadSession ()Lio/ktor/utils/io/SuspendableReadSession;
-	public fun writeAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun writeAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeByte (BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeDouble (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFloat (FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun writeFully (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeInt (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -98,7 +97,7 @@ public abstract class io/ktor/utils/io/ByteChannelSequentialBase : io/ktor/utils
 }
 
 public final class io/ktor/utils/io/ByteChannelSequentialJVM : io/ktor/utils/io/ByteChannelSequentialBase {
-	public fun <init> (Lio/ktor/utils/io/core/IoBuffer;Z)V
+	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;Z)V
 	public fun attachJob (Lkotlinx/coroutines/Job;)V
 	public fun awaitContent (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun consumeEachBufferRange (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -138,14 +137,14 @@ public abstract interface class io/ktor/utils/io/ByteReadChannel {
 	public abstract fun peekTo-vHUFkk8 (Ljava/nio/ByteBuffer;JJJJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun read (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readAvailable (ILkotlin/jvm/functions/Function1;)I
-	public abstract fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readAvailable (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readBoolean (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readByte (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readDouble (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readFloat (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun readFully (Lio/ktor/utils/io/core/IoBuffer;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun readFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun readInt (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -184,7 +183,7 @@ public final class io/ktor/utils/io/ByteReadChannelKt {
 	public static final fun discard (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun discardExact (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readAvailable (Lio/ktor/utils/io/ByteReadChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readFully (Lio/ktor/utils/io/ByteReadChannel;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readPacket (Lio/ktor/utils/io/ByteReadChannel;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun readRemaining (Lio/ktor/utils/io/ByteReadChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -206,14 +205,13 @@ public abstract interface class io/ktor/utils/io/ByteWriteChannel {
 	public abstract fun setWriteByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
 	public abstract fun write (ILkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable (ILkotlin/jvm/functions/Function1;)I
-	public abstract fun writeAvailable (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeAvailable ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeByte (BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeDouble (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFloat (FLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully (Lio/ktor/utils/io/core/Buffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun writeFully (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully (Ljava/nio/ByteBuffer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully ([BIILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun writeFully-rGWNHyQ (Ljava/nio/ByteBuffer;IILkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -332,11 +330,11 @@ public final class io/ktor/utils/io/NativeUtilsJvmKt {
 public abstract interface class io/ktor/utils/io/ReadSession {
 	public abstract fun discard (I)I
 	public abstract fun getAvailableForRead ()I
-	public abstract fun request (I)Lio/ktor/utils/io/core/IoBuffer;
+	public abstract fun request (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 }
 
 public final class io/ktor/utils/io/ReadSession$DefaultImpls {
-	public static synthetic fun request$default (Lio/ktor/utils/io/ReadSession;IILjava/lang/Object;)Lio/ktor/utils/io/core/IoBuffer;
+	public static synthetic fun request$default (Lio/ktor/utils/io/ReadSession;IILjava/lang/Object;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 }
 
 public final class io/ktor/utils/io/ReadSessionKt {
@@ -390,7 +388,7 @@ public abstract interface class io/ktor/utils/io/WriterScope : kotlinx/coroutine
 
 public abstract interface class io/ktor/utils/io/WriterSession {
 	public abstract fun flush ()V
-	public abstract fun request (I)Lio/ktor/utils/io/core/IoBuffer;
+	public abstract fun request (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public abstract fun written (I)V
 }
 
@@ -667,8 +665,6 @@ public final class io/ktor/utils/io/concurrent/SharedJvmKt {
 public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/core/Input {
 	public static final field Companion Lio/ktor/utils/io/core/AbstractInput$Companion;
 	public fun <init> ()V
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;JLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 	public synthetic fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun canRead ()Z
@@ -690,14 +686,14 @@ public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/cor
 	public final synthetic fun isEmpty ()Z
 	public final synthetic fun isNotEmpty ()Z
 	protected final fun markNoMoreChunksAvailable ()V
-	public final synthetic fun peekTo (Lio/ktor/utils/io/core/IoBuffer;)I
+	public final synthetic fun peekTo (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public final fun peekTo-1dgeIsk (Ljava/nio/ByteBuffer;JJJJ)J
 	public final fun prepareRead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final fun prepareRead (ILio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final fun prepareReadHead (I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 	public final synthetic fun read (ILkotlin/jvm/functions/Function1;)V
 	public final synthetic fun read (Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;I)I
+	public synthetic fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)I
 	public synthetic fun readAvailable (Ljava/nio/ByteBuffer;I)I
 	public synthetic fun readAvailable ([BII)I
 	public synthetic fun readAvailable ([DII)I
@@ -708,7 +704,7 @@ public abstract class io/ktor/utils/io/core/AbstractInput : io/ktor/utils/io/cor
 	public final fun readByte ()B
 	public final synthetic fun readDouble ()D
 	public final synthetic fun readFloat ()F
-	public synthetic fun readFully (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public synthetic fun readFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public synthetic fun readFully (Ljava/nio/ByteBuffer;I)V
 	public final synthetic fun readFully ([BII)V
 	public synthetic fun readFully ([DII)V
@@ -746,7 +742,6 @@ public abstract class io/ktor/utils/io/core/AbstractOutput : io/ktor/utils/io/co
 	public fun append (Ljava/lang/CharSequence;II)Lio/ktor/utils/io/core/AbstractOutput;
 	public synthetic fun append (Ljava/lang/CharSequence;II)Ljava/lang/Appendable;
 	public fun append ([CII)Ljava/lang/Appendable;
-	public final synthetic fun appendNewBuffer ()Lio/ktor/utils/io/core/IoBuffer;
 	public final fun close ()V
 	protected abstract fun closeDestination ()V
 	public synthetic fun fill (JB)V
@@ -766,7 +761,7 @@ public abstract class io/ktor/utils/io/core/AbstractOutput : io/ktor/utils/io/co
 	public final fun writeByte (B)V
 	public synthetic fun writeDouble (D)V
 	public synthetic fun writeFloat (F)V
-	public synthetic fun writeFully (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public synthetic fun writeFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public synthetic fun writeFully (Ljava/nio/ByteBuffer;)V
 	public synthetic fun writeFully ([BII)V
 	public synthetic fun writeFully ([DII)V
@@ -843,7 +838,6 @@ public final class io/ktor/utils/io/core/BufferCompatibilityKt {
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[Ljava/lang/Byte;IIILjava/lang/Object;)V
 	public static final fun readText (Lio/ktor/utils/io/core/Buffer;Ljava/nio/charset/CharsetDecoder;Ljava/lang/Appendable;ZI)I
 	public static synthetic fun readText$default (Lio/ktor/utils/io/core/Buffer;Ljava/nio/charset/CharsetDecoder;Ljava/lang/Appendable;ZIILjava/lang/Object;)I
-	public static final fun release (Lio/ktor/utils/io/core/IoBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public static final fun setByteOrder (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/ByteOrder;)V
 	public static final fun tryPeek (Lio/ktor/utils/io/core/Buffer;)I
 }
@@ -878,7 +872,7 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;[III)I
 	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;[JII)I
 	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;[SII)I
-	public static final fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;[BII)I
+	public static final fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BII)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[DIIILjava/lang/Object;)I
@@ -886,7 +880,7 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
-	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/IoBuffer;[BIIILjava/lang/Object;)I
+	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)I
 	public static final fun readAvailable-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)I
 	public static synthetic fun readAvailable-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)I
 	public static final fun readAvailable-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)I
@@ -896,10 +890,10 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun readAvailable-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)I
 	public static synthetic fun readAvailable-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)I
 	public static final fun readDouble (Lio/ktor/utils/io/core/Buffer;)D
-	public static final fun readDouble (Lio/ktor/utils/io/core/IoBuffer;)D
+	public static final fun readDouble (Lio/ktor/utils/io/core/internal/ChunkBuffer;)D
 	public static final fun readExact (Lio/ktor/utils/io/core/Buffer;ILjava/lang/String;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
 	public static final fun readFloat (Lio/ktor/utils/io/core/Buffer;)F
-	public static final fun readFloat (Lio/ktor/utils/io/core/IoBuffer;)F
+	public static final fun readFloat (Lio/ktor/utils/io/core/internal/ChunkBuffer;)F
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/Buffer;I)I
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;[BII)V
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;[DII)V
@@ -907,7 +901,7 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;[III)V
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;[JII)V
 	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static final fun readFully (Lio/ktor/utils/io/core/IoBuffer;[BII)V
+	public static final fun readFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BII)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)I
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[DIIILjava/lang/Object;)V
@@ -915,7 +909,7 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/IoBuffer;[BIIILjava/lang/Object;)V
+	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)V
 	public static final fun readFully-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
 	public static synthetic fun readFully-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
 	public static final fun readFully-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
@@ -925,24 +919,24 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun readFully-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
 	public static synthetic fun readFully-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
 	public static final fun readInt (Lio/ktor/utils/io/core/Buffer;)I
-	public static final fun readInt (Lio/ktor/utils/io/core/IoBuffer;)I
+	public static final fun readInt (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public static final fun readLong (Lio/ktor/utils/io/core/Buffer;)J
-	public static final fun readLong (Lio/ktor/utils/io/core/IoBuffer;)J
+	public static final fun readLong (Lio/ktor/utils/io/core/internal/ChunkBuffer;)J
 	public static final fun readShort (Lio/ktor/utils/io/core/Buffer;)S
-	public static final fun readShort (Lio/ktor/utils/io/core/IoBuffer;)S
+	public static final fun readShort (Lio/ktor/utils/io/core/internal/ChunkBuffer;)S
 	public static final fun readUByte (Lio/ktor/utils/io/core/Buffer;)B
-	public static final fun readUByte (Lio/ktor/utils/io/core/IoBuffer;)B
+	public static final fun readUByte (Lio/ktor/utils/io/core/internal/ChunkBuffer;)B
 	public static final fun readUInt (Lio/ktor/utils/io/core/Buffer;)I
-	public static final fun readUInt (Lio/ktor/utils/io/core/IoBuffer;)I
+	public static final fun readUInt (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public static final fun readULong (Lio/ktor/utils/io/core/Buffer;)J
-	public static final fun readULong (Lio/ktor/utils/io/core/IoBuffer;)J
+	public static final fun readULong (Lio/ktor/utils/io/core/internal/ChunkBuffer;)J
 	public static final fun readUShort (Lio/ktor/utils/io/core/Buffer;)S
-	public static final fun readUShort (Lio/ktor/utils/io/core/IoBuffer;)S
+	public static final fun readUShort (Lio/ktor/utils/io/core/internal/ChunkBuffer;)S
 	public static final fun writeDouble (Lio/ktor/utils/io/core/Buffer;D)V
-	public static final fun writeDouble (Lio/ktor/utils/io/core/IoBuffer;D)V
+	public static final fun writeDouble (Lio/ktor/utils/io/core/internal/ChunkBuffer;D)V
 	public static final fun writeExact (Lio/ktor/utils/io/core/Buffer;ILjava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static final fun writeFloat (Lio/ktor/utils/io/core/Buffer;F)V
-	public static final fun writeFloat (Lio/ktor/utils/io/core/IoBuffer;F)V
+	public static final fun writeFloat (Lio/ktor/utils/io/core/internal/ChunkBuffer;F)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/Buffer;)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;Lio/ktor/utils/io/core/Buffer;I)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;[BII)V
@@ -951,14 +945,14 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;[III)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;[JII)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Buffer;[SII)V
-	public static final fun writeFully (Lio/ktor/utils/io/core/IoBuffer;[BII)V
+	public static final fun writeFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BII)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[BIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[DIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[FIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[JIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
-	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/IoBuffer;[BIIILjava/lang/Object;)V
+	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/internal/ChunkBuffer;[BIIILjava/lang/Object;)V
 	public static final fun writeFully-d1ESLyo (Lio/ktor/utils/io/core/Buffer;[SII)V
 	public static synthetic fun writeFully-d1ESLyo$default (Lio/ktor/utils/io/core/Buffer;[SIIILjava/lang/Object;)V
 	public static final fun writeFully-eOostTs (Lio/ktor/utils/io/core/Buffer;[JII)V
@@ -968,25 +962,38 @@ public final class io/ktor/utils/io/core/BufferPrimitivesKt {
 	public static final fun writeFully-uM_xt_c (Lio/ktor/utils/io/core/Buffer;[III)V
 	public static synthetic fun writeFully-uM_xt_c$default (Lio/ktor/utils/io/core/Buffer;[IIIILjava/lang/Object;)V
 	public static final fun writeInt (Lio/ktor/utils/io/core/Buffer;I)V
-	public static final fun writeInt (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static final fun writeInt (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static final fun writeLong (Lio/ktor/utils/io/core/Buffer;J)V
-	public static final fun writeLong (Lio/ktor/utils/io/core/IoBuffer;J)V
+	public static final fun writeLong (Lio/ktor/utils/io/core/internal/ChunkBuffer;J)V
 	public static final fun writeShort (Lio/ktor/utils/io/core/Buffer;S)V
-	public static final fun writeShort (Lio/ktor/utils/io/core/IoBuffer;S)V
-	public static final fun writeUByte-Bde3r5E (Lio/ktor/utils/io/core/IoBuffer;B)V
+	public static final fun writeShort (Lio/ktor/utils/io/core/internal/ChunkBuffer;S)V
 	public static final fun writeUByte-Nf7JEWI (Lio/ktor/utils/io/core/Buffer;B)V
-	public static final fun writeUInt-WnNSA2s (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static final fun writeUByte-ZYBa3AY (Lio/ktor/utils/io/core/internal/ChunkBuffer;B)V
 	public static final fun writeUInt-_mVlKAM (Lio/ktor/utils/io/core/Buffer;I)V
+	public static final fun writeUInt-e5fcjRE (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static final fun writeULong-Zrk_yTk (Lio/ktor/utils/io/core/Buffer;J)V
-	public static final fun writeULong-cJ4FwcA (Lio/ktor/utils/io/core/IoBuffer;J)V
+	public static final fun writeULong-pLKKpPU (Lio/ktor/utils/io/core/internal/ChunkBuffer;J)V
+	public static final fun writeUShort-SEn4WD4 (Lio/ktor/utils/io/core/internal/ChunkBuffer;S)V
 	public static final fun writeUShort-YTqlC3I (Lio/ktor/utils/io/core/Buffer;S)V
-	public static final fun writeUShort-kYKMprU (Lio/ktor/utils/io/core/IoBuffer;S)V
+}
+
+public final class io/ktor/utils/io/core/BufferUtilsJvmKt {
+	public static final fun ChunkBuffer (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
+	public static synthetic fun ChunkBuffer$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/pool/ObjectPool;ILjava/lang/Object;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
+	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)I
+	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;IILjava/lang/Object;)I
+	public static final fun readDirect (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
+	public static final fun readDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/jvm/functions/Function1;)I
+	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)V
+	public static final fun resetFromContentToWrite (Lio/ktor/utils/io/core/internal/ChunkBuffer;Ljava/nio/ByteBuffer;)V
+	public static final fun writeDirect (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;)I
+	public static final fun writeDirect (Lio/ktor/utils/io/core/internal/ChunkBuffer;ILkotlin/jvm/functions/Function1;)I
+	public static synthetic fun writeDirect$default (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
 }
 
 public final class io/ktor/utils/io/core/BuffersKt {
 	public static final fun readBytes (Lio/ktor/utils/io/core/Buffer;I)[B
 	public static synthetic fun readBytes$default (Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)[B
-	public static final synthetic fun remainingAll (Lio/ktor/utils/io/core/IoBuffer;)J
 	public static final fun remainingAll (Lio/ktor/utils/io/core/internal/ChunkBuffer;)J
 }
 
@@ -1062,7 +1069,6 @@ public abstract class io/ktor/utils/io/core/BytePacketBuilderPlatformBase : io/k
 
 public final class io/ktor/utils/io/core/ByteReadPacket : io/ktor/utils/io/core/ByteReadPacketPlatformBase, io/ktor/utils/io/core/Input {
 	public static final field Companion Lio/ktor/utils/io/core/ByteReadPacket$Companion;
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;Lio/ktor/utils/io/pool/ObjectPool;)V
 	public final fun copy ()Lio/ktor/utils/io/core/ByteReadPacket;
 	public fun toString ()Ljava/lang/String;
@@ -1075,7 +1081,6 @@ public final class io/ktor/utils/io/core/ByteReadPacket$Companion {
 
 public abstract class io/ktor/utils/io/core/ByteReadPacketBase : io/ktor/utils/io/core/AbstractInput {
 	public static final field Companion Lio/ktor/utils/io/core/ByteReadPacketBase$Companion;
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 	public fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 }
 
@@ -1096,7 +1101,6 @@ public final class io/ktor/utils/io/core/ByteReadPacketKt {
 }
 
 public abstract class io/ktor/utils/io/core/ByteReadPacketPlatformBase : io/ktor/utils/io/core/ByteReadPacketBase {
-	public synthetic fun <init> (Lio/ktor/utils/io/core/IoBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 	protected fun <init> (Lio/ktor/utils/io/core/internal/ChunkBuffer;JLio/ktor/utils/io/pool/ObjectPool;)V
 }
 
@@ -1120,9 +1124,9 @@ public abstract interface class io/ktor/utils/io/core/Input : java/io/Closeable 
 	public abstract fun discard (J)J
 	public abstract fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
 	public abstract fun getEndOfInput ()Z
-	public abstract synthetic fun peekTo (Lio/ktor/utils/io/core/IoBuffer;)I
+	public abstract synthetic fun peekTo (Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public abstract fun peekTo-1dgeIsk (Ljava/nio/ByteBuffer;JJJJ)J
-	public abstract synthetic fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;I)I
+	public abstract synthetic fun readAvailable (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)I
 	public abstract synthetic fun readAvailable (Ljava/nio/ByteBuffer;I)I
 	public abstract synthetic fun readAvailable ([BII)I
 	public abstract synthetic fun readAvailable ([DII)I
@@ -1133,7 +1137,7 @@ public abstract interface class io/ktor/utils/io/core/Input : java/io/Closeable 
 	public abstract fun readByte ()B
 	public abstract synthetic fun readDouble ()D
 	public abstract synthetic fun readFloat ()F
-	public abstract synthetic fun readFully (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public abstract synthetic fun readFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public abstract synthetic fun readFully (Ljava/nio/ByteBuffer;I)V
 	public abstract synthetic fun readFully ([BII)V
 	public abstract synthetic fun readFully ([DII)V
@@ -1149,9 +1153,9 @@ public abstract interface class io/ktor/utils/io/core/Input : java/io/Closeable 
 }
 
 public final class io/ktor/utils/io/core/Input$DefaultImpls {
-	public static synthetic fun peekTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;)I
+	public static synthetic fun peekTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)I
 	public static synthetic fun peekTo-1dgeIsk$default (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;JJJJILjava/lang/Object;)J
-	public static synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;I)I
+	public static synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)I
 	public static synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;I)I
 	public static synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[BII)I
 	public static synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[DII)I
@@ -1162,7 +1166,7 @@ public final class io/ktor/utils/io/core/Input$DefaultImpls {
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;IILjava/lang/Object;)I
 	public static synthetic fun readDouble (Lio/ktor/utils/io/core/Input;)D
 	public static synthetic fun readFloat (Lio/ktor/utils/io/core/Input;)F
-	public static synthetic fun readFully (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static synthetic fun readFully (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static synthetic fun readFully (Lio/ktor/utils/io/core/Input;Ljava/nio/ByteBuffer;I)V
 	public static synthetic fun readFully (Lio/ktor/utils/io/core/Input;[BII)V
 	public static synthetic fun readFully (Lio/ktor/utils/io/core/Input;[DII)V
@@ -1224,28 +1228,28 @@ public final class io/ktor/utils/io/core/InputKt {
 	public static final fun discardExact (Lio/ktor/utils/io/core/Input;J)V
 	public static final fun forEach (Lio/ktor/utils/io/core/Input;Lkotlin/jvm/functions/Function1;)V
 	public static final fun peekCharUtf8 (Lio/ktor/utils/io/core/Input;)C
-	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;I)I
+	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[BII)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[DII)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[FII)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[III)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[JII)I
 	public static final synthetic fun readAvailable (Lio/ktor/utils/io/core/Input;[SII)I
-	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;IILjava/lang/Object;)I
+	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;IILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[BIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[DIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[FIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[IIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[JIIILjava/lang/Object;)I
 	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Input;[SIIILjava/lang/Object;)I
-	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[BII)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[DII)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[FII)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[III)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[JII)V
 	public static final synthetic fun readFully (Lio/ktor/utils/io/core/Input;[SII)V
-	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;IILjava/lang/Object;)V
+	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;IILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[BIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[DIIILjava/lang/Object;)V
 	public static synthetic fun readFully$default (Lio/ktor/utils/io/core/Input;[FIIILjava/lang/Object;)V
@@ -1341,9 +1345,9 @@ public final class io/ktor/utils/io/core/InputLittleEndianKt {
 
 public final class io/ktor/utils/io/core/InputPeekKt {
 	public static final fun peekTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/Buffer;III)I
-	public static final synthetic fun peekTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;III)I
+	public static final synthetic fun peekTo (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;III)I
 	public static synthetic fun peekTo$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/Buffer;IIIILjava/lang/Object;)I
-	public static synthetic fun peekTo$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;IIIILjava/lang/Object;)I
+	public static synthetic fun peekTo$default (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;IIIILjava/lang/Object;)I
 }
 
 public final class io/ktor/utils/io/core/InputPrimitivesKt {
@@ -1365,101 +1369,6 @@ public final class io/ktor/utils/io/core/InsufficientSpaceException : java/lang/
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public final class io/ktor/utils/io/core/IoBuffer : io/ktor/utils/io/core/internal/ChunkBuffer, io/ktor/utils/io/core/Input, io/ktor/utils/io/core/Output {
-	public static final field Companion Lio/ktor/utils/io/core/IoBuffer$Companion;
-	public fun <init> (Ljava/nio/ByteBuffer;)V
-	public synthetic fun <init> (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/core/internal/ChunkBuffer;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun afterWrite ()V
-	public synthetic fun append (C)Ljava/lang/Appendable;
-	public final synthetic fun append (Ljava/lang/CharSequence;)Ljava/lang/Appendable;
-	public final synthetic fun append (Ljava/lang/CharSequence;II)Ljava/lang/Appendable;
-	public final synthetic fun append ([CII)Ljava/lang/Appendable;
-	public final synthetic fun appendChars (Ljava/lang/CharSequence;II)I
-	public final synthetic fun appendChars ([CII)I
-	public final synthetic fun canRead ()Z
-	public final synthetic fun canWrite ()Z
-	public fun close ()V
-	public synthetic fun duplicate ()Lio/ktor/utils/io/core/Buffer;
-	public fun duplicate ()Lio/ktor/utils/io/core/IoBuffer;
-	public synthetic fun duplicate ()Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public final synthetic fun fill (JB)V
-	public final fun flush ()V
-	public final fun getByteOrder ()Lio/ktor/utils/io/core/ByteOrder;
-	public fun getEndOfInput ()Z
-	public final synthetic fun getNext ()Lio/ktor/utils/io/core/IoBuffer;
-	public final synthetic fun isExclusivelyOwned ()Z
-	public final synthetic fun makeView ()Lio/ktor/utils/io/core/IoBuffer;
-	public final synthetic fun peekTo (Lio/ktor/utils/io/core/IoBuffer;)I
-	public final fun peekTo-1dgeIsk (Ljava/nio/ByteBuffer;JJJJ)J
-	public final synthetic fun pushBack (I)V
-	public final synthetic fun read (Ljava/nio/ByteBuffer;I)V
-	public final synthetic fun read ([BII)V
-	public final synthetic fun readAvailable (Lio/ktor/utils/io/core/IoBuffer;I)I
-	public final synthetic fun readAvailable (Ljava/nio/ByteBuffer;I)I
-	public final synthetic fun readAvailable ([BII)I
-	public final synthetic fun readAvailable ([DII)I
-	public final synthetic fun readAvailable ([FII)I
-	public final synthetic fun readAvailable ([III)I
-	public final synthetic fun readAvailable ([JII)I
-	public final synthetic fun readAvailable ([SII)I
-	public final fun readDirect (Lkotlin/jvm/functions/Function1;)I
-	public final synthetic fun readDouble ()D
-	public final synthetic fun readFloat ()F
-	public final synthetic fun readFully (Lio/ktor/utils/io/core/IoBuffer;I)V
-	public final synthetic fun readFully (Ljava/nio/ByteBuffer;I)V
-	public final synthetic fun readFully ([BII)V
-	public final synthetic fun readFully ([DII)V
-	public final synthetic fun readFully ([FII)V
-	public final synthetic fun readFully ([III)V
-	public final synthetic fun readFully ([JII)V
-	public final synthetic fun readFully ([SII)V
-	public final synthetic fun readInt ()I
-	public final synthetic fun readLong ()J
-	public final synthetic fun readShort ()S
-	public final synthetic fun readText (Ljava/nio/charset/CharsetDecoder;Ljava/lang/Appendable;ZI)I
-	public static synthetic fun readText$default (Lio/ktor/utils/io/core/IoBuffer;Ljava/nio/charset/CharsetDecoder;Ljava/lang/Appendable;ZIILjava/lang/Object;)I
-	public final fun release (Lio/ktor/utils/io/pool/ObjectPool;)V
-	public final fun resetFromContentToWrite (Ljava/nio/ByteBuffer;)V
-	public final fun setByteOrder (Lio/ktor/utils/io/core/ByteOrder;)V
-	public final synthetic fun setNext (Lio/ktor/utils/io/core/IoBuffer;)V
-	public fun toString ()Ljava/lang/String;
-	public final fun tryPeek ()I
-	public final synthetic fun write (Ljava/nio/ByteBuffer;)V
-	public final synthetic fun write ([BII)V
-	public final synthetic fun writeBuffer (Lio/ktor/utils/io/core/IoBuffer;I)I
-	public final fun writeDirect (ILkotlin/jvm/functions/Function1;)I
-	public final synthetic fun writeDouble (D)V
-	public final synthetic fun writeFloat (F)V
-	public final synthetic fun writeFully (Lio/ktor/utils/io/core/IoBuffer;I)V
-	public synthetic fun writeFully (Ljava/nio/ByteBuffer;)V
-	public final synthetic fun writeFully ([BII)V
-	public final synthetic fun writeFully ([DII)V
-	public final synthetic fun writeFully ([FII)V
-	public final synthetic fun writeFully ([III)V
-	public final synthetic fun writeFully ([JII)V
-	public final synthetic fun writeFully ([SII)V
-	public final synthetic fun writeInt (I)V
-	public final synthetic fun writeLong (J)V
-	public final synthetic fun writeShort (S)V
-}
-
-public final class io/ktor/utils/io/core/IoBuffer$Companion {
-	public final fun getEmpty ()Lio/ktor/utils/io/core/IoBuffer;
-	public final fun getEmptyPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public final fun getNoPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public final fun getPool ()Lio/ktor/utils/io/pool/ObjectPool;
-	public final fun getReservedSize ()I
-}
-
-public final class io/ktor/utils/io/core/IoBufferJVMKt {
-	public static final fun readAvailable (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)I
-	public static synthetic fun readAvailable$default (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;IILjava/lang/Object;)I
-	public static final fun readDirect (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
-	public static final fun readFully (Lio/ktor/utils/io/core/Buffer;Ljava/nio/ByteBuffer;I)V
-	public static final fun writeDirect (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;)I
-	public static synthetic fun writeDirect$default (Lio/ktor/utils/io/core/Buffer;ILkotlin/jvm/functions/Function1;ILjava/lang/Object;)I
-}
-
 public abstract interface class io/ktor/utils/io/core/Output : java/io/Closeable, java/lang/Appendable {
 	public abstract fun append ([CII)Ljava/lang/Appendable;
 	public abstract fun close ()V
@@ -1470,7 +1379,7 @@ public abstract interface class io/ktor/utils/io/core/Output : java/io/Closeable
 	public abstract fun writeByte (B)V
 	public abstract synthetic fun writeDouble (D)V
 	public abstract synthetic fun writeFloat (F)V
-	public abstract synthetic fun writeFully (Lio/ktor/utils/io/core/IoBuffer;I)V
+	public abstract synthetic fun writeFully (Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public abstract synthetic fun writeFully (Ljava/nio/ByteBuffer;)V
 	public abstract synthetic fun writeFully ([BII)V
 	public abstract synthetic fun writeFully ([DII)V
@@ -1487,7 +1396,7 @@ public final class io/ktor/utils/io/core/Output$DefaultImpls {
 	public static synthetic fun fill (Lio/ktor/utils/io/core/Output;JB)V
 	public static synthetic fun writeDouble (Lio/ktor/utils/io/core/Output;D)V
 	public static synthetic fun writeFloat (Lio/ktor/utils/io/core/Output;F)V
-	public static synthetic fun writeFully (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static synthetic fun writeFully (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static synthetic fun writeFully (Lio/ktor/utils/io/core/Output;Ljava/nio/ByteBuffer;)V
 	public static synthetic fun writeFully (Lio/ktor/utils/io/core/Output;[BII)V
 	public static synthetic fun writeFully (Lio/ktor/utils/io/core/Output;[DII)V
@@ -1512,7 +1421,7 @@ public final class io/ktor/utils/io/core/OutputKt {
 	public static final fun fill (Lio/ktor/utils/io/core/Output;JB)V
 	public static synthetic fun fill$default (Lio/ktor/utils/io/core/Output;JBILjava/lang/Object;)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/Buffer;I)V
-	public static final synthetic fun writeFully (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/IoBuffer;I)V
+	public static final synthetic fun writeFully (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/internal/ChunkBuffer;I)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;[BII)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;[DII)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;[FII)V
@@ -1520,7 +1429,7 @@ public final class io/ktor/utils/io/core/OutputKt {
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;[JII)V
 	public static final fun writeFully (Lio/ktor/utils/io/core/Output;[SII)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/Buffer;IILjava/lang/Object;)V
-	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/IoBuffer;IILjava/lang/Object;)V
+	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/internal/ChunkBuffer;IILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[BIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[DIIILjava/lang/Object;)V
 	public static synthetic fun writeFully$default (Lio/ktor/utils/io/core/Output;[FIIILjava/lang/Object;)V
@@ -1756,7 +1665,6 @@ public final class io/ktor/utils/io/core/internal/RequireKt {
 
 public final class io/ktor/utils/io/core/internal/UTF8Kt {
 	public static final fun decodeUTF8 (Lio/ktor/utils/io/core/Buffer;Lkotlin/jvm/functions/Function1;)I
-	public static final synthetic fun decodeUTF8 (Lio/ktor/utils/io/core/IoBuffer;Lkotlin/jvm/functions/Function1;)I
 	public static final fun decodeUTF8LineLoopSuspend (Ljava/lang/Appendable;ILkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun highSurrogate (I)I
 	public static final fun isBmpCodePoint (I)Z
@@ -1768,15 +1676,10 @@ public final class io/ktor/utils/io/core/internal/UTF8Kt {
 
 public final class io/ktor/utils/io/core/internal/UnsafeKt {
 	public static final fun $unsafeAppend$ (Lio/ktor/utils/io/core/ByteReadPacket;Lio/ktor/utils/io/core/BytePacketBuilder;)V
-	public static final synthetic fun afterHeadWrite (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/IoBuffer;)V
 	public static final fun afterHeadWrite (Lio/ktor/utils/io/core/Output;Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
-	public static final synthetic fun completeReadHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;)V
 	public static final fun completeReadHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)V
-	public static final synthetic fun prepareReadFirstHead (Lio/ktor/utils/io/core/Input;I)Lio/ktor/utils/io/core/IoBuffer;
 	public static final fun prepareReadFirstHead (Lio/ktor/utils/io/core/Input;I)Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public static final synthetic fun prepareReadNextHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/IoBuffer;)Lio/ktor/utils/io/core/IoBuffer;
 	public static final fun prepareReadNextHead (Lio/ktor/utils/io/core/Input;Lio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
-	public static final synthetic fun prepareWriteHead (Lio/ktor/utils/io/core/Output;ILio/ktor/utils/io/core/IoBuffer;)Lio/ktor/utils/io/core/IoBuffer;
 	public static final fun prepareWriteHead (Lio/ktor/utils/io/core/Output;ILio/ktor/utils/io/core/internal/ChunkBuffer;)Lio/ktor/utils/io/core/internal/ChunkBuffer;
 }
 
@@ -1829,14 +1732,12 @@ public final class io/ktor/utils/io/jvm/nio/WritingKt {
 
 public final class io/ktor/utils/io/nio/ChannelsKt {
 	public static final fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/Buffer;)I
-	public static final synthetic fun read (Ljava/nio/channels/ReadableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
 	public static final fun read-r2lQqvc (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;II)I
 	public static synthetic fun read-r2lQqvc$default (Ljava/nio/channels/ReadableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
 	public static final fun readPacketAtLeast (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun readPacketAtMost (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun readPacketExact (Ljava/nio/channels/ReadableByteChannel;J)Lio/ktor/utils/io/core/ByteReadPacket;
 	public static final fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/Buffer;)I
-	public static final synthetic fun write (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/IoBuffer;)I
 	public static final fun write-XQjEsr4 (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;II)I
 	public static synthetic fun write-XQjEsr4$default (Ljava/nio/channels/WritableByteChannel;Ljava/nio/ByteBuffer;IIILjava/lang/Object;)I
 	public static final fun writePacket (Ljava/nio/channels/WritableByteChannel;Lio/ktor/utils/io/core/ByteReadPacket;)Z

@@ -83,7 +83,7 @@ public expect interface Input : Closeable {
      */
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
     @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
-    public fun peekTo(buffer: IoBuffer): Int {
+    public fun peekTo(buffer: ChunkBuffer): Int {
         return peekTo(buffer)
     }
 
@@ -155,7 +155,7 @@ public expect interface Input : Closeable {
 
     @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun readFully(dst: IoBuffer, length: Int) {
+    public fun readFully(dst: ChunkBuffer, length: Int) {
         readFully(dst, length)
     }
 
@@ -197,7 +197,7 @@ public expect interface Input : Closeable {
 
     @Suppress("EXPECTED_DECLARATION_WITH_BODY", "DEPRECATION")
     @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-    public fun readAvailable(dst: IoBuffer, length: Int): Int {
+    public fun readAvailable(dst: ChunkBuffer, length: Int): Int {
         return readAvailable(dst, length)
     }
 }
@@ -352,7 +352,7 @@ private fun Input.peekCharUtf8Impl(first: Int): Char {
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.readAvailable(dst: IoBuffer, size: Int = dst.writeRemaining): Int = readAvailable(dst, size)
+public fun Input.readAvailable(dst: ChunkBuffer, size: Int = dst.writeRemaining): Int = readAvailable(dst, size)
 
 @JvmName("readAvailable")
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
@@ -393,7 +393,7 @@ public fun Input.readAvailableOld(dst: DoubleArray, offset: Int = 0, length: Int
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
-public fun Input.readFully(dst: IoBuffer, size: Int = dst.writeRemaining): Unit = readFully(dst, size)
+public fun Input.readFully(dst: ChunkBuffer, size: Int = dst.writeRemaining): Unit = readFully(dst, size)
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER", "UNUSED", "DEPRECATION")
 @Deprecated("Binary compatibility.", level = DeprecationLevel.HIDDEN)
