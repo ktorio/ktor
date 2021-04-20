@@ -3,6 +3,7 @@ package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.internal.*
 import kotlinx.cinterop.*
 
 /**
@@ -60,7 +61,7 @@ public actual interface ByteWriteChannel {
     /**
      * Writes as much as possible and only suspends if buffer is full
      */
-    public actual suspend fun writeAvailable(src: IoBuffer): Int
+    public actual suspend fun writeAvailable(src: ChunkBuffer): Int
 
     /**
      * Writes as much as possible and only suspends if buffer is full
@@ -77,12 +78,6 @@ public actual interface ByteWriteChannel {
      * Crashes if channel get closed while writing.
      */
     public actual suspend fun writeFully(src: ByteArray, offset: Int, length: Int)
-
-    /**
-     * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
-     * Crashes if channel get closed while writing.
-     */
-    public actual suspend fun writeFully(src: IoBuffer)
 
     /**
      * Writes all [src] bytes and suspends until all bytes written. Causes flush if buffer filled up or when [autoFlush]
