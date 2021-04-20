@@ -238,8 +238,7 @@ public inline fun Output.writeWhileSize(initialSize: Int = 1, block: (Buffer) ->
 }
 
 public fun Output.writePacket(packet: ByteReadPacket) {
-    @Suppress("DEPRECATION_ERROR")
-    if (this is BytePacketBuilderBase) {
+    if (this is AbstractOutput) {
         writePacket(packet)
         return
     }
