@@ -1,7 +1,6 @@
 package io.ktor.utils.io
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.internal.*
@@ -62,18 +61,6 @@ public abstract class ByteChannelSequentialBase(
 
     override val availableForWrite: Int
         get() = maxOf(0, EXPECTED_CAPACITY.toInt() - totalPending())
-
-    override var readByteOrder: ByteOrder
-        get() = state.readByteOrder
-        set(value) {
-            state.readByteOrder = value
-        }
-
-    override var writeByteOrder: ByteOrder
-        get() = state.writeByteOrder
-        set(value) {
-            state.writeByteOrder = value
-        }
 
     override val isClosedForRead: Boolean
         get() = closed && readable.isEmpty && flushSize == 0 && writable.isEmpty
@@ -180,42 +167,33 @@ public abstract class ByteChannelSequentialBase(
         afterWrite(1)
     }
 
-    private inline fun <T : Any> reverseWrite(value: () -> T, reversed: () -> T): T {
-        @Suppress("DEPRECATION_ERROR")
-        return if (writeByteOrder == ByteOrder.BIG_ENDIAN) {
-            value()
-        } else {
-            reversed()
-        }
-    }
-
     override suspend fun writeShort(s: Short) {
         awaitAtLeastNBytesAvailableForWrite(2)
-        writable.writeShort(reverseWrite({ s }, { s.reverseByteOrder() }))
+        writable.writeShort(s)
         afterWrite(2)
     }
 
     override suspend fun writeInt(i: Int) {
         awaitAtLeastNBytesAvailableForWrite(4)
-        writable.writeInt(reverseWrite({ i }, { i.reverseByteOrder() }))
+        writable.writeInt(i)
         afterWrite(4)
     }
 
     override suspend fun writeLong(l: Long) {
         awaitAtLeastNBytesAvailableForWrite(8)
-        writable.writeLong(reverseWrite({ l }, { l.reverseByteOrder() }))
+        writable.writeLong(l)
         afterWrite(8)
     }
 
     override suspend fun writeFloat(f: Float) {
         awaitAtLeastNBytesAvailableForWrite(4)
-        writable.writeFloat(reverseWrite({ f }, { f.reverseByteOrder() }))
+        writable.writeFloat(f)
         afterWrite(4)
     }
 
     override suspend fun writeDouble(d: Double) {
         awaitAtLeastNBytesAvailableForWrite(8)
-        writable.writeDouble(reverseWrite({ d }, { d.reverseByteOrder() }))
+        writable.writeDouble(d)
         afterWrite(8)
     }
 
@@ -353,14 +331,14 @@ public abstract class ByteChannelSequentialBase(
 
     override suspend fun readShort(): Short {
         return if (readable.hasBytes(2)) {
-            readable.readShort().reverseRead().also { afterRead(2) }
+            readable.readShort().also { afterRead(2) }
         } else {
             readShortSlow()
         }
     }
 
     private suspend fun readShortSlow(): Short {
-        readNSlow(2) { return readable.readShort().reverseRead().also { afterRead(2) } }
+        readNSlow(2) { return readable.readShort().also { afterRead(2) } }
     }
 
     @Deprecated("Consider providing consumed count of bytes", level = DeprecationLevel.ERROR)
@@ -373,39 +351,9 @@ public abstract class ByteChannelSequentialBase(
         slot.resume()
     }
 
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Short.reverseRead(): Short = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Int.reverseRead(): Int = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Long.reverseRead(): Long = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Float.reverseRead(): Float = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
-    @Suppress("NOTHING_TO_INLINE", "DEPRECATION_ERROR")
-    private inline fun Double.reverseRead(): Double = when {
-        readByteOrder == ByteOrder.BIG_ENDIAN -> this
-        else -> this.reverseByteOrder()
-    }
-
     override suspend fun readInt(): Int {
         return if (readable.hasBytes(4)) {
-            readable.readInt().reverseRead().also { afterRead(4) }
+            readable.readInt().also { afterRead(4) }
         } else {
             readIntSlow()
         }
@@ -413,13 +361,13 @@ public abstract class ByteChannelSequentialBase(
 
     private suspend fun readIntSlow(): Int {
         readNSlow(4) {
-            return readable.readInt().reverseRead().also { afterRead(4) }
+            return readable.readInt().also { afterRead(4) }
         }
     }
 
     override suspend fun readLong(): Long {
         return if (readable.hasBytes(8)) {
-            readable.readLong().reverseRead().also { afterRead(8) }
+            readable.readLong().also { afterRead(8) }
         } else {
             readLongSlow()
         }
@@ -427,31 +375,31 @@ public abstract class ByteChannelSequentialBase(
 
     private suspend fun readLongSlow(): Long {
         readNSlow(8) {
-            return readable.readLong().reverseRead().also { afterRead(8) }
+            return readable.readLong().also { afterRead(8) }
         }
     }
 
     override suspend fun readFloat(): Float = if (readable.hasBytes(4)) {
-        readable.readFloat().reverseRead().also { afterRead(4) }
+        readable.readFloat().also { afterRead(4) }
     } else {
         readFloatSlow()
     }
 
     private suspend fun readFloatSlow(): Float {
         readNSlow(4) {
-            return readable.readFloat().reverseRead().also { afterRead(4) }
+            return readable.readFloat().also { afterRead(4) }
         }
     }
 
     override suspend fun readDouble(): Double = if (readable.hasBytes(8)) {
-        readable.readDouble().reverseRead().also { afterRead(8) }
+        readable.readDouble().also { afterRead(8) }
     } else {
         readDoubleSlow()
     }
 
     private suspend fun readDoubleSlow(): Double {
         readNSlow(8) {
-            return readable.readDouble().reverseRead().also { afterRead(8) }
+            return readable.readDouble().also { afterRead(8) }
         }
     }
 
