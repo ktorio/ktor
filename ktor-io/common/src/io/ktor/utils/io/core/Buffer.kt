@@ -3,7 +3,6 @@
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.bits.*
-import io.ktor.utils.io.concurrent.*
 import io.ktor.utils.io.core.internal.*
 import io.ktor.utils.io.errors.EOFException
 import kotlin.contracts.*
@@ -383,7 +382,7 @@ public open class Buffer(public val memory: Memory) {
          * The empty buffer singleton: it has zero capacity for read and write.
          */
         @Suppress("DEPRECATION")
-        public val Empty: Buffer get() = IoBuffer.Empty
+        public val Empty: Buffer get() = ChunkBuffer.Empty
     }
 }
 
