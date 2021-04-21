@@ -12,6 +12,7 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import kotlinx.html.*
 import kotlinx.html.stream.*
+import java.io.*
 
 /**
  * Responds to a client with a HTML response, using specified [block] to build an HTML page
@@ -32,9 +33,18 @@ public class HtmlContent(
         get() = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        channel.bufferedWriter().use {
-            it.append("<!DOCTYPE html>\n")
-            it.appendHTML().html(block = builder)
+        val content = ByteArrayOutputStream()
+
+        try {
+            content.bufferedWriter().use {
+                it.append("<!DOCTYPE html>\n")
+                it.appendHTML().html(block = builder)
+            }
+        } catch (cause: Throwable) {
+            channel.close(cause)
+            throw cause
         }
+
+        channel.writeFully(content.toByteArray())
     }
 }
