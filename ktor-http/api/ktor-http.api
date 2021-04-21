@@ -1029,6 +1029,7 @@ public final class io/ktor/http/UrlEncodingOption : java/lang/Enum {
 
 public final class io/ktor/http/auth/AuthScheme {
 	public static final field Basic Ljava/lang/String;
+	public static final field Bearer Ljava/lang/String;
 	public static final field Digest Ljava/lang/String;
 	public static final field INSTANCE Lio/ktor/http/auth/AuthScheme;
 	public static final field Negotiate Ljava/lang/String;

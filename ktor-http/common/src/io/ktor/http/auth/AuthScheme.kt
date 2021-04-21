@@ -51,7 +51,7 @@ public object AuthScheme {
      *
      * see https://tools.ietf.org/html/rfc6750
      */
-    const val Bearer = "Bearer"
+    public const val Bearer: String = "Bearer"
 
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
@@ -64,8 +64,4 @@ public object AuthScheme {
     @Suppress("KDocMissingDocumentation", "unused")
     @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
     public fun getNegotiate(): String = Negotiate
-
-    @Suppress("KDocMissingDocumentation", "unused")
-    @Deprecated("Compatibility", level = DeprecationLevel.HIDDEN)
-    fun getBearer(): String = Bearer
 }

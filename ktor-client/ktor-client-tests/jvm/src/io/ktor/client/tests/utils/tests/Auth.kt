@@ -86,10 +86,10 @@ internal fun Application.authTestServer() {
                 get("test-refresh") {
                     val token = call.request.headers["Authorization"]
                     if (token.isNullOrEmpty() || token.contains("invalid")) {
-                        call.response.status(HttpStatusCode.Unauthorized)
                         call.response.header(HttpHeaders.WWWAuthenticate, "Bearer realm=\"TestServer\"")
+                        call.respond(HttpStatusCode.Unauthorized)
                     } else {
-                        call.response.status(HttpStatusCode.OK)
+                        call.respond(HttpStatusCode.OK)
                     }
                 }
             }
